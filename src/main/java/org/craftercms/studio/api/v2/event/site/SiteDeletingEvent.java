@@ -26,8 +26,8 @@ import org.springframework.security.core.Authentication;
  */
 public class SiteDeletingEvent extends SiteLifecycleEvent {
 
-    public SiteDeletingEvent(Authentication authentication, String siteId) {
-        super(authentication, siteId);
+    public SiteDeletingEvent(final String siteId, final String siteUuid) {
+        super(siteId, siteUuid);
     }
 
     @Override

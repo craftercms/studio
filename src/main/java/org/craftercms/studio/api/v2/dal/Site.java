@@ -166,4 +166,12 @@ public class Site {
     public void setState(String state) {
         this.state = state;
     }
+
+    public static class State {
+        public static final String INITIALIZING = "INITIALIZING";
+        public static final String LOCKED = "LOCKED";
+        public static final String READY = "READY";
+        public static final String DELETING = "DELETING";
+        public static final String DELETED = "DELETED";
+    }
 }

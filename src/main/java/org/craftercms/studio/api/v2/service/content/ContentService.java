@@ -27,12 +27,15 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ContentService {
@@ -42,9 +45,18 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path content path
      * @return true if the content exists, false otherwise
-     * @throws SiteNotFoundException
+     * @throws SiteNotFoundException if site is not found
      */
     boolean contentExists(String siteId, String path) throws SiteNotFoundException;
+
+    /**
+     * This is a faster, but less accurate, version of contentExists. This prioritizes
+     * performance over checking the actual underlying repository if the content is actually in the store
+     * or we simply hold a reference to the object in the actual store.
+     *
+     * @return true if site has content object at path
+     */
+    boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
 
     /**
      * Get list of content types marked as quick creatable for given site
@@ -127,6 +139,21 @@ public interface ContentService {
                                         List<String> excludes, String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException;
 
+    /**
+     * Get children for paths bulk.
+     * This method will return children for a list of paths. Result items will also
+     * include a {@link SandboxItem} object for the item itself.
+     *
+     * @param siteId     the site id
+     * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
+     *                   validate permissions.
+     * @param pathParams Map of extra parameters for each path
+     * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found (when calculating available actions)
+     */
+    GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
+            throws ServiceLayerException, UserNotFoundException;
 
     Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 

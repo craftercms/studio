@@ -30,9 +30,9 @@ import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Default implementation for {@link ContentTypeService}
@@ -95,6 +95,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     public void deleteContentType(@SiteId String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public Collection<String> getAllModelDefinitions(@SiteId final String site) throws ServiceLayerException {
+        return contentTypeServiceInternal.getAllModelDefinitions(site);
     }
 
 }

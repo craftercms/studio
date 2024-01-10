@@ -18,9 +18,11 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.commons.validation.validators.impl.SecurePathValidator
 import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import org.craftercms.studio.api.v2.exception.content.ContentExistException
+import org.craftercms.studio.controller.rest.ValidationUtils
 import scripts.api.ContentServices
 
 def result = [:]
@@ -30,7 +32,6 @@ def oldPath = ""
 def fileName = ""
 def contentType = ""
 def draft = "false"
-def createFolders = "true"
 def edit = "false"
 def unlock = "true"
 def content = null
@@ -39,12 +40,28 @@ def isImage = "false";
 def allowedWidth = "";
 def allowedHeight = "";
 def allowLessSize = "";
-def changeCase = "";
 def systemAsset = null;
 
 def context = ContentServices.createContext(applicationContext, request)
 
-if(ServletFileUpload.isMultipartContent(request)) {
+site = request.getParameter("site_id")
+if (StringUtils.isEmpty(site)) {
+    site = request.getParameter("site")
+}
+path = request.getParameter("path")
+if (!path || path == '') {
+    result.code = 400
+    result.message = "Path must be provided."
+    return result
+}
+if (!site || site == '') {
+    result.code = 400
+    result.message = "Site must be provided."
+    return result
+}
+
+ValidationUtils.validateValue(new SecurePathValidator(), path, 'path');
+if (ServletFileUpload.isMultipartContent(request)) {
     def upload = new ServletFileUpload()
     def iterator = upload.getItemIterator(request)
     while(iterator.hasNext()) {
@@ -53,13 +70,6 @@ if(ServletFileUpload.isMultipartContent(request)) {
         def stream = item.openStream()
         if (item.isFormField()) {
             switch (name) {
-                case "site_id":
-                case "site":
-                    site = Streams.asString(stream)
-                    break
-                case "path":
-                    path = Streams.asString(stream)
-                    break
                 case "isImage":
                     isImage = Streams.asString(stream)
                     break
@@ -72,16 +82,12 @@ if(ServletFileUpload.isMultipartContent(request)) {
                 case "allowLessSize":
                     allowLessSize = Streams.asString(stream)
                     break
-                case "changeCase":
-                    changeCase = Streams.asString(stream)
-                    break
             }
         } else {
             fileName = item.getName()
             if (fileName != null) {
                 fileName = FilenameUtils.getName(fileName)
             }
-            contentType = item.getContentType()
             try {
                 def writeAssetRes = ContentServices.writeContentAsset(context, site, path, fileName, stream,
                         isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
@@ -106,41 +112,16 @@ if(ServletFileUpload.isMultipartContent(request)) {
         throw new HttpStatusCodeException(400, "multipart request is missing the file")
     }
 } else {
-    site = request.getParameter("site_id")
-    path = request.getParameter("path")
     oldPath = request.getParameter("oldContentPath")
     fileName = (request.getParameter("fileName")) ? request.getParameter("fileName") : request.getParameter("filename")
     contentType = request.getParameter("contentType")
-    createFolders = request.getParameter("createFolders")
     edit = request.getParameter("edit")
     draft = request.getParameter("draft")
     unlock = request.getParameter("unlock")
     content = request.getInputStream()
 
     /** Validate Parameters */
-    def invalidParams = false
-    def paramsList = []
-
-    // site_id
-    try {
-        if (StringUtils.isEmpty(site)) {
-            site = request.getParameter("site")
-            if (StringUtils.isEmpty(site)) {
-                invalidParams = true
-                paramsList.add("site_id")
-            }
-        }
-    } catch (Exception e) {
-        invalidParams = true
-        paramsList.add("site_id")
-    }
-
-    if (!path || path == '') {
-        result.code = 400
-        result.message = "Path must be provided."
-        return result
-    }
-    else if (!fileName || fileName == '') {
+    if (!fileName || fileName == '') {
         result.code = 400;
         result.message = "fileName must be provided."
         return result

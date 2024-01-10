@@ -13,33 +13,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.model.contentType;
 
-package org.craftercms.studio.api.v2.event.site;
+import org.craftercms.studio.model.rest.Result;
+
+import java.util.Collection;
 
 /**
- * Triggered where a site is deleted
- *
- * @author jmendeza
- * @since 4.0.3
+ * Contains a collection of {@link String} representing the model definitions.
  */
-public class SiteDeletedEvent extends SiteLifecycleEvent {
+public class ModelDefinitions extends Result {
+    private final Collection<String> types;
 
-    public SiteDeletedEvent(final String siteId, final String siteUuid) {
-        super(siteId, siteUuid);
+    public ModelDefinitions(Collection<String> types) {
+        this.types = types;
     }
 
-    @Override
-    public String getEventType() {
-        return "SITE_DELETED_EVENT";
+    public Collection<String> getTypes() {
+        return types;
     }
 
-    @Override
-    public String toString() {
-        return "SiteDeleteEvent{" +
-                "siteId='" + getSiteId() + '\'' +
-                ", siteUuid='" + getSiteUuid() + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                '}';
-    }
 }

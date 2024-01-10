@@ -16,31 +16,33 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.model.history.ItemVersion;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 
@@ -49,9 +51,12 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.endsWith;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
@@ -73,6 +78,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public boolean contentExists(String siteId, String path) {
         return contentRepository.contentExists(siteId, path);
+    }
+
+    @Override
+    public boolean shallowContentExists(String siteId, String path) {
+        return contentRepository.shallowContentExists(siteId, path);
     }
 
     @Override
@@ -112,29 +122,51 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return toRet;
     }
 
+    @Override
+    public GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths,
+                                                           Map<String, PathParams> pathParams) throws UserNotFoundException, ServiceLayerException {
+        List<ChildrenByPathResult> resultItems = new ArrayList<>(paths.size());
+
+        Map<String, SandboxItem> sandboxItemsByPath = getSandboxItemsByPath(siteId, paths, true).stream()
+                .collect(toMap(SandboxItem::getPath, identity()));
+        List<String> missingItems = new LinkedList<>();
+        for (PathParams params : pathParams.values()) {
+            try {
+                ChildrenByPathResult resultItem = new ChildrenByPathResult();
+                resultItem.setPath(params.getPath());
+
+                GetChildrenResult children = getChildrenByPath(siteId, params.getPath(), params.getLocaleCode(),
+                        params.getKeyword(), params.getSystemTypes(), params.getExcludes(), params.getSortStrategy(),
+                        params.getOrder(), params.getOffset(), params.getLimit());
+                resultItem.setResult(children);
+                resultItem.setItem(sandboxItemsByPath.get(params.getPath()));
+                resultItems.add(resultItem);
+            } catch (ContentNotFoundException e) {
+                logger.error(format("Content not found at path %s site %s", params.getPath(), siteId), e);
+                missingItems.add(params.getPath());
+            }
+        }
+        return new GetChildrenByPathsBulkResult(resultItems, missingItems);
+    }
+
     private GetChildrenResult processResultSet(String siteId, List<Item> resultSet)
             throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult toRet = new GetChildrenResult();
+        List<SandboxItem> children = new ArrayList<>(resultSet.size());
+        toRet.setChildren(children);
+        if (!isNotEmpty(resultSet)) {
+            return toRet;
+        }
         String user = securityService.getCurrentUser();
-        if (resultSet != null && resultSet.size() > 0) {
-            int idx = 0;
-            Item item = resultSet.get(idx);
-            item.setAvailableActions(
-                    semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
-            if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
+        for (Item child : resultSet) {
+            child.setAvailableActions(
+                    semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
+            if (endsWith(child.getPath(), FILE_SEPARATOR +
                     servicesConfig.getLevelDescriptorName(siteId))) {
-                toRet.setLevelDescriptor(SandboxItem.getInstance(item));
-                idx++;
-            }
-            List<SandboxItem> children = new ArrayList<>();
-            while (idx < resultSet.size()) {
-                Item child = resultSet.get(idx);
-                child.setAvailableActions(
-                        semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
+                toRet.setLevelDescriptor(SandboxItem.getInstance(child));
+            } else {
                 children.add(SandboxItem.getInstance(child));
-                idx++;
             }
-            toRet.setChildren(children);
         }
         return toRet;
     }
@@ -228,7 +260,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
             throws ServiceLayerException, UserNotFoundException {
-        if (!CollectionUtils.isNotEmpty(items)) {
+        if (isEmpty(items)) {
             return emptyList();
         }
         List<SandboxItem> toRet = new ArrayList<>();

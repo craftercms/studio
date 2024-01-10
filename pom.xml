@@ -16,784 +16,740 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>crafter-studio</artifactId>
-
-    <name>Crafter Studio</name>
-    <description>Crafter Content Authoring Application</description>
-    <url>https://github.com/craftercms/studio</url>
-
-    <scm>
-        <connection>scm:git:git://github.com/craftercms/studio</connection>
-        <developerConnection>scm:git:git://github.com/craftercms/studio</developerConnection>
-        <url>scm:git:git://github.com/craftercms/studio</url>
-    </scm>
-
-    <packaging>war</packaging>
-
-    <parent>
-        <groupId>org.craftercms</groupId>
-        <artifactId>craftercms</artifactId>
-        <version>4.2.0-SNAPSHOT</version><!-- craftercms version flag -->
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-
-    <properties>
-        <studio.ui.path>../studio-ui/</studio.ui.path>
-    </properties>
-
-    <dependencies>
-        <!-- Servlet -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${servlet.api.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Crafter Engine -->
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-engine</artifactId>
-            <version>${project.version}</version>
-            <type>war</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-engine</artifactId>
-            <version>${project.version}</version>
-            <classifier>classes</classifier>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-git</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-security</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-plugin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-upgrade-manager</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-utilities</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- Database DALs -->
-        <dependency>
-            <groupId>org.apache.ibatis</groupId>
-            <artifactId>ibatis-sqlmap</artifactId>
-            <version>${ibatis.sqlmap.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis-spring</artifactId>
-            <version>${mybatis.spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>${mybatis.version}</version>
-        </dependency>
-
-        <!-- Spring -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-websocket</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-messaging</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-messaging</artifactId>
-            <version>${spring.security.version}</version>
-        </dependency>
-
-        <!-- Commons -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-dbcp2</artifactId>
-            <version>${commons.dbcp2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>${commons.fileupload.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>${json.lib.version}</version>
-            <classifier>jdk15</classifier>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-beanutils</artifactId>
-                    <groupId>commons-beanutils</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons.io.version}</version>
-        </dependency>
-
-        <!-- Other -->
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-            <version>${jta.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>${validation.api.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate.validator.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>${freemarker.version}</version>
-        </dependency>
-
-        <!-- JGit -->
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>${jgit.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- testing -->
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit.junit</artifactId>
-            <version>${jgit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit.vintage.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.support</groupId>
-            <artifactId>testng-engine</artifactId>
-            <version>${testng.engine.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-
-        <!-- Tomcat EL -->
-        <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-jasper-el</artifactId>
-            <version>${tomcat.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>${snakeyaml.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-core</artifactId>
-            <version>${xmlunit.core.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Required by spring-websocket -->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-websocket</artifactId>
-            <version>${tomcat.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- MariaDB -->
-        <dependency>
-            <groupId>org.craftercms.mariaDB4j</groupId>
-            <artifactId>mariaDB4j</artifactId>
-            <version>${mariadb4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>${mariadb.java.client.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
-        <!-- LDAP -->
-        <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
-            <version>${spring.ldap.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-commons</artifactId>
-            <version>${spring.data.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>${apache.cxf.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http</artifactId>
-            <version>${apache.cxf.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-ws-policy</artifactId>
-            <version>${apache.cxf.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- AWS SDK -->
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-sts</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-elastictranscoder</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-mediaconvert</artifactId>
-        </dependency>
-        <!-- Box SDK -->
-        <dependency>
-            <groupId>com.box</groupId>
-            <artifactId>box-java-sdk</artifactId>
-            <version>${box.sdk.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcpkix-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- WebDAV Client -->
-        <dependency>
-            <groupId>com.github.lookfirst</groupId>
-            <artifactId>sardine</artifactId>
-            <version>${sardine.version}</version>
-        </dependency>
-
-        <!-- Saxon (to support XSLT 2.0) -->
-        <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <version>${saxon.version}</version>
-        </dependency>
-
-        <!-- BouncyCastle Provider -->
-        <!-- This is required by the Box SDK but it uses an older version -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
-            <version>${bouncycastle.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
-            <version>${bouncycastle.version}</version>
-        </dependency>
-
-        <!-- Tinify -->
-        <dependency>
-            <groupId>com.squareup.okio</groupId><!-- Override -->
-            <artifactId>okio-jvm</artifactId>
-            <version>${okio.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okio</groupId><!-- Override -->
-            <artifactId>okio</artifactId>
-            <version>${okio.version}</version>
-        </dependency>
-        <dependency>
-	        <groupId>com.squareup.okhttp3</groupId><!-- Override to address an issue with Tinify's dependencies -->
-            <artifactId>okhttp</artifactId>
-            <version>${okhttp.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tinify</groupId>
-            <artifactId>tinify</artifactId>
-            <version>${tinify.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.bitbucket.b_c</groupId>
-            <artifactId>jose4j</artifactId>
-            <version>${jose4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.nulab-inc</groupId>
-            <artifactId>zxcvbn</artifactId>
-            <version>${zxcvbn.version}</version>
-        </dependency>
-
-    </dependencies>
-
-    <build>
-        <finalName>studio</finalName>
-        <!-- Overrides are listed here -->
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>${buildnumber.maven.version}</version>
-                <executions>
-                    <execution>
-                        <id>Java Code</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>create</goal>
-                            <goal>create-timestamp</goal>
-                        </goals>
-                        <configuration>
-                            <doCheck>false</doCheck>
-                            <doUpdate>false</doUpdate>
-                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>process-resources</phase>
-                        <id>UI-Version</id>
-                        <goals>
-                            <goal>create</goal>
-                            <goal>create-timestamp</goal>
-                        </goals>
-                        <configuration>
-                            <doCheck>false</doCheck>
-                            <doUpdate>false</doUpdate>
-                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                            <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>${maven.war.version}</version>
-                <configuration>
-                    <attachClasses>true</attachClasses>
-                    <warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
-                    <workDirectory>target/overlay-war-folder</workDirectory>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Implementation-Build>${buildNumber}</Implementation-Build>
-                            <Build-On>${timestamp}</Build-On>
-                        </manifestEntries>
-                    </archive>
-                    <overlays>
-                        <overlay>
-                            <groupId>org.craftercms</groupId>
-                            <artifactId>crafter-engine</artifactId>
-                            <excludes>
-                                <!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
-                                <exclude>/WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpclient-4.5.2.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpcore-4.4.4.jar</exclude>
-                                <exclude>/WEB-INF/lib/commons-logging-1.2.jar</exclude>
-                                <exclude>/WEB-INF/lib/slf4j-api-*.jar</exclude>
-                                <exclude>/WEB-INF/lib/slf4j-log4j12-*.jar</exclude>
-                                <exclude>/WEB-INF/lib/jcl-over-slf4j-*.jar</exclude>
-                                <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
-                                <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
-                                <exclude>/WEB-INF/classes/crafter/engine/services/security-context.xml</exclude>
-                            </excludes>
-                        </overlay>
-                    </overlays>
-                    <webResources>
-                        <!-- static-assets -->
-                        <resource>
-                            <directory>${studio.ui.path}static-assets</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets</targetPath>
-                        </resource>
-
-                        <!-- templates -->
-                        <resource>
-                            <directory>${studio.ui.path}templates</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/templates</targetPath>
-                        </resource>
-
-                        <!-- site -->
-                        <resource>
-                            <directory>${studio.ui.path}site</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/site</targetPath>
-                        </resource>
-
-                        <resource>
-                            <directory>src/main/generated-resources/ftl</directory>
-                            <filtering>true</filtering>
-                            <targetPath>WEB-INF/templates/system/common</targetPath>
-                        </resource>
-
-                        <resource>
-                            <directory>src/main/generated-resources/rest</directory>
-                            <filtering>true</filtering>
-                            <targetPath>default-site/scripts/rest</targetPath>
-                        </resource>
-
-                        <!-- empty blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/4000_empty/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/empty</targetPath>
-                        </resource>
-                        <!-- headless blog blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/5000_headless_blog/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/headless_blog</targetPath>
-                        </resource>
-                        <!-- headless store blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/2000_headless_store/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/headless_store</targetPath>
-                        </resource>
-                        <!-- editorial blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/1000_website_editorial/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/website_editorial</targetPath>
-                        </resource>
-
-                    </webResources>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven.surefire.version}</version>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>cloneUi</id>
-            <activation>
-                <property>
-                    <name>cloneUi</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <properties>
-                <studio.ui.path>target/ui/</studio.ui.path>
-                <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <inherited>false</inherited> <!-- only execute these in the parent -->
-                        <version>${exec-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>git get ui</id>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <executable>git</executable>
-                                    <arguments>
-                                        <argument>clone</argument>
-                                        <argument>--depth</argument>
-                                        <argument>1</argument>
-                                        <argument>-b</argument>
-                                        <argument>${studio.ui.version}</argument>
-                                        <argument>https://github.com/craftercms/studio-ui.git</argument>
-                                        <argument>${studio.ui.path}</argument>
-                                    </arguments>
-                                </configuration>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>build ui</id>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <executable>mvn</executable>
-                                    <arguments>
-                                        <argument>package</argument>
-                                    </arguments>
-                                    <workingDirectory>${studio.ui.path}/</workingDirectory>
-                                </configuration>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>crafter-studio</artifactId>
+
+	<name>Crafter Studio</name>
+	<description>Crafter Content Authoring Application</description>
+	<url>https://github.com/craftercms/studio</url>
+
+	<scm>
+		<connection>scm:git:git://github.com/craftercms/studio</connection>
+		<developerConnection>scm:git:git://github.com/craftercms/studio</developerConnection>
+		<url>scm:git:git://github.com/craftercms/studio</url>
+	</scm>
+
+	<packaging>war</packaging>
+
+	<parent>
+		<groupId>org.craftercms</groupId>
+		<artifactId>craftercms</artifactId>
+		<version>4.2.0-SNAPSHOT</version><!-- craftercms version flag -->
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<studio.ui.path>../studio-ui/</studio.ui.path>
+	</properties>
+
+	<dependencies>
+		<!-- Servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Crafter Engine -->
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-engine</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-engine</artifactId>
+			<classifier>classes</classifier>
+			<scope>provided</scope>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-git</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-plugin</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-upgrade-manager</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-utilities</artifactId>
+		</dependency>
+
+		<!-- Database DALs -->
+		<dependency>
+			<groupId>org.apache.ibatis</groupId>
+			<artifactId>ibatis-sqlmap</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis-spring</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis</artifactId>
+		</dependency>
+
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-aop</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-aop</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-web</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-websocket</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-messaging</artifactId>
+		</dependency>
+
+		<!-- Commons -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-dbcp2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<classifier>jdk15</classifier>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-beanutils</artifactId>
+					<groupId>commons-beanutils</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-collections</groupId>
+					<artifactId>commons-collections</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+
+		<!-- Other -->
+		<dependency>
+			<groupId>javax.transaction</groupId>
+			<artifactId>jta</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+		</dependency>
+
+		<!-- JGit -->
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- testing -->
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit.junit</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.support</groupId>
+			<artifactId>testng-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+		<!-- Tomcat EL -->
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-jasper-el</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.xmlunit</groupId>
+			<artifactId>xmlunit-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Required by spring-websocket -->
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-websocket</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- MariaDB -->
+		<dependency>
+			<groupId>org.craftercms.mariaDB4j</groupId>
+			<artifactId>mariaDB4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+		</dependency>
+
+		<!-- LDAP -->
+		<dependency>
+			<groupId>org.springframework.ldap</groupId>
+			<artifactId>spring-ldap-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-ldap</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-ws-policy</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- AWS SDK -->
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-sts</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-elastictranscoder</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-mediaconvert</artifactId>
+		</dependency>
+		<!-- Box SDK -->
+		<dependency>
+			<groupId>com.box</groupId>
+			<artifactId>box-java-sdk</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- WebDAV Client -->
+		<dependency>
+			<groupId>com.github.lookfirst</groupId>
+			<artifactId>sardine</artifactId>
+		</dependency>
+
+		<!-- Saxon (to support XSLT 2.0) -->
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+		</dependency>
+
+		<!-- BouncyCastle Provider -->
+		<!-- This is required by the Box SDK but it uses an older version -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+		</dependency>
+
+		<!-- Tinify -->
+		<dependency>
+			<groupId>com.squareup.okio</groupId><!-- Override -->
+			<artifactId>okio-jvm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okio</groupId><!-- Override -->
+			<artifactId>okio</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3
+			</groupId><!-- Override to address an issue with Tinify's dependencies -->
+			<artifactId>okhttp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.tinify</groupId>
+			<artifactId>tinify</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.nulab-inc</groupId>
+			<artifactId>zxcvbn</artifactId>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<finalName>studio</finalName>
+		<!-- Overrides are listed here -->
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>Java Code</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>create</goal>
+							<goal>create-timestamp</goal>
+						</goals>
+						<configuration>
+							<doCheck>false</doCheck>
+							<doUpdate>false</doUpdate>
+							<revisionOnScmFailure>unknown</revisionOnScmFailure>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>process-resources</phase>
+						<id>UI-Version</id>
+						<goals>
+							<goal>create</goal>
+							<goal>create-timestamp</goal>
+						</goals>
+						<configuration>
+							<doCheck>false</doCheck>
+							<doUpdate>false</doUpdate>
+							<revisionOnScmFailure>unknown</revisionOnScmFailure>
+							<buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<attachClasses>true</attachClasses>
+					<warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
+					<workDirectory>target/overlay-war-folder</workDirectory>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true
+							</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Build>${buildNumber}</Implementation-Build>
+							<Build-On>${timestamp}</Build-On>
+						</manifestEntries>
+					</archive>
+					<overlays>
+						<overlay>
+							<groupId>org.craftercms</groupId>
+							<artifactId>crafter-engine</artifactId>
+							<excludes>
+								<!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
+								<exclude>/WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
+								<exclude>/WEB-INF/lib/httpclient-4.5.2.jar</exclude>
+								<exclude>/WEB-INF/lib/httpcore-4.4.4.jar</exclude>
+								<exclude>/WEB-INF/lib/commons-logging-1.2.jar</exclude>
+								<exclude>/WEB-INF/lib/slf4j-api-*.jar</exclude>
+								<exclude>/WEB-INF/lib/slf4j-log4j12-*.jar</exclude>
+								<exclude>/WEB-INF/lib/jcl-over-slf4j-*.jar</exclude>
+								<exclude>
+									/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar
+								</exclude>
+								<exclude>
+									/WEB-INF/templates/system/common/versionInfo.ftl
+								</exclude>
+								<exclude>
+									/WEB-INF/classes/crafter/engine/services/security-context.xml
+								</exclude>
+							</excludes>
+						</overlay>
+					</overlays>
+					<webResources>
+						<!-- static-assets -->
+						<resource>
+							<directory>${studio.ui.path}static-assets</directory>
+							<filtering>false</filtering>
+							<targetPath>default-site/static-assets</targetPath>
+						</resource>
+
+						<!-- templates -->
+						<resource>
+							<directory>${studio.ui.path}templates</directory>
+							<filtering>false</filtering>
+							<targetPath>default-site/templates</targetPath>
+						</resource>
+
+						<!-- site -->
+						<resource>
+							<directory>${studio.ui.path}site</directory>
+							<filtering>false</filtering>
+							<targetPath>default-site/site</targetPath>
+						</resource>
+
+						<resource>
+							<directory>src/main/generated-resources/ftl</directory>
+							<filtering>true</filtering>
+							<targetPath>WEB-INF/templates/system/common</targetPath>
+						</resource>
+
+						<resource>
+							<directory>src/main/generated-resources/rest</directory>
+							<filtering>true</filtering>
+							<targetPath>default-site/scripts/rest</targetPath>
+						</resource>
+
+						<!-- empty blueprint -->
+						<resource>
+							<directory>
+								src/main/webapp/repo-bootstrap/global/blueprints/4000_empty/static-assets/images/screenshots
+							</directory>
+							<filtering>false</filtering>
+							<targetPath>default-site/static-assets/images/blueprints/empty
+							</targetPath>
+						</resource>
+						<!-- headless blog blueprint -->
+						<resource>
+							<directory>
+								src/main/webapp/repo-bootstrap/global/blueprints/5000_headless_blog/static-assets/images/screenshots
+							</directory>
+							<filtering>false</filtering>
+							<targetPath>
+								default-site/static-assets/images/blueprints/headless_blog
+							</targetPath>
+						</resource>
+						<!-- headless store blueprint -->
+						<resource>
+							<directory>
+								src/main/webapp/repo-bootstrap/global/blueprints/2000_headless_store/static-assets/images/screenshots
+							</directory>
+							<filtering>false</filtering>
+							<targetPath>
+								default-site/static-assets/images/blueprints/headless_store
+							</targetPath>
+						</resource>
+						<!-- editorial blueprint -->
+						<resource>
+							<directory>
+								src/main/webapp/repo-bootstrap/global/blueprints/1000_website_editorial/static-assets/images/screenshots
+							</directory>
+							<filtering>false</filtering>
+							<targetPath>
+								default-site/static-assets/images/blueprints/website_editorial
+							</targetPath>
+						</resource>
+
+					</webResources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>cloneUi</id>
+			<activation>
+				<property>
+					<name>cloneUi</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<properties>
+				<studio.ui.path>target/ui/</studio.ui.path>
+				<studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<inherited>false</inherited> <!-- only execute these in the parent -->
+						<executions>
+							<execution>
+								<id>git get ui</id>
+								<phase>prepare-package</phase>
+								<configuration>
+									<executable>git</executable>
+									<arguments>
+										<argument>clone</argument>
+										<argument>--depth</argument>
+										<argument>1</argument>
+										<argument>-b</argument>
+										<argument>${studio.ui.version}
+										</argument>
+										<argument>
+											https://github.com/craftercms/studio-ui.git
+										</argument>
+										<argument>${studio.ui.path}</argument>
+									</arguments>
+								</configuration>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>build ui</id>
+								<phase>prepare-package</phase>
+								<configuration>
+									<executable>mvn</executable>
+									<arguments>
+										<argument>package</argument>
+									</arguments>
+									<workingDirectory>${studio.ui.path}/
+									</workingDirectory>
+								</configuration>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<repositories>
 		<repository>

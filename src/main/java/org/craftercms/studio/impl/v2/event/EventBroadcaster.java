@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.event;
 
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
-import org.craftercms.studio.api.v2.event.SiteAwareEvent;
-import org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent;
+import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
+import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,20 +41,23 @@ public class EventBroadcaster {
     protected SimpMessagingTemplate messagingTemplate;
 
     @Order
-    @EventListener(classes = BroadcastEvent.class, condition = "!(#event instanceof T(org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent))")
-    public void publishSiteEvent(final SiteAwareEvent event) {
+    @EventListener
+    public void publishSiteEvent(final SiteBroadcastEvent event) {
         publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
     }
 
     @Order
     @EventListener
-    public void publishGlobalEvent(final SiteLifecycleEvent event) {
+    public void publishGlobalEvent(final GlobalBroadcastEvent event) {
         publishEvent(event, DESTINATION_ROOT);
     }
 
-    private void publishEvent(final Object event, final String destination) {
+    private void publishEvent(final BroadcastEvent event, final String destination) {
         logger.debug("Broadcast event '{}'", event);
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         messagingTemplate.convertAndSend(destination, event);
         if (logger.isTraceEnabled()) {
             long total = System.currentTimeMillis() - startTime;

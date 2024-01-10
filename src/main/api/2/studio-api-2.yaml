@@ -2989,6 +2989,47 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /model/{siteId}/definitions:
+    post:
+        tags:
+            - model
+        summary: Get all model definitions for site.
+        description: 'Required permission "read_configuration". <br/>In a future release this request will accept a set of arguments which could surpass the max length of the GET request, consequently, this endpoint answers to a POST method.
+.'
+        operationId: getAllModelDefinitions
+        parameters:
+            - name: siteId
+              in: path
+              description: Site ID
+              required: true
+              schema:
+                  type: string
+        responses:
+          '200':
+            description: OK
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      types:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "<form><title>Home</title>..."
+                          - "<form><title>Article</title>..."
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalServerError'
+
   /configuration/get_configuration:
     get:
       tags:
@@ -3756,10 +3797,11 @@ paths:
 
   /content/children_by_path:
     post:
+      deprecated: true
       tags:
         - content
       summary: Get list of children for given item path
-      description: 'Required permission "get_children" and "site member"'
+      description: 'Required permission "get_children" and "site member".<br/> This operation is deprecated, use /content/{siteId}/children instead.'
       operationId: getChildrenByPath
       requestBody:
         required: true
@@ -3841,6 +3883,80 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/{siteId}/children:
+    post:
+      tags:
+        - content
+      summary: Get list of children for given item paths
+      description: 'Required permission "get_children" and "site member"'
+      operationId: getChildrenByPaths
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paths:
+                  description: item paths to get children for
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChildrenByPathRequest'
+              required:
+                - siteId
+                - paths
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                        item:
+                          $ref: '#/components/schemas/SandboxItem'
+                        levelDescriptor:
+                          $ref: '#/components/schemas/SandboxItem'
+                        children:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/SandboxItem'
+                        total:
+                          type: integer
+                          format: int32
+                          description: Total records in the system
+                        offset:
+                          type: integer
+                          format: int32
+                          description: Offset of first record in this response
+                        limit:
+                          type: integer
+                          format: int32
+                          description: Number of records returned in this response
+                  missingItems:
+                    type: array
+                    items:
+                      type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -9148,6 +9264,49 @@ components:
               message:
                 type: string
                 description: A detail message for the validation result
+
+    ChildrenByPathRequest:
+      type: object
+      properties:
+        path:
+          description: item path to get children for
+          type: string
+        localeCode:
+          description: |-
+            filter children by locale code, or show source items (not translation) if translation to
+            specified locale code does not exist
+          type: string
+        sortStrategy:
+          description: >-
+            sort strategy (sort order)
+            Possible values:
+              - alphabetical (default)
+              - foldersFirst (order by: folders alphabetical, files alphabetical)
+              - lastUpdated (order by: dateModified)
+          type: string
+        order:
+          description: order for sort strategy ascending or descending (ASC / DESC)
+          type: string
+          format: ASC, DESC
+        offset:
+          description: offset of first child in response - default 0
+          type: integer
+        limit:
+          description: number of children to return
+          type: integer
+        keyword:
+          description: filter children by keyword
+          type: string
+        systemTypes:
+          description: filter children by system type
+          type: array
+          items:
+            type: string
+        excludes:
+          description: exclude items by path
+          type: array
+          items:
+            type: string
 
     PasteItem:
       type: object

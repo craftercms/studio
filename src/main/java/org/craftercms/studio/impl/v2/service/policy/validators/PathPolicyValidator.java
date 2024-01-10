@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
+
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.*;
 
 /**
@@ -61,7 +63,6 @@ public class PathPolicyValidator implements PolicyValidator {
             var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
             if (targetRegex != null) {
                 modifiedItem = item.replaceAll(sourceRegex, targetRegex);
-
                 var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
                 if (isNotEmpty(caseTransform)) {
                     switch (caseTransform.toLowerCase()) {
@@ -87,6 +88,7 @@ public class PathPolicyValidator implements PolicyValidator {
             if (isNotEmpty(modifiedItem)) {
                 String modifiedValue = removeEnd(target, item) + modifiedItem;
                 result.setModifiedValue(modifiedValue);
+                result.setMessage(format("Path '%s' was transformed to '%s' per the project file name policy.", item, modifiedItem));
             }
             if (!result.isAllowed()) {
                 logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);

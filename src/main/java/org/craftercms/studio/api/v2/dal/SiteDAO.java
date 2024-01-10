@@ -18,6 +18,8 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteDAO {
@@ -82,4 +84,11 @@ public interface SiteDAO {
      * @param commitId commit id
      */
     void updateLastCommitId(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId);
+
+    /**
+     * Get the sites matching the given state
+     * @param state the state
+     * @return the list of sites
+     */
+    List<Site> getSitesByState(@Param(STATE) String state);
 }

@@ -147,6 +147,10 @@
         <constructor-arg name="contentTypeService" ref="contentTypeService"/>
     </bean>
 
+    <bean id="modelController" class="org.craftercms.studio.controller.rest.v2.ModelController">
+        <constructor-arg name="contentTypeService" ref="contentTypeService"/>
+    </bean>
+
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
         <constructor-arg name="contentService" ref="contentService"/>
         <constructor-arg name="dependencyService" ref="dependencyService"/>
