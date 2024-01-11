@@ -58,44 +58,19 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private ServicesConfig servicesConfig;
 
     @Override
-    public List<String> getSoftDependencies(String site, List<String> paths)
-            throws ServiceLayerException {
-        Map<String, String> toRet = calculateSoftDependencies(site, paths);
-        return new ArrayList<>(toRet.keySet());
-    }
-
-    private Map<String, String> calculateSoftDependencies(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<>();
-
+    public Collection<String> getSoftDependencies(String site, List<String> paths) {
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
         Set<String> pathsParams = new HashSet<>(paths);
-        boolean exitCondition = false;
-        Map<String, String> softDeps = new HashMap<>();
-        for (String p : paths) {
-            softDeps.put(p, p);
-        }
-        do {
-            List<Map<String, String>> deps = getSoftDependenciesForListFromDB(site, pathsParams);
-            List<String> targetPaths = new ArrayList<>();
-            for (Map<String, String> d : deps) {
-                String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
-                String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!softDeps.containsKey(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
-                    softDeps.put(targetPath, softDeps.get(srcPath));
-                }
-                targetPaths.add(targetPath);
-            }
-            exitCondition = !toRet.addAll(targetPaths);
-            pathsParams.clear();
-            pathsParams.addAll(targetPaths);
-        } while (!exitCondition);
-
-        return softDeps;
-    }
-
-    private List<Map<String, String>> getSoftDependenciesForListFromDB(String site, Set<String> paths) {
-        return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+        Set<String> result = new HashSet<>();
+        List<Map<String, String>> deps = dependencyDao.getSoftDependenciesForList(site, pathsParams, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
+        for (Map<String, String> d : deps) {
+            String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
+            if (!pathsParams.contains(targetPath)) {
+                result.add(targetPath);
+            }
+        }
+        return result;
     }
 
     protected List<String> getItemSpecificDependenciesPatterns() {
@@ -253,48 +228,24 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         return dependencyDao.getDependenciesByType(siteId, path, dependencyType);
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public DependencyDAO getDependencyDao() {
-        return dependencyDao;
-    }
-
     public void setDependencyDao(DependencyDAO dependencyDao) {
         this.dependencyDao = dependencyDao;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public DependencyResolver getDependencyResolver() {
-        return dependencyResolver;
-    }
-
     public void setDependencyResolver(DependencyResolver dependencyResolver) {
         this.dependencyResolver = dependencyResolver;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

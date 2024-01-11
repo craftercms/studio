@@ -99,6 +99,7 @@ public interface StudioConfiguration {
     String DB_POOL_REMOVE_ABANDONED_TIMEOUT = "studio.db.pool.removeAbandonedTimeout";
     String DB_POOL_REMOVE_ABANDONED_ON_MAINTENANCE = "studio.db.pool.removeAbandonedOnMaintenance";
     String DB_POOL_TIME_BETWEEN_EVICTION_RUNS_MILLIS = "studio.db.pool.timeBetweenEvictionRunsMillis";
+    String DB_MAX_RECURSIVE_ITERATIONS = "studio.db.maxRecursiveIterations";
 
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";

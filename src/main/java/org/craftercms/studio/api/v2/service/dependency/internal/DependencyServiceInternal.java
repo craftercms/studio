@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,15 +33,13 @@ public interface DependencyServiceInternal {
      * dependency is:
      * * an edited, shared (not item specific) dependency
      *
-     * @param site Site to operate on
+     * @param site  Site to operate on
      * @param paths List of paths to items to retrieve deps for
-     *
      * @return list of soft dependencies
-     *
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
-    List<String> getSoftDependencies(String site, List<String> paths)
+    Collection<String> getSoftDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ServiceLayerException;
 
     /**
