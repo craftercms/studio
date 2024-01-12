@@ -589,7 +589,8 @@ studio.db.retryingOperation.maxSleep: 1000
 studio.db.scriptRunner.bufferSize: 10000
 # Batch size for bulk operations
 studio.db.bulkOperations.batchSize: 1000
-
+# DB max_recursive_iterations value. This property should be set to a value between 0 and 20 (hard limit)
+studio.db.maxRecursiveIterations: 10
 ##########################################################
 ##                   Asset Processing                   ##
 ##########################################################

@@ -22,11 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SOURCE_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TYPE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 /**
  * @author Dejan Brkic
@@ -46,8 +42,8 @@ public interface DependencyDAO {
      * @param newMask state bit mask for new item
      * @return List of soft dependencies
      */
-    List<Map<String, String>> getSoftDependenciesForList(@Param("site") String site, @Param("paths") Set<String> paths,
-                                                         @Param("regex") List<String> itemSpecificDependenciesPatterns,
+    List<Map<String, String>> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+                                                         @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
                                                          @Param(MODIFIED_MASK) long modifiedMask,
                                                          @Param(NEW_MASK) long newMask);
 

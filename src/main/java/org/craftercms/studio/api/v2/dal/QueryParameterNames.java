@@ -38,6 +38,8 @@ public final class  QueryParameterNames {
     public static final String FOLDER_PATH = "folderPath";
     // Paths
     public static final String PATHS = "paths";
+    // Used for regex patterns
+    public static final String REGEX = "regex";
     // Modifier
     public static final String MODIFIER = "modifier";
     // Old path

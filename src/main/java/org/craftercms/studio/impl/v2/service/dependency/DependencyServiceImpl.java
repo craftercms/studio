@@ -31,6 +31,7 @@ import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
@@ -56,13 +57,11 @@ public class DependencyServiceImpl implements DependencyService {
     @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<String> getSoftDependencies(@SiteId String siteId,
-                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
+    public Collection<String> getSoftDependencies(@SiteId String siteId,
+                                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
             throws ServiceLayerException {
         siteService.checkSiteExists(siteId);
-        List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, paths);
-        toRet.removeAll(paths);
-        return toRet;
+        return dependencyServiceInternal.getSoftDependencies(siteId, paths);
     }
 
     @Override
