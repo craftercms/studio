@@ -235,7 +235,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
         } else {
             String previewCookie = createPreviewCookie(siteName);
             previewCookieGenerator.addCookie(response, previewCookie);
-            logger.info("Refreshed preview cookie for user '{}'", auth.getName());
+            logger.debug("Refreshed preview cookie for user '{}'", auth.getName());
         }
     }
 
