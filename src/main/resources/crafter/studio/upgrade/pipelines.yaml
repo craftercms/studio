@@ -751,45 +751,45 @@ pipelines:
                 replacement: 'import $1org.craftercms.search.opensearch.$2$3'
               - pattern: "\\bElasticsearchClientWrapper\\b"
                 replacement: 'OpenSearchClientWrapper'
-              - pattern: "\bElasticsearchAdminService\b"
+              - pattern: "\\bElasticsearchAdminService\\b"
                 replacement: 'OpenSearchAdminService'
-              - pattern: "\bElasticsearchService\b"
+              - pattern: "\\bElasticsearchService\\b"
                 replacement: 'OpenSearchService'
-              - pattern: "\bElasticsearchWrapper\b"
+              - pattern: "\\bElasticsearchWrapper\\b"
                 replacement: 'OpenSearchWrapper'
-              - pattern: "\bElasticsearchBinaryFileBatchIndexer\b"
+              - pattern: "\\bElasticsearchBinaryFileBatchIndexer\\b"
                 replacement: 'OpenSearchBinaryFileBatchIndexer'
-              - pattern: "\bElasticsearchBinaryFileWithMetadataBatchIndexer\b"
+              - pattern: "\\bElasticsearchBinaryFileWithMetadataBatchIndexer\\b"
                 replacement: 'OpenSearchBinaryFileWithMetadataBatchIndexer'
-              - pattern: "\bElasticsearchIndexingUtils\b"
+              - pattern: "\\bElasticsearchIndexingUtils\\b"
                 replacement: 'OpenSearchIndexingUtils'
-              - pattern: "\bElasticsearchXmlFileBatchIndexer\b"
+              - pattern: "\\bElasticsearchXmlFileBatchIndexer\\b"
                 replacement: 'OpenSearchXmlFileBatchIndexer'
-              - pattern: "\bAuthoringElasticsearchBinaryFileWithMetadataBatchIndexer\b"
+              - pattern: "\\bAuthoringElasticsearchBinaryFileWithMetadataBatchIndexer\\b"
                 replacement: 'AuthoringOpenSearchBinaryFileWithMetadataBatchIndexer'
-              - pattern: "\bElasticsearchClientWrapper\b"
+              - pattern: "\\bElasticsearchClientWrapper\\b"
                 replacement: 'OpenSearchClientWrapper'
-              - pattern: "\bElasticsearchException\b"
+              - pattern: "\\bElasticsearchException\\b"
                 replacement: 'OpenSearchException'
-              - pattern: "\bAbstractElasticsearchWrapper\b"
+              - pattern: "\\bAbstractElasticsearchWrapper\\b"
                 replacement: 'AbstractOpenSearchWrapper'
-              - pattern: "\bMultiElasticsearchAdminServiceImpl\b"
+              - pattern: "\\bMultiElasticsearchAdminServiceImpl\\b"
                 replacement: 'MultiOpenSearchAdminServiceImpl'
-              - pattern: "\bMultiElasticsearchServiceImpl\b"
+              - pattern: "\\bMultiElasticsearchServiceImpl\\b"
                 replacement: 'MultiOpenSearchServiceImpl'
-              - pattern: "\bElasticsearchAdminServiceImpl\b"
+              - pattern: "\\bElasticsearchAdminServiceImpl\\b"
                 replacement: 'OpenSearchAdminServiceImpl'
-              - pattern: "\bElasticsearchDocumentBuilder\b"
+              - pattern: "\\bElasticsearchDocumentBuilder\\b"
                 replacement: 'OpenSearchDocumentBuilder'
-              - pattern: "\bElasticsearchElementParserImpl\b"
+              - pattern: "\\bElasticsearchElementParserImpl\\b"
                 replacement: 'OpenSearchElementParserImpl'
-              - pattern: "\bElasticsearchServiceImpl\b"
+              - pattern: "\\bElasticsearchServiceImpl\\b"
                 replacement: 'OpenSearchServiceImpl'
-              - pattern: "\bAbstractElasticsearchClientWrapper\b"
+              - pattern: "\\bAbstractElasticsearchClientWrapper\\b"
                 replacement: 'AbstractOpenSearchClientWrapper'
-              - pattern: "\bElasticsearchClientFactory\b"
+              - pattern: "\\bElasticsearchClientFactory\\b"
                 replacement: 'OpenSearchClientFactory'
-              - pattern: "\bElasticsearchClient\b"
+              - pattern: "\\bElasticsearchClient\\b"
                 replacement: 'OpenSearchClient'
             commitDetails: Migrate Elasticsearch to OpenSearch
       - currentVersion: 4.1.0
