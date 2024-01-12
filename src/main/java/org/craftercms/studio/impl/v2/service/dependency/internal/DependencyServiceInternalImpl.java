@@ -62,8 +62,15 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
         Set<String> pathsParams = new HashSet<>(paths);
         Set<String> result = new HashSet<>();
+        long startTime = 0;
+        if (logger.isDebugEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         List<Map<String, String>> deps = dependencyDao.getSoftDependenciesForList(site, pathsParams, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get soft dependencies for site '{}' paths '{}' took {} ms", site, paths, System.currentTimeMillis() - startTime);
+        }
         for (Map<String, String> d : deps) {
             String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
             if (!pathsParams.contains(targetPath)) {
