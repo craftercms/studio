@@ -54,9 +54,6 @@ public class DependencyController {
         Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
-//        List<String> filteredSoftDeps =
-//                softDeps.stream().filter(sd -> !hardDeps.contains(sd)).collect(Collectors.toList());
-
         softDeps.removeAll(hardDeps);
 
         ResponseBody responseBody = new ResponseBody();
