@@ -33,23 +33,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
+import static java.lang.String.valueOf;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_DRIVER;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_ENABLED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_PASSWORD;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_USER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.RECURSIVE_ITERATIONS_HARD_LIMIT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
@@ -70,6 +63,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     private final static String DB_QUERY_CHECK_ADMIN_PASSWORD_EMPTY =
             "SELECT CASE WHEN ISNULL(password) > 0 THEN 1 WHEN CHAR_LENGTH(password) = 0 THEN 1 ELSE 0 END FROM " +
             "{schema}.user WHERE username = 'admin' ";
+    private final static String MAX_VALUE = "{maxValue}";
+    private final static String DB_QUERY_SET_MAX_RECURSIVE_ITERATIONS = "SET GLOBAL max_recursive_iterations = " + MAX_VALUE;
 
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
@@ -120,12 +115,24 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         }
                     }
 
+                    setMaxRecursion(statement);
+
                 } catch (SQLException | IOException e) {
                     logger.error("Failed to initialize the database", e);
                 }
             } catch (SQLException e) {
                 logger.error("Failed to connect to the database while trying to initialize it", e);
             }
+        }
+    }
+
+    private void setMaxRecursion(Statement statement) {
+        try {
+            int maxIterations = Math.min(studioConfiguration.getProperty(DB_MAX_RECURSIVE_ITERATIONS, Integer.class, RECURSIVE_ITERATIONS_HARD_LIMIT),
+                    RECURSIVE_ITERATIONS_HARD_LIMIT);
+            statement.execute(DB_QUERY_SET_MAX_RECURSIVE_ITERATIONS.replace(MAX_VALUE, valueOf(maxIterations)));
+        } catch (SQLException e) {
+            logger.error("Failed to set max_recursive_iterations", e);
         }
     }
 

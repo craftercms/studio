@@ -29,22 +29,34 @@
     </resultMap>
 
     <select id="getSoftDependenciesForList" resultType="java.util.Map">
-        SELECT source_path, target_path
-        FROM (dependency cd INNER JOIN site s ON cd.site = s.site_id INNER JOIN item ci ON cd.target_path = ci.path AND s.id = ci.site_id)
-        WHERE s.site_id = #{site}
-        AND s.deleted = 0
-        AND cd.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND (ci.state &amp; #{modifiedMask}) > 0
-        AND (ci.state &amp; #{newMask}) = 0
-        AND
-        <foreach item="pattern" index="index" collection="regex"
-                 open="(" separator=" OR " close=")">
-            cd.target_path NOT RLIKE #{pattern}
-        </foreach>
+        WITH RECURSIVE CTE AS (
+                SELECT d.source_path, d.target_path, d.site
+                FROM dependency d
+                WHERE d.source_path IN
+                        <foreach item="path" index="index" collection="paths"
+                                 open="(" separator="," close=")">
+                            #{path}
+                        </foreach>
+                AND d.site = #{siteId}
+            UNION
+                SELECT d.source_path, d.target_path, d.site
+                FROM cte, dependency d
+                        WHERE cte.target_path = d.source_path
+                        AND d.site = #{siteId} and cte.site = #{siteId}
+        )
+        SELECT cte.source_path, cte.target_path
+        FROM cte
+            INNER JOIN site s ON s.site_id = cte.site
+            INNER JOIN item i ON i.path = cte.target_path
+            AND i.site_id = s.id
+            AND s.deleted = 0
+            AND (i.state &amp; #{modifiedMask}) > 0
+            AND (i.state &amp; #{newMask}) = 0
+            AND
+            <foreach item="pattern" index="index" collection="regex"
+                     open="(" separator=" OR " close=")">
+                cte.target_path NOT RLIKE #{pattern}
+            </foreach>
     </select>
 
     <select id="getHardDependenciesForList" parameterType="java.util.Map"

@@ -29,9 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -51,20 +49,19 @@ public class DependencyController {
 
     @Valid
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
+    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
             throws ServiceLayerException {
-        List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
+        Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
-        List<String> filteredSoftDeps =
-                softDeps.stream().filter(sd -> !hardDeps.contains(sd)).collect(Collectors.toList());
+        softDeps.removeAll(hardDeps);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Map<String, List<String>>> result = new ResultOne<>();
+        ResultOne<Map<String, Collection<String>>> result = new ResultOne<>();
         result.setResponse(OK);
-        Map<String, List<String>> items = new HashMap<>();
+        Map<String, Collection<String>> items = new HashMap<>();
         items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
-        items.put(RESULT_KEY_SOFT_DEPENDENCIES, filteredSoftDeps);
+        items.put(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
         result.setEntity(RESULT_KEY_ITEMS, items);
         responseBody.setResult(result);
         return responseBody;
