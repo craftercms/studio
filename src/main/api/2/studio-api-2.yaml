@@ -3868,6 +3868,13 @@ paths:
       summary: Get the list of children for each of the requested parent paths
       description: 'Required permission "get_children" and "site member"'
       operationId: getChildrenByPaths
+      parameters:
+        - name: siteId
+          in: path
+          required: true
+          description: The site ID
+          schema:
+            type: string
       requestBody:
         required: true
         content:
