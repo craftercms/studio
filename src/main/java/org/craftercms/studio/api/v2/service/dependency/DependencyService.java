@@ -23,7 +23,6 @@ import org.craftercms.studio.model.rest.content.DependencyItem;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface DependencyService {
 
