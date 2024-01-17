@@ -11700,7 +11700,7 @@ components:
               response:
                 $ref: '#/components/schemas/ApiResponse'
     api1OK:
-      description: Resource not found
+      description: OK
       content:
         application/json:
           schema:
