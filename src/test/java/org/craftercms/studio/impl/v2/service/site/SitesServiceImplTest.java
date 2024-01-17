@@ -20,6 +20,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +30,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.lang.reflect.Method;
+
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class SitesServiceImplTest {
@@ -68,14 +73,16 @@ public class SitesServiceImplTest {
     }
 
     @Test
-    public void nonExistingSiteDeleteTest() {
-        assertThrows(SiteNotFoundException.class, () -> sitesService.deleteSite(NON_EXISTING_SITE_ID));
+    public void nonExistingSiteDeleteTest() throws NoSuchMethodException {
+        Method method = SitesServiceImpl.class.getMethod("deleteSite", String.class);
+        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
     }
 
     @Test
-    public void duplicateNonExistentSiteTest() {
-        assertThrows(SiteNotFoundException.class, () ->
-                sitesService.duplicate(NON_EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
+    public void duplicateNonExistentSiteTest() throws NoSuchMethodException {
+        Method method = SitesServiceImpl.class.getMethod("duplicate", String.class, String.class, String.class,
+                String.class, String.class, boolean.class);
+        assertTrue(method.isAnnotationPresent(RequireSiteReady.class));
     }
 
     @Test

@@ -21,6 +21,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.junit.After;
@@ -29,8 +31,11 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import java.lang.reflect.Method;
+
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -69,15 +74,15 @@ public class ContentServiceImplTest {
     }
 
     @Test
-    public void contentHistoryNonExistentItem() throws ServiceLayerException {
+    public void contentHistoryNonExistentItem() {
         assertThrows("Service must check for content existence",
                 ContentNotFoundException.class, () -> contentService.getContentVersionHistory(SITE_NAME, NON_EXISTENT_PATH));
     }
 
     @Test
-    public void contentHistoryNonExistentSite() throws ServiceLayerException {
-        assertThrows("Service must check for site existence",
-                SiteNotFoundException.class, () -> contentService.getContentVersionHistory(NON_EXISTENT_SITE_NAME, NON_EXISTENT_PATH));
+    public void contentHistoryNonExistentSite() throws NoSuchMethodException {
+        Method method = ContentServiceImpl.class.getMethod("getContentVersionHistory", String.class, String.class);
+        assertTrue(method.isAnnotationPresent(RequireSiteReady.class));
     }
 
     @Test
@@ -95,9 +100,9 @@ public class ContentServiceImplTest {
     }
 
     @Test
-    public void testSiteNotFound() {
-        assertThrows(SiteNotFoundException.class, () ->
-                contentService.contentExists(NON_EXISTENT_SITE_NAME, NON_EXISTENT_PATH));
+    public void testSiteNotFound() throws NoSuchMethodException {
+        Method method = ContentServiceImpl.class.getMethod("contentExists", String.class, String.class);
+        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
     }
 
 }

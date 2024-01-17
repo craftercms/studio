@@ -77,7 +77,6 @@
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService" />
         <property name="dependencyResolver" ref="studioDependencyResolver" />
         <property name="transactionManager" ref="transactionManager" />
@@ -272,7 +271,6 @@
 
     <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
         <constructor-arg name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="contentService" ref="cstudioContentService"/>
     </bean>
 
@@ -470,7 +468,6 @@
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService" />
         <property name="securityService" ref="cstudioSecurityService" />
     </bean>
@@ -537,7 +534,6 @@
         <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="itemDao" ref="itemDao"/>
-        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="contentTypeBasePathPattern"
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
         <constructor-arg name="contentTypeDefinitionFilename"
@@ -566,12 +562,10 @@
 
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
@@ -1255,7 +1249,6 @@
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
         <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
@@ -1277,7 +1270,6 @@
                   value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.dash')}"/>
         <property name="smoothExtension"
                   value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.smooth')}"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1324,7 +1316,6 @@
     <bean id="webDavService" class="org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl">
         <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
         <property name="profileLoader" ref="studioWebDavProfileLoader"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- Utilities -->
@@ -1623,7 +1614,6 @@
     </bean>
 
     <bean id="cstudioProxyService" class="org.craftercms.studio.impl.v2.service.proxy.ProxyServiceImpl">
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="proxyServiceInternal" ref="cstudioProxyServiceInternal"/>
     </bean>
 

@@ -18,8 +18,7 @@ package org.craftercms.studio.impl.v2.service.dependency;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl;
 import org.junit.Before;
@@ -29,7 +28,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.lang.reflect.Method;
+
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -43,9 +45,6 @@ public class DependencyServiceImplTest {
     protected DependencyServiceInternalImpl serviceInternal;
 
     @Mock
-    protected SiteService siteService;
-
-    @Mock
     protected ContentRepository contentRepository;
 
     @InjectMocks
@@ -53,10 +52,7 @@ public class DependencyServiceImplTest {
 
     @Before
     public void setUp() throws ServiceLayerException {
-        doThrow(new SiteNotFoundException()).when(siteService).checkSiteExists(NON_EXIST_SITE_ID);
         doThrow(new ContentNotFoundException()).when(contentRepository).checkContentExists(SITE_ID, NON_EXIST_CONTENT_PATH);
-
-        doNothing().when(siteService).checkSiteExists(SITE_ID);
         doNothing().when(contentRepository).checkContentExists(SITE_ID, PATH);
     }
 
@@ -67,9 +63,9 @@ public class DependencyServiceImplTest {
     }
 
     @Test
-    public void nonExistSiteIdGetDependentItems() {
-        assertThrows(SiteNotFoundException.class, () ->
-                dependencyService.getDependentItems(NON_EXIST_SITE_ID, PATH));
+    public void nonExistSiteIdGetDependentItems() throws NoSuchMethodException {
+        Method method = DependencyServiceImpl.class.getMethod("getDependentItems", String.class, String.class);
+        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
     }
 
     @Test
