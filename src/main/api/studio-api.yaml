@@ -2969,7 +2969,7 @@ paths:
           $ref: '#/components/responses/api1NotFound'            
         '500':
           $ref: '#/components/responses/api1InternalServerError'
-    
+  
   /api/1/services/api/1/content/create-folder.json:
     post:
       tags:
@@ -3103,7 +3103,9 @@ paths:
         '400':
           $ref: '#/components/responses/api1BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                
+          $ref: '#/components/responses/api1Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'                  
   
   /api/1/services/api/1/content/get-content-at-path.json:
     get:
@@ -3271,7 +3273,9 @@ paths:
         '400':
           $ref: '#/components/responses/api1BadRequest'         
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/api1Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'  
 
   /api/1/services/api/1/content/get-item-orders.json:
     get:
@@ -11845,8 +11849,16 @@ components:
             properties:
               message:
                 type: string
-            example: 
-              message: "Invalid parameter: site_id"
+          examples:
+            sample1:
+              value: 
+                message: "Invalid parameter: site_id"
+            sample2:
+              value: 
+                message: "Path must be provided"
+            sample3:
+              value: 
+                message: "Site must be provided"        
     api1Forbidden:
       description: Forbidden
       content:
