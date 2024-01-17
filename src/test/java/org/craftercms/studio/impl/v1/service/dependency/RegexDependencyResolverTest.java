@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.dependency;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
@@ -37,19 +38,13 @@ import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * @author joseross
- * @since
  */
 public class RegexDependencyResolverTest {
 
@@ -117,22 +112,22 @@ public class RegexDependencyResolverTest {
 
     @Test
     public void testDependencyExtraction() {
-        Map<String, Set<String>> deps = dependencyResolver.resolve(SITE_ID, FORM_DEFINITION_PATH);
+        Map<String, Set<ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, FORM_DEFINITION_PATH);
 
         assertNotNull(deps);
         assertFalse(deps.isEmpty());
 
         // check that dependencies without transforms continue to work as usual
         assertTrue(deps.containsKey("direct"));
-        assertEquals(deps.get("direct"), Set.of(PAGE_A_PATH));
+        assertEquals(deps.get("direct"), Set.of(new ResolvedDependency(PAGE_A_PATH, true)));
 
         // check that single dependencies continue to work as usual
         assertTrue(deps.containsKey("single"));
-        assertEquals(deps.get("single"), Set.of(PAGE_A_PATH));
+        assertEquals(deps.get("single"), Set.of(new ResolvedDependency(PAGE_A_PATH, true)));
 
         // check that new multi-value dependencies work as expected
         assertTrue(deps.containsKey("multiple"));
-        assertEquals(deps.get("multiple"), Set.of(COMPONENT_A_PATH, COMPONENT_B_PATH));
+        assertEquals(deps.get("multiple"), Set.of(new ResolvedDependency(COMPONENT_A_PATH, true), new ResolvedDependency(COMPONENT_B_PATH, true)));
     }
 
 }

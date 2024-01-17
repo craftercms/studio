@@ -16,12 +16,14 @@
 
 package org.craftercms.studio.api.v2.service.dependency;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface DependencyService {
 
@@ -73,4 +75,42 @@ public interface DependencyService {
      * @throws ServiceLayerException Internal error, see exception details
      */
     List<DependencyItem> getDependentItems(String siteId, String path) throws ServiceLayerException;
+
+    /**
+     * Scan item for direct dependencies and synchronize those to
+     * the dependencies database adding the new deps, updating existing,
+     * and removing what was removed from the item.
+     *
+     * @param site Site to operate on
+     * @param path Path to item to scan
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException Path doesn't exist
+     * @throws ServiceLayerException Internal error, see exception details
+     */
+    void upsertDependencies(String site, String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
+
+    /**
+     * Delete the dependencies of sourcePath
+     *
+     * @param site       the site id
+     * @param sourcePath the source path of the dependencies to delete
+     */
+    void deleteItemDependencies(String site, String sourcePath) throws ServiceLayerException;
+
+    /**
+     * Mark as invalid the dependency records with the given target path
+     *
+     * @param siteId     the site id
+     * @param targetPath the target path of the dependencies to invalidate
+     */
+    void invalidateDependencies(String siteId, String targetPath) throws ServiceLayerException;
+
+    /**
+     * Mark as valid the dependency records with the given target path
+     *
+     * @param siteId     the site id
+     * @param targetPath the target path of the dependencies to validate
+     */
+    void validateDependencies(String siteId, String targetPath) throws ServiceLayerException;
 }

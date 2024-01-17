@@ -58,8 +58,8 @@ public class RegexDependencyResolver implements DependencyResolver {
     protected ConfigurationService configurationService;
 
     @Override
-    public Map<String, Set<String>> resolve(String site, String path) {
-        Map<String, Set<String>> toRet = new HashMap<>();
+    public Map<String, Set<ResolvedDependency>> resolve(String site, String path) {
+        Map<String, Set<ResolvedDependency>> toRet = new HashMap<>();
         try {
             logger.debug("Get the dependency resolver configuration for site '{}'", site);
             DependencyResolverConfigTO config = getConfiguration(site);
@@ -232,13 +232,13 @@ public class RegexDependencyResolver implements DependencyResolver {
         return itemType;
     }
 
-    private Map<String, Set<String>> getDependencies(String site, String path, String content, Map<String,
+    private Map<String, Set<ResolvedDependency>> getDependencies(String site, String path, String content, Map<String,
             DependencyResolverConfigTO.DependencyType> dependencyTypes) {
-        Map<String, Set<String>> toRet = new HashMap<>();
+        Map<String, Set<ResolvedDependency>> toRet = new HashMap<>();
         logger.debug("Get the dependencies for site '{}' path '{}'", site, path);
         for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry :
                 dependencyTypes.entrySet()) {
-            Set<String> extractedPaths = new HashSet<>();
+            Set<ResolvedDependency> extractedDeps = new HashSet<>();
             DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
             List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns =
                     dependencyType.getIncludes();
@@ -287,16 +287,16 @@ public class RegexDependencyResolver implements DependencyResolver {
                     for (String matchedPath : matchedPaths) {
                         if (contentService.shallowContentExists(site, matchedPath)) {
                             logger.debug("Content exists for matched site '{}' path '{}'", site, matchedPath);
-                            extractedPaths.add(matchedPath);
+                            extractedDeps.add(new ResolvedDependency(matchedPath, true));
                         } else {
-                            logger.debug("Found reference to matched path '{}' in site '{}' path '{}', however " +
-                                    "the regex applied to find the dependency resulted in a path that doesn't " +
-                                    "exist in this site.", matchedPath, site, path);
+                            logger.debug("Found reference to matched path '{}' in site '{}' path '{}' to a path that doesn't " +
+                                    "exist in this site. The dependency will be marked as missing", matchedPath, site, path);
+                            extractedDeps.add(new ResolvedDependency(matchedPath, false));
                         }
                     }
                 }
             }
-            toRet.put(dependencyType.getName(), extractedPaths);
+            toRet.put(dependencyType.getName(), extractedDeps);
         }
         return toRet;
     }

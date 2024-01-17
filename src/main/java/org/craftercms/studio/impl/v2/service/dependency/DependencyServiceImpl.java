@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.dependency;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -88,5 +89,29 @@ public class DependencyServiceImpl implements DependencyService {
         siteService.checkSiteExists(siteId);
         contentRepository.checkContentExists(siteId, path);
         return dependencyServiceInternal.getDependentItems(siteId, path);
+    }
+
+    @Override
+    public void upsertDependencies(@SiteId String site, String path) throws ServiceLayerException {
+        contentRepository.checkContentExists(site, path);
+        dependencyServiceInternal.upsertDependencies(site, path);
+    }
+
+    @Override
+    public void deleteItemDependencies(@SiteId String site, String sourcePath) throws ServiceLayerException {
+        contentRepository.checkContentExists(site, sourcePath);
+        dependencyServiceInternal.deleteItemDependencies(site, sourcePath);
+    }
+
+    @Override
+    public void invalidateDependencies(String siteId, String targetPath) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+        dependencyServiceInternal.invalidateDependencies(siteId, targetPath);
+    }
+
+    @Override
+    public void validateDependencies(String siteId, String targetPath) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+        dependencyServiceInternal.validateDependencies(siteId, targetPath);
     }
 }

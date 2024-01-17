@@ -30,6 +30,7 @@ public class Dependency implements Serializable {
     private String sourcePath;
     private String targetPath;
     private String type;
+    private boolean valid;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -45,4 +46,12 @@ public class Dependency implements Serializable {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
 }

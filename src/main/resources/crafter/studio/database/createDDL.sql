@@ -207,7 +207,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.2', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.3', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -256,6 +256,7 @@ CREATE TABLE IF NOT EXISTS `dependency` (
   `source_path` TEXT        NOT NULL,
   `target_path` TEXT        NOT NULL,
   `type`        VARCHAR(50) NOT NULL,
+  `valid`       BIT         NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `dependency_site_idx` (`site`),
   KEY `dependency_sourcepath_idx` (`source_path`(1000))
