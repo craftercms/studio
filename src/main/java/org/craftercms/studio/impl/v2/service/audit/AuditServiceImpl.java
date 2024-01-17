@@ -22,7 +22,6 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -37,7 +36,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.rometools.utils.Strings.isNotEmpty;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_AUDIT_LOG;
 
 public class AuditServiceImpl implements AuditService {
@@ -45,7 +43,6 @@ public class AuditServiceImpl implements AuditService {
     private static final Logger logger = LoggerFactory.getLogger(AuditServiceImpl.class);
 
     private AuditServiceInternal auditServiceInternal;
-    private SiteService siteService;
     private ContentService contentService;
     private SecurityService securityService;
 
@@ -63,10 +60,6 @@ public class AuditServiceImpl implements AuditService {
                                       String clusterNodeId,
                                       String sort,
                                       String order) throws SiteNotFoundException {
-        if (isNotEmpty(siteId)) {
-            siteService.checkSiteExists(siteId);
-        }
-
         return auditServiceInternal.getAuditLog(siteId, offset, limit, user, operations, includeParameters,
                 dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
     }
@@ -76,10 +69,6 @@ public class AuditServiceImpl implements AuditService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
     public int getAuditLogTotal(@SiteId String siteId, String user, List<String> operations, boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                 String target, String origin, String clusterNodeId) throws SiteNotFoundException {
-        if (isNotEmpty(siteId)) {
-            siteService.checkSiteExists(siteId);
-        }
-
         return auditServiceInternal.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
                 dateTo, target, origin, clusterNodeId);
     }
@@ -88,9 +77,6 @@ public class AuditServiceImpl implements AuditService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
     public AuditLog getAuditLogEntry(@SiteId final String siteId, final long auditLogId) throws SiteNotFoundException {
-        if (isNotEmpty(siteId)) {
-            siteService.checkSiteExists(siteId);
-        }
         return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
     }
 
@@ -172,10 +158,6 @@ public class AuditServiceImpl implements AuditService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
     }
 
     public void setContentService(ContentService contentService) {

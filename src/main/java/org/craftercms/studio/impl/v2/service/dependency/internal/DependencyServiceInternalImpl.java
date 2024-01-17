@@ -24,12 +24,13 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.content.DependencyItem;
@@ -43,7 +44,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -59,7 +59,6 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private static final Logger logger = LoggerFactory.getLogger(DependencyServiceInternalImpl.class);
     private static final String UPSERT_DEPENDENCIES_LOCK = ":upsertDependencies";
 
-    private SitesService siteService;
     private StudioConfiguration studioConfiguration;
     private DependencyDAO dependencyDao;
     private ItemServiceInternal itemServiceInternal;
@@ -102,9 +101,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<String> getHardDependencies(String site, List<String> paths)
-            throws ServiceLayerException {
-        siteService.checkSiteExists(site);
+    @RequireSiteExists
+    public List<String> getHardDependencies(@SiteId String site, List<String> paths) {
         Map<String, String> dependencies = calculateHardDependencies(site, paths);
         return new ArrayList<>(dependencies.keySet());
     }
@@ -308,10 +306,6 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             throw new ServiceLayerException(format("Failed to validate dependencies for site '%s' path '%s'",
                     siteId, targetPath), e);
         }
-    }
-
-    public void setSiteService(SitesService siteService) {
-        this.siteService = siteService;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

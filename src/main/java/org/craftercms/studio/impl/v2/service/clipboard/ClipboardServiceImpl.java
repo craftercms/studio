@@ -21,7 +21,6 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
@@ -44,13 +43,11 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class ClipboardServiceImpl implements ClipboardService {
 
     protected final ClipboardServiceInternal clipboardServiceInternal;
-    protected final SiteService siteService;
     protected ContentService contentService;
 
-    @ConstructorProperties({"clipboardServiceInternal", "siteService", "contentService"})
-    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, SiteService siteService, ContentService contentService) {
+    @ConstructorProperties({"clipboardServiceInternal", "contentService"})
+    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, ContentService contentService) {
         this.clipboardServiceInternal = clipboardServiceInternal;
-        this.siteService = siteService;
         this.contentService = contentService;
     }
 
@@ -61,7 +58,6 @@ public class ClipboardServiceImpl implements ClipboardService {
                                    Operation operation,
                                    @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
                                    PasteItem item) throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
     }
 
@@ -72,7 +68,6 @@ public class ClipboardServiceImpl implements ClipboardService {
                                 @ProtectedResourceId(PATH_RESOURCE_ID)
                                 String path)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         contentService.checkContentExists(siteId, path);
         return clipboardServiceInternal.duplicateItem(siteId, path);
     }

@@ -1,10 +1,10 @@
 openapi: 3.0.0
 servers:
-  - url: 'http://localhost:8080/studio/api/2'
+  - url: 'http://localhost:8080/studio'
 info:
   description: |-
-    Crafter Studio API v2
-  version: '4.0.3.0'
+    Crafter Studio API
+  version: '4.2.0.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -48,6 +48,8 @@ tags:
     description: Marketplace operations
   - name: webdav
     description: WebDAV operations
+  - name: box
+    description: Box operations   
   - name: publishing
     description: Publishing operations
   - name: security
@@ -62,10 +64,12 @@ tags:
 #    description: tasks operations
   - name: loggers
     description: Logger configuration operations
+  - name: server
+    description: Server operations  
 
 paths:
 
-  /groups:
+  /api/2/groups:
     get:
       tags:
         - groups
@@ -231,7 +235,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /groups/{id}:
+  /api/2/groups/{id}:
     get:
       tags:
         - groups
@@ -267,7 +271,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /groups/{id}/members:
+  /api/2/groups/{id}/members:
     get:
       tags:
         - groups
@@ -440,7 +444,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users:
+  /api/2/users:
     get:
       tags:
         - users
@@ -620,7 +624,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{id}:
+  /api/2/users/{id}:
     get:
       tags:
         - users
@@ -655,7 +659,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/enable:
+  /api/2/users/enable:
     patch:
       tags:
         - users
@@ -699,7 +703,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/disable:
+  /api/2/users/disable:
     patch:
       tags:
         - users
@@ -743,7 +747,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{id}/sites:
+  /api/2/users/{id}/sites:
     get:
       tags:
         - users
@@ -806,7 +810,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{id}/sites/{site}/roles:
+  /api/2/users/{id}/sites/{site}/roles:
     get:
       tags:
         - users
@@ -849,7 +853,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{id}/reset_password:
+  /api/2/users/{id}/reset_password:
     post:
       tags:
         - users
@@ -900,7 +904,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/set_password:
+  /api/2/users/set_password:
     post:
       tags:
         - users
@@ -946,7 +950,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me:
+  /api/2/users/me:
     get:
       tags:
         - users
@@ -970,7 +974,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/sites:
+  /api/2/users/me/sites:
     get:
       tags:
         - users
@@ -1023,7 +1027,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/sites/{site}/roles:
+  /api/2/users/me/sites/{site}/roles:
     get:
       tags:
         - users
@@ -1056,7 +1060,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/sites/{site}/permissions:
+  /api/2/users/me/sites/{site}/permissions:
     get:
       tags:
         - users
@@ -1091,7 +1095,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/sites/{site}/has_permissions:
+  /api/2/users/me/sites/{site}/has_permissions:
     post:
       tags:
         - users
@@ -1144,7 +1148,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/global/permissions:
+  /api/2/users/me/global/permissions:
     get:
       tags:
         - users
@@ -1172,7 +1176,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/global/has_permissions:
+  /api/2/users/me/global/has_permissions:
     post:
       tags:
         - users
@@ -1218,7 +1222,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/logout/sso/url:
+  /api/2/users/me/logout/sso/url:
     get:
       tags:
         - users
@@ -1245,7 +1249,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/change_password:
+  /api/2/users/me/change_password:
     post:
       tags:
         - users
@@ -1291,7 +1295,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/properties:
+  /api/2/users/me/properties:
     get:
       tags:
         - users
@@ -1413,7 +1417,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/forgot_password:
+  /api/2/users/forgot_password:
     get:
       tags:
         - users
@@ -1442,7 +1446,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/validate_token:
+  /api/2/users/validate_token:
     get:
       tags:
         - users
@@ -1475,7 +1479,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /ui/views/global_menu:
+  /api/2/ui/views/global_menu:
     get:
       tags:
         - ui
@@ -1501,7 +1505,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /ui/system/active_environment:
+  /api/2/ui/system/active_environment:
     get:
       tags:
         - ui
@@ -1525,7 +1529,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /aws/s3/list:
+  /api/2/aws/s3/list:
     get:
       tags:
         - aws
@@ -1578,7 +1582,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /aws/s3/upload:
+  /api/2/aws/s3/upload:
     post:
       tags:
         - aws
@@ -1632,7 +1636,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /aws/mediaconvert/upload:
+  /api/2/aws/mediaconvert/upload:
     post:
       tags:
         - aws
@@ -1685,7 +1689,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /webdav/list:
+  /api/2/webdav/list:
     get:
       tags:
         - webdav
@@ -1738,7 +1742,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /webdav/upload:
+  /api/2/webdav/upload:
     post:
       tags:
         - webdav
@@ -1788,7 +1792,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /cluster:
+  /api/2/cluster:
     get:
       tags:
         - cluster
@@ -1817,7 +1821,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /cluster/mode:
+  /api/2/cluster/mode:
     get:
       tags:
         - cluster
@@ -1855,7 +1859,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /sites/available_blueprints:
+  /api/2/sites/available_blueprints:
     get:
       tags:
         - sites
@@ -1879,12 +1883,12 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /sites/create_site_from_marketplace:
+  /api/2/sites/create_site_from_marketplace:
     post:
       tags:
         - sites
       summary: Create a site from a Marketplace blueprint
-      operationId: createSite
+      operationId: createSiteFromMarketplace
       requestBody:
         description: The site information
         content:
@@ -1908,7 +1912,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /sites/{siteId}:
+  /api/2/sites/{siteId}:
     post:
       tags:
         - sites
@@ -1986,8 +1990,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-
-  /sites/{siteId}/policy/validate:
+  /api/2/sites/{siteId}/policy/validate:
     post:
       tags:
         - sites
@@ -2027,7 +2030,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /sites/{siteId}/duplicate:
+  /api/2/sites/{siteId}/duplicate:
     post:
       tags:
         - sites
@@ -2066,8 +2069,1691 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+ 
+  /api/1/services/api/1/site/create.json:
+    post:
+      tags:
+        - sites
+      summary: Create a Crafter Studio project.
+      description: 'Required Role: "Admin"'
+      operationId: createSite
+      requestBody:
+        description: Project/site details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  description: Project/Site ID to use                  
+                  type: string
+                  example: my-editorial  
+                name:
+                  type: string
+                  description: Label to use for the project/site                 
+                sandbox_branch:
+                  type: string
+                  description: "Name for sandbox branch (default: master)"
+                description:
+                  type: string
+                  description: Project/Site description
+                  example: "My very first site!"
+                blueprint:
+                  type: string
+                  description: "Blueprint to use for bootstrapping the project/site \n\n <i>Required if</i> `use_remote` <i>is false</i>"
+                  example: "org.craftercms.blueprint.empty"
+                use_remote:
+                  type: boolean
+                  description: Use remote repository option if true, otherwise false  
+                  example: false
+                remote_name:
+                  type: string
+                  description: "Remote repository name (default: origin)"  
+                remote_url:
+                  type: string
+                  description: "Remote repository URL \n\n <i>Required if</i> `use_remote` <i>is true</i>" 
+                remote_branch:
+                  type: string
+                  description: Branch to clone repo from 
+                single_branch:
+                  type: string
+                  description: Clone single branch if true, otherwise clone all
+                authentication_type:
+                  type: string
+                  description: "Authentication type to use to access remote repository \n\n \t none: No authentication \n\n \t basic: username password authentication \n\n \t token: username token authentication \n\n \t key: key-based authentication \n\n <i>Required if</i> `authentication_type` <i>to be used is not</i> `none`"    
+                remote_username:
+                  type: string
+                  description: "Username to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `basic`"
+                remote_password:
+                  type: string
+                  description: "Password to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `basic`"
+                remote_token:
+                  type: string
+                  description: "Token to use to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `token`"
+                remote_private_key:
+                  type: string
+                  description: Private key to access remote repository
+                create_option:
+                  type: string
+                  description: "Create options for remote repository: \n\n `clone`: clone from remote repository <i>Required if</i> `use_remote` <i>is true</i>"
+                site_params:
+                  type: object
+                  description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+                create_as_orphan:
+                  type: boolean
+                  description: Create the project/site from a remote repository as orphan (no git history) - default is false               
+              required: 
+                - site_id 
+                - name 
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OK
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'    
+        '403':
+          $ref: '#/components/responses/api1Forbidden'      
+        '404':
+          $ref: '#/components/responses/api1NotFound'  
+        '409':
+          $ref: '#/components/responses/api1Conflict'    
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'  
+          
+  /api/1/services/api/1/site/delete-site.json:
+    post:
+      tags:
+        - sites
+      summary: Delete a Crafter Studio project.
+      description: 'Required Role: "Admin"'
+      operationId: deleteSiteAPI1
+      requestBody:
+        description: Project/site to delete
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  description: Project/Site ID to use                  
+                  type: string
+                  example: my-editorial 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: true
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'            
+        '404':
+          $ref: '#/components/responses/api1NotFound'  
+        '409':
+          $ref: '#/components/responses/api1Conflict'    
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'           
+                          
+  /api/1/services/api/1/site/exists.json: 
+    get:
+      tags:
+        - sites
+      summary: Check if Crafter Studio project/site exists.
+      description: "Required role: admin, member in the project/site"
+      operationId: projectExists
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'          
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'            
+  
+  /api/1/services/api/1/site/get-canned-message.json: 
+    get:
+      tags:
+        - sites
+      summary: Get rejection reason.
+      description: No required role
+      operationId: getCannedMessage
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: locale
+          in: query
+          description: Locale of message
+          required: true
+          schema:
+            type: string
+          example: en  
+        - name: type
+          in: query
+          description: Message type
+          required: true
+          schema:
+            type: string
+          example: Typos           
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: string
+                    example: "This content has multiple spelling errors and/or grammatical errors. Please correct and re-submit."
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'          
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'            
+  
+  /api/1/services/api/1/site/get.json: 
+    get:
+      tags:
+        - sites
+      summary: Get a Crafter Studio project/site
+      description: No required role
+      operationId: getSite
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+              example: 
+                id: 8
+                siteUuid: "8d71254a-ceb3-409a-bb59-610505764a77"
+                siteId: "third"
+                name: "third"
+                description: "null"
+                deleted: 0
+                liveUrl: "null"
+                lastCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
+                publishingEnabled: 1
+                publishingStatus: "ready"
+                lastVerifiedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
+                sandboxBranch: "master"
+                publishedRepoCreated: 0
+                publishingLockOwner: "null"
+                publishingLockHeartbeat: null
+                state: "READY"
+                lastSyncedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
+                siteDeleted: false
+                sitePublishedRepoCreated: false                   
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'            
+  
+  /api/1/services/api/1/site/monitor-content.json: 
+    get:
+      tags:
+        - sites
+      summary: Get all projects/sites content monitors
+      description: "Required role: none"
+      operationId: monitorContent      
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    site_id:
+                      type: string
+                    contentMonitoring:
+                      type: object 
+                      properties:                         
+                        monitors:
+                          type: array
+                          items:
+                            type: string                         
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'          
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'                    
 
-  /search/search:
+  /api/1/services/api/1/repo/sync-from-repo.json: 
+    post:
+      tags:
+        - repository
+      summary: Synchronize Crafter Studio’s database and object state with the underlying repository. 
+      description: "Required role: Admin, site member <br><br> This needs to be done if the underlying repository was updated directly, bypassing Studio’s APIs/UI."
+      operationId: syncFromRepo
+      requestBody:
+        description: Synchronize from repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  type: string
+                  description: Site ID
+              required: 
+                - site_id          
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'          
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'                    
+
+  /api/1/services/api/1/security/get-user-permissions.json: 
+    get:
+      tags:
+        - security
+      summary: Get user permissions for project/site and space (path).
+      description: No required role
+      operationId: getUserPermissions
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Path of the content          
+          schema:
+            type: string     
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  permissions:
+                    type: array
+                    items: 
+                      type: string                   
+                example: 
+                  permissions: [
+                    "read"
+                  ]        
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'                  
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'   
+      
+  /api/1/services/api/1/publish/commits.json: 
+    post:
+      tags:
+        - publishing
+      summary: Publish commits from sandbox repository by commit id.
+      description: "Required role: none"
+      operationId: publishCommits
+      requestBody:
+        description: Publish commits from sandbox repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  type: string
+                  description: Project/Site to use
+                environment:
+                  type: string
+                  description: Environment to deploy content
+                commit_ids:
+                  type: array
+                  items: 
+                    type: string
+                  description: List of commit ids to publish
+                comment:  
+                  type: string
+                  description: Submission comment
+              example: 
+                site_id: my-editorial
+                environment: live
+                commit_ids: [
+                  "c89ee1cb2be4b41b0966d20c12d53b68ca70d74a",
+                  "0664df1ad04a9627dccb55a51ebf3704e313e40b",
+                  "93ae0e5e8d084fa9b7723cf3cf7ce526f47af0a9"
+                ]
+                comment: "My submission comment"    
+              required: 
+                - site_id
+                - environment
+                - commit_ids          
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'          
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'                    
+  
+  /api/1/services/api/1/publish/start.json: 
+    post:
+      tags:
+        - publishing
+      summary: Start Crafter Studio’s publishing for a project/site.
+      description: "Required role: Admin, Site Admin"
+      operationId: publishStart
+      requestBody:
+        description: Start project/site publishing request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  type: string
+                  description: Project/Site ID to use
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '403':
+            $ref: '#/components/responses/api1Forbidden'            
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+
+  /api/1/services/api/1/publish/stop.json: 
+    post:
+      tags:
+        - publishing
+      summary: Stop Crafter Studio’s publishing for a project/site.
+      description: "Required role: Admin, Site Admin"
+      operationId: publishStop
+      requestBody:
+        description: Stop project/site publishing request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  type: string
+                  description: Project/Site ID to use
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'            
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+  
+  /api/1/services/api/1/publish/publish-items.json: 
+    post:
+      tags:
+        - publishing
+      summary: Publish a list of items. This will automatically calculate dependencies, drop items and dependencies from any existing workflows and add them to a new publish package.
+      description: "Required role: Site admin, or has publish permission in this project/site"
+      operationId: publishItems
+      parameters: 
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string  
+      requestBody:
+        description: Publish items request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                environment:
+                  type: string
+                  description: Environment to publish to
+                schedule:
+                  type: string
+                  description: Schedule when to publish
+                submission_comment:
+                  type: string
+                  description: Submission comment
+                item: 
+                  type: string
+                  description: Path to the item(s)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+
+  /api/1/services/api/1/publish/reset-staging.json: 
+    post:
+      tags:
+        - publishing
+      summary: Reset Crafter Studio’s staging publishing target with the live publishing target.
+      description: "Required role: Admin, project/site member"
+      operationId: publishResetStaging
+      requestBody:
+        description: Reset staging request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_id:
+                  type: string
+                  description: Project/Site ID to use
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+
+  /api/1/services/api/1/dependency/calculate-dependencies.json:
+    post:
+      tags:
+        - dependency
+      summary: Calculate and return dependencies for one or more items.
+      description: "Required role: Project/site member"
+      operationId: calculateDependencies
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Reset staging request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties: 
+                      item:
+                        type: string
+                        description: Path to the item(s)
+                  example: 
+                    - item: /path/to/item1.xml
+                    - item: /path/to/item2.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/WebDavItem'  
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+        
+  /api/1/services/api/1/dependency/get-dependant.json:
+    post:
+      tags:
+        - dependency
+      summary: Get dependant content items.
+      description: "Required role: N/A"
+      operationId: getDependant
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /templates/web/pages/home.ftl
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+  
+  /api/1/services/api/1/dependency/get-simple-dependencies.json:
+    post:
+      tags:
+        - dependency
+      summary: Get simple dependencies.
+      description: "Required role: N/A"
+      operationId: getSimpleDependencies
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/index.xml
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties: 
+                    message:
+                      type: string
+                  example: 
+                    message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+  
+  /api/1/services/api/1/deployment/bulk-golive.json:
+    post:
+      tags:
+        - deployment
+      summary: Bulk go live.
+      description: "Required role: N/A"
+      operationId: bulkGoLive
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website
+        - name: environment
+          in: query
+          schema:
+            type: string
+          description: Environment to deploy content
+          required: true
+          example: Live  
+        - name: comment
+          in: query
+          schema:
+            type: string
+          description: Submission comment          
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+
+  /api/1/services/api/1/preview/sync-site.json:
+    post:
+      tags:
+        - preview
+      summary: Sync preview content with repository
+      description: "Required role: N/A"
+      operationId: syncSite
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties: 
+                    message:
+                      type: string
+                  example: 
+                    message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+  
+  /api/1/services/api/1/content/change-content-type.json:
+    post:
+      tags:
+        - content
+      summary: Change template for the content.
+      description: "Required role: N/A"
+      operationId: changeContentType
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/index.xml
+        - name: contentType
+          in: query
+          schema:
+            type: string
+          description: Content type to change to
+          required: true
+          example: /page/generic
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'
+    
+  /api/1/services/api/1/content/create-folder.json:
+    post:
+      tags:
+        - content
+      summary: Create folder.
+      description: "Required role: N/A"
+      operationId: createFolder
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Name of the new folder
+          required: true
+          example: newFolder  
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: boolean
+                example: 
+                  message: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/services/api/1/content/rename-folder.json:
+    post:
+      tags:
+        - content
+      summary: Rename folder.
+      description: "Required role: N/A"
+      operationId: renameFolder
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: New name of the folder
+          required: true
+          example: newFolder  
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  result:
+                    type: string
+                example: 
+                  result: "true"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/services/api/1/content/get-content.json:
+    get:
+      tags:
+        - content
+      summary: Get content stream.
+      description: "Required role: N/A"
+      operationId: getContent
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/health/index.xml
+        - name: edit
+          in: query
+          schema:
+            type: boolean
+          description: True to make content locked
+          required: true
+          example: true 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  content:
+                    type: string
+              example: 
+                content: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!--\n  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.\n  ~\n  ~ This program is free software: you can redistribute it and/or modify\n  ~ it under the terms of the GNU General Public License version 3 as published by\n  ~ the Free Software Foundation.\n  ~\n  ~ This program is distributed in the hope that it will be useful,\n  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of\n  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n  ~ GNU General Public License for more details.\n  ~\n  ~ You should have received a copy of the GNU General Public License\n  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n  -->\n\n<page>\n\t<content-type>/page/category-landing</content-type>\n\t<display-template>/templates/web/pages/category-landing.ftl</display-template>\n\t<no-template-required/>\n\t<merge-strategy>inherit-levels</merge-strategy>\n\t<objectGroupId>0557</objectGroupId>\n\t<objectId>05573d7a-3556-1ad0-6e34-9b085944fee2</objectId>\n\t<file-name>index.xml</file-name>\n\t<folder-name>health</folder-name>\n\t<placeInNav>true</placeInNav>\n\t<orderDefault_f>9000</orderDefault_f>\n\t<internal-name>Health</internal-name>\n\t<title_t>Health</title_t>\n\t<createdDate>2017-03-14T15:21:57.000Z</createdDate>\n\t<createdDate_dt>2017-03-14T15:21:57.000Z</createdDate_dt>\n\t<lastModifiedDate>2020-10-07T12:08:00.200Z</lastModifiedDate>\n\t<lastModifiedDate_dt>2020-10-07T12:08:00.200Z</lastModifiedDate_dt>\n\t<category_s>health</category_s>\n\t<max_articles_i>10</max_articles_i>\n\t<articles_title_t>Health</articles_title_t>\n\t<disabled>false</disabled>\n\t<header_o item-list=\"true\"/>\n\t<left_rail_o item-list=\"true\"/>\n</page>\n"    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'                
+  
+  /api/1/services/api/1/content/get-content-at-path.json:
+    get:
+      tags:
+        - content
+      summary: Get content stream at path.
+      description: "Required role: N/A"
+      operationId: getContentAtPath
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/health/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  contentStream:
+                    type: object
+                    properties:
+                      type:
+                        type: integer
+                      size:
+                        type: integer   
+                  contentPath:
+                    type: string   
+              example: 
+                contentStream: 
+                  type: 3
+                  size: 1699
+                contentPath: "/site/website/health/index.xml"          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/get-content-type.json:
+    get:
+      tags:
+        - content
+      summary: Get content type configuration.
+      description: "Required role: N/A"
+      operationId: getContentType
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+          description: Content type
+          required: true
+          example: /page/category-landing
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentType' 
+              example:
+                name: "/page/category-landing"
+                label: "Category Landing"
+                form: "/page/category-landing"
+                formPath: "simple"
+                type: "page"
+                contentAsFolder: true
+                useRoundedFolder: false
+                modelInstancePath: "NOT-USED-BY-SIMPLE-FORM-ENGINE"
+                allowedRoles: []
+                lastUpdated: "2023-11-10T18:00:05.882948Z"
+                copyDependencyPattern: []
+                imageThumbnail: "page-category-landing.png"
+                noThumbnail: false
+                pathIncludes: [ "^/site/website/(?!articles/)(.*)"]
+                pathExcludes: []
+                nodeRef: "null"
+                quickCreate: false
+                quickCreatePath: ""
+                deleteDependencyPattern: []
+                previewable: true  
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/get-content-types.json:
+    get:
+      tags:
+        - content
+      summary: Get content types allowed for given path.
+      description: "Required role: N/A"
+      operationId: getContentTypes
+      parameters:
+        - name: site
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path to get content types for
+          required: true
+          example: /site/website/
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:  
+                  $ref: '#/components/schemas/ContentType' 
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'  
+  
+  /api/1/services/api/1/content/get-item.json:
+    get:
+      tags:
+        - content
+      summary: Get content item.
+      description: "Required role: N/A"
+      operationId: getItem
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentItemV1'
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/get-item-orders.json:
+    get:
+      tags:
+        - content
+      summary: Get item orders.
+      description: "Required role: N/A"
+      operationId: getItemOrders
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/style/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/ContentItemV1'
+                  versions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContentItemOrder'
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/get-item-versions.json:
+    get:
+      tags:
+        - content
+      summary: Get content item version history.
+      description: "Required role: N/A"
+      operationId: getItemVersions
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentItemVersions'
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/get-items-tree.json:
+    get:
+      tags:
+        - content
+      summary: Get items tree.
+      description: "Required role: N/A"
+      operationId: getItemsTree
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/index.xml
+        - name: depth
+          in: query
+          schema:
+            type: integer
+          description: Depth of the tree to display
+          required: true
+          example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentItemV1'
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+  /api/1/services/api/1/content/get-next-item-order.json:
+    get:
+      tags:
+        - content
+      summary: Get next item order.
+      description: "Required role: N/A"
+      operationId: getNextItemOrder
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the parent item
+          required: true
+          example: /site/website/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nextValue:
+                    type: number
+              example: 1000.0      
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/get-pages.json:
+    get:
+      tags:
+        - content
+      summary: Get pages. Gets tree of content items for given path.
+      description: "Required role: N/A"
+      operationId: getPages
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/index.xml
+        - name: depth
+          in: query
+          schema:
+            type: integer
+          description: Depth of the tree to display
+          required: true
+          example: 1
+        - name: order
+          in: query
+          schema:
+            type: string
+          description: Order of content items.
+          required: true
+          example: default  
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentItemV1'
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/reorder-items.json:
+    get:
+      tags:
+        - content
+      summary: Reorder content items.
+      description: "Required role: N/A"
+      operationId: reorderItems
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/health/index.xml
+        - name: before
+          in: query
+          schema:
+            type: string
+          description: Item before the item with given path
+          required: true
+          example: 1
+        - name: after
+          in: query
+          schema:
+            type: string
+          description: Item after the item with given path
+          required: true
+          example: default  
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderValue:
+                    type: number
+              example: 10500.0 
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'  
+
+  /api/1/services/api/1/content/revert-content.json:
+    get:
+      tags:
+        - content
+      summary: Revert content item to a specific version.
+      description: "Required role: N/A"
+      operationId: revertContent
+      parameters:
+        - name: site
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/style/index.xml
+        - name: version
+          in: query
+          schema:
+            type: string
+          description: Version to revert to
+          required: true
+          example: 818e0f68bfccda9a9a1a788341b87ca3ba5ad3c6
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: true
+        '400':
+          $ref: '#/components/responses/api1BadRequest'         
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/1/services/api/1/content/write-content.json: 
+    post:
+      tags:
+        - content
+      summary: Write content.
+      description: "Required role: Author <br><br> Options:<br>WriteContentWebForm: Save content using Create/Edit web form.<br> WriteContentAssetForm: Save content using asset form (templates, javascript, css, groovy).<br> WriteContentFileUpload: File upload (multipart request)"
+      operationId: writeContent
+      parameters:
+        - in: query
+          name: filter
+          required: true
+          style: form
+          explode: true
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/WriteContentWebForm'
+                additionalProperties: false  
+              - $ref: '#/components/schemas/WriteContentAssetForm'
+                additionalProperties: false
+              - $ref: '#/components/schemas/WriteContentFileUpload'
+                additionalProperties: false    
+      requestBody:
+        description: "Write content request body <br> Use \"multipart/form-data\" when uploading a file"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+            example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+              <!--
+              ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+              ~
+              ~ This program is free software: you can redistribute it and/or modify
+              ~ it under the terms of the GNU General Public License version 3 as published by
+              ~ the Free Software Foundation.
+              ~
+              ~ This program is distributed in the hope that it will be useful,
+              ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+              ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+              ~ GNU General Public License for more details.
+              ~
+              ~ You should have received a copy of the GNU General Public License
+              ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+              --><page>
+              <content-type>/page/article</content-type>
+              <display-template>/templates/web/pages/article.ftl</display-template>
+              <merge-strategy>inherit-levels</merge-strategy>
+              <objectGroupId>f1f9</objectGroupId>
+              <objectId>f1f9c488-67e1-7ec0-d3ca-560b194e64d1</objectId>
+              <sections_o>
+              <item>
+                <section_html><![CDATA[<p>Nulla sed enim ipsum. Sed ac neque a ligula malesuada volutpat. Donec et ligula rutrum, mattis mauris eget, vestibulum metus. Maecenas non vehicula neque. Nunc ac mauris id ipsum commodo tempus. Integer at dolor consequat, dignissim eros in, imperdiet dui. Aliquam condimentum turpis eget tellus ultrices tincidunt. Pellentesque id varius purus, ac tristique augue. Etiam ut pharetra purus. Vestibulum quis vehicula eros. Mauris laoreet purus nec felis ullamcorper convallis. test</p>
+                <p>Quisque urna purus, posuere nec urna sed, ornare aliquet mauris. In faucibus vitae tellus id iaculis. Donec porttitor, elit eu elementum pulvinar, sapien ex cursus lacus, non ornare ex lectus ut elit. Donec eros ligula, suscipit eu tellus ut, tristique hendrerit tortor. Fusce sollicitudin mollis risus, ut rhoncus magna volutpat vel. Cras auctor, elit id pellentesque semper, neque nibh fermentum ante, sit amet malesuada felis magna nec enim. Vivamus sollicitudin placerat felis, vel blandit dolor sollicitudin a. Nunc vitae volutpat augue. Nunc tristique placerat tortor condimentum sagittis. Sed eu egestas ex, quis auctor neque. Nam eget tellus suscipit, vestibulum augue nec, consequat erat. Mauris malesuada nec ligula non posuere. Proin vitae posuere tortor. Phasellus vulputate quam ut dictum vulputate.</p>
+                <p>Integer ac lectus metus. Ut aliquam ipsum ligula, quis molestie ex pretium sit amet. Morbi porttitor neque vel luctus laoreet. Mauris varius lacus a eros aliquam, in maximus nibh aliquam. Integer sodales consequat metus eget accumsan. Integer viverra mi erat, in hendrerit massa vestibulum placerat. Sed ut gravida nisl, ut cursus neque. Vestibulum tristique rutrum augue vel aliquet.</p>
+                <p>Ut quis faucibus diam. Aliquam dolor metus, laoreet vitae lacinia a, aliquam a tellus. Vivamus sed commodo ipsum, in lacinia nisl. Sed metus diam, porta eget tortor et, vehicula hendrerit sapien. Vestibulum vehicula urna felis, id elementum libero pellentesque id. Vivamus in massa velit. Suspendisse vitae turpis fermentum lectus pellentesque laoreet. Curabitur viverra pretium turpis, eget feugiat mi blandit a. Quisque nisl urna, porta ut urna eget, mattis fringilla nisi. Ut lacus ligula, dapibus ac fermentum ac, rhoncus eget metus. Donec scelerisque, felis vitae viverra iaculis, diam sem gravida tellus, non sodales urna urna sit amet enim. Duis id justo vitae justo suscipit porta placerat vel ligula. Morbi justo nunc, rhoncus laoreet ipsum a, aliquet eleifend dui. In a quam tortor.</p>
+                <p>Pellentesque eget eros ut dui tincidunt convallis. Pellentesque tincidunt rutrum tellus, non rhoncus dui finibus eu. Integer eu sem maximus, blandit neque eu, congue leo. Ut pretium efficitur turpis, id dapibus turpis bibendum vel. Suspendisse a nibh dictum, imperdiet est et, interdum odio. Morbi urna magna, eleifend vitae luctus ac, scelerisque sit amet nisi. Quisque maximus placerat ante et fermentum. Nulla eu aliquet arcu, vel maximus massa. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aliquam posuere arcu ex, in sagittis orci rhoncus eu. Suspendisse potenti. Curabitur facilisis sapien et ligula tristique lacinia. Aliquam a mauris bibendum, placerat augue sit amet, hendrerit arcu. Nam in bibendum sapien. Pellentesque laoreet nisi vel metus dapibus dictum. Integer semper, velit laoreet ornare maximus, nulla orci maximus ante, a tincidunt eros risus blandit eros.</p>]]></section_html>
+                </item>
+                </sections_o>
+              <file-name>index.xml</file-name>
+              <folder-name>men-styles-for-winter</folder-name>
+              <internal-name>Men Styles For Winter</internal-name>
+              <title_t>Men Styles For Winter</title_t>
+              <subject_t>Men Styles For Winter</subject_t>
+              <author_s>John Doe</author_s>
+              <categories_o>
+              <item>
+                <key>style</key>
+                <value_smv>Style</value_smv>
+              </item>
+              </categories_o>
+              <segments_o>
+                <item>
+                  <key>guy</key>
+                  <value_smv>Guy</value_smv>
+                </item>
+              </segments_o>
+              <date_dt>2021-01-05T05:00:00.000Z</date_dt>
+              <createdDate>2017-03-3T20:57:7.000Z</createdDate>
+              <createdDate_dt>2017-03-3T20:57:7.000Z</createdDate_dt>
+              <lastModifiedDate>2017-03-13T20:33:5.000Z</lastModifiedDate>
+              <lastModifiedDate_dt>2023-11-20T13:25:05.289Z</lastModifiedDate_dt>
+              <featured_b>true</featured_b>
+              <summary_t>Nulla sed enim ipsum. Sed ac neque a ligula malesuada volutpat. Donec et ligula rutrum, mattis mauris eget, vestibulum metus. Maecenas non vehicula neque. Nunc ac mauris id ipsum commodo tempus. Integer at dolor consequat, dignissim eros in, imperdiet dui.</summary_t>
+              <image_s>/static-assets/images/winter-man-pic.jpg</image_s>
+              </page>"  
+          multipart/form-data: # Media type
+            schema:            # Request payload
+              type: object              
+              properties:      # Request parts
+                site:          # Text Part (string value)
+                  type: string
+                  description: the project/site id
+                  example: mysite
+                path:
+                  type: string
+                  description: the folder in your site where you want to upload your file  
+                  example: /static-assets
+                file:          # File Part (string value)
+                  type: string
+                  description: the file to be uploaded
+                  format: binary   
+              required:
+                - site    
+                - path
+                - file            
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  result:
+                    type: string
+                example: 
+                  result: null    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/api1Unauthorized'          
+        '404':
+          $ref: '#/components/responses/api1NotFound'            
+        '500':
+          $ref: '#/components/responses/api1InternalServerError'                    
+
+  /api/1/services/api/1/server/get-available-languages.json:
+    get:
+      tags:
+        - server
+      summary: Get available languages.
+      description: "Required role: N/A"
+      operationId: getAvailableLanguages
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableLanguage'
+                example:
+                  - id: en
+                    label: English
+                  - id: es
+                    label: Español
+                  - id: kr
+                    label: 한국어      
+
+  /api/1/services/api/1/box/token.json:
+    get:
+      tags:
+        - box
+      summary: Get Box token.
+      description: "Required role: N/A"
+      operationId: getBoxToken
+      parameters:
+        - name: site
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: profileId
+          in: query
+          description: Box profile ID to use
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string              
+        '400':
+          $ref: '#/components/responses/api1BadRequest'                 
+        '500':
+          $ref: '#/components/responses/InternalServerError'            
+
+  /api/2/search/search:
     post:
       tags:
         - search
@@ -2099,8 +3785,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   result:
                     $ref: '#/components/schemas/SearchResult'
-
-  /audit:
+                    
+  /api/2/audit:
     get:
       tags:
         - audit
@@ -2225,7 +3911,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /audit/{id}:
+  /api/2/audit/{id}:
     get:
       tags:
         - audit
@@ -2268,7 +3954,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /monitoring/version:
+  /api/2/monitoring/version:
     get:
       tags:
         - monitoring
@@ -2298,7 +3984,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /monitoring/status:
+  /api/2/monitoring/status:
     get:
       tags:
         - monitoring
@@ -2339,7 +4025,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /monitoring/memory:
+  /api/2/monitoring/memory:
     get:
       tags:
         - monitoring
@@ -2369,7 +4055,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /monitoring/log:
+  /api/2/monitoring/log:
     get:
       tags:
         - monitoring
@@ -2408,7 +4094,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/add_remote:
+  /api/2/repository/add_remote:
     post:
       tags:
         - repository
@@ -2443,7 +4129,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/pull_from_remote:
+  /api/2/repository/pull_from_remote:
     post:
       tags:
         - repository
@@ -2509,7 +4195,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/push_to_remote:
+  /api/2/repository/push_to_remote:
     post:
       tags:
         - repository
@@ -2561,8 +4247,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-
-  /repository/remove_remote:
+  /api/2/repository/remove_remote:
     post:
       tags:
         - repository
@@ -2605,7 +4290,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/list_remotes:
+  /api/2/repository/list_remotes:
     get:
       tags:
         - repository
@@ -2642,7 +4327,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/status:
+  /api/2/repository/status:
     get:
       tags:
         - repository
@@ -2677,7 +4362,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/resolve_conflict:
+  /api/2/repository/resolve_conflict:
     post:
       tags:
         - repository
@@ -2726,7 +4411,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/diff_conflicted_file:
+  /api/2/repository/diff_conflicted_file:
     get:
       tags:
         - repository
@@ -2778,7 +4463,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/commit_resolution:
+  /api/2/repository/commit_resolution:
     post:
       tags:
         - repository
@@ -2823,7 +4508,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/cancel_failed_pull:
+  /api/2/repository/cancel_failed_pull:
     post:
       tags:
         - repository
@@ -2864,7 +4549,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/unlock:
+  /api/2/repository/unlock:
     post:
       tags:
         - repository
@@ -2908,7 +4593,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/corrupted:
+  /api/2/repository/corrupted:
     get:
       tags:
         - repository
@@ -2948,7 +4633,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/repair:
+  /api/2/repository/repair:
     post:
       tags:
         - repository
@@ -2989,48 +4674,47 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /model/{siteId}/definitions:
+  /api/2/model/{siteId}/definitions:
     post:
-        tags:
-            - model
-        summary: Get all model definitions for site.
-        description: 'Required permission "read_configuration". <br/>In a future release this request will accept a set of arguments which could surpass the max length of the GET request, consequently, this endpoint answers to a POST method.
-.'
-        operationId: getAllModelDefinitions
-        parameters:
-            - name: siteId
-              in: path
-              description: Site ID
-              required: true
-              schema:
-                  type: string
-        responses:
-          '200':
-            description: OK
-            content:
-                application/json:
-                  schema:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      types:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - "<form><title>Home</title>..."
-                          - "<form><title>Article</title>..."
-          '400':
-            $ref: '#/components/responses/BadRequest'
-          '401':
-            $ref: '#/components/responses/Unauthorized'
-          '404':
-            $ref: '#/components/responses/NotFound'
-          '500':
+      tags:
+        - model
+      summary: Get all model definitions for site.
+      description: 'Required permission "read_configuration". <br/>In a future release this request will accept a set of arguments which could surpass the max length of the GET request, consequently, this endpoint answers to a POST method..'
+      operationId: getAllModelDefinitions
+      parameters:
+        - name: siteId
+          in: path
+          description: Site ID
+          required: true
+          schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    types:
+                      type: array
+                      items:
+                        type: string
+                      example:
+                        - "<form><title>Home</title>..."
+                        - "<form><title>Article</title>..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
             $ref: '#/components/responses/InternalServerError'
 
-  /configuration/get_configuration:
+  /api/2/configuration/get_configuration:
     get:
       tags:
         - configuration
@@ -3086,7 +4770,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /configuration/write_configuration:
+  /api/2/configuration/write_configuration:
     post:
       tags:
         - configuration
@@ -3142,7 +4826,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /configuration/clear_cache:
+  /api/2/configuration/clear_cache:
     get:
       tags:
         - configuration
@@ -3168,7 +4852,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /configuration/get_configuration_history:
+  /api/2/configuration/get_configuration_history:
     get:
       tags:
         - configuration
@@ -3256,7 +4940,7 @@ paths:
   #       '403':
   #         $ref: '#/components/responses/Forbidden'
 
-  /configuration/content-type/usage:
+  /api/2/configuration/content-type/usage:
     get:
       tags:
         - configuration
@@ -3310,7 +4994,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
-  /configuration/content-type/preview_image:
+  /api/2/configuration/content-type/preview_image:
     get:
       tags:
         - configuration
@@ -3357,7 +5041,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /configuration/content-type/delete:
+  /api/2/configuration/content-type/delete:
     post:
       tags:
         - configuration
@@ -3400,7 +5084,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
 
-  /plugin/file:
+  /api/2/plugin/file:
     # Override the server to change the prefix
     servers:
       - url: http://localhost:8080/studio/1
@@ -3471,7 +5155,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /plugin/get_configuration:
+  /api/2/plugin/get_configuration:
     get:
       tags:
         - plugin
@@ -3513,7 +5197,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /plugin/write_configuration:
+  /api/2/plugin/write_configuration:
     post:
       tags:
         - plugin
@@ -3560,7 +5244,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /plugin/script/reload:
+  /api/2/plugin/script/reload:
     get:
       tags:
         - plugin
@@ -3598,7 +5282,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/list_quick_create_content:
+  /api/2/content/list_quick_create_content:
     get:
       tags:
         - content
@@ -3635,7 +5319,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/get_delete_package:
+  /api/2/content/get_delete_package:
     post:
       tags:
         - content
@@ -3689,7 +5373,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/delete:
+  /api/2/content/delete:
     post:
       tags:
         - content
@@ -3744,7 +5428,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/rename:
+  /api/2/content/rename:
     post:
       tags:
         - content
@@ -3795,7 +5479,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/children_by_path:
+  /api/2/content/children_by_path:
     post:
       deprecated: true
       tags:
@@ -3894,13 +5578,20 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/{siteId}/children:
+  /api/2/content/{siteId}/children:
     post:
       tags:
         - content
       summary: Get list of children for given item paths
       description: 'Required permission "get_children" and "site member"'
       operationId: getChildrenByPaths
+      parameters:
+        - name: siteId
+          in: path
+          description: Site ID
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -3968,7 +5659,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/exists:
+  /api/2/content/exists:
     get:
       tags:
         - content
@@ -4011,7 +5702,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_by_path:
+  /api/2/content/item_by_path:
     get:
       tags:
         - content
@@ -4060,7 +5751,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/sandbox_items_by_path:
+  /api/2/content/sandbox_items_by_path:
     post:
       tags:
         - content
@@ -4117,7 +5808,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/descriptor:
+  /api/2/content/descriptor:
     get:
       tags:
         - content
@@ -4164,7 +5855,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/paste:
+  /api/2/content/paste:
     post:
       tags:
         - content
@@ -4205,7 +5896,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/duplicate:
+  /api/2/content/duplicate:
     post:
       tags:
         - content
@@ -4252,7 +5943,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_lock_by_path:
+  /api/2/content/item_lock_by_path:
     post:
       tags:
         - content
@@ -4301,7 +5992,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_unlock_by_path:
+  /api/2/content/item_unlock_by_path:
     post:
       tags:
         - content
@@ -4348,7 +6039,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/get_content_by_commit_id:
+  /api/2/content/get_content_by_commit_id:
     get:
       tags:
         - content
@@ -4398,7 +6089,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_history:
+  /api/2/content/item_history:
     get:
       tags:
         - content
@@ -4443,7 +6134,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dependency/dependencies:
+  /api/2/dependency/dependencies:
     post:
       tags:
         - dependency
@@ -4497,7 +6188,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /dependency/dependent_items:
+
+  /api/2/dependency/dependent_items:
     get:
       tags:
         - dependent_items
@@ -4546,7 +6238,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /marketplace/search:
+  /api/2/marketplace/search:
     get:
       tags:
         - marketplace
@@ -4619,7 +6311,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /marketplace/installed:
+  /api/2/marketplace/installed:
     get:
       tags:
         - marketplace
@@ -4656,7 +6348,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /marketplace/install:
+  /api/2/marketplace/install:
     post:
       tags:
         - marketplace
@@ -4708,7 +6400,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /marketplace/copy:
+  /api/2/marketplace/copy:
     post:
       tags:
         - marketplace
@@ -4755,7 +6447,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /marketplace/remove:
+  /api/2/marketplace/remove:
     post:
       tags:
         - marketplace
@@ -4803,7 +6495,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /marketplace/usage:
+  /api/2/marketplace/usage:
     get:
       tags:
         - marketplace
@@ -4850,7 +6542,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/all:
+  /api/2/publish/all:
     post:
       tags:
         - publishing
@@ -4896,7 +6588,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/packages:
+  /api/2/publish/packages:
     get:
       tags:
         - publishing
@@ -4979,7 +6671,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/package:
+  /api/2/publish/package:
     get:
       tags:
         - publishing
@@ -5020,7 +6712,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/cancel:
+  /api/2/publish/cancel:
     post:
       tags:
         - publishing
@@ -5065,7 +6757,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/status:
+  /api/2/publish/status:
     get:
       tags:
         - publishing
@@ -5100,7 +6792,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/clear_lock:
+  /api/2/publish/clear_lock:
     post:
       tags:
         - publishing
@@ -5139,7 +6831,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/history:
+  /api/2/publish/history:
     get:
       tags:
         - publishing
@@ -5194,7 +6886,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/available_targets:
+  /api/2/publish/available_targets:
     get:
       tags:
         - publishing
@@ -5242,7 +6934,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/has_initial_publish:
+  /api/2/publish/has_initial_publish:
     get:
       tags:
         - publishing
@@ -5278,7 +6970,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /security/encrypt:
+  /api/2/security/encrypt:
     post:
       tags:
         - security
@@ -5315,7 +7007,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /security/tokens:
+  /api/2/security/tokens:
     get:
       tags:
         - security
@@ -5381,7 +7073,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /security/tokens/{id}:
+  /api/2/security/tokens/{id}:
     post:
       tags:
         - security
@@ -5455,7 +7147,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /security/preview/switch:
+  /api/2/security/preview/switch:
     post:
       tags:
         - security
@@ -5479,7 +7171,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/activity:
+  /api/2/dashboard/activity:
     get:
       tags:
         - dashboard
@@ -5572,7 +7264,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/activity/me:
+  /api/2/dashboard/activity/me:
     get:
       tags:
         - dashboard
@@ -5657,7 +7349,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content/pending_approval:
+  /api/2/dashboard/content/pending_approval:
     get:
       tags:
         - dashboard
@@ -5687,12 +7379,10 @@ paths:
           schema:
             type: string
           in: query
-          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
-          Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive. Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
         - name: itemType
           in: query
-          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
-          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`.Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
           schema:
             type: string
       responses:
@@ -5732,7 +7422,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content/pending_approval/{id}:
+  /api/2/dashboard/content/pending_approval/{id}:
     get:
       tags:
         - dashboard
@@ -5777,7 +7467,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content/unpublished:
+  /api/2/dashboard/content/unpublished:
     get:
       tags:
         - dashboard
@@ -5805,14 +7495,12 @@ paths:
             type: integer
         - name: sort
           in: query
-          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
-          Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive. Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
           schema:
             type: string
         - name: itemType
           in: query
-          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
-          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`. Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
           schema:
             type: string
       responses:
@@ -5852,7 +7540,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing/scheduled:
+  /api/2/dashboard/publishing/scheduled:
     get:
       tags:
         - dashboard
@@ -5906,14 +7594,12 @@ paths:
             type: integer
         - name: sort
           in: query
-          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
-          Multiple fields are separated by commas. Example: `dateScheduled asc, label desc`. Supported fields: `id` `dateScheduled` `label`. Default `dateScheduled desc`"
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive. Multiple fields are separated by commas. Example: `dateScheduled asc, label desc`. Supported fields: `id` `dateScheduled` `label`. Default `dateScheduled desc`"
           schema:
             type: string
         - name: itemType
           in: query
-          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
-          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`. Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
           schema:
             type: string
       responses:
@@ -5953,7 +7639,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing/scheduled/{id}:
+  /api/2/dashboard/publishing/scheduled/{id}:
     get:
       tags:
         - dashboard
@@ -5998,7 +7684,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing/history:
+  /api/2/dashboard/publishing/history:
     get:
       tags:
         - dashboard
@@ -6087,7 +7773,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing/history/{id}:
+  /api/2/dashboard/publishing/history/{id}:
     get:
       tags:
         - dashboard
@@ -6156,7 +7842,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing/stats:
+  /api/2/dashboard/publishing/stats:
     get:
       tags:
         - dashboard
@@ -6200,7 +7886,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content/expiring:
+  /api/2/dashboard/content/expiring:
     get:
       tags:
         - dashboard
@@ -6276,7 +7962,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content/expired:
+  /api/2/dashboard/content/expired:
     get:
       tags:
         - dashboard
@@ -6680,7 +8366,7 @@ paths:
 #        '500':
 #          $ref: '#/components/responses/InternalServerError'
 
-  /workflow/item_states:
+  /api/2/workflow/item_states:
     get:
       tags:
         - workflow
@@ -6804,7 +8490,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/update_item_states_by_query:
+  /api/2/workflow/update_item_states_by_query:
     post:
       tags:
         - workflow
@@ -6878,7 +8564,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/affected_paths:
+  /api/2/workflow/affected_paths:
     get:
       tags:
         - workflow
@@ -6923,7 +8609,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/request_publish:
+  /api/2/workflow/request_publish:
     post:
       tags:
         - workflow
@@ -6989,7 +8675,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/publish:
+  /api/2/workflow/publish:
     post:
       tags:
         - workflow
@@ -7052,7 +8738,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/approve:
+  /api/2/workflow/approve:
     post:
       tags:
         - workflow
@@ -7115,7 +8801,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/reject:
+  /api/2/workflow/reject:
     post:
       tags:
         - workflow
@@ -7165,7 +8851,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/packages:
+  /api/2/workflow/packages:
     get:
       tags:
         - workflow
@@ -7344,7 +9030,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/packages/{id}:
+  /api/2/workflow/packages/{id}:
     get:
       tags:
         - workflow
@@ -7382,7 +9068,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/packages/approve:
+  /api/2/workflow/packages/approve:
     post:
       tags:
         - workflow
@@ -7442,7 +9128,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/packages/reject:
+  /api/2/workflow/packages/reject:
     post:
       tags:
         - workflow
@@ -7497,7 +9183,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /loggers:
+  /api/2/loggers:
     get:
       tags:
         - loggers
@@ -7524,7 +9210,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /loggers/logger_level:
+  /api/2/loggers/logger_level:
     post:
       tags:
         - loggers
@@ -8068,7 +9754,6 @@ components:
             compatible:
               description: Indicates if the plugin is compatible
               type: boolean
-
 
     MarketplaceRemotePlugin:
       allOf:
@@ -8752,7 +10437,6 @@ components:
         - numberOfChildren
         - children
         - publishingTarget
-
 
     DependencyItem:
       type: object
@@ -9556,6 +11240,7 @@ components:
       required:
         - name
         - level
+
     LoggerConfigRequest:
       allOf:
         - $ref: '#/components/schemas/LoggerConfig'
@@ -9614,6 +11299,444 @@ components:
           type: boolean
           description: If true, the blob stores will be read-only in the copied site.
           default: true
+
+    ContentType:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The site content name
+        label:
+          type: string
+          description: The content type display name
+        form:
+          type: string
+          description: The content type form
+        formPath:
+          type: string
+          description: The content type form path 
+        type:
+          type: string
+          description: The type, e.g. page, component, etc
+        contentAsFolder:
+          type: boolean
+          description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\/index.xml instead of 101.xml"
+        useRoundedFolder:
+          type: boolean
+          description: Indicates whether use rounded folder to arrange content    
+        modelInstancePath:
+          type: string
+          description: The path to the model instance file (WCM)  
+        allowedRoles:
+          type: array
+          items:
+            type: string
+          description: The list of roles allowed  
+        lastUpdated:
+          type: string
+          description: The date the content type was last updated            
+        copyDependencyPattern:
+          type: array
+          items:
+            type: string
+          description: The list of copy association patterns
+        imageThumbnail:
+          type: string
+          description: The thumbnail image file to be displayed  
+        noThumbnail:
+          type: boolean
+          description: Indicates whether content type has a thumbnail
+        pathIncludes:
+          type: array
+          items:
+            type: string
+          description: The the list of included paths    
+        pathExcludes:
+          type: array
+          items:
+            type: string
+          description: The the list of excluded paths
+        nodeRef:
+          type: string
+          description: The configuration noderef this content type is associated with
+        quickCreate:
+          type: boolean
+          description: Indicates whether the content type is available from the quick create button  
+        quickCreatePath:
+          type: string
+          description: The destination path pattern of content type  
+        deleteDependencyPattern:
+          type: array
+          items:
+            type: string
+          description: The list of delete association patterns that this content type is dependent on for deleting indexes in webproject  
+        previewable:
+          type: boolean
+          description: Indicates whether the content type is previewable 
+
+    ContentItemV1:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The item name
+        internalName:
+          type: string
+          description: The item internal name
+        contentType:
+          type: string
+          description: The item content type
+        uri:
+          type: string
+          description: The content type uri
+        path:
+          type: string
+          description: The content type form path 
+        browserUri:
+          type: string
+        navigation:
+          type: boolean
+        floating:      
+          type: boolean
+        hideInAuthoring:
+          type: boolean
+        previewable:
+          type: boolean
+        lockOwner:
+          type: string
+        user:
+          type: string
+        userFirstName:
+          type: string      
+        userLastName:
+          type: string
+        nodeRef:
+          type: string
+        metaDescription:
+          type: string
+        site:
+          type: string
+        page:
+          type: boolean
+        component:
+          type: boolean
+        document:
+          type: boolean
+        asset:
+          type: boolean
+        isContainer:
+          type: boolean
+        container:
+          type: boolean
+        disabled:
+          type: boolean
+        savedAsDraft:
+          type: boolean
+        submitted:
+          type: boolean
+        submittedForDeletion:
+          type: boolean
+        scheduled:
+          type: boolean
+        published:
+          type: boolean
+        deleted:
+          type: boolean
+        inProgress:
+          type: boolean
+        live:
+          type: boolean
+        inFlight:
+          type: boolean
+        isDisabled:
+          type: boolean
+        isSavedAsDraft:
+          type: boolean
+        isInProgress:
+          type: boolean
+        isLive:
+          type: boolean
+        isSubmittedForDeletion:
+          type: boolean
+        isScheduled:
+          type: boolean
+        isPublished:
+          type: boolean
+        isNavigation:
+          type: boolean
+        isDeleted:
+          type: boolean
+        isNew:
+          type: boolean
+        isSubmitted:
+          type: boolean
+        isFloating:
+          type: boolean
+        isPage:
+          type: boolean
+        isPreviewable:
+          type: boolean
+        isComponent:
+          type: boolean
+        isDocument:
+          type: boolean
+        isAsset:
+          type: boolean
+        isInFlight:
+          type: boolean
+        eventDate:
+          type: string
+        endpoint:
+          type: string
+        timezone:
+          type: string
+        numOfChildren:
+          type: number
+        scheduledDate:
+          type: string
+        publishedDate:
+          type: string
+        mandatoryParent:
+          type: string
+        isLevelDescriptor:
+          type: boolean
+        categoryRoot:
+          type: string
+        lastEditDate:
+          type: string
+        form:
+          type: string
+        formPagePath:
+          type: string
+        renderingTemplates:
+          type: array
+          items:
+            type: string 
+        folder:
+          type: boolean
+        submissionComment:
+          type: string 
+        components:
+          type: string
+        documents:
+          type: string
+        levelDescriptors:
+          type: string
+        pages:
+          type: string
+        parentPath:
+          type: string
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItemOrder'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItemV1'
+        size:
+          type: number
+        sizeUnit:
+          type: string
+        mimeType:
+          type: string
+        levelDescriptor:
+          type: boolean
+        newFile:
+          type: boolean
+        reference:
+          type: boolean
+        new:
+          type: boolean                   
+    
+    ContentItemOrder:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The item name
+        id:
+          type: string
+          description: The item id
+        disabled:
+          type: string
+          description: Indicates whether the item is disabled
+        order:
+          type: string
+          description: The item's order
+        placeInNav:
+          type: string
+          description: Indicates whether the item is placed in the navigation
+    
+    ContentItemVersions:
+      type: object
+      properties:
+        lastModifiedDate:
+          type: string
+          description: The item's last modified date
+        lastModifier:
+          type: string
+          description: The user that last modified the item 
+        versionNumber:   
+          type: string
+          description: The item's version number
+        contentItem:
+          type: string
+          description: The item content
+        comment:
+          type: string
+          description: The comment  
+
+    WriteContentWebForm:
+      type: object      
+      properties:
+        site_id:
+          type: string
+          description: Project/Site to use
+          example: mysite
+        path:
+          type: string
+          description: Path of the content
+          example: /site/website/index.xml
+        fileName:
+          type: string
+          description: File name of the content
+          example: index.xml
+        contentType:
+          type: string
+          description: Content type of the content
+          example: /page/home  
+        edit:
+          type: string
+          description: True if it is edit, otherwise it is create
+          example: index.xml
+        user:
+          type: string
+          description: User that executes action
+          example: admin
+        oldContentPath:
+          type: string
+          description: If renaming, content old path
+        draft:
+          type: string
+          description: True if saving as draft
+        unlock:
+          type: string
+          description: False to keep content locked, otherwise true
+          example: "true" 
+      required: 
+        - site_id
+        - path
+        - fileName
+        - contentType
+        - unlock  
+                 
+    WriteContentAssetForm:
+      type: object      
+      properties:
+        site:
+          type: string
+          description: Project/Site to use
+          example: mysite
+        path:
+          type: string
+          description: Path of the content
+          example: /site/website/index.xml
+        fileName:
+          type: string
+          description: File name of the content
+          example: index.xml
+        contentType:
+          type: string
+          description: Content type of the content
+          example: /page/home  
+        user:
+          type: string
+          description: User that executes action
+          example: admin
+        isImage:
+          type: string
+          description: True if it is image
+        allowedWidth:
+          type: integer
+          description: Allowed image width
+        allowedHeight:
+          type: integer
+          description: Allowed image height
+        allowLessSize:
+          type: string
+          description: Allow less size
+        draft:
+          type: string
+          description: True if saving as draft
+        unlock:
+          type: string
+          description: false to keep content locked, otherwise true
+        systemAsset:
+          type: string
+          description: true if it is private asset
+      required:
+        - site
+        - path
+        - fileName
+        - unlock 
+              
+    WriteContentFileUpload:
+      type: object      
+      properties:
+        site:
+          type: string
+          description: Project/Site to use
+          example: mysite
+        path:
+          type: string
+          description: Path of the content
+          example: /site/website/index.xml
+        fileName:
+          type: string
+          description: File name of the content
+          example: index.xml
+        contentType:
+          type: string
+          description: Content type of the content
+          example: /page/home  
+        user:
+          type: string
+          description: User that executes action
+          example: admin
+        isImage:
+          type: string
+          description: True if it is image
+        allowedWidth:
+          type: integer
+          description: Allowed image width
+        allowedHeight:
+          type: integer
+          description: Allowed image height
+        allowLessSize:
+          type: string
+          description: Allow less size
+        draft:
+          type: string
+          description: True if saving as draft
+        unlock:
+          type: string
+          description: false to keep content locked, otherwise true
+      required:
+        - site
+        - path
+        - fileName
+        - unlock 
+    
+    AvailableLanguage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The language code, e.g. ja
+        label:
+          type: string
+          description: The language display name
 
   responses:
     NotFound:
@@ -9691,6 +11814,83 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
+    api1OK:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: 
+              message:
+                type: string
+            example: 
+              message: "OK"                        
+    api1NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: 
+              message:
+                type: string
+            example: 
+              message: "Site not found"            
+    api1BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example: 
+              message: "Invalid parameter: site_id"
+    api1Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example: 
+              message: "Forbidden" 
+    api1Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example: 
+              message: "Unauthorized"
+    api1Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example: 
+              message: "Site already exists"              
+    api1InternalServerError:
+      description: Internal system failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example: 
+              message: "Internal server error. ACTUAL_EXCEPTION"
   securitySchemes:
     jwtAuth:
       type: http

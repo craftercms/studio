@@ -293,7 +293,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     public void checkSiteState(final String siteId, final String requiredState) throws InvalidSiteStateException, SiteNotFoundException {
         SiteFeed site = siteFeedMapper.getSite(Map.of(SITE_ID, siteId));
         if (site == null) {
-            throw new SiteNotFoundException(siteId);
+            throw new SiteNotFoundException(format("Site '%s' not found.", siteId));
         }
         if (!requiredState.equals(site.getState())) {
             throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",

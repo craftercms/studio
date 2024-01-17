@@ -404,7 +404,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                    String environment,
                                    InputStream content)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
         applicationContext.publishEvent(
@@ -630,7 +629,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                                         @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                                         String environment)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         String configPath;
         if (!isEmpty(environment)) {
             String configBasePath =
@@ -675,7 +673,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     @SuppressWarnings("rawtypes")
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
     public TranslationConfiguration getTranslationConfiguration(@SiteId String siteId) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         TranslationConfiguration translationConfiguration = new TranslationConfiguration();
         if (contentServiceInternal.contentExists(siteId, translationConfig)) {
             try (InputStream is = contentService.getContent(siteId, translationConfig)) {
