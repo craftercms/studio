@@ -39,15 +39,7 @@ public interface DependencyMapper {
 
     List<DependencyEntity> getDependencies(Map params);
 
-    List<DependencyEntity> getDependant(Map params);
-
-    void deleteAllSourceDependencies(Map params);
-
-    void insertList(Map params);
-
     void deleteDependenciesForSite(Map params);
-
-    void deleteDependenciesForSiteAndPath(Map params);
 
     List<String> getDependenciesForList(Map params);
 
@@ -57,6 +49,4 @@ public interface DependencyMapper {
     List<String> getItemsDependingOn(Map params);
 
     List<Map<String, String>> calculatePublishingDependenciesForList(Map params);
-
-    void moveDependency(Map params);
 }

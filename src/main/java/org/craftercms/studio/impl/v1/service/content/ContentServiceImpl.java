@@ -57,6 +57,7 @@ import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -126,6 +127,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected DependencyService dependencyService;
+    protected DependencyServiceInternal dependencyServiceV2;
     protected ProcessContentExecutor contentProcessor;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -737,7 +739,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         itemServiceInternal.deleteItem(site, path);
         try {
-            dependencyService.deleteItemDependencies(site, path);
+            dependencyServiceV2.deleteItemDependencies(site, path);
         } catch (ServiceLayerException e) {
             logger.error("Failed to delete dependencies for item at site '{}' path '{}'", site, path, e);
         }
@@ -1139,12 +1141,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateDependenciesOnMove(String site, String fromPath, String movePath) {
         try {
-            dependencyService.deleteItemDependencies(site, fromPath);
+            dependencyServiceV2.deleteItemDependencies(site, fromPath);
         } catch (ServiceLayerException e) {
             logger.error("Failed to delete dependencies at site '{}' path '{}", site, fromPath, e);
         }
         try {
-            dependencyService.upsertDependencies(site, movePath);
+            dependencyServiceV2.upsertDependencies(site, movePath);
         } catch (ServiceLayerException e) {
             logger.error("Failed to update dependencies on move content at site '{}' path '{}'", site, movePath, e);
         }
@@ -2124,7 +2126,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
 
             try {
-                dependencyService.upsertDependencies(site, path);
+                dependencyServiceV2.upsertDependencies(site, path);
             } catch (ServiceLayerException e) {
                 logger.error("Failed to extract the dependencies for reverted content at " +
                         "site '{}' path '{}' version '{}'", site, path, version);
@@ -2758,6 +2760,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
+    }
+
+    public void setDependencyServiceV2(DependencyServiceInternal dependencyServiceV2) {
+        this.dependencyServiceV2 = dependencyServiceV2;
     }
 
     public void setContentProcessor(ProcessContentExecutor contentProcessor) {

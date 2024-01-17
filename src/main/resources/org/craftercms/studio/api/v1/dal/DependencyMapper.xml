@@ -31,49 +31,21 @@
     <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap">
         SELECT site, source_path, target_path, type
         FROM dependency
-        WHERE source_path = #{sourcePath} AND site = #{site}
+        WHERE source_path = #{sourcePath}
+        AND site = #{site}
+        AND dependency.valid = 1
     </select>
-
-    <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap" databaseId="oracle">
-        SELECT site, source_path, target_path, "type"
-        FROM dependency
-        WHERE target_path = #{targetPath} AND site = #{site}
-    </select>
-
-    <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap">
-        SELECT site, source_path, target_path, type
-        FROM dependency
-        WHERE target_path = #{targetPath} AND site = #{site}
-    </select>
-
-    <delete id="deleteAllSourceDependencies" parameterType="java.util.Map">
-        DELETE
-        FROM dependency
-        WHERE source_path = #{path} AND site = #{site}
-    </delete>
-
-    <insert id="insertList" parameterType="java.util.Map">
-        INSERT INTO dependency (site, source_path, target_path, type) VALUES
-        <foreach collection="dependencies" item="element" index="index" separator="," >
-            ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
-        </foreach>
-    </insert>
 
     <delete id="deleteDependenciesForSite" parameterType="java.util.Map">
         DELETE FROM dependency
         WHERE site = #{site}
     </delete>
 
-    <delete id="deleteDependenciesForSiteAndPath" parameterType="java.util.Map">
-        DELETE FROM dependency
-        WHERE site = #{site}
-        AND (source_path = #{path} OR target_path = #{path})
-    </delete>
-
     <select id="getDependenciesForList" parameterType="java.util.Map" resultType="String">
         SELECT target_path
         FROM dependency
         WHERE site = #{site}
+        AND valid = 1
         AND source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -85,6 +57,7 @@
         SELECT target_path
         FROM dependency
         WHERE site = #{site}
+        AND valid = 1
         AND source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -101,6 +74,7 @@
         SELECT source_path
         FROM dependency
         WHERE site = #{site}
+        AND valid = 1
         AND target_path in
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -113,6 +87,7 @@
         SELECT cd1.source_path, cd1.target_path
         FROM (dependency cd1 INNER JOIN site s1 ON cd1.site = s1.site_id INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id)
         WHERE cd1.site = #{site}
+        AND cd1.valid = 1
         AND cd1.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -123,6 +98,7 @@
         SELECT cd2.source_path, cd2.target_path
         FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)
         WHERE cd2.site = #{site}
+        AND cd2.valid = 1
         AND cd2.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -136,12 +112,4 @@
             cd2.target_path RLIKE #{pattern}
         </foreach>
     </select>
-
-    <update id="moveDependency" parameterType="java.util.Map" >
-        UPDATE dependency
-        SET source_path = CASE WHEN source_path = #{oldPath} THEN #{newPath} ELSE source_path END,
-        target_path = CASE WHEN target_path = #{oldPath} THEN #{newPath} ELSE target_path END
-        WHERE site = #{siteId}
-        AND (source_path = #{oldPath} OR target_path = #{oldPath})
-    </update>
 </mapper>

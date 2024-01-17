@@ -20,12 +20,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
+import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -33,10 +36,14 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -50,11 +57,15 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(DependencyServiceInternalImpl.class);
+    private static final String UPSERT_DEPENDENCIES_LOCK = ":upsertDependencies";
+
     private StudioConfiguration studioConfiguration;
     private DependencyDAO dependencyDao;
     private ItemServiceInternal itemServiceInternal;
     private DependencyResolver dependencyResolver;
     private ServicesConfig servicesConfig;
+    private GeneralLockService generalLockService;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public Collection<String> getSoftDependencies(String site, List<String> paths) {
@@ -129,12 +140,12 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         List<String> mandatoryParents = getMandatoryParents(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(mandatoryParents)) {
+        if (isNotEmpty(mandatoryParents)) {
             pathsParams.addAll(mandatoryParents);
             Set<String> existingRenamedChildrenOfMandatoryParents =
                     getExistingRenamedChildrenOfMandatoryParents(site, mpAsList);
-            for (String p3: existingRenamedChildrenOfMandatoryParents) {
-                    ancestors.put(p3, p3);
+            for (String p3 : existingRenamedChildrenOfMandatoryParents) {
+                ancestors.put(p3, p3);
             }
             pathsParams.addAll(existingRenamedChildrenOfMandatoryParents);
         }
@@ -208,7 +219,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
-        if (CollectionUtils.isNotEmpty(paths)) {
+        if (isNotEmpty(paths)) {
             return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
         } else {
             return new ArrayList<>();
@@ -216,8 +227,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public Map<String, Set<String>> resolveDependencies(String siteId, String path) {
-        Map<String, Set<String>> dependencies = null;
+    public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) {
+        Map<String, Set<ResolvedDependency>> dependencies = null;
         boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
         boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
         boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
@@ -229,8 +240,72 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<Dependency> getDependenciesByType(String siteId, String path, String dependencyType) {
-        return dependencyDao.getDependenciesByType(siteId, path, dependencyType);
+    @Transactional
+    public void upsertDependencies(String site, String path) throws ServiceLayerException {
+        Map<String, Set<ResolvedDependency>> resolveDependencies = dependencyResolver.resolve(site, path);
+        List<Dependency> dependencies = new LinkedList<>();
+        for (Map.Entry<String, Set<ResolvedDependency>> entry : resolveDependencies.entrySet()) {
+            dependencies.addAll(
+                    entry.getValue().stream()
+                            .map(dep -> {
+                                Dependency dependency = new Dependency();
+                                dependency.setSite(site);
+                                // Remove multiple slashes
+                                dependency.setSourcePath(Path.of(path).toString());
+                                dependency.setTargetPath(Path.of(dep.path()).toString());
+                                dependency.setType(entry.getKey());
+                                dependency.setValid(dep.valid());
+                                return dependency;
+                            }).toList());
+        }
+        String lock = site + UPSERT_DEPENDENCIES_LOCK;
+        generalLockService.lock(lock);
+        try {
+            logger.debug("Upserting dependencies for site '{}' path '{}'", site, path);
+            retryingDatabaseOperationFacade.retry(() -> dependencyDao.deleteItemDependencies(site, path));
+            if (isNotEmpty(dependencies)) {
+                retryingDatabaseOperationFacade.retry(() -> dependencyDao.insertItemDependencies(dependencies));
+            }
+        } catch (Exception e) {
+            logger.error("Failed to upsert dependencies for site '{}' path '{}'", site, path, e);
+            throw new ServiceLayerException(format("Failed to upsert dependencies for site '%s' path '%s'",
+                    site, path), e);
+        } finally {
+            generalLockService.unlock(lock);
+        }
+    }
+
+    @Override
+    public void deleteItemDependencies(String site, String sourcePath) throws ServiceLayerException {
+        try {
+            retryingDatabaseOperationFacade.retry(() -> dependencyDao.deleteItemDependencies(site, sourcePath));
+        } catch (Exception e) {
+            logger.error("Failed to delete dependencies for site '{}' path '{}'", site, sourcePath, e);
+            throw new ServiceLayerException(format("Failed to delete dependencies for site '%s' path '%s'",
+                    site, sourcePath), e);
+        }
+    }
+
+    @Override
+    public void invalidateDependencies(String siteId, String targetPath) throws ServiceLayerException {
+        try {
+            retryingDatabaseOperationFacade.retry(() -> dependencyDao.invalidateDependencies(siteId, targetPath));
+        } catch (Exception e) {
+            logger.error("Failed to invalidate dependencies for site '{}' path '{}'", siteId, targetPath, e);
+            throw new ServiceLayerException(format("Failed to invalidate dependencies for site '%s' path '%s'",
+                    siteId, targetPath), e);
+        }
+    }
+
+    @Override
+    public void validateDependencies(String siteId, String targetPath) throws ServiceLayerException {
+        try {
+            retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependencies(siteId, targetPath));
+        } catch (Exception e) {
+            logger.error("Failed to validate dependencies for site '{}' path '{}'", siteId, targetPath, e);
+            throw new ServiceLayerException(format("Failed to validate dependencies for site '%s' path '%s'",
+                    siteId, targetPath), e);
+        }
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
@@ -251,5 +326,13 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

@@ -36,7 +36,6 @@ import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
@@ -83,5 +82,29 @@ public class DependencyServiceImpl implements DependencyService {
                                                   @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
         contentRepository.checkContentExists(siteId, path);
         return dependencyServiceInternal.getDependentItems(siteId, path);
+    }
+
+    @Override
+    public void upsertDependencies(@SiteId String site, String path) throws ServiceLayerException {
+        contentRepository.checkContentExists(site, path);
+        dependencyServiceInternal.upsertDependencies(site, path);
+    }
+
+    @Override
+    public void deleteItemDependencies(@SiteId String site, String sourcePath) throws ServiceLayerException {
+        contentRepository.checkContentExists(site, sourcePath);
+        dependencyServiceInternal.deleteItemDependencies(site, sourcePath);
+    }
+
+    @Override
+    @RequireSiteExists
+    public void invalidateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
+        dependencyServiceInternal.invalidateDependencies(siteId, targetPath);
+    }
+
+    @Override
+    @RequireSiteExists
+    public void validateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
+        dependencyServiceInternal.validateDependencies(siteId, targetPath);
     }
 }

@@ -38,11 +38,14 @@
                             #{path}
                         </foreach>
                 AND d.site = #{siteId}
+                AND d.valid = 1
             UNION
                 SELECT d.source_path, d.target_path, d.site
                 FROM cte, dependency d
                         WHERE cte.target_path = d.source_path
-                        AND d.site = #{siteId} and cte.site = #{siteId}
+                AND d.site = #{siteId}
+                AND cte.site = #{siteId}
+                AND d.valid = 1
         )
         SELECT cte.source_path, cte.target_path
         FROM cte
@@ -62,7 +65,10 @@
     <select id="getHardDependenciesForList" parameterType="java.util.Map"
             resultType="java.util.Map">
         SELECT cd1.source_path, cd1.target_path
-        FROM (dependency cd1 INNER JOIN site s1 ON cd1.site = s1.site_id INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id)
+        FROM (dependency cd1
+        INNER JOIN site s1 ON cd1.site = s1.site_id
+        INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id
+        )
         WHERE s1.site_id = #{site}
         AND s1.deleted = 0
         AND cd1.source_path IN
@@ -70,12 +76,14 @@
                  open="(" separator="," close=")">
             #{path}
         </foreach>
+        AND cd1.valid = 1
         AND (ci1.state &amp; #{newMask}) > 0
         UNION
         SELECT cd2.source_path, cd2.target_path
         FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)
         WHERE s2.site_id = #{site}
         AND s2.deleted = 0
+        AND cd2.valid = 1
         AND cd2.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -94,6 +102,7 @@
         SELECT source_path
         FROM dependency
         WHERE site = #{siteId}
+        AND valid = 1
         AND
         <foreach item="path" index="index" collection="paths"
                  open="(" separator=" OR " close=")">
@@ -106,6 +115,7 @@
         SELECT target_path
         FROM dependency
         WHERE site = #{siteId}
+        AND valid = 1
         AND source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
@@ -118,9 +128,32 @@
         </foreach>
     </select>
 
-    <select id="getDependenciesByType" resultMap="DependencyMap">
-        SELECT site, source_path, target_path, type
+    <delete id="deleteItemDependencies" parameterType="java.util.Map">
+        DELETE
         FROM dependency
-        WHERE source_path = #{sourcePath} AND site = #{siteId} AND type = #{type}
-    </select>
+        WHERE source_path = #{path} AND site = #{siteId}
+    </delete>
+
+    <insert id="insertItemDependencies" parameterType="java.util.Map">
+        INSERT INTO dependency (site, source_path, target_path, type, valid)
+        VALUES
+        <foreach item="dependency" index="index" collection="dependencies"
+                 open="" separator="," close="">
+            (#{dependency.site}, #{dependency.sourcePath}, #{dependency.targetPath}, #{dependency.type}, #{dependency.valid})
+        </foreach>
+    </insert>
+
+    <update id="invalidateDependencies">
+        UPDATE dependency
+        SET valid = 0
+        WHERE site = #{siteId}
+        AND target_path = #{path}
+    </update>
+
+    <update id="validateDependencies">
+        UPDATE dependency
+        SET valid = 1
+        WHERE site = #{siteId}
+        AND target_path = #{path}
+    </update>
 </mapper>

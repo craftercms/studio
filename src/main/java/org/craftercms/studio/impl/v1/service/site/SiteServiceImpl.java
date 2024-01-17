@@ -77,6 +77,7 @@ import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.model.blobstore.BlobStoreDetails;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
@@ -94,7 +95,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -435,7 +435,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                     addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
 
-                    addDependenciesScriptSnippets(siteId, path, null, createdFileScriptPath);
+                    DependencyUtils.addDependenciesScriptSnippets(siteId, path, null, createdFileScriptPath, dependencyServiceInternal);
                 }
             }
 
@@ -445,7 +445,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 logger.debug("ProcessCreatedFiles finished in '{}' milliseconds",
                         (System.currentTimeMillis() - startProcessCreatedFilesMark));
             }
-        } catch (IOException e) {
+        } catch (IOException | ServiceLayerException e) {
             logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
         } finally {
             if (createdFileScriptPath != null) {
@@ -499,33 +499,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
                 StandardOpenOption.APPEND);
         Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-    }
-
-    private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file) throws IOException {
-        long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependencies(siteId, path);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Dependency resolver for site '{}' path '{}' finished in '{}' milliseconds",
-                    siteId, path, (System.currentTimeMillis() - startDependencyResolver));
-        }
-        if (StringUtils.isEmpty(oldPath)) {
-            Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(StandardCharsets.UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-        } else {
-            Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(StandardCharsets.UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-        }
-        if (nonNull(dependencies) && !dependencies.isEmpty()) {
-            for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-                for (String targetPath : entry.getValue()) {
-                    Files.write(file, insertDependencyRow(siteId, path, targetPath, entry.getKey())
-                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                }
-            }
-        }
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,

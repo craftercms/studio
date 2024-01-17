@@ -86,18 +86,20 @@ public final class SqlStatementGeneratorUtils {
             "SET item.parent_id = updates.newParentId " +
             "WHERE item.id = updates.childId ;\n\n";
 
-    public static final String ITEM_UPDATE_PARENT_ID_SIMPLE =
-            "UPDATE item SET parent_id = #{parentId} WHERE id = #{itemId} ;" ;
-
     public static final String DEPENDENCIES_INSERT =
-            "INSERT INTO dependency (site, source_path, target_path, type) " +
-                    "VALUES ('#{site}', '#{sourcePath}', '#{targetPath}', '#{type}') ;";
+            "INSERT INTO dependency (site, source_path, target_path, type, valid) " +
+                    "VALUES ('#{site}', '#{sourcePath}', '#{targetPath}', '#{type}', #{valid}) ;\n\n";
 
     public static final String DEPENDENCIES_DELETE_SOURCE =
-            "DELETE FROM dependency WHERE source_path = '#{path}' AND site = '#{site}' ;" ;
+            "DELETE FROM dependency WHERE source_path = '#{path}' AND site = '#{site}' ;\n\n";
 
     public static final String DEPENDENCIES_DELETE =
-            "DELETE FROM dependency WHERE site = '#{site}' AND (source_path = '#{path}' OR target_path = '#{path}') ;";
+            "DELETE FROM dependency WHERE site = '#{site}' AND source_path = '#{path}' ;\n\n" +
+            "UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;\n\n";
+    private static final String DEPENDENCIES_INVALIDATE =
+            "UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;\n\n";
+    private static final String DEPENDENCIES_VALIDATE =
+            "UPDATE dependency SET valid = 1 WHERE site = '#{site}' AND  target_path = '#{path}' ;\n\n";
 
     public static String insertItemRow(long siteId, String path, String previewUrl, long state, Long lockedBy,
                                        Long createdBy, ZonedDateTime createdOn, Long lastModifiedBy,
@@ -251,17 +253,12 @@ public final class SqlStatementGeneratorUtils {
         return sql;
     }
 
-    public static String updateParentIdSimple(long parentId, long itemId) {
-        String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID_SIMPLE, "#{parentId}", Long.toString(parentId));
-        sql = StringUtils.replace(sql,"#{itemId}", Long.toString(itemId));
-        return sql;
-    }
-
-    public static String insertDependencyRow(String siteId, String sourcePath, String targetPath, String type) {
+    public static String insertDependencyRow(String siteId, String sourcePath, String targetPath, String type, boolean valid) {
         String sql = StringUtils.replace(DEPENDENCIES_INSERT, "#{site}", StringUtils.replace(siteId, "'", "''"));
         sql = StringUtils.replace(sql, "#{sourcePath}", StringUtils.replace(sourcePath, "'", "''"));
         sql = StringUtils.replace(sql, "#{targetPath}", StringUtils.replace(targetPath,"'", "''"));
         sql = StringUtils.replace(sql, "#{type}", StringUtils.replace(type, "'", "''"));
+        sql = StringUtils.replace(sql, "#{valid}", valid ? "1" : "0");
         return sql;
     }
 
@@ -274,6 +271,32 @@ public final class SqlStatementGeneratorUtils {
     public static String deleteDependencyRows(String siteId, String sourcePath) {
         String sql = StringUtils.replace(DEPENDENCIES_DELETE, "#{site}", StringUtils.replace(siteId, "'", "''"));
         sql = StringUtils.replace(sql, "#{path}", StringUtils.replace(sourcePath, "'", "''"));
+        return sql;
+    }
+
+    /**
+     * Generate the necessary sql statements to invalidate dependencies for a given target path
+     *
+     * @param siteId     the site id
+     * @param targetPath the target path of the dependency records to mark as invalid
+     * @return the sql statement
+     */
+    public static String invalidateDependencies(String siteId, String targetPath) {
+        String sql = StringUtils.replace(DEPENDENCIES_INVALIDATE, "#{site}", siteId)
+                .replace("#{path}", targetPath);
+        return sql;
+    }
+
+    /**
+     * Generate the necessary sql statements to validate dependencies for a given target path
+     *
+     * @param siteId     the site id
+     * @param targetPath the target path of the dependency records to mark as valid
+     * @return the sql statement
+     */
+    public static String validateDependencies(String siteId, String targetPath) {
+        String sql = StringUtils.replace(DEPENDENCIES_VALIDATE, "#{site}", siteId)
+                .replace("#{path}", targetPath);
         return sql;
     }
 

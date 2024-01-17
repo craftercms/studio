@@ -19,10 +19,10 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.to.ResultTO;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
@@ -32,7 +32,7 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
 
     public static final String NAME = "ExtractDependencyProcessor";
 
-    protected DependencyService dependencyService;
+    protected DependencyServiceInternal dependencyService;
 
     /**
      * default constructor
@@ -57,11 +57,11 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
         String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
         try {
             dependencyService.upsertDependencies(site, path);
+            dependencyService.validateDependencies(site, path);
         } catch (ServiceLayerException e) {
             throw new ContentProcessException(e);
         }
     }
 
-    public DependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public void setDependencyService(DependencyServiceInternal dependencyService) { this.dependencyService = dependencyService; }
 }
