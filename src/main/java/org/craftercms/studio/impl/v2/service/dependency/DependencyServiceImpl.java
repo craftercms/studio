@@ -79,7 +79,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DependencyItem> getDependentItems(@SiteId @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<DependencyItem> getDependentItems(@SiteId String siteId,
                                                   @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
         contentRepository.checkContentExists(siteId, path);
         return dependencyServiceInternal.getDependentItems(siteId, path);

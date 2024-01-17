@@ -92,7 +92,7 @@ public class SitesServiceImpl implements SitesService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
-    public void deleteSite(@SiteId @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
+    public void deleteSite(@SiteId String siteId) throws ServiceLayerException {
         sitesServiceInternal.deleteSite(siteId);
     }
 

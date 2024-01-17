@@ -99,7 +99,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean contentExists(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @SiteId String siteId,
+    public boolean contentExists(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
         return contentServiceInternal.contentExists(siteId, path);
     }
