@@ -19,7 +19,6 @@
             id="craftercms.components.Preview"
             initialEditModeOn="true"
             initialHighlightMode="all"
-            xbDetectionTimeoutMs="5000"
     />
     <widget id="craftercms.components.ToolsPanel">
         <configuration>

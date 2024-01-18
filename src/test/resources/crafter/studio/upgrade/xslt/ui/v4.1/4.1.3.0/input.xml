@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -15,7 +15,6 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-    <version>4.1.3.0</version>
     <widget
             id="craftercms.components.Preview"
             initialEditModeOn="true"
@@ -43,10 +42,10 @@
                 </widget>
                 <widget id="craftercms.components.PathNavigatorTree">
                     <configuration>
-                        <id>Items</id>
-                        <label>Items</label>
+                        <id>Components</id>
+                        <label>Components</label>
                         <icon id="craftercms.icons.Component"/>
-                        <rootPath>/site/items</rootPath>
+                        <rootPath>/site/components</rootPath>
                         <locale>en</locale>
                     </configuration>
                 </widget>
@@ -383,36 +382,36 @@
                     <!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
                     <tinymceOptions>
                         <![CDATA[
-              {
-                "menubar": true,
-                "theme": "silver",
-                "plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste",
-                "extended_valid_elements": "",
-                "valid_children": "",
-                "toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
-                "code_editor_wrap": false,
-                "toolbar_sticky": true,
-                "image_advtab": true,
-                "encoding": "xml",
-                "relative_urls": false,
-                "remove_script_host": false,
-                "convert_urls": false,
-                "remove_trailing_brs": false,
-                "media_live_embeds": true,
-                "autoresize_on_init": false,
-                "autoresize_bottom_margin": 0,
-                "menu": {
-                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
-                },
-                "automatic_uploads": true,
-                "file_picker_types":  "image media file",
-                "paste_data_images": true,
-                "templates": [],
-                "content_css": [],
-                "content_style": "body {}",
-                "contextmenu": false
-              }
-            ]]>
+                            {
+                                "menubar": true,
+                                "theme": "silver",
+                                "plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste",
+                                "extended_valid_elements": "",
+                                "valid_children": "",
+                                "toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
+                                "code_editor_wrap": false,
+                                "toolbar_sticky": true,
+                                "image_advtab": true,
+                                "encoding": "xml",
+                                "relative_urls": false,
+                                "remove_script_host": false,
+                                "convert_urls": false,
+                                "remove_trailing_brs": false,
+                                "media_live_embeds": true,
+                                "autoresize_on_init": false,
+                                "autoresize_bottom_margin": 0,
+                                "menu": {
+                                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
+                                },
+                                "automatic_uploads": true,
+                                "file_picker_types":  "image media file",
+                                "paste_data_images": true,
+                                "templates": [],
+                                "content_css": [],
+                                "content_style": "body {}",
+                                "contextmenu": false
+                            }
+                        ]]>
                     </tinymceOptions>
                 </setup>
             </setups>
@@ -504,18 +503,18 @@
             </transformPathToUrl>
             <renderComponentsList label="Render list of components">
                 <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
-	<@renderComponent component=module />
+        <@renderComponent component=module />
 </#list>]]></value>
             </renderComponentsList>
             <iterateItemsListLoadContentItem label="Iterate over a list of items and load content item">
                 <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as myItem>
-	<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
-	${myContentItem.variableName}
+        <#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
+        ${myContentItem.variableName}
 </#list>]]></value>
             </iterateItemsListLoadContentItem>
             <iterateRepeatGroup label="Iterate over repeat group">
                 <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as row>
-	${row.VARIABLE_NAME}
+        ${row.VARIABLE_NAME}
 </#list>]]></value>
             </iterateRepeatGroup>
             <fremarkerValueAssignment label="Freemarker value assignment">
@@ -523,12 +522,12 @@
             </fremarkerValueAssignment>
             <freemarkerIf label="Freemarker value IF">
                 <value><![CDATA[<#if CONDITION>
-	...
+        ...
 </#if>]]></value>
             </freemarkerIf>
             <freemarkerLoop label="Freemarker value LOOP">
                 <value><![CDATA[<#list ARRAY as value>
-	${value_index}: ${value}
+        ${value_index}: ${value}
 </#list>]]></value>
             </freemarkerLoop>
             <freemarkerFragmentInclude label="Freemarker Fragment include">
@@ -552,49 +551,6 @@
   </body>
 </html>]]></value>
             </htmlPage>
-            <specificHTMLTag label="Field (Specific HTML Tag)">
-                <value>
-                    <![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
-            </specificHTMLTag>
-            <renderComponentCollection label="Render Component Collection">
-                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
-<@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
-            </renderComponentCollection>
-            <renderRepeatGroup label="Render Repeat Group">
-                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
-<@crafter.renderRepeatGroup
-  $field="VARIABLE_NAME"
-  $containerAttributes={'attr': 'value'};
-  item, index
->
-  <@crafter.div
-    $field="sections_o.section_html"
-    $index=index
-  >
-    ${item.itemField}
-  </@crafter.div>
-</@crafter.renderRepeatGroup>]]></value>
-            </renderRepeatGroup>
-            <navigation label="Navigation">
-                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
-<@crafter.navigation
-  showNavElement=false
-  url="NAVIGATION_URL"
-  containerElementClass="container-class"
-  itemWrapperClass="item-wrapper-class"
-  itemClass="item-class"
-  depth=2
-/>]]></value>
-            </navigation>
-            <breadcrumb label="Breadcrumb">
-                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.breadcrumb&check_keywords=yes&area=default -->
-<@crafter.breadcrumb
-  url=contentModel.storeUrl
-  containerElementClass="container-element-class"
-  itemWrapperClass="item-wrapper-class"
-  navElementAttributes={ "data-custom-attribute": "true" }
-/>]]></value>
-            </breadcrumb>
         </reference>
         <reference id="craftercms.groovyCodeSnippets">
             <accessContentModel label="Access Content variable">
