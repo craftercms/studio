@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -392,7 +393,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     }
 
     private void processCreate(Site site, RepoOperation repoOperation, User user,
-                               Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException {
+                               Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException, ServiceLayerException {
 
         ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
         processAncestors(site.getId(), repoOperation.getPath(), user.getId(),
@@ -420,13 +421,13 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                     site.getSiteId(), repoOperation.getPath());
             addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getPath(),
                     updateParentIdScriptPath);
-            addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
-                    repoOperationsScriptPath);
+            DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
+                    repoOperationsScriptPath, dependencyServiceInternal);
         }
     }
 
     private void processUpdate(Site site, RepoOperation repoOperation, User user,
-                               Path repoOperationsScriptPath) throws IOException {
+                               Path repoOperationsScriptPath) throws IOException, ServiceLayerException {
         if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
             return;
         }
@@ -448,11 +449,12 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
         logger.debug("Extract dependencies from site '{}' path '{}'",
                 site.getSiteId(), repoOperation.getPath());
-        addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null, repoOperationsScriptPath);
+        DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
+                repoOperationsScriptPath, dependencyServiceInternal);
     }
 
     private void processMove(Site site, RepoOperation repoOperation, User user,
-                             Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException {
+                             Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException, ServiceLayerException {
 
         ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
         processAncestors(site.getId(), repoOperation.getMoveToPath(), user.getId(),
@@ -482,8 +484,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                     .getBytes(UTF_8), StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getMoveToPath(), updateParentIdScriptPath);
-            addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getMoveToPath(),
-                    repoOperation.getPath(), repoOperationsScriptPath);
+            DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getMoveToPath(),
+                    repoOperation.getPath(), repoOperationsScriptPath, dependencyServiceInternal);
         }
         invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
     }
@@ -549,42 +551,6 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                                 Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
                 Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-            }
-        }
-    }
-
-    /**
-     * Add the script snippets to update the dependencies for the given path
-     *
-     * @param siteId  the site id
-     * @param path    the content item path
-     * @param oldPath the content item old path
-     * @param file    the file
-     * @throws IOException if an error occurs while updating the script
-     */
-    private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file) throws IOException {
-        long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependencies(siteId, path);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Dependency resolver for site '{}' path '{}' finished in '{}' milliseconds",
-                    siteId, path, (System.currentTimeMillis() - startDependencyResolver));
-        }
-        if (isEmpty(oldPath)) {
-            Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-        } else {
-            Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-        }
-        if (nonNull(dependencies) && !dependencies.isEmpty()) {
-            for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-                for (String targetPath : entry.getValue()) {
-                    Files.write(file, insertDependencyRow(siteId, path, targetPath, entry.getKey())
-                            .getBytes(UTF_8), StandardOpenOption.APPEND);
-                    Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                }
             }
         }
     }

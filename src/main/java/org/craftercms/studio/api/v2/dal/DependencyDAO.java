@@ -35,11 +35,11 @@ public interface DependencyDAO {
     /**
      * Get soft dependencies from DB for list of content paths
      *
-     * @param site site identifier
-     * @param paths list of content paths
+     * @param site                             site identifier
+     * @param paths                            list of content paths
      * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param modifiedMask state bit mask for modified item
-     * @param newMask state bit mask for new item
+     * @param modifiedMask                     state bit mask for modified item
+     * @param newMask                          state bit mask for new item
      * @return List of soft dependencies
      */
     List<Map<String, String>> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
@@ -50,12 +50,11 @@ public interface DependencyDAO {
     /**
      * Get hard dependencies from DB for list of content paths
      *
-     * @param site site identifier
-     * @param paths list of content paths
+     * @param site                             site identifier
+     * @param paths                            list of content paths
      * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param modifiedMask state bit map for modified item
-     * @param newMask state bit map for new item
-     *
+     * @param modifiedMask                     state bit map for modified item
+     * @param newMask                          state bit map for new item
      * @return List of hard dependencies
      */
     List<Map<String, String>> getHardDependenciesForList(@Param("site") String site, @Param("paths") Set<String> paths,
@@ -67,30 +66,50 @@ public interface DependencyDAO {
      * Get items depending on given paths
      *
      * @param siteId site identifier
-     * @param paths list of content paths
+     * @param paths  list of content paths
      * @return List of items depending on given paths
      */
-    List<String> getDependentItems(@Param("siteId") String siteId, @Param("paths") List<String> paths);
+    List<String> getDependentItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
 
     /**
      * Get item specific dependencies for given paths
      *
      * @param siteId site identifier
-     * @param paths list of content paths
-     * @param regex list of patterns that define item specific dependencies
-     *
+     * @param paths  list of content paths
+     * @param regex  list of patterns that define item specific dependencies
      * @return list of item specific dependencies
      */
-    List<String> getItemSpecificDependencies(@Param("siteId") String siteId, @Param("paths") List<String> paths,
-                                             @Param("regex") List<String> regex);
+    List<String> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                                             @Param(REGEX) List<String> regex);
 
     /**
-     * Get dependencies for content path by type
-     * @param siteId site identifier
-     * @param sourcePath content path
-     * @param dependencyType dependency type
-     * @return list of dependencies
+     * Delete the dependencies of sourcePath
+     *
+     * @param site       the site id
+     * @param sourcePath the source path of the dependencies to delete
      */
-    List<Dependency> getDependenciesByType(@Param(SITE_ID) String siteId, @Param(SOURCE_PATH) String sourcePath,
-                                           @Param(TYPE) String dependencyType);
+    void deleteItemDependencies(@Param(SITE_ID) String site, @Param(PATH) String sourcePath);
+
+    /**
+     * Insert a list of dependency records
+     *
+     * @param dependencies the list of dependencies to insert
+     */
+    void insertItemDependencies(@Param(DEPENDENCIES) List<Dependency> dependencies);
+
+    /**
+     * Mark as invalid the dependency records with the given target path
+     *
+     * @param siteId     the site id
+     * @param targetPath the target path of the dependencies to invalidate
+     */
+    void invalidateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
+
+    /**
+     * Mark as valid the dependency records with the given target path
+     *
+     * @param siteId     the site id
+     * @param targetPath the target path of the dependencies to validate
+     */
+    void validateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
 }

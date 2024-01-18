@@ -23,8 +23,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -81,19 +81,17 @@ public class DashboardServiceImpl implements DashboardService {
     private final ItemServiceInternal itemServiceInternal;
     private final SearchService searchService;
     private final StudioConfiguration studioConfiguration;
-    private final SiteService siteService;
 
     private static final String ALL_CONTENT_REGEX = ".*";
     private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
     private static final String DATE_TO_REGEX = "\\{dateTo\\}";
 
     @ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
-            "securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration", "siteService"})
+            "securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
     public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishServiceInternal publishServiceInternal,
                                 final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
                                 final WorkflowServiceInternal workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
-                                final SearchService searchService, final StudioConfiguration studioConfiguration,
-                                final SiteService siteService) {
+                                final SearchService searchService, final StudioConfiguration studioConfiguration) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
         this.publishServiceInternal = publishServiceInternal;
         this.contentServiceInternal = contentServiceInternal;
@@ -102,68 +100,67 @@ public class DashboardServiceImpl implements DashboardService {
         this.itemServiceInternal = itemServiceInternal;
         this.searchService = searchService;
         this.studioConfiguration = studioConfiguration;
-        this.siteService = siteService;
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getActivitiesForUsersTotal(@SiteId String siteId, List<String> usernames, List<String> actions,
                                           ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<Activity> getActivitiesForUsers(@SiteId String siteId, List<String> usernames, List<String> actions,
                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return activityStreamServiceInternal
                 .getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getMyActivitiesTotal(@SiteId String siteId, List<String> actions,
                                     ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         var username = securityService.getCurrentUser();
         return activityStreamServiceInternal
                 .getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<Activity> getMyActivities(@SiteId String siteId, List<String> actions, ZonedDateTime dateFrom,
                                           ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         var username = securityService.getCurrentUser();
         return activityStreamServiceInternal
                 .getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getContentPendingApprovalTotal(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DetailedItem> getContentPendingApproval(
             @SiteId String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         return contentServiceInternal.getItemsByStates(siteId, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getContentPendingApprovalDetail(@SiteId String siteId,
                                                              String publishingPackageId,
                                                              List<SortField> sortFields)
             throws UserNotFoundException, ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(siteId, publishingPackageId);
         if (isEmpty(workflowEntries)) {
             throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
@@ -175,18 +172,18 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getContentUnpublishedTotal(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getContentUnpublished(@SiteId String siteId,
                                                    List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         var items =
                 itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
         if (items.isEmpty()) {
@@ -207,11 +204,11 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @RequireSiteExists
     public ExpiringContentResult getContentExpiring(@SiteId String siteId,
                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                                     int offset, int limit)
             throws AuthenticationException, ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiringQuery()
                 .replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
@@ -222,9 +219,9 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
+    @RequireSiteExists
+    public ExpiringContentResult getContentExpired(@SiteId String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiredQuery();
         prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
@@ -251,21 +248,21 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingScheduledTotal(@SiteId String siteId,
                                            String publishingTarget, String approver,
                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DetailedItem> getPublishingScheduled(
             @SiteId String siteId, String publishingTarget,
             String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
             List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         var items =
                 publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
         if (items.isEmpty()) {
@@ -283,11 +280,11 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingScheduledDetail(@SiteId String siteId,
                                                         String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         var publishingPackageDetails =
                 publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
         if (isEmpty(publishingPackageDetails.getItems())) {
@@ -300,39 +297,39 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingHistoryTotal(@SiteId String siteId,
                                          String publishingTarget, String approver, ZonedDateTime dateFrom,
                                          ZonedDateTime dateTo) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, dateFrom,
                 dateTo);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DashboardPublishingPackage> getPublishingHistory(
             @SiteId String siteId, String publishingTarget, String approver,
             ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingPackagesHistory(siteId, publishingTarget, approver, dateFrom,
                 dateTo, offset, limit);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingHistoryDetailTotalItems(@SiteId String siteId,
                                                     String publishingPackageId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingHistoryDetail(@SiteId String siteId,
                                                         String publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
         if (isEmpty(packageDetails)) {
             throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
@@ -345,9 +342,9 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public PublishingStats getPublishingStats(@SiteId String siteId, int days) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         var publishingStats = new PublishingStats();
         publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
         publishingStats.setNumberOfNewAndPublishedItems(

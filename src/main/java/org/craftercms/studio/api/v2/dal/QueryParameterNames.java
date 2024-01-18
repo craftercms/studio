@@ -253,6 +253,7 @@ public final class  QueryParameterNames {
     public static final String ACTION = "action";
     public static final String ACTION_TIMESTAMP = "actionTimestamp";
     public static final String ITEM = "item";
+    public static final String DEPENDENCIES = "dependencies";
 
     private QueryParameterNames() {
     }

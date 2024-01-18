@@ -19,55 +19,35 @@ package org.craftercms.studio.impl.v1.service.dependency;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_PATH_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.OLD_PATH_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATHS_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATH_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.REGEX_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_ID_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.SORUCE_PATH_COLUMN_NAME;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.TARGET_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
-import static java.lang.String.format;
 
 public class DependencyServiceImpl implements DependencyService {
 
@@ -75,142 +55,12 @@ public class DependencyServiceImpl implements DependencyService {
 
     protected DependencyMapper dependencyMapper;
     protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
     protected ContentService contentService;
-    protected DependencyResolver dependencyResolver;
-    protected PlatformTransactionManager transactionManager;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal dependencyService;
     protected ItemDAO itemDao;
-    protected GeneralLockService generalLockService;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-
-    @Override
-    public Set<String> upsertDependencies(String site, String path)
-            throws ServiceLayerException {
-        Set<String> toRet = new HashSet<>();
-        logger.debug("Resolve dependencies for content in site '{}' path '{}'", site, path);
-        Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
-        List<DependencyEntity> dependencyEntities = new ArrayList<>();
-        if (dependencies != null) {
-            logger.debug("Found '{}' dependencies for site '{}' path '{}'", dependencies.size(), site, path);
-            for (String type : dependencies.keySet()) {
-                dependencyEntities.addAll(createDependencyEntities(site, path, dependencies.get(type), type, toRet));
-            }
-
-            logger.trace("Prepare the transaction for dependencies insertion for site '{}' path '{}'", site, path);
-            DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
-            defaultTransactionDefinition.setName("upsertDependencies");
-            String lock = site + ":upsertDependencies";
-            generalLockService.lock(lock);
-            logger.trace("Start transaction to insert dependencies for site '{}' path '{}'", site, path);
-            TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
-
-            try {
-                logger.debug("Delete all source dependencies for site '{}' path '{}'", site, path);
-                deleteAllSourceDependencies(site, path);
-                logger.debug("Insert all extracted dependencies for site '{}' path '{}'", site, path);
-                insertDependenciesIntoDatabase(dependencyEntities);
-                logger.trace("Commit transaction to insert dependencies for site '{}' path '{}'", site, path);
-                transactionManager.commit(txStatus);
-            } catch (Exception e) {
-                logger.error("Failed to insert dependencies for site '{}' path '{}'", site, path, e);
-                transactionManager.rollback(txStatus);
-                throw new ServiceLayerException(format("Failed to upsert dependencies for site '%s' path '%s'",
-                        site, path), e);
-            } finally {
-                generalLockService.unlock(lock);
-            }
-
-        }
-        return toRet;
-    }
-
-    @Override
-    public Set<String> upsertDependencies(String site, List<String> paths)
-            throws ServiceLayerException {
-        Set<String> toRet = new HashSet<>();
-        List<DependencyEntity> dependencyEntities = new ArrayList<>();
-        StringBuilder sbPaths = new StringBuilder();
-        logger.debug("Resolve dependencies in site '{}'", site);
-        for (String path : paths) {
-            sbPaths.append("\n").append(path);
-            logger.debug("Resolve dependencies in site '{}' for path '{}'", site, path);
-            Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
-            if (dependencies != null) {
-                logger.debug("Found '{}' dependencies for site '{}' path '{}'", dependencies.size(), site, path);
-                for (String type : dependencies.keySet()) {
-                    dependencyEntities.addAll(createDependencyEntities(site, path, dependencies.get(type), type, toRet));
-                }
-            }
-        }
-        // Prepare transaction for database updates
-        DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
-        defaultTransactionDefinition.setName("upsertDependencies");
-        String lock = site + ":upsertDependencies";
-        generalLockService.lock(lock);
-        logger.debug("Start transaction to insert dependencies in site '{}'", site);
-        TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
-        try {
-            logger.debug("Delete all source dependencies in site '{}' paths '{}'", site, paths);
-            // TODO: SJ: This should be a bulk operation
-            for (String path : paths) {
-                deleteAllSourceDependencies(site, path);
-            }
-            logger.debug("Insert all extracted dependency entries in site '{}' paths '{}'", site, paths);
-            insertDependenciesIntoDatabase(dependencyEntities);
-            logger.debug("Commit the dependency update transaction in site '{}'", site);
-            transactionManager.commit(txStatus);
-        } catch (Exception e) {
-            logger.error("Failed to update dependencies in site '{}' paths '{}'", site, sbPaths, e);
-            transactionManager.rollback(txStatus);
-            throw new ServiceLayerException(format("Failed update dependencies in site '%s' paths '%s'",
-                    site, sbPaths), e);
-        } finally {
-            generalLockService.unlock(lock);
-        }
-        return toRet;
-    }
-
-    public void deleteAllSourceDependencies(String site, String path) {
-        logger.debug("Delete all source dependencies in site '{}' path '{}'", site, path);
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_PARAM, site);
-        params.put(PATH_PARAM, path);
-        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.deleteAllSourceDependencies(params));
-    }
-
-    public List<DependencyEntity> createDependencyEntities(String site, String path, Set<String> dependencyPaths,
-                                                            String dependencyType, Set<String> extractedPaths) {
-        logger.debug("Create the dependency entity in site '{}' path '{}'", site, path);
-        List<DependencyEntity> dependencyEntities = new ArrayList<>();
-        if (dependencyPaths != null && dependencyPaths.size() > 0) {
-            for (String file : dependencyPaths) {
-                DependencyEntity dependencyObj = new DependencyEntity();
-                dependencyObj.setSite(site);
-                dependencyObj.setSourcePath(getCleanPath(path));
-                dependencyObj.setTargetPath(getCleanPath(file));
-                dependencyObj.setType(dependencyType);
-                dependencyEntities.add(dependencyObj);
-                extractedPaths.add(file);
-            }
-        }
-        return dependencyEntities;
-    }
-
-    private String getCleanPath(String path) {
-        return path.replaceAll("//", "/");
-    }
-
-    public void insertDependenciesIntoDatabase(List<DependencyEntity> dependencyEntities) {
-        logger.debug("Insert the dependency entities into database");
-        if (CollectionUtils.isNotEmpty(dependencyEntities)) {
-            Map<String, Object> params = new HashMap<>();
-            params.put(StudioConstants.JSON_PROPERTY_DEPENDENCIES, dependencyEntities);
-            retryingDatabaseOperationFacade.retry(() -> dependencyMapper.insertList(params));
-        }
-    }
 
     @Override
     public List<String> getPublishingDependencies(String site, String path)
@@ -228,13 +78,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getItemSpecificDependencies(String site, String path, int depth)
+    @RequireSiteExists
+    public Set<String> getItemSpecificDependencies(@SiteId String site, String path, int depth)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         // Check if content exists
         if (!contentService.contentExists(site, path)) {
             throw new ContentNotFoundException();
@@ -276,10 +122,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getItemDependencies(String site, String path, int depth)
+    @RequireSiteExists
+    public Set<String> getItemDependencies(@SiteId String site, String path, int depth)
             throws ServiceLayerException {
-        // Check if site exists
-        siteService.checkSiteExists(site);
         // Check if content exists
         contentService.checkContentExists(site, path);
 
@@ -318,13 +163,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getItemsDependingOn(String site, String path, int depth)
+    @RequireSiteExists
+    public Set<String> getItemsDependingOn(@SiteId String site, String path, int depth)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         // Check if content exists
         contentService.checkContentExists(site, path);
 
@@ -363,42 +204,6 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> moveDependencies(String site, String oldPath, String newPath)
-            throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
-        // Check if content exists
-        if (!contentService.contentExists(site, newPath)) {
-            throw new ContentNotFoundException();
-        }
-
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID_PARAM, site);
-        params.put(OLD_PATH_PARAM, oldPath);
-        params.put(NEW_PATH_PARAM, newPath);
-        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.moveDependency(params));
-
-        return getItemDependencies(site, newPath, 1);
-    }
-
-    @Override
-    public void deleteItemDependencies(String site, String path)
-            throws ServiceLayerException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
-        logger.debug("Delete dependencies for item site '{}' path '{}'", site, path);
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_PARAM, site);
-        params.put(PATH_PARAM, path);
-        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.deleteDependenciesForSiteAndPath(params));
-    }
-
-    @Override
     public void deleteSiteDependencies(String site) throws ServiceLayerException {
         logger.debug("Delete all dependencies in site '{}'", site);
         Map<String, String> params = new HashMap<>();
@@ -407,13 +212,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getDeleteDependencies(String site, String path)
+    @RequireSiteExists
+    public Set<String> getDeleteDependencies(@SiteId String site, String path)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(format("Site '%s' not found", site));
-        }
-
         // Check if content exists
         if (!contentService.contentExists(site, path)) {
             throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'",
@@ -428,12 +229,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getDeleteDependencies(String site, List<String> paths)
+    @RequireSiteExists
+    public Set<String> getDeleteDependencies(@SiteId String site, List<String> paths)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(format("Site '%s' not found", site));
-        }
         StringBuilder sbPaths = new StringBuilder();
         for (String path : paths) {
             // Check if content exists
@@ -660,14 +458,6 @@ public class DependencyServiceImpl implements DependencyService {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
     public ContentService getContentService() {
         return contentService;
     }
@@ -676,72 +466,24 @@ public class DependencyServiceImpl implements DependencyService {
         this.contentService = contentService;
     }
 
-    public DependencyResolver getDependencyResolver() {
-        return dependencyResolver;
-    }
-
-    public void setDependencyResolver(DependencyResolver dependencyResolver) {
-        this.dependencyResolver = dependencyResolver;
-    }
-
-    public PlatformTransactionManager getTransactionManager() {
-        return transactionManager;
-    }
-
-    public void setTransactionManager(PlatformTransactionManager transactionManager) {
-        this.transactionManager = transactionManager;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public DependencyMapper getDependencyMapper() {
-        return dependencyMapper;
-    }
-
     public void setDependencyMapper(DependencyMapper dependencyMapper) {
         this.dependencyMapper = dependencyMapper;
-    }
-
-    public org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal getDependencyService() {
-        return dependencyService;
     }
 
     public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal dependencyService) {
         this.dependencyService = dependencyService;
     }
 
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

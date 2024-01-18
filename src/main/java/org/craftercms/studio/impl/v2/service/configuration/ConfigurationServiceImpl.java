@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -47,6 +46,7 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -114,7 +114,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
     private ContentRepository contentRepository;
-    private DependencyService dependencyService;
+    private DependencyServiceInternal dependencyService;
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
@@ -404,7 +404,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                    String environment,
                                    InputStream content)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
         applicationContext.publishEvent(
@@ -630,7 +629,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                                         @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                                         String environment)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         String configPath;
         if (!isEmpty(environment)) {
             String configBasePath =
@@ -675,7 +673,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     @SuppressWarnings("rawtypes")
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
     public TranslationConfiguration getTranslationConfiguration(@SiteId String siteId) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         TranslationConfiguration translationConfiguration = new TranslationConfiguration();
         if (contentServiceInternal.contentExists(siteId, translationConfig)) {
             try (InputStream is = contentService.getContent(siteId, translationConfig)) {
@@ -902,7 +899,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         this.cacheInvalidators = cacheInvalidators;
     }
 
-    public void setDependencyService(DependencyService dependencyService) {
+    public void setDependencyService(DependencyServiceInternal dependencyService) {
         this.dependencyService = dependencyService;
     }
 

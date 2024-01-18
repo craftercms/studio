@@ -29,7 +29,6 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.WebDavException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -77,11 +76,6 @@ public class WebDavServiceImpl implements WebDavService {
      */
     protected Charset charset = Charset.defaultCharset();
 
-    /**
-     * Instance of {@link SiteService}
-     */
-    protected SiteService siteService;
-
     protected WebDavProfile getProfile(String site, String profileId) throws WebDavException, ConfigurationProfileNotFoundException {
         try {
             return profileLoader.loadProfile(site, profileId);
@@ -102,7 +96,6 @@ public class WebDavServiceImpl implements WebDavService {
                                  @ValidateStringParam final String profileId,
                                  @ValidateStringParam final String path,
                                  @ValidateStringParam final String type) throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException {
-        siteService.checkSiteExists(siteId);
         WebDavProfile profile = getProfile(siteId, profileId);
         StringBuilder listPath = new StringBuilder(StringUtils.appendIfMissing(profile.getBaseUrl(), "/"));
         MimeType filterType;
@@ -183,7 +176,6 @@ public class WebDavServiceImpl implements WebDavService {
                              @ValidateStringParam final String filename,
                              final InputStream content)
             throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException {
-        siteService.checkSiteExists(siteId);
         WebDavProfile profile = getProfile(siteId, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
@@ -227,9 +219,5 @@ public class WebDavServiceImpl implements WebDavService {
 
     public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
         this.profileLoader = profileLoader;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
     }
 }

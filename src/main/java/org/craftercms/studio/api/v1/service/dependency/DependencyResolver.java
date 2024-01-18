@@ -45,8 +45,11 @@ public interface DependencyResolver {
      *
      * @param site site identifier
      * @param path path of the item
-     * @return set of paths of files that content is dependant on
+     * @return map of dependency type -> set of ResolvedDependency of files that content is dependent on
      */
-    Map<String, Set<String>> resolve(String site, String path);
+    Map<String, Set<ResolvedDependency>> resolve(String site, String path);
+
+    record ResolvedDependency(String path, boolean valid) {
+    }
 
 }

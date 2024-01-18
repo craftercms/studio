@@ -32,36 +32,6 @@ import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
  * @author Sumer Jabri
  */
 public interface DependencyService {
-	/**
-	 * Scan item for direct dependencies and synchronize those to
-	 * the depenencies database adding the new deps, updating existing,
-	 * and removing what was removed from the item.
-	 * 
-	 * @param site Site to operate on
-	 * @param path Path to item to scan
-	 * @return set of upserted dependencies
-	 * @throws SiteNotFoundException Site doesn't exist
-	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceLayerException Internal error, see exception details
-	 */
-	Set<String> upsertDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-	/**
-	 * Scan a list of items for direct dependencies and synchroniz
-	 * those to the depenencies database adding the new deps, updating
-	 * existing, and removing what was removed from the item.
-	 * 
-	 * @param site Site to operate on
-	 * @param paths List of paths to items to scan
-	 * @return set of upserted dependencies
-	 * @throws SiteNotFoundException Site doesn't exist
-	 * @throws ContentNotFoundException One or more paths doesn't exist
-	 *  (database won't be updated for any of the items)
-	 * @throws ServiceLayerException Internal error, see exception details
-	 */
-	Set<String> upsertDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get a all publishing dependencies of a list of items. A publishing
@@ -139,32 +109,6 @@ public interface DependencyService {
 	 */
 	@Deprecated
 	Set<String> getItemsDependingOn(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-	/**
-	 * Move an item and make sure dependency paths remain correct.
-	 * 
-	 * @param site Site to operate on
-	 * @param oldPath Path to item to move
-	 * @param newPath Path the item moves to
-	 * @return set of updated dependencies
-	 * @throws SiteNotFoundException Site doesn't exist
-	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceLayerException Internal error, see exception details
-	 */
-	Set<String> moveDependencies(String site, String oldPath, String newPath)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-	/**
-	 * Delete an item dependencies from the database.
-	 * 
-	 * @param site Site to operate on
-	 * @param path Path to items to retrieve deps for
-	 * @throws SiteNotFoundException Site doesn't exist
-	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceLayerException Internal error, see exception details
-	 */
-	void deleteItemDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
