@@ -2940,6 +2940,82 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
     
+  /api/1/services/api/1/content/content-exists.json:
+    get:
+      tags:
+        - content
+      summary: Check if content exists.
+      description: "Required role: N/A"
+      operationId: contentExists
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/health/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  content:
+                    type: boolean
+                example: 
+                  content: true    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'  /api/1/services/api/1/content/content-exists.json:
+    get:
+      tags:
+        - content
+      summary: Check if content exists.
+      description: "Required role: N/A"
+      operationId: contentExists
+      parameters:
+        - name: site_id
+          in: query
+          description: Project/Site ID to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          description: Path of the content
+          required: true
+          example: /site/website/health/index.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  content:
+                    type: boolean
+                example: 
+                  content: true    
+        '400':
+          $ref: '#/components/responses/api1BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'    
+
   /api/1/services/api/1/content/create-folder.json:
     post:
       tags:
@@ -3073,7 +3149,9 @@ paths:
         '400':
           $ref: '#/components/responses/api1BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'                  
   
   /api/1/services/api/1/content/get-content-at-path.json:
     get:
@@ -3242,6 +3320,8 @@ paths:
           $ref: '#/components/responses/api1BadRequest'         
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/api1Forbidden'  
 
   /api/1/services/api/1/content/get-item-orders.json:
     get:
@@ -11730,8 +11810,16 @@ components:
             properties:
               message:
                 type: string
-            example: 
-              message: "Invalid parameter: site_id"
+          example:
+            sample1:
+              value: 
+                message: "Invalid parameter: site_id"
+            sample2:
+              value: 
+                message: "Path must be provided"
+            sample3:
+              value: 
+                message: "Site must be provided"
     api1Forbidden:
       description: Forbidden
       content:
