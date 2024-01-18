@@ -617,6 +617,14 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade/4.2.x/4.2.0.2-to-4.2.0.3.sql
+      - currentVersion: 4.2.0.3
+        nextVersion: 4.2.0.4
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                dest: configuration/samples/sample-ui.xml
+            commitDetails: Add sample file for ui.xml
 
   # Pipeline to upgrade site repositories
   site:
@@ -1354,4 +1362,10 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.1.xslt
             commitDetails:
+      - currentVersion: 4.1.1
+        nextVersion: 4.2.0
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.xslt
+            commitDetails: Update the UI to remove 'xbDetectionTimeoutMs'
 
