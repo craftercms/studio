@@ -874,7 +874,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 }
             }
             throw new PluginInstallationException(format("Failed to remove plugin '%s' from site '%s'",
-                    siteId, pluginId), e);
+                    pluginId, siteId), e);
         } finally {
             writeLock.unlock();
         }
