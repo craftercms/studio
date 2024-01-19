@@ -269,7 +269,6 @@
 
     <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
         <constructor-arg name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
-        <constructor-arg name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="defaultCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.DefaultCacheInvalidator"/>
@@ -560,7 +559,6 @@
 
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
-        <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">

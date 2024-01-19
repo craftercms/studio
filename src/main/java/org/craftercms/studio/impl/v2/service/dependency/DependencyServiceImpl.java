@@ -21,10 +21,7 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
-import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.model.rest.content.DependencyItem;
@@ -35,20 +32,16 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public class DependencyServiceImpl implements DependencyService {
 
     private final DependencyServiceInternal dependencyServiceInternal;
-    private final ContentRepository contentRepository;
 
-    @ConstructorProperties({"dependencyServiceInternal", "contentRepository"})
-    public DependencyServiceImpl(final DependencyServiceInternal dependencyServiceInternal,
-                                 final ContentRepository contentRepository) {
+    @ConstructorProperties({"dependencyServiceInternal"})
+    public DependencyServiceImpl(final DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-        this.contentRepository = contentRepository;
     }
 
     @Override
@@ -77,22 +70,22 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @RequireSiteExists
+    @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DependencyItem> getDependentItems(@SiteId String siteId,
-                                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
-        contentRepository.checkContentExists(siteId, path);
+                                                  @ContentPath String path) throws ServiceLayerException {
         return dependencyServiceInternal.getDependentItems(siteId, path);
     }
 
     @Override
-    public void upsertDependencies(@SiteId String site, String path) throws ServiceLayerException {
-        contentRepository.checkContentExists(site, path);
+    @RequireContentExists
+    public void upsertDependencies(@SiteId String site, @ContentPath String path) throws ServiceLayerException {
         dependencyServiceInternal.upsertDependencies(site, path);
     }
 
     @Override
-    public void deleteItemDependencies(@SiteId String site, String sourcePath) throws ServiceLayerException {
-        contentRepository.checkContentExists(site, sourcePath);
+    @RequireContentExists
+    public void deleteItemDependencies(@SiteId String site, @ContentPath String sourcePath) throws ServiceLayerException {
         dependencyServiceInternal.deleteItemDependencies(site, sourcePath);
     }
 

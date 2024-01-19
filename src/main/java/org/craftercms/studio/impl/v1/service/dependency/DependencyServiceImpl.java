@@ -30,6 +30,8 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -123,11 +125,9 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     @RequireSiteExists
-    public Set<String> getItemDependencies(@SiteId String site, String path, int depth)
+    @RequireContentExists
+    public Set<String> getItemDependencies(@SiteId String site, @ContentPath String path, int depth)
             throws ServiceLayerException {
-        // Check if content exists
-        contentService.checkContentExists(site, path);
-
         logger.debug("Get item dependencies for site '{}' path '{}'", site, path);
 
         Set<String> toRet = new HashSet<>();
@@ -164,11 +164,9 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     @RequireSiteExists
-    public Set<String> getItemsDependingOn(@SiteId String site, String path, int depth)
+    @RequireContentExists
+    public Set<String> getItemsDependingOn(@SiteId String site, @ContentPath String path, int depth)
             throws ServiceLayerException {
-        // Check if content exists
-        contentService.checkContentExists(site, path);
-
         logger.debug("Get items depending on item site '{}' path '{}'", site, path);
         Set<String> toRet = new HashSet<>();
         Set<String> paths = new HashSet<>();
@@ -213,14 +211,9 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     @RequireSiteExists
-    public Set<String> getDeleteDependencies(@SiteId String site, String path)
+    @RequireContentExists
+    public Set<String> getDeleteDependencies(@SiteId String site, @ContentPath String path)
             throws ServiceLayerException {
-        // Check if content exists
-        if (!contentService.contentExists(site, path)) {
-            throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'",
-                    site, path));
-        }
-
         logger.debug("Get delete dependencies for site '{}' path '{}'", site, path);
         List<String> paths = new ArrayList<>();
         paths.add(path);
