@@ -1072,7 +1072,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     ByteArrayOutputStream output = new ByteArrayOutputStream();
                     String template = IOUtils.toString(templateRes.getInputStream(), UTF_8);
 
-                    template = replace(template, Map.of(PARAM_PARENT_XPATH, parentXpath));
+                    template = replace(template, Map.of(PARAM_PARENT_XPATH, parentXpath.replace("\"", "'")));
 
                     executeTemplate(toInputStream(template, UTF_8), params, null,
                                     toInputStream(config, UTF_8), output);
@@ -1198,7 +1198,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     Path configFile = repo.resolve(configPath);
 
                     String configContent = Files.readString(configFile);
-                    Map<String, Object> params = Map.of("elementXpath", record.getElementXpath());
+                    Map<String, Object> params = Map.of("elementXpath", record.getElementXpath().replace("\"", "'"));
 
                     try (InputStream templateIs = widgetRemoveTemplate.getInputStream()) {
                         String templateContent = IOUtils.toString(templateIs, UTF_8);
