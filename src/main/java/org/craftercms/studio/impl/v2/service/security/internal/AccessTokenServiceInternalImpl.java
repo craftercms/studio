@@ -19,8 +19,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
@@ -32,9 +30,8 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.craftercms.studio.model.security.AccessToken;
 import org.craftercms.studio.model.security.PersistentAccessToken;
-import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
+import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.JsonWebEncryption;
-import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
@@ -45,6 +42,8 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.keys.PbkdfKey;
 import org.jose4j.lang.JoseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,13 +64,11 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ACCESS_TOKEN;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
+import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_CBC_HMAC_SHA_512;
+import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.PBES2_HS512_A256KW;
 import static org.springframework.web.util.WebUtils.getCookie;
 
 /**
@@ -86,6 +83,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     private static final Logger logger = LoggerFactory.getLogger(AccessTokenServiceInternalImpl.class);
 
     public static final String ACTIVITY_CACHE_CONFIG_KEY = "studio.security.activity.cache.config";
+    private static final String JWE_ALGORITHM_HEADER_VALUE = PBES2_HS512_A256KW;
+    private static final String JWE_ENCRYPTION_METHOD_HEADER_VALUE = AES_256_CBC_HMAC_SHA_512;
 
     /**
      * The issuer for generation access tokens
@@ -308,6 +307,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public String getUsername(String token) {
         try {
+            AlgorithmConstraints constraints = getAlgorithmConstraints();
             var jwtConsumer = new JwtConsumerBuilder()
                     .setEnableRequireEncryption()
                     .setRequireSubject()
@@ -315,6 +315,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
                     .setExpectedAudience(getActualAudience())
                     .setVerificationKey(jwtSignKey)
                     .setDecryptionKey(jwtEncryptKey)
+                    .setJweAlgorithmConstraints(constraints)
                     .build();
 
             var claims = jwtConsumer.processToClaims(token);
@@ -383,9 +384,12 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
             // Encrypt the JWS
             var jwe = new JsonWebEncryption();
+            AlgorithmConstraints constraints = getAlgorithmConstraints();
+            jwe.setAlgorithmConstraints(constraints);
+            jwe.setContentEncryptionAlgorithmConstraints(constraints);
             jwe.setPayload(jws.getCompactSerialization());
-            jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.PBES2_HS512_A256KW);
-            jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_256_CBC_HMAC_SHA_512);
+            jwe.setAlgorithmHeaderValue(JWE_ALGORITHM_HEADER_VALUE);
+            jwe.setEncryptionMethodHeaderParameter(JWE_ENCRYPTION_METHOD_HEADER_VALUE);
             jwe.setKey(jwtEncryptKey);
             jwe.setContentTypeHeaderValue("JWT");
 
@@ -393,6 +397,15 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         } catch (JoseException e) {
             throw new ServiceLayerException("Error generating JWT for user " + username, e);
         }
+    }
+
+    /**
+     * Get JWE algorithm constraints to allow
+     *
+     * @return an {@link AlgorithmConstraints} instance allow the algorithm and encryption method used for the JWE
+     */
+    private AlgorithmConstraints getAlgorithmConstraints() {
+        return new AlgorithmConstraints(PERMIT, JWE_ALGORITHM_HEADER_VALUE, JWE_ENCRYPTION_METHOD_HEADER_VALUE);
     }
 
     protected void createAuditLog(Authentication auth, long tokenId, String type, String operation) {
