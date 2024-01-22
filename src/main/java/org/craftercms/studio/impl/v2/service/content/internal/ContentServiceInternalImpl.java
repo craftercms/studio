@@ -24,27 +24,24 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.model.history.ItemVersion;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -55,18 +52,11 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import java.util.*;
-
-import static java.lang.String.format;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.endsWith;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
@@ -122,14 +112,28 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         int total = itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword, systemTypes,
-                excludes);
+                excludes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR));
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), parentFolderPath,
-                CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, excludes, sortStrategy, order, offset, limit);
+                CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
+        toRet.setLevelDescriptor(getLevelDescriptor(siteFeed, path, locale));
         toRet.setOffset(offset);
         toRet.setLimit(limit);
         toRet.setTotal(total);
         return toRet;
+    }
+
+    private SandboxItem getLevelDescriptor(SiteFeed siteFeed, String path, String locale) throws UserNotFoundException, ServiceLayerException {
+        List<Item> sandboxItemsByPath = itemDao.getChildrenByPath(siteFeed.getId(), path,
+                CONTENT_TYPE_FOLDER, locale, null, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
+        if (isEmpty(sandboxItemsByPath)) {
+            return null;
+        }
+        Item levelDescriptorItem = sandboxItemsByPath.get(0);
+        String user = securityService.getCurrentUser();
+        levelDescriptorItem.setAvailableActions(
+                semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteFeed.getSiteId(), levelDescriptorItem));
+        return SandboxItem.getInstance(levelDescriptorItem);
     }
 
     @Override
@@ -171,12 +175,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         for (Item child : resultSet) {
             child.setAvailableActions(
                     semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
-            if (endsWith(child.getPath(), FILE_SEPARATOR +
-                    servicesConfig.getLevelDescriptorName(siteId))) {
-                toRet.setLevelDescriptor(SandboxItem.getInstance(child));
-            } else {
-                children.add(SandboxItem.getInstance(child));
-            }
+            children.add(SandboxItem.getInstance(child));
         }
         return toRet;
     }
