@@ -42,12 +42,13 @@ public interface ItemDAO {
     /**
      * Get total number of children for given path
      *
-     * @param siteId      site identifier
-     * @param path        path to get children for
-     * @param localeCode  local code
-     * @param keyword     filter by keyword
-     * @param systemTypes filter by type
-     * @param excludes    exclude items by path
+     * @param siteId              site identifier
+     * @param path                path to get children for
+     * @param localeCode          local code
+     * @param keyword             filter by keyword
+     * @param systemTypes         filter by type
+     * @param excludeSystemTypes system types to exclude
+     * @param excludes            exclude items by path
      * @return total number of children
      */
     int getChildrenByPathTotal(@Param(SITE_ID) Long siteId,
@@ -55,6 +56,7 @@ public interface ItemDAO {
                                @Param(LOCALE_CODE) String localeCode,
                                @Param(KEYWORD) String keyword,
                                @Param(SYSTEM_TYPES) List<String> systemTypes,
+                               @Param(EXCLUDE_SYSTEM_TYPES) List<String> excludeSystemTypes,
                                @Param(EXCLUDES) List<String> excludes);
 
     /**
@@ -66,6 +68,7 @@ public interface ItemDAO {
      * @param localeCode       locale code
      * @param keyword          filter by keyword
      * @param systemTypes      filter by type
+     * @param excludeSystemTypes system types to exclude
      * @param excludes         exclude items by path
      * @param sortStrategy     sort strategy
      * @param order            order of children
@@ -80,6 +83,7 @@ public interface ItemDAO {
                                  @Param(LOCALE_CODE) String localeCode,
                                  @Param(KEYWORD) String keyword,
                                  @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                 @Param(EXCLUDE_SYSTEM_TYPES) List<String> excludeSystemTypes,
                                  @Param(EXCLUDES) List<String> excludes,
                                  @Param(SORT_STRATEGY) String sortStrategy,
                                  @Param(ORDER) String order,
