@@ -233,6 +233,7 @@ public final class  QueryParameterNames {
     public static final String SYSTEM_TYPE_FOLDER = "systemTypeFolder";
 
     public static final String PREFER_CONTENT = "preferContent";
+    public static final String EXCLUDE_SYSTEM_TYPES = "excludeSystemTypes";
 
     /** Workflow */
     public static final String PUBLISHING_PACKAGE_ID = "publishingPackageId";

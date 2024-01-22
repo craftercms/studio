@@ -147,6 +147,12 @@
                 #{type}
             </foreach>
         </if>
+        <if test="excludeSystemTypes != null &amp;&amp; !excludeSystemTypes.isEmpty()">
+            AND child.system_type NOT IN
+            <foreach collection="excludeSystemTypes" item="type" open="(" separator="," close=")">
+                #{type}
+            </foreach>
+        </if>
     </sql>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
