@@ -231,6 +231,7 @@ public final class  QueryParameterNames {
     public static final String SYSTEM_TYPE_FOLDER = "systemTypeFolder";
 
     public static final String PREFER_CONTENT = "preferContent";
+    public static final String EXCLUDE_SYSTEM_TYPES = "excludeSystemTypes";
 
     /** Gitlog */
     public static final String AUDITED = "audited";
