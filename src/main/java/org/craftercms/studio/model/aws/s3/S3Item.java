@@ -37,10 +37,16 @@ public class S3Item {
      */
     protected boolean folder;
 
-    public S3Item(final String name, final String url, final boolean folder) {
+    /**
+     * The bucket name holding the S3 item (if any).
+     */
+    protected String bucketName;
+
+    public S3Item(final String name, final String url, final boolean folder, final String bucketName) {
         this.name = name;
         this.url = url;
         this.folder = folder;
+        this.bucketName = bucketName;
     }
 
     public String getName() {
@@ -65,6 +71,14 @@ public class S3Item {
 
     public void setFolder(final boolean folder) {
         this.folder = folder;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+
+    public void setBucketName(final String bucketName) {
+        this.bucketName = bucketName;
     }
 
 }
