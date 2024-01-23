@@ -124,7 +124,6 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    @RequireSiteExists
     @RequireContentExists
     public Set<String> getItemDependencies(@SiteId String site, @ContentPath String path, int depth)
             throws ServiceLayerException {
@@ -163,7 +162,6 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    @RequireSiteExists
     @RequireContentExists
     public Set<String> getItemsDependingOn(@SiteId String site, @ContentPath String path, int depth)
             throws ServiceLayerException {
@@ -210,7 +208,6 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    @RequireSiteExists
     @RequireContentExists
     public Set<String> getDeleteDependencies(@SiteId String site, @ContentPath String path)
             throws ServiceLayerException {

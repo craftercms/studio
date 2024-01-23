@@ -69,7 +69,7 @@ public class DependencyServiceImpl implements DependencyService {
         return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 
-    @RequireSiteExists
+
     @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DependencyItem> getDependentItems(@SiteId String siteId,
