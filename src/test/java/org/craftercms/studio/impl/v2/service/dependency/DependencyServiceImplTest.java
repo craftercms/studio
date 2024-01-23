@@ -16,10 +16,8 @@
 
 package org.craftercms.studio.impl.v2.service.dependency;
 
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl;
 import org.junit.Before;
@@ -63,7 +61,7 @@ public class DependencyServiceImplTest {
     @Test
     public void nonExistSiteIdGetDependentItems() throws NoSuchMethodException {
         Method method = DependencyServiceImpl.class.getMethod("getDependentItems", String.class, String.class);
-        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
+        assertTrue(method.isAnnotationPresent(RequireContentExists.class));
     }
 
     @Test
