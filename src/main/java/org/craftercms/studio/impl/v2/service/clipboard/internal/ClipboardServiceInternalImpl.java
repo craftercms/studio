@@ -18,6 +18,9 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,8 +145,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
         }
     }
 
-    public String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
-        contentService.checkContentExists(siteId, path);
+    @RequireContentExists
+    public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, UserNotFoundException {
         String parentUrl = getParentUrl(path);
         var item = contentService.getContentItem(siteId, parentUrl, 0);
         return contentService.copyContent(siteId, path, item.uri);
