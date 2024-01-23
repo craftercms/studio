@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -63,6 +64,7 @@ public class ConfigurationController {
     private final ConfigurationService configurationService;
     private final StudioConfiguration studioConfiguration;
     private final ContentTypeService contentTypeService;
+    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
 
     @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService"})
@@ -82,16 +84,13 @@ public class ConfigurationController {
     }
 
     @GetMapping("/get_configuration")
+    @LogExecutionTime
     public ResponseBody getConfiguration(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
                                          @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws ContentNotFoundException {
         final String content;
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
         } else {
@@ -103,9 +102,6 @@ public class ConfigurationController {
         result.setEntity("content", content);
         result.setResponse(OK);
         responseBody.setResult(result);
-        if (logger.isTraceEnabled()) {
-            logger.trace("getConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
-        }
         return responseBody;
     }
 

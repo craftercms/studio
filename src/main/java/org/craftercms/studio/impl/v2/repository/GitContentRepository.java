@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
@@ -353,11 +354,11 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
+    @LogExecutionTime
     private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)
             throws GitAPIException, IOException {
         int size = diffEntries.size();
         logger.debug("Process '{}' diff entries", size);
-        long startMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
         List<RepoOperation> toReturn = new ArrayList<>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -411,11 +412,6 @@ public class GitContentRepository implements ContentRepository {
                 repoOperation.setAuthor(isEmpty(author) ? "N/A" : author);
                 toReturn.add(repoOperation);
             }
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Finished processing '{}' diff entries in '{}' seconds",
-                    size, ((System.currentTimeMillis() - startMark) / 1000));
         }
         return toReturn;
     }
@@ -1163,6 +1159,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
+    @LogExecutionTime
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = new TreeMap<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);

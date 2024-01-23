@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.policy.*;
@@ -221,16 +222,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @LogExecutionTime
     public String shallowGetContentAsString(String siteId, String path) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        String contentAsStringInternal = getContentAsStringInternal(siteId, path, null, true);
-        if (logger.isTraceEnabled()) {
-            logger.trace("shallowGetContentAsString site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
-        }
-        return contentAsStringInternal;
+        return getContentAsStringInternal(siteId, path, null, true);
     }
 
     @Override
@@ -241,11 +235,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return getContentAsStringInternal(site, path, encoding, false);
     }
 
+    @LogExecutionTime
     private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
@@ -259,9 +250,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         } catch (Exception e) {
             logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
-        }
-        if (logger.isTraceEnabled()) {
-            logger.debug("getContentAsStringInternal site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
         }
         return content;
     }
@@ -1835,16 +1823,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
+    @LogExecutionTime
     public ContentItemTO getContentItem(@ValidSiteId String site,
                                         @ValidateSecurePathParam String path,
                                         int depth) {
         ContentItemTO item = null;
         logger.debug("Get content item at site '{}' path '{}' depth '{}'", site, path, depth);
-
-        long startTime = 0;
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
 
         try {
             if (contentExists(site, path)) {
@@ -1870,11 +1854,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         } catch(Exception e) {
             logger.debug("Failed to construct the item at site '{}' path '{}'", site, path, e);
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Content item from site '{}' path '{}' retrieved in '{}' milliseconds",
-                    site, path, System.currentTimeMillis() - startTime);
         }
 
         return item;
@@ -2089,16 +2068,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
+    @LogExecutionTime
     public ContentItemTO getContentItemTree(@ValidateStringParam String site,
                                             @ValidateSecurePathParam String path,
                                             int depth) {
         logger.debug("Get the content item tree for item at site '{}' path '{}' with depth '{}'", site, path, depth);
-
-        long startTime = 0;
-
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
 
         boolean isPages = (path.contains(DmConstants.SLASH_SITE_WEBSITE));
         ContentItemTO root;
@@ -2109,18 +2083,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             } else {
                 root = getContentItem(site, path + DmConstants.SLASH_INDEX_FILE);
             }
-        }
-        else {
+        } else {
             if (depth > 1) {
                 root = getContentItem(site, path, depth);
             } else {
                 root = getContentItem(site, path);
             }
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milliseconds",
-                    site, path, depth, System.currentTimeMillis() - startTime);
         }
 
         return root;
@@ -2338,6 +2306,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Valid
+    @LogExecutionTime
     protected ResultTO processContent(String siteId, String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
                                    String contentChainForm)
@@ -2346,29 +2315,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
         // TODO: SJ: Furthermore, we have redundancy in the code of the processors
-
-        long startTime = 0;
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
         String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
         generalLockService.lock(syncFromRepoLockKey);
-        ResultTO to = null;
         try {
-            to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
+            return contentProcessor.processContent(id, input, isXml, params, contentChainForm);
         } finally {
             generalLockService.unlock(gitLockKey);
             generalLockService.unlock(syncFromRepoLockKey);
         }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Write completed for '{}' in '{}' milliseconds.",
-                    id, (System.currentTimeMillis() - startTime));
-        }
-
-        return to;
     }
 
     @Override

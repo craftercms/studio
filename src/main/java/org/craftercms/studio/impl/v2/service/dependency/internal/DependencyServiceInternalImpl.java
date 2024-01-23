@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Dependency;
@@ -68,19 +69,13 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
+    @LogExecutionTime
     public Collection<String> getSoftDependencies(String site, List<String> paths) {
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
         Set<String> pathsParams = new HashSet<>(paths);
         Set<String> result = new HashSet<>();
-        long startTime = 0;
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         List<Map<String, String>> deps = dependencyDao.getSoftDependenciesForList(site, pathsParams, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get soft dependencies for site '{}' paths '{}' took {} ms", site, paths, System.currentTimeMillis() - startTime);
-        }
         for (Map<String, String> d : deps) {
             String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
             if (!pathsParams.contains(targetPath)) {
@@ -227,6 +222,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @LogExecutionTime
     public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) {
         Map<String, Set<ResolvedDependency>> dependencies = null;
         boolean isXml = path.endsWith(DmConstants.XML_PATTERN);

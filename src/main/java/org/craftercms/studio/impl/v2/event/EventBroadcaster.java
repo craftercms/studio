@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.event;
 
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
@@ -52,17 +53,10 @@ public class EventBroadcaster {
         publishEvent(event, DESTINATION_ROOT);
     }
 
+    @LogExecutionTime
     private void publishEvent(final BroadcastEvent event, final String destination) {
         logger.debug("Broadcast event '{}'", event);
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         messagingTemplate.convertAndSend(destination, event);
-        if (logger.isTraceEnabled()) {
-            long total = System.currentTimeMillis() - startTime;
-            logger.trace("Broadcast of event '{}' took '{}' milliseconds", event, total);
-        }
     }
 
 }
