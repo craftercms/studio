@@ -62,7 +62,7 @@ public class RequireContentExistsAnnotationHandler {
         String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
         String path = StudioAnnotationUtils.getAnnotationValue(pjp, method, ContentPath.class, String.class);
 
-        if (StringUtils.isNotEmpty(siteId) && StringUtils.isNotEmpty(path)) {
+        if (StringUtils.isNotEmpty(path)) {
             RequireContentExists annotation = AnnotationUtils.findAnnotation(method, RequireContentExists.class);
             if (annotation == null) {
                 annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireContentExists.class);
@@ -73,7 +73,7 @@ public class RequireContentExistsAnnotationHandler {
                 logger.debug("Unable to find RequireContentExists annotation on method '{}.{}'. ", method.getDeclaringClass().getName(), method.getName());
             }
         } else {
-            logger.debug("Method '{}.{}' is annotated with @RequireContentExists but does not have a @SiteId or @ContentPath parameter. " +
+            logger.debug("Method '{}.{}' is annotated with @RequireContentExists but does not have a @ContentPath parameter. " +
                     "This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
         }
         return pjp.proceed();
