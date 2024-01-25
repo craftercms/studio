@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.lang.UrlUtils;
+import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.studio.api.v1.asset.Asset;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessingConfigReader;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
@@ -164,6 +165,9 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                 return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
                                                         draft, unlock, systemAsset);
             }
+        } catch (PermissionException e) {
+            logger.error("Current user does not have the required permissions", e);
+            throw e;
         } catch (Exception e) {
             logger.error("Failed to process asset '{}' in site '{}'", assetName, site, e);
 
