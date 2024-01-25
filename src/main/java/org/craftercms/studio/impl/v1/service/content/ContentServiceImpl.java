@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,9 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -71,6 +74,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
+import org.craftercms.studio.permissions.PermissionResolverImpl;
+import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -109,6 +114,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 /**
  * Content Services that other services may use
@@ -316,8 +323,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
     public void writeContent(@SiteId String site,
-                             @ValidateSecurePathParam @ActionTargetPath String path,
+                             @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
                              @ActionTargetFilename String fileName,
                              @ActionContentType String contentType,
                              InputStream input,
@@ -331,8 +339,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
     public void writeContent(@SiteId final String site,
-                             @ActionTargetPath final String path,
+                             @ProtectedResourceId(PATH_RESOURCE_ID) @ActionTargetPath final String path,
                              @ActionTargetFilename final String fileName,
                              @ActionContentType final String contentType,
                              final InputStream input,
@@ -492,9 +501,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContentAndRename(@ValidateStringParam @SiteId final String site,
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    public void writeContentAndRename(@SiteId final String site,
                                       @ValidateSecurePathParam final String path,
-                                      @ValidateSecurePathParam @ActionTargetPath final String targetPath,
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath final String targetPath,
                                       @ValidateStringParam @ActionTargetFilename final String fileName,
                                       @ValidateStringParam @ActionContentType final String contentType,
                                       final InputStream input,
@@ -546,8 +556,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
-    public Map<String, Object> writeContentAsset(@ValidateStringParam @SiteId String site,
-                                                 @ValidateSecurePathParam @ActionTargetPath String path,
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    public Map<String, Object> writeContentAsset(@SiteId String site,
+                                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
                                                  @ValidateStringParam @ActionTargetFilename String assetName,
                                                  InputStream in, String isImage, String allowedWidth,
                                                  String allowedHeight, String allowLessSize, String draft,
@@ -636,8 +647,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     // This method is used for writing configuration files, this needs to be refactored in 3.1+
     @Override
     @Valid
-    public boolean writeContent(@ValidateStringParam String site,
-                                @ValidateSecurePathParam String path, InputStream content)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    public boolean writeContent(@SiteId String site,
+                                @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
+                                InputStream content)
             throws ServiceLayerException {
         boolean result;
 
