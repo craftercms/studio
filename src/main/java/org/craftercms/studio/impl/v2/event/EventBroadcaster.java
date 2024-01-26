@@ -43,17 +43,18 @@ public class EventBroadcaster {
 
     @Order
     @EventListener
+    @LogExecutionTime
     public void publishSiteEvent(final SiteBroadcastEvent event) {
         publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
     }
 
     @Order
     @EventListener
+    @LogExecutionTime
     public void publishGlobalEvent(final GlobalBroadcastEvent event) {
         publishEvent(event, DESTINATION_ROOT);
     }
 
-    @LogExecutionTime
     private void publishEvent(final BroadcastEvent event, final String destination) {
         logger.debug("Broadcast event '{}'", event);
         messagingTemplate.convertAndSend(destination, event);

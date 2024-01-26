@@ -350,8 +350,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         return content;
     }
 
-    @LogExecutionTime
     private String getDefaultConfiguration(String siteId, String module, String path) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String configPath;
         if (isNotEmpty(module)) {
             String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
@@ -360,11 +363,18 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         } else {
             configPath = path;
         }
-        return contentService.shallowGetContentAsString(siteId, configPath);
+        String result = contentService.shallowGetContentAsString(siteId, configPath);
+        if (logger.isTraceEnabled()) {
+            logger.trace("getDefaultConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
+        return result;
     }
 
-    @LogExecutionTime
     private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
@@ -376,7 +386,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 return contentService.shallowGetContentAsString(siteId, configPath);
             }
         }
-        return getDefaultConfiguration(siteId, module, path);
+        String defaultConfiguration = getDefaultConfiguration(siteId, module, path);
+        if (logger.isTraceEnabled()) {
+            logger.trace("getEnvironmentConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
+        return defaultConfiguration;
     }
 
     @Override

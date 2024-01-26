@@ -56,7 +56,6 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
@@ -343,9 +342,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    @LogExecutionTime
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now) {
+        long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         SiteFeed siteFeed;
         try {
             siteFeed = getSite(siteId);
@@ -433,6 +432,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
             studioDBScriptRunner.execute(createdFileScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
+            if (logger.isDebugEnabled()) {
+                logger.debug("ProcessCreatedFiles finished in '{}' milliseconds",
+                        (System.currentTimeMillis() - startProcessCreatedFilesMark));
+            }
         } catch (IOException | ServiceLayerException e) {
             logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
         } finally {

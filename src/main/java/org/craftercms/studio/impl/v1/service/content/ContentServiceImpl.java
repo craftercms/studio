@@ -235,8 +235,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return getContentAsStringInternal(site, path, encoding, false);
     }
 
-    @LogExecutionTime
     private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
@@ -250,6 +253,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         } catch (Exception e) {
             logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
+        }
+        if (logger.isTraceEnabled()) {
+            logger.debug("getContentAsStringInternal site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
         }
         return content;
     }
@@ -2306,11 +2312,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Valid
-    @LogExecutionTime
     protected ResultTO processContent(String siteId, String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
                                    String contentChainForm)
             throws ServiceLayerException, UserNotFoundException {
+        long startTime = 0;
+        if (logger.isDebugEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
@@ -2319,12 +2328,20 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
         generalLockService.lock(syncFromRepoLockKey);
+        ResultTO to = null;
         try {
-            return contentProcessor.processContent(id, input, isXml, params, contentChainForm);
+            to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
         } finally {
             generalLockService.unlock(gitLockKey);
             generalLockService.unlock(syncFromRepoLockKey);
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Write completed for '{}' in '{}' milliseconds.",
+                    id, (System.currentTimeMillis() - startTime));
+        }
+
+        return to;
     }
 
     @Override

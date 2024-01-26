@@ -35,6 +35,11 @@ public class LogExecutionTimeAnnotationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAnnotationHandler.class);
 
+    // This method matches:
+    // - methods declared on classes annotated with LogExecutionTime
+    // - methods declared on classes meta-annotated with LogExecutionTime (only one level deep). e.g.: @LogExecutionTime, which is annotated with @LogExecutionTime
+    // - methods annotated with LogExecutionTime
+    // - methods meta-annotated with LogExecutionTime (only one level deep)
     @Around("@within(LogExecutionTime) || " +
             "within(@LogExecutionTime *) || " +
             "within(@(@LogExecutionTime *) *) || " +

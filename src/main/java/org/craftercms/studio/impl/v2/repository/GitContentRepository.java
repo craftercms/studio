@@ -354,11 +354,11 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
-    @LogExecutionTime
     private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)
             throws GitAPIException, IOException {
         int size = diffEntries.size();
         logger.debug("Process '{}' diff entries", size);
+        long startMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
         List<RepoOperation> toReturn = new ArrayList<>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -412,6 +412,11 @@ public class GitContentRepository implements ContentRepository {
                 repoOperation.setAuthor(isEmpty(author) ? "N/A" : author);
                 toReturn.add(repoOperation);
             }
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Finished processing '{}' diff entries in '{}' seconds",
+                    size, ((System.currentTimeMillis() - startMark) / 1000));
         }
         return toReturn;
     }
