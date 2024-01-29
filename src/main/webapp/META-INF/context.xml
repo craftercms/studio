@@ -1,3 +1,0 @@
-<Context>
-    <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor" secureOnly="/**" sameSiteCookies="strict" />
-</Context>
