@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -60,7 +60,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.NonNull;
 
 import java.io.ByteArrayOutputStream;
@@ -101,7 +100,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private ContentRepository contentRepositoryV2;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    protected TaskExecutor taskExecutor;
     private ApplicationContext applicationContext;
 
     @Override
@@ -888,10 +886,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-    }
-
-    public void setTaskExecutor(TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
     }
 
     @Override

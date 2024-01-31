@@ -986,8 +986,6 @@ studio.clockJob.taskExecutor.corePoolSize: 50
 studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
 studio.clockJob.taskExecutor.queueCapacity: 2000
-# Sync repository execute every N cycles
-studio.clockJob.task.syncRepository.executeEveryNCycles: 1
 # Publisher execute every N cycles
 studio.clockJob.task.publisher.executeEveryNCycles: 2
 # Publisher max retry count in case if content not found
