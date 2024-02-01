@@ -143,8 +143,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     "The site will not be synced with the repository.", siteId);
             return;
         }
-        String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
-        generalLockService.lock(gitLockKey);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
+        generalLockService.lock(syncFromRepoLockKey);
         try {
             // Get the last commit to be used along the sync process (instead of 'HEAD',
             // commits added after this point will be processed in subsequent executions of this method)
@@ -183,7 +183,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         } catch (UserNotFoundException | GitAPIException | IOException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
-            generalLockService.unlock(gitLockKey);
+            generalLockService.unlock(syncFromRepoLockKey);
         }
     }
 

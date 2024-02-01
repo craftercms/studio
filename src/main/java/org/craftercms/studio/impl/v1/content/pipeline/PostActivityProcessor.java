@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -35,15 +34,11 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 
-public class PostActivityProcessor extends BaseContentProcessor implements ApplicationContextAware {
+public class PostActivityProcessor extends BaseContentProcessor {
 
     public static final String NAME = "PostActivityProcessor";
 
@@ -54,7 +49,6 @@ public class PostActivityProcessor extends BaseContentProcessor implements Appli
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected ItemServiceInternal itemServiceInternal;
-    private ApplicationContext applicationContext;
 
     /**
      * default constructor
@@ -108,7 +102,6 @@ public class PostActivityProcessor extends BaseContentProcessor implements Appli
                 activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), activityType,
                         DateUtils.getCurrentTime(), item, null);
             }
-            applicationContext.publishEvent(new SyncFromRepoEvent(site));
         }
     }
 
@@ -140,8 +133,4 @@ public class PostActivityProcessor extends BaseContentProcessor implements Appli
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

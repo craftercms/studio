@@ -44,6 +44,6 @@ public interface RepositoryWatcher {
      * Start watching the registered sites.
      * This method is here to allow async processing by Spring.
      */
-    void startWatching();
+    void startWatching() throws InterruptedException;
 
 }

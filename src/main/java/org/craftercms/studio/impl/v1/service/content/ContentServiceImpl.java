@@ -56,7 +56,6 @@ import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
-import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -74,8 +73,6 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
-import org.craftercms.studio.permissions.PermissionResolverImpl;
-import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -681,33 +678,37 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 @ValidateSecurePathParam @ActionTargetPath String path,
                                 @ValidateStringParam @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
-
-        String folderPath = path + FILE_SEPARATOR + name;
         boolean toRet = false;
-        String commitId = _contentRepository.createFolder(site, path, name);
-        if (commitId != null) {
-            Item parentItem = itemServiceInternal.getItem(site, path, true);
-            if (isNull(parentItem)) {
-                parentItem = createMissingParentItem(site, path, commitId);
-            }
-            itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
-                    commitId, parentItem.getId());
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        generalLockService.lock(syncFromRepoLockKey);
+        try {
+            String folderPath = path + FILE_SEPARATOR + name;
+            String commitId = _contentRepository.createFolder(site, path, name);
+            if (commitId != null) {
+                Item parentItem = itemServiceInternal.getItem(site, path, true);
+                if (isNull(parentItem)) {
+                    parentItem = createMissingParentItem(site, path, commitId);
+                }
+                itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
+                        commitId, parentItem.getId());
 
-            String username = securityService.getCurrentUser();
-            Site siteFeed = siteService.getSite(site);
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_CREATE);
-            auditLog.setCommitId(commitId);
-            auditLog.setSiteId(siteFeed.getId());
-            auditLog.setActorId(username);
-            // TODO: SJ: There should be a helper method to consistently create these keys/paths
-            auditLog.setPrimaryTargetId(site + ":" + folderPath);
-            auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
-            auditLog.setPrimaryTargetValue(folderPath);
-            auditServiceInternal.insertAuditLog(auditLog);
-            applicationContext.publishEvent(new SyncFromRepoEvent(site));
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
-            toRet = true;
+                String username = securityService.getCurrentUser();
+                Site siteFeed = siteService.getSite(site);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(OPERATION_CREATE);
+                auditLog.setCommitId(commitId);
+                auditLog.setSiteId(siteFeed.getId());
+                auditLog.setActorId(username);
+                // TODO: SJ: There should be a helper method to consistently create these keys/paths
+                auditLog.setPrimaryTargetId(site + ":" + folderPath);
+                auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
+                auditLog.setPrimaryTargetValue(folderPath);
+                auditServiceInternal.insertAuditLog(auditLog);
+                applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
+                toRet = true;
+            }
+        } finally {
+            generalLockService.unlock(syncFromRepoLockKey);
         }
 
         return toRet;
@@ -748,25 +749,27 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             generateDeleteActivity(site, path, approver);
         }
 
-        commitId = _contentRepository.deleteContent(site, path, approver);
-
-        itemServiceInternal.deleteItem(site, path);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        generalLockService.lock(syncFromRepoLockKey);
         try {
-            dependencyServiceV2.deleteItemDependencies(site, path);
-        } catch (ServiceLayerException e) {
-            logger.error("Failed to delete dependencies for item at site '{}' path '{}'", site, path, e);
-        }
+            commitId = _contentRepository.deleteContent(site, path, approver);
 
-        if (StringUtils.isNotEmpty(commitId)) {
-            applicationContext.publishEvent(new SyncFromRepoEvent(site));
-        }
+            itemServiceInternal.deleteItem(site, path);
+            try {
+                dependencyServiceV2.deleteItemDependencies(site, path);
+            } catch (ServiceLayerException e) {
+                logger.error("Failed to delete dependencies for item at site '{}' path '{}'", site, path, e);
+            }
 
-        applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
+            applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
 
-        // TODO: SJ: Add commitId to database for this item in version 2.7.x
+            // TODO: SJ: Add commitId to database for this item in version 2.7.x
 
-        if (commitId != null) {
-            toReturn = true;
+            if (commitId != null) {
+                toReturn = true;
+            }
+        } finally {
+            generalLockService.unlock(syncFromRepoLockKey);
         }
 
         return toReturn;
@@ -817,7 +820,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                               @ValidateSecurePathParam @ActionSourcePath String fromPath,
                               @ValidateSecurePathParam @ActionTargetPath String toPath)
             throws ServiceLayerException, UserNotFoundException {
-        return copyContent(site, fromPath, toPath, new HashSet<>());
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        generalLockService.lock(syncFromRepoLockKey);
+        try {
+            return copyContent(site, fromPath, toPath, new HashSet<>());
+        } finally {
+            generalLockService.unlock(syncFromRepoLockKey);
+        }
     }
 
     /**
@@ -1021,6 +1030,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                               @ValidateSecurePathParam @ActionTargetPath String toPath) {
         String movePath = null;
 
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        generalLockService.lock(syncFromRepoLockKey);
         try {
             String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
                     fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
@@ -1073,7 +1084,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 if (movedDocument != null) {
                     writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
                 }
-                applicationContext.publishEvent(new SyncFromRepoEvent(site));
             } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
@@ -1090,6 +1100,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         } catch (DocumentException e) {
             logger.error("Failed to update XML while moving content for site '{}' from '{}' to '{}', new name is '{}'",
                     site, fromPath, toPath, movePath, e);
+        } finally {
+            generalLockService.unlock(syncFromRepoLockKey);
         }
 
         return movePath;
@@ -2129,7 +2141,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                      @ValidateStringParam() String version, boolean major,
                                      @ValidateStringParam() String comment)
             throws ServiceLayerException, UserNotFoundException {
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
         contentServiceV2.lockContent(site, path);
+        generalLockService.lock(syncFromRepoLockKey);
         try {
             String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
@@ -2166,13 +2180,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Item item = itemServiceInternal.getItem(site, path);
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
                     DateUtils.getCurrentTime(), item, null);
-            applicationContext.publishEvent(new SyncFromRepoEvent(site));
-
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
 
             return true;
         } finally {
             contentServiceV2.unlockContent(site, path);
+            generalLockService.unlock(syncFromRepoLockKey);
         }
     }
 
@@ -2339,12 +2352,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             startTime = System.currentTimeMillis();
         }
         String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
+        generalLockService.lock(syncFromRepoLockKey);
         ResultTO to = null;
         try {
             to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
         } finally {
             generalLockService.unlock(gitLockKey);
+            generalLockService.unlock(syncFromRepoLockKey);
         }
 
         if (logger.isDebugEnabled()) {
@@ -2688,32 +2704,35 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     "with content type '%s'", site, path, contentType));
         }
 
-        logger.debug("Rename folder at site '{}' sourcePath '{}' to target path '{}'", site, path, targetPath);
-        // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
-        // historically with MOVE it is not
-        Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        generalLockService.lock(syncFromRepoLockKey);
+        try {
+            logger.debug("Rename folder at site '{}' sourcePath '{}' to target path '{}'", site, path, targetPath);
+            // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
+            // historically with MOVE it is not
+            Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
 
-        if (commitIds != null) {
-            // Update the database with the commitId for the target item
-            updateDatabaseOnMove(site, path, targetPath);
-            String commitId = commitIds.get(targetPath);
-            if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
+            if (commitIds != null) {
+                // Update the database with the commitId for the target item
+                updateDatabaseOnMove(site, path, targetPath);
+                String commitId = commitIds.get(targetPath);
+                if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
 
-            itemServiceInternal.persistItemAfterRenameContent(site, targetPath, name,
-                    securityService.getCurrentUser(), commitId, contentType);
+                itemServiceInternal.persistItemAfterRenameContent(site, targetPath, name,
+                        securityService.getCurrentUser(), commitId, contentType);
 
-            if (isFolder) {
-                updateChildrenOnMove(site, path, targetPath);
+                if (isFolder) {
+                    updateChildrenOnMove(site, path, targetPath);
+                }
+                applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
+                toRet = true;
+
+            } else {
+                logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, path, targetPath);
             }
-            applicationContext.publishEvent(new SyncFromRepoEvent(site));
-
-            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
-            toRet = true;
-
-        } else {
-            logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, path, targetPath);
+        } finally {
+            generalLockService.unlock(syncFromRepoLockKey);
         }
-
         return toRet;
     }
 

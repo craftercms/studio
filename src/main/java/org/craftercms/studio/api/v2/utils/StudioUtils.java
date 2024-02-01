@@ -96,4 +96,8 @@ public abstract class StudioUtils {
     public static String getSandboxRepoLockKey(final String site) {
         return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
     }
+
+    public static String getSyncFromRepoLockKey(final String siteId) {
+        return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+    }
 }

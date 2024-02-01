@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 /**
  * Event fired to request a 'sync database from repo'.
  *
- * @since 4.1.2
+ * @since 4.2.0
  */
 public class SyncFromRepoEvent extends SiteAwareEvent {
     public SyncFromRepoEvent(final String siteId) {

@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.sync.RepositoryWatcher;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.spring.event.BootstrapFinishedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.HashMap;
@@ -49,6 +51,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
     private static final String REFS_HEADS = "refs/heads";
 
     private final SitesService sitesService;
+    private final StudioConfiguration studioConfiguration;
 
     private final WatchService watcher;
     private final BidiMap<WatchKey, String> siteKeys;
@@ -56,8 +59,10 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
 
     private ApplicationEventPublisher eventPublisher;
 
-    public RepositoryWatcherImpl(final SitesService sitesService) throws IOException {
+    @ConstructorProperties({"sitesService", "studioConfiguration"})
+    public RepositoryWatcherImpl(final SitesService sitesService, final StudioConfiguration studioConfiguration) throws IOException {
         this.sitesService = sitesService;
+        this.studioConfiguration = studioConfiguration;
         watcher = FileSystems.getDefault().newWatchService();
         siteKeys = new DualHashBidiMap<>();
         siteRegistrations = new HashMap<>();
@@ -65,7 +70,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
 
     @Async
     @EventListener(BootstrapFinishedEvent.class)
-    public void startWatching() {
+    public void startWatching() throws InterruptedException {
         for (; ; ) {
             try {
                 logger.debug("Getting a WatchKey");
@@ -76,7 +81,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
                 for (WatchEvent<?> event : key.pollEvents()) {
                     // Check if the key is valid (in case the site has been just deleted)
                     if (key.isValid() && accept(event, siteId)) {
-                        eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
+                        doHandleRepoChange(siteId);
                     }
                 }
                 if (!key.reset()) {
@@ -86,10 +91,38 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
                     key.cancel();
                 }
             } catch (InterruptedException e) {
-                logger.error("Failed to get a WatchKey to monitor site repositories", e);
-                return;
+                // TODO: we may want to consider a mechanism to restart the thread
+                logger.error("Failed to monitor site repositories, thread has been interrupted", e);
+                throw e;
+            } catch (Exception e) {
+                logger.error("Failed to process a WatchKey to monitor site repositories", e);
             }
         }
+    }
+
+    private void doHandleRepoChange(String siteId) {
+        eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
+        /*
+        // TODO:
+        - Check if there is an event for the site in the queue
+            - If there is:
+                - Set the events flag to true
+            - If there is not:
+                - Add the event to the queue
+                - Set the timer
+
+        - When the timer expires:
+            - If the events flag is true:
+                - Check if the reset counter reached the limit
+                    - If it did:
+                        - Reset the counter
+                        - Trigger the sync
+                    - If it did not:
+                        - Increment the counter
+                        - Restart the timer
+            - If the events flag is false:
+                - Trigger the sync
+         */
     }
 
     /**

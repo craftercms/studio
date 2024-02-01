@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -367,7 +368,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     RemoteRepositoryNotFoundException {
         logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
                 remoteName, siteId);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
         if (remoteRepository == null) {
             throw new RemoteRepositoryNotFoundException(format("Remote repository '%s' does not exist in site '%s'", remoteName, siteId));
@@ -375,6 +377,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         logger.trace("Prepare the JGit pull command in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         generalLockService.lock(gitLockKey);
+        generalLockService.lock(syncFromRepoLockKey);
         Path tempKey = null;
         try (Git git = new Git(repo)) {
             PullCommand pullCommand = git.pull();
@@ -436,6 +439,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             } catch (IOException e) {
                 logger.warn("Failed to delete the file '{}'", tempKey, e);
             }
+            generalLockService.unlock(syncFromRepoLockKey);
             generalLockService.unlock(gitLockKey);
         }
 
