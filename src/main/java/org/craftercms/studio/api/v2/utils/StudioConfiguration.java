@@ -64,6 +64,9 @@ public interface StudioConfiguration {
     String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
     String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
 
+    String REPO_SYNC_EVENT_DELAY_MILLIS = "studio.repo.sync.event.delayMillis";
+    String REPO_SYNC_EVENT_MAX_RESET_COUNT = "studio.repo.sync.event.maxResets";
+
     /** Database */
     String DB_DRIVER = "studio.db.driver";
     String DB_SCHEMA = "studio.db.schema";

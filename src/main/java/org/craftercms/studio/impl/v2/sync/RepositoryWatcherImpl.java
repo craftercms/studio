@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
@@ -38,9 +39,14 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_EVENT_DELAY_MILLIS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_EVENT_MAX_RESET_COUNT;
 
 /**
  * {@link RepositoryWatcher} default implementation.
@@ -59,18 +65,25 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
 
     private ApplicationEventPublisher eventPublisher;
 
-    @ConstructorProperties({"sitesService", "studioConfiguration"})
-    public RepositoryWatcherImpl(final SitesService sitesService, final StudioConfiguration studioConfiguration) throws IOException {
+    private final Map<String, QueuedEvent> queuedEvents;
+    private final TaskExecutor taskExecutor;
+
+    @ConstructorProperties({"sitesService", "studioConfiguration",
+            "taskExecutor"})
+    public RepositoryWatcherImpl(final SitesService sitesService, final StudioConfiguration studioConfiguration,
+                                 final TaskExecutor taskExecutor) throws IOException {
         this.sitesService = sitesService;
         this.studioConfiguration = studioConfiguration;
+        this.taskExecutor = taskExecutor;
         watcher = FileSystems.getDefault().newWatchService();
         siteKeys = new DualHashBidiMap<>();
         siteRegistrations = new HashMap<>();
+        queuedEvents = new ConcurrentHashMap<>();
     }
 
     @Async
     @EventListener(BootstrapFinishedEvent.class)
-    public void startWatching() throws InterruptedException {
+    public void startWatching() {
         for (; ; ) {
             try {
                 logger.debug("Getting a WatchKey");
@@ -78,10 +91,11 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
                 WatchKey key = watcher.take();
                 String siteId = siteKeys.get(key);
                 // Get the events queued for the key (notice that pollEvents() will not wait)
+                logger.debug("Polling WatchKey events for site '{}'", siteId);
                 for (WatchEvent<?> event : key.pollEvents()) {
                     // Check if the key is valid (in case the site has been just deleted)
                     if (key.isValid() && accept(event, siteId)) {
-                        doHandleRepoChange(siteId);
+                        queueRepoEvent(siteId);
                     }
                 }
                 if (!key.reset()) {
@@ -92,37 +106,60 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
                 }
             } catch (InterruptedException e) {
                 // TODO: we may want to consider a mechanism to restart the thread
-                logger.error("Failed to monitor site repositories, thread has been interrupted", e);
-                throw e;
+                logger.warn("Failed to monitor site repositories, thread has been interrupted");
+                return;
             } catch (Exception e) {
                 logger.error("Failed to process a WatchKey to monitor site repositories", e);
             }
         }
     }
 
-    private void doHandleRepoChange(String siteId) {
-        eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
-        /*
-        // TODO:
-        - Check if there is an event for the site in the queue
-            - If there is:
-                - Set the events flag to true
-            - If there is not:
-                - Add the event to the queue
-                - Set the timer
+    /**
+     * Creates a {@link QueuedEvent} for the given site and adds it to the queue.
+     *
+     * @param siteId
+     */
+    private void queueRepoEvent(String siteId) {
+        QueuedEvent event = queuedEvents.get(siteId);
+        if (event != null) {
+            event.additionalEvents().set(true);
+        } else {
+            QueuedEvent newEvent = new QueuedEvent(siteId, new AtomicBoolean(false), new AtomicInteger(0));
+            queuedEvents.put(siteId, newEvent);
+            taskExecutor.execute(() -> processRepoEvent(newEvent));
+        }
+    }
 
-        - When the timer expires:
-            - If the events flag is true:
-                - Check if the reset counter reached the limit
-                    - If it did:
-                        - Reset the counter
-                        - Trigger the sync
-                    - If it did not:
-                        - Increment the counter
-                        - Restart the timer
-            - If the events flag is false:
-                - Trigger the sync
-         */
+    /**
+     * Process the repo event.
+     *
+     * @param queuedEvent the event to process
+     */
+    private void processRepoEvent(final QueuedEvent queuedEvent) {
+        int resetCount = 0;
+        while (resetCount < getEventTimerMaxResetCount()) {
+            try {
+                Thread.sleep(getEventHandlingDelayMillis());
+            } catch (InterruptedException e) {
+                logger.warn("Thread has been interrupted while waiting for the event handling delay", e);
+                Thread.currentThread().interrupt();
+                return;
+            }
+            if (!queuedEvent.additionalEvents().get()) {
+                break;
+            }
+            resetCount++;
+        }
+        queuedEvents.remove(queuedEvent.siteId());
+        eventPublisher.publishEvent(new SyncFromRepoEvent(queuedEvent.siteId()));
+    }
+
+    private int getEventTimerMaxResetCount() {
+        return studioConfiguration.getProperty(REPO_SYNC_EVENT_MAX_RESET_COUNT, Integer.class);
+    }
+
+    private long getEventHandlingDelayMillis() {
+        return studioConfiguration.getProperty(REPO_SYNC_EVENT_DELAY_MILLIS, Long.class);
     }
 
     /**
@@ -137,20 +174,21 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
         WatchEvent<Path> ev = (WatchEvent<Path>) event;
         Path filename = ev.context();
 
-        logger.debug("Event kind: {}. File affected: {}", event.kind(), filename);
+        logger.debug("Received event for site '{}', event kind: '{}'. File affected: '{}', watching file '{}'",
+                siteId, event.kind(), filename, siteRegistration.branchFilename());
 
         return filename.equals(siteRegistration.branchFilename());
     }
 
     @Override
     public void registerSite(String siteId, Path sitePath) throws SiteNotFoundException, IOException {
-        logger.debug("Sandbox repo path: {}", sitePath);
+        logger.debug("Registering site '{}', sandbox repo path: '{}'", siteId, sitePath);
         try {
             Site site = sitesService.getSite(siteId);
             String sandboxBranch = site.getSandboxBranch();
+            logger.debug("Using sandbox branch: '{}' for site '{}'", sandboxBranch, siteId);
 
             Path sandboxBranchPath = sitePath.resolve(REFS_HEADS).resolve(sandboxBranch);
-
             SiteRegistration siteRegistration = new SiteRegistration(siteId, sitePath, sandboxBranchPath.getFileName());
 
             // Monitor the parent directory of the sandbox branch file (we cannot only monitor directories, not files)
@@ -161,6 +199,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
                             ENTRY_MODIFY);
             siteKeys.put(key, siteId);
             siteRegistrations.put(siteId, siteRegistration);
+            logger.debug("Site '{}' registered", siteId);
         } catch (IOException e) {
             logger.error("Failed to register site '{}'", siteId, e);
             throw e;
@@ -169,11 +208,13 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
 
     @Override
     public void deregisterSite(String siteId) {
+        logger.debug("Deregistering site '{}'", siteId);
         WatchKey key = siteKeys.removeValue(siteId);
         siteRegistrations.remove(siteId);
         if (key != null) {
             key.cancel();
         }
+        logger.debug("Site '{}' deregistered", siteId);
     }
 
     @Override
@@ -190,5 +231,8 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
      *                       the filename for the events will be '123'
      */
     private record SiteRegistration(String siteId, Path sitePath, Path branchFilename) {
+    }
+
+    private record QueuedEvent(String siteId, AtomicBoolean additionalEvents, AtomicInteger resetCounter) {
     }
 }

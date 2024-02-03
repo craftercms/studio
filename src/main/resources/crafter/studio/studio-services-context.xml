@@ -818,6 +818,8 @@
 
     <bean id="sandboxRepositoryWatcher" class="org.craftercms.studio.impl.v2.sync.RepositoryWatcherImpl">
         <constructor-arg name="sitesService" ref="sitesServiceInternal"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
     </bean>
 
     <bean id="syncFromRepoTask" class="org.craftercms.studio.impl.v2.sync.SyncFromRepositoryTask">
