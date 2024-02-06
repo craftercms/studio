@@ -5609,7 +5609,6 @@ paths:
                   items:
                     $ref: '#/components/schemas/ChildrenByPathRequest'
               required:
-                - siteId
                 - paths
       responses:
         '200':

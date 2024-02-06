@@ -25,7 +25,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds the parameters  for the getChildrenByPaths request
@@ -34,18 +33,7 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 @JsonIgnoreProperties
 public class GetChildrenBulkRequest {
-
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
     private List<@Valid PathParams> paths;
-
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
 
     public List<PathParams> getPaths() {
         return paths;
