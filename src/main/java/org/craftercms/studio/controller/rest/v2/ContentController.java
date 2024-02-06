@@ -134,7 +134,7 @@ public class ContentController {
     }
 
     @PostMapping(value = GET_CHILDREN_BY_PATHS, produces = APPLICATION_JSON_VALUE)
-    public Result getChildrenByPaths(@PathVariable @ValidSiteId String siteId, @RequestBody GetChildrenBulkRequest request)
+    public Result getChildrenByPaths(@PathVariable @ValidSiteId String siteId, @Valid @RequestBody GetChildrenBulkRequest request)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, PathParams> paramsMap = request.getPaths().stream()
                 .collect(toMap(PathParams::getPath, identity()));
