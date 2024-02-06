@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -49,7 +48,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_E
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_EVENT_MAX_RESET_COUNT;
 
 /**
- * {@link RepositoryWatcher} default implementation.
+ * {@link RepositoryWatcher} default implementation. Based on {@link WatchService}.
  */
 public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEventPublisherAware {
 
@@ -124,7 +123,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
         if (event != null) {
             event.additionalEvents().set(true);
         } else {
-            QueuedEvent newEvent = new QueuedEvent(siteId, new AtomicBoolean(false), new AtomicInteger(0));
+            QueuedEvent newEvent = new QueuedEvent(siteId, new AtomicBoolean(false));
             queuedEvents.put(siteId, newEvent);
             taskExecutor.execute(() -> processRepoEvent(newEvent));
         }
@@ -139,10 +138,10 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
         int resetCount = 0;
         while (resetCount < getEventTimerMaxResetCount()) {
             try {
+                // Give some time in case more events are coming
                 Thread.sleep(getEventHandlingDelayMillis());
             } catch (InterruptedException e) {
                 logger.warn("Thread has been interrupted while waiting for the event handling delay", e);
-                Thread.currentThread().interrupt();
                 return;
             }
             if (!queuedEvent.additionalEvents().get()) {
@@ -233,6 +232,12 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
     private record SiteRegistration(String siteId, Path sitePath, Path branchFilename) {
     }
 
-    private record QueuedEvent(String siteId, AtomicBoolean additionalEvents, AtomicInteger resetCounter) {
+    /**
+     * Hold a thread safe flag to indicate if additional events are queued for the site.
+     *
+     * @param siteId
+     * @param additionalEvents
+     */
+    private record QueuedEvent(String siteId, AtomicBoolean additionalEvents) {
     }
 }
