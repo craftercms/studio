@@ -326,6 +326,9 @@
     </select>
 
     <select id="getItemByPath" resultMap="DetailedItemMap">
+        <include refid="getItemByPathQuery"/>
+    </select>
+    <sql id="getItemByPathQuery">
             SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                     (
                         SELECT w.submitted_on
@@ -362,17 +365,15 @@
                         FROM workflow w
                         WHERE target_environment = #{liveEnvironment}
                             AND state = 'OPENED'
-                            AND i.id = w.item_id
-                        )
+                            AND i.id = w.item_id)
                     UNION
                         (SELECT pr.scheduleddate AS schedule
                         FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
                         WHERE w.target_environment = #{liveEnvironment}
                             AND w.state = 'APPROVED'
                             AND pr.state = 'READY_FOR_LIVE'
-                            AND i.id = w.item_id
-                        )
-                    ORDER BY schedule DESC
+                            AND i.id = w.item_id)
+                    ORDER BY schedule DESC LIMIT 0, 1
                     ) AS live_scheduleddate,
                     live1.published_on AS live_published_on,
                     live1.username AS live_username,
@@ -404,7 +405,7 @@
                   (SELECT * FROM item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
             GROUP BY i.id
             LIMIT 0, 1
-    </select>
+    </sql>
 
     <select id="getItemByPathPreferContent" resultMap="DetailedItemMap">
             (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
@@ -487,81 +488,9 @@
                     (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
              GROUP BY i1.id)
             UNION
-            (select i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
-                    (
-                        SELECT w.submitted_on
-                        FROM workflow w
-                        WHERE w.item_id = i3.id
-                        ORDER BY w.id DESC LIMIT 0, 1
-                    ) as submitted_on,
-                    (
-                        SELECT w.submitter_id
-                        FROM workflow w
-                        WHERE w.item_id = i3.id
-                        ORDER BY w.id DESC LIMIT 0, 1
-                    ) AS submitter,
-                    (
-                        (SELECT schedule
-                        FROM workflow w
-                        WHERE target_environment = #{stagingEnvironment}
-                            AND state = 'OPENED'
-                            AND i3.id = w.item_id
-                        )
-                    UNION
-                        (SELECT pr.scheduleddate AS schedule
-                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                        WHERE w.target_environment = #{stagingEnvironment}
-                            AND w.state = 'APPROVED'
-                            AND pr.state = 'READY_FOR_LIVE'
-                            AND i3.id = w.item_id
-                    ORDER BY schedule DESC LIMIT 0, 1)
-                    ) AS staging_scheduleddate,
-                    staging2.published_on AS staging_published_on,
-                    staging2.username AS staging_username,
-                    (
-                        (SELECT schedule
-                        FROM workflow w
-                        WHERE target_environment = #{liveEnvironment}
-                            AND state = 'OPENED'
-                            AND i3.id = w.item_id)
-                    UNION
-                        (SELECT pr.scheduleddate AS schedule
-                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                        WHERE w.target_environment = #{liveEnvironment}
-                            AND w.state = 'APPROVED'
-                            AND pr.state = 'READY_FOR_LIVE'
-                            AND i3.id = w.item_id)
-                    ORDER BY schedule DESC LIMIT 0, 1
-                    ) AS live_scheduleddate,
-                    live2.published_on AS live_published_on,
-                    live2.username AS live_username,
-                    COUNT(DISTINCT i6.id) AS children_count
-            FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
-                LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN (
-                    SELECT pr3.*
-                    FROM publish_request pr3 INNER JOIN site s5 ON pr3.site = s5.site_id
-                    WHERE s5.id = #{siteId}
-                      AND pr3.path = #{path}
-                      AND pr3.environment = #{stagingEnvironment}
-                      AND pr3.state = #{completedState}
-                    ORDER BY pr3. published_on DESC LIMIT 0, 1
-                    ) AS staging2 ON s4.site_id = staging2.site AND i3.path = staging2.path
-                LEFT OUTER JOIN (
-                    SELECT pr4.*
-                    FROM publish_request pr4 INNER JOIN site s6 ON pr4.site = s6.site_id
-                    WHERE s6.id = #{siteId}
-                      AND pr4.path = #{path}
-                      AND pr4.environment = #{liveEnvironment}
-                      AND pr4.state = #{completedState}
-                    ORDER BY pr4.published_on DESC LIMIT 0, 1
-                    ) AS live2 ON s4.site_id = live2.site AND i3.path = live2.path
-            WHERE i3.site_id = #{siteId}
-              AND i3.path = #{path}
-              AND (i6.ignored = 0 OR i6.ignored IS NULL)
-              AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-                (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
-            GROUP BY i3.id)
+                (
+                <include refid="getItemByPathQuery"  />
+                )
             LIMIT 0, 1
     </select>
 
