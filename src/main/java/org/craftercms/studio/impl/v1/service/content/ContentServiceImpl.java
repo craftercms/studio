@@ -71,6 +71,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
@@ -236,28 +237,21 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
-        String content = null;
-
-        try (InputStream is = _contentRepository.getContent(site, path, shallow)) {
-            if (is != null) {
-                if (isEmpty(encoding)) {
-                    content = IOUtils.toString(is, UTF_8);
-                } else {
-                    content = IOUtils.toString(is, encoding);
+        return TimeUtils.logExecutionTime(() -> {
+            String content = null;
+            try (InputStream is = _contentRepository.getContent(site, path, shallow)) {
+                if (is != null) {
+                    if (isEmpty(encoding)) {
+                        content = IOUtils.toString(is, UTF_8);
+                    } else {
+                        content = IOUtils.toString(is, encoding);
+                    }
                 }
+            } catch (Exception e) {
+                logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
             }
-        } catch (Exception e) {
-            logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
-        }
-        if (logger.isTraceEnabled()) {
-            logger.debug("getContentAsStringInternal site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
-        }
-        return content;
+            return content;
+        }, logger, format("Method 'ContentServiceImpl.getContentAsStringInternal()' with parameters %s", Arrays.asList(site, path, encoding, shallow)));
     }
 
     @Override

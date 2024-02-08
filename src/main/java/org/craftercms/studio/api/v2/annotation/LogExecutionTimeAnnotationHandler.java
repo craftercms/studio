@@ -35,7 +35,7 @@ public class LogExecutionTimeAnnotationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAnnotationHandler.class);
 
-    // This method matches:
+    // This method matches public methods and not internal call with one of the following conditions:
     // - methods declared on classes annotated with LogExecutionTime
     // - methods declared on classes meta-annotated with LogExecutionTime (only one level deep). e.g.: @LogExecutionTime, which is annotated with @LogExecutionTime
     // - methods annotated with LogExecutionTime
