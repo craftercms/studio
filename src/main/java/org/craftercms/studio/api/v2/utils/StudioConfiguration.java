@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -63,6 +63,9 @@ public interface StudioConfiguration {
     String REPO_IGNORE_FILES = "studio.repo.ignoreFiles";
     String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
     String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
+
+    String REPO_SYNC_EVENT_DELAY_MILLIS = "studio.repo.sync.event.delayMillis";
+    String REPO_SYNC_EVENT_MAX_RESET_COUNT = "studio.repo.sync.event.maxResets";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -270,8 +273,6 @@ public interface StudioConfiguration {
     String CLOCK_JOB_TASK_EXECUTOR_CORE_POOL_SIZE = "studio.clockJob.taskExecutor.corePoolSize";
     String CLOCK_JOB_TASK_EXECUTOR_MAX_POOL_SIZE = "studio.clockJob.taskExecutor.maxPoolSize";
     String CLOCK_JOB_TASK_EXECUTOR_QUEUE_CAPACITY = "studio.clockJob.taskExecutor.queueCapacity";
-    String CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES =
-            "studio.clockJob.task.syncRepository.executeEveryNCycles";
     String CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES =
             "studio.clockJob.task.publisher.executeEveryNCycles";
     String CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT =

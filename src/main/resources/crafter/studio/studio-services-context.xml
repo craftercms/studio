@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -19,10 +19,12 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:util="http://www.springframework.org/schema/util"
        xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
     <import resource="classpath:crafter/studio/database-context.xml"/>
     <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
     <import resource="classpath:crafter/studio/studio-search-context.xml"/>
@@ -30,6 +32,7 @@
     <import resource="classpath:crafter/studio/studio-websocket-context.xml"/>
 
     <aop:aspectj-autoproxy proxy-target-class="true"/>
+    <task:annotation-driven executor="studioTaskExecutor" />
 
     <bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
@@ -361,6 +364,7 @@
         <property name="contentRepository" ref="gitContentRepositoryV2" />
         <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
         <property name="dependencyService" ref="dependencyServiceInternal"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -496,7 +500,6 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-        <property name="taskExecutor" ref="studio.clockTaskExecutor" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -750,7 +753,6 @@
 
     <util:list id="studio.clockTasksSite" list-class="java.util.ArrayList"
                value-type="org.craftercms.studio.api.v2.job.SiteJob">
-        <ref bean="studio.clockSyncRepositoryTask" />
         <ref bean="studio.clockPublisherTask" />
     </util:list>
 
@@ -758,21 +760,6 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentRepository" ref="contentRepository"/>
-    </bean>
-
-    <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask"
-          parent="studio.clockTaskBase">
-        <property name="executeEveryNCycles"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}"/>
-        <constructor-arg name="sitesService" ref="sitesServiceInternal"/>
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
-        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
-        <constructor-arg name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
-        <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
-        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal"/>
-        <constructor-arg name="contentService" ref="cstudioContentService"/>
-        <constructor-arg name="configurationService" ref="configurationService"/>
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" parent="studio.clockTaskBase">
@@ -817,6 +804,36 @@
         </property>
         <property name="cronExpression"
                   value="#{studioConfiguration.getProperty('studio.security.token.cleanup.cron')}"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!-- Sync from git repository -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="sandboxRepositoryListener" class="org.craftercms.studio.impl.v2.sync.SandboxRepositoryListener">
+        <constructor-arg name="siteService" ref="sitesServiceInternal"/>
+        <constructor-arg name="repositoryHelper" ref="studio.gitRepositoryHelper"/>
+        <constructor-arg name="repositoryWatcher" ref="sandboxRepositoryWatcher"/>
+    </bean>
+
+    <bean id="sandboxRepositoryWatcher" class="org.craftercms.studio.impl.v2.sync.RepositoryWatcherImpl">
+        <constructor-arg name="sitesService" ref="sitesServiceInternal"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
+    </bean>
+
+    <bean id="syncFromRepoTask" class="org.craftercms.studio.impl.v2.sync.SyncFromRepositoryTask">
+        <constructor-arg name="sitesService" ref="sitesServiceInternal"/>
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+        <constructor-arg name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+        <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal"/>
+        <constructor-arg name="contentService" ref="cstudioContentService"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="contentRepository" ref="contentRepository"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

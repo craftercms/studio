@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -95,5 +95,9 @@ public abstract class StudioUtils {
 
     public static String getSandboxRepoLockKey(final String site) {
         return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+    }
+
+    public static String getSyncFromRepoLockKey(final String siteId) {
+        return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
     }
 }
