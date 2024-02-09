@@ -281,7 +281,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 logger.debug("Add audit log to site '{}'", siteName);
                 insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
 
-                processCreatedFiles(siteId, createdFiles, creator, now);
+                TimeUtils.logExecutionTime(() -> {
+                    processCreatedFiles(siteId, createdFiles, creator, now);
+                    return null;
+                }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, createdFiles, creator, now)));
 
                 updateLastCommitId(siteId, lastCommitId);
 
@@ -345,108 +348,105 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now) {
-        TimeUtils.logExecutionTime(() -> {
-            SiteFeed siteFeed;
-            try {
-                siteFeed = getSite(siteId);
-            } catch (SiteNotFoundException e) {
-                logger.error("Failed to process created files, site ID '{}' not found", siteId, e);
-                return null;
-            }
-            User userObj;
-            try {
-                userObj = userServiceInternal.getUserByGitName(creator);
-            } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error("Failed to process created files in site ID '{}', user '{}' not found",
-                        siteId, creator, e);
-                return null;
-            }
+        SiteFeed siteFeed;
+        try {
+            siteFeed = getSite(siteId);
+        } catch (SiteNotFoundException e) {
+            logger.error("Failed to process created files, site ID '{}' not found", siteId, e);
+            return;
+        }
+        User userObj;
+        try {
+            userObj = userServiceInternal.getUserByGitName(creator);
+        } catch (ServiceLayerException | UserNotFoundException e) {
+            logger.error("Failed to process created files in site ID '{}', user '{}' not found",
+                    siteId, creator, e);
+            return;
+        }
 
-            StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
 
-            Path createdFileScriptPath = null;
-            Path updateParentIdScriptPath = null;
-            // TODO: SJ: Refactor to avoid string literals
-            try {
-                Path studioTempDir = getStudioTemporaryFilesRoot();
-                String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
-                createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
-                String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
-                updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
-                for (String key : createdFiles.keySet()) {
-                    String path = key;
-                    if (StringUtils.equals("D", createdFiles.get(path))) {
-                        continue;
-                    }
-                    if (createdFiles.get(path).length() > 1) {
-                        path = createdFiles.get(path);
-                    }
+        Path createdFileScriptPath = null;
+        Path updateParentIdScriptPath = null;
+        // TODO: SJ: Refactor to avoid string literals
+        try {
+            Path studioTempDir = getStudioTemporaryFilesRoot();
+            String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
+            createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
+            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
+            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
+            for (String key : createdFiles.keySet()) {
+                String path = key;
+                if (StringUtils.equals("D", createdFiles.get(path))) {
+                    continue;
+                }
+                if (createdFiles.get(path).length() > 1) {
+                    path = createdFiles.get(path);
+                }
 
-                    // Item
-                    String label = FilenameUtils.getName(path);
-                    String contentTypeId = StringUtils.EMPTY;
-                    boolean disabled = false;
-                    if (StringUtils.endsWith(path, XML_PATTERN)) {
-                        try {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, path);
-                            if (contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+                // Item
+                String label = FilenameUtils.getName(path);
+                String contentTypeId = StringUtils.EMPTY;
+                boolean disabled = false;
+                if (StringUtils.endsWith(path, XML_PATTERN)) {
+                    try {
+                        Document contentDoc = contentService.getContentAsDocument(siteId, path);
+                        if (contentDoc != null) {
+                            Element rootElement = contentDoc.getRootElement();
+                            String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                            if (isNotEmpty(internalName)) {
+                                label = internalName;
                             }
-                        } catch (DocumentException e) {
-                            logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
-                                    siteId, path, e);
+                            contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                            disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                         }
-                    }
-                    String previewUrl = null;
-                    if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                            StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-                        previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
-                    }
-                    processAncestors(siteFeed.getId(), path, userObj.getId(), now, createdFileScriptPath);
-                    long state = NEW.value;
-                    if (disabled) {
-                        state = state | DISABLED.value;
-                    }
-
-                    if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
-                    } else {
-                        Files.write(createdFileScriptPath, insertItemRow(siteFeed.getId(), path, previewUrl, state,
-                                        null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
-                                        contentService.getContentTypeClass(siteId, path),
-                                        StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-                                        contentRepositoryV2.getContentSize(siteId, path), null, null).getBytes(UTF_8),
-                                StandardOpenOption.APPEND);
-                        Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
-
-                        DependencyUtils.addDependenciesScriptSnippets(siteId, path, null, createdFileScriptPath, dependencyServiceInternal);
+                    } catch (DocumentException e) {
+                        logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
+                                siteId, path, e);
                     }
                 }
-
-                studioDBScriptRunner.execute(createdFileScriptPath.toFile());
-                studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-            } catch (IOException | ServiceLayerException e) {
-                logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
-            } finally {
-                if (createdFileScriptPath != null) {
-                    logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
-                    FileUtils.deleteQuietly(createdFileScriptPath.toFile());
+                String previewUrl = null;
+                if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                        StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+                    previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
                 }
-                if (updateParentIdScriptPath != null) {
-                    logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
-                    FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
+                processAncestors(siteFeed.getId(), path, userObj.getId(), now, createdFileScriptPath);
+                long state = NEW.value;
+                if (disabled) {
+                    state = state | DISABLED.value;
+                }
+
+                if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
+                    addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
+                } else {
+                    Files.write(createdFileScriptPath, insertItemRow(siteFeed.getId(), path, previewUrl, state,
+                                    null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
+                                    contentService.getContentTypeClass(siteId, path),
+                                    StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
+                                    contentRepositoryV2.getContentSize(siteId, path), null, null).getBytes(UTF_8),
+                            StandardOpenOption.APPEND);
+                    Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+
+                    addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
+
+                    DependencyUtils.addDependenciesScriptSnippets(siteId, path, null, createdFileScriptPath, dependencyServiceInternal);
                 }
             }
-            return null;
-        }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, createdFiles, creator, now)));
+
+            studioDBScriptRunner.execute(createdFileScriptPath.toFile());
+            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
+        } catch (IOException | ServiceLayerException e) {
+            logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
+        } finally {
+            if (createdFileScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
+                FileUtils.deleteQuietly(createdFileScriptPath.toFile());
+            }
+            if (updateParentIdScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
+                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
+            }
+        }
     }
 
     private void processAncestors(long siteId, String path, long userId, ZonedDateTime now,
@@ -676,7 +676,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
 
             insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
-            processCreatedFiles(siteId, createdFiles, creator, now);
+
+            TimeUtils.logExecutionTime(() -> {
+                processCreatedFiles(siteId, createdFiles, creator, now);
+                return null;
+            }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, createdFiles, creator, now)));
 
             updateLastCommitId(siteId, lastCommitId);
 

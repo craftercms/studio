@@ -2310,14 +2310,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                    Map<String, String> params,
                                    String contentChainForm)
             throws ServiceLayerException, UserNotFoundException {
-        long startTime = 0;
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
         // TODO: SJ: Furthermore, we have redundancy in the code of the processors
+
+        long startTime = 0;
+        if (logger.isDebugEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
         String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
