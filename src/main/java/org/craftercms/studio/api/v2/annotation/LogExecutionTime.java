@@ -21,6 +21,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation to trace execution time of methods.
+ * This annotation only works with public method with external calls as a limitation of Spring AOP.
+ * If the tracing method is an internal call, consider using {@link org.craftercms.studio.impl.v2.utils.TimeUtils} instead
+ */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LogExecutionTime {
