@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v2.event;
 
-import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;

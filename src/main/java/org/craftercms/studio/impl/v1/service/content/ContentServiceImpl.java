@@ -251,7 +251,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
             }
             return content;
-        }, logger, format("Method 'ContentServiceImpl.getContentAsStringInternal()' with parameters %s", Arrays.asList(site, path, encoding, shallow)));
+        }, logger, format("Method 'ContentServiceImpl.getContentAsStringInternal(..)' with parameters %s", Arrays.asList(site, path, encoding, shallow)));
     }
 
     @Override
