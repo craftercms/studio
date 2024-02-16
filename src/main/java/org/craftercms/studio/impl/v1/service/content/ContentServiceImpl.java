@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.policy.*;
@@ -70,6 +71,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
@@ -221,16 +223,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @LogExecutionTime
     public String shallowGetContentAsString(String siteId, String path) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        String contentAsStringInternal = getContentAsStringInternal(siteId, path, null, true);
-        if (logger.isTraceEnabled()) {
-            logger.trace("shallowGetContentAsString site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
-        }
-        return contentAsStringInternal;
+        return getContentAsStringInternal(siteId, path, null, true);
     }
 
     @Override
@@ -242,28 +237,21 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
-        String content = null;
-
-        try (InputStream is = _contentRepository.getContent(site, path, shallow)) {
-            if (is != null) {
-                if (isEmpty(encoding)) {
-                    content = IOUtils.toString(is, UTF_8);
-                } else {
-                    content = IOUtils.toString(is, encoding);
+        return TimeUtils.logExecutionTime(() -> {
+            String content = null;
+            try (InputStream is = _contentRepository.getContent(site, path, shallow)) {
+                if (is != null) {
+                    if (isEmpty(encoding)) {
+                        content = IOUtils.toString(is, UTF_8);
+                    } else {
+                        content = IOUtils.toString(is, encoding);
+                    }
                 }
+            } catch (Exception e) {
+                logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
             }
-        } catch (Exception e) {
-            logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
-        }
-        if (logger.isTraceEnabled()) {
-            logger.debug("getContentAsStringInternal site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
-        }
-        return content;
+            return content;
+        }, logger, format("Method 'ContentServiceImpl.getContentAsStringInternal(..)' with parameters %s", Arrays.asList(site, path, encoding, shallow)));
     }
 
     @Override
@@ -1835,16 +1823,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
+    @LogExecutionTime
     public ContentItemTO getContentItem(@ValidSiteId String site,
                                         @ValidateSecurePathParam String path,
                                         int depth) {
         ContentItemTO item = null;
         logger.debug("Get content item at site '{}' path '{}' depth '{}'", site, path, depth);
-
-        long startTime = 0;
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
 
         try {
             if (contentExists(site, path)) {
@@ -1870,11 +1854,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         } catch(Exception e) {
             logger.debug("Failed to construct the item at site '{}' path '{}'", site, path, e);
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Content item from site '{}' path '{}' retrieved in '{}' milliseconds",
-                    site, path, System.currentTimeMillis() - startTime);
         }
 
         return item;
@@ -2089,16 +2068,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
+    @LogExecutionTime
     public ContentItemTO getContentItemTree(@ValidateStringParam String site,
                                             @ValidateSecurePathParam String path,
                                             int depth) {
         logger.debug("Get the content item tree for item at site '{}' path '{}' with depth '{}'", site, path, depth);
-
-        long startTime = 0;
-
-        if (logger.isDebugEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
 
         boolean isPages = (path.contains(DmConstants.SLASH_SITE_WEBSITE));
         ContentItemTO root;
@@ -2109,18 +2083,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             } else {
                 root = getContentItem(site, path + DmConstants.SLASH_INDEX_FILE);
             }
-        }
-        else {
+        } else {
             if (depth > 1) {
                 root = getContentItem(site, path, depth);
             } else {
                 root = getContentItem(site, path);
             }
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milliseconds",
-                    site, path, depth, System.currentTimeMillis() - startTime);
         }
 
         return root;

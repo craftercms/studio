@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -53,6 +54,7 @@ import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -71,10 +73,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -207,22 +206,16 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    @LogExecutionTime
     public String getConfigurationAsString(@SiteId String siteId,
                                            String module,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                            String environment) throws ContentNotFoundException {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         String content = getEnvironmentConfiguration(siteId, module, path, environment);
         if (content == null) {
             throw new ContentNotFoundException(path, siteId,
                     format("Configuration not found for site '%s', module '%s', path '%s', environment '%s'",
                             siteId, module, path, environment));
-        }
-        if (logger.isTraceEnabled()) {
-            logger.trace("getConfigurationAsString site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
         }
         return content;
     }
@@ -356,46 +349,35 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        String configPath;
-        if (isNotEmpty(module)) {
-            String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
-                    .replaceAll(PATTERN_MODULE, module);
-            configPath = Paths.get(configBasePath, path).toString();
-        } else {
-            configPath = path;
-        }
-        String result = contentService.shallowGetContentAsString(siteId, configPath);
-        if (logger.isTraceEnabled()) {
-            logger.trace("getDefaultConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
-        }
-        return result;
+        return TimeUtils.logExecutionTime(() -> {
+            String configPath;
+            if (isNotEmpty(module)) {
+                String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                        .replaceAll(PATTERN_MODULE, module);
+                configPath = Paths.get(configBasePath, path).toString();
+            } else {
+                configPath = path;
+            }
+            return contentService.shallowGetContentAsString(siteId, configPath);
+        }, logger, format("Method 'ConfigurationServiceImpl.getDefaultConfiguration(..)' with parameters %s", Arrays.asList(siteId, module, path)));
     }
 
     private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        if (!isEmpty(environment)) {
-            String configBasePath =
-                    studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
-                            .replaceAll(PATTERN_MODULE, module)
-                            .replaceAll(PATTERN_ENVIRONMENT, environment);
-            String configPath =
-                    Paths.get(configBasePath, path).toString();
-            if (contentService.shallowContentExists(siteId, configPath)) {
-                return contentService.shallowGetContentAsString(siteId, configPath);
+        return TimeUtils.logExecutionTime(() -> {
+            if (!isEmpty(environment)) {
+                String configBasePath =
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                                .replaceAll(PATTERN_MODULE, module)
+                                .replaceAll(PATTERN_ENVIRONMENT, environment);
+                String configPath =
+                        Paths.get(configBasePath, path).toString();
+                if (contentService.shallowContentExists(siteId, configPath)) {
+                    return contentService.shallowGetContentAsString(siteId, configPath);
+                }
             }
-        }
-        String defaultConfiguration = getDefaultConfiguration(siteId, module, path);
-        if (logger.isTraceEnabled()) {
-            logger.trace("getEnvironmentConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
-        }
-        return defaultConfiguration;
+
+            return getDefaultConfiguration(siteId, module, path);
+        }, logger, format("Method 'ConfigurationServiceImpl.getEnvironmentConfiguration(..)' with parameters %s", Arrays.asList(siteId, module, path, environment)));
     }
 
     @Override

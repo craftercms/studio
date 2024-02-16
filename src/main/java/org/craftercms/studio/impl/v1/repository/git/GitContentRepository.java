@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
@@ -148,23 +149,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     protected InputStream shallowGetContent(String site, String path) throws ContentNotFoundException {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         Path filePath = helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path));
         try {
-            FileInputStream fileInputStream = new FileInputStream(filePath.toFile());
-            if (logger.isTraceEnabled()) {
-                logger.trace("shallowGetContent site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
-            }
-            return fileInputStream;
+            return new FileInputStream(filePath.toFile());
         } catch (FileNotFoundException e) {
             throw new ContentNotFoundException(format("Content not found at site '%s' path '%s'", site, path), e);
         }
     }
 
     @Override
+    @LogExecutionTime
     public InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException {
         if (shallow) {
             return shallowGetContent(site, path);
