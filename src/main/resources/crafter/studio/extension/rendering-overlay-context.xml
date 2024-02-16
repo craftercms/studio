@@ -277,7 +277,7 @@
         <property name="serializers">
             <list>
                 <bean class="org.craftercms.commons.jackson.ObjectIdSerializer"/>
-                <bean class="org.craftercms.core.util.json.jackson.Dom4jDocumentJsonSerializer"/>
+                <ref bean="crafter.dom4jDocumentJsonSerializer"/>
             </list>
         </property>
         <property name="deserializers">
