@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.search;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.search.opensearch.impl.client.AbstractOpenSearchClientWrapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
@@ -28,6 +29,8 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Implementation of {@link org.craftercms.search.opensearch.OpenSearchWrapper} specific for authoring indexes
@@ -55,12 +58,13 @@ public class PermissionAwareSearchService extends AbstractOpenSearchClientWrappe
     /**
      * Perform a search operation for the given site
      * @param siteId the site id
-     * @param allowedPaths the paths that should be included in the results
      * @param request the search request
      * @return the search response
      */
-    public <T> SearchResponse<T> search(String siteId, List<String> allowedPaths, SearchRequest request,
-                                        Class<T> documentClass) throws IOException {
+    public <T> SearchResponse<T> search(String siteId, SearchRequest request,
+                                        Class<T> documentClass) throws IOException, ServiceLayerException {
+        // TODO: Get allowed paths from the security service
+        List<String> allowedPaths = emptyList();
         return super.search(request, documentClass, Map.of("siteId", siteId, "allowedPaths", allowedPaths));
     }
 
