@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.FacetRangeTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
+import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
 import org.craftercms.studio.model.search.*;
@@ -59,10 +59,10 @@ import static java.util.stream.Collectors.toMap;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
- * Default implementation of {@link SearchServiceInternal}
+ * Internal implementation of {@link org.craftercms.studio.api.v2.service.search.SearchService}
  * @author joseross
  */
-public class SearchServiceInternalImpl implements SearchServiceInternal {
+public class SearchServiceInternalImpl implements SearchService {
 
     public static final String CONFIG_KEY_FIELDS = "studio.search.fields.search";
     public static final String CONFIG_KEY_FACETS = "studio.search.facets";
@@ -439,7 +439,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     @Override
     @SuppressWarnings("rawtypes")
-    public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
+    public SearchResult search(final String siteId, final SearchParams params, final int maxExpansions)
             throws ServiceLayerException {
         validateResultWindow(params.getOffset(), params.getLimit());
 
@@ -488,6 +488,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                     .multiMatch(m -> m
                         .query(finalRawKeywords)
                         .type(TextQueryType.PhrasePrefix)
+                        .maxExpansions(maxExpansions)
                         .fields(List.copyOf(searchFields.values()))
                     )
                 );
@@ -565,7 +566,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         SearchRequest request = builder.build();
 
         try {
-            SearchResponse<Map> response = searchService.search(siteId, allowedPaths, request, Map.class);
+            SearchResponse<Map> response = searchService.search(siteId, request, Map.class);
             return processResults(response, siteFacets, params.getAdditionalFields());
         } catch (IOException e) {
             throw new ServiceLayerException("Error connecting to OpenSearch", e);
