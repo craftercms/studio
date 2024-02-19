@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,24 +17,41 @@
 package org.craftercms.studio.api.v2.service.search;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 /**
  * Provides access to OpenSearch for authoring indexes
+ *
  * @author joseross
  */
 public interface SearchService {
+    /**
+     * The default maximum number of terms for fuzzy queries expands to.
+     */
+    int DEFAULT_MAX_EXPANSIONS = 50;
 
     /**
      * Performs a search operation for a given site
+     *
+     * @param siteId        the id of the site
+     * @param params        the parameters for the search
+     * @param maxExpansions Specifies the maximum number of terms for fuzzy queries expands to.
+     * @return the search results
+     * @throws ServiceLayerException if there is any error executing the search in OpenSearch
+     */
+    SearchResult search(String siteId, SearchParams params, int maxExpansions) throws ServiceLayerException;
+
+    /**
+     * Performs a search operation for a given site
+     *
      * @param siteId the id of the site
      * @param params the parameters for the search
      * @return the search results
-     * @throws AuthenticationException if there is an error checking the current user
      * @throws ServiceLayerException if there is any error executing the search in OpenSearch
      */
-    SearchResult search(String siteId, SearchParams params) throws AuthenticationException, ServiceLayerException;
+    default SearchResult search(String siteId, SearchParams params) throws ServiceLayerException {
+        return search(siteId, params, DEFAULT_MAX_EXPANSIONS);
+    }
 
 }
