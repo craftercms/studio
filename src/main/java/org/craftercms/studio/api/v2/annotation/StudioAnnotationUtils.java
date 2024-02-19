@@ -21,21 +21,23 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-public class SiteAnnotationUtils {
+public class StudioAnnotationUtils {
 
     /**
-     * Get site id from a method
+     * Get annotation value from an annotation class instance
      * @param pjp proceeding join point object
      * @param method method to read
-     * @return site identifier
+     * @param annotationClass annotation class
+     * @param returnType return of annotation value type
+     * @return annotation value
      */
-    public static String getSiteId(final ProceedingJoinPoint pjp, final Method method) {
+    public static <T> T getAnnotationValue(final ProceedingJoinPoint pjp, final Method method, Class<?> annotationClass, Class<T> returnType) {
         Annotation[][] paramAnnotations = method.getParameterAnnotations();
         Object[] params = pjp.getArgs();
         for (int i = 0; i < paramAnnotations.length; i++) {
             for (Annotation a : paramAnnotations[i]) {
-                if (a instanceof SiteId) {
-                    return (String) params[i];
+                if (annotationClass.isInstance(a)) {
+                    return returnType.cast(params[i]);
                 }
             }
         }

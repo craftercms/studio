@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v2.job;
+package org.craftercms.studio.impl.v2.sync;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -28,21 +28,27 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -60,7 +66,6 @@ import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
@@ -69,14 +74,16 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryF
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
-public class StudioSyncRepositoryTask extends StudioClockTask {
+/**
+ * Listens to {@link SyncFromRepoEvent} events and performs the sync from repository.
+ */
+public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
     private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
     private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
-    private static int threadCounter = 0;
 
     private final SitesService sitesService;
     private final GeneralLockService generalLockService;
@@ -86,21 +93,22 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     private final ItemServiceInternal itemServiceInternal;
     private final ContentService contentService;
     private final ConfigurationService configurationService;
-
-    public void init() {
-        threadCounter++;
-    }
+    private final ContentRepository contentRepository;
+    private final StudioConfiguration studioConfiguration;
+    private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
             "auditServiceInternal",
             "studioDBScriptRunnerFactory", "dependencyServiceInternal",
             "userServiceInternal", "itemServiceInternal",
-            "contentService", "configurationService"})
-    public StudioSyncRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
-                                    AuditServiceInternal auditServiceInternal,
-                                    StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
-                                    UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal
-            , ContentService contentService, ConfigurationService configurationService) {
+            "contentService", "configurationService",
+            "contentRepository", "studioConfiguration"})
+    public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
+                                  AuditServiceInternal auditServiceInternal,
+                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
+                                  UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
+                                  ContentService contentService, ConfigurationService configurationService,
+                                  ContentRepository contentRepository, StudioConfiguration studioConfiguration) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -110,24 +118,13 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         this.itemServiceInternal = itemServiceInternal;
         this.contentService = contentService;
         this.configurationService = configurationService;
+        this.contentRepository = contentRepository;
+        this.studioConfiguration = studioConfiguration;
     }
 
-    @Override
-    protected void executeInternal(String site) {
-        try {
-            logger.debug("Execute sync repository thread counter '{}' ID '{}'", threadCounter,
-                    Thread.currentThread().getId());
-            String siteState = siteService.getSiteState(site);
-            if (StringUtils.equals(siteState, STATE_READY)) {
-                applicationContext.publishEvent(new SyncFromRepoEvent(site));
-            }
-        } catch (Exception e) {
-            logger.error("Failed to sync the database from the repository in site '{}'", site, e);
-        }
-    }
-
+    @Async
     @EventListener
-    protected void syncRepoListener(SyncFromRepoEvent event) throws ServiceLayerException {
+    public void syncRepoListener(SyncFromRepoEvent event) throws ServiceLayerException {
         syncRepository(event.getSiteId());
     }
 
@@ -146,8 +143,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                     "The site will not be synced with the repository.", siteId);
             return;
         }
-        String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
-        generalLockService.lock(gitLockKey);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
+        generalLockService.lock(syncFromRepoLockKey);
         try {
             // Get the last commit to be used along the sync process (instead of 'HEAD',
             // commits added after this point will be processed in subsequent executions of this method)
@@ -186,7 +183,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         } catch (UserNotFoundException | GitAPIException | IOException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
-            generalLockService.unlock(gitLockKey);
+            generalLockService.unlock(syncFromRepoLockKey);
         }
     }
 
@@ -213,7 +210,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         // Sync all preview deployers
         try {
             logger.debug("Sync preview for site '{}'", site);
-            applicationContext.publishEvent(new RepositoryEvent(site.getSiteId()));
+            eventPublisher.publishEvent(new RepositoryEvent(site.getSiteId()));
         } catch (Exception e) {
             logger.error("Failed to sync preview for site '{}'", site, e);
         }
@@ -583,6 +580,11 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
                 StandardOpenOption.APPEND);
         Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+    }
+
+    @Override
+    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
     }
 
     /**

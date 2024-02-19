@@ -5609,7 +5609,6 @@ paths:
                   items:
                     $ref: '#/components/schemas/ChildrenByPathRequest'
               required:
-                - siteId
                 - paths
       responses:
         '200':
@@ -10986,7 +10985,10 @@ components:
           description: filter children by keyword
           type: string
         systemTypes:
-          description: filter children by system type
+          description: |-
+            filter children by system type
+
+            Note that this parameter does not honor "levelDescriptor" as a valid type
           type: array
           items:
             type: string

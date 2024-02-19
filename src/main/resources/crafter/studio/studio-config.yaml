@@ -98,6 +98,14 @@ studio.repo.git.cli.process.waitForTimeout: 300
 # Timeout in seconds when waiting for the Git CLI process to finish after destroying the process forcibly
 studio.repo.git.cli.process.destroy.waitForTimeout: 60
 
+##################################################
+##           DB Sync from Repository            ##
+##################################################
+# Time in milliseconds to wait before triggering a sync when an event has been received
+studio.repo.sync.event.delayMillis: 1000
+# Maximum number of resets before triggering a sync
+studio.repo.sync.event.maxResets: 10
+
 ############################################################
 ##                       Blob Store                       ##
 ############################################################
@@ -986,8 +994,6 @@ studio.clockJob.taskExecutor.corePoolSize: 50
 studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
 studio.clockJob.taskExecutor.queueCapacity: 2000
-# Sync repository execute every N cycles
-studio.clockJob.task.syncRepository.executeEveryNCycles: 1
 # Publisher execute every N cycles
 studio.clockJob.task.publisher.executeEveryNCycles: 2
 # Publisher max retry count in case if content not found

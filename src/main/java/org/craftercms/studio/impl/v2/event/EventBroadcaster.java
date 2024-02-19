@@ -18,12 +18,17 @@ package org.craftercms.studio.impl.v2.event;
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.util.Arrays;
+
+import static java.lang.String.format;
 
 /**
  * Implementation of {@link EventListener} that broadcasts events to the message broker
@@ -53,16 +58,11 @@ public class EventBroadcaster {
     }
 
     private void publishEvent(final BroadcastEvent event, final String destination) {
-        logger.debug("Broadcast event '{}'", event);
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        messagingTemplate.convertAndSend(destination, event);
-        if (logger.isTraceEnabled()) {
-            long total = System.currentTimeMillis() - startTime;
-            logger.trace("Broadcast of event '{}' took '{}' milliseconds", event, total);
-        }
+        TimeUtils.logExecutionTime(() -> {
+            logger.debug("Broadcast event '{}'", event);
+            messagingTemplate.convertAndSend(destination, event);
+            return null;
+        }, logger, format("Method 'EventBroadcaster.publishEvent(..)' with parameters %s", Arrays.asList(event, destination)));
     }
 
 }

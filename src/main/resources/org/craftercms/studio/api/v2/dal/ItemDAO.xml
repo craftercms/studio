@@ -147,6 +147,12 @@
                 #{type}
             </foreach>
         </if>
+        <if test="excludeSystemTypes != null &amp;&amp; !excludeSystemTypes.isEmpty()">
+            AND child.system_type NOT IN
+            <foreach collection="excludeSystemTypes" item="type" open="(" separator="," close=")">
+                #{type}
+            </foreach>
+        </if>
     </sql>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
@@ -1198,7 +1204,7 @@
     </select>
 
     <select id="getItemStates" resultMap="ItemMap">
-        SELECT i.*
+        SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0

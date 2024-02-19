@@ -177,9 +177,15 @@
         <constructor-arg name="securityService" ref="cstudioSecurityService" />
     </bean>
 
-    <bean id="studio.checkSiteExistsAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.RequireSiteExistsAnnotationHandler">
+    <bean id="studio.requireSiteExistsAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.RequireSiteExistsAnnotationHandler">
         <constructor-arg name="sitesService" ref="sitesService"/>
     </bean>
+
+    <bean id="studio.requireContentExistsAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.RequireContentExistsAnnotationHandler">
+        <constructor-arg name="contentRepository" ref="contentRepository"/>
+    </bean>
+
+    <bean id="studio.logExecutionTimeAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.LogExecutionTimeAnnotationHandler" />
 
     <!-- CORS -->
 

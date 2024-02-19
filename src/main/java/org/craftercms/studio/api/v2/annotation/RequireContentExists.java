@@ -14,17 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.event.site;
+package org.craftercms.studio.api.v2.annotation;
 
-import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Event fired to request a 'sync database from repo'.
- *
- * @since 4.2.0
- */
-public class SyncFromRepoEvent extends SiteAwareEvent {
-    public SyncFromRepoEvent(final String siteId) {
-        super(siteId);
-    }
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@RequireSiteExists
+public @interface RequireContentExists {
 }

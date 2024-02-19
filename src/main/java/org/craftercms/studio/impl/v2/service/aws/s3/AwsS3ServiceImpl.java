@@ -123,7 +123,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
         AwsUtils.uploadStream(inputBucket, fullKey, s3Client, partSize, filename, content);
 
-        return new S3Item(filename, createUrl(profileId, relativeKey), false);
+        return new S3Item(filename, createUrl(profileId, relativeKey), false, inputBucket, profile.getPrefix());
     }
 
     /**
@@ -158,7 +158,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
             result.getCommonPrefixes().stream()
                 .map(p -> {
                     String relativeKey = StringUtils.removeStart(p, profile.getPrefix());
-                    return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true);
+                    return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
                 })
                 .forEach(items::add);
 
@@ -167,7 +167,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                                 MimeType.valueOf(StudioUtils.getMimeType(o.getKey())).isCompatibleWith(filerType))
                 .map(o -> {
                     String relativeKey = StringUtils.removeStart(o.getKey(), profile.getPrefix());
-                    return new S3Item(relativeKey, createUrl(profileId, relativeKey), false);
+                    return new S3Item(relativeKey, createUrl(profileId, relativeKey), false, profile.getBucketName(), profile.getPrefix());
                 })
                 .forEach(items::add);
 

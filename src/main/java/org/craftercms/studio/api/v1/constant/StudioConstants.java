@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -233,6 +233,7 @@ public final class StudioConstants {
     // General Lock Service
     public static final String GLOBAL_REPOSITORY_GIT_LOCK = "GLOBAL_REPOSITORY_GIT_LOCK";
     public static final String SITE_SANDBOX_REPOSITORY_GIT_LOCK = "{site}_SANDBOX_REPOSITORY_GIT_LOCK";
+    public static final String SITE_SYNC_FROM_REPOSITORY_GIT_LOCK = "{site}_SYNC_FROM_REPO_LOCK";
     public static final String SITE_PUBLISHED_REPOSITORY_GIT_LOCK = "{site}_PUBLISHED_REPOSITORY_GIT_LOCK";
     public static final String STUDIO_CLOCK_EXECUTOR_SITE_LOCK = "{site}_STUDIO_CLOCK_EXECUTOR_SITE_LOCK";
 

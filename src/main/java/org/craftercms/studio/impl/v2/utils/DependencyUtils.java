@@ -20,8 +20,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,8 +37,6 @@ import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
  */
 public class DependencyUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(DependencyUtils.class);
-
     /**
      * Add the script snippets to update the dependencies for the given path
      *
@@ -52,12 +48,7 @@ public class DependencyUtils {
      */
     public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file, DependencyServiceInternal dependencyService)
             throws IOException, ServiceLayerException {
-        long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Dependency resolver for site '{}' path '{}' finished in '{}' milliseconds",
-                    siteId, path, (System.currentTimeMillis() - startDependencyResolver));
-        }
         if (isEmpty(oldPath)) {
             Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
