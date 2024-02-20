@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -42,9 +42,13 @@
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
+    <bean id="clausesLimitAwareSearchService" class="org.craftercms.studio.impl.v2.service.search.internal.ClausesLimitAwareSearchService">
+        <constructor-arg name="actualSearchService" ref="searchServiceInternal"/>
+    </bean>
+
     <bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">
         <constructor-arg name="securityService" ref="cstudioSecurityService"/>
-        <constructor-arg name="searchServiceInternal" ref="searchServiceInternal"/>
+        <constructor-arg name="searchService" ref="clausesLimitAwareSearchService"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
