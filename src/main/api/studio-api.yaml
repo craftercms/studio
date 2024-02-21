@@ -6579,6 +6579,133 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/publish/calculate:
+    post:
+      tags:
+        - publishing
+      summary: Calculate the dependencies of a publishing item set
+      description: 'Required permission "Publish"'
+      operationId: calculatePublishPackage
+      requestBody:
+        description: publish request body
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PublishPackageRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: string
+                          description: the item path
+                          example: "/site/website/article1/index.xml"
+                      hardDependencies:
+                          type: array
+                          items:
+                              type: string
+                              example: "/templates/web/article.ftl"
+                      softDependencies:
+                          type: array
+                          items:
+                              type: string
+                              example: "/static-assets/images/background.png"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish:
+    post:
+      tags:
+        - publishing
+      summary: Publishes the given content to the target (staging or live)
+      description: 'Required permission "Publish"'
+      operationId: publish
+      requestBody:
+        description: publish request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/PublishPackageRequest'
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                publishingTarget:
+                  type: string
+                  description: the publishing target (staging or live)
+                schedule:
+                  type: string
+                  format: date-time
+                  description: schedule the publish
+                comment:
+                    type: string
+                    description: optional comment
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      path:
+                        type: string
+                        description: the path of the item to publish (mutually exclusive with commitId)
+                      includeChildren:
+                        type: boolean
+                        description: include children of the given path (applicable only when publishing a path)
+                        default: false
+                      includeSoftDeps:
+                        type: boolean
+                        description: include soft dependencies (also includes soft dependencies of children)
+                        default: false
+                      commitId:
+                        type: string
+                        description: the commit id to publish (mutually exclusive with path)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      packageId:
+                        type: string
+                        description: the package id
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/2/publish/all:
     post:
       tags:
@@ -6740,6 +6867,48 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
                     $ref: '#/components/schemas/PublishingPackageDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/2/publish/package/status:
+    get:
+      tags:
+        - publishing
+      summary: Get package status without the actual items list
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getPublishingPackageStatus
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: query
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/PublishingPackageStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -10327,6 +10496,33 @@ components:
         - publishingTarget
 
     PublishingPackageDetails:
+      allOf:
+        - $ref: '#/components/schemas/PublishingPackageStatus'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                    description: content item path
+                  contentTypeClass:
+                    type: string
+                    description: content type class
+                  mimeType:
+                    type: string
+                    description: mime-type
+          required:
+            - id
+            - schedule
+            - approver
+            - state
+            - publishingTarget
+            - items
+
+    PublishingPackageStatus:
       type: object
       properties:
         id:
@@ -10351,6 +10547,23 @@ components:
         comment:
           type: string
           description: submission comment
+      required:
+        - id
+        - schedule
+        - approver
+        - state
+        - publishingTarget
+
+    PublishPackageRequest:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site ID
+        publishingTarget:
+          type: string
+          description: the publishing target (staging or live)
+          example: staging
         items:
           type: array
           items:
@@ -10358,20 +10571,18 @@ components:
             properties:
               path:
                 type: string
-                description: content item path
-              contentTypeClass:
+                description: the path of the item to publish (mutually exclusive with commitId)
+              includeChildren:
+                type: boolean
+                description: include children of the given path (applicable only when publishing a path)
+                default: false
+              includeSoftDeps:
+                type: boolean
+                description: include soft dependencies (also includes soft dependencies of children)
+                default: false
+              commitId:
                 type: string
-                description: content type class
-              mimeType:
-                type: string
-                description: mime-type
-      required:
-        - id
-        - schedule
-        - approver
-        - state
-        - publishingTarget
-        - items
+                description: the commit id to publish (mutually exclusive with path)
 
     PublishingStatus:
       type: object
@@ -11321,7 +11532,7 @@ components:
           description: The type, e.g. page, component, etc
         contentAsFolder:
           type: boolean
-          description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\/index.xml instead of 101.xml"
+          description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\\/index.xml instead of 101.xml"
         useRoundedFolder:
           type: boolean
           description: Indicates whether use rounded folder to arrange content
