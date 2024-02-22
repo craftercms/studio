@@ -6261,7 +6261,7 @@ paths:
     get:
       tags:
         - marketplace
-      summary: Get the list of plugins installed in the given site
+      summary: Get the list of marketplace plugins installed in the given site
       description: 'Required permission "list_plugins"'
       operationId: getInstalledPlugins
       parameters:
@@ -6298,7 +6298,7 @@ paths:
     post:
       tags:
         - marketplace
-      summary: Install a plugin in the given site
+      summary: Install a marketplace plugin in the given site
       description: 'Required permission "install_plugins"'
       operationId: installPlugin
       requestBody:
@@ -6397,7 +6397,7 @@ paths:
     post:
       tags:
         - marketplace
-      summary: Remove a plugin from the given site
+      summary: Remove a marketplace plugin from the given site
       description: 'Required permission "remove_plugins"'
       operationId: removePlugin
       requestBody:
