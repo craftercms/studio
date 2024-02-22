@@ -6579,13 +6579,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/calculate:
+  /api/2/publish/dependencies:
     post:
       tags:
         - publishing
       summary: Calculate the dependencies of a publishing item set
       description: 'Required permission "Publish"'
-      operationId: calculatePublishPackage
+      operationId: calculatePublishDependencies
       requestBody:
         description: publish request body
         required: true
@@ -6649,12 +6649,6 @@ paths:
               allOf:
                 - $ref: '#/components/schemas/PublishPackageRequest'
               properties:
-                siteId:
-                  type: string
-                  description: site ID
-                publishingTarget:
-                  type: string
-                  description: the publishing target (staging or live)
                 schedule:
                   type: string
                   format: date-time
@@ -6662,25 +6656,6 @@ paths:
                 comment:
                     type: string
                     description: optional comment
-                items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      path:
-                        type: string
-                        description: the path of the item to publish (mutually exclusive with commitId)
-                      includeChildren:
-                        type: boolean
-                        description: include children of the given path (applicable only when publishing a path)
-                        default: false
-                      includeSoftDeps:
-                        type: boolean
-                        description: include soft dependencies (also includes soft dependencies of children)
-                        default: false
-                      commitId:
-                        type: string
-                        description: the commit id to publish (mutually exclusive with path)
       responses:
         '200':
           description: OK
@@ -10541,9 +10516,11 @@ components:
         state:
           type: string
           description: package state
+          enum: ["READY_FOR_LIVE", "PROCESSING", "COMPLETED", "CANCELLED", "BLOCKED"]
         publishingTarget:
           type: string
           description: publishing target where package will be published
+          enum: [staging, live]
         comment:
           type: string
           description: submission comment
@@ -10564,25 +10541,27 @@ components:
           type: string
           description: the publishing target (staging or live)
           example: staging
-        items:
+        paths:
           type: array
           items:
             type: object
             properties:
               path:
                 type: string
-                description: the path of the item to publish (mutually exclusive with commitId)
+                description: the path of the item to publish
               includeChildren:
                 type: boolean
-                description: include children of the given path (applicable only when publishing a path)
+                description: include children of the given path
                 default: false
               includeSoftDeps:
                 type: boolean
                 description: include soft dependencies (also includes soft dependencies of children)
                 default: false
-              commitId:
-                type: string
-                description: the commit id to publish (mutually exclusive with path)
+        commitIds:
+          type: array
+          items:
+            type: string
+          description: the commit ids to publish
 
     PublishingStatus:
       type: object
