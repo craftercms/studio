@@ -52,7 +52,7 @@ public class GetChildrenBulkRequest {
         private String keyword;
         private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
         private List<@ValidExistingContentPath String> excludes;
-        @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst")
+        @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst|lastUpdate")
         private String sortStrategy;
         @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
         private String order = "ASC";
