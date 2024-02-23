@@ -6619,6 +6619,9 @@ paths:
                   type: string
                   format: date-time
                   description: schedule the publish
+                requestApproval:
+                  type: boolean
+                  description: submit the request for approval
                 comment:
                     type: string
                     description: optional comment
