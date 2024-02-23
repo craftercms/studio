@@ -38,14 +38,6 @@ public interface ItemServiceInternal {
     boolean upsertEntry(Item item);
 
     /**
-     * Get item by given id
-     * @param siteId site identifier
-     * @param id item id
-     * @return item
-     */
-    DetailedItem getItem(String siteId, long id);
-
-    /**
      * Get item fir given site and path
      * @param siteId site identifier
      * @param path item path
