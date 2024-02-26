@@ -6622,6 +6622,10 @@ paths:
                 requestApproval:
                   type: boolean
                   description: submit the request for approval
+                publishAll:
+                  type: boolean
+                  description: publish all site content
+                  default: false
                 comment:
                     type: string
                     description: optional comment
@@ -6730,6 +6734,11 @@ paths:
             type: array
             items:
               type: string
+        - name: submitter
+          in: query
+          description: filter by package submitter
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset for pagination
