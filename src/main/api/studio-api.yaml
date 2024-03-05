@@ -4712,6 +4712,48 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/repository/log:
+    get:
+      tags:
+        - repository
+      summary: Get the git log for a site repository. The result will be equivalent to `git log --first-parent` command.
+      description: 'Required permission "read_git_log"'
+      operationId: getRepositoryLog
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: start
+          in: query
+          description: commit id to start from
+          required: false
+          schema:
+            type: string
+            default: HEAD
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+              type: integer
+              format: int32
+              default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    response:
+                        $ref: '#/components/schemas/ApiResponse'
+                allOf:
+                  - $ref: '#/components/schemas/GitLog'
+
   /api/2/model/{siteId}/definitions:
     post:
       tags:
@@ -10528,7 +10570,7 @@ components:
         state:
           type: string
           description: package state
-          enum: ["READY_FOR_LIVE", "PROCESSING", "COMPLETED", "CANCELLED", "BLOCKED"]
+          enum: ["READY", "PROCESSING", "COMPLETED", "FAILED"]
         publishingTarget:
           type: string
           description: publishing target where package will be published
@@ -11940,6 +11982,28 @@ components:
         label:
           type: string
           description: The language display name
+
+    GitLog:
+      type: object
+      properties:
+        log:
+          type: array
+          items:
+            type: object
+            properties:
+              commit:
+                type: string
+                description: The commit id
+              author:
+                type: string
+                description: The author of the commit
+              timestamp:
+                type: string
+                format: date-time
+                description: The commit timestamp
+              comment:
+                type: string
+                description: The commit comment
 
   responses:
     NotFound:
