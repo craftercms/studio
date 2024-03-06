@@ -24,6 +24,9 @@
   <link rel="stylesheet" href="/static-assets/css/vendor/bootstrap-3.3.7.min.css">
   <style>
     [v-cloak] { display:none; }
+    .disabled {
+      pointer-events: none;
+    }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <@crafter.head/>
