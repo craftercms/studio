@@ -6879,7 +6879,7 @@ paths:
           schema:
             type: string
         - name: packageId
-          in: query
+          in: path
           description: package ID
           required: true
           schema:
@@ -6906,7 +6906,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
 
-  /api/2/publish/package/status:
+  /api/2/publish/package/{packageId}/status:
     get:
       tags:
         - publishing
@@ -6938,6 +6938,146 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
                     $ref: '#/components/schemas/PublishingPackageStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/trigger:
+    post:
+      tags:
+        - publishing
+      summary: Signal the publisher to pick the next package in the queue, if any.
+      description: 'Required permission "request_publish, publish"'
+      operationId: triggerPublisher
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/package/{packageId}/clone:
+    post:
+      tags:
+        - publishing
+      summary: Clone an existing publishing package
+      description: 'Required permission "request_publish, publish"'
+      operationId: clonePublishingPackage
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: the ID of the existing package
+          required: true
+          schema:
+            type: string
+            example: "12345"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schedule:
+                  type: string
+                  format: date-time
+                  description: schedule the publish
+                requestApproval:
+                  type: boolean
+                  description: submit the request for approval
+                comment:
+                  type: string
+                  description: optional comment
+                publishingTarget:
+                  type: string
+                  description: the publishing target (staging or live)
+                  example: staging
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      packageId:
+                        type: string
+                        description: the package id
+                        example: "12346"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/package/{packageId}/retry:
+    post:
+      tags:
+        - publishing
+      summary: Reset a package so the publisher tries to publish it again
+      operationId: retryPublishingPackage
+      description: 'Required permission "request_publish, publish"'
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: the ID of the package
+          required: true
+          schema:
+            type: string
+            example: "12345"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
