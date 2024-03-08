@@ -6896,6 +6896,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
                     $ref: '#/components/schemas/PublishingPackageDetails'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -6938,6 +6940,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
                     $ref: '#/components/schemas/PublishingPackageStatus'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7158,6 +7162,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -10691,6 +10697,65 @@ components:
             - publishingTarget
             - items
 
+    PublishingProgress:
+      type: object
+      properties:
+        startTime:
+            type: string
+            format: date-time
+            description: start time of the package processing
+        stages:
+          example:
+            - name: "Repo sync"
+              state: "COMPLETED"
+              processed: 1
+              total: 1
+              errors: false
+            - name: "Item list loading"
+              state: "COMPLETED"
+              processed: 100
+              total: 100
+              errors: false
+            - name: "Live publish"
+              state: "IN PROGRESS"
+              processed: 54
+              total: 100
+              errors: false
+            - name: "Commit"
+              state: "READY"
+              processed: 0
+              total: 1
+              errors: false
+            - name: "Package update"
+              state: "READY"
+              processed: 0
+              total: 1
+              errors: false
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: stage name
+                example: "Repo sync"
+              state:
+                type: string
+                description: stage state
+                enum: ["PENDING", "IN PROGRESS", "COMPLETED"]
+              total:
+                type: integer
+                format: int32
+                description: total number of items in stage
+                example: 1
+              processed:
+                type: integer
+                format: int32
+                description: number of items processed
+              errors:
+                type: boolean
+                description: true if stage has errors, otherwise false
+
     PublishingPackageStatus:
       type: object
       properties:
@@ -10702,7 +10767,7 @@ components:
           description: site ID
         schedule:
           type: string
-          format: datetime
+          format: date-time
           description: scheduled date and time
         approver:
           type: string
