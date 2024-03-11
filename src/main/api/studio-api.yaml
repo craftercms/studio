@@ -9790,6 +9790,10 @@ components:
             Type":"text/css" or nested objects for range facets like "Width": { "min": 0, "max": 150 }. Both keys and
              values can be taken from the facets object of a previous search.
           additionalProperties: true
+        maxExpansions:
+          type: integer
+          format: int64
+          description: The maximum number of terms the fuzzy query will match before stopping the search (defaults to 50)  
 
     SearchResult:
       type: object
