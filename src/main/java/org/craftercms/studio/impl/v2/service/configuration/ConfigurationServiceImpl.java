@@ -27,6 +27,7 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.core.exception.XmlFileParseException;
+import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -39,9 +40,9 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
-import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -78,6 +79,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -121,6 +123,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     private String translationConfig;
     private Cache<String, Object> configurationCache;
     private List<CacheInvalidator<String, Object>> cacheInvalidators;
+    private ContextManager contextManager;
     private ApplicationContext applicationContext;
 
     @Override
@@ -263,7 +266,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             try {
                 logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
                 if (contentServiceInternal.contentExists(siteId, path)) {
-                    config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, path));
+                    config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, path), getConfigLookupVariables(siteId));
                     configurationCache.put(cacheKey, config);
                 }
             } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
@@ -287,7 +290,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             String fullConfigurationPath = getConfigurationPath(siteId, module, path, environment);
             logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
             if (contentServiceInternal.contentExists(siteId, fullConfigurationPath)) {
-                config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, fullConfigurationPath));
+                config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, fullConfigurationPath), getConfigLookupVariables(siteId));
                 configurationCache.put(cacheKey, config);
             }
             return config;
@@ -306,7 +309,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             try {
                 logger.debug("Cache miss in the Global repository cache key '{}'", cacheKey);
                 if (contentServiceInternal.contentExists(EMPTY, path)) {
-                    config = configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path));
+                    config = configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path), emptyMap());
                     configurationCache.put(cacheKey,config);
                 }
             } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
@@ -666,7 +669,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         TranslationConfiguration translationConfiguration = new TranslationConfiguration();
         if (contentServiceInternal.contentExists(siteId, translationConfig)) {
             try (InputStream is = contentService.getContent(siteId, translationConfig)) {
-                HierarchicalConfiguration config = configurationReader.readXmlConfiguration(is);
+                HierarchicalConfiguration config = configurationReader.readXmlConfiguration(is, getConfigLookupVariables(siteId));
                 if (config != null) {
                     translationConfiguration.setDefaultLocaleCode(
                             config.getString(CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE));
@@ -678,6 +681,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             }
         }
         return translationConfiguration;
+    }
+
+    private Map<String, String> getConfigLookupVariables(final String siteId) {
+        Context context = contextManager.getContext(siteId);
+        return context.getConfigLookupVariables();
     }
 
     @Override
@@ -895,5 +903,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
     }
 }
