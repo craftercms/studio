@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -62,36 +62,27 @@
         credentials.secretKey: AWS secret key (optional)
         region: AWS region for the service (optional)
         pathStyleAccess: indicates if path style access should be used for all requests (defaults to false)
-
       -->
 
     <blobStore>
         <id>s3-store</id>
         <type>s3BlobStore</type>
-        <pattern>/static-assets/s3/.*</pattern>
+        <pattern>^/static-assets(?!/(app|css|js|fonts|tracking|seo)/)(.*)</pattern>
         <mappings>
             <mapping>
                 <publishingTarget>preview</publishingTarget>
-                <storeTarget>my-authoring-bucket</storeTarget>
-                <prefix>sandbox</prefix>
-            </mapping>
-            <mapping>
-                <publishingTarget>staging</publishingTarget>
-                <storeTarget>my-authoring-bucket</storeTarget>
-                <prefix>staging</prefix>
+                <storeTarget>${env:PREVIEW_BUCKET_NAME_PATTERN}</storeTarget>
+                <prefix>${env:PREVIEW_BUCKET_PREFIX_PATTERN}</prefix>
             </mapping>
             <mapping>
                 <publishingTarget>live</publishingTarget>
-                <storeTarget>my-delivery-bucket</storeTarget>
+                <storeTarget>${env:LIVE_BUCKET_NAME_PATTERN}</storeTarget>
+                <prefix>${env:LIVE_BUCKET_PREFIX_PATTERN}</prefix>
             </mapping>
         </mappings>
         <configuration>
-            <credentials>
-                <accessKey>xxxxxxxxx</accessKey>
-                <secretKey>xxxxxxxxx</secretKey>
-            </credentials>
-            <region>us-west-1</region>
-            <pathStyleAccess>true</pathStyleAccess>
+            <region>us-east-1</region>
+            <pathStyleAccess>false</pathStyleAccess>
         </configuration>
     </blobStore>
 
