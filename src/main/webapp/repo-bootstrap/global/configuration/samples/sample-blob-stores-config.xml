@@ -82,7 +82,8 @@
         </mappings>
         <configuration>
             <region>us-east-1</region>
-            <pathStyleAccess>false</pathStyleAccess>
+            <pathStyleAccess>${env:AWS_S3_PATH_STYLE_ACCESS}</pathStyleAccess>
+            <endpoint>${env:AWS_S3_ENDPOINT}</endpoint>
         </configuration>
     </blobStore>
 
