@@ -38,7 +38,6 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -266,7 +265,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             deployer.duplicateTargets(sourceSiteId, siteId);
 
             // read-only blobstores
-            if (readOnlyBlobStores) {
+            if (readOnlyBlobStores && !studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
                 logger.debug("Make blobstores read-only for duplicate site '{}'", siteId);
                 configurationService.makeBlobStoresReadOnly(siteId);
             }
