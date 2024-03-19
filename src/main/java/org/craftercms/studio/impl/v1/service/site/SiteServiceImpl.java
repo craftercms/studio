@@ -951,7 +951,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
         HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
 
-        List<BlobStoreDetails> storeDetails = getBlobStoreDetails(xmlConfiguration);
+        List<BlobStoreDetails> storeDetails = Collections.emptyList();
+        if (!studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
+            storeDetails = getBlobStoreDetails(xmlConfiguration);
+        }
         return new SiteDetails(siteFeedMapper.getSite(params), storeDetails);
     }
 
