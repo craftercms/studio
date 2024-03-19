@@ -39,7 +39,7 @@ public class DuplicateSiteRequest {
      * If true, the blob stores will be read only
      * If false, the blob stores will retain the same configuration as the source site
      */
-    private boolean readOnlyBlobStores = true;
+    private boolean readOnlyBlobStores = false;
 
     public String getSiteName() {
         return siteName;

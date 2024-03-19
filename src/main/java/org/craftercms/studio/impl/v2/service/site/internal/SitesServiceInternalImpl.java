@@ -494,7 +494,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             deployer.duplicateTargets(sourceSiteId, siteId);
 
             // read-only blobstores
-            if (readOnlyBlobStores) {
+            if (readOnlyBlobStores && !studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
                 logger.debug("Make blobstores read-only for duplicate site '{}'", siteId);
                 configurationService.makeBlobStoresReadOnly(siteId);
             }
