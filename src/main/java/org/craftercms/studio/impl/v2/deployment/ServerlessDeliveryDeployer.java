@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.web.client.RestClientException;
+
+import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
@@ -62,8 +64,30 @@ public class ServerlessDeliveryDeployer extends AbstractDeployer {
     @Override
     public void duplicateTargets(String sourceSiteId, String siteId) {
         if (isServerlessDeliveryEnabled()) {
-            doDuplicateTarget(sourceSiteId, siteId, studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV));
+            String localRepoPath = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH, siteId);
+            String repoUrl = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL, siteId);
+            String template = studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE);
+            boolean replace = studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE,
+                    Boolean.class, false);
+            HierarchicalConfiguration<ImmutableNode> templateParams =
+                    studioConfiguration.getSubConfig(SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS);
+            doDuplicateTarget(sourceSiteId, siteId, studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV),
+                    template, replace, false, localRepoPath, repoUrl, templateParams);
         }
+    }
+
+    @Override
+    protected Map<String,Object> getSourceTemplateParams(String sourceSiteId) {
+        Map<String, Object> sourceParams = super.getSourceTemplateParams(sourceSiteId);
+
+        HierarchicalConfiguration<ImmutableNode> templateParams =
+                studioConfiguration.getSubConfig(SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS);
+        addChildParams(sourceParams, templateParams.getNodeModel().getNodeHandler().getRootNode(),
+                templateParams.getInterpolator());
+        String sourceLocalRepoPath = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH, sourceSiteId);
+        sourceParams.put(LOCAL_REPO_PATH_TEMPLATE_PARAM, sourceLocalRepoPath);
+
+        return sourceParams;
     }
 
     @Override
