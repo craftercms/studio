@@ -19,7 +19,7 @@ import org.craftercms.studio.api.v2.service.security.AccessTokenService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.beans.ConstructorProperties;
 

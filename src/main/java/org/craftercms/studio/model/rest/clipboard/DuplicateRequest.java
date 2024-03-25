@@ -18,7 +18,7 @@ package org.craftercms.studio.model.rest.clipboard;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * Holds all the data needed to duplicate an item

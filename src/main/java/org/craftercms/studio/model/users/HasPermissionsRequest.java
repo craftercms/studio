@@ -18,7 +18,7 @@ package org.craftercms.studio.model.users;
 
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public class HasPermissionsRequest {

@@ -20,7 +20,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.time.ZonedDateTime;
 import java.util.List;
 

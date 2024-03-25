@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Triggers a cleanup for all repositories on all existing sites.
@@ -34,6 +33,11 @@ public class RepositoryCleanupJob {
     protected SiteService siteService;
     protected ContentRepository contentRepository;
 
+    public RepositoryCleanupJob(final SiteService siteService, final ContentRepository contentRepository) {
+        this.siteService = siteService;
+        this.contentRepository = contentRepository;
+    }
+
     /**
      * Performs a cleanup for all repositories on all existing sites.
      */
@@ -42,16 +46,6 @@ public class RepositoryCleanupJob {
         contentRepository.cleanupRepositories(StringUtils.EMPTY);
         logger.info("Started git garbage collection for all sites");
         siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
-    }
-
-    @Required
-    public void setSiteService(final SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    @Required
-    public void setContentRepository(final ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
     }
     
 }

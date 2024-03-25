@@ -24,9 +24,9 @@ import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.ElasticTranscoderService;
-import org.springframework.beans.factory.annotation.Required;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.InputStream;
 
 /**
@@ -38,8 +38,8 @@ public class ElasticTranscoderServiceImpl extends AbstractAwsService<TranscoderP
 
     private ElasticTranscoder transcoder;
 
-    @Required
-    public void setTranscoder(ElasticTranscoder transcoder) {
+    public ElasticTranscoderServiceImpl(SiteAwareConfigProfileLoader<TranscoderProfile> profileLoader, ElasticTranscoder transcoder) {
+        super(profileLoader);
         this.transcoder = transcoder;
     }
 

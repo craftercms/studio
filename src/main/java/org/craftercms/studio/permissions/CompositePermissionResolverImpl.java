@@ -24,7 +24,6 @@ import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,18 +48,13 @@ public class CompositePermissionResolverImpl implements PermissionResolver<Strin
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
 
-    @Required
-    public void setSecurityService(SecurityService securityService) {
+    public CompositePermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
         this.securityService = securityService;
+        this.studioConfiguration = studioConfiguration;
     }
 
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
-    }
-
-    @Required
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
     }
 
     @Override

@@ -33,23 +33,31 @@
     </bean>
 
     <bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName" value="modePreview"/>
+        <constructor-arg name="attributeName" value="modePreview"/>
         <property name="scope" value="SERVLET_CONTEXT"/>
     </bean>
 
     <bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName" value="environment"/>
+        <constructor-arg name="attributeName" value="environment"/>
         <property name="scope" value="SERVLET_CONTEXT"/>
     </bean>
 
     <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager" depends-on="sqlSessionFactory">
-        <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
-        <property name="contextFactory" ref="crafter.siteContextFactory"/>
-        <property name="siteListResolver" ref="crafter.siteResolver"/>
+        <constructor-arg name="contextFactory" ref="crafter.siteContextFactory"/>
+        <constructor-arg name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
+        <constructor-arg name="siteListResolver" ref="crafter.siteResolver"/>
+        <constructor-arg name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
+        <constructor-arg name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
+        <constructor-arg name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
+        <constructor-arg name="contextBuildRetryMaxCount" value="${crafter.engine.site.context.build.retry.maxCount}"/>
+        <constructor-arg name="contextBuildRetryWaitTimeBase" value="${crafter.engine.site.context.build.retry.waitTimeBase}"/>
+        <constructor-arg name="contextBuildRetryWaitTimeMultiplier" value="${crafter.engine.site.context.build.retry.waitTimeMultiplier}"/>
+        <constructor-arg name="modePreview" value="${crafter.engine.preview}"/>
+        <constructor-arg name="watcherPaths" value="${crafter.engine.watcher.paths}"/>
+        <constructor-arg name="watcherIgnorePaths" value="${crafter.engine.watcher.ignorePaths}"/>
+        <constructor-arg name="watcherCounterLimit" value="${crafter.engine.watcher.counter.limit}"/>
+        <constructor-arg name="watcherIntervalPeriod" value="${crafter.engine.watcher.interval.period}"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-        <property name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
-        <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
-        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
     </bean>
 
     <!-- Declared with scope="prototype" so that a new one is created for every SiteContext -->

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.Positive;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Map;

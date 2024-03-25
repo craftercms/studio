@@ -35,8 +35,8 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.craftercms.studio.model.aws.s3.S3Item;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
@@ -80,23 +80,16 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      */
     protected String urlPattern;
 
-    @Required
-    public void setClientFactory(S3ClientCachingFactory clientFactory) {
+    public AwsS3ServiceImpl(SiteAwareConfigProfileLoader<S3Profile> profileLoader, S3ClientCachingFactory clientFactory,
+                            final String delimiter, final String urlPattern) {
+        super(profileLoader);
         this.clientFactory = clientFactory;
+        this.delimiter = delimiter;
+        this.urlPattern = urlPattern;
     }
 
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
-    }
-
-    @Required
-    public void setDelimiter(final String delimiter) {
-        this.delimiter = delimiter;
-    }
-
-    @Required
-    public void setUrlPattern(final String urlPattern) {
-        this.urlPattern = urlPattern;
     }
 
     protected AmazonS3 getS3Client(S3Profile profile) {
