@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -46,7 +47,17 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DUP
  */
 public abstract class AbstractDeployer implements Deployer {
 
+    protected static final String ENV_TEMPLATE_PARAM = "env";
+    protected static final String SITE_NAME_TEMPLATE_PARAM = "site_name";
+    protected static final String TEMPLATE_NAME_TEMPLATE_PARAM = "template_name";
+    protected static final String REPLACE_TEMPLATE_PARAM = "replace";
+    protected static final String DISABLE_DEPLOY_CRON_TEMPLATE_PARAM = "disable_deploy_cron";
+    protected static final String SOURCE_TEMPLATE_PARAM = "source";
+    protected static final String REPO_URL_TEMPLATE_PARAM = "repo_url";
+    protected static final String LOCAL_REPO_PATH_TEMPLATE_PARAM = "local_repo_path";
+
     private final static Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
+
 
     protected RestTemplate restTemplate;
     protected final StudioConfiguration studioConfiguration;
@@ -107,23 +118,58 @@ public abstract class AbstractDeployer implements Deployer {
                                                              HierarchicalConfiguration<ImmutableNode> additionalParams) {
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("env", environment);
-        requestBody.put("site_name", site);
-        requestBody.put("template_name", template);
-        requestBody.put("replace", replace);
-        requestBody.put("disable_deploy_cron", disableDeployCron);
+        requestBody.put(ENV_TEMPLATE_PARAM, environment);
+        requestBody.put(SITE_NAME_TEMPLATE_PARAM, site);
+        requestBody.put(TEMPLATE_NAME_TEMPLATE_PARAM, template);
+        requestBody.put(REPLACE_TEMPLATE_PARAM, replace);
+        requestBody.put(DISABLE_DEPLOY_CRON_TEMPLATE_PARAM, disableDeployCron);
 
         if (StringUtils.isNotEmpty(localRepoPath)) {
-            requestBody.put("local_repo_path", localRepoPath);
+            requestBody.put(LOCAL_REPO_PATH_TEMPLATE_PARAM, localRepoPath);
         }
         if (StringUtils.isNotEmpty(repoUrl)) {
-            requestBody.put("repo_url", repoUrl);
+            requestBody.put(REPO_URL_TEMPLATE_PARAM, repoUrl);
         }
         if (additionalParams != null) {
             addAdditionalParams(requestBody, additionalParams);
         }
 
         return requestBody;
+    }
+
+    /**
+     * Get the body parameters for the duplicate-target request.
+     *
+     * @param sourceSite        the site to duplicate from
+     * @param site              the new site
+     * @param environment       the target environment, e.g.: authoring
+     * @param template          the deployer target template
+     * @param replace           true to replace the target if it already exists
+     * @param disableDeployCron true to disable the deploy cron (e.g. for preview target)
+     * @param localRepoPath     the local path to clone the repository. // TODO: this is used for serverless only, should this be a deployer config instead?)
+     * @param repoUrl           the repository URL
+     * @param additionalParams  additional parameters to pass to the deployer to be consumed by the target template
+     * @return a {@link Map} containing the parameters, preserving the hieraarchical structure of the configuration parameters
+     */
+    protected Map<String, Object> getDuplicateTargetRequestBody(String sourceSite, String site, String environment,
+                                                                String template, boolean replace, boolean disableDeployCron,
+                                                                String localRepoPath, String repoUrl,
+                                                                HierarchicalConfiguration<ImmutableNode> additionalParams) {
+        Map<String, Object> createTargetRequestBody = getCreateTargetRequestBody(site, environment, template, replace, disableDeployCron,
+                localRepoPath, repoUrl, additionalParams);
+        MapUtils.add(createTargetRequestBody, SOURCE_TEMPLATE_PARAM, getSourceTemplateParams(sourceSite));
+        return createTargetRequestBody;
+    }
+
+    /**
+     * Get a source site parameters Map to pass to the target template.
+     * This is useful for deployer to get context on the duplicate source site
+     *
+     * @param sourceSite the source site to duplicate from
+     * @return a {@link Map} containing the parameters
+     */
+    protected Map<String, Object> getSourceTemplateParams(String sourceSite) {
+        return new HashMap<>();
     }
 
     protected void addAdditionalParams(Map<String, Object> params,
@@ -166,14 +212,23 @@ public abstract class AbstractDeployer implements Deployer {
     /**
      * Call Deployer API to duplicate a given target
      *
-     * @param sourceSiteId the site to duplicate from
-     * @param siteId       the new site id
-     * @param env          the target environment, e.g.: authoring
+     * @param sourceSiteId      the site to duplicate from
+     * @param siteId            the new site id
+     * @param env               the target environment, e.g.: authoring
+     * @param template          the deployer target template
+     * @param replace           true to replace the target if it already exists
+     * @param disableDeployCron true to disable the deploy cron (e.g. for preview target)
+     * @param localRepoPath     the local path to clone the repository. // TODO: this is used for serverless only, should this be a deployer config instead?)
+     * @param repoUrl           the repository URL
+     * @param additionalParams  additional parameters to pass to the deployer to be consumed by the target template
      * @throws RestClientException if an error occurs while calling Deployer API
      */
-    protected void doDuplicateTarget(String sourceSiteId, String siteId, String env) throws RestClientException {
+    protected void doDuplicateTarget(String sourceSiteId, String siteId, String env, String template,
+                                     boolean replace, boolean disableDeployCron, String localRepoPath,
+                                     String repoUrl, HierarchicalConfiguration<ImmutableNode> additionalParams) throws RestClientException {
         String requestUrl = getDuplicateTargetUrl(sourceSiteId, env);
-        DuplicateTargetRequest requestBody = new DuplicateTargetRequest(siteId);
+        DuplicateTargetRequest requestBody = new DuplicateTargetRequest(siteId,
+                getDuplicateTargetRequestBody(sourceSiteId, siteId, env, template, replace, disableDeployCron, localRepoPath, repoUrl, additionalParams));
         RequestEntity<DuplicateTargetRequest> requestEntity = RequestEntity.post(URI.create(requestUrl))
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody);

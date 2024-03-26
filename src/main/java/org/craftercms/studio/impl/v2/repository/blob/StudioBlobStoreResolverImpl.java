@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,12 +20,13 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationProvider;
-import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
 import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -36,6 +37,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
@@ -67,6 +69,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
      * The patterns of urls that should be handled by blob stores
      */
     protected String[] interceptedPaths;
+    private ContextManager contextManager;
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
@@ -185,15 +188,21 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         return studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE);
     }
 
+    public void setContextManager(final ContextManager contextManager) {
+        this.contextManager = contextManager;
+    }
+
     /**
      * Internal class to provide access to configuration files
      */
     private class ConfigurationProviderImpl implements ConfigurationProvider {
 
         private final String site;
+        private final Context context;
 
         public ConfigurationProviderImpl(String site) {
             this.site = site;
+            this.context = contextManager.getContext(site);
         }
 
         @Override
@@ -210,6 +219,10 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             }
         }
 
+        @Override
+        public Map<String, String> getLookupVariables() {
+            return context.getConfigLookupVariables();
+        }
     }
 
 }

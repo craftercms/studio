@@ -605,6 +605,14 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
                 dest: configuration/samples/sample-ui.xml
             commitDetails: Add sample file for ui.xml
+      - currentVersion: 4.1.10
+        nextVersion: 4.1.11
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+                dest: configuration/samples/sample-blob-stores-config.xml
+            commitDetails: Update sample studio blob stores config file
 
   # Pipeline to upgrade site repositories
   site:

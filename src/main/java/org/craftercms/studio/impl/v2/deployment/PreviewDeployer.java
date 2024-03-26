@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -163,7 +163,17 @@ public class PreviewDeployer extends AbstractDeployer {
 
     @Override
     public void duplicateTargets(String sourceSiteId, String siteId) throws RestClientException {
-        doDuplicateTarget(sourceSiteId, siteId, ENV_AUTHORING);
-        doDuplicateTarget(sourceSiteId, siteId, ENV_PREVIEW);
+        String repoUrl = getRepoUrl(PREVIEW_REPO_URL, siteId);
+        String authTemplate = studioConfiguration.getProperty(AUTHORING_TEMPLATE_NAME);
+        boolean authReplace = studioConfiguration.getProperty(AUTHORING_REPLACE, Boolean.class, false);
+        boolean authDisableCron = studioConfiguration.getProperty(AUTHORING_DISABLE_DEPLOY_CRON, Boolean.class, false);
+        doDuplicateTarget(sourceSiteId, siteId, ENV_AUTHORING, authTemplate, authReplace, authDisableCron,
+                null, repoUrl, null);
+
+        String previewTtemplate = studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME);
+        boolean previewReplace = studioConfiguration.getProperty(PREVIEW_REPLACE, Boolean.class, false);
+        boolean previewDisableCron = studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON, Boolean.class, false);
+        doDuplicateTarget(sourceSiteId, siteId, ENV_PREVIEW, previewTtemplate, previewReplace, previewDisableCron,
+                null, repoUrl, null);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.model.deployer;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
+import java.util.Map;
 
 /**
  * Request body for Deployer API to duplicate a target.
@@ -25,12 +29,21 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class DuplicateTargetRequest {
     private final String siteName;
+    @JsonUnwrapped
+    private final Map<String, Object> templateParams;
 
-    public DuplicateTargetRequest(final String siteId) {
+    public DuplicateTargetRequest(final String siteId, final Map<String, Object> templateParams) {
         this.siteName = siteId;
+        this.templateParams = templateParams;
     }
 
     public String getSiteName() {
         return siteName;
+    }
+
+    @JsonUnwrapped
+    @JsonAnyGetter
+    public Map<String, Object> getTemplateParams() {
+        return templateParams;
     }
 }

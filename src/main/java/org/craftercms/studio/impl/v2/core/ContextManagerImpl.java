@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,13 +22,12 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.craftercms.core.store.impl.filesystem.FileSystemContentStoreAdapter.STORE_TYPE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
  * Default implementation of {@link ContextManager}
@@ -37,6 +36,9 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
  * @since 4.0.0
  */
 public class ContextManagerImpl implements ContextManager {
+
+    public static final String SITE_NAME_CONFIG_VARIABLE = "siteName";
+    public static final String SITE_ID_CONFIG_VARIABLE = "siteId";
 
     public static final String TAG = ContextManagerImpl.class.getName();
 
@@ -58,7 +60,12 @@ public class ContextManagerImpl implements ContextManager {
                     studioConfiguration.getProperty(SITES_REPOS_PATH), siteId,
                     studioConfiguration.getProperty(SANDBOX_PATH))
                     .toAbsolutePath().toString();
-            contexts.put(siteId, contentStoreService.getContext(TAG, STORE_TYPE, rootFolder, true, false, 0, true));
+
+            Map<String, String> configVariables =
+                    Map.of(SITE_ID_CONFIG_VARIABLE, siteId,
+                            SITE_NAME_CONFIG_VARIABLE, siteId);
+            contexts.put(siteId, contentStoreService.getContext(TAG, STORE_TYPE, rootFolder, true,
+                    false, 0, true, configVariables));
         }
         return contexts.get(siteId);
     }
