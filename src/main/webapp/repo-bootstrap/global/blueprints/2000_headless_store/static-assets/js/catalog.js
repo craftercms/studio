@@ -174,6 +174,7 @@ const GRAPHQL_QUERIES = '\
           if(this.selection.tag) {
             variables.tag = this.selection.tag.key;
           }
+          this.reRegistrer = true;
           return this.$http.post(GRAPHQL_URL, {
             query: GRAPHQL_QUERIES,
             operationName: 'getProducts',
