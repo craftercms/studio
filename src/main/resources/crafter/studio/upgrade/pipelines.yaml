@@ -1368,4 +1368,9 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.xslt
             commitDetails: Update the UI to remove 'xbDetectionTimeoutMs'
-
+      - currentVersion: 4.2.0
+        nextVersion: 4.2.1
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.2.1.xslt
+            commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
