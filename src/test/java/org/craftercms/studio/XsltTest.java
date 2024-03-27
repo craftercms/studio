@@ -310,6 +310,12 @@ public class XsltTest {
                     new ClassPathResource("crafter/studio/blob-stores/readonly/input.xml"),
                     new ClassPathResource("crafter/studio/blob-stores/readonly/expected.xml"),
                     emptyMap()
+            },
+            new Object[]{
+                    new ClassPathResource("crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.7.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/ui/v4.0.7/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/ui/v4.0.7/expected.xml"),
+                    emptyMap()
             }
         };
     }

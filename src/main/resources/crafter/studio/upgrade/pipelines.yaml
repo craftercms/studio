@@ -1138,3 +1138,9 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.6.xslt
             commitDetails: Update the UI with new Dashlets to replace 'AwaitingApprovalDashlet'
+      - currentVersion: 4.0.6
+        nextVersion: 4.0.7
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.7.xslt
+            commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
