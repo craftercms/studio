@@ -4678,6 +4678,48 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/repository/log:
+    get:
+      tags:
+        - repository
+      summary: Get the git log for a site repository. The result will be equivalent to `git log --first-parent` command.
+      description: 'Required permission "read_git_log"'
+      operationId: getRepositoryLog
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: start
+          in: query
+          description: commit id to start from
+          required: false
+          schema:
+            type: string
+            default: HEAD
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+              type: integer
+              format: int32
+              default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    response:
+                        $ref: '#/components/schemas/ApiResponse'
+                allOf:
+                  - $ref: '#/components/schemas/GitLog'
+
   /api/2/model/{siteId}/definitions:
     post:
       tags:
@@ -6545,6 +6587,115 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/publish/dependencies:
+    post:
+      tags:
+        - publishing
+      summary: Calculate the dependencies of a publishing item set
+      description: 'Required permission "Publish"'
+      operationId: calculatePublishDependencies
+      requestBody:
+        description: publish request body
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PublishPackageRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: string
+                          description: the item path
+                          example: "/site/website/article1/index.xml"
+                      hardDependencies:
+                          type: array
+                          items:
+                              type: string
+                              example: "/templates/web/article.ftl"
+                      softDependencies:
+                          type: array
+                          items:
+                              type: string
+                              example: "/static-assets/images/background.png"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish:
+    post:
+      tags:
+        - publishing
+      summary: Publishes the given content to the target (staging or live)
+      description: 'Required permission "Publish"'
+      operationId: publish
+      requestBody:
+        description: publish request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/PublishPackageRequest'
+              properties:
+                schedule:
+                  type: string
+                  format: date-time
+                  description: schedule the publish
+                requestApproval:
+                  type: boolean
+                  description: submit the request for approval
+                publishAll:
+                  type: boolean
+                  description: publish all site content
+                  default: false
+                comment:
+                    type: string
+                    description: optional comment
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      packageId:
+                        type: string
+                        description: the package id
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/2/publish/all:
     post:
       tags:
@@ -6625,6 +6776,11 @@ paths:
             type: array
             items:
               type: string
+        - name: submitter
+          in: query
+          description: filter by package submitter
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset for pagination
@@ -6706,6 +6862,192 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
                     $ref: '#/components/schemas/PublishingPackageDetails'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/2/publish/package/{packageId}/status:
+    get:
+      tags:
+        - publishing
+      summary: Get package status without the actual items list
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getPublishingPackageStatus
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/PublishingPackageStatus'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/trigger:
+    post:
+      tags:
+        - publishing
+      summary: Signal the publisher to pick the next package in the queue, if any.
+      description: 'Required permission "request_publish, publish"'
+      operationId: triggerPublisher
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/package/{packageId}/clone:
+    post:
+      tags:
+        - publishing
+      summary: Clone an existing publishing package
+      description: 'Required permission "request_publish, publish"'
+      operationId: clonePublishingPackage
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: the ID of the existing package
+          required: true
+          schema:
+            type: string
+            example: "12345"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schedule:
+                  type: string
+                  format: date-time
+                  description: schedule the publish
+                requestApproval:
+                  type: boolean
+                  description: submit the request for approval
+                comment:
+                  type: string
+                  description: optional comment
+                publishingTarget:
+                  type: string
+                  description: the publishing target (staging or live)
+                  example: staging
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      packageId:
+                        type: string
+                        description: the package id
+                        example: "12346"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/package/{packageId}/retry:
+    post:
+      tags:
+        - publishing
+      summary: Reset a package so the publisher tries to publish it again
+      operationId: retryPublishingPackage
+      description: 'Required permission "request_publish, publish"'
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: the ID of the package
+          required: true
+          schema:
+            type: string
+            example: "12345"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -6786,6 +7128,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -10332,6 +10676,92 @@ components:
         - publishingTarget
 
     PublishingPackageDetails:
+      allOf:
+        - $ref: '#/components/schemas/PublishingPackageStatus'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                    description: content item path
+                  contentTypeClass:
+                    type: string
+                    description: content type class
+                  mimeType:
+                    type: string
+                    description: mime-type
+          required:
+            - id
+            - schedule
+            - approver
+            - state
+            - publishingTarget
+            - items
+
+    PublishingProgress:
+      type: object
+      properties:
+        startTime:
+            type: string
+            format: date-time
+            description: start time of the package processing
+        stages:
+          example:
+            - name: "Repo sync"
+              state: "COMPLETED"
+              processed: 1
+              total: 1
+              errors: false
+            - name: "Item list loading"
+              state: "COMPLETED"
+              processed: 100
+              total: 100
+              errors: false
+            - name: "Live publish"
+              state: "IN PROGRESS"
+              processed: 54
+              total: 100
+              errors: false
+            - name: "Commit"
+              state: "READY"
+              processed: 0
+              total: 1
+              errors: false
+            - name: "Package update"
+              state: "READY"
+              processed: 0
+              total: 1
+              errors: false
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: stage name
+                example: "Repo sync"
+              state:
+                type: string
+                description: stage state
+                enum: ["PENDING", "IN PROGRESS", "COMPLETED"]
+              total:
+                type: integer
+                format: int32
+                description: total number of items in stage
+                example: 1
+              processed:
+                type: integer
+                format: int32
+                description: number of items processed
+              errors:
+                type: boolean
+                description: true if stage has errors, otherwise false
+
+    PublishingPackageStatus:
       type: object
       properties:
         id:
@@ -10342,7 +10772,7 @@ components:
           description: site ID
         schedule:
           type: string
-          format: datetime
+          format: date-time
           description: scheduled date and time
         approver:
           type: string
@@ -10350,33 +10780,52 @@ components:
         state:
           type: string
           description: package state
+          enum: ["READY", "PROCESSING", "COMPLETED", "FAILED"]
         publishingTarget:
           type: string
           description: publishing target where package will be published
+          enum: [staging, live]
         comment:
           type: string
           description: submission comment
-        items:
-          type: array
-          items:
-            type: object
-            properties:
-              path:
-                type: string
-                description: content item path
-              contentTypeClass:
-                type: string
-                description: content type class
-              mimeType:
-                type: string
-                description: mime-type
       required:
         - id
         - schedule
         - approver
         - state
         - publishingTarget
-        - items
+
+    PublishPackageRequest:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site ID
+        publishingTarget:
+          type: string
+          description: the publishing target (staging or live)
+          example: staging
+        paths:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                description: the path of the item to publish
+              includeChildren:
+                type: boolean
+                description: include children of the given path
+                default: false
+              includeSoftDeps:
+                type: boolean
+                description: include soft dependencies (also includes soft dependencies of children)
+                default: false
+        commitIds:
+          type: array
+          items:
+            type: string
+          description: the commit ids to publish
 
     PublishingStatus:
       type: object
@@ -11326,7 +11775,7 @@ components:
           description: The type, e.g. page, component, etc
         contentAsFolder:
           type: boolean
-          description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\/index.xml instead of 101.xml"
+          description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\\/index.xml instead of 101.xml"
         useRoundedFolder:
           type: boolean
           description: Indicates whether use rounded folder to arrange content
@@ -11743,6 +12192,28 @@ components:
         label:
           type: string
           description: The language display name
+
+    GitLog:
+      type: object
+      properties:
+        log:
+          type: array
+          items:
+            type: object
+            properties:
+              commit:
+                type: string
+                description: The commit id
+              author:
+                type: string
+                description: The author of the commit
+              timestamp:
+                type: string
+                format: date-time
+                description: The commit timestamp
+              comment:
+                type: string
+                description: The commit comment
 
   responses:
     NotFound:
