@@ -16,19 +16,18 @@
 
 package org.craftercms.studio.impl.v1.web.filter;
 
-
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.craftercms.studio.impl.v1.web.http.MultiReadHttpServletRequestWrapper;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 public class MultiReadHttpServletRequestWrapperFilter implements Filter {
     public void init ( FilterConfig fc ) throws ServletException { }
 
     public void doFilter (ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException,	ServletException {
-        if (!ServletFileUpload.isMultipartContent((HttpServletRequest)request)) {
+        if (!JakartaServletFileUpload.isMultipartContent((HttpServletRequest)request)) {
             chain.doFilter(new MultiReadHttpServletRequestWrapper((HttpServletRequest) request), response);
         } else {
             chain.doFilter(request, response);

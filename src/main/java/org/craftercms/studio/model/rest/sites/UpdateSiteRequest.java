@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.model.rest.sites;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 /**
  * Holds the data required to update a site

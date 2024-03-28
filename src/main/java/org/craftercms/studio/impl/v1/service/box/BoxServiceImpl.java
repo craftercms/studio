@@ -24,7 +24,6 @@ import org.craftercms.commons.config.profiles.box.BoxProfile;
 import org.craftercms.studio.api.v1.exception.BoxException;
 import org.craftercms.studio.api.v1.service.box.BoxService;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
-import org.springframework.beans.factory.annotation.Required;
 
 import static java.lang.String.format;
 
@@ -37,8 +36,7 @@ public class BoxServiceImpl implements BoxService {
 
     protected SiteAwareConfigProfileLoader<BoxProfile> profileLoader;
 
-    @Required
-    public void setProfileLoader(SiteAwareConfigProfileLoader<BoxProfile> profileLoader) {
+    public BoxServiceImpl(SiteAwareConfigProfileLoader<BoxProfile> profileLoader) {
         this.profileLoader = profileLoader;
     }
 

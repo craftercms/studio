@@ -17,7 +17,6 @@ package org.craftercms.studio.permissions;
 
 import org.craftercms.commons.security.permissions.SubjectResolver;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Implementation of Crafter Commons' {@link SubjectResolver} that returns Crafter Studio's current username
@@ -29,8 +28,7 @@ public class SubjectResolverImpl implements SubjectResolver<String> {
 
     private SecurityService securityService;
 
-    @Required
-    public void setSecurityService(SecurityService securityService) {
+    public SubjectResolverImpl(SecurityService securityService) {
         this.securityService = securityService;
     }
 

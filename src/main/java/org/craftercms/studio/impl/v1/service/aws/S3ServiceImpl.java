@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.aws.s3.S3Output;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.S3Service;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 
 import java.io.InputStream;
 
@@ -39,7 +40,8 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
 
     protected int partSize;
 
-    public S3ServiceImpl() {
+    public S3ServiceImpl(SiteAwareConfigProfileLoader<S3Profile> profileLoader) {
+        super(profileLoader);
         partSize = AwsUtils.MIN_PART_SIZE;
     }
 

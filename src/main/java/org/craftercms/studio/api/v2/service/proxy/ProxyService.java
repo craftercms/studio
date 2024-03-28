@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v2.service.proxy;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.springframework.http.ResponseEntity;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URISyntaxException;
 
 /**

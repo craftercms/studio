@@ -43,7 +43,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;

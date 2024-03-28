@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorResolver;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -36,8 +35,7 @@ public class AssetProcessorResolverImpl implements AssetProcessorResolver, Appli
     private String beanNameFormat;
     private ApplicationContext applicationContext;
 
-    @Required
-    public void setBeanNameFormat(String beanNameFormat) {
+    public AssetProcessorResolverImpl(String beanNameFormat) {
         this.beanNameFormat = beanNameFormat;
     }
 

@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternal;
 import org.craftercms.studio.model.ui.MenuItem;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.util.List;
 import java.util.Set;
@@ -42,13 +41,8 @@ public class UiServiceImpl implements UiService {
     private UiServiceInternal uiServiceInternal;
     private StudioConfiguration studioConfiguration;
 
-    @Required
-    public void setSecurityService(SecurityService securityService) {
+    public UiServiceImpl(SecurityService securityService, UiServiceInternal uiServiceInternal) {
         this.securityService = securityService;
-    }
-
-    @Required
-    public void setUiServiceInternal(UiServiceInternal uiServiceInternal) {
         this.uiServiceInternal = uiServiceInternal;
     }
 

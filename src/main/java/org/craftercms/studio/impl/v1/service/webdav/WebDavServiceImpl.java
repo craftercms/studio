@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.webdav.WebDavItem;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.MimeType;
 import org.springframework.web.util.UriUtils;
 
@@ -79,16 +78,12 @@ public class WebDavServiceImpl implements WebDavService {
      */
     protected Set<QName> properties;
 
-    public WebDavServiceImpl() {
+    public WebDavServiceImpl(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
         charset = Charset.defaultCharset();
         properties = new HashSet<>();
         properties.add(new QName(DEFAULT_NAMESPACE_URI, PROPERTY_DISPLAY_NAME, DEFAULT_NAMESPACE_PREFIX));
         properties.add(new QName(DEFAULT_NAMESPACE_URI, PROPERTY_CONTENT_TYPE, DEFAULT_NAMESPACE_PREFIX));
         properties.add(new QName(DEFAULT_NAMESPACE_URI, PROPERTY_RESOURCE_TYPE, DEFAULT_NAMESPACE_PREFIX));
-    }
-
-    @Required
-    public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
         this.profileLoader = profileLoader;
     }
 

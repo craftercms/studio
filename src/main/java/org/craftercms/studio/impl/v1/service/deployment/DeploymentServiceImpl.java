@@ -60,7 +60,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;

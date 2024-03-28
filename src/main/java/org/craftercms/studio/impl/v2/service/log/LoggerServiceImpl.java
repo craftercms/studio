@@ -24,8 +24,8 @@ import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
 import org.craftercms.studio.model.rest.logging.LoggerConfig;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.util.List;
 

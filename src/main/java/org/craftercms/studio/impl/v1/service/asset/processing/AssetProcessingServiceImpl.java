@@ -47,7 +47,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.asset.processing.AssetProcessingService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.springframework.beans.factory.annotation.Required;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
@@ -66,23 +65,11 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
     private AssetProcessingConfigReader configReader;
     private AssetProcessorPipelineResolver pipelineResolver;
 
-    @Required
-    public void setConfigPath(String configPath) {
+    public AssetProcessingServiceImpl(String configPath, ContentService contentService, AssetProcessingConfigReader configReader,
+                                      AssetProcessorPipelineResolver pipelineResolver) {
         this.configPath = configPath;
-    }
-
-    @Required
-    public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    @Required
-    public void setConfigReader(AssetProcessingConfigReader configReader) {
         this.configReader = configReader;
-    }
-
-    @Required
-    public void setPipelineResolver(AssetProcessorPipelineResolver pipelineResolver) {
         this.pipelineResolver = pipelineResolver;
     }
 

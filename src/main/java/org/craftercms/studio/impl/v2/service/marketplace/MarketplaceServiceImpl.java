@@ -38,7 +38,7 @@ import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServ
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;

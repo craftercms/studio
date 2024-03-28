@@ -18,8 +18,8 @@
  import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
- import javax.validation.constraints.NotBlank;
- import javax.validation.constraints.Size;
+ import jakarta.validation.constraints.NotBlank;
+ import jakarta.validation.constraints.Size;
 
  /**
   * Holds the data for encryption

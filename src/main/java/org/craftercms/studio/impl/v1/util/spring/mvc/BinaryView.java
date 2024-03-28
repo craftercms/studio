@@ -21,8 +21,8 @@ import org.craftercms.engine.controller.rest.RestScriptsController;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.springframework.web.servlet.view.AbstractView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;

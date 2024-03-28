@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.MimeType;
 import org.springframework.web.util.UriUtils;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;

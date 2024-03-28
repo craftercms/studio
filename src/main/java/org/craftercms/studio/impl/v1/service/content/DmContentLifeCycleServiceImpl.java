@@ -38,7 +38,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.xml.sax.SAXException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;

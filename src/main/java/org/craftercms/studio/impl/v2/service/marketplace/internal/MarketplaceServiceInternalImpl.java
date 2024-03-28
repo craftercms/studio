@@ -218,7 +218,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected final String pluginDescriptorFilename;
 
-    protected final RestTemplate restTemplate = new RestTemplate();
+    protected final RestTemplate restTemplate = new RestTemplate(MarketplaceException.class);
 
     protected ObjectMapper mapper;
 

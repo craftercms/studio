@@ -17,8 +17,8 @@ package org.craftercms.studio.model.rest.sites;
 
 import org.craftercms.studio.model.policy.Action;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**

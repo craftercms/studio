@@ -90,8 +90,8 @@
             create-session="stateless"
             entry-point-ref="apiAuthEntryPoint"
             authentication-manager-ref="apiAuthenticationManager"
+            use-authorization-manager="false"
             access-decision-manager-ref="legacyAccessDecisionManager">
-
         <sec:csrf disabled="true"/> <!-- Because we only authenticate via headers -->
         <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
         <sec:cors configuration-source-ref="crafter.corsConfigSource"/>

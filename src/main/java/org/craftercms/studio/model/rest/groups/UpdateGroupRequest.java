@@ -18,7 +18,7 @@ package org.craftercms.studio.model.rest.groups;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 /**
  * Holds the parameters for an Update Group request
