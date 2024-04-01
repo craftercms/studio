@@ -625,6 +625,14 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
                 dest: configuration/samples/sample-ui.xml
             commitDetails: Add sample file for ui.xml
+      - currentVersion: 4.2.0.4
+        nextVersion: 4.2.0.5
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
+                dest: /configuration/samples/sample-site-config-tools.xml
+            commitDetails: Update sample datasources for site config tools
 
   # Pipeline to upgrade site repositories
   site:
@@ -1167,6 +1175,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.5.xslt
               commitDetails: Remove CMIS support
+        - currentVersion: 4.0.5
+          nextVersion: 4.0.6
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.6.xslt
+              commitDetails: Add audio datasources
 
   contextual-nav:
     module: studio
@@ -1372,5 +1386,5 @@ configurations:
         nextVersion: 4.2.1
         operations:
           - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.2.1.xslt
+            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.1.xslt
             commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
