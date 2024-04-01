@@ -40,7 +40,7 @@
     </config>
 -->
 <config>
-    <version>4.0.5</version>
+    <version>4.0.6</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -323,6 +323,18 @@
                     <name>simpleTaxonomy</name>
                     <icon>
                         <class>fa-tags</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>audio-desktop-upload</name>
+                    <icon>
+                        <class>fa-volume-up</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>audio-browse-repo</name>
+                    <icon>
+                        <class>fa-file-audio-o</class>
                     </icon>
                 </datasource>
             </datasources>
