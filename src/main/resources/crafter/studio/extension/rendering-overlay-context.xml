@@ -237,25 +237,24 @@
         <property name="viewResolvers">
             <list>
                 <bean class="org.craftercms.engine.view.CrafterPageViewResolver">
+                    <constructor-arg name="renderUrlToStoreUrlTransformerName" value="renderUrlToTargetedStoreUrl" />
+                    <constructor-arg name="storeUrlToRenderUrlTransformerName" value="storeUrlToRenderUrl" />
+                    <constructor-arg name="toFullHttpsUrlTransformerName" value="toFullHttpsUrl" />
+                    <constructor-arg name="urlTransformationService" ref="crafter.urlTransformationService" />
+                    <constructor-arg name="cacheTemplate" ref="crafter.cacheTemplate" />
+                    <constructor-arg name="siteItemService" ref="crafter.siteItemService" />
+                    <constructor-arg name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}" />
+                    <constructor-arg name="redirectUrlXPathQuery" value="${crafter.engine.page.redirect.xpathQuery}" />
+                    <constructor-arg name="contentTypeXPathQuery" value="${crafter.engine.page.contentType.xpathQuery}" />
+                    <constructor-arg name="redirectContentType" value="${crafter.engine.page.redirect.contentType}" />
+                    <constructor-arg name="disabledXPathQuery" value="${crafter.engine.page.disabled.xpathQuery}" />
+                    <constructor-arg name="mimeTypeXPathQuery" value="${crafter.engine.page.mimeType.xpathQuery}" />
+                    <constructor-arg name="forceHttpsXPathQuery" value="${crafter.engine.page.forceHttps.xpathQuery}" />
+                    <constructor-arg name="scriptResolver" ref="crafter.pageScriptResolver"/>
+                    <constructor-arg name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver" />
+                    <constructor-arg name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
+                    <constructor-arg name="accessManager" ref="crafter.pageAccessManager"/>
                     <property name="cacheUrlTransformations" value="${crafter.engine.page.view.resolver.url.transformation.cache}"/>
-                    <property name="renderUrlToStoreUrlTransformerName" value="renderUrlToTargetedStoreUrl" />
-                    <property name="storeUrlToRenderUrlTransformerName" value="storeUrlToRenderUrl" />
-                    <property name="toFullHttpsUrlTransformerName" value="toFullHttpsUrl" />
-                    <property name="urlTransformationService" ref="crafter.urlTransformationService" />
-                    <property name="cacheTemplate" ref="crafter.cacheTemplate" />
-                    <property name="siteItemService" ref="crafter.siteItemService" />
-                    <property name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}" />
-                    <property name="redirectUrlXPathQuery" value="${crafter.engine.page.redirect.xpathQuery}" />
-                    <property name="contentTypeXPathQuery" value="${crafter.engine.page.contentType.xpathQuery}" />
-                    <property name="redirectContentType" value="${crafter.engine.page.redirect.contentType}" />
-                    <property name="disabledXPathQuery" value="${crafter.engine.page.disabled.xpathQuery}" />
-                    <property name="mimeTypeXPathQuery" value="${crafter.engine.page.mimeType.xpathQuery}" />
-                    <property name="forceHttpsXPathQuery" value="${crafter.engine.page.forceHttps.xpathQuery}" />
-                    <property name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver" />
-                    <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
-                    <property name="accessManager" ref="crafter.pageAccessManager"/>
-                    <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
-
                 </bean>
             </list>
         </property>
