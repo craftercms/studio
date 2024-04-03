@@ -65,10 +65,9 @@
         </bean>
     </mvc:interceptors>
 
-    <bean id="crafter.staticAssetsRequestHandler" class="org.craftercms.engine.controller.StaticAssetsRequestHandler"
-          init-method="init">
-        <property name="contentStoreService" ref="crafter.contentStoreService"/>
-        <property name="disableCaching" value="${crafter.engine.staticAssets.disableCaching}"/>
+    <bean id="crafter.staticAssetsRequestHandler" class="org.craftercms.engine.controller.StaticAssetsRequestHandler">
+        <constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
+        <constructor-arg name="disableCaching" value="${crafter.engine.staticAssets.disableCaching}"/>
         <property name="cacheControl" ref="cacheControl"/>
     </bean>
 

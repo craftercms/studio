@@ -33,7 +33,8 @@
     <sec:http
             pattern="/**"
             use-expressions="true"
-            authentication-manager-ref="webAuthenticationManager">
+            authentication-manager-ref="webAuthenticationManager"
+            security-context-explicit-save="false">
 
         <sec:session-management>
             <sec:concurrency-control session-registry-alias="sessionRegistry"
