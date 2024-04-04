@@ -84,9 +84,7 @@ class ContentMonitoring {
                     def searchParams = new SearchParams()
                     searchParams.query = queryStatement
                     searchParams.limit = 10000
-					def maxExpansions = 50
-
-					def executedQuery = searchService.search(site, searchParams, maxExpansions)
+					def executedQuery = searchService.search(site, searchParams)
 					def itemsFound = executedQuery.total
 					def items = executedQuery.items
 					logger.debug("Content monitor '{}' has found '{}' items in site '{}'",

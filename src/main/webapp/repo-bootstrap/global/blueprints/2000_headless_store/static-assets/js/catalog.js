@@ -17,7 +17,7 @@
 // Crafter Engine GraphQL API
 const GRAPHQL_URL = '/api/1/site/graphql';
 
-// Define all GraphQL queries
+// region GraphQL queries
 const GRAPHQL_QUERIES = '\
   query getFilters {\
     companies: component_company(sortBy: "name_s", sortOrder: ASC) {\
@@ -90,6 +90,7 @@ const GRAPHQL_QUERIES = '\
       }\
     }\
   }';
+// endregion
 
 (function ({ content }) {
   const pathRegExp = /^\/(.*?)\.xml$/;
@@ -103,11 +104,11 @@ const GRAPHQL_QUERIES = '\
     );
   }
   function getICE(model, fieldId = null) {
-    return (craftercms?.xb?.getICEAttributes({
+    return craftercms?.xb?.getICEAttributes({
       model,
       fieldId,
       isAuthoring: authoring
-    }))
+    })
   }
   function updatePagination() {
     // function to update the pagination
@@ -130,10 +131,14 @@ const GRAPHQL_QUERIES = '\
         tag: null
       },
       numberOfProducts: 4,
-      currentPage: 1
+      currentPage: 1,
+      reRegistrer: false
     },
     methods: {
-      getICE
+      getICE,
+      reRender() {
+        this.$forceUpdate();
+      }
     },
     computed: {
       pagination: updatePagination
@@ -169,6 +174,7 @@ const GRAPHQL_QUERIES = '\
           if(this.selection.tag) {
             variables.tag = this.selection.tag.key;
           }
+          this.reRegistrer = true;
           return this.$http.post(GRAPHQL_URL, {
             query: GRAPHQL_QUERIES,
             operationName: 'getProducts',
@@ -188,6 +194,11 @@ const GRAPHQL_QUERIES = '\
       $(function () {
         $('[data-toggle="popover"]').popover()
       })
+      // If at the initial rendering XB is not ready, it won't be enabled. Re-render content when XB is loaded.
+      document.addEventListener('craftercms.xb:loaded', this.reRender);
+    },
+    beforeDestroy: function() {
+      document.removeEventListener('craftercms.xb:loaded', this.reRender);
     },
     beforeUpdate: function() {
       document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
@@ -200,28 +211,35 @@ const GRAPHQL_QUERIES = '\
       });
     },
     watch: {
+      currentPage: function() {
+        // Set reRegister variable to true when the page changes
+        this.reRegistrer = true;
+      },
       products: function() {
         this.$nextTick(function() {
           jQuery('[data-toggle="popover"]').popover();
+          // When products change due to a page update, register the new elements (de-registration is one in beforeUpdate)
+          if (this.reRegistrer) {
+            document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
+              let
+                path = element.getAttribute('data-craftercms-model-path'),
+                modelId = element.getAttribute('data-craftercms-model-id'),
+                fieldId = element.getAttribute('data-craftercms-field-id'),
+                index = element.getAttribute('data-craftercms-index'),
+                label = element.getAttribute('data-craftercms-label');
 
-          document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
-            let
-              path = element.getAttribute('data-craftercms-model-path'),
-              modelId = element.getAttribute('data-craftercms-model-id'),
-              fieldId = element.getAttribute('data-craftercms-field-id'),
-              index = element.getAttribute('data-craftercms-index'),
-              label = element.getAttribute('data-craftercms-label');
+              if ((index !== null) && (index !== undefined) && !index.includes('.')) {
+                // TODO: Need to assess the impact of index being a string with dot notation
+                // Unsure if somewhere, the system relies on the index being an integer/number.
+                // Affected inventory:
+                // - Guest.moveComponent() - string type handled
+                index = parseInt(index, 10);
+              }
 
-            if ((index !== null) && (index !== undefined) && !index.includes('.')) {
-              // TODO: Need to assess the impact of index being a string with dot notation
-              // Unsure if somewhere, the system relies on the index being an integer/number.
-              // Affected inventory:
-              // - Guest.moveComponent() - string type handled
-              index = parseInt(index, 10);
-            }
-
-            craftercms?.xb?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
-          });
+              craftercms?.xb?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
+            });
+            this.reRegistrer = false;
+          }
         });
       }
     }
