@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -69,7 +70,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     private final PluginDescriptorReader descriptorReader;
     private final ContentRepository contentRepository;
-    private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    private final StudioBlobAwareContentRepository blobAwareRepository;
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
     private final SiteDAO siteDao;
@@ -82,14 +83,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private ApplicationContext applicationContext;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
-            "contentRepositoryV2",
+            "blobAwareRepository",
             "studioConfiguration", "siteFeedMapper",
             "siteDao",
             "retryingDatabaseOperationFacade", "siteServiceV1",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
-                                    org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                    StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
@@ -97,7 +98,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
-        this.contentRepositoryV2 = contentRepositoryV2;
+        this.blobAwareRepository = blobAwareRepository;
         this.studioConfiguration = studioConfiguration;
         this.siteFeedMapper = siteFeedMapper;
         this.siteDao = siteDao;
@@ -249,10 +250,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
                 siteServiceV1.enablePublishing(sourceSiteId, false);
             }
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_LOCKED));
+            readOnlyBlobStores = readOnlyBlobStores && !studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false);
 
             // Copy site repos in disk
             logger.debug("Duplicate site repos in disk from '{}' to '{}'", sourceSiteId, siteId);
-            contentRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+            blobAwareRepository.duplicateSite(sourceSiteId, siteId, sandboxBranch);
 
             String siteUuid = UUID.randomUUID().toString();
             addSiteUuidFile(siteId, siteUuid);
@@ -265,9 +267,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             deployer.duplicateTargets(sourceSiteId, siteId);
 
             // read-only blobstores
-            if (readOnlyBlobStores && !studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
+            if (readOnlyBlobStores) {
                 logger.debug("Make blobstores read-only for duplicate site '{}'", siteId);
                 configurationService.makeBlobStoresReadOnly(siteId);
+            } else {
+                logger.debug("Duplicating blobstores content from site '{}' to '{}'", sourceSiteId, siteId);
+                blobAwareRepository.duplicateBlobs(sourceSiteId, siteId);
             }
 
             auditSiteDuplicate(sourceSiteId, siteId, siteName);

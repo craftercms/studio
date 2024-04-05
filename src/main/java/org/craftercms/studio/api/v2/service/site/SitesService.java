@@ -101,7 +101,8 @@ public interface SitesService {
      * @param siteName           the name of the new site
      * @param description        the description of the new site
      * @param sandboxBranch      the sandbox branch to use
-     * @param readOnlyBlobStores whether the blob stores should be read only
+     * @param readOnlyBlobStores whether the blob stores should be read only. Notice that this value is
+     *                           overridden (forced to false) if serverless delivery is enabled
      * @throws ServiceLayerException if there is an error duplicating the site
      */
     void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
