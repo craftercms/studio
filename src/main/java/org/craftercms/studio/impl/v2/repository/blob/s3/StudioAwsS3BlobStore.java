@@ -576,6 +576,10 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         Mapping targetMapping = getMapping(environment);
 
         try {
+            if (targetMapping.equals(sourceMapping)) {
+                logger.info("Source and target mappings are the same, skipping copy operation");
+                return;
+            }
             AwsUtils.copyObjects(getClient(), taskExecutor::getThreadPoolExecutor,
                     sourceMapping.target, sourceMapping.prefix,
                     targetMapping.target, targetMapping.prefix, items);
