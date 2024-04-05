@@ -75,6 +75,11 @@
                 <prefix>${env:PREVIEW_BUCKET_PREFIX_PATTERN}</prefix>
             </mapping>
             <mapping>
+                <publishingTarget>staging</publishingTarget>
+                <storeTarget>${env:STAGING_BUCKET_NAME_PATTERN}</storeTarget>
+                <prefix>${env:STAGING_BUCKET_PREFIX_PATTERN}</prefix>
+            </mapping>
+            <mapping>
                 <publishingTarget>live</publishingTarget>
                 <storeTarget>${env:LIVE_BUCKET_NAME_PATTERN}</storeTarget>
                 <prefix>${env:LIVE_BUCKET_PREFIX_PATTERN}</prefix>
