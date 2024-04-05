@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!--
+    Blob stores configuration file.
+
+    For every store you need to specify:
+    <blobStore>
+        <id/>
+        <type/>
+        <pattern/>
+        <mappings>
+            <mapping>
+                <publishingTarget/>
+                <storeTarget/>
+                <prefix/>
+            </mapping>
+        </mappings>
+        <configuration/>
+    </blobStore>
+
+    id:	a unique id for the store
+    type: the type of store to use
+    pattern: the regex to match file paths
+    mappings.mapping.publishingTarget: the name of the publishing storeTarget (preview, staging, live)
+    mappings.mapping.storeTarget: the name of the storeTarget inside the store
+    mappings.mapping.prefix: the prefix to use for all paths (optional)
+    configuration: configuration specific for the store type
+
+   Every store can require additional properties.
+-->
+<blobStores>
+    <!--
+      AWS S3 Store
+
+      Configuration properties:
+
+        <credentials>
+            <accessKey/>
+            <secretKey/>
+        </credentials>
+        <region/>
+        <endpoint/>
+        <pathStyleAccess/>
+
+        credentials.accessKey: AWS access key (optional)
+        credentials.secretKey: AWS secret key (optional)
+        region: AWS region for the service (optional)
+        pathStyleAccess: indicates if path style access should be used for all requests (defaults to false)
+      -->
+
+    <blobStore>
+        <id>s3-store</id>
+        <type>s3BlobStore</type>
+        <pattern>^/static-assets(?!/(app|css|js|fonts|tracking|seo)/)(.*)</pattern>
+        <mappings>
+            <mapping>
+                <publishingTarget>preview</publishingTarget>
+                <storeTarget>${env:PREVIEW_BUCKET_NAME_PATTERN}</storeTarget>
+                <prefix>${env:PREVIEW_BUCKET_PREFIX_PATTERN}</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>staging</publishingTarget>
+                <storeTarget>${env:STAGING_BUCKET_NAME_PATTERN}</storeTarget>
+                <prefix>${env:STAGING_BUCKET_PREFIX_PATTERN}</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>live</publishingTarget>
+                <storeTarget>${env:LIVE_BUCKET_NAME_PATTERN}</storeTarget>
+                <prefix>${env:LIVE_BUCKET_PREFIX_PATTERN}</prefix>
+            </mapping>
+        </mappings>
+        <configuration>
+            <region>us-east-1</region>
+            <pathStyleAccess>${env:AWS_S3_PATH_STYLE_ACCESS}</pathStyleAccess>
+            <endpoint>${env:AWS_S3_ENDPOINT}</endpoint>
+        </configuration>
+    </blobStore>
+
+</blobStores>
