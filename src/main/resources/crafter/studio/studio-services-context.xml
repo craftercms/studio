@@ -457,7 +457,7 @@
           class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
         <constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
         <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
+        <constructor-arg name="blobAwareRepository" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="siteDao" ref="siteDao" />
@@ -872,6 +872,7 @@
     <bean id="s3BlobStore" scope="prototype"
           class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore">
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
+        <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="publishingTargetResolver" ref="crafter.publishingTargetResolver"/>
@@ -883,6 +884,7 @@
         <property name="localRepositoryV1" ref="gitContentRepository"/>
         <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
         <property name="blobStoreResolver" ref="blobStoreResolver"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="gitContentRepository" class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository">

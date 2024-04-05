@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,12 +18,10 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
@@ -40,16 +38,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.eclipse.jgit.lib.Constants.HEAD;
+
 public interface ContentRepository {
 
     /**
-     * List subtree items for give site and path
+     * Get the site content item list for the given site
+     *
+     * @param site     site id
+     * @param repoType repository type
+     * @param revstr   A git object references expression (e.g.: HEAD, branch name, commit id)
+     * @return list of site content items paths
+     */
+    default List<String> getItemPaths(String site, GitRepositories repoType, String revstr) {
+        return getSubtreeItems(site, "", repoType, revstr);
+    }
+
+    /**
+     * List sandbox subtree items for give site and path
      *
      * @param site site identifier
      * @param path path for subtree root
      * @return list of item paths contained in the subtree
      */
-    List<String> getSubtreeItems(String site, String path);
+    default List<String> getSubtreeItems(String site, String path) {
+        return getSubtreeItems(site, path, GitRepositories.SANDBOX, HEAD);
+    }
+
+    /**
+     * List subtree items for give site and path
+     *
+     * @param site     site identifier
+     * @param path     path for subtree root
+     * @param repoType repository type
+     * @param revstr   A git object references expression (e.g.: HEAD, branch name, commit id)
+     * @return list of item paths contained in the subtree
+     */
+    List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String revstr);
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)
@@ -161,7 +186,6 @@ public interface ContentRepository {
      * @throws InvalidRemoteRepositoryException invalid remote repository
      * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
      * @throws RemoteRepositoryNotFoundException remote repository not found
-     * @throws InvalidRemoteUrlException invalid url for remote repository
      * @throws ServiceLayerException general service error
      */
     boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
@@ -170,7 +194,7 @@ public interface ContentRepository {
                                   String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
                                   String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
+            RemoteRepositoryNotFoundException, ServiceLayerException;
 
     /**
      * Remove remote with given name for site
@@ -275,10 +299,8 @@ public interface ContentRepository {
      * @param path    path of the content
      * @param commitId version to return
      * @return the resource if available
-     *
-     * @throws ContentNotFoundException content not found for given path and version
      */
-    Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException;
+    Optional<Resource> getContentByCommitId(String site, String path, String commitId);
 
     /**
      * Check if published repository exists for given site.
