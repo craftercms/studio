@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,11 +21,14 @@ import org.craftercms.commons.config.ConfigurationMapper;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.config.profiles.ConfigurationProfile;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
+import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -40,6 +43,11 @@ public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
     private String profilesPath;
     private ConfigurationMapper<T> profileMapper;
     private ContentService contentService;
+    private ContextManager contextManager;
+
+    public void setContextManager(final ContextManager contextManager) {
+        this.contextManager = contextManager;
+    }
 
     @Required
     public void setProfilesModule(String profilesModule) {
@@ -79,10 +87,12 @@ public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
      */
     private class ConfigurationProviderImpl implements ConfigurationProvider {
 
-        private String site;
+        private final String site;
+        private final Context context;
 
         public ConfigurationProviderImpl(String site) {
             this.site = site;
+            context = contextManager.getContext(site);
         }
 
         @Override
@@ -99,6 +109,10 @@ public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
             }
         }
 
+        @Override
+        public Map<String, String> getLookupVariables() {
+            return context.getConfigLookupVariables();
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,8 +18,11 @@ package org.craftercms.studio.impl.v2.repository.blob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.collections4.keyvalue.MultiKey;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
@@ -35,6 +38,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
@@ -44,6 +48,7 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
@@ -69,6 +74,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository}
@@ -77,8 +83,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
  * @author joseross
  * @since 3.1.6
  */
-public class BlobAwareContentRepository implements ContentRepository,
-        org.craftercms.studio.api.v2.repository.ContentRepository {
+public class BlobAwareContentRepository implements ContentRepository, StudioBlobAwareContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(BlobAwareContentRepository.class);
 
@@ -89,11 +94,16 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     protected GitContentRepository localRepositoryV1;
 
-    protected org.craftercms.studio.impl.v2.repository.GitContentRepository localRepositoryV2;
+    protected org.craftercms.studio.api.v2.repository.ContentRepository localRepositoryV2;
 
     protected StudioBlobStoreResolver blobStoreResolver;
+    private ServicesConfig servicesConfig;
 
     protected final ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
 
     public void setFileExtension(String fileExtension) {
         this.fileExtension = fileExtension;
@@ -103,7 +113,7 @@ public class BlobAwareContentRepository implements ContentRepository,
         this.localRepositoryV1 = localRepositoryV1;
     }
 
-    public void setLocalRepositoryV2(org.craftercms.studio.impl.v2.repository.GitContentRepository localRepositoryV2) {
+    public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository localRepositoryV2) {
         this.localRepositoryV2 = localRepositoryV2;
     }
 
@@ -408,6 +418,63 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
+    public void duplicateBlobs(String sourceSiteId, String siteId) throws ServiceLayerException {
+        logger.info("Duplicating preview blobs from site '{}' to site '{}'", sourceSiteId, siteId);
+        duplicateBlobs(sourceSiteId, siteId, GitRepositories.SANDBOX, PublishingTargetResolver.PREVIEW, HEAD);
+
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            logger.info("Duplicating staging blobs from site '{}' to site '{}'", sourceSiteId, siteId);
+            String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
+            duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, stagingEnvironment, stagingEnvironment);
+        }
+
+        logger.info("Duplicating live blobs from site '{}' to site '{}'", sourceSiteId, siteId);
+        String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
+        duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, liveEnvironment, liveEnvironment);
+    }
+
+    /**
+     * Duplicates the blobs from the source site to the target site
+     *
+     * @param sourceSiteId the source site
+     * @param siteId       the target site
+     * @param repoType     the repository type
+     * @param environment  the environment
+     * @param revstr       A git object references expression (e.g.: HEAD, branch name, commit id)
+     * @throws ServiceLayerException if an error occurs during the operation
+     */
+    private void duplicateBlobs(String sourceSiteId, String siteId, GitRepositories repoType, String environment, String revstr) throws ServiceLayerException {
+        List<String> siteItemPaths = localRepositoryV2.getItemPaths(sourceSiteId, repoType, revstr)
+                .stream().filter(p -> p.endsWith("." + fileExtension)).toList();
+        MultiKeyMap<StudioBlobStore, List<String>> copyItems = new MultiKeyMap<>();
+        for (String path : siteItemPaths) {
+            String assetPath = getOriginalPath(path);
+            StudioBlobStore sourceBlobStore = blobStoreResolver.getByPaths(sourceSiteId, assetPath);
+            StudioBlobStore targetBlobStore = blobStoreResolver.getByPaths(siteId, assetPath);
+            copyItems.compute(new MultiKey<>(sourceBlobStore, targetBlobStore),
+                    (MultiKey<? extends StudioBlobStore> k, List<String> currentPaths) -> {
+                if (currentPaths == null) {
+                    currentPaths = new LinkedList<>();
+                }
+                currentPaths.add(assetPath);
+                return currentPaths;
+            });
+            logger.info(assetPath);
+        }
+
+        for (Map.Entry<MultiKey<? extends StudioBlobStore>, List<String>> copyItem : copyItems.entrySet()) {
+            StudioBlobStore sourceBlobStore = copyItem.getKey().getKey(0);
+            StudioBlobStore targetBlobStore = copyItem.getKey().getKey(1);
+            List<String> paths = copyItem.getValue();
+            try {
+                targetBlobStore.copyBlobs(sourceBlobStore, environment, paths);
+            } catch (Exception e) {
+                logger.error("Failed to copy blob from source site '{}' to target site '{}'", sourceSiteId, siteId, e);
+            }
+        }
+    }
+
+    @Override
     public String createVersion(String site, String path, boolean majorVersion) {
         return localRepositoryV1.createVersion(site, path, majorVersion);
     }
@@ -642,8 +709,8 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public List<String> getSubtreeItems(String site, String path) {
-        return localRepositoryV2.getSubtreeItems(site, path).stream()
+    public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
+        return localRepositoryV2.getSubtreeItems(site, path, repoType, branch).stream()
                 .map(this::getOriginalPath)
                 .collect(toList());
     }

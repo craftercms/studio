@@ -11215,7 +11215,7 @@ components:
         readOnlyBlobStores:
           type: boolean
           description: If true, the blob stores will be read-only in the copied site.
-          default: true
+          default: false
 
     ContentType:
       type: object

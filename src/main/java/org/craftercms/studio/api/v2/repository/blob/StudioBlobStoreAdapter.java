@@ -246,7 +246,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     // Start API 2
 
     @Override
-    default List<String> getSubtreeItems(String site, String path) {
+    default List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }

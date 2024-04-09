@@ -140,7 +140,7 @@ public class GitContentRepository implements ContentRepository {
     protected StudioDBScriptRunnerFactory scriptRunnerFactory;
 
     @Override
-    public List<String> getSubtreeItems(String site, String path) {
+    public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
         final List<String> retItems = new ArrayList<>();
         String rootPath;
         if (path.endsWith(FILE_SEPARATOR + INDEX_FILE)) {
@@ -150,9 +150,9 @@ public class GitContentRepository implements ContentRepository {
             rootPath = path;
         }
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : repoType);
 
-            RevTree tree = helper.getTreeForLastCommit(repo);
+            RevTree tree = helper.getTreeForCommit(repo, branch);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(rootPath), tree)) {
 
                 if (tw != null) {
