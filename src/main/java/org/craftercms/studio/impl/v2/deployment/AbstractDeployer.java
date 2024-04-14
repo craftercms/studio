@@ -52,8 +52,7 @@ public abstract class AbstractDeployer implements Deployer {
     protected final StudioConfiguration studioConfiguration;
 
     public AbstractDeployer(final StudioConfiguration studioConfiguration) {
-        restTemplate = new RestTemplate();
-        restTemplate.setErrorResponseType(Map.class);
+        restTemplate = new RestTemplate(Map.class);
         restTemplate.afterPropertiesSet();
         this.studioConfiguration = studioConfiguration;
     }

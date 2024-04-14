@@ -21,7 +21,7 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
@@ -52,7 +52,7 @@ public class GetChildrenBulkRequest {
         private String keyword;
         private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
         private List<@ValidExistingContentPath String> excludes;
-        @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst")
+        @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst|lastUpdate")
         private String sortStrategy;
         @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
         private String order = "ASC";

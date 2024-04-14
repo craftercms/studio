@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 

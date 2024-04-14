@@ -22,9 +22,9 @@ import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import javax.mail.Message;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Message;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.MimeMessagePreparator;

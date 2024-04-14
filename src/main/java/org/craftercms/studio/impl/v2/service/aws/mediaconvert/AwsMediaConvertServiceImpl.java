@@ -32,13 +32,13 @@ import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
 import org.craftercms.studio.model.aws.mediaconvert.MediaConvertResult;
-import org.springframework.beans.factory.annotation.Required;
 import com.amazonaws.services.mediaconvert.AWSMediaConvert;
 import com.amazonaws.services.mediaconvert.AWSMediaConvertClientBuilder;
 import com.amazonaws.services.mediaconvert.model.CmafGroupSettings;
@@ -100,33 +100,19 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      */
     protected String smoothExtension;
 
+    public AwsMediaConvertServiceImpl(SiteAwareConfigProfileLoader<MediaConvertProfile> profileLoader,
+                                      final String delimiter, final String urlPattern, final String hlsExtension,
+                                      final String dashExtension, final String smoothExtension) {
+        super(profileLoader);
+        this.delimiter = delimiter;
+        this.urlPattern = urlPattern;
+        this.hlsExtension = hlsExtension;
+        this.dashExtension = dashExtension;
+        this.smoothExtension = smoothExtension;
+    }
+
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
-    }
-
-    @Required
-    public void setDelimiter(final String delimiter) {
-        this.delimiter = delimiter;
-    }
-
-    @Required
-    public void setUrlPattern(final String urlPattern) {
-        this.urlPattern = urlPattern;
-    }
-
-    @Required
-    public void setHlsExtension(final String hlsExtension) {
-        this.hlsExtension = hlsExtension;
-    }
-
-    @Required
-    public void setDashExtension(final String dashExtension) {
-        this.dashExtension = dashExtension;
-    }
-
-    @Required
-    public void setSmoothExtension(final String smoothExtension) {
-        this.smoothExtension = smoothExtension;
     }
 
     /**

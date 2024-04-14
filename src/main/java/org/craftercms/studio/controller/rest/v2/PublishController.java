@@ -38,8 +38,8 @@ import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.List;

@@ -278,16 +278,28 @@ public class XsltTest {
                     new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.2.0.0/add/expected.xml"),
                     emptyMap()
             },
-                new Object[] {
-                        new ClassPathResource("crafter/studio/upgrade/4.2.x/config/site-config/site-config-v4.2.0.0.xslt"),
-                        new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.2.0.0/existed/input.xml"),
-                        new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.2.0.0/existed/expected.xml"),
-                        emptyMap()
-                },
+            new Object[] {
+                    new ClassPathResource("crafter/studio/upgrade/4.2.x/config/site-config/site-config-v4.2.0.0.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.2.0.0/existed/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.2.0.0/existed/expected.xml"),
+                    emptyMap()
+            },
             new Object[] {
                     new ClassPathResource("/crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.xslt"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/ui/v4.2/4.2.0/input.xml"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/ui/v4.2/4.2.0/expected.xml"),
+                    emptyMap()
+            },
+            new Object[] {
+                    new ClassPathResource("/crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.1.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/ui/v4.2/4.2.1/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/ui/v4.2/4.2.1/expected.xml"),
+                    emptyMap()
+            },
+            new Object[] {
+                    new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.6.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.6/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.6/expected.xml"),
                     emptyMap()
             }
         };
