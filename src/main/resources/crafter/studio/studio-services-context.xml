@@ -113,6 +113,7 @@
         <property name="sitesServiceInternal" ref="sitesServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
+        <property name="configurationServiceInternal" ref="configurationServiceInternal" />
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
@@ -347,8 +348,12 @@
         <ref bean="defaultCacheInvalidator"/>
     </util:list>
 
-    <bean id="configurationService"
-          class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
+    <bean id="configurationService" class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
+        <property name="configurationServiceInternal" ref="configurationServiceInternal"/>
+    </bean>
+
+    <bean id="configurationServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.configuration.internal.ConfigurationServiceInternalImpl">
         <property name="contentService" ref="cstudioContentService" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -381,7 +386,7 @@
     <bean id="groupServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.GroupServiceInternalImpl">
         <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="configurationService" ref="configurationService"/>
+        <property name="configurationService" ref="configurationServiceInternal"/>
         <property name="groupDao" ref="groupDao" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
