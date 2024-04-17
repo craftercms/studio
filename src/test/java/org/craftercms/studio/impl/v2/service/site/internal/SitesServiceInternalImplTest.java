@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.CompositeException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -69,7 +70,7 @@ public class SitesServiceInternalImplTest {
     @Spy
     RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
     @Mock
-    ContentRepository contentRepository;
+    StudioBlobAwareContentRepository contentRepository;
     @Mock
     ConfigurationService configurationService;
     @Mock
@@ -193,6 +194,7 @@ public class SitesServiceInternalImplTest {
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
         verify(auditServiceInternal, times(2)).insertAuditLog(any());
+        when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
     }
 
     @Test
