@@ -42,6 +42,7 @@
     mappings.mapping.prefix: the prefix to use for all paths (optional)
     configuration: configuration specific for the store type
 
+
    Every store can require additional properties.
 -->
 <blobStores>
@@ -69,6 +70,21 @@
         <type>s3BlobStore</type>
         <pattern>^/static-assets(?!/(app|css|js|fonts|tracking|seo)/)(.*)</pattern>
         <mappings>
+            <!--
+                Notice that default values are provided for storeTarget and prefix elements as environment variables.
+                The value of those variables is expected to contain a "siteName" placeholder that will be replaced
+                with the actual site name when this configuration is loaded.
+                Both the bucket name and the root prefix can be configured. e.g.:
+                A bucket per site configuration:
+                    PREVIEW_BUCKET_NAME_PATTERN="sites-blobs-${siteName}"
+                    PREVIEW_BUCKET_PREFIX_PATTERN=""
+
+                Single bucket name with site-specific prefix:
+                    PREVIEW_BUCKET_NAME_PATTERN="sites-blobs-preview"
+                    PREVIEW_BUCKET_PREFIX_PATTERN="sandbox-${siteName}"
+
+                By using this parameterized configuration, blob-stores can continue to seamlessly function after a site duplicate.
+            -->
             <mapping>
                 <publishingTarget>preview</publishingTarget>
                 <storeTarget>${env:PREVIEW_BUCKET_NAME_PATTERN}</storeTarget>
