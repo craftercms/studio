@@ -81,7 +81,7 @@ public class BlobAwareContentRepositoryTest {
     private org.craftercms.studio.impl.v1.repository.git.GitContentRepository localV1;
 
     @Mock
-    private GitContentRepository localV2;
+    private GitContentRepository localRepositoryV2;
 
     @Mock
     private StudioBlobStore store;
@@ -118,7 +118,7 @@ public class BlobAwareContentRepositoryTest {
         Map<String, String> delta = new TreeMap<>();
         delta.put(POINTER_PATH, "D");
         delta.put(NEW_POINTER_PATH, POINTER_PATH);
-        when(localV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2)).thenReturn(delta);
+        when(localRepositoryV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2)).thenReturn(delta);
 
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
@@ -295,7 +295,7 @@ public class BlobAwareContentRepositoryTest {
         verify(store).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertEquals(itemsCaptor.getValue().get(0), item);
 
-        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertEquals(itemsCaptor.getValue().get(0), pointerItem);
     }
 
@@ -313,7 +313,7 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store, never()).publish(any(), any(), any(), any(), any(), any());
 
-        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertEquals(itemsCaptor.getValue().get(0), pointerItem);
     }
 
@@ -337,10 +337,10 @@ public class BlobAwareContentRepositoryTest {
         verify(store).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(remoteItem), "remote file should have been published");
 
-        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(pointerItem), "pointer file should have been published");
 
-        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(localItem), "local file should have been published");
     }
 
@@ -380,13 +380,13 @@ public class BlobAwareContentRepositoryTest {
         proxy.initialPublish(SITE);
 
         verify(store).initialPublish(SITE);
-        verify(localV2).initialPublish(SITE);
+        verify(localRepositoryV2).initialPublish(SITE);
     }
 
     @Test(expectedExceptions=SiteNotFoundException.class)
     public void blobAwareRepoBubblesUpSiteNotFoundExceptionTest() throws SiteNotFoundException {
         String nonExistingSite = "nonExistingSite";
-        doThrow(SiteNotFoundException.class).when(localV2).initialPublish(nonExistingSite);
+        doThrow(SiteNotFoundException.class).when(localRepositoryV2).initialPublish(nonExistingSite);
         proxy.initialPublish("nonExistingSite");
     }
 
