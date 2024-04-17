@@ -1063,15 +1063,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
 
+                if (movedDocument != null) {
+                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
+                }
+
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
                 Long parentId = newParent != null ? newParent.getId() : null;
                 updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
                 updateChildrenOnMove(site, fromPath, movePath);
-                // This write is performed after processing the commitIds so we don't miss any commit
-                if (movedDocument != null) {
-                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
-                }
             } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
