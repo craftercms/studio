@@ -1063,7 +1063,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
 
-                // This write is performed after processing the commitIds so we don't miss any commit
                 if (movedDocument != null) {
                     writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
                 }
