@@ -113,6 +113,8 @@ studio.repo.sync.event.maxResets: 10
 studio.blob.config.module: studio
 # Location of the blob store configuration file in the site
 studio.blob.config.path: blob-stores-config.xml
+# Location of the default blob store configuration file if the site does not have one on site create
+studio.blob.default.config.path: classpath:crafter/studio/serverless/default-blob-stores-config.xml
 # Extension used for the blob files in the site
 studio.blob.file.extension: blob
 # Target to use for all operations

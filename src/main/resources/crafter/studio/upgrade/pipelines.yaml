@@ -633,6 +633,14 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
                 dest: /configuration/samples/sample-site-config-tools.xml
             commitDetails: Update sample datasources for site config tools
+      - currentVersion: 4.2.0.5
+        nextVersion: 4.2.0.6
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+                dest: configuration/samples/sample-blob-stores-config.xml
+            commitDetails: Update sample studio blob stores config file
 
   # Pipeline to upgrade site repositories
   site:

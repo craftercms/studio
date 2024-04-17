@@ -365,6 +365,7 @@
         <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
         <property name="dependencyService" ref="dependencyServiceInternal"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -456,7 +457,7 @@
           class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
         <constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
         <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
+        <constructor-arg name="blobAwareRepository" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="siteDao" ref="siteDao" />
@@ -865,11 +866,13 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="interceptedPaths"
                   value="#{studioConfiguration.getArray('studio.blob.intercepted.paths', T(java.lang.String))}"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="s3BlobStore" scope="prototype"
           class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore">
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
+        <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="publishingTargetResolver" ref="crafter.publishingTargetResolver"/>
@@ -881,6 +884,7 @@
         <property name="localRepositoryV1" ref="gitContentRepository"/>
         <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
         <property name="blobStoreResolver" ref="blobStoreResolver"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="gitContentRepository" class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository">
@@ -1218,6 +1222,7 @@
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
@@ -1231,6 +1236,7 @@
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="studioS3ProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
@@ -1240,6 +1246,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="studioElasticTranscoder" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.ElasticTranscoderImpl"/>
@@ -1296,6 +1303,7 @@
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="studioBoxService" class="org.craftercms.studio.impl.v1.service.box.BoxServiceImpl">
@@ -1316,6 +1324,7 @@
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">

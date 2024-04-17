@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
@@ -35,7 +36,9 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
@@ -63,8 +66,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     protected boolean readOnly;
 
-    public StudioAwsS3BlobStore(ServicesConfig servicesConfig) {
+    private final ThreadPoolTaskExecutor taskExecutor;
+
+    @ConstructorProperties({"servicesConfig", "taskExecutor"})
+    public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, final ThreadPoolTaskExecutor taskExecutor) {
         this.servicesConfig = servicesConfig;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -550,5 +557,27 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) {
         // TODO: segregate these interfaces properly
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void copyBlobs(final StudioBlobStore source, final String environment, final List<String> items) {
+        if (!(source instanceof StudioAwsS3BlobStore sourceStudioBlobStore)) {
+            throw new UnsupportedOperationException("Source blob store is not an instance of StudioAwsS3BlobStore");
+        }
+
+        Mapping sourceMapping = sourceStudioBlobStore.getMapping(environment);
+        Mapping targetMapping = getMapping(environment);
+
+        try {
+            if (targetMapping.equals(sourceMapping)) {
+                logger.info("Source and target mappings are the same, skipping copy operation");
+                return;
+            }
+            AwsUtils.copyObjects(getClient(), taskExecutor::getThreadPoolExecutor,
+                    sourceMapping.target, sourceMapping.prefix,
+                    targetMapping.target, targetMapping.prefix, items);
+        } catch (InterruptedException e) {
+            throw new BlobStoreException(format("Interrupted while waiting for S3 content duplication from site '%s' to '%s'", sourceMapping.target, targetMapping.target), e);
+        }
     }
 }

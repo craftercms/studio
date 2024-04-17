@@ -310,6 +310,7 @@ public interface StudioConfiguration {
 
     // Blob
     String BLOB_STORES_CONFIG_PATH = "studio.blob.config.path";
+    String BLOB_STORES_SERVERLESS_DEFAULT_CONFIG_PATH = "studio.blob.default.config.path";
 
     void loadConfig();
 
