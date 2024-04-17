@@ -54,7 +54,7 @@ public interface ActivityStreamDAO {
     /**
      * Get total number activities for users
      * @param siteId site identifier
-     * @param usernames list of usernames
+     * @param usernames list of usernames (or prefixes)
      * @param actions list of actions to filter
      * @param dateForm lower boundary for filtering by date range
      * @param dateTo upper boundary for filtering by date range
@@ -69,7 +69,7 @@ public interface ActivityStreamDAO {
     /**
      * Get activities for users
      * @param siteId site identifier
-     * @param usernames list of usernames
+     * @param usernames list of usernames (or prefixes)
      * @param actions list of actions to filter
      * @param dateForm lower boundary for filtering by date range
      * @param dateTo upper boundary for filtering by date range
