@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.deployment.Deployer;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
@@ -38,6 +38,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -58,7 +59,7 @@ public class SitesServiceInternalImplTest {
     @Spy
     RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
     @Mock
-    ContentRepository contentRepository;
+    StudioBlobAwareContentRepository contentRepository;
     @Mock
     ConfigurationService configurationService;
     @Mock
@@ -81,6 +82,8 @@ public class SitesServiceInternalImplTest {
 
         doNothing().when(sitesServiceInternal).auditSiteDuplicate(anyString(), anyString(), anyString());
         sitesServiceInternal.setApplicationContext(applicationContext);
+
+        when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
     }
 
     @Test
