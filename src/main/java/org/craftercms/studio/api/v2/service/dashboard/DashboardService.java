@@ -54,7 +54,7 @@ public interface DashboardService {
      * Get activities for users
      *
      * @param siteId site identifier
-     * @param usernames list of usernames
+     * @param usernames list of usernames (or prefixes)
      * @param actions list of actions to filter
      * @param dateFrom lower boundary to filter by date-time range
      * @param dateTo upper boundary to filter by date-time range
