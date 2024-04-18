@@ -156,6 +156,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected SitesService sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
+    protected ConfigurationService configurationServiceInternal;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ApplicationContext applicationContext;
@@ -761,7 +762,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             logger.debug("Delete the Deployer targets for site '{}'", siteId);
-
             deployer.deleteTargets(siteId);
         } catch (Exception e) {
             success = false;
@@ -770,23 +770,24 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             logger.debug("Destroy the preview context for site '{}'", siteId);
-
             success = success && destroySitePreviewContext(siteId);
         } catch (Exception e) {
             success = false;
             logger.error("Failed to destroy the preview context for site '{}'", siteId, e);
         }
 
-        // clear cache
-        configurationService.invalidateConfiguration(siteId);
-
         try {
             logger.debug("Delete the git repo for site '{}'", siteId);
-
             contentRepository.deleteSite(siteId);
         } catch (Exception e) {
             success = false;
             logger.error("Failed to delete the repository for site '{}'", siteId, e);
+        }
+
+        try {
+            configurationServiceInternal.invalidateConfiguration(siteId);
+        } catch (Exception e) {
+            logger.error("Failed to invalidate the configuration for site '{}'", siteId, e);
         }
 
         try {
@@ -1229,6 +1230,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public void setConfigurationServiceInternal(final ConfigurationService configurationServiceInternal) {
+        this.configurationServiceInternal = configurationServiceInternal;
     }
 
     public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
