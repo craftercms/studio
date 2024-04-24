@@ -16,7 +16,7 @@
   -->
 <site-policy>
     <statement>
-        <target-path-pattern>/(?!scripts/.*|templates/.*|static-assets/app/.*).*</target-path-pattern>
+        <target-path-pattern>/static-assets/.*</target-path-pattern>
         <permitted>
             <path>
                 <source-regex>[\(\)\s]</source-regex>

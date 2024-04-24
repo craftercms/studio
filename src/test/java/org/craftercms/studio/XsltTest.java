@@ -301,6 +301,12 @@ public class XsltTest {
                     new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.6/input.xml"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.6/expected.xml"),
                     emptyMap()
+            },
+            new Object[] {
+                    new ClassPathResource("crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/site-policy/4.1.2/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/site-policy/4.1.2/expected.xml"),
+                    emptyMap()
             }
         };
     }
