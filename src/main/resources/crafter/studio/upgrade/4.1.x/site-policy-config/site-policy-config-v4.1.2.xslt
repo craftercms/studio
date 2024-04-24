@@ -35,32 +35,4 @@
             <xsl:text>&#10;</xsl:text>
         </xsl:if>
     </xsl:template>
-
-    <!-- Update statement for static-assets -->
-    <xsl:template match="/site-policy">
-        <xsl:copy>
-            <xsl:element name="statement">
-                <xsl:element name="target-path-pattern">
-                    <xsl:text>/(?!scripts/.*|templates/.*|static-assets/app/.*).*</xsl:text>
-                </xsl:element>
-                <xsl:element name="permitted">
-                    <xsl:element name="path">
-                        <xsl:element name="source-regex">
-                            <xsl:text>[\(\)\s]</xsl:text>
-                        </xsl:element>
-                        <xsl:element name="target-regex">
-                            <xsl:attribute name="caseTransform">lowercase</xsl:attribute>
-                            <xsl:text>-</xsl:text>
-                        </xsl:element>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:element>
-            <xsl:for-each select="statement">
-                <!-- Keep other statements unless it is matching the same files -->
-                <xsl:if test="(not(target-path-pattern='/static-assets/.*') and not(target-path-pattern='/(?!scripts/.*|templates/.*|static-assets/app/.*).*')) or not(permitted/path/source-regex='[\(\)\s]')">
-                    <xsl:copy-of select="."/>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:copy>
-    </xsl:template>
 </xsl:stylesheet>
