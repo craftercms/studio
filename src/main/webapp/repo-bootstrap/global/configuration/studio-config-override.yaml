@@ -93,7 +93,7 @@ studio.security.passwordRequirements.minimumComplexity: 3
 # The URL for the serverless delivery deployer delete URL
 # studio.serverless.delivery.deployer.target.deleteUrl: ${studio.preview.deleteTargetUrl}
 # The template name for serverless deployer targets
-# The template name for serverless deployer targets (supported: aws-s3, aws-cloudformed-s3)
+# studio.serverless.delivery.deployer.target.template: aws-cloudformed-s3
 # Replace existing target configuration if one exists?
 # studio.serverless.delivery.deployer.target.replace: false
 # The URL the deployer will use to clone/pull the site's published repo. When the deployer is in a separate node
