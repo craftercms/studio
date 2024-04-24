@@ -256,6 +256,8 @@ studio.configuration.publishing.blacklist.regex: >-
   .*/\.keep
 # Default studio server time zone for date time format
 studio.configuration.defaultTimeZone: UTC
+# The maximum length of configuration content for the configuration service. Default to 512kB -> 512 * 1024
+studio.configuration.maxContentSize: 524288
 
 ########################################################
 ##                   Import Service                   ##
