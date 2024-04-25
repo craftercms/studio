@@ -461,7 +461,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                 currentPaths.add(assetPath);
                 return currentPaths;
             });
-            logger.info(assetPath);
         }
 
         for (Map.Entry<MultiKey<? extends StudioBlobStore>, List<String>> copyItem : copyItems.entrySet()) {
