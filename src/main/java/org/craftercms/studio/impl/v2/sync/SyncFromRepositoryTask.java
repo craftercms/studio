@@ -61,6 +61,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Comparator.comparing;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
@@ -204,7 +205,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      */
     private void ingestChanges(final Site site, final String commitFrom, final String commitTo) throws IOException, GitAPIException, UserNotFoundException, ServiceLayerException {
         List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
-        syncDatabaseWithRepo(site, operationsFromDelta);
+        syncDatabaseWithRepo(site, operationsFromDelta.stream().sorted(comparing(RepoOperation::getAction)).toList());
         auditChangesFromGit(site, commitFrom, commitTo);
 
         // Sync all preview deployers
