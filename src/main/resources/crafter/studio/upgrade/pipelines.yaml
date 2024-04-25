@@ -641,6 +641,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
                 dest: configuration/samples/sample-blob-stores-config.xml
             commitDetails: Update sample studio blob stores config file
+      - currentVersion: 4.2.0.6
+        nextVersion: 4.2.0.7
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.6-to-4.2.0.7.sql
 
   # Pipeline to upgrade site repositories
   site:

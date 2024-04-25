@@ -422,15 +422,17 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         logger.info("Duplicating preview blobs from site '{}' to site '{}'", sourceSiteId, siteId);
         duplicateBlobs(sourceSiteId, siteId, GitRepositories.SANDBOX, PublishingTargetResolver.PREVIEW, HEAD);
 
-        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            logger.info("Duplicating staging blobs from site '{}' to site '{}'", sourceSiteId, siteId);
-            String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
-            duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, stagingEnvironment, stagingEnvironment);
-        }
+        if (publishedRepositoryExists(siteId)) {
+            if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+                logger.info("Duplicating staging blobs from site '{}' to site '{}'", sourceSiteId, siteId);
+                String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
+                duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, stagingEnvironment, stagingEnvironment);
+            }
 
-        logger.info("Duplicating live blobs from site '{}' to site '{}'", sourceSiteId, siteId);
-        String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
-        duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, liveEnvironment, liveEnvironment);
+            logger.info("Duplicating live blobs from site '{}' to site '{}'", sourceSiteId, siteId);
+            String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
+            duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, liveEnvironment, liveEnvironment);
+        }
     }
 
     /**
