@@ -155,11 +155,11 @@ public interface ContentRepository {
     boolean commitIdExists(String site, String commitId);
 
     /**
-     * Check if given commit id exists
+     * Check if given commit id (or revision string) exists
      *
      * @param site     site id
      * @param repoType repository type
-     * @param commitId commit id to check
+     * @param commitId commit id or revision to check
      * @return true if it exists in site repository, otherwise false
      */
     boolean commitIdExists(String site, GitRepositories repoType, String commitId);
