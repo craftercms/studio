@@ -426,7 +426,9 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
                 logger.info("Duplicating staging blobs from site '{}' to site '{}'", sourceSiteId, siteId);
                 String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
-                duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, stagingEnvironment, stagingEnvironment);
+                if (localRepositoryV2.commitIdExists(sourceSiteId, GitRepositories.PUBLISHED, stagingEnvironment)) {
+                    duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, stagingEnvironment, stagingEnvironment);
+                }
             }
 
             logger.info("Duplicating live blobs from site '{}' to site '{}'", sourceSiteId, siteId);

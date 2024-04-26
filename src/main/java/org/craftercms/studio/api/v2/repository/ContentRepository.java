@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -211,11 +210,11 @@ public interface ContentRepository {
     boolean commitIdExists(String site, String commitId);
 
     /**
-     * Check if given commit id exists
+     * Check if given commit id (or revision string) exists
      *
      * @param site     site id
      * @param repoType repository type
-     * @param commitId commit id to check
+     * @param commitId commit id or revision to check
      * @return true if it exists in site repository, otherwise false
      */
     boolean commitIdExists(String site, GitRepositories repoType, String commitId);
