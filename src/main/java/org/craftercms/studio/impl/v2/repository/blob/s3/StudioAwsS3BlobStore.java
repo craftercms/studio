@@ -554,7 +554,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) {
+    public void duplicateSite(String sourceSiteId, String siteId, String sourceSandboxBranch, String sandboxBranch) {
         // TODO: segregate these interfaces properly
         throw new UnsupportedOperationException();
     }
