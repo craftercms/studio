@@ -97,6 +97,14 @@ public interface SitesService {
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
     /**
+     * Unlock a site which is locked with state `LOCKED`
+     * @param siteId the id of the site
+     * @throws SiteNotFoundException if the site doesn't exist
+     * @throws InvalidSiteStateException if the site is not in LOCKED state
+     */
+    void unlockSite(String siteId) throws SiteNotFoundException, InvalidSiteStateException;
+
+    /**
      * Checks if the currently existent site with the given ID also has the same siteUuid.
      *
      * @param siteId   ID of the site to test

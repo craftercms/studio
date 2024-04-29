@@ -220,6 +220,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     }
 
     @Override
+    public void unlockSite(String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
+    }
+
+    @Override
     public boolean exists(String siteId) {
         return siteDao.exists(siteId);
     }
