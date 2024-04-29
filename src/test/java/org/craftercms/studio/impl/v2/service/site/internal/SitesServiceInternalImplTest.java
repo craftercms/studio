@@ -122,6 +122,11 @@ public class SitesServiceInternalImplTest {
         Site newSite = new Site();
         newSite.setSiteId(NEW_SITE_ID);
         when(siteDAO.getSite(NEW_SITE_ID)).thenReturn(newSite);
+
+        Site sourceSite = new Site();
+        sourceSite.setPublishingEnabled(true);
+        sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
+        when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
     }
 
     @Test
@@ -211,6 +216,7 @@ public class SitesServiceInternalImplTest {
 
     @Test
     public void readOnlyOnBlobStoresTest() throws ServiceLayerException {
+        when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
         sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", true);
 
         verify(configurationService).makeBlobStoresReadOnly(NEW_SITE_ID);
