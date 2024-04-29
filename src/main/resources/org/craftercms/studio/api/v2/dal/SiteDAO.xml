@@ -27,7 +27,7 @@
         <result property="description" column="description"/>
         <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
-        <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
+        <result property="publishingEnabled" column="publishing_enabled" javaType="Boolean" jdbcType="INTEGER"/>
         <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER"/>
@@ -38,6 +38,10 @@
 
     <select id="getSitesByState" resultMap="SiteMap" parameterType="java.lang.String">
         SELECT * FROM site WHERE state = #{state} and deleted = 0 AND system = 0
+    </select>
+
+    <select id="getSite" resultMap="SiteMap" parameterType="java.lang.String">
+        SELECT * FROM site WHERE site_id = #{siteId} AND deleted = 0
     </select>
 
     <select id="getLastCommitId" resultType="java.lang.String">

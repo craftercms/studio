@@ -243,7 +243,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         }
         logger.info("Site duplicate from '{}' to '{}' - START", sourceSiteId, siteId);
 
-        boolean publishingEnabled = siteServiceV1.isPublishingEnabled(sourceSiteId);
+        Site sourceSite = siteDao.getSite(sourceSiteId);
+        boolean publishingEnabled = sourceSite.getPublishingEnabled();
         try {
             // Lock source site
             if (publishingEnabled) {
@@ -254,7 +255,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
             // Copy site repos in disk
             logger.debug("Duplicate site repos in disk from '{}' to '{}'", sourceSiteId, siteId);
-            blobAwareRepository.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+            blobAwareRepository.duplicateSite(sourceSiteId, siteId, sourceSite.getSandboxBranch(), sandboxBranch);
 
             String siteUuid = UUID.randomUUID().toString();
             addSiteUuidFile(siteId, siteUuid);

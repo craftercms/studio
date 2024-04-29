@@ -1469,4 +1469,23 @@ public class GitRepositoryHelper implements DisposableBean {
     public void setGitCliEnabled(boolean gitCliEnabled) {
         this.gitCliEnabled = gitCliEnabled;
     }
+
+    /**
+     * Checkout a branch, optionally creating it if it doesn't exist
+     *
+     * @param repository   the repository
+     * @param sourceBranch starting point of the branch to checkout
+     * @param targetBranch the branch to checkout
+     * @param create       if the branch should be created if it doesn't exist
+     * @throws GitAPIException if an error occurs
+     */
+    public void checkoutBranch(Repository repository, String sourceBranch, String targetBranch, boolean create) throws GitAPIException {
+        try (Git git = new Git(repository)) {
+            CheckoutCommand checkoutCommand = git.checkout()
+                    .setName(targetBranch)
+                    .setCreateBranch(create)
+                    .setStartPoint(sourceBranch);
+            retryingRepositoryOperationFacade.call(checkoutCommand);
+        }
+    }
 }
