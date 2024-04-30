@@ -24,7 +24,6 @@ import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundExcept
 import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,28 +44,13 @@ public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
     private ContentService contentService;
     private ContextManager contextManager;
 
-    public void setContextManager(final ContextManager contextManager) {
-        this.contextManager = contextManager;
-    }
-
-    @Required
-    public void setProfilesModule(String profilesModule) {
+    public SiteAwareConfigProfileLoader(String profilesModule, String profilesPath, ConfigurationMapper<T> profileMapper,
+                                        ContentService contentService, final ContextManager contextManager) {
         this.profilesModule = profilesModule;
-    }
-
-    @Required
-    public void setProfilesPath(String profilesPath) {
         this.profilesPath = profilesPath;
-    }
-
-    @Required
-    public void setProfileMapper(ConfigurationMapper<T> profileMapper) {
         this.profileMapper = profileMapper;
-    }
-
-    @Required
-    public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+        this.contextManager = contextManager;
     }
 
     public T loadProfile(String site, String profileId) throws ConfigurationException, ConfigurationProfileNotFoundException {

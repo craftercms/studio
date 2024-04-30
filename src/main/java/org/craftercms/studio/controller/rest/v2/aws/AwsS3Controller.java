@@ -16,10 +16,10 @@
 
 package org.craftercms.studio.controller.rest.v2.aws;
 
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.core.FileItemInput;
+import org.apache.commons.fileupload2.core.FileItemInputIterator;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +43,7 @@ import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -108,20 +108,20 @@ public class AwsS3Controller {
     @PostMapping("/upload")
     public ResultOne<S3Item> uploadItem(HttpServletRequest request) throws IOException, InvalidParametersException,
             AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException, ValidationException {
-        if (!ServletFileUpload.isMultipartContent(request)) {
+        if (!JakartaServletFileUpload.isMultipartContent(request)) {
             throw new InvalidParametersException("The request is not multipart");
         }
         ResultOne<S3Item> result = new ResultOne<>();
         try {
-            ServletFileUpload upload = new ServletFileUpload();
-            FileItemIterator iterator = upload.getItemIterator(request);
+            JakartaServletFileUpload upload = new JakartaServletFileUpload();
+            FileItemInputIterator iterator = upload.getItemIterator(request);
             String siteId = null;
             String profileId = null;
             String path = null;
             while (iterator.hasNext()) {
-                FileItemStream item = iterator.next();
+                FileItemInput item = iterator.next();
                 String name = item.getFieldName();
-                try (InputStream stream = item.openStream()) {
+                try (InputStream stream = item.getInputStream()) {
                     if (item.isFormField()) {
                         switch (name) {
                             case REQUEST_PARAM_SITEID:

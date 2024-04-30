@@ -27,7 +27,7 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.beans.ConstructorProperties;
 import java.util.Arrays;
 import java.util.LinkedList;

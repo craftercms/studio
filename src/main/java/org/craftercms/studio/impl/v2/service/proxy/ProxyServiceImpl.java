@@ -25,9 +25,9 @@ import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.springframework.http.ResponseEntity;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 

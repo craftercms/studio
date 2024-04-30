@@ -18,8 +18,8 @@ package org.craftercms.studio.model.rest.logging;
 
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * Holds a Logger name and its configured priority level.

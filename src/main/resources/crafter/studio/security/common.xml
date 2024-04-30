@@ -97,18 +97,18 @@
     <!-- Permissions -->
 
     <bean id="crafter.studioSubjectResolver" class="org.craftercms.studio.permissions.SubjectResolverImpl">
-        <property name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
     <bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="crafter.studioCompositePermissionResolver"
           class="org.craftercms.studio.permissions.CompositePermissionResolverImpl">
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="crafter.studioPermissionOrOwnershipResolver"
@@ -120,20 +120,20 @@
 
     <bean id="crafter.studioPermissionEvaluator"
           class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
-        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
-        <property name="permissionResolver" ref="crafter.studioPermissionResolver"/>
+        <constructor-arg name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <constructor-arg name="permissionResolver" ref="crafter.studioPermissionResolver"/>
     </bean>
 
     <bean id="crafter.studioCompositePermissionEvaluator"
           class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
-        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
-        <property name="permissionResolver" ref="crafter.studioCompositePermissionResolver"/>
+        <constructor-arg name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <constructor-arg name="permissionResolver" ref="crafter.studioCompositePermissionResolver"/>
     </bean>
 
     <bean id="crafter.studioPermissionOrOwnershipEvaluator"
           class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
-        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
-        <property name="permissionResolver" ref="crafter.studioPermissionOrOwnershipResolver"/>
+        <constructor-arg name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <constructor-arg name="permissionResolver" ref="crafter.studioPermissionOrOwnershipResolver"/>
     </bean>
 
     <bean id="crafter.HasPermissionAnnotationHandler"
