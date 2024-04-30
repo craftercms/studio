@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
@@ -241,6 +242,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
             throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
         }
+
+        if (isEmpty(sandboxBranch)) {
+            sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
+        doDuplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
+    }
+
+    protected void doDuplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException {
         logger.info("Site duplicate from '{}' to '{}' - START", sourceSiteId, siteId);
 
         Site sourceSite = siteDao.getSite(sourceSiteId);
