@@ -31,7 +31,7 @@ public class Site {
     protected int deleted;
     protected String liveUrl;
     protected String lastCommitId;
-    protected int publishingEnabled;
+    protected boolean publishingEnabled;
     protected String publishingStatus;
     protected String sandboxBranch;
     protected int publishedRepoCreated;
@@ -95,11 +95,11 @@ public class Site {
         this.lastCommitId = lastCommitId;
     }
 
-    public int getPublishingEnabled() {
+    public boolean getPublishingEnabled() {
         return publishingEnabled;
     }
 
-    public void setPublishingEnabled(int publishingEnabled) {
+    public void setPublishingEnabled(boolean publishingEnabled) {
         this.publishingEnabled = publishingEnabled;
     }
 

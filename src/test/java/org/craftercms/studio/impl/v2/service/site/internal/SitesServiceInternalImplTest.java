@@ -60,6 +60,8 @@ public class SitesServiceInternalImplTest {
     private static final String USED_SITE_NAME = "already-taken";
     private static final String SOURCE_SITE_ID = "original";
     private static final String NEW_SITE_ID = "the-copy";
+    private static final String SOURCE_SANDBOX_BRANCH = "develop";
+    private static final String DUPLICATE_SANDBOX_BRANCH = "feature1";
 
     @Mock
     SiteFeedMapper siteFeedMapper;
@@ -110,7 +112,6 @@ public class SitesServiceInternalImplTest {
         when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
 
         when(siteFeedMapper.isNameUsed(NEW_SITE_ID, USED_SITE_NAME)).thenReturn(true);
-        when(siteServiceV1.isPublishingEnabled(SOURCE_SITE_ID)).thenReturn(true);
 
         doNothing().when(sitesServiceInternal).addSiteUuidFile(anyString(), anyString());
         doCallRealMethod().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
@@ -121,6 +122,11 @@ public class SitesServiceInternalImplTest {
         Site newSite = new Site();
         newSite.setSiteId(NEW_SITE_ID);
         when(siteDAO.getSite(NEW_SITE_ID)).thenReturn(newSite);
+
+        Site sourceSite = new Site();
+        sourceSite.setPublishingEnabled(true);
+        sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
+        when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
     }
 
     @Test
@@ -195,6 +201,11 @@ public class SitesServiceInternalImplTest {
         verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
         verify(auditServiceInternal, times(2)).insertAuditLog(any());
         when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
+
+        Site sourceSite = new Site();
+        sourceSite.setPublishingEnabled(true);
+        sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
+        when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
     }
 
     @Test
@@ -205,6 +216,7 @@ public class SitesServiceInternalImplTest {
 
     @Test
     public void readOnlyOnBlobStoresTest() throws ServiceLayerException {
+        when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
         sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", true);
 
         verify(configurationService).makeBlobStoresReadOnly(NEW_SITE_ID);
@@ -219,11 +231,11 @@ public class SitesServiceInternalImplTest {
 
     @Test
     public void duplicateSiteTest() throws ServiceLayerException, IOException {
-        sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+        sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", DUPLICATE_SANDBOX_BRANCH, false);
 
-        verify(contentRepository).duplicateSite(SOURCE_SITE_ID, NEW_SITE_ID, "main_branch");
+        verify(contentRepository).duplicateSite(SOURCE_SITE_ID, NEW_SITE_ID, SOURCE_SANDBOX_BRANCH, DUPLICATE_SANDBOX_BRANCH);
         verify(sitesServiceInternal).addSiteUuidFile(eq(NEW_SITE_ID), any());
-        verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq("main_branch"), any());
+        verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq(DUPLICATE_SANDBOX_BRANCH), any());
 
         verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
         verify(siteServiceV1).enablePublishing(NEW_SITE_ID, true);

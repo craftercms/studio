@@ -413,8 +413,8 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException {
-        localRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+    public void duplicateSite(String sourceSiteId, String siteId, String sourceSandboxBranch, String sandboxBranch) throws IOException, ServiceLayerException {
+        localRepositoryV2.duplicateSite(sourceSiteId, siteId, sourceSandboxBranch, sandboxBranch);
     }
 
     @Override

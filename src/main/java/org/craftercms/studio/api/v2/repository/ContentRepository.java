@@ -419,7 +419,7 @@ public interface ContentRepository {
      * @param sandboxBranch sandbox branch name
      * @throws IOException if there is any error while copying the directories
      */
-    void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException;
+    void duplicateSite(String sourceSiteId, String siteId, String sourceSandboxBranch, String sandboxBranch) throws IOException, ServiceLayerException;
 
     /**
      * This is a faster, but less accurate, version of contentExists. This prioritizes
