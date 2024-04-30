@@ -19,8 +19,8 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Defines all operations related to scripts

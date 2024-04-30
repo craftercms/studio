@@ -16,11 +16,11 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.FileUploadException;
 import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.fileupload2.core.FileItemInput;
+import org.apache.commons.fileupload2.core.FileItemInputIterator;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
@@ -42,8 +42,8 @@ import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotBlank;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
@@ -114,13 +114,13 @@ public class WebdavController {
     @PostMapping("/upload")
     public ResultOne<WebDavItem> uploadItem(HttpServletRequest request) throws IOException, WebDavException,
             InvalidParametersException, SiteNotFoundException, ConfigurationProfileNotFoundException, ValidationException {
-        if (!ServletFileUpload.isMultipartContent(request)) {
+        if (!JakartaServletFileUpload.isMultipartContent(request)) {
             throw new InvalidParametersException("The request is not multipart");
         }
         ResultOne<WebDavItem> result = new ResultOne<>();
         try {
-            ServletFileUpload upload = new ServletFileUpload();
-            FileItemIterator iterator = upload.getItemIterator(request);
+            JakartaServletFileUpload upload = new JakartaServletFileUpload();
+            FileItemInputIterator iterator = upload.getItemIterator(request);
             String siteId = null;
             String profileId = null;
             String path = null;
@@ -128,9 +128,9 @@ public class WebdavController {
                 throw new InvalidParametersException("Request body is empty");
             }
             while (iterator.hasNext()) {
-                FileItemStream item = iterator.next();
+                FileItemInput item = iterator.next();
                 String name = item.getFieldName();
-                try(InputStream stream = item.openStream()) {
+                try(InputStream stream = item.getInputStream()) {
                     if (item.isFormField()) {
                         switch (name) {
                             case REQUEST_PARAM_SITEID:

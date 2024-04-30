@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -60,7 +60,7 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
             String siteParam = request.getParameter("site_id");
             if (StringUtils.isEmpty(userParam)
                 && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
-                && !ServletFileUpload.isMultipartContent(request)
+                && !JakartaServletFileUpload.isMultipartContent(request)
                 ) {
                 try {
                     InputStream is = request.getInputStream();

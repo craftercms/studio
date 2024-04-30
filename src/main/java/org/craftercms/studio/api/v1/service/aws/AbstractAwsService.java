@@ -21,7 +21,6 @@ import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundExcept
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Provides common profile operations used by all services.
@@ -36,8 +35,7 @@ public abstract class AbstractAwsService<T extends AbstractAwsProfile> {
      */
     protected SiteAwareConfigProfileLoader<T> profileLoader;
 
-    @Required
-    public void setProfileLoader(SiteAwareConfigProfileLoader<T> profileLoader) {
+    public AbstractAwsService(SiteAwareConfigProfileLoader<T> profileLoader) {
         this.profileLoader = profileLoader;
     }
 

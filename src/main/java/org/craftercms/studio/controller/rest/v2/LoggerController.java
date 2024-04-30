@@ -25,7 +25,7 @@ import org.craftercms.studio.model.rest.logging.LoggerConfig;
 import org.craftercms.studio.model.rest.logging.LoggerConfigRequest;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.beans.ConstructorProperties;
 
 import static org.craftercms.studio.controller.rest.v2.LoggerController.ROOT_URL;

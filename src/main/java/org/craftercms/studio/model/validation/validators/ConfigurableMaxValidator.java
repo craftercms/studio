@@ -3,8 +3,8 @@ package org.craftercms.studio.model.validation.validators;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.validation.annotations.ConfigurableMax;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * Custom validator for the {@link ConfigurableMax} annotation.

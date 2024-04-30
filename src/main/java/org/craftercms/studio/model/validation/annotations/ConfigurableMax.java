@@ -17,8 +17,8 @@ package org.craftercms.studio.model.validation.annotations;
 
 import org.craftercms.studio.model.validation.validators.ConfigurableMaxValidator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

@@ -67,7 +67,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.*;
 
 import static java.lang.String.format;

@@ -84,7 +84,6 @@ class ContentMonitoring {
                     def searchParams = new SearchParams()
                     searchParams.query = queryStatement
                     searchParams.limit = 10000
-
 					def executedQuery = searchService.search(site, searchParams)
 					def itemsFound = executedQuery.total
 					def items = executedQuery.items
