@@ -136,18 +136,6 @@ public class PublishController {
         return responseBody;
     }
 
-    @PostMapping(value = CLEAR_LOCK, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody clearPublishingLock(@Valid @RequestBody ClearPublishingLockRequest clearPublishingLockRequest)
-            throws SiteNotFoundException {
-        String siteId = clearPublishingLockRequest.getSiteId();
-        sitesService.clearPublishingLock(siteId);
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
     @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
     public ResultList<DeploymentHistoryGroup> getPublishingHistory(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                                    @PositiveOrZero @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,

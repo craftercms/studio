@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import java.time.ZonedDateTime;
-
 /**
  * Represents a Crafter site from the database.
  */
@@ -35,8 +33,6 @@ public class Site {
     protected String publishingStatus;
     protected String sandboxBranch;
     protected int publishedRepoCreated;
-    protected String publishingLockOwner;
-    protected ZonedDateTime publishingLockHeartbeat;
     protected String state;
 
     public long getId() {
@@ -141,22 +137,6 @@ public class Site {
 
     public boolean isSitePublishedRepoCreated() {
         return publishedRepoCreated > 0;
-    }
-
-    public String getPublishingLockOwner() {
-        return publishingLockOwner;
-    }
-
-    public void setPublishingLockOwner(String publishingLockOwner) {
-        this.publishingLockOwner = publishingLockOwner;
-    }
-
-    public ZonedDateTime getPublishingLockHeartbeat() {
-        return publishingLockHeartbeat;
-    }
-
-    public void setPublishingLockHeartbeat(ZonedDateTime publishingLockHeartbeat) {
-        this.publishingLockHeartbeat = publishingLockHeartbeat;
     }
 
     public String getState() {

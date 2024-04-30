@@ -128,12 +128,6 @@ public interface SitesService {
     PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
 
     /**
-     * Clear publishing lock for site
-     * @param siteId site identifier
-     */
-    void clearPublishingLock(String siteId) throws SiteNotFoundException;
-
-    /**
      * Delete a site from the system
      *
      * @param siteId the site id

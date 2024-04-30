@@ -34,8 +34,6 @@ public class PublishStatus {
     @JsonIgnore
     private int enabledAsInt;
     private String status;
-    private String lockOwner;
-    private String lockTTL;
 
     private String publishingTarget;
     private String submissionId;
@@ -80,22 +78,6 @@ public class PublishStatus {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getLockOwner() {
-        return lockOwner;
-    }
-
-    public void setLockOwner(String lockOwner) {
-        this.lockOwner = lockOwner;
-    }
-
-    public String getLockTTL() {
-        return lockTTL;
-    }
-
-    public void setLockTTL(String lockTTL) {
-        this.lockTTL = lockTTL;
     }
 
     public String getPublishingTarget() {

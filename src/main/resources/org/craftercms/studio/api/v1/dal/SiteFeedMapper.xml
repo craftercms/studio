@@ -31,8 +31,6 @@
         <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
-        <result property="publishingLockOwner" column="publishing_lock_owner" />
-        <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
         <result property="state" column="state" />
     </resultMap>
 
@@ -40,8 +38,6 @@
         <id property="id" column="id" />
         <result property="enabledAsInt" column="publishing_enabled" />
         <result property="status" column="publishing_status" />
-        <result property="lockOwner" column="publishing_lock_owner" />
-        <result property="lockTTL" column="publishing_lock_heartbeat" />
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -54,8 +50,6 @@
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
         <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
         <parameter property="publishedRepoCreated" jdbcType="INTEGER" />
-        <parameter property="publishingLockOwner" jdbcType="VARCHAR" />
-        <parameter property="publishingLockHeartbeat" jdbcType="TIMESTAMP" />
         <parameter property="state" jdbcType="VARCHAR" />
     </parameterMap>
 
@@ -190,13 +184,7 @@
     </select>
 
     <select id="getPublishingStatus" resultMap="PublishStatusMap">
-        SELECT publishing_enabled, publishing_status, publishing_lock_owner,
-               DATE_ADD(publishing_lock_heartbeat, INTERVAL #{ttl} MINUTE) as publishing_lock_heartbeat
+        SELECT publishing_enabled, publishing_status
         FROM site WHERE site_id = #{siteId} AND deleted = 0 LIMIT 0, 1
     </select>
-
-    <update id="clearPublishingLockForSite">
-        UPDATE site SET publishing_lock_owner = NULL, publishing_lock_heartbeat = NULL
-        WHERE site_id = #{siteId} AND deleted = 0
-    </update>
 </mapper>

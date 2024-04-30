@@ -652,12 +652,6 @@ studio.upgrade.db.population.threadCount: 50
 studio.upgrade.db.population.timeoutSeconds: 7200
 
 ################################################################
-##                   Publishing Thread Pool                   ##
-################################################################
-# Publishing lock TTL in minutes
-studio.publishing.siteLock.ttl: 180
-
-################################################################
 ##                             CORS                           ##
 ################################################################
 # This is configured as permissive by default for ease of deployment
