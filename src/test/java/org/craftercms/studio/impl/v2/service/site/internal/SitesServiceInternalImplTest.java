@@ -200,12 +200,10 @@ public class SitesServiceInternalImplTest {
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
         verify(auditServiceInternal, times(2)).insertAuditLog(any());
-        when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
 
         Site sourceSite = new Site();
         sourceSite.setPublishingEnabled(true);
         sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
-        when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
     }
 
     @Test

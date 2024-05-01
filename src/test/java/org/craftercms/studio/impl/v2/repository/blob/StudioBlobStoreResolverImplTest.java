@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import com.google.common.cache.CacheBuilder;
+import org.craftercms.core.service.Context;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
@@ -24,6 +25,7 @@ import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -95,6 +97,12 @@ public class StudioBlobStoreResolverImplTest {
     @Mock
     private ConfigurationService configurationService;
 
+    @Mock
+    private ContextManager contextManager;
+
+    @Mock
+    private Context context;
+
     @InjectMocks
     private StudioBlobStoreResolverImpl resolver;
 
@@ -117,6 +125,8 @@ public class StudioBlobStoreResolverImplTest {
         when(configurationService.getCacheKey(SITE_ID, CONFIG_MODULE, CONFIG_FILENAME, ENVIRONMENT))
                 .thenReturn(CACHE_KEY_CONFIG);
 
+        when(contextManager.getContext(SITE_ID)).thenReturn(context);
+
         ConfigurationResolver configResolver = new ConfigurationResolverImpl(ENVIRONMENT, "/config/{module}",
                 null, new EncryptionAwareConfigurationReader(new NoOpTextEncryptor()));
 
@@ -125,6 +135,7 @@ public class StudioBlobStoreResolverImplTest {
         resolver.setConfigurationResolver(configResolver);
         resolver.setInterceptedPaths(new String[] { "/static-assets/.*" });
         resolver.setCache(CacheBuilder.newBuilder().build());
+        resolver.setContextManager(contextManager);
     }
 
     @Test
