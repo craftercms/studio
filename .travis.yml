@@ -5,7 +5,7 @@ git:
   depth: 1
   quiet: true
 jdk:
-  - openjdk17
+  - openjdk21
 cache:
   directories:
   - "$HOME/.m2"
