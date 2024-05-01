@@ -2359,8 +2359,6 @@ paths:
                 lastVerifiedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
                 sandboxBranch: "master"
                 publishedRepoCreated: 0
-                publishingLockOwner: "null"
-                publishingLockHeartbeat: null
                 state: "READY"
                 lastSyncedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
                 siteDeleted: false
@@ -6822,45 +6820,6 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/2/publish/clear_lock:
-    post:
-      tags:
-        - publishing
-      summary: Clear publishing lock for site
-      description: 'Required permission "publish_clear_lock"'
-      operationId: clearPublishingLock
-      requestBody:
-        description: clear publishing lock request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: site ID
-              required:
-                - siteId
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

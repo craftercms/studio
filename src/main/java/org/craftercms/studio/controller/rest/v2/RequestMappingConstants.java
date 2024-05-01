@@ -106,7 +106,6 @@ public final class RequestMappingConstants {
     public static final String PACKAGES = "/packages";
     public static final String PACKAGE = "/package";
     public static final String CANCEL = "/cancel";
-    public static final String CLEAR_LOCK = "/clear_lock";
     public static final String HISTORY = "/history";
     public static final String AVAILABLE_TARGETS = "/available_targets";
     public static final String HAS_INITIAL_PUBLISH = "/has_initial_publish";

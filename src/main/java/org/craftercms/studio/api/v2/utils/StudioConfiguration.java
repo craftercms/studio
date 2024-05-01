@@ -226,9 +226,6 @@ public interface StudioConfiguration {
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
 
-    /** Publishing Thread Pool **/
-    String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";
-
     /** Asset processing **/
     String CONFIGURATION_ASSET_PROCESSING_TINIFY_API_KEY = "studio.configuration.asset.processing.tinify.apiKey";
 

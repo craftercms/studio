@@ -48,8 +48,8 @@ CREATE PROCEDURE duplicate_site(IN sourceSiteId VARCHAR(50),
                                     IN sandboxBranch VARCHAR(2000),
                                     IN uuid VARCHAR(2000))
 BEGIN
-    INSERT INTO site (id, site_uuid, site_id, name, description, deleted, last_commit_id, system, publishing_enabled, publishing_status, sandbox_branch, published_repo_created, publishing_lock_owner, publishing_lock_heartbeat, state)
-        SELECT null, uuid, siteId, name, description, s.deleted, s.last_commit_id, s.system, 1, 'ready', IFNULL(NULLIF(sandboxBranch, ''), 'master'), s.published_repo_created, s.publishing_lock_owner, s.publishing_lock_heartbeat, 'INITIALIZING' FROM site s WHERE s.site_id = sourceSiteId AND s.deleted = 0;
+    INSERT INTO site (id, site_uuid, site_id, name, description, deleted, last_commit_id, system, publishing_enabled, publishing_status, sandbox_branch, published_repo_created, state)
+        SELECT null, uuid, siteId, name, description, s.deleted, s.last_commit_id, s.system, 1, 'ready', IFNULL(NULLIF(sandboxBranch, ''), 'master'), s.published_repo_created, 'INITIALIZING' FROM site s WHERE s.site_id = sourceSiteId AND s.deleted = 0;
 
     INSERT INTO remote_repository (id, site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
         SELECT null, siteId, r.remote_name, r.remote_url, r.authentication_type, r.remote_username, r.remote_password, r.remote_token, r.remote_private_key FROM remote_repository r WHERE r.site_id = sourceSiteId;
@@ -317,8 +317,6 @@ CREATE TABLE IF NOT EXISTS `site` (
   `publishing_status`               VARCHAR(20)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
-  `publishing_lock_owner`           VARCHAR(255)  NULL,
-  `publishing_lock_heartbeat`       TIMESTAMP      NULL,
   `state`                           VARCHAR(50)   NOT NULL DEFAULT 'INITIALIZING',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
