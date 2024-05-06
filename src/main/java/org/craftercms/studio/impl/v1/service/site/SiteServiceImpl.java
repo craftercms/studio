@@ -110,6 +110,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Comparator.comparing;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -1004,6 +1005,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             return toReturn;
         }
+
+        repoOperationsDelta.sort(comparing(RepoOperation::getAction));
 
         logger.info("Sync the database with the repository in site '{}' starting at commit ID '{}'",
                 site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId));
