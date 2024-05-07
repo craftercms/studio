@@ -2487,10 +2487,11 @@ paths:
 
   /api/1/services/api/1/publish/commits.json:
     post:
+      deprecated: true
       tags:
         - publishing
       summary: Publish commits from sandbox repository by commit id.
-      description: "Required role: none"
+      description: "Required role: none. <br /> This operation is deprecated, use /api/2/publish instead."
       operationId: publishCommits
       requestBody:
         description: Publish commits from sandbox repository request body
@@ -2813,10 +2814,11 @@ paths:
 
   /api/1/services/api/1/deployment/bulk-golive.json:
     post:
+      deprecated: true
       tags:
         - deployment
       summary: Bulk go live.
-      description: "Required role: N/A"
+      description: "Required role: N/A. <br /> This operation is deprecated, use /api/2/publish instead."
       operationId: bulkGoLive
       parameters:
         - name: site_id
@@ -8898,10 +8900,11 @@ paths:
 
   /api/2/workflow/request_publish:
     post:
+      deprecated: true
       tags:
         - workflow
       summary: Request publish for content
-      description: 'Required permission "site_member"'
+      description: 'Required permission "site_member". <br /> This operation is deprecated, use /api/2/publish instead.'
       operationId: workflowRequestPublish
       requestBody:
         description: parameters for request publish
@@ -8964,10 +8967,11 @@ paths:
 
   /api/2/workflow/publish:
     post:
+      deprecated: true
       tags:
         - workflow
       summary: Publish content
-      description: 'Required permission "publish"'
+      description: 'Required permission "publish". <br /> This operation is deprecated, use /api/2/publish instead.'
       operationId: workflowPublish
       requestBody:
         description: parameters for publish content
