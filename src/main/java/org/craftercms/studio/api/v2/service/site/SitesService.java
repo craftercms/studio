@@ -71,6 +71,14 @@ public interface SitesService {
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
     /**
+     * Unlock a site which is locked with state `LOCKED`
+     * @param siteId the id of the site
+     * @throws SiteNotFoundException if the site doesn't exist
+     * @throws InvalidSiteStateException if the site is not in LOCKED state
+     */
+    void unlockSite(String siteId) throws SiteNotFoundException, InvalidSiteStateException;
+
+    /**
      * Get publishing status for site
      * @param siteId site identifier
      * @return publishing status

@@ -214,6 +214,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     }
 
     @Override
+    public void unlockSite(String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
+    }
+
+    @Override
     public PublishStatus getPublishingStatus(String siteId) {
         int ttl = studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
         return siteFeedMapper.getPublishingStatus(siteId, ttl);

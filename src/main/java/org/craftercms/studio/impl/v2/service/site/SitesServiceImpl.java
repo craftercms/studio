@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.RequireSiteState;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
@@ -88,6 +90,13 @@ public class SitesServiceImpl implements SitesService {
         }
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
+    }
+
+    @Override
+    @RequireSiteState(value = STATE_LOCKED)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
+    public void unlockSite(@SiteId String siteId) throws SiteNotFoundException, InvalidSiteStateException {
+        sitesServiceInternal.unlockSite(siteId);
     }
 
     @Override
