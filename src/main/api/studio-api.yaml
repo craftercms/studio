@@ -1990,41 +1990,41 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-/api/2/sites/{siteId}/unlock:
-  post:
-    tags:
-      - sites
-    summary: Unlock a site locked with state LOCKED
-    description: 'Required Permission: "edit_site"'
-    operationId: unlockSite
-    parameters:
-      - name: siteId
-        in: path
-        schema:
-          type: string
-        required: true
-    responses:
-      '200':
-        description: OK
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                response:
-                  $ref: '#/components/schemas/ApiResponse'
-                result:
-                  $ref: '#/components/schemas/ContentValidationResult'
-      '400':
-        $ref: '#/components/responses/BadRequest'
-      '401':
-        $ref: '#/components/responses/Unauthorized'
-      '403':
-        $ref: '#/components/responses/Forbidden'
-      '404':
-        $ref: '#/components/responses/NotFound'
-      '500':
-        $ref: '#/components/responses/InternalServerError'
+  /api/2/sites/{siteId}/unlock:
+    post:
+      tags:
+        - sites
+      summary: Unlock a site locked with state LOCKED
+      description: 'Required Permission: "edit_site"'
+      operationId: unlockSite
+      parameters:
+        - name: siteId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/ContentValidationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /api/2/sites/{siteId}/policy/validate:
     post:
@@ -6679,10 +6679,11 @@ paths:
 
   /api/2/publish/all:
     post:
+      deprecated: true
       tags:
         - publishing
       summary: Publishes the entire project to the target (staging or live)
-      description: 'Required permission "Publish"'
+      description: 'Required permission "Publish". <br /> This operation is deprecated, use /api/2/publish instead.'
       operationId: publishAll
       requestBody:
         description: publish all request body
@@ -6826,7 +6827,7 @@ paths:
           schema:
             type: string
         - name: packageId
-          in: path
+          in: query
           description: package ID
           required: true
           schema:
@@ -6870,7 +6871,7 @@ paths:
           schema:
             type: string
         - name: packageId
-          in: query
+          in: path
           description: package ID
           required: true
           schema:
