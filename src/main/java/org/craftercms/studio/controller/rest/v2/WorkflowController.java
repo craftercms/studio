@@ -16,12 +16,14 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
@@ -32,9 +34,6 @@ import org.craftercms.studio.model.rest.workflow.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,11 +136,8 @@ public class WorkflowController {
 
     @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public Result requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException {
-        workflowService.requestPublish(requestPublishRequestBody.getSiteId(), requestPublishRequestBody.getItems(),
-                requestPublishRequestBody.getOptionalDependencies(), requestPublishRequestBody.getPublishingTarget(),
-                requestPublishRequestBody.getSchedule(), requestPublishRequestBody.getComment(),
-                requestPublishRequestBody.isSendEmailNotifications());
+            throws ServiceLayerException, UserNotFoundException {
+        // TODO: call publish service publish method
 
         Result result = new Result();
         result.setResponse(OK);
@@ -150,11 +146,8 @@ public class WorkflowController {
 
     @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public Result publish(@Valid @RequestBody PublishRequestBody publishRequestBody)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        workflowService.publish(publishRequestBody.getSiteId(), publishRequestBody.getItems(),
-                publishRequestBody.getOptionalDependencies(), publishRequestBody.getPublishingTarget(),
-                publishRequestBody.getSchedule(), publishRequestBody.getComment());
-
+            throws UserNotFoundException, ServiceLayerException {
+        // TODO: call publish service publish method
         Result result = new Result();
         result.setResponse(OK);
         return result;
@@ -162,10 +155,8 @@ public class WorkflowController {
 
     @PostMapping(value = APPROVE, consumes = APPLICATION_JSON_VALUE)
     public Result approve(@Valid @RequestBody ApproveRequestBody approveRequestBody)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        workflowService.approve(approveRequestBody.getSiteId(), approveRequestBody.getItems(),
-                approveRequestBody.getOptionalDependencies(), approveRequestBody.getPublishingTarget(),
-                approveRequestBody.getSchedule(), approveRequestBody.getComment());
+            throws UserNotFoundException, ServiceLayerException {
+        // TODO: update to work by package
 
         Result result = new Result();
         result.setResponse(OK);
@@ -174,9 +165,8 @@ public class WorkflowController {
 
     @PostMapping(value = REJECT, consumes = APPLICATION_JSON_VALUE)
     public Result reject(@Valid @RequestBody RejectRequestBody rejectRequestBody)
-            throws ServiceLayerException, DeploymentException, UserNotFoundException {
-        workflowService.reject(rejectRequestBody.getSiteId(), rejectRequestBody.getItems(),
-                rejectRequestBody.getComment());
+            throws ServiceLayerException, UserNotFoundException {
+        // TODO: update to work by package
         Result result = new Result();
         result.setResponse(OK);
         return result;

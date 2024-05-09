@@ -18,20 +18,19 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -59,7 +58,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     private static final Logger logger = LoggerFactory.getLogger(ClipboardServiceInternalImpl.class);
 
     protected ContentService contentService;
-    protected WorkflowService workflowService;
     protected ApplicationContext applicationContext;
 
     protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
@@ -117,7 +115,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                     case CUT:
                         // RDTMP_COPYPASTE
                         // CopyContent interface is able to send status and new path yet
-                        workflowService.cleanWorkflow(item.getPath(), siteId);
+                        // TODO: implement for new publishing system
+//                        workflowService.cleanWorkflow(item.getPath(), siteId);
                         newPath = contentService.moveContent(siteId, item.getPath(), targetPath);
                         break;
                     case COPY:
@@ -173,10 +172,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public void setWorkflowService(WorkflowService workflowService) {
-        this.workflowService = workflowService;
     }
 
 }

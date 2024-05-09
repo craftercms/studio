@@ -16,94 +16,48 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v2.dal.WorkflowDAO;
-import org.craftercms.studio.api.v2.dal.WorkflowItem;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.util.List;
 
-import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+public class WorkflowServiceInternalImpl implements WorkflowService {
 
-public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
-
-    private WorkflowDAO workflowDao;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
+    // TODO: implement all methods from WorkflowServiceInternal for the new publishing system
     @Override
-    public WorkflowItem getWorkflowItem(String siteId, String path, String state) {
-        return workflowDao.getWorkflowEntryOpened(siteId, path, state);
+    public int getItemStatesTotal(String siteId, String path, Long states) throws SiteNotFoundException {
+        return 0;
     }
 
     @Override
-    public WorkflowItem getWorkflowEntry(String siteId, String path) {
-        return getWorkflowItem(siteId, path, STATE_OPENED);
+    public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
+        return null;
     }
 
     @Override
-    public Workflow getWorkflowEntryForApproval(Long itemId) {
-        return workflowDao.getWorkflowEntryForApproval(itemId, STATE_OPENED);
+    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+
     }
 
     @Override
-    public Workflow getWorkflowEntry(String siteId, String path, String publishingPackageId) {
-        return workflowDao.getWorkflowEntry(siteId, path, publishingPackageId);
+    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+
     }
 
     @Override
-    public void insertWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntry(workflow));
+    public List<SandboxItem> getWorkflowAffectedPaths(String siteId, String path) throws UserNotFoundException, ServiceLayerException {
+        return null;
     }
 
     @Override
-    public void insertWorkflowEntries(List<Workflow> workflowEntries) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntries(workflowEntries));
-    }
+    public void delete(String siteId, List<String> paths, List<String> optionalDependencies, String comment) throws ServiceLayerException, UserNotFoundException {
 
-    @Override
-    public void updateWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.updateWorkflowEntry(workflow));
-    }
-
-    @Override
-    public List<WorkflowItem> getSubmittedItems(String site) {
-        return workflowDao.getSubmittedItems(site, STATE_OPENED);
-    }
-
-    @Override
-    public void deleteWorkflowEntries(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntries(siteId, paths));
-    }
-
-    @Override
-    public void deleteWorkflowEntry(String siteId, String path) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntry(siteId, path));
-    }
-
-    @Override
-    public void deleteWorkflowEntriesForSite(long siteId) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntriesForSite(siteId));
-    }
-
-    @Override
-    public int getContentPendingApprovalTotal(String siteId) {
-        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED).orElse(0);
-    }
-
-    @Override
-    public List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit) {
-        return workflowDao.getContentPendingApproval(siteId, STATE_OPENED, offset, limit);
-    }
-
-    @Override
-    public List<Workflow> getContentPendingApprovalDetail(String siteId, String packageId) {
-        return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
-    }
-
-    public void setWorkflowDao(WorkflowDAO workflowDao) {
-        this.workflowDao = workflowDao;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

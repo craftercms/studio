@@ -19,10 +19,11 @@ package org.craftercms.studio.api.v1.repository;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -240,10 +241,8 @@ public interface ContentRepository {
      * @param author author
      * @param comment comment
      *
-     * @throws DeploymentException deployment error
      */
-    void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException;
+    void initialPublish(String site, String sandboxBranch, String environment, String author, String comment) throws SiteNotFoundException, PublishException;
 
     /**
      * Get last commit id from repository for given site.

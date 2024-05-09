@@ -43,7 +43,6 @@ import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
@@ -72,9 +71,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public DetailedItem getItem(String siteId, long id) {
-        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+//        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+//        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+//        return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+        // TODO: fix for new publishing system
+        return null;
     }
 
     @Override
@@ -90,16 +91,17 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         if (Objects.isNull(siteFeed)) {
             return null;
         }
-        DetailedItem item;
+        DetailedItem item = null;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER,
-                    COMPLETED, stagingEnv, liveEnv);
-        } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-                    stagingEnv, liveEnv);
-        }
+        // TODO: fix for new publishing system
+//        if (preferContent) {
+//            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER,
+//                    COMPLETED, stagingEnv, liveEnv);
+//        } else {
+//            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+//                    stagingEnv, liveEnv);
+//        }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);
         }

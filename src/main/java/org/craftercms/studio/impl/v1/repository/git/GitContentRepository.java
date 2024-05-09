@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import jakarta.servlet.ServletContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,7 +34,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -66,7 +67,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.context.ServletContextAware;
 
-import jakarta.servlet.ServletContext;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.FileVisitOption;
@@ -859,7 +859,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException {
+            throws PublishException {
         String gitLockKey = helper.getPublishedRepoLockKey(site);
         Repository repo = helper.getRepository(site, PUBLISHED);
 
@@ -889,7 +889,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             } catch (RefNotFoundException e) {
                 logger.error("Failed to checkout published/master and to pull content from sandbox for site '{}'",
                         site, e);
-                throw new DeploymentException(format("Failed to checkout published master and to pull " +
+                throw new PublishException(format("Failed to checkout published master and to pull " +
                         "content from sandbox for site '%s'", site), e);
             }
 
@@ -914,8 +914,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             retryingRepositoryOperationFacade.call(tagCommand);
         } catch (Exception e) {
             logger.error("Failed to publish site '{}' to publishing target '{}'", site, environment, e);
-            throw new DeploymentException(format("Failed to publish site '%s' to publishing target '%s'",
-                    site, environment));
+            throw new PublishException(format("Failed to publish site '%s' to publishing target '%s'",
+                    site, environment), e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }

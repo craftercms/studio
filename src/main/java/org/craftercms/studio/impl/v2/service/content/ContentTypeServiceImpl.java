@@ -21,7 +21,6 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
@@ -87,13 +86,12 @@ public class ContentTypeServiceImpl implements ContentTypeService {
      * @param deleteDependencies indicates if all dependencies should be deleted
      * @throws ServiceLayerException if there is any error deleting the files
      * @throws AuthenticationException if there is any error authenticating the user
-     * @throws DeploymentException if there is any error publishing the changes
      */
     @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
     public void deleteContentType(@SiteId String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
     }
 

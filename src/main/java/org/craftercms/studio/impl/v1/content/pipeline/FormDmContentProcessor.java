@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -57,7 +56,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     public static final String NAME = "WriteContentToDmProcessor";
 
     protected ContentService contentService;
-    protected WorkflowService workflowService;
     protected ServicesConfig servicesConfig;
     protected ContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
@@ -250,7 +248,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {
                 if (cancelWorkflow(site, path)) {
-                    workflowService.removeFromWorkflow(site, path, true);
+                    // TODO: implement for new publishing system
+//                    workflowService.removeFromWorkflow(site, path, true);
                 }
             }
 
@@ -359,10 +358,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     @Lazy
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public void setWorkflowService(WorkflowService workflowService) {
-        this.workflowService = workflowService;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

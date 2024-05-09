@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
@@ -38,23 +37,21 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY_WITH_ERRORS;
-import static org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl.LIVE_ENVIRONMENT;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
@@ -149,27 +146,6 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    public int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
-                                         ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state) {
-        return publishServiceInternal.getPublishingHistoryTotal(siteId, environment, path, publisher, dateFrom, dateTo,
-                contentType, state);
-    }
-
-    @Override
-    public List<PublishingDashboardItem> getPublishingHistory(String siteId, String environment, String path,
-                                                              String publisher, ZonedDateTime dateFrom,
-                                                              ZonedDateTime dateTo, String contentType, long state,
-                                                              String sortBy, String order, int offset, int limit) {
-        List<PublishingHistoryItem> publishingHistoryItems = publishServiceInternal.getPublishingHistory(siteId,
-                environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, offset,
-                limit);
-        return publishingHistoryItems
-                .stream()
-                .map(itemServiceInternal::convertHistoryItemToDashboardItem)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @RequireSiteExists
     public List<DeploymentHistoryGroup> getDeploymentHistory(@SiteId String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) throws ServiceLayerException, UserNotFoundException {
@@ -227,7 +203,8 @@ public class PublishServiceImpl implements PublishService {
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public RepositoryChanges publishAll(@SiteId String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
-        if (LIVE_ENVIRONMENT.equals(publishingTarget) && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+        String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
+        if (liveEnvironment.equals(publishingTarget) && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
             publishServiceInternal.publishAll(siteId, stagingEnvironment, comment);
         }

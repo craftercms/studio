@@ -21,47 +21,13 @@ import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v2.dal.PublishRequest;
 
-import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 	// document
  */
 public interface DeploymentService {
-
-    // document
-    void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
-                String submissionComment, final boolean scheduleDateNow)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Delete content
-     * @param site site identifier
-     * @param paths list of paths to delete
-     * @param approver user that approved deletion
-     * @param scheduledDate scheduled date to execute deletion
-     * @param submissionComment submission comment
-     * @throws DeploymentException general deployment error
-     * @throws SiteNotFoundException if site does not exist
-     */
-    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate, String submissionComment)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException;
-
-    List<PublishRequest> getScheduledItems(String site, String filterType);
-
-    void cancelWorkflow(String site, String path) throws DeploymentException;
-
-    void cancelWorkflowBulk(String site, Set<String> paths) throws DeploymentException;
-
-    void deleteDeploymentDataForSite(String site);
-
-    List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
-                                          boolean subAscending, String filterType) throws ServiceLayerException;
 
     /**
      * Start executing bulk publish for given site, path on given environment
@@ -92,17 +58,6 @@ public interface DeploymentService {
     void publishCommits(String site, String environment, List<String> commitIds, String comment)
             throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException;
 
-    /**
-     * Publish items in given environment for given site
-     * @param site site id to use for publishing
-     * @param environment environment to use for publishing
-     * @param paths item paths to publish
-     * @throws SiteNotFoundException
-     * @throws EnvironmentNotFoundException
-     */
-    void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
-                      String submissionComment)
-            throws ServiceLayerException, DeploymentException, UserNotFoundException;
 
     /**
      * Reset staging environment to live for given site

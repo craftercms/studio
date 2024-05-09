@@ -39,14 +39,13 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -66,7 +65,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -530,9 +528,8 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException {
-        localRepositoryV1.initialPublish(site, sandboxBranch, environment, author, comment);
+    public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment) throws SiteNotFoundException {
+        localRepositoryV2.initialPublish(site);
     }
 
     protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
@@ -607,7 +604,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) throws DeploymentException {
+                        String author, String comment) throws PublishException {
         logger.debug("Publish the items '{}' in site '{}' to target '{}'", deploymentItems, site, environment);
         Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
         MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
@@ -637,7 +634,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
         } catch (Exception e) {
             logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);
-            throw new DeploymentException(format("Failed to publish items in site '%s' to target '%s'",
+            throw new PublishException(format("Failed to publish items in site '%s' to target '%s'",
                     site, environment), e);
         }
     }
@@ -690,13 +687,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                     operation.setMoveToPath(getOriginalPath(operation.getMoveToPath()));
                 })
                 .collect(toList());
-    }
-
-    @Override
-    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                            String publisher, ZonedDateTime fromDate,
-                                                            ZonedDateTime toDate, int limit) {
-        return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
     }
 
     @Override

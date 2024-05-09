@@ -16,39 +16,26 @@
 
 package org.craftercms.studio.impl.v2.job;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.UncategorizedSQLException;
 
 import java.util.*;
 
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_PUBLISHING_PACKAGE;
 
 public class StudioPublisherTask extends StudioClockTask {
 
@@ -57,7 +44,6 @@ public class StudioPublisherTask extends StudioClockTask {
     protected static final Map<String, Integer> retryCounter = new HashMap<>();
 
     protected static final Set<String> dbErrorNotifiedSites = new HashSet<>();
-    private PublishingManager publishingManager;
     private ServicesConfig servicesConfig;
     private NotificationService notificationService;
     private AuditServiceInternal auditServiceInternal;
@@ -67,188 +53,193 @@ public class StudioPublisherTask extends StudioClockTask {
     private ActivityStreamServiceInternal activityStreamServiceInternal;
 
     @Override
-    protected void executeInternal(String siteId) {
-        String siteState = siteService.getSiteState(siteId);
-        if (!StringUtils.equals(siteState, STATE_READY)) {
-            return;
-        }
-        String env = null;
-        try {
-            if (!contentRepository.repositoryExists(siteId) || !siteService.isPublishingEnabled(siteId)) {
-                logger.debug("Publishing is currently disabled for site '{}'", siteId);
-                return;
-            }
-            if (publishingManager.isPublishingBlocked(siteId)) {
-                logger.warn("Publishing is currently blocked for site '{}'", siteId);
-                return;
-            }
-            List<PublishRequest> itemsToDeploy = emptyList();
-            try {
-                if (!retryCounter.containsKey(siteId)) {
-                    retryCounter.put(siteId, maxRetryCounter);
-                }
-                Set<String> environments = getAllPublishingEnvironments(siteId);
-                for (String environment : environments) {
-                    env = environment;
-                    logger.trace("Process content item ready for publishing in site '{}'", siteId);
-                    itemsToDeploy = publishingManager.getItemsReadyForDeployment(siteId, environment);
-                    while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
-                        logger.trace("Publish '{}' items in site '{}'", itemsToDeploy.size(), siteId);
-                        publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
-
-                        logger.info("Publish started in site '{}' for target '{}' with '{}' items " +
-                                        "ready to be published",
-                                siteId, environment, itemsToDeploy.size());
-                        String packageId = itemsToDeploy.get(0).getPackageId();
-                        PublishingProgressObserver observer =
-                                new PublishingProgressObserver(siteId, packageId, environment,
-                                        itemsToDeploy.size());
-                        publishingProgressServiceInternal.addObserver(observer);
-                        doPublishing(siteId, itemsToDeploy, environment);
-                        applicationContext.publishEvent(new PublishEvent(siteId));
-                        retryCounter.remove(siteId);
-                        dbErrorNotifiedSites.remove(siteId);
-                        itemsToDeploy =
-                                publishingManager.getItemsReadyForDeployment(siteId, environment);
-                    }
-                }
-            } catch (UncategorizedSQLException e) {
-                logger.error("Failed to publish items in site '{}' due to a database error",
-                        siteId, e);
-                if (!dbErrorNotifiedSites.add(siteId)) {
-                    notificationService.notifyDeploymentError(siteId, e);
-                }
-                publishingManager.resetProcessingQueue(siteId, env);
-            } catch (Exception e) {
-                logger.error("Failed to publish items in site '{}'", siteId, e);
-                publishingManager.resetProcessingQueue(siteId, env);
-                notificationService.notifyDeploymentError(siteId, e, itemsToDeploy);
-            }
-        } catch (UncategorizedSQLException e) {
-            // TODO: SJ: This is the same catch as above, consolidate
-            logger.error("Failed to publish items in site '{}' due to a database error",
-                    siteId, e);
-            if (!dbErrorNotifiedSites.add(siteId)) {
-                notificationService.notifyDeploymentError(siteId, e);
-            }
-            publishingManager.resetProcessingQueue(siteId, env);
-        } catch (Exception e) {
-            logger.error("Failed to publish items in site '{}'", siteId, e);
-            notificationService.notifyDeploymentError(siteId, e);
-            publishingManager.resetProcessingQueue(siteId, env);
-        } finally {
-            // Unlock publishing if queue does not have packages ready for publishing
-            publishingProgressServiceInternal.removeObserver(siteId);
-        }
+    protected void executeInternal(String site) {
+        // TODO: Implement for the new publishing system
     }
 
-    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        siteService.updatePublishingStatus(siteId, PROCESSING);
-        String status;
-        String author = itemsToDeploy.get(0).getUser();
-        StringBuilder sbComment = new StringBuilder();
-        List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<>();
-        Set<String> processedPaths = new HashSet<>();
-        String currentPackageId = StringUtils.EMPTY;
-        try {
-            logger.info("Publish '{}' items in site '{}' to target '{}'", itemsToDeploy.size(), siteId, environment);
-            Set<String> packageIds = new HashSet<>();
-            for (PublishRequest item : itemsToDeploy) {
-                processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
-                if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
-                    currentPackageId = item.getPackageId();
-                    publishingProgressServiceInternal.updateObserver(siteId, currentPackageId);
-                } else {
-                    publishingProgressServiceInternal.updateObserver(siteId);
-                }
+    //    @Override
+//    protected void executeInternal(String siteId) {
+//        String siteState = siteService.getSiteState(siteId);
+//        if (!StringUtils.equals(siteState, STATE_READY)) {
+//            return;
+//        }
+//        String env = null;
+//        try {
+//            if (!contentRepository.repositoryExists(siteId) || !siteService.isPublishingEnabled(siteId)) {
+//                logger.debug("Publishing is currently disabled for site '{}'", siteId);
+//                return;
+//            }
+//            if (publishingManager.isPublishingBlocked(siteId)) {
+//                logger.warn("Publishing is currently blocked for site '{}'", siteId);
+//                return;
+//            }
+//            List<PublishRequest> itemsToDeploy = emptyList();
+//            try {
+//                if (!retryCounter.containsKey(siteId)) {
+//                    retryCounter.put(siteId, maxRetryCounter);
+//                }
+//                Set<String> environments = getAllPublishingEnvironments(siteId);
+//                for (String environment : environments) {
+//                    env = environment;
+//                    logger.trace("Process content item ready for publishing in site '{}'", siteId);
+//                    itemsToDeploy = publishingManager.getItemsReadyForDeployment(siteId, environment);
+//                    while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
+//                        logger.trace("Publish '{}' items in site '{}'", itemsToDeploy.size(), siteId);
+//                        publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
+//
+//                        logger.info("Publish started in site '{}' for target '{}' with '{}' items " +
+//                                        "ready to be published",
+//                                siteId, environment, itemsToDeploy.size());
+//                        String packageId = itemsToDeploy.get(0).getPackageId();
+//                        PublishingProgressObserver observer =
+//                                new PublishingProgressObserver(siteId, packageId, environment,
+//                                        itemsToDeploy.size());
+//                        publishingProgressServiceInternal.addObserver(observer);
+//                        doPublishing(siteId, itemsToDeploy, environment);
+//                        applicationContext.publishEvent(new PublishEvent(siteId));
+//                        retryCounter.remove(siteId);
+//                        dbErrorNotifiedSites.remove(siteId);
+//                        itemsToDeploy =
+//                                publishingManager.getItemsReadyForDeployment(siteId, environment);
+//                    }
+//                }
+//            } catch (UncategorizedSQLException e) {
+//                logger.error("Failed to publish items in site '{}' due to a database error",
+//                        siteId, e);
+//                if (!dbErrorNotifiedSites.add(siteId)) {
+//                    notificationService.notifyDeploymentError(siteId, e);
+//                }
+//                publishingManager.resetProcessingQueue(siteId, env);
+//            } catch (Exception e) {
+//                logger.error("Failed to publish items in site '{}'", siteId, e);
+//                publishingManager.resetProcessingQueue(siteId, env);
+//                notificationService.notifyDeploymentError(siteId, e, itemsToDeploy);
+//            }
+//        } catch (UncategorizedSQLException e) {
+//            // TODO: SJ: This is the same catch as above, consolidate
+//            logger.error("Failed to publish items in site '{}' due to a database error",
+//                    siteId, e);
+//            if (!dbErrorNotifiedSites.add(siteId)) {
+//                notificationService.notifyDeploymentError(siteId, e);
+//            }
+//            publishingManager.resetProcessingQueue(siteId, env);
+//        } catch (Exception e) {
+//            logger.error("Failed to publish items in site '{}'", siteId, e);
+//            notificationService.notifyDeploymentError(siteId, e);
+//            publishingManager.resetProcessingQueue(siteId, env);
+//        } finally {
+//            // Unlock publishing if queue does not have packages ready for publishing
+//            publishingProgressServiceInternal.removeObserver(siteId);
+//        }
+//    }
+//
+//    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
+//            throws DeploymentException, ServiceLayerException, UserNotFoundException {
+//        siteService.updatePublishingStatus(siteId, PROCESSING);
+//        String status;
+//        String author = itemsToDeploy.get(0).getUser();
+//        StringBuilder sbComment = new StringBuilder();
+//        List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<>();
+//        Set<String> processedPaths = new HashSet<>();
+//        String currentPackageId = StringUtils.EMPTY;
+//        try {
+//            logger.info("Publish '{}' items in site '{}' to target '{}'", itemsToDeploy.size(), siteId, environment);
+//            Set<String> packageIds = new HashSet<>();
+//            for (PublishRequest item : itemsToDeploy) {
+//                processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
+//                if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
+//                    currentPackageId = item.getPackageId();
+//                    publishingProgressServiceInternal.updateObserver(siteId, currentPackageId);
+//                } else {
+//                    publishingProgressServiceInternal.updateObserver(siteId);
+//                }
+//
+//                if (packageIds.add(item.getPackageId())) {
+//                    sbComment.append(item.getSubmissionComment()).append("\n");
+//                }
+//            }
+//            publishingProgressServiceInternal.removeObserver(siteId);
+//            siteService.updatePublishingStatus(siteId, PUBLISHING);
+//            String pkgId = completeDeploymentItemList.get(0).getPackageId();
+//            PublishingProgressObserver observer = new PublishingProgressObserver(siteId, pkgId, environment,
+//                    completeDeploymentItemList.size());
+//            publishingProgressServiceInternal.addObserver(observer);
+//            logger.debug("Start repository processing for site '{}' to target '{}'",
+//                    siteId, environment);
+//            deploy(siteId, environment, completeDeploymentItemList, author,
+//                    sbComment.toString());
+//            logger.debug("Done repository processing for site'{}' to target '{}'",
+//                    siteId, environment);
+//            logger.debug("Generate workflow activity for site '{}' and target '{}'", siteId, environment);
+//            generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
+//            logger.debug("Generated workflow activity for site '{}' and target '{}'", siteId, environment);
+//            publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+//            logger.debug("Items marked completed for site '{}' and target '{}'", siteId, environment);
+//            publishingManager.setPublishedState(siteId, environment, itemsToDeploy);
+//
+//            logger.info("Published '{}' items in site '{}' to target '{}'",
+//                    itemsToDeploy.size(), siteId, environment);
+//
+//            if (publishingManager.isPublishingQueueEmpty(siteId)) {
+//                status = READY;
+//            } else {
+//                status = QUEUED;
+//            }
+//            siteService.updatePublishingStatus(siteId, status);
+//        } catch (Exception e) {
+//            logger.error("Failed to publish '{}' items in site '{}'", itemsToDeploy.size(), siteId, e);
+//            publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+//            siteService.enablePublishing(siteId, false);
+//            siteService.updatePublishingStatus(siteId, ERROR);
+//            throw e;
+//        }
+//    }
 
-                if (packageIds.add(item.getPackageId())) {
-                    sbComment.append(item.getSubmissionComment()).append("\n");
-                }
-            }
-            publishingProgressServiceInternal.removeObserver(siteId);
-            siteService.updatePublishingStatus(siteId, PUBLISHING);
-            String pkgId = completeDeploymentItemList.get(0).getPackageId();
-            PublishingProgressObserver observer = new PublishingProgressObserver(siteId, pkgId, environment,
-                    completeDeploymentItemList.size());
-            publishingProgressServiceInternal.addObserver(observer);
-            logger.debug("Start repository processing for site '{}' to target '{}'",
-                    siteId, environment);
-            deploy(siteId, environment, completeDeploymentItemList, author,
-                    sbComment.toString());
-            logger.debug("Done repository processing for site'{}' to target '{}'",
-                    siteId, environment);
-            logger.debug("Generate workflow activity for site '{}' and target '{}'", siteId, environment);
-            generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
-            logger.debug("Generated workflow activity for site '{}' and target '{}'", siteId, environment);
-            publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
-            logger.debug("Items marked completed for site '{}' and target '{}'", siteId, environment);
-            publishingManager.setPublishedState(siteId, environment, itemsToDeploy);
+//    private void processPublishingRequest(String siteId, String environment, PublishRequest item,
+//                                          List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
+//            throws ServiceLayerException, DeploymentException, UserNotFoundException {
+//        try {
+//            List<DeploymentItemTO> deploymentItemList = new ArrayList<>();
+//
+//            logger.trace("Process item in site '{}' path '{}'", siteId, item.getPath());
+//            DeploymentItemTO deploymentItem = publishingManager.processItem(item);
+//            if (deploymentItem != null) {
+//                deploymentItemList.add(deploymentItem);
+//            }
+//            logger.trace("Processing completed for item in site '{}' path '{}'", siteId, item.getPath());
+//            completeDeploymentItemList.addAll(deploymentItemList);
+//        } catch (Exception e) {
+//            logger.error("Failed to publish items from site '{}' to target '{}'", siteId, environment, e);
+//
+//            publishingManager.markItemsReady(siteId, environment, List.of(item));
+//            siteService.enablePublishing(siteId, false);
+//            siteService.updatePublishingStatus(siteId, ERROR);
+//            throw e;
+//        }
+//    }
 
-            logger.info("Published '{}' items in site '{}' to target '{}'",
-                    itemsToDeploy.size(), siteId, environment);
-
-            if (publishingManager.isPublishingQueueEmpty(siteId)) {
-                status = READY;
-            } else {
-                status = QUEUED;
-            }
-            siteService.updatePublishingStatus(siteId, status);
-        } catch (Exception e) {
-            logger.error("Failed to publish '{}' items in site '{}'", itemsToDeploy.size(), siteId, e);
-            publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
-            siteService.enablePublishing(siteId, false);
-            siteService.updatePublishingStatus(siteId, ERROR);
-            throw e;
-        }
-    }
-
-    private void processPublishingRequest(String siteId, String environment, PublishRequest item,
-                                          List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
-            throws ServiceLayerException, DeploymentException, UserNotFoundException {
-        try {
-            List<DeploymentItemTO> deploymentItemList = new ArrayList<>();
-
-            logger.trace("Process item in site '{}' path '{}'", siteId, item.getPath());
-            DeploymentItemTO deploymentItem = publishingManager.processItem(item);
-            if (deploymentItem != null) {
-                deploymentItemList.add(deploymentItem);
-            }
-            logger.trace("Processing completed for item in site '{}' path '{}'", siteId, item.getPath());
-            completeDeploymentItemList.addAll(deploymentItemList);
-        } catch (Exception e) {
-            logger.error("Failed to publish items from site '{}' to target '{}'", siteId, environment, e);
-
-            publishingManager.markItemsReady(siteId, environment, List.of(item));
-            siteService.enablePublishing(siteId, false);
-            siteService.updatePublishingStatus(siteId, ERROR);
-            throw e;
-        }
-    }
-
-    private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
-            throws DeploymentException, SiteNotFoundException {
-        logger.trace("Publish '{}' items from site '{}' to target '{}' by author '{}' with comment '{}'",
-                items.size(), site, environment, author, comment);
-        SiteFeed siteFeed = siteService.getSite(site);
-        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-            String liveEnvironment = servicesConfig.getLiveEnvironment(site);
-            if (StringUtils.equals(liveEnvironment, environment)) {
-                String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
-                contentRepository.publish(site, siteFeed.getSandboxBranch(), items, stagingEnvironment, author, comment);
-            }
-        }
-        contentRepository.publish(site, siteFeed.getSandboxBranch(), items, environment, author, comment);
-    }
+//    private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
+//            throws DeploymentException, SiteNotFoundException {
+//        logger.trace("Publish '{}' items from site '{}' to target '{}' by author '{}' with comment '{}'",
+//                items.size(), site, environment, author, comment);
+//        SiteFeed siteFeed = siteService.getSite(site);
+//        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+//            String liveEnvironment = servicesConfig.getLiveEnvironment(site);
+//            if (StringUtils.equals(liveEnvironment, environment)) {
+//                String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
+//                contentRepository.publish(site, siteFeed.getSandboxBranch(), items, stagingEnvironment, author, comment);
+//            }
+//        }
+//        contentRepository.publish(site, siteFeed.getSandboxBranch(), items, environment, author, comment);
+//    }
 
     protected void generateWorkflowActivity(String site, String environment, Set<String> packageIds, String username,
                                             String operation) throws ServiceLayerException, UserNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(site);
+        Site siteDAO = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
         auditLog.setActorId(username);
-        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setSiteId(siteDAO.getId());
         auditLog.setPrimaryTargetId(site + ":" + environment);
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(environment);
@@ -265,7 +256,7 @@ public class StudioPublisherTask extends StudioClockTask {
 
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         packageIds.parallelStream().forEach(packageId ->
-                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), operation,
+                activityStreamServiceInternal.insertActivity(siteDAO.getId(), user.getId(), operation,
                         DateUtils.getCurrentTime(), null, packageId)
         );
     }
@@ -277,10 +268,6 @@ public class StudioPublisherTask extends StudioClockTask {
             environments.add(servicesConfig.getStagingEnvironment(site));
         }
         return environments;
-    }
-
-    public void setPublishingManager(PublishingManager publishingManager) {
-        this.publishingManager = publishingManager;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

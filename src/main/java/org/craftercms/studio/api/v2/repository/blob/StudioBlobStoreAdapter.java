@@ -20,13 +20,11 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.core.io.Resource;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -244,14 +242,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                             String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                             int limit) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }

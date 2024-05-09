@@ -28,7 +28,6 @@ import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -39,7 +38,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -47,6 +45,7 @@ import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -55,20 +54,18 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressS
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.StopWalkException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
-import org.eclipse.jgit.revwalk.filter.*;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -84,10 +81,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -121,7 +115,6 @@ public class GitContentRepository implements ContentRepository {
     private ContentStoreService contentStoreService;
     private GeneralLockService generalLockService;
     private SiteService siteService;
-    private PublishRequestDAO publishRequestDao;
     private ItemServiceInternal itemServiceInternal;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
@@ -422,85 +415,6 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String pathRegex,
-                                                            String publisher, ZonedDateTime fromDate,
-                                                            ZonedDateTime toDate, int limit) {
-        List<PublishingHistoryItem> toRet = new ArrayList<>();
-        Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
-        if (publishedRepo != null) {
-            int counter = 0;
-            try (Git git = new Git(publishedRepo)) {
-                // List all environments
-                ListBranchCommand listBranchCommand = git.branchList();
-                List<Ref> environments = retryingRepositoryOperationFacade.call(listBranchCommand);
-                for (int i = 0; i < environments.size() && counter < limit; i++) {
-                    Ref env = environments.get(i);
-                    String environmentGit = env.getName();
-                    environmentGit = environmentGit.replace(R_HEADS, "");
-                    if ((StringUtils.isBlank(environment) && !StringUtils.equals(MASTER, environmentGit))
-                            || StringUtils.equals(environment, environmentGit)) {
-                        List<RevFilter> filters = new ArrayList<>();
-                        if (fromDate != null) {
-                            filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
-                        }
-                        if (toDate != null) {
-                            filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
-                        } else {
-                            filters.add(CommitTimeRevFilter.before(Instant.now().toEpochMilli()));
-                        }
-                        filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
-                        if (StringUtils.isNotEmpty(publisher)) {
-                            User user = userServiceInternal.getUserByIdOrUsername(-1, publisher);
-                            filters.add(AuthorRevFilter.create(helper.getAuthorIdent(user).getName()));
-                        }
-                        LogCommand logCommand = git.log()
-                                .add(env.getObjectId())
-                                .setRevFilter(AndRevFilter.create(filters));
-                        Iterable<RevCommit> branchLog = retryingRepositoryOperationFacade.call(logCommand);
-
-                        Iterator<RevCommit> iterator = branchLog.iterator();
-                        while (iterator.hasNext() && counter < limit) {
-                            RevCommit revCommit = iterator.next();
-                            List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
-                            for (int j = 0; j < files.size() && counter < limit; j++) {
-                                String file = files.get(j);
-                                Path path = Paths.get(file);
-                                String fileName = path.getFileName().toString();
-                                if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
-                                    boolean addFile;
-                                    if (StringUtils.isNotEmpty(pathRegex)) {
-                                        Pattern pattern = Pattern.compile(pathRegex);
-                                        Matcher matcher = pattern.matcher(file);
-                                        addFile = matcher.matches();
-                                    } else {
-                                        addFile = true;
-                                    }
-                                    if (addFile) {
-                                        PublishingHistoryItem phi = new PublishingHistoryItem();
-                                        phi.setSiteId(siteId);
-                                        phi.setPath(file);
-                                        phi.setPublishedDate(
-                                                Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
-                                        phi.setPublisher(revCommit.getAuthorIdent().getName());
-                                        phi.setEnvironment(environmentGit.replace(R_HEADS, ""));
-                                        toRet.add(phi);
-                                        counter++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                git.close();
-                toRet.sort((o1, o2) -> o2.getPublishedDate().compareTo(o1.getPublishedDate()));
-            } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e) {
-                logger.error("Failed to get the deployment history for site '{}'", siteId, e);
-            }
-        }
-        return toRet;
-    }
-
-    @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
                                            Map<String, String> params, String creator) {
         boolean toReturn;
@@ -542,7 +456,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) throws DeploymentException {
+                        String author, String comment) throws PublishException {
         if (CollectionUtils.isEmpty(deploymentItems)) {
             return;
         }
@@ -562,199 +476,15 @@ public class GitContentRepository implements ContentRepository {
                 sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
             }
 
-            String sandboxLastCommit;
-            try (Git git = new Git(repo)) {
-                String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+            // TODO: implement new publishing system
 
-                // fetch "origin/master"
-                logger.debug("Fetch from sandbox in site '{}'", site);
-                FetchCommand fetchCommand = git.fetch();
-                retryingRepositoryOperationFacade.call(fetchCommand);
-
-                // checkout master and pull from sandbox
-                logger.debug("Checkout published/master branch in site '{}'", site);
-                try {
-                    // First delete it in case it already exists (ignored if it does not exist)
-                    resetIfNeeded(repo, git);
-
-                    Ref ref = repo.exactRef(R_HEADS + sandboxBranchName);
-                    boolean createBranch = (ref == null);
-
-                    checkoutBranch(git, sandboxBranchName, createBranch);
-
-                    logger.debug("Delete 'in-progress' branch, in case it was not cleaned up in site '{}'", site);
-                    deleteBranches(git, inProgressBranchName);
-
-                    PullCommand pullCommand = git.pull().
-                            setRemote(DEFAULT_REMOTE_NAME)
-                            .setRemoteBranchName(sandboxBranchName)
-                            .setStrategy(THEIRS);
-                    retryingRepositoryOperationFacade.call(pullCommand);
-
-                    sandboxLastCommit = repo.resolve(HEAD).getName();
-                    logger.debug("Publishing from HEAD '{}' in site '{}'", sandboxLastCommit, site);
-                } catch (RefNotFoundException e) {
-                    logger.error("Failed to checkout published/master and to pull content from sandbox " +
-                            "in site '{}'", site, e);
-                    throw new DeploymentException(format("Failed to checkout published/master and to pull " +
-                            "content from sandbox in site '%s'", site), e);
-                }
-
-                // checkout environment branch
-                logger.debug("Ensure target branch '{}' exists in site '{}'", environment, site);
-                ensureEnvironmentBranch(site, environment, repo, sandboxBranchName);
-
-                try {
-                    // Create in progress branch
-                    logger.debug("Create in-progress branch in site '{}'", site);
-                    CheckoutCommand checkoutCommand = git.checkout()
-                            .setCreateBranch(true)
-                            .setForceRefUpdate(true)
-                            .setStartPoint(environment)
-                            .setUpstreamMode(TRACK)
-                            .setName(inProgressBranchName);
-                    retryingRepositoryOperationFacade.call(checkoutCommand);
-                } catch (GitAPIException e) {
-                    logger.error("Failed to create in-progress published branch in site '{}'", site, e);
-                    throw e;
-                }
-
-                Set<String> deployedPackages = new HashSet<>();
-                logger.debug("Checkout deployed files started for site '{}'", site);
-                String currentPackageId = deploymentItems.get(0).getPackageId();
-                // TODO: SJ: Review the following code and refactor for better performance
-                // TODO: The logic should be something like:
-                // TODO: If item doesn't exist in git, the repo was reset and the commit ID doesn't mean anything
-                // TODO:   skip this file
-                // TODO: If the commit ID is null, use HEAD
-                // TODO: Publish the file
-
-                CheckoutCommand checkout = git.checkout();
-                checkout.setStartPoint(sandboxLastCommit);
-                for (DeploymentItemTO deploymentItem : deploymentItems) {
-                    path = helper.getGitPath(deploymentItem.getPath());
-                    // The commit ID is not null and the content exists in the published repository OR
-                    // The commit ID was null and it was set to HEAD to avoid the null issue
-                    logger.debug("Publish to the temporary branch path '{}' site '{}' commit ID '{}'",
-                            path, site, sandboxLastCommit);
-
-                    checkout.addPath(path);
-
-                    if (deploymentItem.isMove()) {
-                        if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
-                            String oldPath = helper.getGitPath(deploymentItem.getOldPath());
-                            RmCommand rmCommand = git.rm().addFilepattern(oldPath).setCached(false);
-                            retryingRepositoryOperationFacade.call(rmCommand);
-                            cleanUpMoveFolders(git, oldPath);
-                        }
-                    }
-
-                    if (deploymentItem.isDelete()) {
-                        // If old path exists, that means the item has not been published after rename, delete the old path instead
-                        String deletePath = helper.getGitPath(defaultIfEmpty(deploymentItem.getOldPath(), deploymentItem.getPath()));
-                        boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
-                        RmCommand rmCommand = git.rm().addFilepattern(deletePath).setCached(false);
-                        retryingRepositoryOperationFacade.call(rmCommand);
-                        Path parentToDelete = Paths.get(path).getParent();
-                        deleteParentFolder(git, parentToDelete, isPage);
-                    }
-                    String packageId = deploymentItem.getPackageId();
-                    if (StringUtils.isNotEmpty(packageId)) {
-                        deployedPackages.add(deploymentItem.getPackageId());
-                    }
-
-                    itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
-                            DateUtils.getCurrentTime());
-
-                    if (!StringUtils.equals(currentPackageId, deploymentItem.getPackageId())) {
-                        currentPackageId = deploymentItem.getPackageId();
-                        publishingProgressServiceInternal.updateObserver(site, currentPackageId);
-                    } else {
-                        publishingProgressServiceInternal.updateObserver(site);
-                    }
-                } // end of for loop
-
-                retryingRepositoryOperationFacade.call(checkout);
-
-                // All deployable files are now checked out in the temporary in-progress publishing branch
-                logger.debug("Checkout deployed files completed for site '{}'", site);
-
-                // commit all deployed files
-                String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
-
-                User user = userServiceInternal.getUserByIdOrUsername(-1, author);
-                PersonIdent authorIdent = helper.getAuthorIdent(user);
-
-                commitMessage = commitMessage.replace("{username}", author);
-                commitMessage =
-                        commitMessage.replace("{datetime}",
-                                DateUtils.getCurrentTime().format(
-                                        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
-                commitMessage = commitMessage.replace("{source}", "UI");
-                commitMessage = commitMessage.replace("{message}", comment);
-                StringBuilder sbPackage = new StringBuilder();
-                for (String p : deployedPackages) {
-                    sbPackage.append(p).append(" ");
-                }
-                commitMessage = commitMessage.replace("{commit_id}", sandboxLastCommit);
-                commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
-
-                String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
-                String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
-                StringBuilder sbCommitMessage = new StringBuilder();
-                if (StringUtils.isNotEmpty(prologue)) {
-                    sbCommitMessage.append(prologue).append("\n\n");
-                }
-                sbCommitMessage.append(commitMessage);
-                if (StringUtils.isNotEmpty(postscript)) {
-                    sbCommitMessage.append("\n\n").append(postscript);
-                }
-
-                logger.debug("Git commit all published items for site '{}' started", site);
-                CommitCommand commitCommand =
-                        git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent);
-                RevCommit revCommit = retryingRepositoryOperationFacade.call(commitCommand);
-                logger.debug("Git commit all published items for site '{}' completed", site);
-
-                int commitTime = revCommit.getCommitTime();
-
-                // tag
-                ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(UTC);
-                String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
-                String tagName2 = DateUtils.formatDate(tagDate2, "yyyy-MM-dd'T'HHmmssSSSX") +
-                        "_published_on_" + publishDate;
-                PersonIdent authorIdent2 = helper.getAuthorIdent(user);
-
-                logger.debug("Git tag started for site '{}'", site);
-                TagCommand tagCommand =
-                        git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage);
-                retryingRepositoryOperationFacade.call(tagCommand);
-                logger.debug("Git tag completed for site '{}'", site);
-
-                // Checkout the publishing target branch
-                logger.debug("Checkout publishing target branch '{}' for site '{}'", environment, site);
-                checkoutBranch(git, environment);
-
-                Ref branchRef = repo.findRef(inProgressBranchName);
-
-                // merge in-progress branch
-                logger.debug("Merge the in-progress branch into the target branch '{}' for site '{}'",
-                        environment, site);
-                MergeCommand mergeCommand = git.merge().setCommit(true).include(branchRef);
-                retryingRepositoryOperationFacade.call(mergeCommand);
-
-                // clean up
-                logger.debug("Delete the in-progress branch (clean up) for site '{}'", site);
-                deleteBranches(git, inProgressBranchName);
-
-                if (repoCreated) {
-                    siteService.setPublishedRepoCreated(site);
-                }
+            if (repoCreated) {
+                siteService.setPublishedRepoCreated(site);
             }
         } catch (Exception e) {
             logger.error("Failed to publish site '{}' to publishing target '{}'",
                     site, environment, e);
-            throw new DeploymentException(format("Failed to publish site '%s' to publishing target " +
+            throw new PublishException(format("Failed to publish site '%s' to publishing target " +
                             "'%s'", site, environment), e);
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1332,8 +1062,9 @@ public class GitContentRepository implements ContentRepository {
                 logger.error("Failed to get the repository properties for content at site '{}' path '{}'",
                         siteId, path);
             }
-            environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
-                    PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
+            // TODO: fix for new publishing system
+//            environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
+//                    PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
         }
     }
 
@@ -1848,10 +1579,6 @@ public class GitContentRepository implements ContentRepository {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
-        this.publishRequestDao = publishRequestDao;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {

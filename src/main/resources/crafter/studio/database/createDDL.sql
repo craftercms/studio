@@ -211,7 +211,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.8', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.9', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -606,9 +606,9 @@ CREATE TABLE IF NOT EXISTS `publish_package`
     FOREIGN KEY `publish_package_submitter_id`(`submitter_id`) REFERENCES `user` (`id`),
     FOREIGN KEY `publish_package_reviewer_id`(`reviewer_id`) REFERENCES `user` (`id`)
 )
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 /*
     An item to be published as part of a package
@@ -624,12 +624,11 @@ CREATE TABLE IF NOT EXISTS `publish_item`
     `state`	            ENUM('PENDING', 'PUBLISHED', 'FAILED')	NOT NULL,
     `error`	            TEXT,
     PRIMARY KEY(`id`),
-    FOREIGN KEY `publish_item_package_id`(`package_id`) REFERENCES `publish_package` (`id`) ON DELETE CASCADE,
-    UNIQUE INDEX `package_path_unique` (`package_id`, `path`)
+    FOREIGN KEY `publish_item_package_id`(`package_id`) REFERENCES `publish_package` (`id`) ON DELETE CASCADE
 )
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 /*
     Allows to link a publish_item to an item if it exists (items can be deleted afterwards)
@@ -641,9 +640,9 @@ CREATE TABLE IF NOT EXISTS `item_publish_item`
     FOREIGN KEY `item_publish_item_publish_item_id`(`publish_item_id`) REFERENCES `publish_item` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `item_publish_item_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 /*
     Keep track of old paths for published and then renamed content items

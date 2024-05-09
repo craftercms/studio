@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.content;
 
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -31,8 +32,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -49,7 +48,6 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -67,7 +65,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
-import jakarta.validation.Valid;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -83,7 +80,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private ContentServiceInternal contentServiceInternal;
     private ContentTypeServiceInternal contentTypeServiceInternal;
     private DependencyServiceInternal dependencyServiceInternal;
-    private DeploymentService deploymentService;
     private UserServiceInternal userServiceInternal;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
@@ -146,14 +142,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public boolean deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                  String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         List<String> contentToDelete = new ArrayList<>(getChildItems(siteId, path));
         contentToDelete.add(path);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
 
         AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
-                DateUtils.getCurrentTime(), submissionComment);
+        // TODO: implement for new publishing system
+//        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+//                DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -165,14 +162,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public boolean deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         List<String> contentToDelete = new ArrayList<>();
         contentToDelete.addAll(getChildItems(siteId, paths));
         contentToDelete.addAll(paths);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
-                DateUtils.getCurrentTime(), submissionComment);
+        // TODO: implement for new publishing system
+//        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+//                DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -381,10 +379,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-    }
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

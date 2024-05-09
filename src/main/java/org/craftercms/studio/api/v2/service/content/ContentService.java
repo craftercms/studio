@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -99,10 +98,9 @@ public interface ContentService {
      *
      * @throws ServiceLayerException general service error
      * @throws AuthenticationException authentication error
-     * @throws DeploymentException deployment error caused by delete
      */
     boolean deleteContent(String siteId, String path, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**
      * Delete content for given paths. Following content will be deleted:
@@ -115,10 +113,9 @@ public interface ContentService {
      *
      * @throws ServiceLayerException general service error
      * @throws AuthenticationException authentication error
-     * @throws DeploymentException deployment error caused by delete
      */
     boolean deleteContent(String siteId, List<String> paths, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**
      * Get list of children for given path

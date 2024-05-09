@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
@@ -27,7 +29,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
@@ -51,8 +52,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -132,7 +131,7 @@ public class ContentController {
     @Valid
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException {
+            throws UserNotFoundException, ServiceLayerException {
         workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
                 deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
 
@@ -296,7 +295,7 @@ public class ContentController {
 
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
-            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
+            throws AuthenticationException, UserNotFoundException, ServiceLayerException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 
         var responseBody = new ResponseBody();

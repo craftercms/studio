@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,24 +13,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.service.workflow.context;
 
-public class RequestContext {
-    
-    protected String _site;
-    
-    protected String _currentUser;
+package org.craftercms.studio.api.v2.exception.publish;
 
-    public RequestContext(String site, String currentUser) {
-        this._site = site;
-        this._currentUser = currentUser;
-    }
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-    public String getSite() {
-        return _site;
-    }
+/**
+ * General exception for publish operations.
 
-    public String getUser() {
-        return _currentUser;
+ */
+public class PublishException extends ServiceLayerException {
+    public PublishException(String message, Exception e) {
+        super(message, e);
     }
 }

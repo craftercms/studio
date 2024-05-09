@@ -56,7 +56,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
@@ -196,9 +195,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
-                CONTENT_TYPE_FOLDER, COMPLETED,
-                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
+        // TODO: fix for new publishing system
+        List< org.craftercms.studio.api.v2.dal.DetailedItem> items = emptyList();
+//        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
+//                CONTENT_TYPE_FOLDER, COMPLETED,
+//                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
         List<DetailedItem> result = new ArrayList<>();
         for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
             DetailedItem detailedItem = DetailedItem.getInstance(item);
@@ -217,16 +218,17 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        org.craftercms.studio.api.v2.dal.DetailedItem item;
+        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        if (preferContent) {
-            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-                    stagingEnv, liveEnv);
-        } else {
-            item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv,
-                    liveEnv);
-        }
+        // TODO: fix for new publishing system
+//        if (preferContent) {
+//            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+//                    stagingEnv, liveEnv);
+//        } else {
+//            item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv,
+//                    liveEnv);
+//        }
         if (item == null) {
             throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
         }

@@ -20,9 +20,9 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v2.repository.GitContentRepository;
@@ -281,7 +281,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void publishRemoteFileTest() throws DeploymentException {
+    public void publishRemoteFileTest() throws PublishException {
         DeploymentItemTO item = new DeploymentItemTO();
         item.setSite(SITE);
         item.setPath(ORIGINAL_PATH);
@@ -300,7 +300,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void publishLocalFileTest() throws DeploymentException {
+    public void publishLocalFileTest() throws PublishException {
         DeploymentItemTO item = new DeploymentItemTO();
         item.setSite(SITE);
         item.setPath(LOCAL_PATH);
@@ -318,7 +318,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void publishMixFilesTest() throws DeploymentException {
+    public void publishMixFilesTest() throws PublishException {
         DeploymentItemTO remoteItem = new DeploymentItemTO();
         remoteItem.setSite(SITE);
         remoteItem.setPath(ORIGINAL_PATH);

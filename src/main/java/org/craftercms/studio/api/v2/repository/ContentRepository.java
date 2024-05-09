@@ -23,17 +23,15 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -95,22 +93,6 @@ public interface ContentRepository {
     String getRepoFirstCommitId(String site);
 
     /**
-     * Get publishing history
-     *
-     * @param siteId site identifier
-     * @param environment environment
-     * @param path path regular expression to use as filter
-     * @param publisher user to filter by
-     * @param fromDate lower boundary for published date
-     * @param toDate upper boundary for published date
-     * @param limit number of records to return
-     * @return publishing history
-     */
-    List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                     String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                     int limit);
-
-    /**
      * Create a new site based on a blueprint
      *
      * @param blueprintLocation blueprint location
@@ -132,10 +114,9 @@ public interface ContentRepository {
      * @param environment environment to publish to
      * @param author author
      * @param comment submission comment
-     * @throws DeploymentException deployment error
      */
     void publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                 String author, String comment) throws DeploymentException;
+                 String author, String comment) throws PublishException;
 
     /**
      * Check if repository exists for  given site

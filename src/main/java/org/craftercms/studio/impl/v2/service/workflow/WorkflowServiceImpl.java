@@ -22,22 +22,16 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -46,9 +40,9 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -58,20 +52,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
-import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
+import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
@@ -87,9 +78,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
-    private WorkflowServiceInternal workflowServiceInternal;
+    private WorkflowService workflowServiceInternal;
     private UserServiceInternal userServiceInternal;
-    private DeploymentService deploymentService;
     private NotificationService notificationService;
     private DependencyService dependencyService;
     private PublishServiceInternal publishServiceInternal;
@@ -191,428 +181,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         return descendants;
     }
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public void requestPublish(@SiteId String siteId,
-                               @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                               List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
-                               String comment, boolean sendEmailNotifications)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException {
-        // Create submission package
-        List<String> pathsToAddToWorkflow = calculateSubmissionPackage(siteId, paths, optionalDependencies);
-        try {
-            String submittedBy = securityService.getCurrentUser();
-            // set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, true);
-            // cancel existing workflow
-            cancelExistingWorkflowEntries(siteId, pathsToAddToWorkflow);
-            // create new workflow entries
-            createWorkflowEntries(siteId, pathsToAddToWorkflow, submittedBy, publishingTarget, schedule, comment,
-                    sendEmailNotifications);
-            // notify approvers
-            notificationService.notifyApprovesContentSubmission(
-                    siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment);
-            // create audit log entries
-            createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy, comment);
-            // trigger event
-            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
-        } finally {
-            // clear system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, false);
-        }
-    }
-
-    private List<String> calculateSubmissionPackage(String siteId, List<String> paths,
-                                                    List<String> optionalDependencies) throws ServiceLayerException {
-        List<String> submissionPackage = new LinkedList<>(paths);
-        if (CollectionUtils.isNotEmpty(optionalDependencies)) {
-            submissionPackage.addAll(optionalDependencies);
-        }
-        List<String> dependencies = dependencyServiceInternal.getHardDependencies(siteId, submissionPackage);
-        submissionPackage.addAll(dependencies);
-        return submissionPackage;
-    }
-
-    private void cancelExistingWorkflowEntries(String siteId, List<String> paths) throws DeploymentException {
-        if (CollectionUtils.isNotEmpty(paths)) {
-            deploymentService.cancelWorkflowBulk(siteId, Set.copyOf(paths));
-            workflowServiceInternal.deleteWorkflowEntries(siteId, paths);
-            itemServiceInternal.updateStateBitsBulk(siteId, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
-        }
-    }
-
-    private void createWorkflowEntries(String siteId, List<String> paths, String submittedBy, String publishingTarget,
-                                       ZonedDateTime scheduledDate, String submissionComment,
-                                       boolean sendEmailNotifications)
-            throws UserNotFoundException, ServiceLayerException {
-        User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
-        List<Workflow> workflowEntries = new LinkedList<>();
-        for (String path : paths) {
-            Item it = itemServiceInternal.getItem(siteId, path);
-            if (it == null) {
-                throw new ContentNotFoundException(path, siteId, format("Failed to retrieve item at path '%s' in site '%s'", path, siteId));
-            }
-
-            Workflow workflow = new Workflow();
-            workflow.setItemId(it.getId());
-            workflow.setSubmitterId(userObj.getId());
-            workflow.setNotifySubmitter(sendEmailNotifications ? 1 : 0);
-            workflow.setSubmitterComment(submissionComment);
-            workflow.setTargetEnvironment(publishingTarget);
-            if (Objects.nonNull(scheduledDate)) {
-                workflow.setSchedule(scheduledDate);
-            }
-            workflow.setState(STATE_OPENED);
-            workflow.setTargetEnvironment(publishingTarget);
-            workflowEntries.add(workflow);
-        }
-        workflowServiceInternal.insertWorkflowEntries(workflowEntries);
-
-        // Item
-        String liveEnvironment = StringUtils.EMPTY;
-        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
-        }
-        boolean isLive = false;
-        if (StringUtils.isEmpty(liveEnvironment)) {
-            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
-        }
-        if (liveEnvironment.equals(publishingTarget)) {
-            isLive = true;
-        }
-
-        if (Objects.nonNull(scheduledDate)) {
-            if (isLive) {
-                itemServiceInternal.updateStateBitsBulk(siteId, paths,
-                        SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK,
-                        SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK);
-            } else {
-                itemServiceInternal.updateStateBitsBulk(siteId, paths, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
-                        SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
-            }
-        } else {
-            if (isLive) {
-                itemServiceInternal.updateStateBitsBulk(siteId, paths, SUBMIT_TO_WORKFLOW_LIVE_ON_MASK,
-                        SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK);
-            } else {
-                itemServiceInternal.updateStateBitsBulk(siteId, paths, SUBMIT_TO_WORKFLOW_ON_MASK,
-                        SUBMIT_TO_WORKFLOW_OFF_MASK);
-            }
-        }
-    }
-
-    private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy,
-                                                   String comment)
-            throws ServiceLayerException, UserNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(siteId);
-        User user = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_REQUEST_PUBLISH);
-        auditLog.setActorId(submittedBy);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-        auditLog.setPrimaryTargetValue(siteId);
-        var auditLogParameters = new ArrayList<AuditLogParameter>();
-        submittedPaths.forEach(path -> {
-            var auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":" + path);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParameter.setTargetValue(path);
-            auditLogParameters.add(auditLogParameter);
-        });
-        if (isNotEmpty(comment)) {
-            AuditLogParameter auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":submissionComment");
-            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
-            auditLogParameter.setTargetValue(comment);
-            auditLogParameters.add(auditLogParameter);
-        }
-        auditLog.setParameters(auditLogParameters);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        // TODO: Can we do a bulk getWorkflowEntries?
-        recordActivityForPaths(submittedPaths, siteFeed, user.getId(), OPERATION_REQUEST_PUBLISH);
-    }
-
-    @Override
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void publish(@SiteId String siteId,
-                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                        List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
-                        String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
-        if (!publishServiceInternal.isSitePublished(siteId)) {
-            publishServiceInternal.initialPublish(siteId);
-            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
-                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
-            createInitialPublishAuditLog(siteId);
-            // trigger event
-            applicationContext.publishEvent(new PublishEvent(securityService.getAuthentication(), siteId));
-        } else {
-            // Create publish package
-            List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
-            try {
-                // Set system processing
-                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-                // Cancel scheduled items from publishing queue
-                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
-                // Add to publishing queue
-                String publishedBy = securityService.getCurrentUser();
-                boolean scheduledDateIsNow = false;
-                if (schedule == null) {
-                    scheduledDateIsNow = true;
-                    schedule = getCurrentTime();
-                }
-                deploymentService.deploy(siteId, publishingTarget, pathsToPublish, schedule, publishedBy, comment, scheduledDateIsNow);
-                // Insert audit log
-                createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);
-                // Trigger event
-                applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
-            } finally {
-                // Reset system processing
-                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
-            }
-        }
-    }
-
-    private List<String> calculatePublishPackage(String siteId, List<String> paths, List<String> optionalDependencies)
-            throws ServiceLayerException {
-        List<String> submissionPackage = new LinkedList<>(paths);
-        if (CollectionUtils.isNotEmpty(optionalDependencies)) {
-            submissionPackage.addAll(optionalDependencies);
-        }
-        List<String> dependencies = dependencyServiceInternal.getHardDependencies(siteId, submissionPackage);
-        submissionPackage.addAll(dependencies);
-        List<String> publishPackage = new LinkedList<>(submissionPackage);
-        // Calculate renamed items and add renamed children
-        List<Item> items = itemServiceInternal.getItems(siteId, submissionPackage, false);
-        items.forEach(item -> {
-            if (isNotEmpty(item.getPreviousPath())) {
-                publishPackage.addAll(itemServiceInternal.getSubtreeForDelete(siteId, item.getPath()));
-            }
-        });
-        return publishPackage;
-    }
-
-    private void recordActivityForPaths(List<String> paths, SiteFeed site, long userId, String operation) {
-        recordActivityForPaths(paths, site, userId, operation, STATE_OPENED);
-    }
-
-    private void recordActivityForPaths(List<String> paths, SiteFeed site, long userId, String operation, String state) {
-        List<WorkflowItem> items = paths.stream()
-                .map(path -> workflowServiceInternal.getWorkflowItem(site.getSiteId(), path, state))
-                .filter(Objects::nonNull) // there is no workflow entry for direct publishes
-                .collect(toList());
-        recordActivityForItems(items, site, userId, operation);
-    }
-
-    private void recordActivityForItems(List<WorkflowItem> items, SiteFeed site, long userId, String operation) {
-        items.forEach(entry ->
-                activityStreamServiceInternal.insertActivity(site.getId(), userId, operation, getCurrentTime(),
-                        entry.getItem(), entry.getPublishingPackageId()));
-    }
-
-    private void createPublishAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy)
-            throws ServiceLayerException, UserNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(siteId);
-        User user = userServiceInternal.getUserByIdOrUsername(-1, publishedBy);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_PUBLISH);
-        auditLog.setActorId(publishedBy);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
-        var auditLogParameters = new ArrayList<AuditLogParameter>();
-        pathsToPublish.forEach(path -> {
-            var auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":" + path);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParameter.setTargetValue(path);
-            auditLogParameters.add(auditLogParameter);
-        });
-        auditLog.setParameters(auditLogParameters);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        recordActivityForPaths(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
-    }
-
-    @Override
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void approve(@SiteId String siteId,
-                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                        List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
-                        String comment) throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        if (!publishServiceInternal.isSitePublished(siteId)) {
-            publishServiceInternal.initialPublish(siteId);
-            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
-                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
-            createInitialPublishAuditLog(siteId);
-            // trigger event
-            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
-        } else {
-            // Create publish package
-            List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
-            try {
-                // Set system processing
-                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-                // Cancel scheduled items from publishing queue
-                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
-                // Add to publishing queue
-                String publishedBy = securityService.getCurrentUser();
-                boolean scheduledDateIsNow = false;
-                if (schedule == null) {
-                    scheduledDateIsNow = true;
-                    schedule = getCurrentTime();
-                }
-                deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
-                // Insert audit log
-                createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy, comment);
-                // Trigger event
-                applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
-            } finally {
-                // Reset system processing
-                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
-            }
-        }
-    }
-
-    private void createApproveAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy,
-                                            String comment)
-            throws ServiceLayerException, UserNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(siteId);
-        User user = userServiceInternal.getUserByIdOrUsername(-1, publishedBy);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_PUBLISH);
-        auditLog.setActorId(publishedBy);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
-        var auditLogParameters = new ArrayList<AuditLogParameter>();
-        pathsToPublish.forEach(path -> {
-            var auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":" + path);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParameter.setTargetValue(path);
-            auditLogParameters.add(auditLogParameter);
-        });
-        if (isNotEmpty(comment)) {
-            AuditLogParameter auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":submissionComment");
-            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
-            auditLogParameter.setTargetValue(comment);
-            auditLogParameters.add(auditLogParameter);
-        }
-        auditLog.setParameters(auditLogParameters);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        recordActivityForPaths(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH, STATE_APPROVED);
-    }
-
-    private void createInitialPublishAuditLog(String siteId) throws ServiceLayerException, UserNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(siteId);
-        String username = securityService.getCurrentUser();
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_INITIAL_PUBLISH);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(username);
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_INITIAL_PUBLISH,
-                getCurrentTime(), null, null);
-    }
-
-    @Override
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void reject(@SiteId String siteId,
-                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                       String comment) throws ServiceLayerException, DeploymentException, UserNotFoundException {
-        // Create submission package
-        List<String> pathsToCancelWorkflow = calculateSubmissionPackage(siteId, paths, null);
-        try {
-            boolean shouldNotify = false;
-
-            String rejectedBy = securityService.getCurrentUser();
-            // set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, true);
-
-            // get submitters list
-            Set<String> submitterList = new HashSet<>();
-
-            // Fetch the workflow entries before deleting them
-            List<WorkflowItem> workflowItems = pathsToCancelWorkflow.stream()
-                    .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
-                    .filter(Objects::nonNull)
-                    .collect(toList());
-
-            for (WorkflowItem workflowItem : workflowItems) {
-                shouldNotify = shouldNotify || workflowItem.getNotifySubmitter() == 1;
-                try {
-                    User submitter = userServiceInternal
-                            .getUserByIdOrUsername(workflowItem.getSubmitterId(), StringUtils.EMPTY);
-                    if (Objects.nonNull(submitter)) {
-                        submitterList.add(submitter.getUsername());
-                    }
-                } catch (UserNotFoundException | ServiceLayerException e) {
-                    logger.debug("Failed to send notification because the submitter's username was not found for " +
-                            "the paths '{}' in site '{}'", paths, siteId, e);
-                }
-            }
-
-            // cancel workflow
-            cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
-            // create audit log entries
-            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, workflowItems, rejectedBy, comment);
-            // notify rejection
-            if (shouldNotify) {
-                notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
-            }
-            // trigger event
-            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
-        } finally {
-            // clear system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, false);
-        }
-    }
-
-    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, List<WorkflowItem> rejectedItems,
-                                           String rejectedBy, String comment)
-            throws ServiceLayerException, UserNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(siteId);
-        User user = userServiceInternal.getUserByIdOrUsername(-1, rejectedBy);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_REJECT);
-        auditLog.setActorId(rejectedBy);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
-        var auditLogParameters = new ArrayList<AuditLogParameter>();
-        submittedPaths.forEach(path -> {
-            var auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":" + path);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParameter.setTargetValue(path);
-            auditLogParameters.add(auditLogParameter);
-        });
-        if (isNotEmpty(comment)) {
-            AuditLogParameter auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":rejectionComment");
-            auditLogParameter.setTargetType(TARGET_TYPE_REJECTION_COMMENT);
-            auditLogParameter.setTargetValue(comment);
-            auditLogParameters.add(auditLogParameter);
-        }
-        auditLog.setParameters(auditLogParameters);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        recordActivityForItems(rejectedItems, siteFeed, user.getId(), OPERATION_REJECT);
-    }
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
                                  List<String> submitterList) {
@@ -625,7 +193,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public void delete(@SiteId String siteId,
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                        List<String> optionalDependencies, String comment)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
 
         // create submission package (aad folders and children if pages)
         List<String> pathsToDelete = calculateDeleteSubmissionPackage(siteId, paths, optionalDependencies);
@@ -634,9 +202,11 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             // set system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToDelete, true);
             // cancel existing workflow
-            cancelExistingWorkflowEntries(siteId, pathsToDelete);
+            // TODO: implement for the new system
+//            cancelExistingWorkflowEntries(siteId, pathsToDelete);
             // add to publishing queue
-            deploymentService.delete(siteId, pathsToDelete, deletedBy, getCurrentTime(), comment);
+            // TODO: implement for the new system
+//            deploymentService.delete(siteId, pathsToDelete, deletedBy, getCurrentTime(), comment);
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
             // trigger event
@@ -707,16 +277,12 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         this.securityService = securityService;
     }
 
-    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
+    public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
     }
 
     public void setNotificationService(NotificationService notificationService) {
