@@ -25,8 +25,11 @@ import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.model.publish.PublishingTarget;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
+import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -124,6 +127,41 @@ public interface PublishService {
      * @return result of the publishing
      * @throws ServiceLayerException if there is any error during publishing
      */
-    RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException;
+    long publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException;
 
+    /**
+     * Create a 'APPROVED' publishing package. The created package will be ready to be published.
+     *
+     * @param siteId           the id of the site
+     * @param publishingTarget the publishing target
+     * @param paths            the paths to publish
+     * @param commitIds        the commit ids to publish
+     * @param schedule         the scheduled date for the publishing (null to publish immediately)
+     * @param comment          the comment for the publishing
+     * @return the id of the created package
+     */
+    long publish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment);
+
+    /**
+     * Create a 'SUBMITTED' publishing package. The created package will require approval.
+     *
+     * @param siteId           the id of the site
+     * @param publishingTarget the publishing target
+     * @param paths            the paths to publish
+     * @param commitIds        the commit ids to publish
+     * @param schedule         the scheduled date for the publishing (null to publish immediately)
+     * @param comment          the comment for the publishing
+     * @return the id of the created package
+     */
+    long requestPublish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment);
+
+    int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes);
+
+    int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId);
+
+    List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+
+    int getNumberOfPublishes(String siteId, int days);
 }

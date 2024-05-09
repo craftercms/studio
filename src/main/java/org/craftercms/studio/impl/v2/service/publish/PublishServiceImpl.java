@@ -24,48 +24,42 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.permissions.CompositePermission;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static java.time.temporal.ChronoUnit.DAYS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.READY_WITH_ERRORS;
-import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
-import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RequireSiteReady
 public class PublishServiceImpl implements PublishService {
 
-    private PublishServiceInternal publishServiceInternal;
+    private PublishService publishServiceInternal;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
     private ItemServiceInternal itemServiceInternal;
-    private StudioUtils studioUtils;
     private ServicesConfig servicesConfig;
     private ActivityStreamServiceInternal activityStreamServiceInternal;
     private UserServiceInternal userServiceInternal;
@@ -149,116 +143,61 @@ public class PublishServiceImpl implements PublishService {
     @RequireSiteExists
     public List<DeploymentHistoryGroup> getDeploymentHistory(@SiteId String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) throws ServiceLayerException, UserNotFoundException {
-        ZonedDateTime toDate = DateUtils.getCurrentTime();
-        ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        List<String> environments = studioUtils.getEnvironmentNames(siteId);
-        List<DeploymentHistoryItem> deploymentHistoryItems = publishServiceInternal.getDeploymentHistory(siteId,
-                environments, fromDate, toDate, filterType, numberOfItems);
-        List<DeploymentHistoryGroup> groups = new ArrayList<>();
-
-        if (deploymentHistoryItems == null) {
-            return groups;
-        }
-        int count = 0;
-        Map<String, Set<String>> processedItems = new HashMap<>();
-        for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
-            DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
-            String env = entry.getEnvironment();
-            if (!processedItems.containsKey(env)) {
-                processedItems.put(env, new HashSet<>());
-            }
-            if (!processedItems.get(env).contains(entry.getPath())) {
-                ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
-                if (deployedItem != null) {
-                    deployedItem.eventDate = entry.getDeploymentDate();
-                    deployedItem.endpoint = entry.getTarget();
-                    User user = userServiceInternal.getUserByIdOrUsername(-1, entry.getUser());
-                    deployedItem.setUser(user.getUsername());
-                    deployedItem.setUserFirstName(user.getFirstName());
-                    deployedItem.setUserLastName(user.getLastName());
-                    deployedItem.setEndpoint(entry.getEnvironment());
-                    String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
-                    if (groups.size() > 0) {
-                        DeploymentHistoryGroup group = groups.get(groups.size() - 1);
-                        String lastDeployedLabel = group.getInternalName();
-                        if (lastDeployedLabel.equals(deployedLabel)) {
-                            // add to the last task if it is deployed on the same day
-                            group.setNumOfChildren(group.getNumOfChildren() + 1);
-                            group.getChildren().add(deployedItem);
-                        } else {
-                            groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
-                        }
-                    } else {
-                        groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
-                    }
-                    processedItems.get(env).add(entry.getPath());
-                }
-            }
-        }
-        return groups;
+        return publishServiceInternal.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
     }
 
     @Override
-    @RequireSiteExists
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public RepositoryChanges publishAll(@SiteId String siteId, String publishingTarget, String comment)
+    public long publishAll(@SiteId String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
-        String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
-        if (liveEnvironment.equals(publishingTarget) && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
-            publishServiceInternal.publishAll(siteId, stagingEnvironment, comment);
-        }
-
-        RepositoryChanges changes = publishServiceInternal.publishAll(siteId, publishingTarget, comment);
-
-        SiteFeed siteFeed = siteService.getSite(siteId);
-        String username = securityService.getCurrentUser();
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_PUBLISH_ALL);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(username);
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH_ALL,
-                getCurrentTime(), null, null);
-        if (!changes.getFailedPaths().isEmpty()) {
-            siteService.updatePublishingStatus(siteId, READY_WITH_ERRORS);
-        }
-        return changes;
+        return publishServiceInternal.publishAll(siteId, publishingTarget, comment);
     }
 
-    private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
-        // otherwise just add as the last task
-        DeploymentHistoryGroup group = new DeploymentHistoryGroup();
-        group.setInternalName(deployedLabel);
-        List<ContentItemTO> taskItems = group.getChildren();
-        if (taskItems == null) {
-            taskItems = new ArrayList<>();
-            group.setChildren(taskItems);
-        }
-        taskItems.add(item);
-        group.setNumOfChildren(taskItems.size());
-        return group;
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
+    public long publish(@SiteId String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
+        return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, comment);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public long requestPublish(@SiteId String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
+        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment);
+    }
+
+    @Override
+    public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
+        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
+    }
+
+    @Override
+    public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return publishServiceInternal.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
+    }
+
+    @Override
+    public int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId) {
+        return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
+    }
+
+    @Override
+    public List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) {
+        return publishServiceInternal.getPublishingPackagesHistory(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
+    }
+
+    @Override
+    public int getNumberOfPublishes(String siteId, int days) {
+        return publishServiceInternal.getNumberOfPublishes(siteId, days);
     }
 
     @Override
     @RequireSiteExists
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
-        var availablePublishingTargets = new ArrayList<PublishingTarget>();
-        var liveTarget = new PublishingTarget();
-        liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
-        availablePublishingTargets.add(liveTarget);
-        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            var stagingTarget = new PublishingTarget();
-            stagingTarget.setName(servicesConfig.getStagingEnvironment(siteId));
-            availablePublishingTargets.add(stagingTarget);
-        }
-        return availablePublishingTargets;
+        return publishServiceInternal.getAvailablePublishingTargets(siteId);
     }
 
     @Override
@@ -268,7 +207,7 @@ public class PublishServiceImpl implements PublishService {
         return publishServiceInternal.isSitePublished(siteId);
     }
 
-    public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
+    public void setPublishServiceInternal(PublishService publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
     }
 
@@ -286,10 +225,6 @@ public class PublishServiceImpl implements PublishService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public void setStudioUtils(StudioUtils studioUtils) {
-        this.studioUtils = studioUtils;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

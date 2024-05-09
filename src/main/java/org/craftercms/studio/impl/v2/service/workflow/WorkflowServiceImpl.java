@@ -39,7 +39,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -58,7 +58,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
@@ -82,7 +81,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private UserServiceInternal userServiceInternal;
     private NotificationService notificationService;
     private DependencyService dependencyService;
-    private PublishServiceInternal publishServiceInternal;
+    private PublishService publishServiceInternal;
     private ServicesConfig servicesConfig;
     private StudioConfiguration studioConfiguration;
     private ApplicationContext applicationContext;
@@ -295,7 +294,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         this.dependencyService = dependencyService;
     }
 
-    public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
+    public void setPublishServiceInternal(PublishService publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
     }
 

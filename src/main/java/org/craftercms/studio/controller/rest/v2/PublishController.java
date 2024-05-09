@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
+import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -183,12 +184,32 @@ public class PublishController {
     }
 
     @PostMapping("/all")
-    public Result publishAll(@Valid @RequestBody PublishAllRequest request)
+    public ResultOne<Long> publishAll(@Valid @RequestBody PublishAllRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        RepositoryChanges changes = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
-        ApiResponse response = changes.getFailedPaths().isEmpty() ? OK : COMPLETED_WITH_ERRORS;
-        Result result = new Result();
-        result.setResponse(response);
+        long packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
+
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
+        return result;
+    }
+
+    @PostMapping
+    public ResultOne<Long> publish(@Validated @RequestBody PublishPackageRequest request)
+            throws ServiceLayerException, UserNotFoundException {
+        long packageId;
+        if (request.isPublishAll()) {
+            packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getComment());
+        } else if (request.isRequestApproval()) {
+            packageId = publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(),
+                    request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
+        } else {
+            packageId = publishService.publish(request.getSiteId(), request.getPublishingTarget(),
+                    request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
+        }
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         return result;
     }
 

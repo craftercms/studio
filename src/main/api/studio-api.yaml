@@ -6626,7 +6626,7 @@ paths:
       tags:
         - publishing
       summary: Publishes the given content to the target (staging or live)
-      description: 'Required permission "Publish"'
+      description: 'Required permission "publish" when requestApproval is false, "content_read" when requestApproval is true. <br />'
       operationId: publish
       requestBody:
         description: publish request body

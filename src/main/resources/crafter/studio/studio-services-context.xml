@@ -533,7 +533,6 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="securityService" ref="studio.securityService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="studioUtils" ref="studio.utils" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
@@ -545,6 +544,8 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="itemServiceInternal" ref="itemServiceInternal"/>
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="studioUtils" ref="studio.utils" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"

@@ -16,42 +16,45 @@
 
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.event.publish.PublishEvent;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.StudioUtils;
+import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
-public class PublishServiceInternalImpl implements PublishServiceInternal, ApplicationContextAware {
+public class PublishServiceInternalImpl implements PublishService, ApplicationContextAware {
 
     private ContentRepository contentRepository;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private StudioUtils studioUtils;
 
     protected ItemServiceInternal itemServiceInternal;
 
     protected ApplicationContext applicationContext;
     private ServicesConfig servicesConfig;
+    private UserServiceInternal userServiceInternal;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -113,55 +116,91 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
 //        return publishRequestDao.getPublishingHistoryDetail(siteId, packageId, offset, limit);
 //    }
 
-    @Override
     public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments,
                                                             ZonedDateTime fromDate, ZonedDateTime toDate,
                                                             String filterType, int numberOfItems) {
         // TODO: implement for new publishing system
         return Collections.emptyList();
-//
-//        int offset = 0;
-//        int counter = 0;
-//        List<DeploymentHistoryItem> toRet = new ArrayList<>();
-//
-//        String contentTypeClass;
-//        switch (filterType) {
-//            case CONTENT_TYPE_PAGE:
-//            case CONTENT_TYPE_COMPONENT:
-//            case CONTENT_TYPE_ASSET:
-//                contentTypeClass = filterType;
-//                break;
-//            default:
-//                contentTypeClass = null;
-//                break;
-//        }
-//        List<PublishRequest> deploymentHistory = publishRequestDao.getDeploymentHistory(siteId, environments, COMPLETED,
-//                    contentTypeClass, fromDate, toDate, offset, numberOfItems);
-//            if (CollectionUtils.isNotEmpty(deploymentHistory)) {
-//                for (PublishRequest publishRequest : deploymentHistory) {
-//                        DeploymentHistoryItem dhi = new DeploymentHistoryItem();
-//                        dhi.setSite(siteId);
-//                        dhi.setPath(publishRequest.getPath());
-//                        dhi.setDeploymentDate(publishRequest.getPublishedOn());
-//                        dhi.setUser(publishRequest.getUser());
-//                        dhi.setEnvironment(publishRequest.getEnvironment());
-//                        toRet.add(dhi);
-//                        if (++counter >= numberOfItems) {
-//                            break;
-//                        }
-//
-//            }
-//
-//        }
-//        toRet.sort((o1, o2) -> o2.getDeploymentDate().compareTo(o1.getDeploymentDate()));
-//        return toRet;
     }
 
     @Override
-    public void cancelScheduledQueueItems(String siteId, List<String> paths) {
-        // TODO: implement for new publishing system
-//        retryingDatabaseOperationFacade.retry(() -> publishRequestDao.cancelScheduledQueueItems(siteId, paths, DateUtils.getCurrentTime(), CANCELLED,
-//                READY_FOR_LIVE));
+    public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
+                                                             String filterType) throws ServiceLayerException, UserNotFoundException {
+        ZonedDateTime toDate = DateUtils.getCurrentTime();
+        ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
+        List<String> environments = studioUtils.getEnvironmentNames(siteId);
+        List<DeploymentHistoryItem> deploymentHistoryItems = getDeploymentHistory(siteId,
+                environments, fromDate, toDate, filterType, numberOfItems);
+        List<DeploymentHistoryGroup> groups = new ArrayList<>();
+
+        if (deploymentHistoryItems == null) {
+            return groups;
+        }
+        int count = 0;
+        Map<String, Set<String>> processedItems = new HashMap<>();
+        for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
+            DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
+            String env = entry.getEnvironment();
+            if (!processedItems.containsKey(env)) {
+                processedItems.put(env, new HashSet<>());
+            }
+            if (!processedItems.get(env).contains(entry.getPath())) {
+                ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
+                if (deployedItem != null) {
+                    deployedItem.eventDate = entry.getDeploymentDate();
+                    deployedItem.endpoint = entry.getTarget();
+                    User user = userServiceInternal.getUserByIdOrUsername(-1, entry.getUser());
+                    deployedItem.setUser(user.getUsername());
+                    deployedItem.setUserFirstName(user.getFirstName());
+                    deployedItem.setUserLastName(user.getLastName());
+                    deployedItem.setEndpoint(entry.getEnvironment());
+                    String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
+                    if (groups.size() > 0) {
+                        DeploymentHistoryGroup group = groups.get(groups.size() - 1);
+                        String lastDeployedLabel = group.getInternalName();
+                        if (lastDeployedLabel.equals(deployedLabel)) {
+                            // add to the last task if it is deployed on the same day
+                            group.setNumOfChildren(group.getNumOfChildren() + 1);
+                            group.getChildren().add(deployedItem);
+                        } else {
+                            groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
+                        }
+                    } else {
+                        groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
+                    }
+                    processedItems.get(env).add(entry.getPath());
+                }
+            }
+        }
+        return groups;
+    }
+
+    private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
+        // otherwise just add as the last task
+        DeploymentHistoryGroup group = new DeploymentHistoryGroup();
+        group.setInternalName(deployedLabel);
+        List<ContentItemTO> taskItems = group.getChildren();
+        if (taskItems == null) {
+            taskItems = new ArrayList<>();
+            group.setChildren(taskItems);
+        }
+        taskItems.add(item);
+        group.setNumOfChildren(taskItems.size());
+        return group;
+    }
+
+    @Override
+    public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) {
+        var availablePublishingTargets = new ArrayList<PublishingTarget>();
+        var liveTarget = new PublishingTarget();
+        liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
+        availablePublishingTargets.add(liveTarget);
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            var stagingTarget = new PublishingTarget();
+            stagingTarget.setName(servicesConfig.getStagingEnvironment(siteId));
+            availablePublishingTargets.add(stagingTarget);
+        }
+        return availablePublishingTargets;
     }
 
     @Override
@@ -170,7 +209,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
         return contentRepository.publishedRepositoryExists(siteId);
     }
 
-    @Override
+//    @Override
     public void initialPublish(String siteId) throws SiteNotFoundException {
         contentRepository.initialPublish(siteId);
     }
@@ -223,41 +262,21 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
-    public int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
-                                                String publishAction) {
-        // TODO: implement for new publishing system
+    public long publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
+        // TODO: implement new publishing system
         return 0;
-//        return publishRequestDao.getNumberOfPublishedItemsByState(siteId, days, activityAction, publishState,
-//                                                                    publishAction);
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
-        String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
-        // do the operations in the repo
-        RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget, comment);
-        // update the state for the changed items
-        long onMask;
-        long offMask;
-        if (liveEnvironment.equals(publishingTarget)) {
-            onMask = PUBLISH_TO_LIVE_ON_MASK;
-            offMask = PUBLISH_TO_LIVE_OFF_MASK;
-        } else {
-            onMask = PUBLISH_TO_STAGE_ON_MASK;
-            offMask = PUBLISH_TO_STAGE_OFF_MASK;
-        }
-        if (changes.isInitialPublish()) {
-            itemServiceInternal.updateStatesForSite(siteId, onMask, offMask);
-        } else {
-            // Deleted items not included since those will be gone from the DB, those might need to be included
-            // later if soft-delete is implemented
-            Collection<String> publishedItems = CollectionUtils.subtract(changes.getUpdatedPaths(), changes.getFailedPaths());
-            itemServiceInternal.updateStateBitsBulk(siteId, publishedItems, onMask, offMask);
-        }
-        // trigger the event
-        applicationContext.publishEvent(new PublishEvent(siteId));
+    public long publish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
+        // TODO: implement new publishing system
+        return 0;
+    }
 
-        return changes;
+    @Override
+    public long requestPublish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
+        // TODO: implement new publishing system
+        return 0;
     }
 
     @Override
@@ -279,5 +298,13 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public void setStudioUtils(StudioUtils studioUtils) {
+        this.studioUtils = studioUtils;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }

@@ -33,7 +33,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamService
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -54,8 +54,6 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -69,7 +67,7 @@ import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 public class DashboardServiceImpl implements DashboardService {
 
     private final ActivityStreamServiceInternal activityStreamServiceInternal;
-    private final PublishServiceInternal publishServiceInternal;
+    private final PublishService publishServiceInternal;
     private final ContentServiceInternal contentServiceInternal;
     private final SecurityService securityService;
     private final WorkflowService workflowServiceInternal;
@@ -83,7 +81,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
             "securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
-    public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishServiceInternal publishServiceInternal,
+    public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
                                 final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
                                 final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
                                 final SearchService searchService, final StudioConfiguration studioConfiguration) {
