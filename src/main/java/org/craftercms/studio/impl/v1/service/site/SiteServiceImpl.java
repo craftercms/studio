@@ -451,7 +451,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
                                     contentService.getContentTypeClass(siteId, path),
                                     StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-                                    contentRepositoryV2.getContentSize(siteId, path), null, null).getBytes(UTF_8),
+                                    contentRepositoryV2.getContentSize(siteId, path), null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 
@@ -491,7 +491,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     currentPath = currentPath + FILE_SEPARATOR + ancestor;
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                             , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                            Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                            Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                 }

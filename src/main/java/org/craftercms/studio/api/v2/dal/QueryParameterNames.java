@@ -218,8 +218,6 @@ public final class  QueryParameterNames {
 
     public static final String SUBMITTED_MASK = "submittedMask";
 
-    public static final String PREVIOUS_PATH = "previousPath";
-
     public static final String PARENTS = "parents";
 
     public static final String LAST_PUBLISHED_ON = "lastPublishedOn";

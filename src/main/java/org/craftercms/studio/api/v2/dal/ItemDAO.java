@@ -351,27 +351,12 @@ public interface ItemDAO {
     int countAllContentItems(@Param(NON_CONTENT_ITEM_TYPES) List<String> nonContentItemTypes);
 
     /**
-     * Clear previous path of the content
-     * @param siteId site identifier
-     * @param path path of the content
-     */
-    void clearPreviousPath(@Param(SITE_ID) String siteId, @Param(PATH) String path);
-
-    /**
      * Get in progress items from DB
      * @param siteId site identifier
      * @param inProgressMask in progress states mask
      * @return list of items
      */
     List<Item> getInProgressItems(@Param(SITE_ID) String siteId, @Param(IN_PROGRESS_MASK) long inProgressMask);
-
-    /**
-     * Count non-new items having previous path property set to given path
-     * @param siteId site identifier
-     * @param previousPath path to check
-     * @return number of items
-     */
-    int countPreviousPaths(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_MASK) long newMask);
 
     /**
      * Get change set for subtree

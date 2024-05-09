@@ -143,7 +143,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         if (isInWorkflowOrScheduled(sandboxItem.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(sandboxItem.getState());
-            boolean isRenamed = isNotEmpty(sandboxItem.getPreviousPath());
+            // TODO: implement for the new publishing system
+            boolean isRenamed = false;
+//            boolean isRenamed = isNotEmpty(sandboxItem.getPreviousPath());
             if (isNew || isRenamed) {
                 affectedPaths.addAll(getMandatoryDescendants(siteId, path));
             }

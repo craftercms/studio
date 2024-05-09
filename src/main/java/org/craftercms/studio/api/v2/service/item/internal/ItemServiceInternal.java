@@ -225,13 +225,6 @@ public interface ItemServiceInternal {
     int countAllContentItems();
 
     /**
-     * Clear previous path of the content
-     * @param siteId site identifier
-     * @param path path of the content;
-     */
-    void clearPreviousPath(String siteId, String path);
-
-    /**
      * Convert Publishing History Item to Publishing Dashboard Item
      * @param historyItem publishing history item
      * @return publishing dashboard item

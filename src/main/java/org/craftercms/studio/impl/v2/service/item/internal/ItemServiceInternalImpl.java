@@ -384,11 +384,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void clearPreviousPath(String siteId, String path) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.clearPreviousPath(siteId, path));
-    }
-
-    @Override
     public PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem) {
         PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
         Item item = getItem(historyItem.getSiteId(), historyItem.getPath());
@@ -429,7 +424,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean previousPathExists(String siteId, String path) {
-        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
+        // TODO: implement using new item_target table
+//        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
+        return false;
     }
 
     @Override

@@ -412,8 +412,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
                     StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
                     Locale.US.toString(), null,
-                    contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null,
-                    null).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null)
+                    .getBytes(UTF_8), StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             logger.debug("Extract dependencies from site '{}' path '{}'",
                     site.getSiteId(), repoOperation.getPath());
@@ -546,7 +546,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 currentPath = currentPath + FILE_SEPARATOR + ancestor;
                 Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                                 , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                                Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                                Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
                 Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             }
