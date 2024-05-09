@@ -95,7 +95,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
-import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
@@ -1207,18 +1206,8 @@ public class GitContentRepository implements ContentRepository {
     private void createEnvironmentBranch(String siteId, String startPoint, String environment) {
         Repository repository = helper.getRepository(siteId, PUBLISHED);
         try (Git git = new Git(repository)) {
-            CheckoutCommand checkoutCommand = git.checkout()
-                    .setOrphan(true)
-                    .setForceRefUpdate(true)
-                    .setStartPoint(startPoint)
-                    .setUpstreamMode(TRACK)
-                    .setName(environment);
-            retryingRepositoryOperationFacade.call(checkoutCommand);
-
-            CommitCommand commitCommand = git.commit()
-                    .setMessage(helper.getCommitMessage(REPO_INITIAL_PUBLISH_COMMIT_MESSAGE))
-                    .setAllowEmpty(true);
-            retryingRepositoryOperationFacade.call(commitCommand);
+            CreateBranchCommand createBranchCommand = git.branchCreate().setName(environment).setStartPoint(startPoint);
+            retryingRepositoryOperationFacade.call(createBranchCommand);
         } catch (GitAPIException e) {
             logger.error("Failed to create the publishing target branch '{}' in the published repo for " +
                     "site '{}'", environment, siteId, e);

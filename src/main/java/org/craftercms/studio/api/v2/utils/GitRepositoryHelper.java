@@ -40,17 +40,16 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.impl.v2.utils.git.GitCli;
 import org.eclipse.jgit.api.*;
@@ -85,8 +84,10 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -185,7 +186,7 @@ public class GitRepositoryHelper implements DisposableBean {
         Repository publishedRepo;
 
         Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
-        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId).resolve(GIT_ROOT);
+        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);//.resolve(GIT_ROOT);
 
         try {
             if (Files.exists(siteSandboxRepoPath)) {
@@ -571,12 +572,12 @@ public class GitRepositoryHelper implements DisposableBean {
         String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git publishedGit = Git.cloneRepository()
+                .setBare(true)
                 .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                 .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                 .call()) {
             Repository publishedRepo = publishedGit.getRepository();
             optimizeRepository(publishedRepo);
-            checkoutSandboxBranch(siteId, publishedRepo, sandboxBranch);
             removePublishBlackList(publishedRepo);
             publishedRepo.close();
             publishedGit.close();
@@ -628,12 +629,6 @@ public class GitRepositoryHelper implements DisposableBean {
                 CONFIG_PARAMETER_FILE_MODE_DEFAULT);
         // Save configuration changes
         config.save();
-
-        if (gitCliEnabled) {
-            // The first git commit of a new repository takes a long time with Git CLI. A git status first seems
-            // to fix the issue
-            gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
-        }
     }
 
     public String getCommitMessage(String commitMessageKey) {
@@ -697,25 +692,8 @@ public class GitRepositoryHelper implements DisposableBean {
 
         List<String> patterns = Arrays.asList(StringUtils.split(blacklistConfig, STRING_SEPARATOR));
         try (Git git = new Git(publishedRepo)) {
-            String rootPath = publishedRepo.getWorkTree().getPath();
-            RmCommand rmCommand = git.rm();
-            Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    String sitePath = file.toAbsolutePath().toString().replaceFirst(rootPath, FILE_SEPARATOR);
-                    boolean isMatched = ContentUtils.matchesPatterns(sitePath, patterns);
-                    if (isMatched) {
-                        String gitPath = getGitPath(sitePath);
-                        rmCommand.addFilepattern(gitPath);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            retryingRepositoryOperationFacade.call(rmCommand);
+            // TODO: implement this for the new publishing system with published repo being bare
             return true;
-        } catch (GitAPIException | IOException e) {
-            logger.error("Failed to remove the publishing blacklist pattern", e);
-            return false;
         }
     }
 
