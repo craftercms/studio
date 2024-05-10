@@ -877,7 +877,6 @@
     <bean id="s3BlobStore" scope="prototype"
           class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore">
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
-        <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="publishingTargetResolver" ref="crafter.publishingTargetResolver"/>
