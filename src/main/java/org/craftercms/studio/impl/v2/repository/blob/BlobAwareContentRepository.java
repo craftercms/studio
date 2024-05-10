@@ -44,7 +44,6 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
@@ -261,7 +260,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             logger.debug("No blob store configuration found for site '{}', " +
                     "will write '{}' to the local repository", site, path);
             return localRepositoryV1.writeContent(site, path, content);
-        } catch (RepositoryLockedException | ServiceLayerException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
             throw e;
         } catch (Exception e) {

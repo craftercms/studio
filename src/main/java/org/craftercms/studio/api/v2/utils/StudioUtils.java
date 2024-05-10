@@ -100,4 +100,13 @@ public abstract class StudioUtils {
     public static String getSyncFromRepoLockKey(final String siteId) {
         return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
     }
+
+    /**
+     * Get the key for the lock used to make publishing and pulling operations mutually exclusive
+     * @param siteId the site id
+     * @return the lock key
+     */
+    public static String getPublishingOrProcessingLockKey(final String siteId) {
+        return SITE_PUBLISHING_OR_PROCESSING_LOCK.replaceAll(PATTERN_SITE, siteId);
+    }
 }

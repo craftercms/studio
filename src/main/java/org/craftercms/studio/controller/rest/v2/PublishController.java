@@ -17,19 +17,22 @@
 package org.craftercms.studio.controller.rest.v2;
 
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -39,8 +42,6 @@ import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,6 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
-import static org.craftercms.studio.model.rest.ApiResponse.COMPLETED_WITH_ERRORS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -184,9 +184,10 @@ public class PublishController {
     }
 
     @PostMapping("/all")
-    public ResultOne<Long> publishAll(@Valid @RequestBody PublishAllRequest request)
-            throws ServiceLayerException, UserNotFoundException {
-        long packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
+    public ResultOne<Long> publishAll(@Validated @RequestBody PublishAllRequest request)
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        long packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
+                request.isRequestApproval(), request.isNotifySubmitter(), request.getSubmissionComment());
 
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(OK);
@@ -196,17 +197,22 @@ public class PublishController {
 
     @PostMapping
     public ResultOne<Long> publish(@Validated @RequestBody PublishPackageRequest request)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         long packageId;
         if (request.isPublishAll()) {
-            packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getComment());
+            if (request.getSchedule() != null) {
+                throw new InvalidParametersException("Cannot schedule a publish all operation");
+            }
+            packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
+                    request.isRequestApproval(), request.isNotifySubmitter(), request.getComment());
         } else if (request.isRequestApproval()) {
-            packageId = publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(),
-                    request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
+            packageId = publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
+                    request.getCommitIds(), request.getSchedule(), request.getComment(), request.isNotifySubmitter());
         } else {
             packageId = publishService.publish(request.getSiteId(), request.getPublishingTarget(),
                     request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
         }
+
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);

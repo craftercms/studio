@@ -38,6 +38,7 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_PUSH_TO_REMOTE = "PUSH_TO_REMOTE";
     public static final String OPERATION_PULL_FROM_REMOTE = "PULL_FROM_REMOTE";
     public static final String OPERATION_REQUEST_PUBLISH = "REQUEST_PUBLISH";
+    public static final String OPERATION_REQUEST_PUBLISH_ALL = "REQUEST_PUBLISH_ALL";
     public static final String OPERATION_APPROVE = "APPROVE";
     public static final String OPERATION_APPROVE_SCHEDULED = "APPROVE_SCHEDULED";
     public static final String OPERATION_REJECT = "REJECT";

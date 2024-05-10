@@ -21,6 +21,7 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -149,9 +150,10 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public long publishAll(@SiteId String siteId, String publishingTarget, String comment)
-            throws ServiceLayerException, UserNotFoundException {
-        return publishServiceInternal.publishAll(siteId, publishingTarget, comment);
+    public long publishAll(@SiteId final String siteId, final String publishingTarget,
+                           final boolean requestApproval, final boolean notifySubmitter, final String comment)
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        return publishServiceInternal.publishAll(siteId, publishingTarget, requestApproval, notifySubmitter, comment);
     }
 
     @Override
@@ -164,17 +166,20 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public long requestPublish(@SiteId String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
-        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment);
+    public long requestPublish(@SiteId String siteId, String publishingTarget, List<String> paths,
+                               List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter) {
+        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, notifySubmitter);
     }
 
     @Override
-    public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
+    public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
+                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
         return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
     }
 
     @Override
-    public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+    public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
+                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         return publishServiceInternal.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
     }
 

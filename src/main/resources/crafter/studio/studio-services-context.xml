@@ -540,12 +540,16 @@
 
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="contentRepository" ref="contentRepository"/>
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
         <property name="itemServiceInternal" ref="itemServiceInternal"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="studioUtils" ref="studio.utils" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="studioUtils" ref="studio.utils"/>
+        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="publishDao" ref="publishDao"/>
+        <property name="siteService" ref="sitesServiceInternal"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="auditServiceInternal" ref="auditServiceInternal"/>
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"

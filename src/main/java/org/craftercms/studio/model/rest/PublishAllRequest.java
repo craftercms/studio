@@ -17,11 +17,10 @@
 package org.craftercms.studio.model.rest;
 
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 
@@ -36,6 +35,8 @@ public class PublishAllRequest {
     @Size(max = 20)
     @EsapiValidatedParam(type = ALPHANUMERIC)
     protected String publishingTarget;
+    protected boolean requestApproval;
+    private boolean notifySubmitter;
 
     protected String submissionComment;
 
@@ -55,11 +56,27 @@ public class PublishAllRequest {
         this.publishingTarget = publishingTarget;
     }
 
+    public boolean isRequestApproval() {
+        return requestApproval;
+    }
+
+    public void setRequestApproval(boolean requestApproval) {
+        this.requestApproval = requestApproval;
+    }
+
     public String getSubmissionComment() {
         return submissionComment;
     }
 
     public void setSubmissionComment(String submissionComment) {
         this.submissionComment = submissionComment;
+    }
+
+    public boolean isNotifySubmitter() {
+        return notifySubmitter;
+    }
+
+    public void setNotifySubmitter(boolean notifySubmitter) {
+        this.notifySubmitter = notifySubmitter;
     }
 }

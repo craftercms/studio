@@ -42,6 +42,7 @@ public class PublishPackageRequest {
     private List<@NotEmpty String> commitIds;
     private Instant schedule;
     private boolean requestApproval;
+    private boolean notifySubmitter;
     private boolean publishAll;
     private String comment;
 
@@ -91,6 +92,14 @@ public class PublishPackageRequest {
 
     public void setRequestApproval(boolean requestApproval) {
         this.requestApproval = requestApproval;
+    }
+
+    public boolean isNotifySubmitter() {
+        return notifySubmitter;
+    }
+
+    public void setNotifySubmitter(boolean notifySubmitter) {
+        this.notifySubmitter = notifySubmitter;
     }
 
     public boolean isPublishAll() {

@@ -19,19 +19,28 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
+import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -41,6 +50,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
@@ -55,6 +65,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     protected ApplicationContext applicationContext;
     private ServicesConfig servicesConfig;
     private UserServiceInternal userServiceInternal;
+    private AuditServiceInternal auditServiceInternal;
+    private PublishDAO publishDao;
+
+    private SitesService siteService;
+    private GeneralLockService generalLockService;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -262,49 +277,124 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public long publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
-        // TODO: implement new publishing system
-        return 0;
+    public long publishAll(final String siteId, final String publishingTarget, final boolean requestApproval, final boolean notifySubmitter,final  String comment)
+            throws ServiceLayerException, AuthenticationException {
+        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPublishingOrProcessingLockKey(siteId);
+        boolean lockAcquired = generalLockService.tryLock(lockKey);
+        if (!lockAcquired) {
+            throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
+        }
+        try {
+            Site site = siteService.getSite(siteId);
+            long submitterId = userServiceInternal.getCurrentUser().getId();
+            PublishPackage publishPackage = PublishPackage.publishAll()
+                    .withSiteId(site.getId())
+                    .withTarget(publishingTarget)
+                    .withComment(comment)
+                    .withSubmitterId(submitterId)
+                    .withRequestApproval(requestApproval)
+                    .withNotifySubmitter(notifySubmitter)
+                    .withCommitId(contentRepository.getRepoLastCommitId(siteId))
+                    .build();
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackage(publishPackage));
+            auditPublishAll(publishPackage, requestApproval);
+            applicationContext.publishEvent(new RequestPublishEvent(siteId));
+            return publishPackage.getId();
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    /**
+     * Audit publish_all operation
+     *
+     * @param p               the publish package
+     * @param requestApproval if approval is requested for the package
+     */
+    private void auditPublishAll(final PublishPackage p, final boolean requestApproval) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(requestApproval ? OPERATION_REQUEST_PUBLISH_ALL : OPERATION_PUBLISH_ALL);
+        auditLog.setActorId(String.valueOf(p.getSubmitterId()));
+        auditLog.setSiteId(p.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(p.getSiteId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(String.valueOf(p.getSiteId()));
+
+        AuditLogParameter commentParam = new AuditLogParameter();
+        commentParam.setTargetId(TARGET_TYPE_SUBMISSION_COMMENT);
+        commentParam.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+        commentParam.setTargetValue(p.getComment());
+
+        AuditLogParameter packageParam = new AuditLogParameter();
+        packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
+        packageParam.setTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        packageParam.setTargetValue(String.valueOf(p.getId()));
+
+        auditLog.setParameters(List.of(commentParam, packageParam));
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
     public long publish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
         // TODO: implement new publishing system
+        /*
+        validateCommitIds(siteId, commitIds);
+        get hard deps (references, non-published parents, non-published item-specific deps)
+        create the package and items
+        trigger the publishing if not scheduled
+         */
         return 0;
     }
 
     @Override
-    public long requestPublish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
+    public long requestPublish(String siteId, String publishingTarget, List<String> paths,
+                               List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter) {
         // TODO: implement new publishing system
         return 0;
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(final ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+    public void setRetryingDatabaseOperationFacade(final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+    public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setServicesConfig(ServicesConfig servicesConfig) {
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public void setStudioUtils(StudioUtils studioUtils) {
+    public void setStudioUtils(final StudioUtils studioUtils) {
         this.studioUtils = studioUtils;
     }
 
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+    public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public void setPublishDao(final PublishDAO publishDao) {
+        this.publishDao = publishDao;
+    }
+
+    public void setSiteService(final SitesService siteService) {
+        this.siteService = siteService;
+    }
+
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

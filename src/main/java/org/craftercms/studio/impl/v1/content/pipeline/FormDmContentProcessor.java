@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -145,7 +144,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
                 throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
             }
-        } catch (ContentNotFoundException | RepositoryLockedException e) {
+        } catch (ContentNotFoundException e) {
             throw e;
         } catch (Exception e) {
             logger.error("Failed to write content site '{}' path '{}'", site, path, e);

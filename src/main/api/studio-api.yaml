@@ -6645,6 +6645,9 @@ paths:
                 requestApproval:
                   type: boolean
                   description: submit the request for approval
+                notifySubmitter:
+                  type: boolean
+                  description: notify the submitter when request is approved/rejected
                 publishAll:
                   type: boolean
                   description: publish all site content
@@ -6699,6 +6702,9 @@ paths:
                 publishingTarget:
                   type: string
                   description: the publishing target (staging or live)
+                requestApproval:
+                  type: boolean
+                  description: true to submit the request for approval, false to publish directly
                 submissionComment:
                   type: string
                   description: optional submission comment
@@ -6966,6 +6972,9 @@ paths:
                 requestApproval:
                   type: boolean
                   description: submit the request for approval
+                notifySubmitter:
+                  type: boolean
+                  description: notify the submitter when request is approved/rejected
                 comment:
                   type: string
                   description: optional comment

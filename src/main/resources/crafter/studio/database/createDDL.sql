@@ -591,7 +591,7 @@ CREATE TABLE IF NOT EXISTS `publish_package`
     `error`	                        TEXT,
     `submitter_id`	                BIGINT(20),
     `submitter_comment`	            TEXT,
-    `submitted_on`	                TIMESTAMP,
+    `submitted_on`	                TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `reviewer_id`	                BIGINT(20),
     `reviewer_comment`          	TEXT,
     `reviewed_on`	                TIMESTAMP,

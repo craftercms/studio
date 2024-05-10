@@ -18,16 +18,14 @@ package org.craftercms.studio.api.v2.service.publish;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
-import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -119,15 +117,17 @@ public interface PublishService {
     boolean isSitePublished(String siteId) throws SiteNotFoundException;
 
     /**
-     * Publishes all changes for the given site &amp; target
+     * Publishes all changes for the given site
      *
-     * @param siteId the id of the site
+     * @param siteId           the id of the site
      * @param publishingTarget the publishing target
-     * @param comment submission comment
+     * @param requestApproval  true to request a reviewer approval, false to publish directly
+     * @param notifySubmitter  true to notify the submitter upon package approval/rejection
+     * @param comment          submission comment
      * @return result of the publishing
      * @throws ServiceLayerException if there is any error during publishing
      */
-    long publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException;
+    long publishAll(String siteId, String publishingTarget, boolean requestApproval, boolean notifySubmitter, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
     /**
      * Create a 'APPROVED' publishing package. The created package will be ready to be published.
@@ -151,9 +151,10 @@ public interface PublishService {
      * @param commitIds        the commit ids to publish
      * @param schedule         the scheduled date for the publishing (null to publish immediately)
      * @param comment          the comment for the publishing
+     * @param notifySubmitter  whether to notify the submitter on package approval/rejection
      * @return the id of the created package
      */
-    long requestPublish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment);
+    long requestPublish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter);
 
     int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes);
 
