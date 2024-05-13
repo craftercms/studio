@@ -1960,41 +1960,41 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-/api/2/sites/{siteId}/unlock:
-  post:
-    tags:
-      - sites
-    summary: Unlock a site locked with state LOCKED
-    description: 'Required Permission: "edit_site"'
-    operationId: unlockSite
-    parameters:
-      - name: siteId
-        in: path
-        schema:
-          type: string
-        required: true
-    responses:
-      '200':
-        description: OK
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                response:
-                  $ref: '#/components/schemas/ApiResponse'
-                result:
-                  $ref: '#/components/schemas/ContentValidationResult'
-      '400':
-        $ref: '#/components/responses/BadRequest'
-      '401':
-        $ref: '#/components/responses/Unauthorized'
-      '403':
-        $ref: '#/components/responses/Forbidden'
-      '404':
-        $ref: '#/components/responses/NotFound'
-      '500':
-        $ref: '#/components/responses/InternalServerError'
+  /api/2/sites/{siteId}/unlock:
+    post:
+      tags:
+        - sites
+      summary: Unlock a site locked with state LOCKED
+      description: 'Required Permission: "edit_site"'
+      operationId: unlockSite
+      parameters:
+        - name: siteId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/ContentValidationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /api/2/sites/{siteId}/policy/validate:
     post:
@@ -3640,55 +3640,173 @@ paths:
               - $ref: '#/components/schemas/WriteContentFileUpload'
                 additionalProperties: false
       requestBody:
-        description: "Write content request body <br> Use \"multipart/form-data\" when uploading a file"
+        description: "Write content request body <br> Use \"multipart/form-data\" when uploading a file (WriteContentFileUpload)"
         required: true
         content:
           application/json:
             schema:
               type: string
-            example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-              <page>
-              <content-type>/page/article</content-type>
-              <display-template>/templates/web/pages/article.ftl</display-template>
-              <merge-strategy>inherit-levels</merge-strategy>
-              <objectGroupId>f1f9</objectGroupId>
-              <objectId>f1f9c488-67e1-7ec0-d3ca-560b194e64d1</objectId>
-              <sections_o>
-              <item>
-                <section_html><![CDATA[<p>Nulla sed enim ipsum. Sed ac neque a ligula malesuada volutpat. Donec et ligula rutrum, mattis mauris eget, vestibulum metus. Maecenas non vehicula neque. Nunc ac mauris id ipsum commodo tempus. Integer at dolor consequat, dignissim eros in, imperdiet dui. Aliquam condimentum turpis eget tellus ultrices tincidunt. Pellentesque id varius purus, ac tristique augue. Etiam ut pharetra purus. Vestibulum quis vehicula eros. Mauris laoreet purus nec felis ullamcorper convallis. test</p>
-                <p>Quisque urna purus, posuere nec urna sed, ornare aliquet mauris. In faucibus vitae tellus id iaculis. Donec porttitor, elit eu elementum pulvinar, sapien ex cursus lacus, non ornare ex lectus ut elit. Donec eros ligula, suscipit eu tellus ut, tristique hendrerit tortor. Fusce sollicitudin mollis risus, ut rhoncus magna volutpat vel. Cras auctor, elit id pellentesque semper, neque nibh fermentum ante, sit amet malesuada felis magna nec enim. Vivamus sollicitudin placerat felis, vel blandit dolor sollicitudin a. Nunc vitae volutpat augue. Nunc tristique placerat tortor condimentum sagittis. Sed eu egestas ex, quis auctor neque. Nam eget tellus suscipit, vestibulum augue nec, consequat erat. Mauris malesuada nec ligula non posuere. Proin vitae posuere tortor. Phasellus vulputate quam ut dictum vulputate.</p>
-                <p>Integer ac lectus metus. Ut aliquam ipsum ligula, quis molestie ex pretium sit amet. Morbi porttitor neque vel luctus laoreet. Mauris varius lacus a eros aliquam, in maximus nibh aliquam. Integer sodales consequat metus eget accumsan. Integer viverra mi erat, in hendrerit massa vestibulum placerat. Sed ut gravida nisl, ut cursus neque. Vestibulum tristique rutrum augue vel aliquet.</p>
-                <p>Ut quis faucibus diam. Aliquam dolor metus, laoreet vitae lacinia a, aliquam a tellus. Vivamus sed commodo ipsum, in lacinia nisl. Sed metus diam, porta eget tortor et, vehicula hendrerit sapien. Vestibulum vehicula urna felis, id elementum libero pellentesque id. Vivamus in massa velit. Suspendisse vitae turpis fermentum lectus pellentesque laoreet. Curabitur viverra pretium turpis, eget feugiat mi blandit a. Quisque nisl urna, porta ut urna eget, mattis fringilla nisi. Ut lacus ligula, dapibus ac fermentum ac, rhoncus eget metus. Donec scelerisque, felis vitae viverra iaculis, diam sem gravida tellus, non sodales urna urna sit amet enim. Duis id justo vitae justo suscipit porta placerat vel ligula. Morbi justo nunc, rhoncus laoreet ipsum a, aliquet eleifend dui. In a quam tortor.</p>
-                <p>Pellentesque eget eros ut dui tincidunt convallis. Pellentesque tincidunt rutrum tellus, non rhoncus dui finibus eu. Integer eu sem maximus, blandit neque eu, congue leo. Ut pretium efficitur turpis, id dapibus turpis bibendum vel. Suspendisse a nibh dictum, imperdiet est et, interdum odio. Morbi urna magna, eleifend vitae luctus ac, scelerisque sit amet nisi. Quisque maximus placerat ante et fermentum. Nulla eu aliquet arcu, vel maximus massa. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aliquam posuere arcu ex, in sagittis orci rhoncus eu. Suspendisse potenti. Curabitur facilisis sapien et ligula tristique lacinia. Aliquam a mauris bibendum, placerat augue sit amet, hendrerit arcu. Nam in bibendum sapien. Pellentesque laoreet nisi vel metus dapibus dictum. Integer semper, velit laoreet ornare maximus, nulla orci maximus ante, a tincidunt eros risus blandit eros.</p>]]></section_html>
-                </item>
-                </sections_o>
-              <file-name>index.xml</file-name>
-              <folder-name>men-styles-for-winter</folder-name>
-              <internal-name>Men Styles For Winter</internal-name>
-              <title_t>Men Styles For Winter</title_t>
-              <subject_t>Men Styles For Winter</subject_t>
-              <author_s>John Doe</author_s>
-              <categories_o>
-              <item>
-                <key>style</key>
-                <value_smv>Style</value_smv>
-              </item>
-              </categories_o>
-              <segments_o>
-                <item>
-                  <key>guy</key>
-                  <value_smv>Guy</value_smv>
-                </item>
-              </segments_o>
-              <date_dt>2021-01-05T05:00:00.000Z</date_dt>
-              <createdDate>2017-03-3T20:57:7.000Z</createdDate>
-              <createdDate_dt>2017-03-3T20:57:7.000Z</createdDate_dt>
-              <lastModifiedDate>2017-03-13T20:33:5.000Z</lastModifiedDate>
-              <lastModifiedDate_dt>2023-11-20T13:25:05.289Z</lastModifiedDate_dt>
-              <featured_b>true</featured_b>
-              <summary_t>Nulla sed enim ipsum. Sed ac neque a ligula malesuada volutpat. Donec et ligula rutrum, mattis mauris eget, vestibulum metus. Maecenas non vehicula neque. Nunc ac mauris id ipsum commodo tempus. Integer at dolor consequat, dignissim eros in, imperdiet dui.</summary_t>
-              <image_s>/static-assets/images/winter-man-pic.jpg</image_s>
-              </page>"
+            examples:
+              writeContentWebForm:
+                value: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+                  <!--
+                  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+                  ~
+                  ~ This program is free software: you can redistribute it and/or modify
+                  ~ it under the terms of the GNU General Public License version 3 as published by
+                  ~ the Free Software Foundation.
+                  ~
+                  ~ This program is distributed in the hope that it will be useful,
+                  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+                  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                  ~ GNU General Public License for more details.
+                  ~
+                  ~ You should have received a copy of the GNU General Public License
+                  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+                  --><page>
+                  <content-type>/page/article</content-type>
+                  <display-template>/templates/web/pages/article.ftl</display-template>
+                  <merge-strategy>inherit-levels</merge-strategy>
+                  <objectGroupId>f1f9</objectGroupId>
+                  <objectId>f1f9c488-67e1-7ec0-d3ca-560b194e64d1</objectId>
+                  <sections_o>
+                  <item>
+                    <section_html><![CDATA[<p>Nulla sed enim ipsum. Sed ac neque a ligula malesuada volutpat. Donec et ligula rutrum, mattis mauris eget, vestibulum metus. Maecenas non vehicula neque. Nunc ac mauris id ipsum commodo tempus. Integer at dolor consequat, dignissim eros in, imperdiet dui. Aliquam condimentum turpis eget tellus ultrices tincidunt. Pellentesque id varius purus, ac tristique augue. Etiam ut pharetra purus. Vestibulum quis vehicula eros. Mauris laoreet purus nec felis ullamcorper convallis. test</p>
+                    <p>Quisque urna purus, posuere nec urna sed, ornare aliquet mauris. In faucibus vitae tellus id iaculis. Donec porttitor, elit eu elementum pulvinar, sapien ex cursus lacus, non ornare ex lectus ut elit. Donec eros ligula, suscipit eu tellus ut, tristique hendrerit tortor. Fusce sollicitudin mollis risus, ut rhoncus magna volutpat vel. Cras auctor, elit id pellentesque semper, neque nibh fermentum ante, sit amet malesuada felis magna nec enim. Vivamus sollicitudin placerat felis, vel blandit dolor sollicitudin a. Nunc vitae volutpat augue. Nunc tristique placerat tortor condimentum sagittis. Sed eu egestas ex, quis auctor neque. Nam eget tellus suscipit, vestibulum augue nec, consequat erat. Mauris malesuada nec ligula non posuere. Proin vitae posuere tortor. Phasellus vulputate quam ut dictum vulputate.</p>
+                    <p>Integer ac lectus metus. Ut aliquam ipsum ligula, quis molestie ex pretium sit amet. Morbi porttitor neque vel luctus laoreet. Mauris varius lacus a eros aliquam, in maximus nibh aliquam. Integer sodales consequat metus eget accumsan. Integer viverra mi erat, in hendrerit massa vestibulum placerat. Sed ut gravida nisl, ut cursus neque. Vestibulum tristique rutrum augue vel aliquet.</p>
+                    <p>Ut quis faucibus diam. Aliquam dolor metus, laoreet vitae lacinia a, aliquam a tellus. Vivamus sed commodo ipsum, in lacinia nisl. Sed metus diam, porta eget tortor et, vehicula hendrerit sapien. Vestibulum vehicula urna felis, id elementum libero pellentesque id. Vivamus in massa velit. Suspendisse vitae turpis fermentum lectus pellentesque laoreet. Curabitur viverra pretium turpis, eget feugiat mi blandit a. Quisque nisl urna, porta ut urna eget, mattis fringilla nisi. Ut lacus ligula, dapibus ac fermentum ac, rhoncus eget metus. Donec scelerisque, felis vitae viverra iaculis, diam sem gravida tellus, non sodales urna urna sit amet enim. Duis id justo vitae justo suscipit porta placerat vel ligula. Morbi justo nunc, rhoncus laoreet ipsum a, aliquet eleifend dui. In a quam tortor.</p>
+                    <p>Pellentesque eget eros ut dui tincidunt convallis. Pellentesque tincidunt rutrum tellus, non rhoncus dui finibus eu. Integer eu sem maximus, blandit neque eu, congue leo. Ut pretium efficitur turpis, id dapibus turpis bibendum vel. Suspendisse a nibh dictum, imperdiet est et, interdum odio. Morbi urna magna, eleifend vitae luctus ac, scelerisque sit amet nisi. Quisque maximus placerat ante et fermentum. Nulla eu aliquet arcu, vel maximus massa. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aliquam posuere arcu ex, in sagittis orci rhoncus eu. Suspendisse potenti. Curabitur facilisis sapien et ligula tristique lacinia. Aliquam a mauris bibendum, placerat augue sit amet, hendrerit arcu. Nam in bibendum sapien. Pellentesque laoreet nisi vel metus dapibus dictum. Integer semper, velit laoreet ornare maximus, nulla orci maximus ante, a tincidunt eros risus blandit eros.</p>]]></section_html>
+                    </item>
+                    </sections_o>
+                  <file-name>index.xml</file-name>
+                  <folder-name>men-styles-for-winter</folder-name>
+                  <internal-name>Men Styles For Winter</internal-name>
+                  <title_t>Men Styles For Winter</title_t>
+                  <subject_t>Men Styles For Winter</subject_t>
+                  <author_s>John Doe</author_s>
+                  <categories_o>
+                  <item>
+                    <key>style</key>
+                    <value_smv>Style</value_smv>
+                  </item>
+                  </categories_o>
+                  <segments_o>
+                    <item>
+                      <key>guy</key>
+                      <value_smv>Guy</value_smv>
+                    </item>
+                  </segments_o>
+                  <date_dt>2021-01-05T05:00:00.000Z</date_dt>
+                  <createdDate>2017-03-3T20:57:7.000Z</createdDate>
+                  <createdDate_dt>2017-03-3T20:57:7.000Z</createdDate_dt>
+                  <lastModifiedDate>2017-03-13T20:33:5.000Z</lastModifiedDate>
+                  <lastModifiedDate_dt>2023-11-20T13:25:05.289Z</lastModifiedDate_dt>
+                  <featured_b>true</featured_b>
+                  <summary_t>Nulla sed enim ipsum. Sed ac neque a ligula malesuada volutpat. Donec et ligula rutrum, mattis mauris eget, vestibulum metus. Maecenas non vehicula neque. Nunc ac mauris id ipsum commodo tempus. Integer at dolor consequat, dignissim eros in, imperdiet dui.</summary_t>
+                  <image_s>/static-assets/images/winter-man-pic.jpg</image_s>
+                  </page>"
+              writeContentAssetForm:
+                value: <#import "/templates/system/common/cstudio-support.ftl" as studio />
+
+                  <!DOCTYPE HTML>
+                  <!--
+                  Editorial by HTML5 UP
+                  html5up.net | @ajlkn
+                  Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+                  Test write-content
+                  -->
+                  <html>
+                    <head>
+                      <title>${contentModel.title_t}</title>
+                      <meta charset="utf-8" />
+                      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+                      <!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
+                      <link rel="stylesheet" href="/static-assets/css/main.css?v=${siteContext.siteName}" />
+                      <!--[if lte IE 9]><link rel="stylesheet" href="/static-assets/css/ie9.css" /><![endif]-->
+                      <!--[if lte IE 8]><link rel="stylesheet" href="/static-assets/css/ie8.css" /><![endif]-->
+                      <link rel="stylesheet" href="/static-assets/css/jquery-ui.min.css" />
+                    </head>
+                    <body>
+                      <!-- Wrapper -->
+                      <div id="wrapper">
+
+                        <!-- Main -->
+                        <div id="main">
+                          <div class="inner">
+
+                            <!-- Header -->
+                            <@renderComponent component=contentModel.header_o.item />
+
+                            <!-- Banner -->
+                            <section id="banner" <@studio.iceAttr iceGroup="hero"/>>
+                              <div class="content">
+                                <header>${contentModel.hero_title_html}</header>
+                                ${contentModel.hero_text_html}
+                              </div>
+                              <span class="image object">
+                                <img src="${contentModel.hero_image_s !""}" alt="" />
+                              </span>
+                            </section>
+
+                            <!-- Section -->
+                            <section <@studio.iceAttr iceGroup="features"/>>
+                              <header class="major">
+                                <h2>${contentModel.features_title_t}</h2>
+                              </header>
+                              <div class="features" <@studio.componentContainerAttr target="features_o" component=contentModel/>>
+                                <#if contentModel.features_o?? && contentModel.features_o.item??>
+                                  <#list contentModel.features_o.item as feature>
+                                    <@renderComponent component=feature />
+                                  </#list>
+                                </#if>
+                              </div>
+                            </section>
+
+                            <!-- Section -->
+                            <section>
+                              <header class="major">
+                                <h2>Featured Articles</h2>
+                              </header>
+                              <div class="posts">
+                                <#list articles as article>
+                                  <article>
+                                    <a href="${article.url}" class="image">
+                                      <#if article.image??>
+                                        <#assign articleImage = article.image/>
+                                      <#else>
+                                        <#assign articleImage = "/static-assets/images/placeholder.png"/>
+                                      </#if>
+                                      <img src="${articleImage}" alt="" />
+                                    </a>
+                                    <h3><a href="${article.url}">${article.title}</a></h3>
+                                    <p>${article.summary}</p>
+                                    <ul class="actions">
+                                      <li><a href="${article.url}" class="button">More</a></li>
+                                    </ul>
+                                  </article>
+                                </#list>
+                              </div>
+                            </section>
+
+                          </div>
+                        </div>
+
+                        <!-- Left Rail -->
+                        <@renderComponent component=contentModel.left\-rail_o.item />
+
+                      </div>
+
+                      <!-- Scripts -->
+                      <script src="/static-assets/js/jquery.min.js"></script>
+                      <script src="/static-assets/js/jquery-ui.min.js"></script>
+                      <script src="/static-assets/js/skel.min.js"></script>
+                      <script src="/static-assets/js/util.js"></script>
+                      <!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
+                      <script src="/static-assets/js/main.js?v=${siteContext.siteName}"></script>
+
+                      <@studio.toolSupport/>
+                    </body>
+                  </html>
           multipart/form-data: # Media type
             schema:            # Request payload
               type: object
@@ -11798,14 +11916,14 @@ components:
             properties:
               message:
                 type: string
-          example:
-            sample1:
+          examples:
+            invalidParameter:
               value:
                 message: "Invalid parameter: site_id"
-            sample2:
+            pathMissing:
               value:
                 message: "Path must be provided"
-            sample3:
+            siteMissing:
               value:
                 message: "Site must be provided"
     api1Forbidden:
