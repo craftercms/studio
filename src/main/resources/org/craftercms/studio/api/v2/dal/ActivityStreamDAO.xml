@@ -41,11 +41,15 @@
         <where>
             a.site_id = #{siteId}
             <if test="usernames != null">
-                AND u.username in
+                AND (u.username in
                 <foreach item="username" index="index" collection="usernames"
                          open="(" separator="," close=")">
                     #{username}
                 </foreach>
+                <foreach item="username" index="index" collection="usernames">
+                    OR    u.username like concat(#{username}, '%')
+                </foreach>
+                )
             </if>
             <if test="actions != null">
                 AND a.action in

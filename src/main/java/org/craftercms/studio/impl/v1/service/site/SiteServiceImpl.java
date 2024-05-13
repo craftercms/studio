@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -90,10 +90,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -155,6 +156,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected SitesService sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
+    protected ConfigurationService configurationServiceInternal;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ApplicationContext applicationContext;
@@ -305,6 +307,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (success) {
             logger.info("Sync created site content to preview for site '{}'", siteName);
             setSiteState(siteId, STATE_READY);
+            configureBlobStores(siteId);
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
                 applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
@@ -324,6 +327,33 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     "blueprint '%s'", siteName, siteId, blueprintId));
         }
         logger.info("Site '{}' ID '{}' created successfully", siteName, siteId);
+    }
+
+    /**
+     * When serverless mode is enabled, checks if the site has blob-stores-config.xml file and if not, creates it.
+     *
+     * @param siteId The site ID
+     */
+    private void configureBlobStores(String siteId) {
+        // TODO: JM: consider moving this kind of operations to a site-create pipeline
+        if (!studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
+            logger.info("Serverless delivery is disabled, blob-stores configuration will not be updated for site '{}'", siteId);
+            return;
+        }
+
+        try {
+            String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
+            HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
+            if (xmlConfiguration == null) {
+                logger.info("Serverless delivery is enabled, configuring default blob stores for site '{}'", siteId);
+                String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+                String defaultBlobConfigsLocation = studioConfiguration.getProperty(BLOB_STORES_SERVERLESS_DEFAULT_CONFIG_PATH);
+                Resource resource = applicationContext.getResource(defaultBlobConfigsLocation);
+                configurationService.writeConfiguration(siteId, MODULE_STUDIO, configLocation, environment, resource.getInputStream());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to configure blob stores for site '{}'", siteId, e);
+        }
     }
 
     private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint, String creator) throws SiteNotFoundException {
@@ -609,7 +639,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     remotePrivateKey, params, createAsOrphan, creator);
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
-                RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
+                RemoteRepositoryNotFoundException | ServiceLayerException e) {
 
             contentRepository.deleteSite(siteId);
 
@@ -698,6 +728,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         // Now that everything is created, we can sync the preview deployer with the new content
         logger.info("Sync site '{}' to preview", siteId);
         setSiteState(siteId, STATE_READY);
+        configureBlobStores(siteId);
         try {
             applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
         } catch (Exception e) {
@@ -731,7 +762,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             logger.debug("Delete the Deployer targets for site '{}'", siteId);
-
             deployer.deleteTargets(siteId);
         } catch (Exception e) {
             success = false;
@@ -740,23 +770,24 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             logger.debug("Destroy the preview context for site '{}'", siteId);
-
             success = success && destroySitePreviewContext(siteId);
         } catch (Exception e) {
             success = false;
             logger.error("Failed to destroy the preview context for site '{}'", siteId, e);
         }
 
-        // clear cache
-        configurationService.invalidateConfiguration(siteId);
-
         try {
             logger.debug("Delete the git repo for site '{}'", siteId);
-
             contentRepository.deleteSite(siteId);
         } catch (Exception e) {
             success = false;
             logger.error("Failed to delete the repository for site '{}'", siteId, e);
+        }
+
+        try {
+            configurationServiceInternal.invalidateConfiguration(siteId);
+        } catch (Exception e) {
+            logger.error("Failed to invalidate the configuration for site '{}'", siteId, e);
         }
 
         try {
@@ -948,10 +979,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
 
-        String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
-        HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
-
-        List<BlobStoreDetails> storeDetails = getBlobStoreDetails(xmlConfiguration);
+        List<BlobStoreDetails> storeDetails = Collections.emptyList();
+        if (!studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
+            String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
+            HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
+            storeDetails = getBlobStoreDetails(xmlConfiguration);
+        }
         return new SiteDetails(siteFeedMapper.getSite(params), storeDetails);
     }
 
@@ -1197,6 +1230,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public void setConfigurationServiceInternal(final ConfigurationService configurationServiceInternal) {
+        this.configurationServiceInternal = configurationServiceInternal;
     }
 
     public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {

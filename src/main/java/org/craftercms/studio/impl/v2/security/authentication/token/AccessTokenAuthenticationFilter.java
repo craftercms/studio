@@ -19,7 +19,8 @@ import org.craftercms.studio.api.v2.service.security.AccessTokenService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.web.context.NullSecurityContextRepository;
 
 import java.beans.ConstructorProperties;
 
@@ -42,6 +43,9 @@ public class AccessTokenAuthenticationFilter extends AbstractPreAuthenticatedPro
     @ConstructorProperties({"accessTokenService"})
     public AccessTokenAuthenticationFilter(AccessTokenService accessTokenService) {
         this.accessTokenService = accessTokenService;
+        // use NullSecurityContextRepository to prevent PreAuthenticatedAuthenticationToken
+        // from being saved in to session
+        this.setSecurityContextRepository(new NullSecurityContextRepository());
     }
 
     @Override

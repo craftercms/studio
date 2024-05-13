@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,12 +30,6 @@ import java.util.List;
  * @since 3.1.6
  */
 public interface StudioBlobStoreResolver extends BlobStoreResolver {
-
-    @Override
-    default BlobStore getById(ConfigurationProvider provider, String storeId)
-            throws ConfigurationException {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Returns all {@link StudioBlobStore} configured for the given site

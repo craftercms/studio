@@ -103,16 +103,9 @@ public interface SiteFeedMapper {
     /**
      * Get publishing status for site
      * @param siteId site identifier
-     * @param ttl amount of minutes to add to the
      * @return Publishing status
      */
-    PublishStatus getPublishingStatus(@Param(SITE_ID) String siteId, @Param(TTL) int ttl);
-
-    /**
-     * Clear publishing lock for site
-     * @param siteId site identifier
-     */
-    void clearPublishingLockForSite(@Param(SITE_ID) String siteId);
+    PublishStatus getPublishingStatus(@Param(SITE_ID) String siteId);
 
     /**
      * Duplicate a site in the database

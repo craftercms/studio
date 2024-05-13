@@ -97,6 +97,14 @@ public interface SitesService {
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
     /**
+     * Unlock a site which is locked with state `LOCKED`
+     * @param siteId the id of the site
+     * @throws SiteNotFoundException if the site doesn't exist
+     * @throws InvalidSiteStateException if the site is not in LOCKED state
+     */
+    void unlockSite(String siteId) throws SiteNotFoundException, InvalidSiteStateException;
+
+    /**
      * Checks if the currently existent site with the given ID also has the same siteUuid.
      *
      * @param siteId   ID of the site to test
@@ -118,12 +126,6 @@ public interface SitesService {
      * @return publishing status
      */
     PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
-
-    /**
-     * Clear publishing lock for site
-     * @param siteId site identifier
-     */
-    void clearPublishingLock(String siteId) throws SiteNotFoundException;
 
     /**
      * Delete a site from the system
@@ -173,7 +175,8 @@ public interface SitesService {
      * @param siteName           the name of the new site
      * @param description        the description of the new site
      * @param sandboxBranch      the sandbox branch to use
-     * @param readOnlyBlobStores whether the blob stores should be read only
+     * @param readOnlyBlobStores whether the blob stores should be read only. Notice that this value is
+     *                           overridden (forced to false) if serverless delivery is enabled
      * @throws ServiceLayerException if there is an error duplicating the site
      */
     void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)

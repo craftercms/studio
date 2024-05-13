@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.MediaConvertService;
-import org.springframework.beans.factory.annotation.Required;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 
 /**
  * Default implementation of {@link MediaConvertService}.
@@ -43,8 +43,8 @@ public class MediaConvertServiceImpl extends AbstractAwsService<MediaConvertProf
      */
     protected MediaConvert mediaConvert;
 
-    @Required
-    public void setMediaConvert(final MediaConvert mediaConvert) {
+    public MediaConvertServiceImpl(SiteAwareConfigProfileLoader<MediaConvertProfile> profileLoader, final MediaConvert mediaConvert) {
+        super(profileLoader);
         this.mediaConvert = mediaConvert;
     }
 

@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.apache.commons.fileupload.servlet.ServletFileUpload
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
@@ -43,13 +43,13 @@ def systemAsset = null;
 
 def context = ContentServices.createContext(applicationContext, request)
 
-if(ServletFileUpload.isMultipartContent(request)) {
-    def upload = new ServletFileUpload()
+if (JakartaServletFileUpload.isMultipartContent(request)) {
+    def upload = new JakartaServletFileUpload()
     def iterator = upload.getItemIterator(request)
     while(iterator.hasNext()) {
         def item = iterator.next()
         def name = item.getFieldName()
-        def stream = item.openStream()
+        def stream = item.getInputStream()
         if (item.isFormField()) {
             switch (name) {
                 case "site_id":

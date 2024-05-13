@@ -113,6 +113,8 @@ studio.repo.sync.event.maxResets: 10
 studio.blob.config.module: studio
 # Location of the blob store configuration file in the site
 studio.blob.config.path: blob-stores-config.xml
+# Location of the default blob store configuration file if the site does not have one on site create
+studio.blob.default.config.path: classpath:crafter/studio/serverless/default-blob-stores-config.xml
 # Extension used for the blob files in the site
 studio.blob.file.extension: blob
 # Target to use for all operations
@@ -262,6 +264,8 @@ studio.configuration.publishing.blacklist.regex: >-
   .*/\.keep
 # Default studio server time zone for date time format
 studio.configuration.defaultTimeZone: UTC
+# The maximum length of configuration content for the configuration service. Default to 512kB -> 512 * 1024
+studio.configuration.maxContentSize: 524288
 
 ########################################################
 ##                   Import Service                   ##
@@ -646,12 +650,6 @@ studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-d
 # Upgrade (Populate DB) thread pool
 studio.upgrade.db.population.threadCount: 50
 studio.upgrade.db.population.timeoutSeconds: 7200
-
-################################################################
-##                   Publishing Thread Pool                   ##
-################################################################
-# Publishing lock TTL in minutes
-studio.publishing.siteLock.ttl: 180
 
 ################################################################
 ##                             CORS                           ##

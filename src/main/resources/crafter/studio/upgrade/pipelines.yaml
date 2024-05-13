@@ -633,6 +633,24 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
                 dest: /configuration/samples/sample-site-config-tools.xml
             commitDetails: Update sample datasources for site config tools
+      - currentVersion: 4.2.0.5
+        nextVersion: 4.2.0.6
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+                dest: configuration/samples/sample-blob-stores-config.xml
+            commitDetails: Update sample studio blob stores config file
+      - currentVersion: 4.2.0.6
+        nextVersion: 4.2.0.7
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.6-to-4.2.0.7.sql
+      - currentVersion: 4.2.0.7
+        nextVersion: 4.2.0.8
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.7-to-4.2.0.8.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -828,7 +846,7 @@ pipelines:
           - type: xsltFileUpgrader
             path: /config/studio/site-policy-config.xml
             template: crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt
-            commitDetails: Update site-policy-config.xml to prevent uppercase
+            commitDetails: Sync Studio version to 4.1.2
 
   # Pipeline to upgrade blueprints
   blueprint:

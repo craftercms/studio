@@ -38,8 +38,8 @@ import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,18 +131,6 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne<PublishStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PUBLISH_STATUS, status);
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping(value = CLEAR_LOCK, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody clearPublishingLock(@Valid @RequestBody ClearPublishingLockRequest clearPublishingLockRequest)
-            throws SiteNotFoundException {
-        String siteId = clearPublishingLockRequest.getSiteId();
-        sitesService.clearPublishingLock(siteId);
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

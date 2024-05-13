@@ -45,7 +45,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.InputStream;
 
@@ -107,7 +107,7 @@ public class ConfigurationController {
 
     @Valid
     @PostMapping("/write_configuration")
-    public ResponseBody writeConfiguration(@Valid @RequestBody WriteConfigurationRequest wcRequest)
+    public ResponseBody writeConfiguration(@Validated @RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException, UserNotFoundException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();

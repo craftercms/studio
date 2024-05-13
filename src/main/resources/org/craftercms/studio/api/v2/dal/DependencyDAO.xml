@@ -106,7 +106,7 @@
         AND
         <foreach item="path" index="index" collection="paths"
                  open="(" separator=" OR " close=")">
-            target_path LIKE CONCAT(#{path}, '%')
+            target_path LIKE CONCAT(TRIM(TRAILING '/' FROM #{path}), '/%') or target_path = #{path}
         </foreach>
     </select>
 

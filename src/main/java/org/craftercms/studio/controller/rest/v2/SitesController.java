@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.policy.PolicyService;
@@ -43,7 +44,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
@@ -108,6 +109,14 @@ public class SitesController {
         var result = new Result();
         result.setResponse(OK);
 
+        return result;
+    }
+
+    @PostMapping("/{siteId}/unlock")
+    public Result unlockSite(@ValidSiteId @PathVariable String siteId) throws SiteNotFoundException, InvalidSiteStateException {
+        sitesService.unlockSite(siteId);
+        var result = new Result();
+        result.setResponse(OK);
         return result;
     }
 

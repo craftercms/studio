@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,8 @@ package org.craftercms.studio.api.v2.repository.blob;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+
+import java.util.List;
 
 /**
  * Extension of {@link BlobStore} that adds support for Studio content repository operations
@@ -41,4 +43,12 @@ public interface StudioBlobStore extends BlobStore, ContentRepository,
      */
     boolean isReadOnly();
 
+    /**
+     * Copy the blob items from the source store
+     *
+     * @param sourceStore the source store
+     * @param environment the environment (publishing target)
+     * @param items       the items to copy
+     */
+    void copyBlobs(StudioBlobStore sourceStore, String environment, List<String> items);
 }

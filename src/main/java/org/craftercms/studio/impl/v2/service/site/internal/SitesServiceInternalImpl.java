@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -64,6 +65,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -76,7 +78,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     private final PluginDescriptorReader descriptorReader;
     private final ContentRepository contentRepository;
-    private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    private final StudioBlobAwareContentRepository blobAwareRepository;
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
     private final SiteDAO siteDao;
@@ -89,14 +91,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private ApplicationContext applicationContext;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
-            "contentRepositoryV2",
+            "blobAwareRepository",
             "studioConfiguration", "siteFeedMapper",
             "siteDao",
             "retryingDatabaseOperationFacade", "siteServiceV1",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
-                                    org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                    StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
@@ -104,7 +106,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
-        this.contentRepositoryV2 = contentRepositoryV2;
+        this.blobAwareRepository = blobAwareRepository;
         this.studioConfiguration = studioConfiguration;
         this.siteFeedMapper = siteFeedMapper;
         this.siteDao = siteDao;
@@ -164,7 +166,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
-        if (contentRepositoryV2.contentExists(id, descriptorPath)) {
+        if (blobAwareRepository.contentExists(id, descriptorPath)) {
             try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
                 return loadDescriptor(is);
             } catch (Exception e) {
@@ -216,6 +218,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         if (updated != 1) {
             throw new SiteNotFoundException();
         }
+    }
+
+    @Override
+    public void unlockSite(String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
     }
 
     @Override
@@ -357,7 +364,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
      * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
      */
     private void deleteSiteRepositories(String siteId, List<Exception> exceptions) {
-        tryOperation(() -> contentRepositoryV2.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
+        tryOperation(() -> blobAwareRepository.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
     }
 
     /**
@@ -454,13 +461,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     @Override
     public PublishStatus getPublishingStatus(String siteId) {
-        int ttl = studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
-        return siteFeedMapper.getPublishingStatus(siteId, ttl);
-    }
-
-    @Override
-    public void clearPublishingLock(String siteId) {
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.clearPublishingLockForSite(siteId));
+        return siteFeedMapper.getPublishingStatus(siteId);
     }
 
     @Override
@@ -469,19 +470,30 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
             throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
         }
+
+        if (isEmpty(sandboxBranch)) {
+            sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
+        doDuplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
+    }
+
+    protected void doDuplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException {
         logger.info("Site duplicate from '{}' to '{}' - START", sourceSiteId, siteId);
 
-        boolean publishingEnabled = siteServiceV1.isPublishingEnabled(sourceSiteId);
+        Site sourceSite = siteDao.getSite(sourceSiteId);
+        boolean publishingEnabled = sourceSite.getPublishingEnabled();
         try {
             // Lock source site
             if (publishingEnabled) {
                 siteServiceV1.enablePublishing(sourceSiteId, false);
             }
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_LOCKED));
+            readOnlyBlobStores = readOnlyBlobStores && !studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false);
 
             // Copy site repos in disk
             logger.debug("Duplicate site repos in disk from '{}' to '{}'", sourceSiteId, siteId);
-            contentRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+            blobAwareRepository.duplicateSite(sourceSiteId, siteId, sourceSite.getSandboxBranch(), sandboxBranch);
 
             String siteUuid = UUID.randomUUID().toString();
             addSiteUuidFile(siteId, siteUuid);
@@ -497,6 +509,9 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             if (readOnlyBlobStores) {
                 logger.debug("Make blobstores read-only for duplicate site '{}'", siteId);
                 configurationService.makeBlobStoresReadOnly(siteId);
+            } else {
+                logger.debug("Duplicating blobstores content from site '{}' to '{}'", sourceSiteId, siteId);
+                blobAwareRepository.duplicateBlobs(sourceSiteId, siteId);
             }
 
             auditSiteDuplicate(sourceSiteId, siteId, siteName);

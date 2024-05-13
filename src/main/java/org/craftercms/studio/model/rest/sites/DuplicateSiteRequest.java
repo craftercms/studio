@@ -18,8 +18,8 @@ package org.craftercms.studio.model.rest.sites;
 
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
  * Holds the parameters to a duplicate site request
@@ -39,7 +39,7 @@ public class DuplicateSiteRequest {
      * If true, the blob stores will be read only
      * If false, the blob stores will retain the same configuration as the source site
      */
-    private boolean readOnlyBlobStores = true;
+    private boolean readOnlyBlobStores = false;
 
     public String getSiteName() {
         return siteName;

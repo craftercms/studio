@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.util.*;
