@@ -50,4 +50,23 @@
         #{publishAll},
         #{commitId});
     </insert>
+
+    <insert id="insertItems">
+        INSERT INTO crafter.publish_item
+        (package_id,
+        path,
+        old_path,
+        action,
+        user_requested,
+        state)
+        VALUES
+        <foreach collection="items" item="item" index="index" separator="," >
+            (#{package_id},
+            #{item.path},
+            #{item.oldPath},
+            #{item.action},
+            #{item.userRequested},
+            'PENDING')
+        </foreach>
+    </insert>
 </mapper>

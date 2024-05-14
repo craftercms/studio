@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,15 +35,39 @@ public class PublishPackage {
     protected boolean notifySubmitter;
     protected boolean publishAll;
 
-    private PublishPackage(final PublishAllBuilder publishAllBuilder) {
+    private PublishPackage(final PublishAllBuilder builder) {
+        setComment(builder.comment);
         this.publishAll = true;
-        this.siteId = publishAllBuilder.siteId;
-        this.target = publishAllBuilder.target;
-        this.commitId = publishAllBuilder.commitId;
-        this.comment = publishAllBuilder.comment;
-        this.submitterId = publishAllBuilder.submitterId;
-        this.notifySubmitter = publishAllBuilder.notifySubmitter;
-        approvalState = publishAllBuilder.requestApproval ? ApprovalState.SUBMITTED : ApprovalState.APPROVED;
+    }
+
+    private PublishPackage(PublishBuilder builder) {
+        setCommonProperties(builder);
+        this.publishAll = false;
+        this.schedule = builder.schedule;
+    }
+
+    private void setCommonProperties(final AbstractPublishPackageBuilder<?> builder) {
+        this.siteId = builder.siteId;
+        this.target = builder.target;
+        this.commitId = builder.commitId;
+        this.comment = builder.comment;
+        this.submitterId = builder.submitterId;
+        this.notifySubmitter = builder.notifySubmitter;
+        approvalState = builder.requestApproval ? ApprovalState.SUBMITTED : ApprovalState.APPROVED;
+    }
+
+    /**
+     * Create a builder for a publish all request
+     */
+    public static PublishAllBuilder publishAll() {
+        return new PublishAllBuilder();
+    }
+
+    /**
+     * Create a builder for a publish request
+     */
+    public static PublishBuilder builder() {
+        return new PublishBuilder();
     }
 
     public long getId() {
@@ -134,12 +158,8 @@ public class PublishPackage {
         this.publishAll = publishAll;
     }
 
-    public static PublishAllBuilder publishAll() {
-        return new PublishAllBuilder();
-    }
-
     @SuppressWarnings("unchecked")
-    static class PublishPackageBuilder<T extends PublishPackageBuilder<T>> {
+    abstract static class AbstractPublishPackageBuilder<T extends AbstractPublishPackageBuilder<T>> {
         protected long siteId;
         protected String target;
         protected String commitId;
@@ -184,7 +204,26 @@ public class PublishPackage {
         }
     }
 
-    public static class PublishAllBuilder extends PublishPackageBuilder<PublishAllBuilder> {
+    /**
+     * AbstractPublishPackageBuilder implementation for a publish-all request
+     */
+    public static class PublishAllBuilder extends AbstractPublishPackageBuilder<PublishAllBuilder> {
+        public PublishPackage build() {
+            return new PublishPackage(this);
+        }
+    }
+
+    /**
+     * AbstractPublishPackageBuilder implementation for a regular publish request
+     */
+    public static class PublishBuilder extends AbstractPublishPackageBuilder<PublishBuilder> {
+        private Instant schedule;
+
+        public PublishBuilder withSchedule(final Instant schedule) {
+            this.schedule = schedule;
+            return this;
+        }
+
         public PublishPackage build() {
             return new PublishPackage(this);
         }

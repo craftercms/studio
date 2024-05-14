@@ -16,11 +16,14 @@
 
 package org.craftercms.studio.model.rest.publish;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
 
 import java.time.Instant;
 import java.util.List;
@@ -38,7 +41,7 @@ public class PublishPackageRequest {
     @Size(max = 20)
     @EsapiValidatedParam(type = ALPHANUMERIC)
     private String publishingTarget;
-    private List<@ValidExistingContentPath String> paths;
+    private List<@Valid PublishRequestPath> paths;
     private List<@NotEmpty String> commitIds;
     private Instant schedule;
     private boolean requestApproval;
@@ -62,11 +65,11 @@ public class PublishPackageRequest {
         this.publishingTarget = publishingTarget;
     }
 
-    public List<String> getPaths() {
+    public List<PublishRequestPath> getPaths() {
         return paths;
     }
 
-    public void setPaths(List<String> paths) {
+    public void setPaths(List<PublishRequestPath> paths) {
         this.paths = paths;
     }
 
