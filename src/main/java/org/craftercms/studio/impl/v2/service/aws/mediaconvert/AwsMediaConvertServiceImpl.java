@@ -175,10 +175,10 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         logger.debug("Transcode job '{}' in site '{}' started successfully",
                 createJobResponse.job().arn(), site);
 
-        return buildResult(getJobTemplateResponse.jobTemplate(), createJobResponse, outputProfileId, originalName);
+        return buildResult(s3Client, getJobTemplateResponse.jobTemplate(), createJobResponse, outputProfileId, originalName);
     }
 
-    protected MediaConvertResult buildResult(JobTemplate jobTemplate, CreateJobResponse createJobResponse,
+    protected MediaConvertResult buildResult(S3Client s3Client, JobTemplate jobTemplate, CreateJobResponse createJobResponse,
                                              String outputProfileId, String originalName) {
         List<String> urls = new LinkedList<>();
         jobTemplate.settings().outputGroups().forEach(outputGroup -> {
@@ -188,30 +188,30 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                 case FILE_GROUP_SETTINGS:
                     FileGroupSettings fileSettings = outputGroup.outputGroupSettings().fileGroupSettings();
                     outputGroup.outputs().forEach(output -> {
-                        addUrl(urls, outputProfileId, fileSettings.destination(), originalName,
+                        addUrl(s3Client, urls, outputProfileId, fileSettings.destination(), originalName,
                             output.nameModifier(), output.extension());
                     });
                     break;
                 case HLS_GROUP_SETTINGS:
                     HlsGroupSettings hlsSettings = outputGroup.outputGroupSettings().hlsGroupSettings();
-                    addUrl(urls, outputProfileId, hlsSettings.destination(), originalName,
+                    addUrl(s3Client, urls, outputProfileId, hlsSettings.destination(), originalName,
                             StringUtils.EMPTY, hlsExtension);
                     break;
                 case DASH_ISO_GROUP_SETTINGS:
                     DashIsoGroupSettings dashSettings = outputGroup.outputGroupSettings().dashIsoGroupSettings();
-                    addUrl(urls, outputProfileId, dashSettings.destination(), originalName,
+                    addUrl(s3Client, urls, outputProfileId, dashSettings.destination(), originalName,
                         StringUtils.EMPTY, dashExtension);
                     break;
                 case MS_SMOOTH_GROUP_SETTINGS:
                     MsSmoothGroupSettings smoothSettings = outputGroup.outputGroupSettings().msSmoothGroupSettings();
-                    addUrl(urls, outputProfileId, smoothSettings.destination(), originalName,
+                    addUrl(s3Client, urls, outputProfileId, smoothSettings.destination(), originalName,
                         StringUtils.EMPTY, smoothExtension);
                     break;
                 case CMAF_GROUP_SETTINGS:
                     CmafGroupSettings cmafSettings = outputGroup.outputGroupSettings().cmafGroupSettings();
-                    addUrl(urls, outputProfileId, cmafSettings.destination(), originalName,
+                    addUrl(s3Client, urls, outputProfileId, cmafSettings.destination(), originalName,
                         StringUtils.EMPTY, hlsExtension);
-                    addUrl(urls, outputProfileId, cmafSettings.destination(), originalName,
+                    addUrl(s3Client, urls, outputProfileId, cmafSettings.destination(), originalName,
                         StringUtils.EMPTY, dashExtension);
                     break;
                 default:
@@ -227,10 +227,10 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         return result;
     }
 
-    protected void addUrl(List<String> urls, String outputProfileId, String destination, String originalName,
+    protected void addUrl(S3Client s3Client, List<String> urls, String outputProfileId, String destination, String originalName,
                             String modifier, String extension) {
         String url = StringUtils.appendIfMissing(destination, delimiter) + originalName + modifier + "." + extension;
-        url = createUrl(outputProfileId, url);
+        url = createUrl(s3Client, outputProfileId, url);
         logger.debug("Add the URL '{}'", url);
         urls.add(url);
     }
@@ -238,8 +238,8 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
     /**
      * Builds a remote-asset url using the given profile and S3 URI
      */
-    protected String createUrl(String profileId, String fullUri) {
-        S3Uri uri = S3Uri.builder().uri(URI.create(fullUri)).build();
+    protected String createUrl(S3Client s3Client, String profileId, String fullUri) {
+        S3Uri uri = s3Client.utilities().parseUri(URI.create(fullUri));
         return format(urlPattern, profileId, uri.key());
     }
 
