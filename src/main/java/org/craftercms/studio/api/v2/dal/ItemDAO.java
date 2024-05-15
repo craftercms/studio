@@ -466,4 +466,13 @@ public interface ItemDAO {
      * @param folderPath path of the folder
      */
     void updateNewPageChildren(@Param(SITE_ID) String siteId, @Param(PATH) String folderPath);
+
+    /**
+     * Get the non-folder paths of the children of the item at the given path, recursively.
+     *
+     * @param siteId the site id
+     * @param path   the path to get children for
+     * @return list of children paths
+     */
+    Collection<String> getChildrenPaths(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 }

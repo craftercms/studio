@@ -863,4 +863,22 @@
         SET item.parent_id = updates.newParentId
         WHERE item.id = updates.childId
     </update>
+
+    <select id="getChildrenPaths">
+        WITH RECURSIVE CTE AS (
+            SELECT i.id, i.path, i.site_id, i.system_type
+            FROM item i
+            WHERE i.path = #{path}
+                AND i.site_id = #{siteId}
+        UNION
+            SELECT i.id, i.path, i.site_id, i.system_type
+            FROM cte, item i
+            WHERE cte.id = i.parent_id
+                AND cte.site_id = #{siteId}
+                AND i.ignored = 0
+        )
+        SELECT cte.path
+        FROM cte
+        WHERE cte.system_type &lt;&gt; 'folder'
+    </select>
 </mapper>

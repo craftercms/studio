@@ -392,4 +392,13 @@ public interface ItemServiceInternal {
      * @param path path of the folder where the new index.xml has been added
      */
     void updateNewPageChildren(String site, String path);
+
+    /**
+     * Get the non-folder paths of the children of the item at the given path, recursively.
+     *
+     * @param siteId the site id
+     * @param path   the path to get children for
+     * @return list of children paths
+     */
+    Collection<String> getChildrenPaths(long siteId, String path);
 }

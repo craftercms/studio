@@ -552,6 +552,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateNewPageChildren(siteId, folderPath));
     }
 
+    @Override
+    public Collection<String> getChildrenPaths(long siteId, String path) {
+        return itemDao.getChildrenPaths(siteId, path);
+    }
+
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }

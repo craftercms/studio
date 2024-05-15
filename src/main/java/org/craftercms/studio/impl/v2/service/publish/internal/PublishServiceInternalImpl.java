@@ -409,7 +409,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         Set<String> allPaths = new HashSet<>();
         Set<String> softDepsPaths = new HashSet<>();
         for (PublishRequestPath publishRequestPath : publishRequestPaths) {
-            allPaths.addAll(expandPublishRequestPath(site.getSiteId(), publishRequestPath));
+            allPaths.addAll(expandPublishRequestPath(site, publishRequestPath));
             if (publishRequestPath.includeSoftDeps()) {
                 softDepsPaths.add(publishRequestPath.path());
             }
@@ -431,15 +431,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
 
-    private Set<String> expandPublishRequestPath(final String siteId, final PublishRequestPath publishPath)
-            throws ServiceLayerException {
+    private Set<String> expandPublishRequestPath(final Site site, final PublishRequestPath publishPath) {
         Set<String> paths = new HashSet<>();
-        if (!contentRepository.isFolder(siteId, publishPath.path())) {
+        if (!contentRepository.isFolder(site.getSiteId(), publishPath.path())) {
             paths.add(publishPath.path());
         }
         if (publishPath.includeChildren()) {
-            // TODO: Get children if include children flag is true
-            // Write db query to recursively get children paths only - include non-published-for-target items only
+            paths.addAll(itemServiceInternal.getChildrenPaths(site.getId(), publishPath.path()));
         }
         return paths;
     }
