@@ -61,7 +61,7 @@
         state)
         VALUES
         <foreach collection="items" item="item" index="index" separator="," >
-            (#{package_id},
+            (#{packageId},
             #{item.path},
             #{item.oldPath},
             #{item.action},

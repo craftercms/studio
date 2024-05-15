@@ -40,7 +40,7 @@ public interface DependencyServiceInternal {
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
-    Collection<String> getSoftDependencies(String site, List<String> paths)
+    Collection<String> getSoftDependencies(String site, Collection<String> paths)
             throws SiteNotFoundException, ServiceLayerException;
 
     /**
@@ -57,7 +57,7 @@ public interface DependencyServiceInternal {
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
-    List<String> getHardDependencies(String site, List<String> paths)
+    List<String> getHardDependencies(String site, Collection<String> paths)
             throws SiteNotFoundException, ServiceLayerException;
 
     /**

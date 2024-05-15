@@ -410,4 +410,17 @@ public interface ContentRepository {
      * @return true if site has content object at path
      */
     boolean shallowContentExists(String site, String path);
+
+    /**
+     * Validates that all commits in the list are valid for publishing.
+     * Valid commits are those returned by "git log --first-parent"
+     *
+     * @param siteId    site id
+     * @param commitIds list of commit ids to validate
+     * @return list of valid commit ids, sorted chronologically, oldest to newest
+     * @throws IOException           if there is any error reading the git log
+     * @throws ServiceLayerException if there is any commit ID that is not valid for publishing
+     */
+    List<String> validatePublishCommits(String siteId, List<String> commitIds) throws IOException, ServiceLayerException;
+
 }

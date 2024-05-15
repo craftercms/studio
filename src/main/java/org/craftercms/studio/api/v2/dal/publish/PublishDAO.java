@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,5 +41,5 @@ public interface PublishDAO {
      * @param packageId    the package id
      * @param publishItems the items to insert
      */
-    void insertItems(@Param(PACKAGE_ID_PARAM) long packageId, @Param(ITEMS_PARAM) List<PublishItem> publishItems);
+    void insertItems(@Param(PACKAGE_ID_PARAM) long packageId, @Param(ITEMS_PARAM) Collection<PublishItem> publishItems);
 }

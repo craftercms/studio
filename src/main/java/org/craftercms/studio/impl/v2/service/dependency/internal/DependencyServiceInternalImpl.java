@@ -70,7 +70,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     @LogExecutionTime
-    public Collection<String> getSoftDependencies(String site, List<String> paths) {
+    public Collection<String> getSoftDependencies(String site, Collection<String> paths) {
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
         Set<String> pathsParams = new HashSet<>(paths);
         Set<String> result = new HashSet<>();
@@ -97,7 +97,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     @RequireSiteExists
-    public List<String> getHardDependencies(@SiteId String site, List<String> paths) {
+    public List<String> getHardDependencies(@SiteId String site, Collection<String> paths) {
         Map<String, String> dependencies = calculateHardDependencies(site, paths);
         return new ArrayList<>(dependencies.keySet());
     }
@@ -111,7 +111,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
      * @param paths list of paths to publish
      * @return list of mandatory parents
      */
-    private List<String> getMandatoryParents(final String site, final List<String> paths) {
+    private List<String> getMandatoryParents(final String site, final Collection<String> paths) {
         Set<String> possibleParents = new HashSet<>();
         for (String path : paths) {
             StringTokenizer stPath = new StringTokenizer(removeEnd(path, SLASH_INDEX_FILE), FILE_SEPARATOR);
@@ -127,7 +127,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         return itemServiceInternal.getMandatoryParentsForPublishing(site, allPaths);
     }
 
-    private Map<String, String> calculateHardDependencies(String site, List<String> paths) {
+    private Map<String, String> calculateHardDependencies(String site, Collection<String> paths) {
         Set<String> toRet = new HashSet<>();
 
         logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);

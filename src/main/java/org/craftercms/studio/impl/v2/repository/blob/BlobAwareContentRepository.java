@@ -851,4 +851,9 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
         return localRepositoryV2.getIntroducedCommits(site, baseCommit, commitId);
     }
+
+    @Override
+    public List<String> validatePublishCommits(String siteId, List<String> commitIds) throws IOException, ServiceLayerException {
+        return localRepositoryV2.validatePublishCommits(siteId, commitIds);
+    }
 }

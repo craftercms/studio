@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish;
 
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -24,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
@@ -140,7 +142,8 @@ public interface PublishService {
      * @param comment          the comment for the publishing
      * @return the id of the created package
      */
-    long publish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment);
+    long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment)
+            throws ServiceLayerException, AuthenticationException;
 
     /**
      * Create a 'SUBMITTED' publishing package. The created package will require approval.
@@ -154,7 +157,7 @@ public interface PublishService {
      * @param notifySubmitter  whether to notify the submitter on package approval/rejection
      * @return the id of the created package
      */
-    long requestPublish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter);
+    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter);
 
     int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes);
 
@@ -165,4 +168,7 @@ public interface PublishService {
     List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
 
     int getNumberOfPublishes(String siteId, int days);
+
+    record PublishRequestPath(@ValidExistingContentPath String path, boolean includeChildren, boolean includeSoftDeps) {
+    }
 }

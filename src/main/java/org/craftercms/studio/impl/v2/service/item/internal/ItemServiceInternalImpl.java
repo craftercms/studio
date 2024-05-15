@@ -71,11 +71,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public DetailedItem getItem(String siteId, long id) {
-//        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-//        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-//        return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
-        // TODO: fix for new publishing system
-        return null;
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+        return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, stagingEnv, liveEnv);
     }
 
     @Override
@@ -94,14 +92,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         DetailedItem item = null;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        // TODO: fix for new publishing system
-//        if (preferContent) {
-//            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER,
-//                    COMPLETED, stagingEnv, liveEnv);
-//        } else {
-//            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-//                    stagingEnv, liveEnv);
-//        }
+        if (preferContent) {
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, stagingEnv, liveEnv);
+        } else {
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, stagingEnv, liveEnv);
+        }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);
         }

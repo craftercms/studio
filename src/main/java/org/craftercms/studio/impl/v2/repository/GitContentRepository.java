@@ -89,6 +89,7 @@ import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.collections4.ListUtils.subtract;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -782,6 +783,58 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public boolean shallowContentExists(String site, String path) {
         return Files.exists(helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path)));
+    }
+
+    @Override
+    public List<String> validatePublishCommits(final String siteId, final List<String> commitIds) throws IOException, ServiceLayerException {
+        String repoLockKey = helper.getSandboxRepoLockKey(siteId);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        String repoLastCommitId = getRepoLastCommitId(siteId);
+
+        List<String> resultCommits = new LinkedList<>();
+
+        try (Git git = Git.wrap(repo)) {
+            // git log --first-parent --reverse commitFrom..commitTo
+            RevWalk revWalk = new RevWalk(git.getRepository());
+            revWalk.setFirstParent(true);
+            revWalk.markStart(revWalk.parseCommit(repo.resolve(repoLastCommitId)));
+            revWalk.setRevFilter(new RevFilter() {
+                private final List<String> targetCommits = new ArrayList<>(commitIds);
+
+                @Override
+                public boolean include(RevWalk walker, RevCommit commit) throws StopWalkException {
+                    if (targetCommits.isEmpty()) {
+                        // Stop early if we found them all
+                        throw StopWalkException.INSTANCE;
+                    }
+                    if (targetCommits.contains(commit.getName())) {
+                        targetCommits.remove(commit.getName());
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                @Override
+                public RevFilter clone() {
+                    return this;
+                }
+            });
+            revWalk.sort(TOPO_KEEP_BRANCH_TOGETHER);
+            revWalk.sort(REVERSE, true);
+
+            for (RevCommit revCommit : revWalk) {
+                resultCommits.add(revCommit.getName());
+            }
+            List<String> notFoundCommits = subtract(commitIds, resultCommits);
+            if (!notFoundCommits.isEmpty()) {
+                throw new ServiceLayerException(format("Failed to publish items: Invalid commit ids %s", notFoundCommits));
+            }
+            return resultCommits;
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
     }
 
     @Override

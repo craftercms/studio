@@ -159,14 +159,15 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public long publish(@SiteId String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
+    public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
+                        List<String> commitIds, Instant schedule, String comment) throws AuthenticationException, ServiceLayerException {
         return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, comment);
     }
 
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public long requestPublish(@SiteId String siteId, String publishingTarget, List<String> paths,
+    public long requestPublish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
                                List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter) {
         return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, notifySubmitter);
     }

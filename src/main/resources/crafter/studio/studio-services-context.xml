@@ -550,6 +550,7 @@
         <property name="siteService" ref="sitesServiceInternal"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="auditServiceInternal" ref="auditServiceInternal"/>
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"

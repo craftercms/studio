@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -27,11 +28,14 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -41,20 +45,34 @@ import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.tika.io.FilenameUtils.getName;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PublishServiceInternalImpl implements PublishService, ApplicationContextAware {
+
+    private static final Logger logger = LoggerFactory.getLogger(PublishServiceInternalImpl.class);
 
     private ContentRepository contentRepository;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
@@ -66,6 +84,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private ServicesConfig servicesConfig;
     private UserServiceInternal userServiceInternal;
     private AuditServiceInternal auditServiceInternal;
+    private DependencyServiceInternal dependencyServiceInternal;
     private PublishDAO publishDao;
 
     private SitesService siteService;
@@ -82,7 +101,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path,
                                                          List<String> states, int offset, int limit) {
         // TODO: implement for new publishing system
-        return Collections.emptyList();
+        return emptyList();
 //        return publishRequestDao.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
@@ -135,7 +154,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                                             ZonedDateTime fromDate, ZonedDateTime toDate,
                                                             String filterType, int numberOfItems) {
         // TODO: implement for new publishing system
-        return Collections.emptyList();
+        return emptyList();
     }
 
     @Override
@@ -264,7 +283,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                                                          String approver, ZonedDateTime dateFrom,
                                                                          ZonedDateTime dateTo, int offset, int limit) {
         // TODO: implement for new publishing system
-        return Collections.emptyList();
+        return emptyList();
 //        return publishRequestDao.getPublishingPackagesHistory(siteId, publishingTarget, approver, COMPLETED, dateFrom,
 //                dateTo, offset, limit);
     }
@@ -334,20 +353,137 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    @Override
-    public long publish(String siteId, String publishingTarget, List<String> paths, List<String> commitIds, Instant schedule, String comment) {
-        // TODO: implement new publishing system
-        /*
-        validateCommitIds(siteId, commitIds);
-        get hard deps (references, non-published parents, non-published item-specific deps)
-        create the package and items
-        trigger the publishing if not scheduled
-         */
-        return 0;
+    private void createPublishItemsFromCommitIds(final String siteId, final String publishingTarget,
+                                                 final List<String> commitIds, final Map<String, PublishItem> publishItemsByPath)
+            throws ServiceLayerException, IOException {
+        if (isEmpty(commitIds)) {
+            return;
+        }
+        // Validate and sort commits
+        List<String> sortedCommits = contentRepository.validatePublishCommits(siteId, commitIds);
+        publishItemsByPath.putAll(
+                sortedCommits.stream()
+                        .map(commitId -> contentRepository.getOperationsFromDelta(siteId, commitId, commitId + "~1"))
+                        .flatMap(List::stream)
+                        .filter(op -> !contains(IGNORE_FILES, getName(op.getMoveToPath())))
+                        .filter(op -> !contains(IGNORE_FILES, getName(op.getPath())))
+                        // Ignore deletes if the path exists in current version
+                        .filter(op -> op.getAction() != RepoOperation.Action.DELETE || contentRepository.contentExists(siteId, op.getPath()))
+                        .map(op -> createPublishItem(siteId, publishingTarget, op.getPath(),
+                                op.getAction() == RepoOperation.Action.DELETE ? DELETE : ADD, true))
+                        .collect(toMap(PublishItem::getPath, item -> item)));
+    }
+
+    private PublishItem createPublishItem(final String siteId, final String publishingTarget,
+                                          final String path, final PublishItem.Action action, final boolean userRequested) {
+        PublishItem publishItem = new PublishItem();
+        if (action != DELETE) {
+            // TODO: retrieve item and check if there is an old path for the target ??
+        }
+        publishItem.setAction(action);
+        publishItem.setPath(path);
+        publishItem.setUserRequested(userRequested);
+        return publishItem;
+    }
+
+    private void createPublishItemsFromPaths(final String siteId, final String publishingTarget,
+                                             final List<PublishRequestPath> publishRequestPaths, final Map<String, PublishItem> publishItemsByPath)
+            throws ServiceLayerException {
+        if (isEmpty(publishRequestPaths)) {
+            return;
+        }
+
+        Set<String> allPaths = new HashSet<>();
+        Set<String> softDepsPaths = new HashSet<>();
+        for (PublishRequestPath publishRequestPath : publishRequestPaths) {
+            allPaths.addAll(expandPublishRequestPath(siteId, publishRequestPath, publishingTarget));
+            if (publishRequestPath.includeSoftDeps()) {
+                softDepsPaths.add(publishRequestPath.path());
+            }
+        }
+        allPaths.addAll(dependencyServiceInternal.getSoftDependencies(siteId, softDepsPaths));
+
+        publishItemsByPath.putAll(
+                allPaths.stream()
+                        .filter(path -> !publishItemsByPath.containsKey(path))
+                        .map(path -> createPublishItem(siteId, publishingTarget, path, ADD, true))
+                        .collect(toMap(PublishItem::getPath, item -> item)));
+    }
+
+    private void createPublishItemsForHardDeps(String siteId, String publishingTarget, Map<String, PublishItem> publishItemsByPath) throws ServiceLayerException {
+        publishItemsByPath.putAll(
+                dependencyServiceInternal.getHardDependencies(siteId, publishItemsByPath.keySet()).stream()
+                        .filter(dep -> !publishItemsByPath.containsKey(dep))
+                        .map(dep -> createPublishItem(siteId, publishingTarget, dep, ADD, false))
+                        .collect(toMap(PublishItem::getPath, item -> item)));
+    }
+
+    private Set<String> expandPublishRequestPath(final String siteId, final PublishRequestPath publishPath, final String publishingTarget)
+            throws ServiceLayerException {
+        Set<String> paths = new HashSet<>();
+        // TODO: replace this with a new method that retrieves systemType only
+        Item item = itemServiceInternal.getItem(siteId, publishPath.path(), true);
+        if (item == null) {
+            throw new ContentNotFoundException("Content not found for path: " + publishPath.path());
+        }
+        if (!CONTENT_TYPE_FOLDER.equals(item.getSystemType())) {
+            paths.add(publishPath.path());
+        }
+        if (publishPath.includeChildren()) {
+            // TODO: Get children if include children flag is true
+            // Write db query to recursively get children paths only - include non-published-for-target items only
+        }
+        return paths;
     }
 
     @Override
-    public long requestPublish(String siteId, String publishingTarget, List<String> paths,
+    public long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment)
+            throws ServiceLayerException, AuthenticationException {
+        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPublishingOrProcessingLockKey(siteId);
+        boolean lockAcquired = generalLockService.tryLock(lockKey);
+        if (!lockAcquired) {
+            throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
+        }
+        try {
+            Site site = siteService.getSite(siteId);
+            // TODO: implement new publishing system
+            // TODO: make this a db transaction
+
+            // Combine list of paths and list of commit changes
+            Map<String, PublishItem> publishItemsByPath = new HashMap<>();
+            createPublishItemsFromCommitIds(siteId, publishingTarget, commitIds, publishItemsByPath);
+            createPublishItemsFromPaths(siteId, publishingTarget, paths, publishItemsByPath);
+            createPublishItemsForHardDeps(siteId, publishingTarget, publishItemsByPath);
+
+            if (publishItemsByPath.isEmpty()) {
+                throw new InvalidParametersException("Failed to submit publish package: No items to publish");
+            }
+
+            // Create package
+            PublishPackage publishPackage = PublishPackage.builder()
+                    .withSiteId(site.getId())
+                    .withTarget(publishingTarget)
+                    .withComment(comment)
+                    .withSubmitterId(userServiceInternal.getCurrentUser().getId())
+                    .withCommitId(contentRepository.getRepoLastCommitId(siteId))
+                    .withSchedule(schedule)
+                    .build();
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackage(publishPackage));
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertItems(publishPackage.getId(), publishItemsByPath.values()));
+
+            // Create and insert publish items
+            applicationContext.publishEvent(new RequestPublishEvent(siteId));
+            return publishPackage.getId();
+        } catch (IOException e) {
+            logger.error("Failed to publish items: ", e);
+            throw new ServiceLayerException("Failed to publish items", e);
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    @Override
+    public long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
                                List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter) {
         // TODO: implement new publishing system
         return 0;
@@ -396,5 +532,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+        this.dependencyServiceInternal = dependencyServiceInternal;
     }
 }

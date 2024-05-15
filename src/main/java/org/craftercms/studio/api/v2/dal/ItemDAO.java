@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface ItemDAO {
@@ -103,7 +104,6 @@ public interface ItemDAO {
      * @param id item id
      * @param siteId site identifier
      * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
      * @return item identified by given id
@@ -111,39 +111,67 @@ public interface ItemDAO {
     DetailedItem getItemById(@Param(ID) long id,
                              @Param(SITE_ID) String siteId,
                              @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                             @Param(COMPLETED_STATE) String completedState,
                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                              @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item for given site and path
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
+     *
+     * @param siteId             site identifier
+     * @param path               path of the item
+     * @param liveEnvironment    live environment
+     * @param stagingEnvironment staging environment
+     * @return item for given site and path
+     */
+    default DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                                @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                                @Param(LIVE_ENVIRONMENT) String liveEnvironment) {
+        return getItemBySiteIdAndPath(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment);
+    }
+
+    /**
+     * Get item for given site and path
+     *
+     * @param siteId             site identifier
+     * @param path               path of the item
+     * @param systemTypeFolder   value for system type folder
+     * @param liveEnvironment    live environment
      * @param stagingEnvironment staging environment
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
                                         @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                        @Param(COMPLETED_STATE) String completedState,
                                         @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                         @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item with prefer content option for given site and path
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
+     *
+     * @param siteId             site identifier
+     * @param path               path of the item
+     * @param liveEnvironment    live environment
+     * @param stagingEnvironment staging environment
+     * @return item for given site and path
+     */
+
+    default DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                                             @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                                             @Param(LIVE_ENVIRONMENT) String liveEnvironment) {
+        return getItemBySiteIdAndPathPreferContent(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment);
+    }
+
+    /**
+     * Get item with prefer content option for given site and path
+     *
+     * @param siteId             site identifier
+     * @param path               path of the item
+     * @param systemTypeFolder   value for system type folder
+     * @param liveEnvironment    live environment
      * @param stagingEnvironment staging environment
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
                                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                                     @Param(COMPLETED_STATE) String completedState,
                                                      @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                      @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
@@ -232,24 +260,6 @@ public interface ItemDAO {
                   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
-     * Get item for given path from database
-     *
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
-     * @param stagingEnvironment staging environment
-     * @return item
-     */
-
-    DetailedItem getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
-                               @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                               @Param(COMPLETED_STATE) String completedState,
-                               @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                               @Param(LIVE_ENVIRONMENT) String liveEnvironment);
-
-    /**
      * Get a list of {@link DetailedItem} for given site and filters (system_types, states)
      *
      * @param siteId             site identifier
@@ -273,24 +283,6 @@ public interface ItemDAO {
                                                 @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                 @Param(LIVE_ENVIRONMENT) String liveEnvironment,
                                                 @Param(OFFSET) int offset, @Param(LIMIT) int limit);
-
-    /**
-     * Get item with prefer content option for given path from database
-     *
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
-     * @param stagingEnvironment staging environment
-     * @return item
-     */
-
-    DetailedItem getItemByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
-                                            @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                            @Param(COMPLETED_STATE) String completedState,
-                                            @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                                            @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get sandbox items for given paths

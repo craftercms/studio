@@ -285,5 +285,9 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    default List<String> validatePublishCommits(String siteId, List<String> commitIds) {
+        throw new UnsupportedOperationException();
+    }
 
 }
