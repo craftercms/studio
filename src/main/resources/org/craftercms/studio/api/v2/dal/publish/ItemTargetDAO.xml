@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO">
+    <resultMap id="ItemTargetMap" type="org.craftercms.studio.api.v2.dal.publish.ItemTarget">
+        <result property="itemId" column="item_id"/>
+        <result property="target" column="target"/>
+        <result property="oldPath" column="old_path"/>
+    </resultMap>
+
+    <select id="getByItemPath" resultMap="ItemTargetMap">
+        SELECT it.*
+        FROM item_target it
+        INNER JOIN item i ON it.item_id = i.id
+        WHERE i.site_id = #{siteId}
+        AND i.path = #{path}
+    </select>
+</mapper>

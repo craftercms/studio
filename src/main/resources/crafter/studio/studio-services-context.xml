@@ -547,6 +547,7 @@
         <property name="studioUtils" ref="studio.utils"/>
         <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="publishDao" ref="publishDao"/>
+        <property name="itemTargetDao" ref="itemTargetDao"/>
         <property name="siteService" ref="sitesServiceInternal"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="auditServiceInternal" ref="auditServiceInternal"/>

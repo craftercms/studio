@@ -187,6 +187,15 @@ public interface ContentRepository {
     boolean removeRemote(String siteId, String remoteName);
 
     /**
+     * Check if a path is a folder
+     *
+     * @param siteId the site id
+     * @param path   the path
+     * @return true if the path is a folder, false otherwise
+     */
+    boolean isFolder(String siteId, String path);
+
+    /**
      * Determine if content exists in the repository at a given path
      *
      * @param site site id where the operation will be executed

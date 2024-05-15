@@ -516,7 +516,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     public boolean isFolder(String siteId, String path) {
-        return localRepositoryV1.isFolder(siteId, path);
+        return localRepositoryV2.isFolder(siteId, path);
     }
 
     // TODO: Remove when the API is split

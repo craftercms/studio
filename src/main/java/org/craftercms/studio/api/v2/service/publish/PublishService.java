@@ -157,7 +157,7 @@ public interface PublishService {
      * @param notifySubmitter  whether to notify the submitter on package approval/rejection
      * @return the id of the created package
      */
-    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter);
+    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter) throws AuthenticationException, ServiceLayerException;
 
     int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes);
 

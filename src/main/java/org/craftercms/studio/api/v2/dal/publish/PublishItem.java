@@ -23,7 +23,8 @@ public class PublishItem {
     protected long id;
     protected long packageId;
     protected String path;
-    protected String oldPath;
+    protected String liveOldPath;
+    protected String stagingOldPath;
     protected Action action;
     protected boolean userRequested;
     protected State state;
@@ -53,12 +54,20 @@ public class PublishItem {
         this.path = path;
     }
 
-    public String getOldPath() {
-        return oldPath;
+    public String getLiveOldPath() {
+        return liveOldPath;
     }
 
-    public void setOldPath(String oldPath) {
-        this.oldPath = oldPath;
+    public void setLiveOldPath(String liveOldPath) {
+        this.liveOldPath = liveOldPath;
+    }
+
+    public String getStagingOldPath() {
+        return stagingOldPath;
+    }
+
+    public void setStagingOldPath(String stagingOldPath) {
+        this.stagingOldPath = stagingOldPath;
     }
 
     public Action getAction() {

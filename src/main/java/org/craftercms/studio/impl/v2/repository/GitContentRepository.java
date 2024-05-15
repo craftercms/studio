@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
@@ -829,12 +830,20 @@ public class GitContentRepository implements ContentRepository {
             }
             List<String> notFoundCommits = subtract(commitIds, resultCommits);
             if (!notFoundCommits.isEmpty()) {
-                throw new ServiceLayerException(format("Failed to publish items: Invalid commit ids %s", notFoundCommits));
+                throw new InvalidParametersException(format("Failed to publish items: Invalid commit ids %s", notFoundCommits));
             }
             return resultCommits;
         } finally {
             generalLockService.unlock(repoLockKey);
         }
+    }
+
+    @Override
+    public boolean isFolder(final String siteId, final String path) {
+        Path p = Paths.get(helper.buildRepoPath(StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX, siteId)
+                .toAbsolutePath().toString(), path);
+        File file = p.toFile();
+        return file.isDirectory();
     }
 
     @Override
