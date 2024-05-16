@@ -39,7 +39,7 @@ public interface DeploymentService {
      *
      * @throws ServiceLayerException exception is case of en error
      */
-    void bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException;
+    long bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException, AuthenticationException;
 
     /**
      * Enable/Disable publishing for given site
@@ -55,8 +55,8 @@ public interface DeploymentService {
      * @param environment environment to use for publishing
      * @param commitIds commit IDs to publish
      */
-    void publishCommits(String site, String environment, List<String> commitIds, String comment)
-            throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException;
+    long publishCommits(String site, String environment, List<String> commitIds, String comment)
+            throws ServiceLayerException, AuthenticationException;
 
 
     /**

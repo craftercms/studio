@@ -219,7 +219,7 @@ public class PublishController {
     private long submitPublishPackage(PublishPackageRequest request) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         if (request.isPublishAll()) {
             if (request.getSchedule() != null) {
-                throw new InvalidParametersException("Cannot schedule a publish all operation");
+                throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
             }
             if (request.isRequestApproval()) {
                 return publishService.requestPublishAll(request.getSiteId(), request.getPublishingTarget(),

@@ -122,7 +122,8 @@
         <property name="userDao" ref="userDao" />
     </bean>
 
-     <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
+     <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl">
+         <property name="publishService" ref="publishServiceInternal"/>
      </bean>
 
     <bean id="cstudioNotificationService"

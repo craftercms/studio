@@ -59,6 +59,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -357,7 +358,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         AuditLogParameter commentParam = new AuditLogParameter();
         commentParam.setTargetId(TARGET_TYPE_SUBMISSION_COMMENT);
         commentParam.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
-        commentParam.setTargetValue(p.getComment());
+        commentParam.setTargetValue(defaultIfEmpty(p.getComment(), ""));
 
         AuditLogParameter packageParam = new AuditLogParameter();
         packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
@@ -490,10 +491,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public long publish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
                         final List<String> commitIds, final Instant schedule, final String comment)
             throws ServiceLayerException, AuthenticationException {
-        if (!isSitePublished(siteId)) {
-            return submitPublishAll(siteId, publishingTarget, comment, false, false);
+        if (isSitePublished(siteId) && !isBulkPublishRoot(paths)) {
+            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, false, false);
         }
-        return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, false, false);
+        if (schedule != null) {
+            throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
+        }
+        return submitPublishAll(siteId, publishingTarget, comment, false, false);
     }
 
     /**
@@ -567,10 +571,22 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public long requestPublish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
                                final List<String> commitIds, final Instant schedule, final String comment, final boolean notifySubmitter)
             throws AuthenticationException, ServiceLayerException {
-        if (!isSitePublished(siteId)) {
-            return submitPublishAll(siteId, publishingTarget, comment, true, notifySubmitter);
+        if (isSitePublished(siteId) && !isBulkPublishRoot(paths)) {
+            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, true, notifySubmitter);
         }
-        return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, true, notifySubmitter);
+        if (schedule != null) {
+            throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
+        }
+        return submitPublishAll(siteId, publishingTarget, comment, true, notifySubmitter);
+    }
+
+    /**
+     * Check if any of the submitted {@link PublishRequestPath} is a bulk publish of the content root '/'.
+     * If so, the operation should be treated as a publish all operation.
+     */
+    private boolean isBulkPublishRoot(List<PublishRequestPath> publishRequestPaths) {
+        return publishRequestPaths.stream()
+                .anyMatch(p -> p.path().equals("/") && p.includeChildren());
     }
 
     @Override

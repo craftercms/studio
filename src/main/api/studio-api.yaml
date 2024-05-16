@@ -2538,8 +2538,12 @@ paths:
                 properties:
                   message:
                     type: string
+                  packageId:
+                    type: number
+                    description: asdf
                 example:
                   message: "OK"
+                  packageId: 15
         '400':
           $ref: '#/components/responses/api1BadRequest'
         '401':
@@ -2856,8 +2860,12 @@ paths:
                 properties:
                   message:
                     type: string
+                  packageId:
+                    type: number
+                    description: asdf
                 example:
                   message: "OK"
+                  packageId: 15
         '400':
           $ref: '#/components/responses/api1BadRequest'
         '401':
