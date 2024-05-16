@@ -6702,9 +6702,6 @@ paths:
                 publishingTarget:
                   type: string
                   description: the publishing target (staging or live)
-                requestApproval:
-                  type: boolean
-                  description: true to submit the request for approval, false to publish directly
                 submissionComment:
                   type: string
                   description: optional submission comment

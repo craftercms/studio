@@ -40,6 +40,8 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public interface ContentRepository {
 
+    String PREVIOUS_COMMIT_SUFFIX = "~1";
+
     /**
      * Get the site content item list for the given site
      *
@@ -80,9 +82,20 @@ public interface ContentRepository {
      * @param site         site to use
      * @param commitIdFrom commit ID to start at
      * @param commitIdTo   commit ID to end at
-     * @return commit ID of current HEAD, updated operationsSinceCommit
+     * @return list of operations
      */
     List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo);
+
+    /**
+     * Get a list of operations between given commit and its first parent
+     *
+     * @param site     site id
+     * @param commitId commit id
+     * @return list of operations
+     */
+    default List<RepoOperation> getOperationsFromFirstParentDiff(final String site, final String commitId) {
+        return getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
+    }
 
     /**
      * Get first id from repository for given site

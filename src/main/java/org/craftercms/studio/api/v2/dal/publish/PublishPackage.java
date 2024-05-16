@@ -36,7 +36,7 @@ public class PublishPackage {
     protected boolean publishAll;
 
     private PublishPackage(final PublishAllBuilder builder) {
-        setComment(builder.comment);
+        setCommonProperties(builder);
         this.publishAll = true;
     }
 

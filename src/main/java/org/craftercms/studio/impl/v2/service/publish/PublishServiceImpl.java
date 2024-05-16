@@ -150,10 +150,18 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public long publishAll(@SiteId final String siteId, final String publishingTarget,
-                           final boolean requestApproval, final boolean notifySubmitter, final String comment)
+    public long publishAll(@SiteId final String siteId, final String publishingTarget, final String comment)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        return publishServiceInternal.publishAll(siteId, publishingTarget, requestApproval, notifySubmitter, comment);
+        return publishServiceInternal.publishAll(siteId, publishingTarget, comment);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public long requestPublishAll(@SiteId final String siteId, final String publishingTarget,
+                                  final String comment, boolean notifySubmitter)
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        return publishServiceInternal.requestPublishAll(siteId, publishingTarget, comment, notifySubmitter);
     }
 
     @Override

@@ -123,13 +123,23 @@ public interface PublishService {
      *
      * @param siteId           the id of the site
      * @param publishingTarget the publishing target
-     * @param requestApproval  true to request a reviewer approval, false to publish directly
-     * @param notifySubmitter  true to notify the submitter upon package approval/rejection
      * @param comment          submission comment
      * @return result of the publishing
      * @throws ServiceLayerException if there is any error during publishing
      */
-    long publishAll(String siteId, String publishingTarget, boolean requestApproval, boolean notifySubmitter, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+    long publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
+    /**
+     * Submit a publish-all package for approval
+     *
+     * @param siteId           the id of the site
+     * @param publishingTarget the publishing target
+     * @param comment          submission comment
+     * @param notifySubmitter  true to notify the submitter upon package approval/rejection
+     * @return result of the publishing
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    long requestPublishAll(String siteId, String publishingTarget, String comment, boolean notifySubmitter) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
     /**
      * Create a 'APPROVED' publishing package. The created package will be ready to be published.
@@ -142,7 +152,8 @@ public interface PublishService {
      * @param comment          the comment for the publishing
      * @return the id of the created package
      */
-    long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment)
+    long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds,
+                 Instant schedule, String comment)
             throws ServiceLayerException, AuthenticationException;
 
     /**
@@ -157,15 +168,20 @@ public interface PublishService {
      * @param notifySubmitter  whether to notify the submitter on package approval/rejection
      * @return the id of the created package
      */
-    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds, Instant schedule, String comment, boolean notifySubmitter) throws AuthenticationException, ServiceLayerException;
+    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds,
+                        Instant schedule, String comment, boolean notifySubmitter)
+            throws AuthenticationException, ServiceLayerException;
 
-    int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes);
+    int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
+                                         ZonedDateTime dateTo, List<String> systemTypes);
 
-    int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+    int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
+                                          ZonedDateTime dateTo);
 
     int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId);
 
-    List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+    List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver,
+                                                                  ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
 
     int getNumberOfPublishes(String siteId, int days);
 

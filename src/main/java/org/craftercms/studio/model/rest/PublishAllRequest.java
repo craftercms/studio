@@ -35,8 +35,6 @@ public class PublishAllRequest {
     @Size(max = 20)
     @EsapiValidatedParam(type = ALPHANUMERIC)
     protected String publishingTarget;
-    protected boolean requestApproval;
-    private boolean notifySubmitter;
 
     protected String submissionComment;
 
@@ -56,14 +54,6 @@ public class PublishAllRequest {
         this.publishingTarget = publishingTarget;
     }
 
-    public boolean isRequestApproval() {
-        return requestApproval;
-    }
-
-    public void setRequestApproval(boolean requestApproval) {
-        this.requestApproval = requestApproval;
-    }
-
     public String getSubmissionComment() {
         return submissionComment;
     }
@@ -72,11 +62,4 @@ public class PublishAllRequest {
         this.submissionComment = submissionComment;
     }
 
-    public boolean isNotifySubmitter() {
-        return notifySubmitter;
-    }
-
-    public void setNotifySubmitter(boolean notifySubmitter) {
-        this.notifySubmitter = notifySubmitter;
-    }
 }

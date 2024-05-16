@@ -27,7 +27,7 @@
     <insert id="insertPackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage"
             useGeneratedKeys="true"
             keyProperty="id">
-        INSERT INTO crafter.publish_package
+        INSERT INTO publish_package
         (site_id,
         target,
         schedule,
@@ -52,7 +52,7 @@
     </insert>
 
     <insert id="insertItems">
-        INSERT INTO crafter.publish_item
+        INSERT INTO publish_item
         (package_id,
         path,
         live_old_path,

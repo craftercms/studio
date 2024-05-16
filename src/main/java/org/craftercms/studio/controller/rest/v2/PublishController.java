@@ -184,10 +184,11 @@ public class PublishController {
     }
 
     @PostMapping("/all")
+    @Deprecated
     public ResultOne<Long> publishAll(@Validated @RequestBody PublishAllRequest request)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         long packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
-                request.isRequestApproval(), request.isNotifySubmitter(), request.getSubmissionComment());
+                request.getSubmissionComment());
 
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(OK);
@@ -198,25 +199,41 @@ public class PublishController {
     @PostMapping
     public ResultOne<Long> publish(@Validated @RequestBody PublishPackageRequest request)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        long packageId;
-        if (request.isPublishAll()) {
-            if (request.getSchedule() != null) {
-                throw new InvalidParametersException("Cannot schedule a publish all operation");
-            }
-            packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
-                    request.isRequestApproval(), request.isNotifySubmitter(), request.getComment());
-        } else if (request.isRequestApproval()) {
-            packageId = publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
-                    request.getCommitIds(), request.getSchedule(), request.getComment(), request.isNotifySubmitter());
-        } else {
-            packageId = publishService.publish(request.getSiteId(), request.getPublishingTarget(),
-                    request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
-        }
+        long packageId = submitPublishPackage(request);
 
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         return result;
+    }
+
+    /**
+     * Submit a publish package request
+     *
+     * @param request the request
+     * @return the package id
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     * @throws AuthenticationException
+     */
+    private long submitPublishPackage(PublishPackageRequest request) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        if (request.isPublishAll()) {
+            if (request.getSchedule() != null) {
+                throw new InvalidParametersException("Cannot schedule a publish all operation");
+            }
+            if (request.isRequestApproval()) {
+                return publishService.requestPublishAll(request.getSiteId(), request.getPublishingTarget(),
+                        request.getComment(), request.isNotifySubmitter());
+            }
+            return publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
+                    request.getComment());
+        }
+        if (request.isRequestApproval()) {
+            return publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
+                    request.getCommitIds(), request.getSchedule(), request.getComment(), request.isNotifySubmitter());
+        }
+        return publishService.publish(request.getSiteId(), request.getPublishingTarget(),
+                request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
     }
 
 }
