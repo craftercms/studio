@@ -42,9 +42,11 @@ import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.permissions.CompositePermission;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -205,6 +207,14 @@ public class PublishServiceImpl implements PublishService {
     @Override
     public int getNumberOfPublishes(String siteId, int days) {
         return publishServiceInternal.getNumberOfPublishes(siteId, days);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public PublishDependenciesResult getPublishDependencies(@SiteId String siteId, Collection<PublishRequestPath> paths,
+                                                            Collection<String> commitIds) throws ServiceLayerException, IOException {
+        return publishServiceInternal.getPublishDependencies(siteId, paths, commitIds);
     }
 
     @Override

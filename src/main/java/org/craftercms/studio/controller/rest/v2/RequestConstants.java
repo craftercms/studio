@@ -65,6 +65,7 @@ public final class RequestConstants {
     public static final String PUBLISH_REQUEST_SORT_FIELDS = "id dateScheduled label";
     public static final String ITEM_TYPE_VALUES = "asset|component|content type|document|file|folder|levelDescriptor|page|renderingTemplate|script|taxonomy";
     public static final String RESULT_KEY_PACKAGE_ID = "packageId";
+    public static final String RESULT_KEY_PACKAGE = "package";
 
     private RequestConstants() {
     }

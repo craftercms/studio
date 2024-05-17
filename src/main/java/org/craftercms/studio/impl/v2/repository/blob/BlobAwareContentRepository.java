@@ -853,7 +853,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public List<String> validatePublishCommits(String siteId, List<String> commitIds) throws IOException, ServiceLayerException {
+    public List<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
         return localRepositoryV2.validatePublishCommits(siteId, commitIds);
     }
 }

@@ -34,21 +34,25 @@ import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDependenciesResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
+import org.craftercms.studio.model.rest.publish.GetPublishDependenciesRequest;
 import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -193,6 +197,18 @@ public class PublishController {
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
+        return result;
+    }
+
+    @PostMapping(DEPENDENCIES)
+    public ResultOne<PublishDependenciesResult> getPublishDependencies(@Validated @RequestBody GetPublishDependenciesRequest request)
+            throws ServiceLayerException, IOException {
+        PublishDependenciesResult dependenciesPackage = publishService.getPublishDependencies(request.getSiteId(),
+                request.getPaths(), request.getCommitIds());
+
+        ResultOne<PublishDependenciesResult> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE, dependenciesPackage);
         return result;
     }
 

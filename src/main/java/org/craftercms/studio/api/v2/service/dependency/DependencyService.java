@@ -19,6 +19,8 @@ package org.craftercms.studio.api.v2.service.dependency;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 
 import java.util.Collection;

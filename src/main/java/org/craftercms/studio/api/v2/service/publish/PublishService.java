@@ -25,12 +25,13 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
-import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface PublishService {
@@ -185,6 +186,45 @@ public interface PublishService {
 
     int getNumberOfPublishes(String siteId, int days);
 
+    /**
+     * Get the dependencies for the given paths and commit ids
+     *
+     * @param siteId    site identifier
+     * @param paths     paths to get dependencies for
+     * @param commitIds commit ids to get dependencies for
+     * @return a package containing:
+     * <ul>
+     *     <li>items: the items to publish</li>
+     *     <li>deletedItems: the deleted paths found in the requested commits</li>
+     *     <li>hardDependencies: the hard dependencies of the items</li>
+     *     <li>softDependencies: the soft dependencies of the items</li>
+     *     </ul>
+     * @throws ServiceLayerException
+     * @throws IOException
+     */
+    PublishDependenciesResult getPublishDependencies(String siteId, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
+
+    /**
+     * A request to include a path in a publish request.
+     *
+     * @param path            the path to include
+     * @param includeChildren whether to include the children of the path
+     * @param includeSoftDeps whether to include the soft dependencies of the path (and children's soft-deps when including children)
+     */
     record PublishRequestPath(@ValidExistingContentPath String path, boolean includeChildren, boolean includeSoftDeps) {
+    }
+
+    /**
+     * Result of a get-dependencies request
+     *
+     * @param items            the items to publish. Includes paths selected by the user.
+     *                         i.e.: each path with children (if requested) and their soft dependencies (if requested).
+     *                         paths extracted from commit ids
+     * @param deletedItems     the deleted paths found in the requested commits
+     * @param hardDependencies the hard dependencies of the items
+     * @param softDependencies the soft dependencies of the items
+     */
+    record PublishDependenciesResult(Collection<String> items, Collection<String> deletedItems,
+                                     Collection<String> hardDependencies, Collection<String> softDependencies) {
     }
 }

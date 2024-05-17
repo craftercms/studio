@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
@@ -89,8 +90,8 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.collections4.CollectionUtils.union;
-import static org.apache.commons.collections4.ListUtils.subtract;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -787,7 +788,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public List<String> validatePublishCommits(final String siteId, final List<String> commitIds) throws IOException, ServiceLayerException {
+    public List<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
         String repoLockKey = helper.getSandboxRepoLockKey(siteId);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(repoLockKey);
@@ -828,7 +829,7 @@ public class GitContentRepository implements ContentRepository {
             for (RevCommit revCommit : revWalk) {
                 resultCommits.add(revCommit.getName());
             }
-            List<String> notFoundCommits = subtract(commitIds, resultCommits);
+            Collection<String> notFoundCommits = subtract(commitIds, resultCommits);
             if (!notFoundCommits.isEmpty()) {
                 throw new InvalidParametersException(format("Failed to publish items: Invalid commit ids %s", notFoundCommits));
             }

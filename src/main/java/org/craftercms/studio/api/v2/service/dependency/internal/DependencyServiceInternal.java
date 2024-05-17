@@ -37,11 +37,8 @@ public interface DependencyServiceInternal {
      * @param site  Site to operate on
      * @param paths List of paths to items to retrieve deps for
      * @return list of soft dependencies
-     * @throws SiteNotFoundException Site doesn't exist
-     * @throws ServiceLayerException Internal error, see exception details
      */
-    Collection<String> getSoftDependencies(String site, Collection<String> paths)
-            throws SiteNotFoundException, ServiceLayerException;
+    Collection<String> getSoftDependencies(String site, Collection<String> paths);
 
     /**
      * Get a hard dependencies of a item. A hard

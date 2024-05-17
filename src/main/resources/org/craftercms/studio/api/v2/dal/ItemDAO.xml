@@ -868,7 +868,7 @@
         WITH RECURSIVE CTE AS (
             SELECT i.id, i.path, i.site_id, i.system_type
             FROM item i
-            WHERE i.path = #{path}
+            WHERE i.path = TRIM(TRAILING '/' from #{path})
                 AND i.site_id = #{siteId}
         UNION
             SELECT i.id, i.path, i.site_id, i.system_type

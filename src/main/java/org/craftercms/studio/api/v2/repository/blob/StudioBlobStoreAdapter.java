@@ -25,6 +25,7 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.core.io.Resource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -286,7 +287,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default List<String> validatePublishCommits(String siteId, List<String> commitIds) {
+    default List<String> validatePublishCommits(String siteId, Collection<String> commitIds) {
         throw new UnsupportedOperationException();
     }
 

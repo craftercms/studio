@@ -32,6 +32,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -434,7 +435,7 @@ public interface ContentRepository {
     boolean shallowContentExists(String site, String path);
 
     /**
-     * Validates that all commits in the list are valid for publishing.
+     * Validates that all commits in the collection are valid for publishing and return a sorted list.
      * Valid commits are those returned by "git log --first-parent"
      *
      * @param siteId    site id
@@ -443,6 +444,6 @@ public interface ContentRepository {
      * @throws IOException           if there is any error reading the git log
      * @throws ServiceLayerException if there is any commit ID that is not valid for publishing
      */
-    List<String> validatePublishCommits(String siteId, List<String> commitIds) throws IOException, ServiceLayerException;
+    List<String> validatePublishCommits(String siteId, Collection<String> commitIds) throws IOException, ServiceLayerException;
 
 }

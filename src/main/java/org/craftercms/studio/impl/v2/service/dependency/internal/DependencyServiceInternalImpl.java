@@ -128,6 +128,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private Map<String, String> calculateHardDependencies(String site, Collection<String> paths) {
+        // TODO: refactor this to get as much as possible from the DB
+        // TODO: prevent this method from returning folder paths
         Set<String> toRet = new HashSet<>();
 
         logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);

@@ -6581,7 +6581,7 @@ paths:
       tags:
         - publishing
       summary: Calculate the dependencies of a publishing item set
-      description: 'Required permission "Publish"'
+      description: 'Required permission "content_read"'
       operationId: calculatePublishDependencies
       requestBody:
         description: publish request body
@@ -6646,6 +6646,10 @@ paths:
               allOf:
                 - $ref: '#/components/schemas/PublishPackageRequest'
               properties:
+                publishingTarget:
+                  type: string
+                  description: the publishing target (staging or live)
+                  example: staging
                 schedule:
                   type: string
                   format: date-time
@@ -10428,10 +10432,6 @@ components:
         siteId:
           type: string
           description: site ID
-        publishingTarget:
-          type: string
-          description: the publishing target (staging or live)
-          example: staging
         paths:
           type: array
           items:

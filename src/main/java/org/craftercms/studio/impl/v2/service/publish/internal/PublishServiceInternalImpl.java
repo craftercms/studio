@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -53,18 +54,18 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
+import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -297,6 +298,49 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
+    public PublishDependenciesResult getPublishDependencies(String siteId, Collection<PublishRequestPath> publishRequestPaths,
+                                                            Collection<String> commitIds) throws ServiceLayerException, IOException {
+        Site site = siteService.getSite(siteId);
+        Set<String> corePackagePaths = new HashSet<>();
+        corePackagePaths.addAll(publishRequestPaths.stream()
+                .collect(teeing(
+                        flatMapping(requestPath -> expandPublishRequestPath(site, requestPath).stream(), toSet()),
+                        flatMapping(requestPath -> (requestPath.includeSoftDeps() ?
+                                dependencyServiceInternal.getSoftDependencies(site.getSiteId(), Set.of(requestPath.path()))
+                                : SetUtils.<String>emptySet()).stream(), toSet()),
+                        SetUtils::union
+                )));
+
+        Map<Boolean, List<String>> commitOperations = contentRepository.validatePublishCommits(site.getSiteId(), commitIds).stream()
+                .map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
+                .flatMap(List::stream)
+                .filter(getCommitRepoOperationsFilter(site))
+                .collect(partitioningBy(op -> op.getAction() == RepoOperation.Action.DELETE,
+                        mapping(RepoOperation::getPath, toList())));
+
+        // Add non-delete operations
+        corePackagePaths.addAll(commitOperations.get(false));
+
+        Collection<String> deletedPaths = commitOperations.get(true);
+
+        Collection<String> softDependencies = dependencyServiceInternal.getSoftDependencies(siteId, corePackagePaths);
+        // Get hard deps of them all
+        List<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, union(corePackagePaths, softDependencies));
+        return new PublishDependenciesResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
+    }
+
+    /**
+     * Get common filter for commit repo operations to be included in publish dependencies
+     * or actual publishing package submission
+     */
+    private Predicate<RepoOperation> getCommitRepoOperationsFilter(final Site site) {
+        return op -> !contains(IGNORE_FILES, getName(op.getMoveToPath()))
+                && !contains(IGNORE_FILES, getName(op.getPath()))
+                // Ignore deletes if the path exists in current version
+                && (op.getAction() != RepoOperation.Action.DELETE || !contentRepository.contentExists(site.getSiteId(), op.getPath()));
+    }
+
+    @Override
     public long publishAll(final String siteId, final String publishingTarget, final String comment)
             throws ServiceLayerException, AuthenticationException {
         return submitPublishAll(siteId, publishingTarget, comment, false, false);
@@ -386,12 +430,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 sortedCommits.stream()
                         .map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
                         .flatMap(List::stream)
-                        .filter(op -> !contains(IGNORE_FILES, getName(op.getMoveToPath())))
-                        .filter(op -> !contains(IGNORE_FILES, getName(op.getPath())))
-                        // Ignore deletes if the path exists in current version
-                        .filter(op -> op.getAction() != RepoOperation.Action.DELETE || !contentRepository.contentExists(site.getSiteId(), op.getPath()))
+                        .filter(getCommitRepoOperationsFilter(site))
                         .map(op -> createPublishItem(site, op.getPath(),
-                                op.getAction() == RepoOperation.Action.DELETE ? DELETE : ADD, true))
+                                op.getAction() == RepoOperation.Action.DELETE ? PublishItem.Action.DELETE : ADD, true))
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
 
@@ -475,7 +516,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      */
     private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) throws ServiceLayerException {
         Collection<String> paths = publishItemsByPath.keySet().stream()
-                .filter(p -> publishItemsByPath.get(p).getAction() != DELETE)
+                .filter(p -> publishItemsByPath.get(p).getAction() != PublishItem.Action.DELETE)
                 .collect(toList());
         if (isEmpty(paths)) {
             return;
@@ -556,7 +597,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
             // Create and insert publish items
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
-            if (!requestApproval && schedule != null) {
+            if (!requestApproval && schedule == null) {
                 applicationContext.publishEvent(new RequestPublishEvent(siteId));
             }
             return publishPackage.getId();
