@@ -438,9 +438,10 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         Set<String> allPaths = new HashSet<>();
         Set<String> softDepsPaths = new HashSet<>();
         for (PublishRequestPath publishRequestPath : publishRequestPaths) {
-            allPaths.addAll(expandPublishRequestPath(site, publishRequestPath));
+            Set<String> expandedPathList = expandPublishRequestPath(site, publishRequestPath);
+            allPaths.addAll(expandedPathList);
             if (publishRequestPath.includeSoftDeps()) {
-                softDepsPaths.add(publishRequestPath.path());
+                softDepsPaths.addAll(expandedPathList);
             }
         }
         allPaths.addAll(dependencyServiceInternal.getSoftDependencies(site.getSiteId(), softDepsPaths));
