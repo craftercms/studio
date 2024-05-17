@@ -239,6 +239,8 @@
         <property name="cookieHttpOnly" value="false"/>
     </bean>
 
+    <bean id="csrfTokenRequestHandler" class="org.craftercms.studio.api.v2.security.StudioCsrfTokenRequestHandler" />
+
     <!--  Available Actions  -->
     <bean id="studio.availableActionsResolver"
           class="org.craftercms.studio.impl.v2.security.AvailableActionsResolverImpl" >
