@@ -7115,46 +7115,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/package/{packageId}/retry:
-    post:
-      tags:
-        - publishing
-      summary: Reset a package so the publisher tries to publish it again
-      operationId: retryPublishingPackage
-      description: 'Required permission "request_publish, publish"'
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: packageId
-          in: path
-          description: the ID of the package
-          required: true
-          schema:
-            type: string
-            example: "12345"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /api/2/publish/cancel:
     post:
       tags:
