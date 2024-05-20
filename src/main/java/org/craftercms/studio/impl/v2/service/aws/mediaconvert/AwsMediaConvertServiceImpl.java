@@ -44,6 +44,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.mediaconvert.MediaConvertClient;
 import software.amazon.awssdk.services.mediaconvert.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Uri;
 
 import static java.lang.String.format;
@@ -111,7 +112,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      * @return an S3 client
      */
     protected S3Client getS3Client(MediaConvertProfile profile) {
-        return S3Utils.createClient(profile, false);
+        return S3Utils.createClient(profile, false, S3Client.builder(), S3ClientBuilder::build);
     }
 
     /**

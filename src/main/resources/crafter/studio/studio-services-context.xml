@@ -880,6 +880,7 @@
         <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
+        <property name="asyncClientFactory" ref="crafter.s3AsyncClientFactory"/>
         <property name="publishingTargetResolver" ref="crafter.publishingTargetResolver"/>
     </bean>
 
