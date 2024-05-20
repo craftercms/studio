@@ -67,9 +67,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     protected boolean readOnly;
 
-    @ConstructorProperties({"servicesConfig"})
-    public StudioAwsS3BlobStore(final ServicesConfig servicesConfig) {
+    private final ThreadPoolTaskExecutor taskExecutor;
+
+    @ConstructorProperties({"servicesConfig", "taskExecutor"})
+    public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, ThreadPoolTaskExecutor taskExecutor) {
         this.servicesConfig = servicesConfig;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -581,7 +584,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             logger.info("Source and target mappings are the same, skipping copy operation");
             return;
         }
-        AwsUtils.copyObjects(getAsyncClient(),
+        AwsUtils.copyObjects(getAsyncClient(), taskExecutor.getThreadPoolExecutor(),
                 sourceMapping.target, sourceMapping.prefix,
                 targetMapping.target, targetMapping.prefix, items);
     }
