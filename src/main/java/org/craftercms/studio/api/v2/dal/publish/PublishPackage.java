@@ -32,7 +32,6 @@ public class PublishPackage {
     protected Instant schedule;
     protected ApprovalState approvalState;
     protected PackageState packageState;
-    protected boolean notifySubmitter;
     protected boolean publishAll;
 
     private PublishPackage(final PublishAllBuilder builder) {
@@ -52,7 +51,6 @@ public class PublishPackage {
         this.commitId = builder.commitId;
         this.comment = builder.comment;
         this.submitterId = builder.submitterId;
-        this.notifySubmitter = builder.notifySubmitter;
         approvalState = builder.requestApproval ? ApprovalState.SUBMITTED : ApprovalState.APPROVED;
     }
 
@@ -142,14 +140,6 @@ public class PublishPackage {
         this.packageState = packageState;
     }
 
-    public boolean isNotifySubmitter() {
-        return notifySubmitter;
-    }
-
-    public void setNotifySubmitter(boolean notifySubmitter) {
-        this.notifySubmitter = notifySubmitter;
-    }
-
     public boolean isPublishAll() {
         return publishAll;
     }
@@ -165,7 +155,6 @@ public class PublishPackage {
         protected String commitId;
         protected String comment;
         protected long submitterId;
-        protected boolean notifySubmitter;
         protected boolean requestApproval;
 
         public T withSiteId(final long siteId) {
@@ -190,11 +179,6 @@ public class PublishPackage {
 
         public T withSubmitterId(final long submitterId) {
             this.submitterId = submitterId;
-            return (T) this;
-        }
-
-        public T withNotifySubmitter(final boolean notifySubmitter) {
-            this.notifySubmitter = notifySubmitter;
             return (T) this;
         }
 

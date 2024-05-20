@@ -136,11 +136,10 @@ public interface PublishService {
      * @param siteId           the id of the site
      * @param publishingTarget the publishing target
      * @param comment          submission comment
-     * @param notifySubmitter  true to notify the submitter upon package approval/rejection
      * @return result of the publishing
      * @throws ServiceLayerException if there is any error during publishing
      */
-    long requestPublishAll(String siteId, String publishingTarget, String comment, boolean notifySubmitter) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+    long requestPublishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
     /**
      * Create a 'APPROVED' publishing package. The created package will be ready to be published.
@@ -166,11 +165,10 @@ public interface PublishService {
      * @param commitIds        the commit ids to publish
      * @param schedule         the scheduled date for the publishing (null to publish immediately)
      * @param comment          the comment for the publishing
-     * @param notifySubmitter  whether to notify the submitter on package approval/rejection
      * @return the id of the created package
      */
     long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds,
-                        Instant schedule, String comment, boolean notifySubmitter)
+                        Instant schedule, String comment)
             throws AuthenticationException, ServiceLayerException;
 
     int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,

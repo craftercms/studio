@@ -35,7 +35,6 @@
         package_state,
         submitter_id,
         submitter_comment,
-        notify_submitter,
         publish_all,
         commit_id)
         VALUES
@@ -46,7 +45,6 @@
         'READY',
         #{submitterId},
         #{comment},
-        #{notifySubmitter},
         #{publishAll},
         #{commitId});
     </insert>

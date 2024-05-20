@@ -6761,9 +6761,6 @@ paths:
                 requestApproval:
                   type: boolean
                   description: submit the request for approval
-                notifySubmitter:
-                  type: boolean
-                  description: notify the submitter when request is approved/rejected
                 publishAll:
                   type: boolean
                   description: publish all site content
@@ -7085,9 +7082,6 @@ paths:
                 requestApproval:
                   type: boolean
                   description: submit the request for approval
-                notifySubmitter:
-                  type: boolean
-                  description: notify the submitter when request is approved/rejected
                 comment:
                   type: string
                   description: optional comment

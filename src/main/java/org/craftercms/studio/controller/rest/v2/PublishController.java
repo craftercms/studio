@@ -239,14 +239,14 @@ public class PublishController {
             }
             if (request.isRequestApproval()) {
                 return publishService.requestPublishAll(request.getSiteId(), request.getPublishingTarget(),
-                        request.getComment(), request.isNotifySubmitter());
+                        request.getComment());
             }
             return publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
                     request.getComment());
         }
         if (request.isRequestApproval()) {
             return publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
-                    request.getCommitIds(), request.getSchedule(), request.getComment(), request.isNotifySubmitter());
+                    request.getCommitIds(), request.getSchedule(), request.getComment());
         }
         return publishService.publish(request.getSiteId(), request.getPublishingTarget(),
                 request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());

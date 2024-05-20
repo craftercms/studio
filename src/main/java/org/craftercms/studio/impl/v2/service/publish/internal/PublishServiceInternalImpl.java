@@ -343,18 +343,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     @Override
     public long publishAll(final String siteId, final String publishingTarget, final String comment)
             throws ServiceLayerException, AuthenticationException {
-        return submitPublishAll(siteId, publishingTarget, comment, false, false);
+        return submitPublishAll(siteId, publishingTarget, comment, false);
     }
 
     @Override
     public long requestPublishAll(final String siteId, final String publishingTarget,
-                                  final String comment, final boolean notifySubmitter)
+                                  final String comment)
             throws ServiceLayerException, AuthenticationException {
-        return submitPublishAll(siteId, publishingTarget, comment, true, notifySubmitter);
+        return submitPublishAll(siteId, publishingTarget, comment, true);
     }
 
     private long submitPublishAll(final String siteId, final String publishingTarget, final String comment,
-                                  final boolean requestApproval, final boolean notifySubmitter)
+                                  final boolean requestApproval)
             throws LockedRepositoryException, SiteNotFoundException, AuthenticationException {
         String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPublishingOrProcessingLockKey(siteId);
         boolean lockAcquired = generalLockService.tryLock(lockKey);
@@ -370,7 +370,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     .withComment(comment)
                     .withSubmitterId(submitterId)
                     .withRequestApproval(requestApproval)
-                    .withNotifySubmitter(notifySubmitter)
                     .withCommitId(contentRepository.getRepoLastCommitId(siteId))
                     .build();
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackage(publishPackage));
@@ -534,12 +533,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                         final List<String> commitIds, final Instant schedule, final String comment)
             throws ServiceLayerException, AuthenticationException {
         if (isSitePublished(siteId) && !isBulkPublishRoot(paths)) {
-            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, false, false);
+            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, false);
         }
         if (schedule != null) {
             throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
         }
-        return submitPublishAll(siteId, publishingTarget, comment, false, false);
+        return submitPublishAll(siteId, publishingTarget, comment, false);
     }
 
     /**
@@ -552,14 +551,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @param schedule         schedule
      * @param comment          comment
      * @param requestApproval  request approval
-     * @param notifySubmitter  if the submitter should be notified upon approval/rejection
      * @return newly submitted publish package id
      * @throws ServiceLayerException   if an error occurs while calculating or inserting the publishing package
      * @throws AuthenticationException if an error occurs while retrieving the current user
      */
     private long submitPublish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
-                               final List<String> commitIds, final Instant schedule, final String comment, final boolean requestApproval,
-                               final boolean notifySubmitter) throws ServiceLayerException, AuthenticationException {
+                               final List<String> commitIds, final Instant schedule, final String comment, final boolean requestApproval)
+            throws ServiceLayerException, AuthenticationException {
         String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPublishingOrProcessingLockKey(siteId);
         boolean lockAcquired = generalLockService.tryLock(lockKey);
         if (!lockAcquired) {
@@ -590,7 +588,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     .withCommitId(contentRepository.getRepoLastCommitId(siteId))
                     .withSchedule(schedule)
                     .withRequestApproval(requestApproval)
-                    .withNotifySubmitter(notifySubmitter)
                     .build();
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackage(publishPackage));
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertItems(publishPackage.getId(), publishItemsByPath.values()));
@@ -611,15 +608,15 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public long requestPublish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
-                               final List<String> commitIds, final Instant schedule, final String comment, final boolean notifySubmitter)
+                               final List<String> commitIds, final Instant schedule, final String comment)
             throws AuthenticationException, ServiceLayerException {
         if (isSitePublished(siteId) && !isBulkPublishRoot(paths)) {
-            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, true, notifySubmitter);
+            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, true);
         }
         if (schedule != null) {
             throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
         }
-        return submitPublishAll(siteId, publishingTarget, comment, true, notifySubmitter);
+        return submitPublishAll(siteId, publishingTarget, comment, true);
     }
 
     /**

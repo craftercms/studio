@@ -595,7 +595,6 @@ CREATE TABLE IF NOT EXISTS `publish_package`
     `reviewer_id`	                BIGINT(20),
     `reviewer_comment`          	TEXT,
     `reviewed_on`	                TIMESTAMP,
-    `notify_submitter`	            BOOLEAN	        NOT NULL DEFAULT FALSE,
     `published_on`	                TIMESTAMP,
     `publish_all`	                BOOLEAN	        NOT NULL DEFAULT FALSE,
     `commit_id`	                    CHAR(40)	    NOT NULL,
