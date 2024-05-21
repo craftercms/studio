@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -73,7 +72,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     private ItemServiceInternal itemServiceInternal;
     private ContentServiceInternal contentServiceInternal;
-    private DependencyServiceInternal dependencyServiceInternal;
+    private org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
@@ -262,7 +261,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         this.contentServiceInternal = contentServiceInternal;
     }
 
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+    public void setDependencyServiceInternal(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 

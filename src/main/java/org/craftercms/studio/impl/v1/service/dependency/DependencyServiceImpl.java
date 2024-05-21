@@ -60,12 +60,12 @@ public class DependencyServiceImpl implements DependencyService {
     protected ContentService contentService;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
-    protected org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal dependencyService;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
     protected ItemDAO itemDao;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
-    public List<String> getPublishingDependencies(String site, String path)
+    public Collection<String> getPublishingDependencies(String site, String path)
             throws ServiceLayerException {
         logger.debug("Get publishing dependencies for site '{}' path '{}'", site, path);
         List<String> paths = new ArrayList<>();
@@ -74,7 +74,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public List<String> getPublishingDependencies(String site, List<String> paths)
+    public Collection<String> getPublishingDependencies(String site, List<String> paths)
             throws ServiceLayerException {
         return dependencyService.getHardDependencies(site, paths);
     }
@@ -468,7 +468,7 @@ public class DependencyServiceImpl implements DependencyService {
         this.dependencyMapper = dependencyMapper;
     }
 
-    public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal dependencyService) {
+    public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 

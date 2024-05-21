@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,11 @@ public interface DependencyDAO {
                                                          @Param(MODIFIED_MASK) long modifiedMask,
                                                          @Param(NEW_MASK) long newMask);
 
+    default List<String> getHardDependenciesForList(final String site, final Collection<String> paths,
+                                                    final List<String> itemSpecificDependenciesPatterns) {
+        return getHardDependenciesForList(site, paths, itemSpecificDependenciesPatterns, ItemState.MODIFIED_MASK, ItemState.NEW_MASK);
+    }
+
     /**
      * Get hard dependencies from DB for list of content paths
      *
@@ -57,10 +63,10 @@ public interface DependencyDAO {
      * @param newMask                          state bit map for new item
      * @return List of hard dependencies
      */
-    List<Map<String, String>> getHardDependenciesForList(@Param("site") String site, @Param("paths") Set<String> paths,
-                                                         @Param("regex") List<String> itemSpecificDependenciesPatterns,
-                                                         @Param(MODIFIED_MASK) long modifiedMask,
-                                                         @Param(NEW_MASK) long newMask);
+    List<String> getHardDependenciesForList(@Param(SITE_ID) String site, @Param("paths") Collection<String> paths,
+                                            @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+                                            @Param(MODIFIED_MASK) long modifiedMask,
+                                            @Param(NEW_MASK) long newMask);
 
     /**
      * Get items depending on given paths

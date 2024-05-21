@@ -62,41 +62,54 @@
             </foreach>
     </select>
 
-    <select id="getHardDependenciesForList" parameterType="java.util.Map"
-            resultType="java.util.Map">
-        SELECT cd1.source_path, cd1.target_path
-        FROM (dependency cd1
-        INNER JOIN site s1 ON cd1.site = s1.site_id
-        INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id
-        )
-        WHERE s1.site_id = #{site}
-        AND s1.deleted = 0
-        AND cd1.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND cd1.valid = 1
-        AND (ci1.state &amp; #{newMask}) > 0
-        UNION
-        SELECT cd2.source_path, cd2.target_path
-        FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)
-        WHERE s2.site_id = #{site}
-        AND s2.deleted = 0
-        AND cd2.valid = 1
-        AND cd2.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND (ci2.state &amp; #{modifiedMask}) > 0
-        AND (ci2.state &amp; #{newMask}) = 0
-        AND
-        <foreach item="pattern" index="index" collection="regex"
-                 open="(" separator=" OR " close=")">
-            cd2.target_path RLIKE #{pattern}
-        </foreach>
+    <select id="getHardDependenciesForList">
+        <!-- TODO: implement
+        For each path, recursively:
+        - Get non-published ancestors
+        - Get renamed children of non-published ancestors
+        - Get dependencies from table where:
+            - source_path is in the list of paths
+            - target_path is new OR target_path is item-specific dependency
+            -->
+        select 'empty'
+        limit 0
     </select>
+
+<!--    <select id="getHardDependenciesForList" parameterType="java.util.Map"-->
+<!--            resultType="java.util.Map">-->
+<!--        SELECT cd1.source_path, cd1.target_path-->
+<!--        FROM (dependency cd1-->
+<!--        INNER JOIN site s1 ON cd1.site = s1.site_id-->
+<!--        INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id-->
+<!--        )-->
+<!--        WHERE s1.site_id = #{site}-->
+<!--        AND s1.deleted = 0-->
+<!--        AND cd1.source_path IN-->
+<!--        <foreach item="path" index="index" collection="paths"-->
+<!--                 open="(" separator="," close=")">-->
+<!--            #{path}-->
+<!--        </foreach>-->
+<!--        AND cd1.valid = 1-->
+<!--        AND (ci1.state &amp; #{newMask}) > 0-->
+<!--        UNION-->
+<!--        SELECT cd2.source_path, cd2.target_path-->
+<!--        FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)-->
+<!--        WHERE s2.site_id = #{site}-->
+<!--        AND s2.deleted = 0-->
+<!--        AND cd2.valid = 1-->
+<!--        AND cd2.source_path IN-->
+<!--        <foreach item="path" index="index" collection="paths"-->
+<!--                 open="(" separator="," close=")">-->
+<!--            #{path}-->
+<!--        </foreach>-->
+<!--        AND (ci2.state &amp; #{modifiedMask}) > 0-->
+<!--        AND (ci2.state &amp; #{newMask}) = 0-->
+<!--        AND-->
+<!--        <foreach item="pattern" index="index" collection="regex"-->
+<!--                 open="(" separator=" OR " close=")">-->
+<!--            cd2.target_path RLIKE #{pattern}-->
+<!--        </foreach>-->
+<!--    </select>-->
 
     <select id="getDependentItems" resultType="String">
         SELECT source_path

@@ -21,15 +21,17 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.beans.ConstructorProperties;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
@@ -37,10 +39,10 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class DependencyServiceImpl implements DependencyService {
 
-    private final DependencyServiceInternal dependencyServiceInternal;
+    private final DependencyService dependencyServiceInternal;
 
     @ConstructorProperties({"dependencyServiceInternal"})
-    public DependencyServiceImpl(final DependencyServiceInternal dependencyServiceInternal) {
+    public DependencyServiceImpl(final DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 
@@ -48,8 +50,7 @@ public class DependencyServiceImpl implements DependencyService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public Collection<String> getSoftDependencies(@SiteId String siteId,
-                                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
-            throws ServiceLayerException {
+                                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) {
         return dependencyServiceInternal.getSoftDependencies(siteId, paths);
     }
 
@@ -64,8 +65,8 @@ public class DependencyServiceImpl implements DependencyService {
     @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<String> getHardDependencies(@SiteId String site,
-                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
+    public Collection<String> getHardDependencies(@SiteId String site,
+                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws ServiceLayerException {
         return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 
@@ -73,7 +74,7 @@ public class DependencyServiceImpl implements DependencyService {
     @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DependencyItem> getDependentItems(@SiteId String siteId,
-                                                  @ContentPath String path) throws ServiceLayerException {
+                                                  @ContentPath String path) {
         return dependencyServiceInternal.getDependentItems(siteId, path);
     }
 
@@ -99,5 +100,19 @@ public class DependencyServiceImpl implements DependencyService {
     @RequireSiteExists
     public void validateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
         dependencyServiceInternal.validateDependencies(siteId, targetPath);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public List<String> getItemSpecificDependencies(@SiteId String siteId, List<String> paths) {
+        return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) {
+        return dependencyServiceInternal.resolveDependencies(site, sourcePath);
     }
 }

@@ -68,7 +68,6 @@ import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -165,7 +164,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected EntitlementValidator entitlementValidator;
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
-    protected DependencyServiceInternal dependencyServiceInternal;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     protected UserDAO userDao;
@@ -1248,7 +1247,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.studioDBScriptRunnerFactory = studioDBScriptRunner;
     }
 
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+    public void setDependencyServiceInternal(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 

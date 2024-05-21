@@ -44,7 +44,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -79,7 +79,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     private ContentServiceInternal contentServiceInternal;
     private ContentTypeServiceInternal contentTypeServiceInternal;
-    private DependencyServiceInternal dependencyServiceInternal;
+    private DependencyService dependencyServiceInternal;
     private UserServiceInternal userServiceInternal;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
@@ -118,7 +118,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, path);
         List<String> childItems = new ArrayList<>();
         childItems.addAll(subtreeItems);
-        childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, path));
+        childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, List.of(path)));
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
         return childItems;
     }
@@ -377,7 +377,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.contentTypeServiceInternal = contentTypeServiceInternal;
     }
 
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+    public void setDependencyServiceInternal(DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 

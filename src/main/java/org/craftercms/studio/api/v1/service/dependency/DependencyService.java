@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v1.service.dependency;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +47,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException Internal error, see exception details
 	 * @return list of mandatory dependencies paths for publishing
 	 */
-	List<String> getPublishingDependencies(String site, String path)
+	Collection<String> getPublishingDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
@@ -62,7 +63,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException Internal error, see exception details
 	 * @return list of mandatory dependencies paths for publishing
 	 */
-	List<String> getPublishingDependencies(String site, List<String> paths)
+	Collection<String> getPublishingDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**

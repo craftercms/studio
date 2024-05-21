@@ -64,7 +64,6 @@ import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -135,7 +134,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected DependencyService dependencyService;
-    protected DependencyServiceInternal dependencyServiceV2;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2;
     protected ProcessContentExecutor contentProcessor;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -2765,7 +2764,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.dependencyService = dependencyService;
     }
 
-    public void setDependencyServiceV2(DependencyServiceInternal dependencyServiceV2) {
+    public void setDependencyServiceV2(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2) {
         this.dependencyServiceV2 = dependencyServiceV2;
     }
 

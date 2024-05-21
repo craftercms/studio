@@ -31,7 +31,7 @@ import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -89,7 +89,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final SitesService sitesService;
     private final GeneralLockService generalLockService;
     private final AuditServiceInternal auditServiceInternal;
-    private final DependencyServiceInternal dependencyServiceInternal;
+    private final DependencyService dependencyServiceInternal;
     private final UserServiceInternal userServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
     private final ContentService contentService;
@@ -106,7 +106,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "contentRepository", "studioConfiguration"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
-                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
+                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
                                   ContentRepository contentRepository, StudioConfiguration studioConfiguration) {

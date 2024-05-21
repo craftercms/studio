@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -85,7 +85,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private ServicesConfig servicesConfig;
     private UserServiceInternal userServiceInternal;
     private AuditServiceInternal auditServiceInternal;
-    private DependencyServiceInternal dependencyServiceInternal;
+    private DependencyService dependencyServiceInternal;
     private PublishDAO publishDao;
     private ItemTargetDAO itemTargetDao;
 
@@ -325,7 +325,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         Collection<String> softDependencies = dependencyServiceInternal.getSoftDependencies(siteId, corePackagePaths);
         // Get hard deps of them all
-        List<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, union(corePackagePaths, softDependencies));
+        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, union(corePackagePaths, softDependencies));
         return new PublishDependenciesResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
     }
 
@@ -469,8 +469,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * - Include children if requested
      */
     private void createPublishItemsFromPaths(final Site site, final List<PublishRequestPath> publishRequestPaths,
-                                             final Map<String, PublishItem> publishItemsByPath)
-            throws ServiceLayerException {
+                                             final Map<String, PublishItem> publishItemsByPath) {
         if (isEmpty(publishRequestPaths)) {
             return;
         }
@@ -673,7 +672,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+    public void setDependencyServiceInternal(DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 

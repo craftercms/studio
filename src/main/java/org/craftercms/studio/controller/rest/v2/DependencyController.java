@@ -54,7 +54,7 @@ public class DependencyController {
     public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
             throws ServiceLayerException {
         Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
-        List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
+        Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
         softDeps.removeAll(hardDeps);
 

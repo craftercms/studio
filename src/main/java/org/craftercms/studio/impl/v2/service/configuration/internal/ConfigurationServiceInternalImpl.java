@@ -44,7 +44,7 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -113,7 +113,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
     private ContentRepository contentRepository;
-    private DependencyServiceInternal dependencyService;
+    private DependencyService dependencyService;
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
@@ -887,7 +887,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
         this.cacheInvalidators = cacheInvalidators;
     }
 
-    public void setDependencyService(DependencyServiceInternal dependencyService) {
+    public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
