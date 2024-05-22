@@ -38,21 +38,32 @@ public interface DependencyService {
     Collection<String> getSoftDependencies(String site, Collection<String> paths);
 
     /**
-     * Get a hard dependencies of a item. A hard
+     * Get then hard dependencies of an item. A hard
      * dependency is:
      * * Never-published item that this item depends on
      * * Item-specific dependency that has been modified but not published
      *
-     * @param site Site to operate on
-     * @param paths List of paths to items to retrieve deps for
-     *
+     * @param site             Site to operate on
+     * @param publishingTarget Publishing target to get hard dependencies for
+     * @param paths            List of paths to items to retrieve deps for
      * @return list of hard dependencies
-     *
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
-    Collection<String> getHardDependencies(String site, Collection<String> paths)
-            throws SiteNotFoundException, ServiceLayerException;
+    Collection<String> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
+            throws ServiceLayerException;
+
+    /**
+     * Get the hard dependencies of an item. A hard
+     * dependency is:
+     * * Never-published item that this item depends on
+     * * Item-specific dependency that has been modified but not published
+     *
+     * @param site  Site to operate on
+     * @param paths List of paths to items to retrieve deps for
+     * @return list of hard dependencies
+     */
+    Collection<String> getHardDependencies(String site, Collection<String> paths);
 
     /**
      * Get list of paths of content items that are dependant on given paths

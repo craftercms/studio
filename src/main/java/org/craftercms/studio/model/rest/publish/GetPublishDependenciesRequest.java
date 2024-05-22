@@ -35,6 +35,10 @@ public class GetPublishDependenciesRequest {
     @NotEmpty
     @ValidSiteId
     private String siteId;
+    @NotEmpty
+    @Size(max = 20)
+    @EsapiValidatedParam(type = ALPHANUMERIC)
+    private String publishingTarget;
     private List<@Valid PublishRequestPath> paths;
     private List<@NotEmpty String> commitIds;
 
@@ -44,6 +48,14 @@ public class GetPublishDependenciesRequest {
 
     public void setSiteId(String siteId) {
         this.siteId = siteId;
+    }
+
+    public String getPublishingTarget() {
+        return publishingTarget;
+    }
+
+    public void setPublishingTarget(String publishingTarget) {
+        this.publishingTarget = publishingTarget;
     }
 
     public List<PublishRequestPath> getPaths() {

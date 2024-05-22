@@ -204,7 +204,7 @@ public class PublishController {
     public ResultOne<PublishDependenciesResult> getPublishDependencies(@Validated @RequestBody GetPublishDependenciesRequest request)
             throws ServiceLayerException, IOException {
         PublishDependenciesResult dependenciesPackage = publishService.getPublishDependencies(request.getSiteId(),
-                request.getPaths(), request.getCommitIds());
+                request.getPublishingTarget(), request.getPaths(), request.getCommitIds());
 
         ResultOne<PublishDependenciesResult> result = new ResultOne<>();
         result.setResponse(OK);

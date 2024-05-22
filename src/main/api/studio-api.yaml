@@ -6714,6 +6714,12 @@ paths:
                           type: string
                           description: the item path
                           example: "/site/website/article1/index.xml"
+                      deletedItems:
+                        type: array
+                        items:
+                          type: string
+                          description: the deleted item path
+                          example: "/site/website/about/index.xml"
                       hardDependencies:
                           type: array
                           items:
@@ -6750,10 +6756,6 @@ paths:
               allOf:
                 - $ref: '#/components/schemas/PublishPackageRequest'
               properties:
-                publishingTarget:
-                  type: string
-                  description: the publishing target (staging or live)
-                  example: staging
                 schedule:
                   type: string
                   format: date-time
@@ -10490,6 +10492,10 @@ components:
         siteId:
           type: string
           description: site ID
+        publishingTarget:
+          type: string
+          description: the publishing target (staging or live)
+          example: staging
         paths:
           type: array
           items:

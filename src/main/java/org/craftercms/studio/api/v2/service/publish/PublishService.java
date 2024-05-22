@@ -187,9 +187,10 @@ public interface PublishService {
     /**
      * Get the dependencies for the given paths and commit ids
      *
-     * @param siteId    site identifier
-     * @param paths     paths to get dependencies for
-     * @param commitIds commit ids to get dependencies for
+     * @param siteId           site identifier
+     * @param publishingTarget the publishing target
+     * @param paths            paths to get dependencies for
+     * @param commitIds        commit ids to get dependencies for
      * @return a package containing:
      * <ul>
      *     <li>items: the items to publish</li>
@@ -200,7 +201,7 @@ public interface PublishService {
      * @throws ServiceLayerException
      * @throws IOException
      */
-    PublishDependenciesResult getPublishDependencies(String siteId, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
+    PublishDependenciesResult getPublishDependencies(String siteId, String publishingTarget, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
 
     /**
      * A request to include a path in a publish request.

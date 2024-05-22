@@ -298,8 +298,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public PublishDependenciesResult getPublishDependencies(String siteId, Collection<PublishRequestPath> publishRequestPaths,
-                                                            Collection<String> commitIds) throws ServiceLayerException, IOException {
+    public PublishDependenciesResult getPublishDependencies(final String siteId, final String publishingTarget,
+                                                            final Collection<PublishRequestPath> publishRequestPaths,
+                                                            final Collection<String> commitIds) throws ServiceLayerException, IOException {
         Site site = siteService.getSite(siteId);
         Set<String> corePackagePaths = new HashSet<>();
         corePackagePaths.addAll(publishRequestPaths.stream()
@@ -325,7 +326,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         Collection<String> softDependencies = dependencyServiceInternal.getSoftDependencies(siteId, corePackagePaths);
         // Get hard deps of them all
-        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, union(corePackagePaths, softDependencies));
+        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, union(corePackagePaths, softDependencies));
         return new PublishDependenciesResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
     }
 
@@ -512,7 +513,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * Create publish items for hard dependencies.
      * For each non-delete PublishItem, get hard dependencies and add them to the publishItemsByPath map.
      */
-    private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) throws ServiceLayerException {
+    private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) {
         Collection<String> paths = publishItemsByPath.keySet().stream()
                 .filter(p -> publishItemsByPath.get(p).getAction() != PublishItem.Action.DELETE)
                 .collect(toList());

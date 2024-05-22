@@ -51,8 +51,7 @@ public class DependencyController {
 
     @Valid
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
-            throws ServiceLayerException {
+    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
         Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 

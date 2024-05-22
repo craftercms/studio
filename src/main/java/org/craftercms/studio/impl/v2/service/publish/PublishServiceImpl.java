@@ -212,9 +212,10 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public PublishDependenciesResult getPublishDependencies(@SiteId String siteId, Collection<PublishRequestPath> paths,
-                                                            Collection<String> commitIds) throws ServiceLayerException, IOException {
-        return publishServiceInternal.getPublishDependencies(siteId, paths, commitIds);
+    public PublishDependenciesResult getPublishDependencies(@SiteId String siteId, String publishingTarget, Collection<PublishRequestPath> paths,
+                                                            Collection<String> commitIds)
+            throws ServiceLayerException, IOException {
+        return publishServiceInternal.getPublishDependencies(siteId, publishingTarget, paths, commitIds);
     }
 
     @Override

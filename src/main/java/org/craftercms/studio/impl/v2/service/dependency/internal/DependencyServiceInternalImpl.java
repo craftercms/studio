@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.dependency.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -91,8 +92,17 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
     @Override
     @RequireSiteExists
-    public Collection<String> getHardDependencies(@SiteId String site, Collection<String> paths) {
-        return dependencyDao.getHardDependenciesForList(site, paths, getItemSpecificDependenciesPatterns());
+    public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
+        boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site), publishingTarget);
+        return dependencyDao.getHardDependenciesForList(site, publishingTarget, paths,
+                getItemSpecificDependenciesPatterns(), isLiveTarget);
+    }
+
+    @Override
+    public Collection<String> getHardDependencies(String site, Collection<String> paths) {
+        String liveTarget = servicesConfig.getLiveEnvironment(site);
+        // Default to live target for backwards compatibility
+        return getHardDependencies(site, liveTarget, paths);
     }
 
     /*

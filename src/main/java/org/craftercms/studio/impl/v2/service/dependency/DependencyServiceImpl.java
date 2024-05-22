@@ -65,8 +65,13 @@ public class DependencyServiceImpl implements DependencyService {
     @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Collection<String> getHardDependencies(@SiteId String site,
+    public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws ServiceLayerException {
+        return dependencyServiceInternal.getHardDependencies(site, publishingTarget, paths);
+    }
+
+    @Override
+    public Collection<String> getHardDependencies(String site, Collection<String> paths) {
         return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 

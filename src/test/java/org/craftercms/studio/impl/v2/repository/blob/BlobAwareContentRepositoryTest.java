@@ -107,13 +107,13 @@ public class BlobAwareContentRepositoryTest {
 
         when(resolver.getAll(SITE)).thenReturn(List.of(store));
 
-        when(localV1.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
-        when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
+        when(localRepositoryV2.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
+        when(localRepositoryV2.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
 
         when(localV1.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
         when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
-        when(localV1.isFolder(SITE, PARENT_PATH)).thenReturn(true);
+        when(localRepositoryV2.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
         Map<String, String> delta = new TreeMap<>();
         delta.put(POINTER_PATH, "D");

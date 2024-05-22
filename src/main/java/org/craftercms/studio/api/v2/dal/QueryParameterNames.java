@@ -209,6 +209,9 @@ public final class  QueryParameterNames {
     public static final String POSSIBLE_PARENTS = "possibleParents";
 
     public static final String NEW_MASK = "newMask";
+    public static final String NEW_IN_TARGET_MASK_ON = "newInTargetMaskOn";
+    public static final String NEW_IN_TARGET_MASK_OFF = "newInTargetMaskOff";
+    public static final String IS_LIVE_TARGET = "isLiveTarget";
 
     public static final String MODIFIED_MASK = "modifiedMask";
 
