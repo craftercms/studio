@@ -207,9 +207,9 @@ public final class SqlStatementGeneratorUtils {
         return sql;
     }
 
-    public static String moveItemRow(String site, String oldPath, String newPath, long onStatesBitMap,
+    public static String moveItemRow(Long siteId, String oldPath, String newPath, long onStatesBitMap,
                                      long offStatesBitMap) {
-        String sql =  StringUtils.replace(ITEM_MOVE,"#{site}", StringUtils.replace(site,"'", "''"));
+        String sql =  StringUtils.replace(ITEM_MOVE,"#{siteId}", Long.toString(siteId));
         sql = StringUtils.replace(sql,"#{oldPath}", StringUtils.replace(oldPath, "'", "''"));
         sql = StringUtils.replace(sql,"#{newPath}", StringUtils.replace(newPath, "'", "''"));
         sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(onStatesBitMap));
