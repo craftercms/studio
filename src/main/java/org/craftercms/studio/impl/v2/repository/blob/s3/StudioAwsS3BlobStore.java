@@ -70,7 +70,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     private final ThreadPoolTaskExecutor taskExecutor;
 
     @ConstructorProperties({"servicesConfig", "taskExecutor"})
-    public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, ThreadPoolTaskExecutor taskExecutor) {
+    public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, final ThreadPoolTaskExecutor taskExecutor) {
         this.servicesConfig = servicesConfig;
         this.taskExecutor = taskExecutor;
     }
