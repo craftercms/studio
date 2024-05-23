@@ -1069,6 +1069,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
 
+                if (movedDocument != null) {
+                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
+                }
+
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
                 Long parentId = newParent != null ? newParent.getId() : null;
@@ -1078,10 +1082,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                 }
                 commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
-                // This write is performed after processing the commitIds so we don't miss any commit
-                if (movedDocument != null) {
-                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
-                }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
