@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -274,6 +274,32 @@ public interface ItemDAO {
      * @param limit              number of records to return
      * @return list of filtered {@link DetailedItem}s
      */
+    default List<DetailedItem> getDetailedItemsByStates(@Param(SITE_ID) long siteId,
+                                                @Param(STATES_BIT_MAP) long statesBitMap,
+                                                @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                                @Param(SORT_FIELDS) List<SortField> sortFields,
+                                                @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                                @Param(LIVE_ENVIRONMENT) String liveEnvironment,
+                                                @Param(OFFSET) int offset, @Param(LIMIT) int limit){
+        return getDetailedItemsByStates(siteId, statesBitMap, CONTENT_TYPE_FOLDER, null, systemTypes, sortFields,
+                stagingEnvironment, liveEnvironment, offset, limit);
+    }
+
+    /**
+     * Get a list of {@link DetailedItem} for given site and filters (system_types, states)
+     *
+     * @param siteId             site identifier
+     * @param statesBitMap       states bit map to filter by
+     * @param systemTypeFolder   value for system type folder
+     * @param completedState     completed state
+     * @param systemTypes        system types to filter by
+     * @param sortFields         sort fields
+     * @param stagingEnvironment staging environment
+     * @param liveEnvironment    live environment
+     * @param offset             offset for the first record in result set
+     * @param limit              number of records to return
+     * @return list of filtered {@link DetailedItem}s
+     */
     List<DetailedItem> getDetailedItemsByStates(@Param(SITE_ID) long siteId,
                                                 @Param(STATES_BIT_MAP) long statesBitMap,
                                                 @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
@@ -283,6 +309,19 @@ public interface ItemDAO {
                                                 @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                 @Param(LIVE_ENVIRONMENT) String liveEnvironment,
                                                 @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+
+    /**
+     * Get sandbox items for given paths
+     *
+     * @param siteId        site identifier
+     * @param paths         paths to get items for
+     * @param preferContent indicates if pages should be returned instead of folders when available
+     * @return list of items
+     */
+    default List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+                                             @Param(PREFER_CONTENT) boolean preferContent) {
+        return getSandboxItemsByPath(siteId, paths, CONTENT_TYPE_FOLDER, preferContent);
+    }
 
     /**
      * Get sandbox items for given paths
@@ -296,6 +335,19 @@ public interface ItemDAO {
                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                      @Param(PREFER_CONTENT) boolean preferContent);
 
+
+    /**
+     * Get sandbox items for given ids with prefer content option
+     *
+     * @param itemIds    item ids
+     * @param sortFields
+     * @return list of items
+     */
+    default List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
+                                                        @Param(SORT_FIELDS) List<SortField> sortFields) {
+        return getSandboxItemsByIdPreferContent(itemIds, CONTENT_TYPE_FOLDER, sortFields);
+    }
+
     /**
      * Get sandbox items for given ids with prefer content option
      *
@@ -305,7 +357,20 @@ public interface ItemDAO {
      * @return list of items
      */
     List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
-                                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder, @Param(SORT_FIELDS) List<SortField> sortFields);
+                                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                                                @Param(SORT_FIELDS) List<SortField> sortFields);
+
+    /**
+     * Get sandbox items for given ids
+     *
+     * @param itemIds    item ids
+     * @param sortFields
+     * @return list of items
+     */
+    default List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
+                                           @Param(SORT_FIELDS) List<SortField> sortFields) {
+        return getSandboxItemsById(itemIds, CONTENT_TYPE_FOLDER, sortFields);
+    }
 
     /**
      * Get sandbox items for given ids
@@ -316,7 +381,8 @@ public interface ItemDAO {
      * @return list of items
      */
     List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
-                                   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder, @Param(SORT_FIELDS) List<SortField> sortFields);
+                                   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                                   @Param(SORT_FIELDS) List<SortField> sortFields);
 
     /**
      * Get mandatory parents for publishing

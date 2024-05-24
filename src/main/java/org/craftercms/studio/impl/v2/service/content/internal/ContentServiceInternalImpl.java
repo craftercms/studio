@@ -195,11 +195,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        // TODO: fix for new publishing system
-        List< org.craftercms.studio.api.v2.dal.DetailedItem> items = emptyList();
-//        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
-//                CONTENT_TYPE_FOLDER, COMPLETED,
-//                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
+        List< org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
+                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
         List<DetailedItem> result = new ArrayList<>();
         for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
             DetailedItem detailedItem = DetailedItem.getInstance(item);
@@ -221,14 +218,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         org.craftercms.studio.api.v2.dal.DetailedItem item = null;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        // TODO: fix for new publishing system
-//        if (preferContent) {
-//            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-//                    stagingEnv, liveEnv);
-//        } else {
-//            item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv,
-//                    liveEnv);
-//        }
+        if (preferContent) {
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, stagingEnv, liveEnv);
+        } else {
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, stagingEnv, liveEnv);
+        }
         if (item == null) {
             throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
         }
@@ -261,9 +255,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+            items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         } else {
-            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+            items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         }
         return calculatePossibleActions(siteId, items);
     }

@@ -54,43 +54,14 @@
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
 
-    <resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem">
-        <id property="id" column="id" />
-        <result property="siteId" column="site_id" />
-        <result property="siteName" column="site_name" />
-        <result property="path" column="path" />
-        <result property="previewUrl" column="preview_url" />
-        <result property="state" column="state" />
-        <result property="lockedBy" column="locked_by" />
-        <result property="createdBy" column="created_by" />
-        <result property="createdOn" column="created_on" />
-        <result property="lastModifiedBy" column="last_modified_by" />
-        <result property="lastModifiedOn" column="last_modified_on" />
-        <result property="lastPublishedOn" column="last_published_on" />
-        <result property="submittedOn" column="submitted_on" />
-        <result property="label" column="label" />
-        <result property="contentTypeId" column="content_type_id" />
-        <result property="systemType" column="system_type" />
-        <result property="mimeType" column="mime_type" />
-        <result property="localeCode" column="locale_code" />
-        <result property="translationSourceId" column="translation_source_id" />
-        <result property="size" column="size" />
-        <result property="parentId" column="parent_id" />
-        <result property="previewUrl" column="preview_url" />
-        <result property="ignoredAsInt" column="ignored" />
+    <resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem"
+    extends="ItemMap">
         <result property="stagingScheduledDate" column="staging_scheduleddate" />
         <result property="stagingPublishedOn" column="staging_published_on" />
         <result property="stagingUsername" column="staging_username" />
         <result property="liveScheduledDate" column="live_scheduleddate" />
         <result property="livePublishedOn" column="live_published_on" />
         <result property="liveUsername" column="live_username" />
-        <result property="childrenCount" column="children_count" />
-        <association property="modifier" column="modifier"
-                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-        <association property="submitter" column="submitter"
-                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-        <association property="creator" column="creator"
-                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
         <association property="lockOwner" column="lock_owner"
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
@@ -152,19 +123,10 @@
     </sql>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        SELECT child.*, child.locked_by AS lock_owner, child.created_by AS creator, child.last_modified_by AS modifier,
-                (
-                SELECT w.submitted_on
-                FROM workflow w
-                WHERE w.item_id = child.id
-                ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitted_on,
-                (
-                    SELECT w.submitter_id
-                    FROM workflow w
-                    WHERE w.item_id = child.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitter,
+        SELECT child.*, child.locked_by AS lock_owner, child.created_by AS creator,
+                child.last_modified_by AS modifier,
+                submission.submitted_on AS submitted_on,
+                submission.submitter AS submitter,
                COUNT(
                 <choose>
                     <!-- if filtering by types, then narrow down the count -->
@@ -182,6 +144,15 @@
         FROM item child
             LEFT JOIN item parent ON child.parent_id = parent.id
             LEFT JOIN item grand_child ON grand_child.parent_id = child.id
+            LEFT OUTER JOIN (
+                        SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
+                        FROM item_publish_item ipi1
+                            INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+                            INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+                        WHERE pp1.package_state = 'READY'
+                        AND pp1.approval_state IN ('SUBMITTED', 'APPROVED')
+                        ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
+                ) as submission ON submission.item_id = child.id
         WHERE parent.site_id = #{siteId}
         AND (parent.path = #{path} OR parent.path = CONCAT(#{path}, '/index.xml'))
         AND (parent.system_type != #{systemTypeFolder}
@@ -239,7 +210,7 @@
         <include refid="getChildrenByPathFilters"/>
     </select>
 
-    <sql id="itemSelect">
+    <sql id="detailedItemSelect">
         SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                         (
                             SELECT pp1.schedule
@@ -271,9 +242,6 @@
         FROM item i
             INNER JOIN site s1 ON i.site_id = s1.id
             LEFT OUTER JOIN item ichild ON i.id = ichild.parent_id
-            LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
-            LEFT OUTER JOIN user u2 ON i.created_by = u2.id
-            LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
             LEFT OUTER JOIN (
                     SELECT ipi1.item_id, pp1.published_on, u.username AS submitter_username
                     FROM item_publish_item ipi1
@@ -297,7 +265,7 @@
     </sql>
 
     <select id="getItemById" resultMap="DetailedItemMap">
-        <include refid="itemSelect"/>
+        <include refid="detailedItemSelect"/>
         WHERE i.id = #{id}
           <!-- Count not ignored children
                Avoid counting both the '/child/' folder and the '/child/index.xml'
@@ -310,79 +278,11 @@
     </select>
 
     <select id="getDetailedItemsByStates" resultMap="DetailedItemMap">
-            SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
-                    (
-                        SELECT w.submitted_on
-                        FROM workflow w
-                        WHERE w.item_id = i.id
-                        ORDER BY w.id DESC LIMIT 0, 1
-                    ) as submitted_on,
-                    (
-                        SELECT w.submitter_id
-                        FROM workflow w
-                        WHERE w.item_id = i.id
-                        ORDER BY w.id DESC LIMIT 0, 1
-                    ) AS submitter,
-                    (
-                        (SELECT schedule
-                        FROM workflow w
-                        WHERE target_environment = #{stagingEnvironment}
-                            AND state = 'OPENED'
-                            AND i.id = w.item_id
-                        )
-                    UNION
-                        (SELECT pr.scheduleddate AS schedule
-                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                        WHERE w.target_environment = #{stagingEnvironment}
-                            AND w.state = 'APPROVED'
-                            AND pr.state = 'READY_FOR_LIVE'
-                            AND i.id = w.item_id)
-                    ORDER BY schedule DESC LIMIT 0, 1
-                    ) AS staging_scheduleddate,
-                   staging1.published_on AS staging_published_on,
-                   staging1.username AS staging_username,
-                    (
-                        (SELECT schedule
-                        FROM workflow w
-                        WHERE target_environment = #{liveEnvironment}
-                            AND state = 'OPENED'
-                            AND i.id = w.item_id
-                        )
-                    UNION
-                        (SELECT pr.scheduleddate AS schedule
-                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                        WHERE w.target_environment = #{liveEnvironment}
-                            AND w.state = 'APPROVED'
-                            AND pr.state = 'READY_FOR_LIVE'
-                            AND i.id = w.item_id
-                        )
-                    ORDER BY schedule DESC
-                    ) AS live_scheduleddate,
-                    live1.published_on AS live_published_on,
-                    live1.username AS live_username,
-                    COUNT(DISTINCT i3.id) AS children_count
-            FROM item i INNER JOIN site s1 ON i.site_id = s1.id
-                LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN (
-                    SELECT pr1.*
-                    FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
-                    WHERE s2.id = #{siteId}
-                      AND pr1.environment = #{stagingEnvironment}
-                      AND pr1.state = #{completedState}
-                    ORDER BY pr1. published_on DESC LIMIT 0, 1
-                    ) AS staging1 ON s1.site_id = staging1.site AND i.path = staging1.path
-                LEFT OUTER JOIN (
-                    SELECT pr2.*
-                    FROM publish_request pr2 INNER JOIN site s3 ON pr2.site = s3.site_id
-                    WHERE s3.id = #{siteId}
-                      AND pr2.environment = #{liveEnvironment}
-                      AND pr2.state = #{completedState}
-                    ORDER BY pr2.published_on DESC LIMIT 0, 1
-                    ) AS live1 ON s1.site_id = live1.site AND i.path = live1.path
+        <include refid="detailedItemSelect"/>
             WHERE i.site_id = #{siteId}
-                AND (i3.ignored = 0 OR i3.ignored IS NULL)
-                AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-                    (SELECT * FROM item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
+                AND (ichild.ignored = 0 OR ichild.ignored IS NULL)
+                AND (ichild.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
+                    (SELECT * FROM item i10 WHERE i10.site_id = ichild.site_id AND i10.path = CONCAT(ichild.path, '/index.xml')))
                 AND (i.state &amp; #{statesBitMap}) > 0
                 AND i.system_type != #{systemTypeFolder}
             <include refid="filterBySystemType"/>
@@ -392,22 +292,22 @@
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
-                (
-                    SELECT w.submitted_on
-                    FROM workflow w
-                    WHERE w.item_id = i.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitted_on,
-                (
-                    SELECT w.submitter_id
-                    FROM workflow w
-                    WHERE w.item_id = i.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) AS submitter,
+        SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator,
+                i.last_modified_by AS modifier,
+                submission.submitted_on AS submitted_on,
+                submission.submitter AS submitter,
                COUNT(DISTINCT i3.id) AS children_count
         FROM item i
             LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
+            LEFT OUTER JOIN (
+                        SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
+                        FROM item_publish_item ipi1
+                            INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+                            INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+                        WHERE pp1.package_state = 'READY'
+                        AND pp1.approval_state IN ('SUBMITTED', 'APPROVED')
+                        ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
+                ) as submission ON submission.item_id = i.id
         WHERE i.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -420,24 +320,25 @@
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
+        <!-- Refactor to reuse selects for ItemMap results -->
         SELECT tbl.*
         FROM (
-        (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
-                (
-                    SELECT w.submitted_on
-                    FROM workflow w
-                    WHERE w.item_id = i1.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitted_on,
-                (
-                    SELECT w.submitter_id
-                    FROM workflow w
-                    WHERE w.item_id = i1.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) AS submitter,
+        (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator,
+                i1.last_modified_by AS modifier,
+                submission.submitted_on AS submitted_on,
+                submission.submitter AS submitter,
                COUNT(DISTINCT i5.id ) AS children_count
         FROM item i1
-            LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id, item i2
+            LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id,
+            LEFT OUTER JOIN (
+                        SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
+                        FROM item_publish_item ipi1
+                            INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+                            INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+                        WHERE pp1.package_state = 'READY'
+                        AND pp1.approval_state IN ('SUBMITTED', 'APPROVED')
+                        ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
+                ) as submission ON submission.item_id = i1.id, item i2
         WHERE i2.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -449,22 +350,22 @@
             (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
         GROUP BY i1.id)
         UNION
-        (SELECT i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
-                (
-                    SELECT w.submitted_on
-                    FROM workflow w
-                    WHERE w.item_id = i3.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitted_on,
-                (
-                    SELECT w.submitter_id
-                    FROM workflow w
-                    WHERE w.item_id = i3.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) AS submitter,
+        (SELECT i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator,
+                i3.last_modified_by AS modifier,
+                submission.submitted_on AS submitted_on,
+                submission.submitter AS submitter,
                COUNT(DISTINCT i6.id) AS children_count
         FROM item i3
             LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
+            LEFT OUTER JOIN (
+                        SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
+                        FROM item_publish_item ipi1
+                            INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+                            INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+                        WHERE pp1.package_state = 'READY'
+                        AND pp1.approval_state IN ('SUBMITTED', 'APPROVED')
+                        ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
+                ) as submission ON submission.item_id = i3.id
         WHERE i3.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -482,21 +383,20 @@
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
         SELECT item.*, item.locked_by AS lock_owner, item.created_by AS creator, item.last_modified_by AS modifier,
-                (
-                    SELECT w.submitted_on
-                    FROM workflow w
-                    WHERE w.item_id = item.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitted_on,
-                (
-                    SELECT w.submitter_id
-                    FROM workflow w
-                    WHERE w.item_id = item.id
-                    ORDER BY w.id DESC LIMIT 0, 1
-                ) as submitter,
+                submission.submitted_on AS submitted_on,
+                submission.submitter AS submitter,
                COUNT(child.id) AS children_count
         FROM item
             LEFT JOIN item child ON child.parent_id = item.id
+            LEFT OUTER JOIN (
+                    SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
+                    FROM item_publish_item ipi1
+                        INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+                        INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+                    WHERE pp1.package_state = 'READY'
+                    AND pp1.approval_state IN ('SUBMITTED', 'APPROVED')
+                    ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
+            ) as submission ON submission.item_id = item.id
         WHERE item.site_id = #{siteId} AND item.ignored = 0
         <if test="preferContent">
             AND (item.system_type != #{systemTypeFolder}
@@ -523,7 +423,7 @@
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="DetailedItemMap">
-        <include refid="itemSelect"/>
+        <include refid="detailedItemSelect"/>
         WHERE s1.id = #{siteId}
           AND i.path = #{path}
         <!-- Count not ignored children
@@ -538,7 +438,7 @@
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="DetailedItemMap">
             (
-                <include refid="itemSelect"/>
+                <include refid="detailedItemSelect"/>
                 WHERE s1.id = #{siteId}
                     AND i.ignored = 0
                     <!-- Look for an index.xml at the given path -->
@@ -553,7 +453,7 @@
             )
             UNION
             (
-                <include refid="itemSelect"/>
+                <include refid="detailedItemSelect"/>
                 WHERE s1.id = #{siteId}
                     AND i.path = #{path}
                     AND i.ignored = 0
