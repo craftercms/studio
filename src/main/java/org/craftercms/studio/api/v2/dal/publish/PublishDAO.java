@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,6 +28,18 @@ import java.util.List;
 public interface PublishDAO {
     String PACKAGE_ID_PARAM = "packageId";
     String ITEMS_PARAM = "items";
+
+    /**
+     * Convenience transactional method to create a package and its items
+     *
+     * @param publishPackage the package
+     * @param publishItems   the items
+     */
+    @Transactional
+    default void insertPackageAndItems(PublishPackage publishPackage, Collection<PublishItem> publishItems) {
+        insertPackage(publishPackage);
+        insertItems(publishPackage.getId(), publishItems);
+    }
 
     /**
      * Insert a new publish package

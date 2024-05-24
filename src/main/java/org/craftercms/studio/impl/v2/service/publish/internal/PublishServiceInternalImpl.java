@@ -455,8 +455,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         }
         String liveTarget = servicesConfig.getLiveEnvironment(site.getSiteId());
         String stagingTarget = servicesConfig.getStagingEnvironment(site.getSiteId());
-        // TODO: revisit this: do we really need this in the publish item? Shouldn't we just read it from item_target table
-        // at the time of processing ?
         itemTargets.forEach(itemTarget -> {
             if (isNotEmpty(itemTarget.getOldPath())) {
                 if (itemTarget.getTarget().equals(stagingTarget)) {
@@ -573,9 +571,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         try {
             Site site = siteService.getSite(siteId);
-            // TODO: implement new publishing system
-            // TODO: make this a db transaction
-
             // Combine list of paths and list of commit changes
             Map<String, PublishItem> publishItemsByPath = new HashMap<>();
             createPublishItemsFromCommitIds(site, commitIds, publishItemsByPath);
@@ -596,8 +591,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     .withSchedule(schedule)
                     .withRequestApproval(requestApproval)
                     .build();
-            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackage(publishPackage));
-            retryingDatabaseOperationFacade.retry(() -> publishDao.insertItems(publishPackage.getId(), publishItemsByPath.values()));
+
+            publishDao.insertPackageAndItems(publishPackage, publishItemsByPath.values());
 
             // Create and insert publish items
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
