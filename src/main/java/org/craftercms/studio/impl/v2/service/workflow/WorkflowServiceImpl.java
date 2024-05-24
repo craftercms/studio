@@ -210,7 +210,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
             // trigger event
-            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
+//            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToDelete, false);

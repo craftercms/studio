@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.*;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -66,6 +67,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.APPROVE;
+import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -375,9 +378,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     .build();
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackage(publishPackage));
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH_ALL : OPERATION_PUBLISH_ALL);
-            if (!requestApproval) {
+            if (requestApproval) {
+                applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), SUBMIT));
+            } else {
+                applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), APPROVE));
                 applicationContext.publishEvent(new RequestPublishEvent(siteId));
             }
+
             return publishPackage.getId();
         } finally {
             generalLockService.unlock(lockKey);
@@ -594,8 +601,14 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
             // Create and insert publish items
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
-            if (!requestApproval && schedule == null) {
-                applicationContext.publishEvent(new RequestPublishEvent(siteId));
+
+            if (requestApproval) {
+                applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), SUBMIT));
+            } else {
+                applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), APPROVE));
+                if (schedule == null) {
+                    applicationContext.publishEvent(new RequestPublishEvent(siteId));
+                }
             }
             return publishPackage.getId();
         } catch (IOException e) {

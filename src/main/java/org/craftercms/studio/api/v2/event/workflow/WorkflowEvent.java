@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,8 @@ package org.craftercms.studio.api.v2.event.workflow;
 
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
-import org.springframework.security.core.Authentication;
+
+import static java.lang.String.format;
 
 /**
  * Event triggered when items go through the different workflow states
@@ -29,13 +30,18 @@ import org.springframework.security.core.Authentication;
  */
 public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    public WorkflowEvent(Authentication authentication, String siteId) {
-        super(authentication, siteId);
+    private final WorkFlowEventType eventType;
+    private final long packageId;
+
+    public WorkflowEvent(final String siteId, final long packageId, final WorkFlowEventType eventType) {
+        super(siteId);
+        this.eventType = eventType;
+        this.packageId = packageId;
     }
 
     @Override
     public String getEventType() {
-        return "WORKFLOW_EVENT";
+        return format("WORKFLOW_EVENT_%s", eventType.name());
     }
 
     @Override
@@ -43,8 +49,19 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
         return "WorkflowEvent{" +
                 "siteId='" + siteId + '\'' +
                 ", timestamp=" + timestamp +
-                ", user=" + user +
+                ", type=" + eventType +
+                ", packageId=" + packageId +
                 '}';
+    }
+
+    /**
+     * The different types of workflow events
+     */
+    public enum WorkFlowEventType {
+        SUBMIT, // When an item is submitted requesting for approval
+        APPROVE, // When an item is approved (including when it is directly published/scheduled)
+        REJECT, // When an item is rejected
+        CANCEL // When an item is canceled
     }
 
 }
