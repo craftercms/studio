@@ -19,12 +19,12 @@ package org.craftercms.studio.api.v2.repository;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -319,7 +319,7 @@ public interface ContentRepository {
      *
      * @param siteId site identifier
      */
-    void initialPublish(String siteId) throws SiteNotFoundException;
+    void initialPublish(String siteId, String commitId) throws ServiceLayerException;
 
     /**
      * Publishes all changes for the given site &amp; target

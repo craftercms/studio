@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import org.craftercms.studio.api.v2.dal.Site;
+
 import java.time.Instant;
 
 /**
@@ -25,14 +27,26 @@ public class PublishPackage {
 
     protected long id;
     protected long siteId;
+    protected Site site;
     protected String target;
-    protected String commitId;
-    protected String comment;
-    protected long submitterId;
     protected Instant schedule;
     protected ApprovalState approvalState;
     protected PackageState packageState;
+    protected String error;
+    protected long submitterId;
+    protected String comment;
+    protected Instant submittedOn;
+    protected long reviewerId;
+    protected String reviewerComment;
+    protected Instant reviewedOn;
+    protected Instant publishedOn;
     protected boolean publishAll;
+    protected String commitId;
+    protected String publishedStagingCommitId;
+    protected String publishedLiveCommitId;
+
+    protected PublishPackage() {
+    }
 
     private PublishPackage(final PublishAllBuilder builder) {
         setCommonProperties(builder);
@@ -82,6 +96,14 @@ public class PublishPackage {
 
     public void setSiteId(final long siteId) {
         this.siteId = siteId;
+    }
+
+    public Site getSite() {
+        return site;
+    }
+
+    public void setSite(Site site) {
+        this.site = site;
     }
 
     public String getTarget() {
@@ -146,6 +168,70 @@ public class PublishPackage {
 
     public void setPublishAll(boolean publishAll) {
         this.publishAll = publishAll;
+    }
+
+    public String getPublishedStagingCommitId() {
+        return publishedStagingCommitId;
+    }
+
+    public void setPublishedStagingCommitId(String publishedStagingCommitId) {
+        this.publishedStagingCommitId = publishedStagingCommitId;
+    }
+
+    public String getPublishedLiveCommitId() {
+        return publishedLiveCommitId;
+    }
+
+    public void setPublishedLiveCommitId(String publishedLiveCommitId) {
+        this.publishedLiveCommitId = publishedLiveCommitId;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public Instant getSubmittedOn() {
+        return submittedOn;
+    }
+
+    public void setSubmittedOn(Instant submittedOn) {
+        this.submittedOn = submittedOn;
+    }
+
+    public long getReviewerId() {
+        return reviewerId;
+    }
+
+    public void setReviewerId(long reviewerId) {
+        this.reviewerId = reviewerId;
+    }
+
+    public String getReviewerComment() {
+        return reviewerComment;
+    }
+
+    public void setReviewerComment(String reviewerComment) {
+        this.reviewerComment = reviewerComment;
+    }
+
+    public Instant getReviewedOn() {
+        return reviewedOn;
+    }
+
+    public void setReviewedOn(Instant reviewedOn) {
+        this.reviewedOn = reviewedOn;
+    }
+
+    public Instant getPublishedOn() {
+        return publishedOn;
+    }
+
+    public void setPublishedOn(Instant publishedOn) {
+        this.publishedOn = publishedOn;
     }
 
     @SuppressWarnings("unchecked")

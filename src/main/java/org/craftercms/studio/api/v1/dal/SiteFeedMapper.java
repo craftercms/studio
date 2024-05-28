@@ -67,13 +67,6 @@ public interface SiteFeedMapper {
 
     void enablePublishing(Map params);
 
-    /**
-     * Update publishing status
-     * @param siteId site identifier
-     * @param status publisher status
-     */
-    void updatePublishingStatus(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status);
-
     List<SiteFeed> getDeletedSites();
 
     /**

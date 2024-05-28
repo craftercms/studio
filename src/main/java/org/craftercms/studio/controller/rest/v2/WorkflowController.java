@@ -23,8 +23,10 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
@@ -35,10 +37,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static java.util.Collections.emptyList;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -52,10 +56,12 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 public class WorkflowController {
 
     private final WorkflowService workflowService;
+    private final PublishService publishService;
 
-    @ConstructorProperties({"workflowService"})
-    public WorkflowController(final WorkflowService workflowService) {
+    @ConstructorProperties({"workflowService", "publishService"})
+    public WorkflowController(final WorkflowService workflowService, final PublishService publishService) {
         this.workflowService = workflowService;
+        this.publishService = publishService;
     }
 
     @GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
@@ -146,8 +152,21 @@ public class WorkflowController {
 
     @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public Result publish(@Valid @RequestBody PublishRequestBody publishRequestBody)
-            throws UserNotFoundException, ServiceLayerException {
-        // TODO: call publish service publish method
+            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+        List<String> paths = new ArrayList<>(publishRequestBody.getItems());
+        if (!isEmpty(publishRequestBody.getOptionalDependencies())) {
+            paths.addAll(publishRequestBody.getOptionalDependencies());
+        }
+        List<PublishService.PublishRequestPath> requestPaths =
+                paths
+                        .stream()
+                        .map(item -> new PublishService.PublishRequestPath(item, false, false))
+                        .toList();
+        Instant schedule = publishRequestBody.getSchedule() != null ?
+                publishRequestBody.getSchedule().toInstant() : null;
+        publishService.publish(publishRequestBody.getSiteId(), publishRequestBody.getPublishingTarget(),
+                requestPaths, emptyList(),
+                schedule, publishRequestBody.getComment());
         Result result = new Result();
         result.setResponse(OK);
         return result;

@@ -473,7 +473,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void initialPublish(String siteId) {
+    public void initialPublish(final String siteId, final String commitId) {
         // If store is in readonly mode, nothing to do here.
         if (readOnly) {
             logger.warn("Initial publish request ignored in blobstore '{}' because it is readonly", id);

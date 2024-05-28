@@ -298,7 +298,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     @Override
     public void checkSiteState(final String siteId, final String requiredState) throws InvalidSiteStateException, SiteNotFoundException {
-        SiteFeed site = siteFeedMapper.getSite(Map.of(SITE_ID, siteId));
+        Site site = siteDao.getSite(siteId);
         if (site == null) {
             throw new SiteNotFoundException(format("Site '%s' not found.", siteId));
         }
@@ -539,6 +539,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public List<Site> getSitesByState(String state) {
         return siteDao.getSitesByState(state);
+    }
+
+    @Override
+    public void setPublishedRepoCreated(final String siteId) {
+        siteDao.setPublishedRepoCreated(siteId);
+    }
+
+    @Override
+    public void updatePublishingStatus(String siteId, String status) {
+        retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
     }
 
     /**

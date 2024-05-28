@@ -553,6 +553,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="auditServiceInternal" ref="auditServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+        <property name="activityService" ref="studio.activityStreamServiceInternal"/>
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"
@@ -708,30 +709,23 @@
 
     <util:list id="studio.clockTasksGlobal" list-class="java.util.ArrayList"
                value-type="org.craftercms.studio.api.v1.job.Job">
+        <ref bean="publishingQueueProbeTask" />
     </util:list>
 
     <util:list id="studio.clockTasksSite" list-class="java.util.ArrayList"
                value-type="org.craftercms.studio.api.v2.job.SiteJob">
-        <ref bean="studio.clockPublisherTask" />
     </util:list>
+
+    <bean id="publishingQueueProbeTask" class="org.craftercms.studio.impl.v2.publish.PublishingQueueProbeTask">
+    </bean>
+
+    <bean id="publisher" class="org.craftercms.studio.impl.v2.publish.Publisher">
+    </bean>
 
     <bean id="studio.clockTaskBase" abstract="true" class="org.craftercms.studio.impl.v2.job.StudioClockTask">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="siteService" ref="sitesService"/>
         <property name="contentRepository" ref="contentRepository"/>
-    </bean>
-
-    <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" parent="studio.clockTaskBase">
-        <property name="executeEveryNCycles"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="maxRetryCounter"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT)}" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="notificationService" ref="cstudioNotificationService" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
     </bean>
 
     <util:list id="crafter.jobTriggers">
@@ -857,7 +851,7 @@
         <property name="contextManager" ref="contextManager"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="siteService" ref="sitesServiceInternal" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />

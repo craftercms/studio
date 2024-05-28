@@ -19,11 +19,9 @@ package org.craftercms.studio.api.v1.repository;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.exception.publish.PublishException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -231,18 +229,6 @@ public interface ContentRepository {
      */
     @Deprecated
     boolean deleteSite(String siteId);
-
-    /**
-     * Initial publish to specified environment.
-     *
-     * @param site site identifier
-     * @param sandboxBranch sandbox branch name
-     * @param environment environment to publish
-     * @param author author
-     * @param comment comment
-     *
-     */
-    void initialPublish(String site, String sandboxBranch, String environment, String author, String comment) throws SiteNotFoundException, PublishException;
 
     /**
      * Get last commit id from repository for given site.

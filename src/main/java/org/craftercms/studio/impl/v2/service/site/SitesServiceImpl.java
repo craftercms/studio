@@ -175,4 +175,16 @@ public class SitesServiceImpl implements SitesService {
     public List<Site> getSitesByState(final String state) {
         return sitesServiceInternal.getSitesByState(state);
     }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    public void setPublishedRepoCreated(String siteId) {
+        sitesServiceInternal.setPublishedRepoCreated(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
+    public void updatePublishingStatus(String siteId, String status) {
+        sitesServiceInternal.updatePublishingStatus(siteId, status);
+    }
 }

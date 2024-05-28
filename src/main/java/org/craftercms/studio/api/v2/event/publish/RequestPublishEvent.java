@@ -22,8 +22,14 @@ import org.craftercms.studio.api.v2.event.SiteAwareEvent;
  */
 public class RequestPublishEvent extends SiteAwareEvent {
 
-    public RequestPublishEvent(final String siteId) {
+    private final long packageId;
+
+    public RequestPublishEvent(final String siteId, final long packageId) {
         super(siteId);
+        this.packageId = packageId;
     }
 
+    public long getPackageId() {
+        return packageId;
+    }
 }

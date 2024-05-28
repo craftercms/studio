@@ -559,10 +559,9 @@ public class GitRepositoryHelper implements DisposableBean {
     /**
      * Create a site published git repository from scratch
      * @param siteId site to create
-     * @param sandboxBranch sandbox branch name
      * @return true if successful, false otherwise
      */
-    public boolean createPublishedRepository(String siteId, String sandboxBranch) {
+    public boolean createPublishedRepository(String siteId) {
         // Create Published by cloning Sandbox
         boolean toRet = false;
         // Build a path for the site/sandbox

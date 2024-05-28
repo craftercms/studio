@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -57,6 +58,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static java.time.ZonedDateTime.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -94,6 +96,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     private SitesService siteService;
     private GeneralLockService generalLockService;
+    private ActivityStreamServiceInternal activityService;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -248,11 +251,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         return contentRepository.publishedRepositoryExists(siteId);
     }
 
-//    @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
-        contentRepository.initialPublish(siteId);
-    }
-
     @Override
     public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
@@ -360,7 +358,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private long submitPublishAll(final String siteId, final String publishingTarget, final String comment,
                                   final boolean requestApproval)
             throws LockedRepositoryException, SiteNotFoundException, AuthenticationException {
-        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPublishingOrProcessingLockKey(siteId);
+        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPullOrSubmitPublishingLockKey(siteId);
         boolean lockAcquired = generalLockService.tryLock(lockKey);
         if (!lockAcquired) {
             throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
@@ -382,7 +380,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), SUBMIT));
             } else {
                 applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), APPROVE));
-                applicationContext.publishEvent(new RequestPublishEvent(siteId));
+                applicationContext.publishEvent(new RequestPublishEvent(siteId, publishPackage.getId()));
             }
 
             return publishPackage.getId();
@@ -418,6 +416,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         auditLog.setParameters(List.of(commentParam, packageParam));
         auditServiceInternal.insertAuditLog(auditLog);
+        activityService.insertActivity(p.getSiteId(), p.getSubmitterId(), TARGET_TYPE_PUBLISHING_PACKAGE, now(), null, null);
     }
 
     /**
@@ -489,7 +488,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 softDepsPaths.addAll(expandedPathList);
             }
         }
-        allPaths.addAll(dependencyServiceInternal.getSoftDependencies(site.getSiteId(), softDepsPaths));
+        if(!softDepsPaths.isEmpty()) {
+            allPaths.addAll(dependencyServiceInternal.getSoftDependencies(site.getSiteId(), softDepsPaths));
+        }
 
         publishItemsByPath.putAll(
                 allPaths.stream()
@@ -537,7 +538,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public long publish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
                         final List<String> commitIds, final Instant schedule, final String comment)
             throws ServiceLayerException, AuthenticationException {
-        if (isSitePublished(siteId) && !isBulkPublishRoot(paths)) {
+        Site site = siteService.getSite(siteId);
+        if (site.isSitePublishedRepoCreated() && !isBulkPublishRoot(paths)) {
             return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, false);
         }
         if (schedule != null) {
@@ -563,7 +565,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private long submitPublish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
                                final List<String> commitIds, final Instant schedule, final String comment, final boolean requestApproval)
             throws ServiceLayerException, AuthenticationException {
-        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPublishingOrProcessingLockKey(siteId);
+        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPullOrSubmitPublishingLockKey(siteId);
         boolean lockAcquired = generalLockService.tryLock(lockKey);
         if (!lockAcquired) {
             throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
@@ -602,7 +604,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             } else {
                 applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), APPROVE));
                 if (schedule == null) {
-                    applicationContext.publishEvent(new RequestPublishEvent(siteId));
+                    applicationContext.publishEvent(new RequestPublishEvent(siteId, publishPackage.getId()));
                 }
             }
             return publishPackage.getId();
@@ -675,6 +677,10 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     public void setGeneralLockService(final GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setActivityService(final ActivityStreamServiceInternal activityService) {
+        this.activityService = activityService;
     }
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {

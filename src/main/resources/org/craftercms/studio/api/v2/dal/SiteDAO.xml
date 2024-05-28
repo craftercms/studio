@@ -25,14 +25,18 @@
         <result property="siteId" column="site_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
-        <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
+        <result property="deleted" column="deleted" javaType="Boolean" jdbcType="INTEGER"/>
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Boolean" jdbcType="INTEGER"/>
         <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
-        <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER"/>
+        <result property="publishedRepoCreated" column="published_repo_created" javaType="Boolean" jdbcType="INTEGER"/>
         <result property="state" column="state"/>
     </resultMap>
+
+    <select id="getByNumericId" resultMap="SiteMap" parameterType="java.lang.Long">
+        SELECT * FROM site WHERE id = #{id}
+    </select>
 
     <select id="getSite" resultMap="SiteMap" parameterType="java.lang.String">
         SELECT * FROM site WHERE site_id = #{siteId} and deleted = 0
@@ -70,5 +74,14 @@
 
     <update id="enablePublishing" parameterType="java.util.Map">
         UPDATE site SET publishing_enabled = #{enabled} WHERE site_id = #{siteId} AND deleted = 0
+    </update>
+
+    <update id="setPublishedRepoCreated">
+        UPDATE site SET published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
+    </update>
+
+    <update id="updatePublishingStatus">
+        UPDATE site SET publishing_status = #{publishingStatus}
+        WHERE site_id = #{siteId} AND deleted = 0
     </update>
 </mapper>

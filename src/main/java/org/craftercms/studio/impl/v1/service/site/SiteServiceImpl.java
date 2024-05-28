@@ -1026,19 +1026,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
-    public boolean isPublishingEnabled(@ValidateStringParam String siteId) {
-        try {
-            SiteFeed siteFeed = getSite(siteId);
-            return siteFeed.getPublishingEnabled() > 0;
-        } catch (SiteNotFoundException e) {
-            logger.warn("Failed to check if publishing is enabled for Site '{}'. Site not found.",
-                    siteId, e);
-            return false;
-        }
-    }
-
-    @Override
-    @Valid
     public boolean enablePublishing(@ValidateStringParam String siteId, boolean enabled)
             throws SiteNotFoundException {
         if (exists(siteId)) {
@@ -1046,19 +1033,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             params.put("siteId", siteId);
             params.put("enabled", enabled ? 1 : 0);
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.enablePublishing(params));
-            return true;
-        } else {
-            throw new SiteNotFoundException();
-        }
-    }
-
-    @Override
-    @Valid
-    public boolean updatePublishingStatus(@ValidateStringParam String siteId,
-                                          @ValidateStringParam String status)
-            throws SiteNotFoundException {
-        if (exists(siteId)) {
-            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updatePublishingStatus(siteId, status));
             return true;
         } else {
             throw new SiteNotFoundException();
@@ -1150,16 +1124,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @Override
     public String getSiteState(String siteId) {
         return siteFeedMapper.getSiteState(siteId);
-    }
-
-    @Override
-    public boolean isPublishedRepoCreated(String siteId) {
-        return siteFeedMapper.getPublishedRepoCreated(siteId) > 0;
-    }
-
-    @Override
-    public void setPublishedRepoCreated(String siteId) {
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setPublishedRepoCreated(siteId));
     }
 
     public List<String> getDefaultGroups() {

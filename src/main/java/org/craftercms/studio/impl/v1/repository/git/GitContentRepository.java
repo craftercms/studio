@@ -41,7 +41,6 @@ import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -51,7 +50,6 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -87,10 +85,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
-import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ListBranchCommand.ListMode.REMOTE;
 import static org.eclipse.jgit.lib.Constants.*;
-import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.*;
 
@@ -855,71 +851,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             generalLockService.unlock(gitLockKey);
         }
         return toReturn;
-    }
-
-    @Override
-    public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws PublishException {
-        String gitLockKey = helper.getPublishedRepoLockKey(site);
-        Repository repo = helper.getRepository(site, PUBLISHED);
-
-        String sandboxBranchName = sandboxBranch;
-        if (StringUtils.isEmpty(sandboxBranchName)) {
-            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
-        }
-        generalLockService.lock(gitLockKey);
-
-        try (Git git = new Git(repo)) {
-            // fetch "origin/master"
-            logger.debug("Fetch from sandbox for site '{}'", site);
-            FetchCommand fetchCommand = git.fetch();
-            retryingRepositoryOperationFacade.call(fetchCommand);
-
-            // checkout master and pull from sandbox
-            logger.debug("Checkout published/master branch in site '{}'", site);
-            try {
-                CheckoutCommand checkoutCommand = git.checkout()
-                        .setName(sandboxBranchName);
-                retryingRepositoryOperationFacade.call(checkoutCommand);
-                PullCommand pullCommand = git.pull()
-                        .setRemote(DEFAULT_REMOTE_NAME)
-                        .setRemoteBranchName(sandboxBranchName)
-                        .setStrategy(THEIRS);
-                retryingRepositoryOperationFacade.call(pullCommand);
-            } catch (RefNotFoundException e) {
-                logger.error("Failed to checkout published/master and to pull content from sandbox for site '{}'",
-                        site, e);
-                throw new PublishException(format("Failed to checkout published master and to pull " +
-                        "content from sandbox for site '%s'", site), e);
-            }
-
-            // Checkout the publishing target branch
-            logger.debug("Checkout the publishing target branch '{}' for site '{}'", environment, site);
-            try {
-                CheckoutCommand checkoutCommand =
-                        git.checkout().setCreateBranch(true).setForceRefUpdate(true).setStartPoint(sandboxBranchName)
-                        .setUpstreamMode(TRACK)
-                        .setName(environment);
-                retryingRepositoryOperationFacade.call(checkoutCommand);
-            } catch (RefNotFoundException e) {
-                logger.info("Unable to find branch '{}' for site '{}'. Will create a new branch.",
-                        environment, site);
-            }
-
-            // tag
-            PersonIdent authorIdent = helper.getAuthorIdent(author);
-            String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
-            String tagName = publishDate + "_published_on_" + publishDate;
-            TagCommand tagCommand = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment);
-            retryingRepositoryOperationFacade.call(tagCommand);
-        } catch (Exception e) {
-            logger.error("Failed to publish site '{}' to publishing target '{}'", site, environment, e);
-            throw new PublishException(format("Failed to publish site '%s' to publishing target '%s'",
-                    site, environment), e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
     }
 
     @Override

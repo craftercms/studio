@@ -1,0 +1,202 @@
+/*
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.craftercms.studio.impl.v2.publish;
+
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.publish.PublishEvent;
+import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+
+import java.beans.ConstructorProperties;
+import java.util.List;
+
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.PROCESSING;
+
+/**
+ * Listen for {@link RequestPublishEvent} and handle accordingly.
+ */
+public class Publisher implements ApplicationEventPublisherAware {
+
+    private static final Logger logger = LoggerFactory.getLogger(Publisher.class);
+
+    private final SiteDAO siteDao;
+    private final PublishDAO publishDao;
+    private ApplicationEventPublisher eventPublisher;
+    private final ItemServiceInternal itemServiceInternal;
+    private final AuditServiceInternal auditServiceInternal;
+    private final ContentRepository contentRepository;
+    private final GeneralLockService generalLockService;
+
+    @ConstructorProperties({"siteDao", "publishDao", "itemServiceInternal", "auditServiceInternal",
+            "contentRepository", "generalLockService"})
+    public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
+                     final ItemServiceInternal itemServiceInternal,
+                     final AuditServiceInternal auditServiceInternal,
+                     final ContentRepository contentRepository,
+                     final GeneralLockService generalLockService) {
+        this.siteDao = siteDao;
+        this.publishDao = publishDao;
+        this.itemServiceInternal = itemServiceInternal;
+        this.auditServiceInternal = auditServiceInternal;
+        this.contentRepository = contentRepository;
+        this.generalLockService = generalLockService;
+    }
+
+    @Async
+    @EventListener
+    @LogExecutionTime
+    public void handleRequestPublishEvent(final RequestPublishEvent event) throws ServiceLayerException {
+        long packageId = event.getPackageId();
+        String siteId = event.getSiteId();
+        logger.debug("Received request to publish package '{}' for site: '{}'", packageId, siteId);
+        Site site = siteDao.getSite(siteId);
+        if (!site.getPublishingEnabled()) {
+            logger.warn("Site '{}' is not enabled for publishing. Ignoring request to publish package '{}'", siteId, packageId);
+            return;
+        }
+        if (!Site.State.READY.equals(site.getState())) {
+            logger.warn("Site '{}' is not in a ready state. Ignoring request to publish package '{}'", siteId, packageId);
+            return;
+        }
+        String lockKey = StudioUtils.getPublishingLockKey(siteId);
+        boolean lockAcquired = generalLockService.tryLock(lockKey);
+        if (!lockAcquired) {
+            logger.warn("Failed to acquire lock for publishing package '{}' for site '{}'", packageId, siteId);
+            return;
+        }
+
+        try {
+            PublishPackage publishPackage = publishDao.getById(packageId);
+            doPublish(publishPackage);
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    /*
+     * Process a publish package
+     */
+    private void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
+        long packageId = publishPackage.getId();
+        String siteId = publishPackage.getSite().getSiteId();
+        publishDao.updatePackageState(packageId, PROCESSING);
+        // TODO: Make transactional
+        // Begin transaction
+        auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);
+        try {
+            // TODO: Initiate package progress reporting
+            if (!contentRepository.publishedRepositoryExists(siteId)) {
+                doInitialPublish(publishPackage);
+            } else if (publishPackage.isPublishAll()) {
+                doPublishAll(publishPackage);
+            } else {
+                doPublishItemList(publishPackage);
+            }
+            // Commit transaction
+            auditPublishOperation(publishPackage, OPERATION_PUBLISHED);
+            eventPublisher.publishEvent(new PublishEvent(siteId));
+            // TODO: Complete package progress
+        } catch (Exception e) {
+            logger.error("Failed to publish package '{}' for site '{}'", packageId, siteId, e);
+            publishPackage.setError(e.getMessage());
+            publishPackage.setPackageState(PublishPackage.PackageState.FAILED);
+            publishDao.updatePackage(publishPackage);
+            throw e;
+        }
+    }
+
+    /**
+     * Process a package that contains a list of items to publish (i.e. neither an initial publish nor a publish-all)
+     */
+    private void doPublishItemList(final PublishPackage publishPackage) {
+        // TODO: Implement
+    }
+
+    /**
+     * Process a publish-all publish package
+     */
+    private void doPublishAll(final PublishPackage publishPackage) throws ServiceLayerException {
+        // TODO: Implement
+    }
+
+    /**
+     * Process an initial publish package
+     */
+    private void doInitialPublish(final PublishPackage publishPackage) throws ServiceLayerException {
+        String commitId = publishPackage.getCommitId();
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Published repository does not exist for site '{}'. Performing initial publish.", siteId);
+        contentRepository.initialPublish(siteId, commitId);
+        publishPackage.setPublishedLiveCommitId(commitId);
+        publishPackage.setPublishedStagingCommitId(commitId);
+        publishPackage.setPackageState(COMPLETED);
+        publishDao.updatePackage(publishPackage);
+        publishDao.cancelOutstandingPackages(siteId);
+        itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+    }
+
+    /**
+     * Audit a publish operation
+     *
+     * @param p         the publish package
+     * @param operation the operation
+     */
+    private void auditPublishOperation(final PublishPackage p, final String operation) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(operation);
+        auditLog.setActorId(String.valueOf(p.getSubmitterId()));
+        auditLog.setSiteId(p.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(p.getSiteId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(String.valueOf(p.getSiteId()));
+
+        AuditLogParameter packageParam = new AuditLogParameter();
+        packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
+        packageParam.setTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        packageParam.setTargetValue(String.valueOf(p.getId()));
+
+        auditLog.setParameters(List.of(packageParam));
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    @Override
+    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
+    }
+}

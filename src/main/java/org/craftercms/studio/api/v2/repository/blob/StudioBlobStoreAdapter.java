@@ -138,12 +138,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void initialPublish(String site, String sandboxBranch, String environment, String author, String comment) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default String getRepoLastCommitId(String site) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();

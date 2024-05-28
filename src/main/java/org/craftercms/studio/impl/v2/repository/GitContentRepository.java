@@ -28,7 +28,6 @@ import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -38,7 +37,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
@@ -53,6 +51,7 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -115,7 +114,7 @@ public class GitContentRepository implements ContentRepository {
     private ContextManager contextManager;
     private ContentStoreService contentStoreService;
     private GeneralLockService generalLockService;
-    private SiteService siteService;
+    private SitesService siteService;
     private ItemServiceInternal itemServiceInternal;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
@@ -467,7 +466,7 @@ public class GitContentRepository implements ContentRepository {
             Repository repo = helper.getRepository(site, PUBLISHED);
             boolean repoCreated = false;
             if (Objects.isNull(repo)) {
-                helper.createPublishedRepository(site, sandboxBranch);
+                helper.createPublishedRepository(site);
                 repo = helper.getRepository(site, PUBLISHED);
                 repoCreated = Objects.nonNull(repo);
             }
@@ -1246,19 +1245,19 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
+    public void initialPublish(final String siteId, final String commitId) throws SiteNotFoundException {
         var siteFeed = siteService.getSite(siteId);
-        String sandboxBranch = siteFeed.getSandboxBranch();
         // Create published repo
-        var created = helper.createPublishedRepository(siteId, sandboxBranch);
+        var created = helper.createPublishedRepository(siteId);
         if (created) {
             // Create staging branch
             if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-                createEnvironmentBranch(siteId, sandboxBranch,
+                createEnvironmentBranch(siteId, commitId,
                         servicesConfig.getStagingEnvironment(siteId));
             }
             // Create live branch
-            createEnvironmentBranch(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId));
+            createEnvironmentBranch(siteId, commitId,
+                    servicesConfig.getLiveEnvironment(siteId));
             siteService.setPublishedRepoCreated(siteId);
         }
 
@@ -1285,12 +1284,13 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
         // get the published repo
-        SiteFeed site = siteService.getSite(siteId);
+        Site site = siteService.getSite(siteId);
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
         // if the published repo doesn't exist yet, trigger an initial publish
         if (repo == null) {
             logger.info("Prepare for initial publish in site '{}'", siteId);
-            initialPublish(siteId);
+            // TODO: revisit this
+            initialPublish(siteId, null);
             return new RepositoryChanges(true);
         }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
@@ -1628,7 +1628,7 @@ public class GitContentRepository implements ContentRepository {
         this.generalLockService = generalLockService;
     }
 
-    public void setSiteService(SiteService siteService) {
+    public void setSiteService(SitesService siteService) {
         this.siteService = siteService;
     }
 

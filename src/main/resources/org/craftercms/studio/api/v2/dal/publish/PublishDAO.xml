@@ -22,6 +22,25 @@
     <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
         <id property="id" column="id"/>
         <result property="siteId" column="site_id"/>
+        <result property="target" column="target"/>
+        <result property="schedule" column="schedule"/>
+        <result property="approvalState" column="approval_state"/>
+        <result property="packageState" column="package_state"/>
+        <result property="error" column="error"/>
+        <result property="submitterId" column="submitter_id"/>
+        <result property="comment" column="submitter_comment"/>
+        <result property="submittedOn" column="submitted_on"/>
+        <result property="reviewerId" column="reviewer_id"/>
+        <result property="reviewerComment" column="reviewer_comment"/>
+        <result property="reviewedOn" column="reviewed_on"/>
+        <result property="publishedOn" column="published_on"/>
+        <result property="publishAll" column="publish_all"/>
+        <result property="commitId" column="commit_id"/>
+        <result property="publishedStagingCommitId" column="published_staging_commit_id"/>
+        <result property="publishedLiveCommitId" column="published_live_commit_id"/>
+
+        <association property="site" column="site_id"
+                     select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
     </resultMap>
 
     <insert id="insertPackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage"
@@ -69,4 +88,72 @@
             'PENDING')
         </foreach>
     </insert>
+
+    <select id="getNextPublishPackages" resultMap="PublishPackageMap">
+        SELECT *
+        FROM (
+            SELECT s.id as site_id,
+                (
+                    SELECT pp.id AS id
+                    FROM publish_package pp
+                    WHERE pp.approval_state IN
+                            <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                                #{approvalState}
+                            </foreach>
+                    AND pp.package_state IN
+                            <foreach collection="packageStates" item="packageState" open="(" separator="," close=")">
+                                #{packageState}
+                            </foreach>
+                    AND (pp.schedule IS NULL OR pp.schedule &gt; NOW())
+                    AND pp.site_id = s.id
+                    ORDER BY pp.schedule, pp.submitted_on LIMIT 1
+                ) AS id
+            FROM site s
+            WHERE s.deleted = 0
+            AND s.system = 0
+            AND s.state IN
+                    <foreach collection="siteStates" item="siteState" open="(" separator="," close=")">
+                        #{siteState}
+                    </foreach>
+        ) AS tbl
+        WHERE id IS NOT NULL
+    </select>
+
+    <select id="getById" resultMap="PublishPackageMap">
+        SELECT *
+        FROM publish_package
+        WHERE id = #{packageId}
+    </select>
+
+    <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
+        UPDATE publish_package
+        SET approval_state = #{publishPackage.approvalState},
+            package_state = #{publishPackage.packageState},
+            error = #{publishPackage.error},
+            reviewed_on = #{publishPackage.reviewedOn},
+            published_on = #{publishPackage.publishedOn},
+            published_staging_commit_id = #{publishPackage.publishedStagingCommitId},
+            published_live_commit_id = #{publishPackage.publishedLiveCommitId}
+        WHERE id = #{publishPackage.id}
+    </update>
+
+    <update id="cancelOutstandingPackages">
+        UPDATE publish_package
+            SET package_state = #{cancelledState}
+        WHERE approval_state IN
+                    <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                        #{approvalState}
+                    </foreach>
+        AND package_state IN
+                    <foreach collection="packageStates" item="packageState" open="(" separator="," close=")">
+                        #{packageState}
+                    </foreach>
+        AND site_id = #{siteId}
+    </update>
+
+    <update id="updatePackageState">
+        UPDATE publish_package
+        SET package_state = #{packageState}
+        WHERE id = #{packageId}
+    </update>
 </mapper>

@@ -25,7 +25,9 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 
 import java.util.List;
 
@@ -54,12 +56,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-    public boolean enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, boolean enabled)
+    public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         // TODO: implement for new publishing system
-        return false;
     }
 
     @Override

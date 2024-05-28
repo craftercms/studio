@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -526,11 +525,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         return localRepositoryV2.deleteSite(siteId);
     }
 
-    @Override
-    public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment) throws SiteNotFoundException {
-        localRepositoryV2.initialPublish(site);
-    }
-
     protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
         DeploymentItemTO pointer = new DeploymentItemTO();
         pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
@@ -735,18 +729,12 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
-        try {
-            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
-            for (StudioBlobStore blobStore : blobStores) {
-                blobStore.initialPublish(siteId);
-            }
-            localRepositoryV2.initialPublish(siteId);
-        } catch (SiteNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Failed to perform the initial publish for site '{}'", siteId, e);
+    public void initialPublish(final String siteId, final String commitId) throws ServiceLayerException {
+        List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+        for (StudioBlobStore blobStore : blobStores) {
+            blobStore.initialPublish(siteId, commitId);
         }
+        localRepositoryV2.initialPublish(siteId, commitId);
     }
 
     public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
@@ -756,7 +744,8 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 if (gitChanges.isInitialPublish()) {
-                    blobStore.initialPublish(siteId);
+                    // TODO: revisit this
+                    blobStore.initialPublish(siteId, null);
                     continue;
                 }
 
