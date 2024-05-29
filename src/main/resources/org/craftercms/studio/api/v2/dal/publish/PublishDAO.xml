@@ -137,6 +137,13 @@
         WHERE id = #{publishPackage.id}
     </update>
 
+    <update id="updateFailedPackage">
+        UPDATE publish_package
+        SET package_state = #{packageState},
+            error = #{error}
+        WHERE id = #{packageId}
+    </update>
+
     <update id="cancelOutstandingPackages">
         UPDATE publish_package
             SET package_state = #{cancelledState}

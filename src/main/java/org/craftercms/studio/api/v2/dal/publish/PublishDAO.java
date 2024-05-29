@@ -33,15 +33,16 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageSta
  * Provide access to DB publish related tables
  */
 public interface PublishDAO {
-    String SITE_ID_PARAM = "siteId";
-    String PACKAGE_ID_PARAM = "packageId";
-    String PUBLISH_PACKAGE_PARAM = "publishPackage";
+    String SITE_ID = "siteId";
+    String PACKAGE_ID = "packageId";
+    String PUBLISH_PACKAGE = "publishPackage";
     String ITEMS_PARAM = "items";
     String APPROVAL_STATES = "approvalStates";
     String PACKAGE_STATES = "packageStates";
     String PACKAGE_STATE = "packageState";
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
+    String ERROR = "error";
 
     /**
      * Convenience transactional method to create a package and its items
@@ -68,7 +69,7 @@ public interface PublishDAO {
      * @param packageId    the package id
      * @param publishItems the items to insert
      */
-    void insertItems(@Param(PACKAGE_ID_PARAM) long packageId, @Param(ITEMS_PARAM) Collection<PublishItem> publishItems);
+    void insertItems(@Param(PACKAGE_ID) long packageId, @Param(ITEMS_PARAM) Collection<PublishItem> publishItems);
 
     /**
      * Get the next publish packages to process for every site matching the given states
@@ -97,7 +98,7 @@ public interface PublishDAO {
      * @param packageId the package id
      * @return the {@link PublishPackage}
      */
-    PublishPackage getById(@Param(PACKAGE_ID_PARAM) final long packageId);
+    PublishPackage getById(@Param(PACKAGE_ID) final long packageId);
 
     /**
      * Update a package
@@ -105,7 +106,18 @@ public interface PublishDAO {
      * @param publishPackage the package to update, containing the new values
      *                       for the updatable fields
      */
-    void updatePackage(@Param(PUBLISH_PACKAGE_PARAM) final PublishPackage publishPackage);
+    void updatePackage(@Param(PUBLISH_PACKAGE) final PublishPackage publishPackage);
+
+    /**
+     * Update state and error of a failed package
+     *
+     * @param packageId the package id
+     * @param failureState     the new state
+     * @param error     the error message
+     */
+    void updateFailedPackage(@Param(PACKAGE_ID) final long packageId,
+                             @Param(PACKAGE_STATE) final PackageState failureState,
+                             @Param(ERROR) final String error);
 
     /**
      * Cancel all active (ready non-rejected) packages for a site
@@ -126,7 +138,7 @@ public interface PublishDAO {
      * @param statesToCancel the package states to match
      * @param approvalStates the approval states to match
      */
-    void cancelOutstandingPackages(@Param(SITE_ID_PARAM) String siteId,
+    void cancelOutstandingPackages(@Param(SITE_ID) String siteId,
                                    @Param(CANCELLED_STATE) PackageState cancelledState,
                                    @Param(PACKAGE_STATES) Collection<PackageState> statesToCancel,
                                    @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates);
@@ -137,5 +149,5 @@ public interface PublishDAO {
      * @param packageId    the package id
      * @param packageState the new state
      */
-    void updatePackageState(@Param(PACKAGE_ID_PARAM) long packageId, @Param(PACKAGE_STATE) PackageState packageState);
+    void updatePackageState(@Param(PACKAGE_ID) long packageId, @Param(PACKAGE_STATE) PackageState packageState);
 }

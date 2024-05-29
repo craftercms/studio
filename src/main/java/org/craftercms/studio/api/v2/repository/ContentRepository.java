@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -37,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public interface ContentRepository {
@@ -331,6 +332,20 @@ public interface ContentRepository {
     RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
     /**
+     * Publishes all changes for the given site and target
+     *
+     * @param siteId           the id of the site
+     * @param commitId         the commit id to publish (published repository tree will be set to this commit's tree)
+     * @param publishingTarget the publishing target
+     * @param comment          submission comment
+     * @return the change set listing the affected paths and new commit ids (comparing the published repository target branch before and after the publish)
+     */
+    default PublishChangeSet publishAll(String siteId, String commitId, String publishingTarget, String comment) throws ServiceLayerException {
+        // TODO: implement this method
+        return new PublishChangeSet(null, null, emptyList(), emptyList(), emptyMap());
+    }
+
+    /**
      * Prepares the repository to publish all changes for the given site &amp; target
      *
      * @param siteId the id of the site
@@ -446,4 +461,19 @@ public interface ContentRepository {
      */
     List<String> validatePublishCommits(String siteId, Collection<String> commitIds) throws IOException, ServiceLayerException;
 
+    /**
+     * Store the result of a publish operation
+     *
+     * @param liveCommitId    the live branch commit id in the published repository
+     * @param stagingCommitId the staging branch commit id in the published repository
+     * @param updatedPaths    the paths that were updated
+     * @param deletedPaths    the paths that were deleted
+     * @param failedPaths     the paths that failed to publish, mapped to the error message
+     */
+    record PublishChangeSet(String liveCommitId,
+                            String stagingCommitId,
+                            Collection<String> updatedPaths,
+                            Collection<String> deletedPaths,
+                            Map<String, String> failedPaths) {
+    }
 }

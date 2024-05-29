@@ -16,8 +16,10 @@
 
 package org.craftercms.studio.impl.v2.publish;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
@@ -42,11 +44,11 @@ import org.springframework.scheduling.annotation.Async;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
+import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
 
 /**
  * Listen for {@link RequestPublishEvent} and handle accordingly.
@@ -62,20 +64,23 @@ public class Publisher implements ApplicationEventPublisherAware {
     private final AuditServiceInternal auditServiceInternal;
     private final ContentRepository contentRepository;
     private final GeneralLockService generalLockService;
+    private final ServicesConfig servicesConfig;
 
     @ConstructorProperties({"siteDao", "publishDao", "itemServiceInternal", "auditServiceInternal",
-            "contentRepository", "generalLockService"})
+            "contentRepository", "generalLockService", "servicesConfig"})
     public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
                      final ItemServiceInternal itemServiceInternal,
                      final AuditServiceInternal auditServiceInternal,
                      final ContentRepository contentRepository,
-                     final GeneralLockService generalLockService) {
+                     final GeneralLockService generalLockService,
+                     final ServicesConfig servicesConfig ) {
         this.siteDao = siteDao;
         this.publishDao = publishDao;
         this.itemServiceInternal = itemServiceInternal;
         this.auditServiceInternal = auditServiceInternal;
         this.contentRepository = contentRepository;
         this.generalLockService = generalLockService;
+        this.servicesConfig = servicesConfig;
     }
 
     @Async
@@ -122,10 +127,13 @@ public class Publisher implements ApplicationEventPublisherAware {
         try {
             // TODO: Initiate package progress reporting
             if (!contentRepository.publishedRepositoryExists(siteId)) {
+                logger.debug("Published repository does not exist. Performing initial publish with package '{}' for site '{}'", packageId, siteId);
                 doInitialPublish(publishPackage);
             } else if (publishPackage.isPublishAll()) {
+                logger.debug("Processing publish-all package '{}' for site '{}'.", packageId, siteId);
                 doPublishAll(publishPackage);
             } else {
+                logger.debug("Processing publish package '{}' for site '{}'.", packageId, siteId);
                 doPublishItemList(publishPackage);
             }
             // Commit transaction
@@ -134,10 +142,9 @@ public class Publisher implements ApplicationEventPublisherAware {
             // TODO: Complete package progress
         } catch (Exception e) {
             logger.error("Failed to publish package '{}' for site '{}'", packageId, siteId, e);
-            publishPackage.setError(e.getMessage());
-            publishPackage.setPackageState(PublishPackage.PackageState.FAILED);
-            publishDao.updatePackage(publishPackage);
-            throw e;
+            publishDao.updateFailedPackage(packageId, FAILED, e.getMessage());
+            String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
+            throw new ServiceLayerException(exceptionMessage, e);
         }
     }
 
@@ -152,7 +159,29 @@ public class Publisher implements ApplicationEventPublisherAware {
      * Process a publish-all publish package
      */
     private void doPublishAll(final PublishPackage publishPackage) throws ServiceLayerException {
-        // TODO: Implement
+        String commitId = publishPackage.getCommitId();
+        String siteId = publishPackage.getSite().getSiteId();
+        ContentRepository.PublishChangeSet publishChangeSet = contentRepository.publishAll(siteId,
+                commitId, publishPackage.getTarget(), publishPackage.getComment());
+
+        publishPackage.setPublishedLiveCommitId(publishChangeSet.liveCommitId());
+        publishPackage.setPublishedStagingCommitId(publishChangeSet.stagingCommitId());
+        publishPackage.setPackageState(publishChangeSet.failedPaths().isEmpty() ? COMPLETED : COMPLETED_WITH_ERRORS);
+        publishDao.updatePackage(publishPackage);
+        cancelOutstandingPackages(publishPackage.getId(), siteId);
+//         TODO: clear item_target
+
+        boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), publishPackage.getTarget());
+        long onMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
+        long offMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK : PUBLISH_TO_STAGE_OFF_MASK;
+
+        if (publishChangeSet.failedPaths().isEmpty()) {
+            // If nothing failed then we can just update all paths in the site
+            itemServiceInternal.updateStatesForSite(siteId, onMask, offMask);
+        } else {
+            itemServiceInternal.updateStateBitsBulk(siteId,
+                    subtract(publishChangeSet.updatedPaths(), publishChangeSet.failedPaths().keySet()), onMask, offMask);
+        }
     }
 
     /**
@@ -161,14 +190,22 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void doInitialPublish(final PublishPackage publishPackage) throws ServiceLayerException {
         String commitId = publishPackage.getCommitId();
         String siteId = publishPackage.getSite().getSiteId();
-        logger.debug("Published repository does not exist for site '{}'. Performing initial publish.", siteId);
         contentRepository.initialPublish(siteId, commitId);
         publishPackage.setPublishedLiveCommitId(commitId);
         publishPackage.setPublishedStagingCommitId(commitId);
         publishPackage.setPackageState(COMPLETED);
         publishDao.updatePackage(publishPackage);
-        publishDao.cancelOutstandingPackages(siteId);
+        cancelOutstandingPackages(publishPackage.getId(), siteId);
         itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+    }
+
+    private void cancelOutstandingPackages(final long packageId, final String siteId) {
+        try {
+            publishDao.cancelOutstandingPackages(siteId);
+        } catch (Exception e) {
+            logger.error("Failed to cancel outstanding packages for site '{}' after initial publish, package '{}'",
+                    siteId, packageId, e);
+        }
     }
 
     /**
