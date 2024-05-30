@@ -319,8 +319,11 @@ public interface ContentRepository {
      * Execute initial publish for given site
      *
      * @param siteId site identifier
+     * @return commit id of the initial publish.
+     * After this method runs, the returned value is the same as the last
+     * commit in the published repository for both branches(live and staging, if configured)
      */
-    void initialPublish(String siteId, String commitId) throws ServiceLayerException;
+    String initialPublish(String siteId) throws ServiceLayerException;
 
     /**
      * Publishes all changes for the given site &amp; target

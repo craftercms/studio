@@ -473,11 +473,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void initialPublish(final String siteId, final String commitId) {
+    public String initialPublish(final String siteId) {
         // If store is in readonly mode, nothing to do here.
         if (readOnly) {
             logger.warn("Initial publish request ignored in blobstore '{}' because it is readonly", id);
-            return;
+            return null;
         }
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
@@ -495,6 +495,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
                     MIN_PART_SIZE, getClient());
         }
+        return null; // TODO: refactor these interfaces so we don't need to return anything
     }
 
     @Override

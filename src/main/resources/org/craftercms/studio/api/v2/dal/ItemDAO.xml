@@ -637,6 +637,13 @@
           AND i.path = #{path}
     </update>
 
+    <update id="updateSiteLastPublishedOn">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.last_published_on = #{lastPublishedOn}
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+    </update>
+
     <select id="getContentTypeUsages" resultType="org.craftercms.studio.api.v2.dal.Item">
         SELECT
           I.path, I.system_type AS systemType

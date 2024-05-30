@@ -377,17 +377,17 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     public void initialPublishTest() throws ServiceLayerException {
-        proxy.initialPublish(SITE, COMMIT_1);
+        proxy.initialPublish(SITE);
 
-        verify(store).initialPublish(SITE, COMMIT_1);
-        verify(localRepositoryV2).initialPublish(SITE, COMMIT_1);
+        verify(store).initialPublish(SITE);
+        verify(localRepositoryV2).initialPublish(SITE);
     }
 
     @Test(expectedExceptions=SiteNotFoundException.class)
     public void blobAwareRepoBubblesUpSiteNotFoundExceptionTest() throws ServiceLayerException {
         String nonExistingSite = "nonExistingSite";
-        doThrow(SiteNotFoundException.class).when(localRepositoryV2).initialPublish(nonExistingSite, COMMIT_1);
-        proxy.initialPublish(nonExistingSite, COMMIT_1);
+        doThrow(SiteNotFoundException.class).when(localRepositoryV2).initialPublish(nonExistingSite);
+        proxy.initialPublish(nonExistingSite);
     }
 
 }

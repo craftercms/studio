@@ -587,7 +587,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     .withRequestApproval(requestApproval)
                     .build();
 
-            publishDao.insertPackageAndItems(publishPackage, publishItemsByPath.values());
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItemsByPath.values()));
 
             // Create and insert publish items
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);

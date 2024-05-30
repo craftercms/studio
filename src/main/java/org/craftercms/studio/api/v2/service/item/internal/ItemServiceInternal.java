@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -401,4 +402,12 @@ public interface ItemServiceInternal {
      * @return list of children paths
      */
     Collection<String> getChildrenPaths(long siteId, String path);
+
+    /**
+     * Update the last published date for all the site content
+     *
+     * @param siteId    the site id
+     * @param timestamp the timestamp to set
+     */
+    void updateSiteLastPublishedOn(String siteId, Instant timestamp);
 }

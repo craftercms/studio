@@ -729,12 +729,12 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void initialPublish(final String siteId, final String commitId) throws ServiceLayerException {
+    public String initialPublish(final String siteId) throws ServiceLayerException {
         List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
         for (StudioBlobStore blobStore : blobStores) {
-            blobStore.initialPublish(siteId, commitId);
+            blobStore.initialPublish(siteId);
         }
-        localRepositoryV2.initialPublish(siteId, commitId);
+        return localRepositoryV2.initialPublish(siteId);
     }
 
     public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
@@ -744,8 +744,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 if (gitChanges.isInitialPublish()) {
-                    // TODO: revisit this
-                    blobStore.initialPublish(siteId, null);
+                    blobStore.initialPublish(siteId);
                     continue;
                 }
 

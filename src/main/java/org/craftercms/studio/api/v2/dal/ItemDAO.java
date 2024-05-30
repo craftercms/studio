@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -541,4 +542,12 @@ public interface ItemDAO {
      * @return list of children paths
      */
     Collection<String> getChildrenPaths(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+
+    /**
+     * Update the last published date for all the site content
+     *
+     * @param siteId    the site id
+     * @param timestamp the timestamp to set
+     */
+    void updateSiteLastPublishedOn(@Param(SITE_ID) String siteId, @Param(LAST_PUBLISHED_ON) Instant timestamp);
 }

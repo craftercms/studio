@@ -38,6 +38,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -555,6 +556,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public Collection<String> getChildrenPaths(long siteId, String path) {
         return itemDao.getChildrenPaths(siteId, path);
+    }
+
+    @Override
+    public void updateSiteLastPublishedOn(final String siteId, final Instant timestamp) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateSiteLastPublishedOn(siteId, timestamp));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

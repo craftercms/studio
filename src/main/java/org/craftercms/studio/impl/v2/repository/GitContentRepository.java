@@ -1245,8 +1245,8 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void initialPublish(final String siteId, final String commitId) throws SiteNotFoundException {
-        var siteFeed = siteService.getSite(siteId);
+    public String initialPublish(final String siteId) throws SiteNotFoundException {
+        String commitId = getRepoLastCommitId(siteId);
         // Create published repo
         var created = helper.createPublishedRepository(siteId);
         if (created) {
@@ -1262,6 +1262,7 @@ public class GitContentRepository implements ContentRepository {
         }
 
         logger.info("Completed the initial publish of the site '{}'", siteId);
+        return commitId;
     }
 
     private void createEnvironmentBranch(String siteId, String startPoint, String environment) {
@@ -1289,8 +1290,7 @@ public class GitContentRepository implements ContentRepository {
         // if the published repo doesn't exist yet, trigger an initial publish
         if (repo == null) {
             logger.info("Prepare for initial publish in site '{}'", siteId);
-            // TODO: revisit this
-            initialPublish(siteId, null);
+            initialPublish(siteId);
             return new RepositoryChanges(true);
         }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);

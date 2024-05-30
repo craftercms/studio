@@ -42,6 +42,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
+import java.time.Instant;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -49,6 +50,7 @@ import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Listen for {@link RequestPublishEvent} and handle accordingly.
@@ -73,7 +75,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                      final AuditServiceInternal auditServiceInternal,
                      final ContentRepository contentRepository,
                      final GeneralLockService generalLockService,
-                     final ServicesConfig servicesConfig ) {
+                     final ServicesConfig servicesConfig) {
         this.siteDao = siteDao;
         this.publishDao = publishDao;
         this.itemServiceInternal = itemServiceInternal;
@@ -161,15 +163,19 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void doPublishAll(final PublishPackage publishPackage) throws ServiceLayerException {
         String commitId = publishPackage.getCommitId();
         String siteId = publishPackage.getSite().getSiteId();
+
+        // TODO: set all items state to system processing ???
+
         ContentRepository.PublishChangeSet publishChangeSet = contentRepository.publishAll(siteId,
                 commitId, publishPackage.getTarget(), publishPackage.getComment());
 
         publishPackage.setPublishedLiveCommitId(publishChangeSet.liveCommitId());
         publishPackage.setPublishedStagingCommitId(publishChangeSet.stagingCommitId());
-        publishPackage.setPackageState(publishChangeSet.failedPaths().isEmpty() ? COMPLETED : COMPLETED_WITH_ERRORS);
+        publishPackage.setPackageState(isEmpty(publishChangeSet.failedPaths()) ? COMPLETED : COMPLETED_WITH_ERRORS);
         publishDao.updatePackage(publishPackage);
         cancelOutstandingPackages(publishPackage.getId(), siteId);
 //         TODO: clear item_target
+
 
         boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), publishPackage.getTarget());
         long onMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
@@ -188,15 +194,18 @@ public class Publisher implements ApplicationEventPublisherAware {
      * Process an initial publish package
      */
     private void doInitialPublish(final PublishPackage publishPackage) throws ServiceLayerException {
-        String commitId = publishPackage.getCommitId();
         String siteId = publishPackage.getSite().getSiteId();
-        contentRepository.initialPublish(siteId, commitId);
-        publishPackage.setPublishedLiveCommitId(commitId);
-        publishPackage.setPublishedStagingCommitId(commitId);
-        publishPackage.setPackageState(COMPLETED);
-        publishDao.updatePackage(publishPackage);
+        String commitId = contentRepository.initialPublish(siteId);
+        Instant now = Instant.now();
         cancelOutstandingPackages(publishPackage.getId(), siteId);
         itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+        itemServiceInternal.updateSiteLastPublishedOn(siteId, now);
+
+        publishPackage.setPublishedLiveCommitId(commitId);
+        publishPackage.setPublishedStagingCommitId(commitId);
+        publishPackage.setPublishedOn(now);
+        publishPackage.setPackageState(COMPLETED);
+        publishDao.updatePackage(publishPackage);
     }
 
     private void cancelOutstandingPackages(final long packageId, final String siteId) {
