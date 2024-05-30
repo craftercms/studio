@@ -61,7 +61,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getDependentItems(@SiteId String siteId,
                                           @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);

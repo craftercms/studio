@@ -5517,7 +5517,7 @@ paths:
       tags:
         - content
       summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
-      description: 'Required permission "delete_content"'
+      description: 'Required permission "content_read"'
       operationId: getDeletePackage
       requestBody:
         content:
