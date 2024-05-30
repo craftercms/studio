@@ -30,11 +30,11 @@ public interface DeploymentService {
     /**
      * Start executing bulk publish for given site, path on given environment
      *
-     * @param site site identifier
+     * @param site        site identifier
      * @param environment environment to publish to
-     * @param path base path for bulk publish
-     * @param comment submission comment
-     *
+     * @param path        base path for bulk publish
+     * @param comment     submission comment
+     * @return the created publish package id
      * @throws ServiceLayerException exception is case of en error
      */
     long bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException, AuthenticationException;
@@ -50,9 +50,11 @@ public interface DeploymentService {
 
     /**
      * Publish given commit IDs on given environment for given site
-     * @param site site id to use for publishing
+     *
+     * @param site        site id to use for publishing
      * @param environment environment to use for publishing
-     * @param commitIds commit IDs to publish
+     * @param commitIds   commit IDs to publish
+     * @return the created publish package id
      */
     long publishCommits(String site, String environment, List<String> commitIds, String comment)
             throws ServiceLayerException, AuthenticationException;
