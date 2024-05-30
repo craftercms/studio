@@ -538,14 +538,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public long publish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
                         final List<String> commitIds, final Instant schedule, final String comment)
             throws ServiceLayerException, AuthenticationException {
-        Site site = siteService.getSite(siteId);
-        if (site.isSitePublishedRepoCreated() && !isBulkPublishRoot(paths)) {
-            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, false);
-        }
-        if (schedule != null) {
-            throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
-        }
-        return submitPublishAll(siteId, publishingTarget, comment, false);
+        return routePackageSubmission(siteId, publishingTarget, paths, commitIds, schedule, comment, false);
     }
 
     /**
@@ -620,22 +613,23 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public long requestPublish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
                                final List<String> commitIds, final Instant schedule, final String comment)
             throws AuthenticationException, ServiceLayerException {
-        if (isSitePublished(siteId) && !isBulkPublishRoot(paths)) {
-            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, true);
+        return routePackageSubmission(siteId, publishingTarget, paths, commitIds, schedule, comment, true);
+    }
+
+    /**
+     * Routes the request to the appropriate method based on the site's publishing repo status.
+     */
+    private long routePackageSubmission(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
+                                        final List<String> commitIds, final Instant schedule, final String comment, final boolean requestApproval)
+            throws ServiceLayerException, AuthenticationException {
+        Site site = siteService.getSite(siteId);
+        if (site.isSitePublishedRepoCreated()) {
+            return submitPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, requestApproval);
         }
         if (schedule != null) {
             throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
         }
-        return submitPublishAll(siteId, publishingTarget, comment, true);
-    }
-
-    /**
-     * Check if any of the submitted {@link PublishRequestPath} is a bulk publish of the content root '/'.
-     * If so, the operation should be treated as a publish all operation.
-     */
-    private boolean isBulkPublishRoot(List<PublishRequestPath> publishRequestPaths) {
-        return publishRequestPaths.stream()
-                .anyMatch(p -> p.path().equals("/") && p.includeChildren());
+        return submitPublishAll(siteId, publishingTarget, comment, requestApproval);
     }
 
     @Override
