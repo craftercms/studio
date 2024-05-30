@@ -32,4 +32,21 @@
         WHERE i.site_id = #{siteId}
         AND i.path = #{path}
     </select>
+
+    <delete id="clearForItem">
+        DELETE FROM item_target
+        WHERE item_id = #{itemId}
+    </delete>
+
+    <delete id="clearForItemAndTarget">
+        DELETE FROM item_target
+        WHERE item_id = #{itemId}
+        AND target = #{target}
+    </delete>
+
+    <delete id="clearForSiteAndTarget">
+        DELETE FROM item_target it INNER JOIN item i ON i.id = it.item_id
+        WHERE i.site_id = #{siteId}
+        AND it.target = #{target}
+    </delete>
 </mapper>

@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
+import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
@@ -67,15 +68,17 @@ public class Publisher implements ApplicationEventPublisherAware {
     private final ContentRepository contentRepository;
     private final GeneralLockService generalLockService;
     private final ServicesConfig servicesConfig;
+    private final ItemTargetDAO itemTargetDAO;
 
     @ConstructorProperties({"siteDao", "publishDao", "itemServiceInternal", "auditServiceInternal",
-            "contentRepository", "generalLockService", "servicesConfig"})
+            "contentRepository", "generalLockService", "servicesConfig", "itemTargetDAO"})
     public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
                      final ItemServiceInternal itemServiceInternal,
                      final AuditServiceInternal auditServiceInternal,
                      final ContentRepository contentRepository,
                      final GeneralLockService generalLockService,
-                     final ServicesConfig servicesConfig) {
+                     final ServicesConfig servicesConfig,
+                     final ItemTargetDAO itemTargetDAO) {
         this.siteDao = siteDao;
         this.publishDao = publishDao;
         this.itemServiceInternal = itemServiceInternal;
@@ -83,6 +86,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         this.contentRepository = contentRepository;
         this.generalLockService = generalLockService;
         this.servicesConfig = servicesConfig;
+        this.itemTargetDAO = itemTargetDAO;
     }
 
     @Async
@@ -175,7 +179,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         publishDao.updatePackage(publishPackage);
         cancelOutstandingPackages(publishPackage.getId(), siteId);
 //         TODO: clear item_target
-
+        itemTargetDAO.clearForSiteAndTarget(publishPackage.getSiteId(), publishPackage.getTarget());
 
         boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), publishPackage.getTarget());
         long onMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;

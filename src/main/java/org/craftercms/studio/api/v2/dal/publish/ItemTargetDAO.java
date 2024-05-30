@@ -20,19 +20,44 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-
 /**
  * Provide access to the item_target data.
  */
 public interface ItemTargetDAO {
+    String SITE_ID = "siteId";
+    String PATH = "path";
+    String ITEM_ID = "itemId";
+    String TARGET = "target";
+
     /**
      * Get the item target records by item path
      *
-     * @param siteId   the site id
-     * @param path the item path
+     * @param siteId the site id
+     * @param path   the item path
      * @return the item target record
      */
     Collection<ItemTarget> getByItemPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+
+    /**
+     * Clear all records for the given item
+     *
+     * @param itemId the item id
+     */
+    void clearForItem(@Param(ITEM_ID) long itemId);
+
+    /**
+     * Clear the record (if exists) for the given item and target
+     *
+     * @param itemId the item id
+     * @param target the target
+     */
+    void clearForItemAndTarget(@Param(ITEM_ID) long itemId, @Param(TARGET) String target);
+
+    /**
+     * Clear all records for the given site and target
+     *
+     * @param siteId the site id
+     * @param target the target
+     */
+    void clearForSiteAndTarget(@Param(SITE_ID) long siteId, @Param(TARGET) String target);
 }
