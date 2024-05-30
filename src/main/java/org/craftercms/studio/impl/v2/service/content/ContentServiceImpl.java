@@ -129,7 +129,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
