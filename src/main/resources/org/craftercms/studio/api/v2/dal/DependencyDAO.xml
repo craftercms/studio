@@ -86,7 +86,7 @@
                 SELECT i.id, i.path, i.parent_id, i.system_type, i.state
                 FROM item i
                 INNER JOIN parents p ON p.parent_id = i.id
-                 WHERE ((i.state &amp; #{newInTargetMaskOn}) > 0 <!-- New ancestors: "Not published to the given publishing target -->
+                 WHERE ((i.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- New ancestors: "Not published to the given publishing target -->
                             AND (i.state &amp; #{newInTargetMaskOff}) = 0)
                      OR EXISTS (
                         SELECT 1
@@ -106,8 +106,17 @@
                 SELECT i.id, i.path, i.parent_id, i.system_type
                 FROM item i
                 INNER JOIN children c ON c.id = i.parent_id
-                WHERE (i.state &amp; #{newInTargetMaskOn}) = 0 <!-- Get previously published descendants -->
+                WHERE (i.state &amp; #{newInTargetMaskOn}) &lt;&gt; #{newInTargetMaskOn} <!-- Get previously published descendants of renamed parents -->
                 AND (i.state &amp; #{newInTargetMaskOff}) > 0
+                AND EXISTS (
+                        SELECT 1
+                         FROM item_target it
+                         WHERE it.item_id = c.id
+                         AND old_path IS NOT NULL
+                        <if test="!isLiveTarget"> <!-- If live, any record will do -->
+                         AND it.target = #{target}
+                        </if>
+                     ) <!-- Moved/renamed ancestors -->
         ),
         deps AS (
                 SELECT c.path
@@ -121,7 +130,7 @@
                 WHERE d.site = #{siteId}
                     AND d.valid = 1
                     AND (
-                        ((targetItem.state &amp; #{newInTargetMaskOn}) > 0 <!-- "Not published to the given publishing target -->
+                        ((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
                             AND (targetItem.state &amp; #{newInTargetMaskOff}) = 0)
                         OR
                             <foreach item="pattern" index="index" collection="regex"

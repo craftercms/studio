@@ -201,6 +201,9 @@ BEGIN
 
         -- audit log
         DELETE FROM audit WHERE site_id = id;
+
+        -- publish queue
+        DELETE FROM publish_package WHERE site_id = id;
     END IF;
 END ;
 
