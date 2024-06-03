@@ -120,28 +120,6 @@ public interface PublishService {
     boolean isSitePublished(String siteId) throws SiteNotFoundException;
 
     /**
-     * Publishes all changes for the given site
-     *
-     * @param siteId           the id of the site
-     * @param publishingTarget the publishing target
-     * @param comment          submission comment
-     * @return result of the publishing
-     * @throws ServiceLayerException if there is any error during publishing
-     */
-    long publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-    /**
-     * Submit a publish-all package for approval
-     *
-     * @param siteId           the id of the site
-     * @param publishingTarget the publishing target
-     * @param comment          submission comment
-     * @return result of the publishing
-     * @throws ServiceLayerException if there is any error during publishing
-     */
-    long requestPublishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-    /**
      * Create a 'APPROVED' publishing package. The created package will be ready to be published.
      *
      * @param siteId           the id of the site
@@ -150,10 +128,11 @@ public interface PublishService {
      * @param commitIds        the commit ids to publish
      * @param schedule         the scheduled date for the publishing (null to publish immediately)
      * @param comment          the comment for the publishing
+     * @param publishAll       if this is a publish-all request
      * @return the id of the created package
      */
-    long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds,
-                 Instant schedule, String comment)
+    long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
+                 List<String> commitIds, Instant schedule, String comment, boolean publishAll)
             throws ServiceLayerException, AuthenticationException;
 
     /**
@@ -165,10 +144,11 @@ public interface PublishService {
      * @param commitIds        the commit ids to publish
      * @param schedule         the scheduled date for the publishing (null to publish immediately)
      * @param comment          the comment for the publishing
+     * @param publishAll       if this is a publish-all request
      * @return the id of the created package
      */
-    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths, List<String> commitIds,
-                        Instant schedule, String comment)
+    long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
+                        List<String> commitIds, Instant schedule, String comment, boolean publishAll)
             throws AuthenticationException, ServiceLayerException;
 
     int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,

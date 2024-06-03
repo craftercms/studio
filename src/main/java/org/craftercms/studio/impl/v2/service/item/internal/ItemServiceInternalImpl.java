@@ -398,6 +398,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public Collection<String> getUnpublishedPaths(long siteId) {
+        return itemDao.getUnpublishedPaths(siteId);
+    }
+
+    @Override
     public boolean isUpdatedOrNew(String siteId, String path) {
         Item item = getItem(siteId, path);
         return ItemState.isNew(item.getState()) || ItemState.isModified(item.getState());

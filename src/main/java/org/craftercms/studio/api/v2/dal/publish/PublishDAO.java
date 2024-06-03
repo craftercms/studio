@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
@@ -53,7 +55,9 @@ public interface PublishDAO {
     @Transactional
     default void insertPackageAndItems(PublishPackage publishPackage, Collection<PublishItem> publishItems) {
         insertPackage(publishPackage);
-        insertItems(publishPackage.getId(), publishItems);
+        if (!isEmpty(publishItems)) {
+            insertItems(publishPackage.getId(), publishItems);
+        }
     }
 
     /**

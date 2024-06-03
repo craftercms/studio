@@ -132,15 +132,22 @@ public class Publisher implements ApplicationEventPublisherAware {
         auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);
         try {
             // TODO: Initiate package progress reporting
-            if (!contentRepository.publishedRepositoryExists(siteId)) {
-                logger.debug("Published repository does not exist. Performing initial publish with package '{}' for site '{}'", packageId, siteId);
-                doInitialPublish(publishPackage);
-            } else if (publishPackage.isPublishAll()) {
-                logger.debug("Processing publish-all package '{}' for site '{}'.", packageId, siteId);
-                doPublishAll(publishPackage);
-            } else {
-                logger.debug("Processing publish package '{}' for site '{}'.", packageId, siteId);
-                doPublishItemList(publishPackage);
+            switch (publishPackage.getPackageType()) {
+                case INITIAL_PUBLISH:
+                    logger.debug("Processing initial publish package '{}' for site '{}'", packageId, siteId);
+                    doInitialPublish(publishPackage);
+                    break;
+                case PUBLISH_ALL:
+                    logger.debug("Processing publish-all package '{}' for site '{}'", packageId, siteId);
+                    doPublishAll(publishPackage);
+                    break;
+                case ITEM_LIST:
+                    logger.debug("Processing publish package '{}' for site '{}'", packageId, siteId);
+                    doPublishItemList(publishPackage);
+                    break;
+                default:
+                    throw new ServiceLayerException(format("Unknown package type '%s' for package '%d' for site '%s'",
+                            publishPackage.getPackageType(), packageId, siteId));
             }
             // Commit transaction
             auditPublishOperation(publishPackage, OPERATION_PUBLISHED);

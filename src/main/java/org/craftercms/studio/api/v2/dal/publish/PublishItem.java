@@ -107,7 +107,6 @@ public class PublishItem {
      */
     public enum Action {
         ADD,
-        UPDATE,
         DELETE
     }
 

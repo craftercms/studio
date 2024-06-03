@@ -615,6 +615,14 @@
         AND (i.state &amp; #{inProgressMask}) &gt; 0
     </select>
 
+    <select id="getUnpublishedPaths">
+        SELECT i.path
+        FROM item i
+        WHERE i.site_id = #{siteId}
+        AND i.ignored = 0
+        AND (i.state &amp; #{states}) &gt; 0
+    </select>
+
     <select id="getChangeSetForSubtree" resultType="java.lang.String">
         SELECT i.path
         FROM item i INNER JOIN site s ON i.site_id = s.id

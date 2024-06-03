@@ -152,34 +152,19 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public long publishAll(@SiteId final String siteId, final String publishingTarget, final String comment)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        return publishServiceInternal.publishAll(siteId, publishingTarget, comment);
-    }
-
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public long requestPublishAll(@SiteId final String siteId, final String publishingTarget,
-                                  final String comment)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        return publishServiceInternal.requestPublishAll(siteId, publishingTarget, comment);
-    }
-
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                        List<String> commitIds, Instant schedule, String comment) throws AuthenticationException, ServiceLayerException {
-        return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, comment);
+                        List<String> commitIds, Instant schedule, String comment, boolean submitAll)
+            throws AuthenticationException, ServiceLayerException {
+        return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, comment, submitAll);
     }
 
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public long requestPublish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                               List<String> commitIds, Instant schedule, String comment) throws AuthenticationException, ServiceLayerException {
-        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment);
+                               List<String> commitIds, Instant schedule, String comment, boolean submitAll)
+            throws AuthenticationException, ServiceLayerException {
+        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, submitAll);
     }
 
     @Override

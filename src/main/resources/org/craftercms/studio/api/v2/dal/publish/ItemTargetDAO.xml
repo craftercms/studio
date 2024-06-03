@@ -45,8 +45,9 @@
     </delete>
 
     <delete id="clearForSiteAndTarget">
-        DELETE FROM item_target it INNER JOIN item i ON i.id = it.item_id
-        WHERE i.site_id = #{siteId}
-        AND it.target = #{target}
+        DELETE item_target FROM item_target INNER JOIN item
+        WHERE item.id = item_target.item_id
+        AND site_id = #{siteId}
+        AND item_target.target = #{target}
     </delete>
 </mapper>

@@ -25,9 +25,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.site.SitesService;
 
 import java.util.List;
 
@@ -52,7 +50,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                            String comment) throws ServiceLayerException, AuthenticationException {
         return publishService.publish(site, environment,
                 List.of(new PublishService.PublishRequestPath(path, true, false)),
-                emptyList(), null, comment);
+                emptyList(), null, comment, false);
     }
 
     @Override
@@ -69,7 +67,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                                String environment,
                                List<String> commitIds, String comment)
             throws ServiceLayerException, AuthenticationException {
-        return publishService.publish(site, environment, emptyList(), commitIds, null, comment);
+        return publishService.publish(site, environment, emptyList(), commitIds, null, comment, false);
     }
 
     @Override

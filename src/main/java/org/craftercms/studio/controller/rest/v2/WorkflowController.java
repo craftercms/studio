@@ -166,7 +166,7 @@ public class WorkflowController {
                 publishRequestBody.getSchedule().toInstant() : null;
         publishService.publish(publishRequestBody.getSiteId(), publishRequestBody.getPublishingTarget(),
                 requestPaths, emptyList(),
-                schedule, publishRequestBody.getComment());
+                schedule, publishRequestBody.getComment(), false);
         Result result = new Result();
         result.setResponse(OK);
         return result;

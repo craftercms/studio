@@ -34,7 +34,7 @@
         <result property="reviewerComment" column="reviewer_comment"/>
         <result property="reviewedOn" column="reviewed_on"/>
         <result property="publishedOn" column="published_on"/>
-        <result property="publishAll" column="publish_all"/>
+        <result property="packageType" column="package_type"/>
         <result property="commitId" column="commit_id"/>
         <result property="publishedStagingCommitId" column="published_staging_commit_id"/>
         <result property="publishedLiveCommitId" column="published_live_commit_id"/>
@@ -54,7 +54,7 @@
         package_state,
         submitter_id,
         submitter_comment,
-        publish_all,
+        package_type,
         commit_id)
         VALUES
         (#{siteId},
@@ -64,7 +64,7 @@
         'READY',
         #{submitterId},
         #{comment},
-        #{publishAll},
+        #{packageType},
         #{commitId});
     </insert>
 

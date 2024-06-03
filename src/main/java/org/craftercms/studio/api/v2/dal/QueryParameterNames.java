@@ -215,12 +215,6 @@ public final class  QueryParameterNames {
 
     public static final String MODIFIED_MASK = "modifiedMask";
 
-    public static final String NON_CONTENT_ITEM_TYPES = "nonContentItemTypes";
-
-    public static final String IN_PROGRESS_MASK = "inProgressMask";
-
-    public static final String SUBMITTED_MASK = "submittedMask";
-
     public static final String PARENTS = "parents";
 
     public static final String LAST_PUBLISHED_ON = "lastPublishedOn";

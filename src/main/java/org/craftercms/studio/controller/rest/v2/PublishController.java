@@ -191,8 +191,8 @@ public class PublishController {
     @Deprecated
     public ResultOne<Long> publishAll(@Validated @RequestBody PublishAllRequest request)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        long packageId = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
-                request.getSubmissionComment());
+        long packageId = publishService.publish(request.getSiteId(), request.getPublishingTarget(),
+                null, null, null, request.getSubmissionComment(), true);
 
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(OK);
@@ -229,27 +229,18 @@ public class PublishController {
      * @param request the request
      * @return the package id
      * @throws ServiceLayerException
-     * @throws UserNotFoundException
      * @throws AuthenticationException
      */
-    private long submitPublishPackage(PublishPackageRequest request) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        if (request.isPublishAll()) {
-            if (request.getSchedule() != null) {
-                throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
-            }
-            if (request.isRequestApproval()) {
-                return publishService.requestPublishAll(request.getSiteId(), request.getPublishingTarget(),
-                        request.getComment());
-            }
-            return publishService.publishAll(request.getSiteId(), request.getPublishingTarget(),
-                    request.getComment());
-        }
+    private long submitPublishPackage(PublishPackageRequest request)
+            throws ServiceLayerException, AuthenticationException {
         if (request.isRequestApproval()) {
-            return publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
-                    request.getCommitIds(), request.getSchedule(), request.getComment());
+            return publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(),
+                    request.getPaths(), request.getCommitIds(), request.getSchedule(),
+                    request.getComment(), true);
         }
-        return publishService.publish(request.getSiteId(), request.getPublishingTarget(),
-                request.getPaths(), request.getCommitIds(), request.getSchedule(), request.getComment());
+        return publishService.publish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
+                request.getCommitIds(), request.getSchedule(),
+                request.getComment(), true);
     }
 
 }

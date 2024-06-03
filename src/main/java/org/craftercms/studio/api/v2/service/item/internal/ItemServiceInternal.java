@@ -240,6 +240,14 @@ public interface ItemServiceInternal {
     List<Item> getInProgressItems(String siteId);
 
     /**
+     * Get the paths for items that are not published
+     *
+     * @param siteId the site id
+     * @return list of paths for non-folder unpublished items
+     */
+    Collection<String> getUnpublishedPaths(long siteId);
+
+    /**
      * Check if item is update or new
      * @param site site identifier
      * @param path item path

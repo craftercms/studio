@@ -40,46 +40,12 @@ public class PublishPackage {
     protected String reviewerComment;
     protected Instant reviewedOn;
     protected Instant publishedOn;
-    protected boolean publishAll;
+    protected PackageType packageType;
     protected String commitId;
     protected String publishedStagingCommitId;
     protected String publishedLiveCommitId;
 
-    protected PublishPackage() {
-    }
-
-    private PublishPackage(final PublishAllBuilder builder) {
-        setCommonProperties(builder);
-        this.publishAll = true;
-    }
-
-    private PublishPackage(PublishBuilder builder) {
-        setCommonProperties(builder);
-        this.publishAll = false;
-        this.schedule = builder.schedule;
-    }
-
-    private void setCommonProperties(final AbstractPublishPackageBuilder<?> builder) {
-        this.siteId = builder.siteId;
-        this.target = builder.target;
-        this.commitId = builder.commitId;
-        this.comment = builder.comment;
-        this.submitterId = builder.submitterId;
-        approvalState = builder.requestApproval ? ApprovalState.SUBMITTED : ApprovalState.APPROVED;
-    }
-
-    /**
-     * Create a builder for a publish all request
-     */
-    public static PublishAllBuilder publishAll() {
-        return new PublishAllBuilder();
-    }
-
-    /**
-     * Create a builder for a publish request
-     */
-    public static PublishBuilder builder() {
-        return new PublishBuilder();
+    public PublishPackage() {
     }
 
     public long getId() {
@@ -162,12 +128,12 @@ public class PublishPackage {
         this.packageState = packageState;
     }
 
-    public boolean isPublishAll() {
-        return publishAll;
+    public PackageType getPackageType() {
+        return packageType;
     }
 
-    public void setPublishAll(boolean publishAll) {
-        this.publishAll = publishAll;
+    public void setPackageType(PackageType packageType) {
+        this.packageType = packageType;
     }
 
     public String getPublishedStagingCommitId() {
@@ -234,71 +200,6 @@ public class PublishPackage {
         this.publishedOn = publishedOn;
     }
 
-    @SuppressWarnings("unchecked")
-    abstract static class AbstractPublishPackageBuilder<T extends AbstractPublishPackageBuilder<T>> {
-        protected long siteId;
-        protected String target;
-        protected String commitId;
-        protected String comment;
-        protected long submitterId;
-        protected boolean requestApproval;
-
-        public T withSiteId(final long siteId) {
-            this.siteId = siteId;
-            return (T) this;
-        }
-
-        public T withTarget(final String target) {
-            this.target = target;
-            return (T) this;
-        }
-
-        public T withCommitId(final String commitId) {
-            this.commitId = commitId;
-            return (T) this;
-        }
-
-        public T withComment(final String comment) {
-            this.comment = comment;
-            return (T) this;
-        }
-
-        public T withSubmitterId(final long submitterId) {
-            this.submitterId = submitterId;
-            return (T) this;
-        }
-
-        public T withRequestApproval(final boolean requestApproval) {
-            this.requestApproval = requestApproval;
-            return (T) this;
-        }
-    }
-
-    /**
-     * AbstractPublishPackageBuilder implementation for a publish-all request
-     */
-    public static class PublishAllBuilder extends AbstractPublishPackageBuilder<PublishAllBuilder> {
-        public PublishPackage build() {
-            return new PublishPackage(this);
-        }
-    }
-
-    /**
-     * AbstractPublishPackageBuilder implementation for a regular publish request
-     */
-    public static class PublishBuilder extends AbstractPublishPackageBuilder<PublishBuilder> {
-        private Instant schedule;
-
-        public PublishBuilder withSchedule(final Instant schedule) {
-            this.schedule = schedule;
-            return this;
-        }
-
-        public PublishPackage build() {
-            return new PublishPackage(this);
-        }
-    }
-
     /**
      * Possible values for the package approval state
      */
@@ -318,5 +219,14 @@ public class PublishPackage {
         COMPLETED_WITH_ERRORS,
         FAILED,
         CANCELLED
+    }
+
+    /**
+     * Possible values for the package type
+     */
+    public enum PackageType {
+        INITIAL_PUBLISH,
+        PUBLISH_ALL,
+        ITEM_LIST
     }
 }
