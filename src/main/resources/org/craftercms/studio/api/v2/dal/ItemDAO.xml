@@ -796,4 +796,13 @@
         FROM cte
         WHERE cte.system_type &lt;&gt; 'folder'
     </select>
+
+    <update id="updateStateBitsByIds">
+        UPDATE item
+        SET state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE id IN
+        <foreach collection="itemIds" item="itemId" index="index" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </update>
 </mapper>

@@ -30,6 +30,16 @@ public class PublishItem {
     protected State state;
     protected String error;
 
+    protected long itemId;
+
+    public long getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(long itemId) {
+        this.itemId = itemId;
+    }
+
     public long getId() {
         return id;
     }

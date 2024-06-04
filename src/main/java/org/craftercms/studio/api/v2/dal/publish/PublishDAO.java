@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
@@ -42,6 +41,7 @@ public interface PublishDAO {
     String APPROVAL_STATES = "approvalStates";
     String PACKAGE_STATES = "packageStates";
     String PACKAGE_STATE = "packageState";
+    String ITEM_IDS = "itemIds";
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
     String ERROR = "error";
@@ -53,12 +53,21 @@ public interface PublishDAO {
      * @param publishItems   the items
      */
     @Transactional
-    default void insertPackageAndItems(PublishPackage publishPackage, Collection<PublishItem> publishItems) {
+    default void insertPackageAndItems(final PublishPackage publishPackage, final Collection<PublishItem> publishItems) {
         insertPackage(publishPackage);
         if (!isEmpty(publishItems)) {
             insertItems(publishPackage.getId(), publishItems);
+            insertItemPublishItems(publishItems);
         }
     }
+
+    /**
+     * Insert item_publish_item records for the given publish items.
+     * Notice this will insert a record to item_publish_item table for each non-delete publishItem
+     *
+     * @param publishItems the publish items
+     */
+    void insertItemPublishItems(Collection<PublishItem> publishItems);
 
     /**
      * Insert a new publish package
@@ -154,4 +163,28 @@ public interface PublishDAO {
      * @param packageState the new state
      */
     void updatePackageState(@Param(PACKAGE_ID) long packageId, @Param(PACKAGE_STATE) PackageState packageState);
+
+    /**
+     * Get the publish items for the given package
+     *
+     * @param packageId the package id
+     * @return PublishItem records for the package
+     */
+    Collection<PublishItem> getPublishItems(@Param(PACKAGE_ID) long packageId);
+
+    /**
+     * Update the state for all publish items in the package
+     *
+     * @param id    the package id
+     * @param state the new state to set
+     */
+    void updatePublishItemState(@Param(PACKAGE_ID) long id, @Param(PACKAGE_STATE) PublishItem.State state);
+
+    /**
+     * Update the state for the publish items matching the given ids
+     *
+     * @param itemIds the publish item ids to match
+     * @param state   the new state to set
+     */
+    void updatePublishItemListState(@Param(ITEM_IDS) List<Long> itemIds, @Param(PACKAGE_STATE) PublishItem.State state);
 }

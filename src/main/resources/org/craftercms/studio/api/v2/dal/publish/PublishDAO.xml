@@ -43,6 +43,9 @@
                      select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
     </resultMap>
 
+    <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
+    </resultMap>
+
     <insert id="insertPackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage"
             useGeneratedKeys="true"
             keyProperty="id">
@@ -68,7 +71,7 @@
         #{commitId});
     </insert>
 
-    <insert id="insertItems">
+    <insert id="insertItems" useGeneratedKeys="true" keyProperty="items.id">
         INSERT INTO publish_item
         (package_id,
         path,
@@ -87,6 +90,19 @@
             #{item.userRequested},
             'PENDING')
         </foreach>
+    </insert>
+
+    <insert id="insertItemPublishItems">
+        INSERT INTO item_publish_item
+        SELECT pi.id AS publish_item_id, i.id AS item_id
+        FROM
+            (
+            <foreach collection="publishItems" item="publishItem" index="index" separator="UNION" >
+                (SELECT #{publishItem.id} AS id, #{publishItem.path} AS path)
+            </foreach>
+            ) AS pi
+        LEFT OUTER JOIN item i ON pi.path = i.path
+        WHERE i.id IS NOT NULL
     </insert>
 
     <select id="getNextPublishPackages" resultMap="PublishPackageMap">
@@ -162,5 +178,28 @@
         UPDATE publish_package
         SET package_state = #{packageState}
         WHERE id = #{packageId}
+    </update>
+
+    <select id="getPublishItems" resultMap="PublishItemMap">
+        SELECT pi.*, ipi.item_id
+        FROM publish_item pi
+        LEFT OUTER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+        WHERE pi.package_id = #{packageId}
+    </select>
+
+    <update id="updatePublishItemState">
+        UPDATE publish_item
+        SET state = #{state}
+        WHERE package_id = #{packageId}
+    </update>
+
+    <update id="updatePublishItemListState">
+        UPDATE publish_item
+        SET state = #{state}
+        WHERE id IN (
+            <foreach collection="itemIds" item="itemId" separator="," >
+                #{itemId}
+            </foreach>
+        )
     </update>
 </mapper>

@@ -38,6 +38,11 @@ public interface ItemDAO {
     String MODIFIED_MASK = "modifiedMask";
     String NON_CONTENT_ITEM_TYPES = "nonContentItemTypes";
     String IN_PROGRESS_MASK = "inProgressMask";
+    String ITEM_IDS = "itemIds";
+
+    String ON_STATES_BIT_MAP = "onStatesBitMap";
+
+    String OFF_STATES_BIT_MAP = "offStatesBitMap";
 
     Map<String, String> SORT_FIELD_MAP = Map.of(
             "id", "id",
@@ -207,7 +212,7 @@ public interface ItemDAO {
      * @param paths        paths of items
      * @param statesBitMap states bit map to be set
      */
-    void setStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+    void setStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
                                     @Param(STATES_BIT_MAP) long statesBitMap);
 
     /**
@@ -217,7 +222,7 @@ public interface ItemDAO {
      * @param paths        paths of items
      * @param statesBitMap states bit map to be reset
      */
-    void resetStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+    void resetStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
                                       @Param(STATES_BIT_MAP) long statesBitMap);
 
     /**
@@ -582,4 +587,14 @@ public interface ItemDAO {
     Collection<String> getUnpublishedPaths(@Param(SITE_ID) long siteId,
                                            @Param(STATES) long states);
 
+    /**
+     * Update states for items with given ids.
+     *
+     * @param ids            ids of items
+     * @param onStateBitMap  states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBitsByIds(@Param(ITEM_IDS) Collection<Long> ids,
+                              @Param(ON_STATES_BIT_MAP) long onStateBitMap,
+                              @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
 }

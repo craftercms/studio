@@ -138,7 +138,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing) {
+    public void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing) {
         if (isSystemProcessing) {
             setStatesBySiteAndPathBulk(siteId, paths, ItemState.SYSTEM_PROCESSING.value);
         } else {
@@ -146,7 +146,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
     }
 
-    private void setStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
+    private void setStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
@@ -155,7 +155,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
     }
 
-    private void resetStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
+    private void resetStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
@@ -174,6 +174,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap) {
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
+    }
+
+    @Override
+    public void updateStateBitsByIds(final Collection<Long> ids, final long onStateBitMap, final long offStateBitMap) {
+        itemDao.updateStateBitsByIds(ids, onStateBitMap, offStateBitMap);
     }
 
     private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,

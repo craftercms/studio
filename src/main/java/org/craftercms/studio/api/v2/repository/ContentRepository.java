@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -345,7 +346,7 @@ public interface ContentRepository {
      */
     default PublishChangeSet publishAll(String siteId, String commitId, String publishingTarget, String comment) throws ServiceLayerException {
         // TODO: implement this method
-        return new PublishChangeSet(null, null, emptyList(), emptyList(), emptyMap());
+        return new PublishChangeSet(null, null, emptyList(), emptyList());
     }
 
     /**
@@ -469,14 +470,12 @@ public interface ContentRepository {
      *
      * @param liveCommitId    the live branch commit id in the published repository
      * @param stagingCommitId the staging branch commit id in the published repository
-     * @param updatedPaths    the paths that were updated
-     * @param deletedPaths    the paths that were deleted
-     * @param failedPaths     the paths that failed to publish, mapped to the error message
+     * @param successfulItems    the paths that were updated
+     * @param failedItems     the paths that failed to publish, mapped to the error message
      */
     record PublishChangeSet(String liveCommitId,
                             String stagingCommitId,
-                            Collection<String> updatedPaths,
-                            Collection<String> deletedPaths,
-                            Map<String, String> failedPaths) {
+                            Collection<PublishItem> successfulItems,
+                            Collection<PublishItem> failedItems) {
     }
 }

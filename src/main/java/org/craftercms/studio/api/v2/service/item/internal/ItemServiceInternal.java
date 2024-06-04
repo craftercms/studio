@@ -107,7 +107,7 @@ public interface ItemServiceInternal {
      * @param paths paths of items
      * @param isSystemProcessing true if item is being processed by system, otherwise false
      */
-    void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing);
+    void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing);
 
     /**
      * Update states to flip on list off states and flip off another list of states for item
@@ -128,6 +128,15 @@ public interface ItemServiceInternal {
      * @param offStateBitMap stats bitmap to flip off
      */
     void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Update states for items with given ids.
+     *
+     * @param ids            ids of items
+     * @param onStateBitMap  states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBitsByIds(Collection<Long> ids, long onStateBitMap, long offStateBitMap);
 
     Item.Builder instantiateItem(String siteName, String path);
 

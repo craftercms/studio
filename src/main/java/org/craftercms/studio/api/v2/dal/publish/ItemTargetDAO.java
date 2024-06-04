@@ -24,9 +24,11 @@ import java.util.Collection;
  * Provide access to the item_target data.
  */
 public interface ItemTargetDAO {
+
     String SITE_ID = "siteId";
     String PATH = "path";
     String ITEM_ID = "itemId";
+    String ITEM_IDS = "itemIds";
     String TARGET = "target";
 
     /**
@@ -60,4 +62,11 @@ public interface ItemTargetDAO {
      * @param target the target
      */
     void clearForSiteAndTarget(@Param(SITE_ID) long siteId, @Param(TARGET) String target);
+
+    /**
+     * Clear item_target record for the given ids
+     *
+     * @param itemIds the item ids
+     */
+    void clearForItemIds(@Param(ITEM_IDS) Collection<Long> itemIds);
 }
