@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
@@ -178,7 +179,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateStateBitsByIds(final Collection<Long> ids, final long onStateBitMap, final long offStateBitMap) {
-        itemDao.updateStateBitsByIds(ids, onStateBitMap, offStateBitMap);
+        if (!isEmpty(ids)) {
+            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStateBitsByIds(ids, onStateBitMap, offStateBitMap));
+        }
     }
 
     private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
@@ -571,6 +574,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void updateSiteLastPublishedOn(final String siteId, final Instant timestamp) {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateSiteLastPublishedOn(siteId, timestamp));
+    }
+
+    @Override
+    public void updateLastPublishedOnByIds(final Collection<Long> itemIds, final Instant timestamp) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOnByIds(itemIds, timestamp));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

@@ -18,7 +18,10 @@ package org.craftercms.studio.api.v2.repository.blob;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -51,4 +54,9 @@ public interface StudioBlobStore extends BlobStore, ContentRepository,
      * @param items       the items to copy
      */
     void copyBlobs(StudioBlobStore sourceStore, String environment, List<String> items);
+
+
+    <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
+                                                          String publishingTarget,
+                                                          Collection<T> blobStoreItems);
 }

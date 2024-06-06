@@ -81,6 +81,7 @@
         user_requested,
         state)
         VALUES
+        <!-- TODO: review max parameters count configs and batch as necessary -->
         <foreach collection="items" item="item" index="index" separator="," >
             (#{packageId},
             #{item.path},
@@ -172,6 +173,9 @@
                         #{packageState}
                     </foreach>
         AND site_id = #{siteId}
+        <if test="target != null">
+            AND target = #{target}
+        </if>
     </update>
 
     <update id="updatePackageState">
@@ -189,17 +193,19 @@
 
     <update id="updatePublishItemState">
         UPDATE publish_item
-        SET state = #{state}
+        SET state = #{itemState}
         WHERE package_id = #{packageId}
     </update>
 
     <update id="updatePublishItemListState">
-        UPDATE publish_item
-        SET state = #{state}
-        WHERE id IN (
-            <foreach collection="itemIds" item="itemId" separator="," >
-                #{itemId}
+        <!-- TODO: review max parameters count configs and batch as necessary -->
+        UPDATE publish_item pi
+        INNER JOIN (
+            <foreach collection="items" item="item" index="index" separator="UNION" >
+                (SELECT #{item.id} AS id, #{item.state} AS state, #{item.error} AS errorMessage)
             </foreach>
-        )
+        ) AS updates ON pi.id = updates.id
+        SET pi.state = updates.state,
+            pi.error = updates.errorMessage
     </update>
 </mapper>

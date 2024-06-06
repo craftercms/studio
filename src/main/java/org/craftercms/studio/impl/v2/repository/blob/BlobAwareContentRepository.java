@@ -24,7 +24,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.file.blob.Blob;
-import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -43,8 +42,10 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.repository.blob.BlobPublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
@@ -59,7 +60,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -67,9 +67,10 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 /**
@@ -135,7 +136,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     protected StudioBlobStore getBlobStore(String site, String... paths)
             throws ServiceLayerException {
-        if (isEmpty(site)) {
+        if (StringUtils.isEmpty(site)) {
             return null;
         }
 
@@ -531,7 +532,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         pointer.setSite(item.getSite());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
-        pointer.setOldPath(isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
+        pointer.setOldPath(StringUtils.isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
         pointer.setPackageId(item.getPackageId());
         return pointer;
     }
@@ -605,7 +606,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         try {
             for (DeploymentItemTO item : deploymentItems) {
                 boolean pointerExists = pointersExist(site, item.getPath()) &&
-                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()));
+                        (StringUtils.isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()));
                 if (pointerExists || item.isDelete() || item.isMove()) {
                     logger.trace("Look for the blob store for the item at site '{}' path '{}'", site, item);
                     StudioBlobStore store = getBlobStore(site, item.getPath());
@@ -737,97 +738,45 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         return localRepositoryV2.initialPublish(siteId);
     }
 
-    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
-        try {
-            RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
+    @Override
+    public <T extends PublishItemTO> PublishChangeSet<T> publishAll(final PublishPackage publishPackage,
+                                                                    final String publishingTarget,
+                                                                    final Collection<T> publishItems) throws ServiceLayerException {
+        List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
+        List<T> blobFailedItems = new LinkedList<>();
+        // TODO: update progress -> here we would say there are N blobstores
+        for (StudioBlobStore blobStore : blobStores) {
+            // Filter the items that are compatible with the blob store
+            Collection<BlobPublishItemTO<T>> blobStoreItems = publishItems.stream()
+                    .filter(item -> blobStore.isCompatible(item.getPath()))
+                    .map(item -> new BlobPublishItemTO<>(item, getOriginalPath(item.getPath())))
+                    .toList();
+            // TODO: update progress -> here we would update current blobstore report saying there are blobStoreItems.size() items
 
-            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
-            for (StudioBlobStore blobStore : blobStores) {
-                if (gitChanges.isInitialPublish()) {
-                    blobStore.initialPublish(siteId);
-                    continue;
-                }
+            if (!(blobStoreItems.isEmpty())) {
+                // TODO: Create another method specific to blobstores that won't require commitId and comment
+                PublishChangeSet<BlobPublishItemTO<T>> blobStoreResultChangeset = blobStore.publish(publishPackage,
+                        publishingTarget, blobStoreItems);
 
-                // check if any of the changes belongs to the blob store
-                Collection<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
-                Collection<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
-
-                if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
-                    RepositoryChanges blobChanges = new RepositoryChanges(updatedBlobs, deletedBlobs);
-                    blobStore.completePublishAll(siteId, publishingTarget,
-                            blobChanges, comment);
-                    // Translate paths back to xxxx.blob
-                    blobChanges.getFailedPaths().stream()
-                            .map(this::getRepoPath)
-                            .forEach(gitChanges.getFailedPaths()::add);
-                }
-            }
-
-            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges, comment);
-
-            Collection<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
-            Collection<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
-            Collection<String> failedFiles = translatePaths(gitChanges.getFailedPaths());
-
-            // Return an updated repository changes object with everything changed from git + blob
-            return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles, failedFiles);
-        } catch (Exception e) {
-            localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
-            if (e instanceof ServiceLayerException) {
-                throw e;
-            } else {
-                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
-                        publishingTarget, e);
+                blobFailedItems.addAll(blobStoreResultChangeset.failedItems().stream()
+                        .map(BlobPublishItemTO::getWrappedItem)
+                        .toList());
             }
         }
-    }
 
-    /**
-     * Gets an asset path and translate it
-     * to the actual file path in git repo.
-     * e.g.:
-     * /static-assets/test/my-image.png
-     * to
-     * static-assets/test/my-image.png.blob
-     *
-     * @param blobPath the asset path
-     * @return the git repo path
-     */
-    protected String getRepoPath(final String blobPath) {
-        return removeStart(appendIfMissing(blobPath, "." + fileExtension), File.separator);
-    }
-
-    protected Collection<String> translatePaths(Collection<String> paths) {
-        return paths.stream()
-                .map(this::getOriginalPath)
-                .map(path -> prependIfMissing(path, FILE_SEPARATOR))
-                .collect(toList());
-    }
-
-    protected Collection<String> findCompatiblePaths(BlobStore blobStore, Collection<String> paths) {
-        return paths.stream()
-                .map(path -> prependIfMissing(path, File.separator))
-                .filter(blobStore::isCompatible)
-                .map(this::getOriginalPath)
-                .collect(toList());
-    }
-
-    @Override
-    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
-        // this method should not be called directly
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
-        // this method should not be called directly
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void cancelPublishAll(String siteId, String publishingTarget) {
-        // this method should not be called directly
-        throw new UnsupportedOperationException();
+        // If there are no errors, just ask the repo to publish all. Otherwise pass the list of successful items
+        // TODO: call git repo to publish the items
+//        PublishChangeSet<T> committedChangeset;
+//        if (isEmpty(blobFailedItems)) {
+//            committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, publishItems);
+//        } else {
+//            Collection<T> gitRepoItems = subtract(publishItems, blobFailedItems);
+//            committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
+//        }
+//
+//        return new PublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems(),
+//                union(blobFailedItems, committedChangeset.failedItems()));
+        return new PublishChangeSet<>(null, publishItems, emptyList());
     }
 
     @Override

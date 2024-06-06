@@ -18,13 +18,10 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.NotFileFilter;
-import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -41,12 +38,13 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
@@ -57,7 +55,6 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -74,7 +71,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,18 +83,16 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
-import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
-import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
 
@@ -1277,179 +1271,183 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
-        // get the published repo
-        Site site = siteService.getSite(siteId);
-        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-        // if the published repo doesn't exist yet, trigger an initial publish
+    public <T extends PublishItemTO> PublishChangeSet<T> publishAll(final PublishPackage publishPackage,
+                                                                    final String publishingTarget,
+                                                                    final Collection<T> publishItems)
+            throws ServiceLayerException {
+        String siteId = publishPackage.getSite().getSiteId();
+        Repository repo = helper.getRepository(siteId, PUBLISHED);
         if (repo == null) {
-            logger.info("Prepare for initial publish in site '{}'", siteId);
-            initialPublish(siteId);
-            return new RepositoryChanges(true);
+            throw new PublishedRepositoryNotFoundException(
+                    format("Failed to publish package '%s' for site '%s': published repository not found",
+                            publishPackage.getId(), siteId));
         }
+
+        /*
+        TODO:
+        - Push to published or pull from sandbox
+        - Load the tree from the package commitId
+        - Commit the tree to the target branch
+         */
+
+
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
-        try (Git git = Git.wrap(repo)) {
-            resetIfNeeded(repo, git);
-            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-            // checkout master and pull from sandbox
-            checkoutBranch(git, site.getSandboxBranch());
-            retryingRepositoryOperationFacade.call(git.pull()
-                    .setRemote(DEFAULT_REMOTE_NAME)
-                    .setStrategy(THEIRS));
-            // check if the target branch exists,
-            boolean branchExist = branchExists(repo, publishingTarget);
-            boolean stagingTarget = publishingTarget.equals(servicesConfig.getStagingEnvironment(siteId));
-            if (!branchExist && !stagingTarget) {
-                logger.error("Publishing target '{}' not found in site '{}'", publishingTarget, siteId);
-                throw new PublishedRepositoryNotFoundException(format("Publishing target '%s' not " +
-                        "found in site '%s'", publishingTarget, siteId));
-            }
-            // checkout target branch
-            boolean createBranch = !branchExist && stagingTarget;
-            checkoutBranch(git, publishingTarget, createBranch);
-
-            // checkout temp branch
-            checkoutBranch(git, inProgressBranchName, true);
-            // delete all files
-            File[] files = repo.getWorkTree()
-                    .listFiles((FileFilter) new NotFileFilter(new PrefixFileFilter(DOT_GIT)));
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    FileUtils.deleteDirectory(file);
-                } else {
-                    file.delete();
-                }
-            }
-            // checkout all files from master
-            retryingRepositoryOperationFacade.call(git.checkout()
-                                                      .setStartPoint(site.getSandboxBranch())
-                                                      .setAllPaths(true));
-
-            Status status = git.status().call();
-            Set<String> updatedPaths = new HashSet<>();
-            updatedPaths.addAll(status.getAdded());
-            updatedPaths.addAll(status.getChanged());
-            Set<String> deletedPaths = new HashSet<>(status.getMissing());
-
-            // remove files from the restricted list
-            List<String> patterns = studioConfiguration.getList(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX,
-                    String.class);
-
-            Set<String> ignored = union(updatedPaths, deletedPaths).stream()
-                    .filter(path ->
-                            RegexUtils.matchesAny(path, patterns))
-                    .collect(toSet());
-            if (CollectionUtils.isNotEmpty(ignored)) {
-                RmCommand rm = git.rm();
-                ignored.forEach(rm::addFilepattern);
-                retryingRepositoryOperationFacade.call(rm);
-
-                updatedPaths.removeAll(ignored);
-                deletedPaths.removeAll(ignored);
-            }
-
-            // add deleted files (this is not done automatically by checkout)
-            if (CollectionUtils.isNotEmpty(deletedPaths)) {
-                AddCommand add = git.add().setUpdate(true);
-                deletedPaths.forEach(add::addFilepattern);
-                retryingRepositoryOperationFacade.call(add);
-            }
-
-            return new RepositoryChanges(updatedPaths, deletedPaths);
-        } catch (GitAPIException | IOException e) {
-            throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
-                    publishingTarget, e);
-        }
-    }
-
-    @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
-            throws ServiceLayerException {
-        if (changes.isInitialPublish()) {
-            return;
-        }
-        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         try {
-            logger.info("Perform Publish All for site '{}' to target '{}'", siteId, publishingTarget);
-            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-            Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
             try (Git git = Git.wrap(repo)) {
-                try {
-                    if (!changes.getFailedPaths().isEmpty()) {
-                        // Some items failed publish, let's not commit those changes
-                        ResetCommand resetCommand = git.reset();
-                        changes.getFailedPaths().forEach(resetCommand::addPath);
-                        retryingRepositoryOperationFacade.call(resetCommand);
 
-                        // Clean repo is needed for new files failures
-                        retryingRepositoryOperationFacade.call(git.clean().setCleanDirectories(true).setForce(true));
-                        // Checkout for updates
-                        retryingRepositoryOperationFacade.call(git.checkout().addPaths(List.copyOf(changes.getFailedPaths())));
-                    }
-                    // commit all files
-                    String commitMessage = StringUtils.isNotEmpty(comment) ? comment : helper.getCommitMessage(REPO_PUBLISH_ALL_COMMIT_MESSAGE);
-                    retryingRepositoryOperationFacade.call(git.commit()
-                                                              .setMessage(commitMessage)
-                                                              .setAllowEmpty(false));
-                    // checkout target branch
-                    checkoutBranch(git, publishingTarget);
-                    // merge from temp branch
-                    retryingRepositoryOperationFacade.call(git.merge()
-                                                              .setCommit(true)
-                                                              .include(repo.findRef(inProgressBranchName)));
-                } catch (EmptyCommitException e) {
-                    logger.info("No changes detected in site '{}' for target '{}'", siteId, publishingTarget);
-
-                    // checkout target branch
-                    checkoutBranch(git, publishingTarget);
-                }
-
-                // delete temp branch
-                retryingRepositoryOperationFacade.call(git.branchDelete()
-                                                          .setBranchNames(inProgressBranchName));
-            } catch (GitAPIException | IOException e) {
-                logger.error("Failed to publish changes from site '{}' to target '{}'", siteId, publishingTarget, e);
-                throw new ServiceLayerException(format("Failed to publish changes from site '%s' to target '%s'",
-                        siteId, publishingTarget), e);
             }
-
-            logger.info("Completed Publish All for site '{}' to target '{}'", siteId, publishingTarget);
-        } finally {
-            // unlock the repo in any case
-            generalLockService.unlock(repoLockKey);
-        }
-    }
-
-    @Override
-    public void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
-        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
-        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-        try (Git git = Git.wrap(repo)) {
-            resetIfNeeded(repo, git);
-
-            // go batch to the target branch if it exists
-            if (branchExists(repo, publishingTarget)) {
-                checkoutBranch(git, publishingTarget);
-
-                String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-                deleteBranches(git, inProgressBranchName);
-            }
-        } catch (GitAPIException | IOException e) {
-            logger.error("Failed to cancel publishing changes from site '{}' to target '{}'",
-                    siteId, publishingTarget, e);
-            throw new ServiceLayerException(format("Failed to cancel publishing changes from site '%s' to target '%s'",
-                    siteId, publishingTarget), e);
         } finally {
             generalLockService.unlock(repoLockKey);
         }
+
+        return ContentRepository.super.publishAll(publishPackage, publishingTarget, publishItems);
     }
+//
+//    @Override
+//    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+//        // get the published repo
+//        Site site = siteService.getSite(siteId);
+//        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+//        // if the published repo doesn't exist yet, trigger an initial publish
+//        if (repo == null) {
+//            logger.info("Prepare for initial publish in site '{}'", siteId);
+//            initialPublish(siteId);
+//            return new RepositoryChanges(true);
+//        }
+//        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+//        generalLockService.lock(repoLockKey);
+//        try (Git git = Git.wrap(repo)) {
+//            resetIfNeeded(repo, git);
+//            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+//            // checkout master and pull from sandbox
+//            checkoutBranch(git, site.getSandboxBranch());
+//            retryingRepositoryOperationFacade.call(git.pull()
+//                    .setRemote(DEFAULT_REMOTE_NAME)
+//                    .setStrategy(THEIRS));
+//            // check if the target branch exists,
+//            boolean branchExist = branchExists(repo, publishingTarget);
+//            boolean stagingTarget = publishingTarget.equals(servicesConfig.getStagingEnvironment(siteId));
+//            if (!branchExist && !stagingTarget) {
+//                logger.error("Publishing target '{}' not found in site '{}'", publishingTarget, siteId);
+//                throw new PublishedRepositoryNotFoundException(format("Publishing target '%s' not " +
+//                        "found in site '%s'", publishingTarget, siteId));
+//            }
+//            // checkout target branch
+//            boolean createBranch = !branchExist && stagingTarget;
+//            checkoutBranch(git, publishingTarget, createBranch);
+//
+//            // checkout temp branch
+//            checkoutBranch(git, inProgressBranchName, true);
+//            // delete all files
+//            File[] files = repo.getWorkTree()
+//                    .listFiles((FileFilter) new NotFileFilter(new PrefixFileFilter(DOT_GIT)));
+//            for (File file : files) {
+//                if (file.isDirectory()) {
+//                    FileUtils.deleteDirectory(file);
+//                } else {
+//                    file.delete();
+//                }
+//            }
+//            // checkout all files from master
+//            retryingRepositoryOperationFacade.call(git.checkout()
+//                                                      .setStartPoint(site.getSandboxBranch())
+//                                                      .setAllPaths(true));
+//
+//            Status status = git.status().call();
+//            Set<String> updatedPaths = new HashSet<>();
+//            updatedPaths.addAll(status.getAdded());
+//            updatedPaths.addAll(status.getChanged());
+//            Set<String> deletedPaths = new HashSet<>(status.getMissing());
+//
+//            // remove files from the restricted list
+//            List<String> patterns = studioConfiguration.getList(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX,
+//                    String.class);
+//
+//            Set<String> ignored = union(updatedPaths, deletedPaths).stream()
+//                    .filter(path ->
+//                            RegexUtils.matchesAny(path, patterns))
+//                    .collect(toSet());
+//            if (CollectionUtils.isNotEmpty(ignored)) {
+//                RmCommand rm = git.rm();
+//                ignored.forEach(rm::addFilepattern);
+//                retryingRepositoryOperationFacade.call(rm);
+//
+//                updatedPaths.removeAll(ignored);
+//                deletedPaths.removeAll(ignored);
+//            }
+//
+//            // add deleted files (this is not done automatically by checkout)
+//            if (CollectionUtils.isNotEmpty(deletedPaths)) {
+//                AddCommand add = git.add().setUpdate(true);
+//                deletedPaths.forEach(add::addFilepattern);
+//                retryingRepositoryOperationFacade.call(add);
+//            }
+//
+//            return new RepositoryChanges(updatedPaths, deletedPaths);
+//        } catch (GitAPIException | IOException e) {
+//            throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
+//                    publishingTarget, e);
+//        }
+//    }
+//
+//    @Override
+//    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
+//            throws ServiceLayerException {
+//        if (changes.isInitialPublish()) {
+//            return;
+//        }
+//        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+//        try {
+//            logger.info("Perform Publish All for site '{}' to target '{}'", siteId, publishingTarget);
+//            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+//            Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+//            try (Git git = Git.wrap(repo)) {
+//                try {
+//                    if (!changes.getFailedPaths().isEmpty()) {
+//                        // Some items failed publish, let's not commit those changes
+//                        ResetCommand resetCommand = git.reset();
+//                        changes.getFailedPaths().forEach(resetCommand::addPath);
+//                        retryingRepositoryOperationFacade.call(resetCommand);
+//
+//                        // Clean repo is needed for new files failures
+//                        retryingRepositoryOperationFacade.call(git.clean().setCleanDirectories(true).setForce(true));
+//                        // Checkout for updates
+//                        retryingRepositoryOperationFacade.call(git.checkout().addPaths(List.copyOf(changes.getFailedPaths())));
+//                    }
+//                    // commit all files
+//                    String commitMessage = StringUtils.isNotEmpty(comment) ? comment : helper.getCommitMessage(REPO_PUBLISH_ALL_COMMIT_MESSAGE);
+//                    retryingRepositoryOperationFacade.call(git.commit()
+//                                                              .setMessage(commitMessage)
+//                                                              .setAllowEmpty(false));
+//                    // checkout target branch
+//                    checkoutBranch(git, publishingTarget);
+//                    // merge from temp branch
+//                    retryingRepositoryOperationFacade.call(git.merge()
+//                                                              .setCommit(true)
+//                                                              .include(repo.findRef(inProgressBranchName)));
+//                } catch (EmptyCommitException e) {
+//                    logger.info("No changes detected in site '{}' for target '{}'", siteId, publishingTarget);
+//
+//                    // checkout target branch
+//                    checkoutBranch(git, publishingTarget);
+//                }
+//
+//                // delete temp branch
+//                retryingRepositoryOperationFacade.call(git.branchDelete()
+//                                                          .setBranchNames(inProgressBranchName));
+//            } catch (GitAPIException | IOException e) {
+//                logger.error("Failed to publish changes from site '{}' to target '{}'", siteId, publishingTarget, e);
+//                throw new ServiceLayerException(format("Failed to publish changes from site '%s' to target '%s'",
+//                        siteId, publishingTarget), e);
+//            }
+//
+//            logger.info("Completed Publish All for site '{}' to target '{}'", siteId, publishingTarget);
+//        } finally {
+//            // unlock the repo in any case
+//            generalLockService.unlock(repoLockKey);
+//        }
+//    }
 
     @Override
     public List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException {

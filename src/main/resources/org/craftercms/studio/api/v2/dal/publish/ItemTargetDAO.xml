@@ -57,5 +57,6 @@
         <foreach collection="itemIds" item="itemId" open="(" close=")" separator=",">
             #{itemId}
         </foreach>
+        AND target = #{target}
     </delete>
 </mapper>

@@ -43,6 +43,7 @@ public interface ItemDAO {
     String ON_STATES_BIT_MAP = "onStatesBitMap";
 
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
+    String TIMESTAMP = "timestamp";
 
     Map<String, String> SORT_FIELD_MAP = Map.of(
             "id", "id",
@@ -597,4 +598,12 @@ public interface ItemDAO {
     void updateStateBitsByIds(@Param(ITEM_IDS) Collection<Long> ids,
                               @Param(ON_STATES_BIT_MAP) long onStateBitMap,
                               @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
+
+    /**
+     * Update last_published_on for items matching the given ids
+     *
+     * @param itemIds   the item ids
+     * @param timestamp the new last_publish_on timestamp
+     */
+    void updateLastPublishedOnByIds(@Param(ITEM_IDS) Collection<Long> itemIds, @Param(TIMESTAMP) Instant timestamp);
 }

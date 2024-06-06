@@ -427,4 +427,12 @@ public interface ItemServiceInternal {
      * @param timestamp the timestamp to set
      */
     void updateSiteLastPublishedOn(String siteId, Instant timestamp);
+
+    /**
+     * Update last_published_on for items matching the given ids
+     *
+     * @param itemIds   the item ids
+     * @param timestamp the new last_publish_on timestamp
+     */
+    void updateLastPublishedOnByIds(Collection<Long> itemIds, Instant timestamp);
 }

@@ -29,8 +29,10 @@ import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.slf4j.Logger;
@@ -44,11 +46,17 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
 
 /**
@@ -514,56 +522,47 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
-        // If store is in readonly mode, nothing to do here.
+    public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
+                                                                 final String publishingTarget,
+                                                                 final Collection<T> blobStoreItems) {
+        final String siteId = publishPackage.getSite().getSiteId();
+        // If readonly, fail everything so shadow files are not committed
         if (readOnly) {
-            logger.warn("'Complete publish all' request ignored in blobstore '{}' because it is readonly", id);
-            return;
+            logger.warn("Publish request ignored in blobstore '{}' for site '{}', package '{}' because it is readonly",
+                    id, siteId, publishPackage.getId());
+            return new PublishChangeSet<>(null, blobStoreItems, emptyList());
         }
+
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 
-        logger.info("Perform Publish All for site '{}' to target '{}'", siteId, targetMapping);
+        logger.info("Perform Publish for site '{}' to target '{}'", siteId, targetMapping);
 
-        for (String updatedPath : changes.getUpdatedPaths()) {
+        Map<PublishItem.Action, List<T>> itemsByAction = blobStoreItems.stream().collect(groupingBy(PublishItemTO::getAction, Collectors.toList()));
+        Collection<T> failedItems = new ArrayList<>();
+        for (List<? extends PublishItemTO> batch : ListUtils.partition(new LinkedList<>(itemsByAction.get(DELETE)), DELETE_BATCH_SIZE)) {
+            String[] keys = batch.stream().map(PublishItemTO::getPath).map(path -> getKey(targetMapping, path)).toArray(String[]::new);
+            // TODO: here we should add a callback to report progress/failure traceable to each PublishItemTO
+            deleteS3Objects(getClient(), targetMapping.target, keys);
+        }
+
+        for (T updatedItem : itemsByAction.get(ADD)) {
+            String updatedPath = updatedItem.getPath();
             try {
                 // TODO: check if readonly? Or just ignore?
                 copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
                         getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
-            } catch (Exception e) {
-                logger.error("Failed to copy '{}' from bucket '{}' to bucket '{}' for site '{}': {}", updatedPath, previewMapping.target,
-                        targetMapping.target, siteId, e.getMessage());
-                changes.getFailedPaths().add(updatedPath);
+            } catch (
+                    Exception e) { // TODO: here we should not catch exceptions that fail the whole package. e.g.: S3 down, bucket does exist, etc.
+                String message = format("Failed to publish '%s' from bucket '%s' to bucket '%s' for site '%s' package '%s': %s",
+                        updatedPath, previewMapping.target, targetMapping.target, siteId, publishPackage.getId(), e.getMessage());
+                logger.error(message, e);
+                updatedItem.setError(message);
+                failedItems.add(updatedItem);
             }
         }
-
-        for (List<String> batch : ListUtils.partition(new LinkedList<>(changes.getDeletedPaths()), DELETE_BATCH_SIZE)) {
-            String[] keys = batch.stream().map(path -> getKey(targetMapping, path)).toArray(String[]::new);
-            deleteS3Objects(getClient(), targetMapping.target, keys);
-        }
-
-        logger.info("Completed Publish All for site '{}' to target '{}'", siteId, targetMapping);
-    }
-
-    @Override
-    public void cancelPublishAll(String siteId, String publishingTarget) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
+        logger.info("Completed Publish for site '{}', package '{}' to target '{}'", siteId, publishPackage.getId(), targetMapping);
+        return new PublishChangeSet<T>(null, subtract(blobStoreItems, failedItems), failedItems);
     }
 
     @Override

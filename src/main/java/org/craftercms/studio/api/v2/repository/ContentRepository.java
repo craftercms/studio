@@ -24,11 +24,12 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -38,7 +39,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public interface ContentRepository {
@@ -327,58 +327,17 @@ public interface ContentRepository {
     String initialPublish(String siteId) throws ServiceLayerException;
 
     /**
-     * Publishes all changes for the given site &amp; target
-     *
-     * @param siteId the id of the site
-     * @param publishingTarget the publishing target
-     * @param comment submission comment
-     */
-    RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
-
-    /**
      * Publishes all changes for the given site and target
      *
-     * @param siteId           the id of the site
-     * @param commitId         the commit id to publish (published repository tree will be set to this commit's tree)
      * @param publishingTarget the publishing target
-     * @param comment          submission comment
      * @return the change set listing the affected paths and new commit ids (comparing the published repository target branch before and after the publish)
      */
-    default PublishChangeSet publishAll(String siteId, String commitId, String publishingTarget, String comment) throws ServiceLayerException {
+    default <T extends PublishItemTO> PublishChangeSet<T> publishAll(PublishPackage publishPackage,
+                                                                     String publishingTarget,
+                                                                     Collection<T> publishItems) throws ServiceLayerException {
         // TODO: implement this method
-        return new PublishChangeSet(null, null, emptyList(), emptyList());
+        return new PublishChangeSet<>(null, emptyList(), emptyList());
     }
-
-    /**
-     * Prepares the repository to publish all changes for the given site &amp; target
-     *
-     * @param siteId the id of the site
-     * @param publishingTarget the publishing target
-     * @return the set of changed files
-     * @throws ServiceLayerException if there is any error during the preparation
-     */
-    RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
-
-    /**
-     * Performs the actual publish of all changes for the given site &amp; target
-     *
-     * @param siteId the id of the site
-     * @param publishingTarget the publishing target
-     * @param changes the set of changed files
-     * @param comment submission comment
-     * @throws ServiceLayerException if there is any error during publishing
-     */
-    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
-            throws ServiceLayerException;
-
-    /**
-     * Performs the cleanup after a failed publish all operation for the given site &amp; target
-     *
-     * @param siteId the id of the site
-     * @param publishingTarget the publishing target
-     * @throws ServiceLayerException if there is any error during cleanup
-     */
-    void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
 
     /**
      * Checks if a content exists at a given path and throw an exception if it does not.
@@ -468,14 +427,12 @@ public interface ContentRepository {
     /**
      * Store the result of a publish operation
      *
-     * @param liveCommitId    the live branch commit id in the published repository
-     * @param stagingCommitId the staging branch commit id in the published repository
-     * @param successfulItems    the paths that were updated
+     * @param commitId        the commit id in the published repository
+     * @param successfulItems the paths that were updated
      * @param failedItems     the paths that failed to publish, mapped to the error message
      */
-    record PublishChangeSet(String liveCommitId,
-                            String stagingCommitId,
-                            Collection<PublishItem> successfulItems,
-                            Collection<PublishItem> failedItems) {
+    record PublishChangeSet<T extends PublishItemTO>(String commitId,
+                            Collection<T> successfulItems,
+                            Collection<T> failedItems) {
     }
 }

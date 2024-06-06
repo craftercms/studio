@@ -710,10 +710,14 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         @NotNull
         @Override
-        protected Collection<PublishItem> getItems() {
-            return itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
+        protected Collection<PublishItem> getItems() throws InvalidParametersException {
+            List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
                     .map(path -> createPublishItem(site, path, ADD, true))
                     .toList();
+            if (publishItems.isEmpty()) {
+                throw new InvalidParametersException("Failed to submit publish package: No items to publish");
+            }
+            return publishItems;
         }
     }
 

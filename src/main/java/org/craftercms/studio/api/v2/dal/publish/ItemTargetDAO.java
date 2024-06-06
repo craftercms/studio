@@ -67,6 +67,7 @@ public interface ItemTargetDAO {
      * Clear item_target record for the given ids
      *
      * @param itemIds the item ids
+     * @param target  the target
      */
-    void clearForItemIds(@Param(ITEM_IDS) Collection<Long> itemIds);
+    void clearForItemIds(@Param(ITEM_IDS) Collection<Long> itemIds, @Param(TARGET) String target);
 }

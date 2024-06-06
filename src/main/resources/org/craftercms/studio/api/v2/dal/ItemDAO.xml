@@ -805,4 +805,13 @@
             #{itemId}
         </foreach>
     </update>
+
+    <update id="updateLastPublishedOnByIds">
+        UPDATE item
+        SET last_published_on = #{timestamp}
+        WHERE id IN
+        <foreach collection="itemIds" item="itemId" index="index" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </update>
 </mapper>

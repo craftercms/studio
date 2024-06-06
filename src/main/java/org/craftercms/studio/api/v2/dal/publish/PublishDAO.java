@@ -35,13 +35,14 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageSta
  */
 public interface PublishDAO {
     String SITE_ID = "siteId";
+    String TARGET = "target";
     String PACKAGE_ID = "packageId";
     String PUBLISH_PACKAGE = "publishPackage";
-    String ITEMS_PARAM = "items";
+    String ITEMS = "items";
     String APPROVAL_STATES = "approvalStates";
     String PACKAGE_STATES = "packageStates";
     String PACKAGE_STATE = "packageState";
-    String ITEM_IDS = "itemIds";
+    String ITEM_STATE = "itemState";
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
     String ERROR = "error";
@@ -82,7 +83,7 @@ public interface PublishDAO {
      * @param packageId    the package id
      * @param publishItems the items to insert
      */
-    void insertItems(@Param(PACKAGE_ID) long packageId, @Param(ITEMS_PARAM) Collection<PublishItem> publishItems);
+    void insertItems(@Param(PACKAGE_ID) long packageId, @Param(ITEMS) Collection<PublishItem> publishItems);
 
     /**
      * Get the next publish packages to process for every site matching the given states
@@ -133,12 +134,22 @@ public interface PublishDAO {
                              @Param(ERROR) final String error);
 
     /**
+     * Cancel all active (ready non-rejected) packages for a site and a target
+     *
+     * @param siteId the site id
+     * @param target the target
+     */
+    default void cancelOutstandingPackages(final String siteId, final String target) {
+        cancelOutstandingPackages(siteId, target, PackageState.CANCELLED, List.of(READY), List.of(SUBMITTED, APPROVED));
+    }
+
+    /**
      * Cancel all active (ready non-rejected) packages for a site
      *
      * @param siteId the site id
      */
-    default void cancelOutstandingPackages(final String siteId) {
-        cancelOutstandingPackages(siteId, PackageState.CANCELLED, List.of(READY), List.of(SUBMITTED, APPROVED));
+    default void cancelAllOutstandingPackages(final String siteId) {
+        cancelOutstandingPackages(siteId, null, PackageState.CANCELLED, List.of(READY), List.of(SUBMITTED, APPROVED));
     }
 
 
@@ -147,11 +158,13 @@ public interface PublishDAO {
      * Set packages' state to cancelledState parameter value
      *
      * @param siteId         the site id
+     * @param target         the target to cancel packages for, null for any target
      * @param cancelledState the state to set the packages to
      * @param statesToCancel the package states to match
      * @param approvalStates the approval states to match
      */
     void cancelOutstandingPackages(@Param(SITE_ID) String siteId,
+                                   @Param(TARGET) String target,
                                    @Param(CANCELLED_STATE) PackageState cancelledState,
                                    @Param(PACKAGE_STATES) Collection<PackageState> statesToCancel,
                                    @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates);
@@ -175,16 +188,15 @@ public interface PublishDAO {
     /**
      * Update the state for all publish items in the package
      *
-     * @param id    the package id
-     * @param state the new state to set
+     * @param id        the package id
+     * @param itemState the new state to set
      */
-    void updatePublishItemState(@Param(PACKAGE_ID) long id, @Param(PACKAGE_STATE) PublishItem.State state);
+    void updatePublishItemState(@Param(PACKAGE_ID) long id, @Param(ITEM_STATE) PublishItem.State itemState);
 
     /**
-     * Update the state for the publish items matching the given ids
+     * Update the state and error (if any) for the given publish items
      *
-     * @param itemIds the publish item ids to match
-     * @param state   the new state to set
+     * @param items the publish item to update state and error columns for
      */
-    void updatePublishItemListState(@Param(ITEM_IDS) List<Long> itemIds, @Param(PACKAGE_STATE) PublishItem.State state);
+    void updatePublishItemListState(@Param(ITEMS) Collection<PublishItem> items);
 }
