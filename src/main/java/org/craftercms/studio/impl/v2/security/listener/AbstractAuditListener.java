@@ -55,9 +55,10 @@ public abstract class AbstractAuditListener {
     }
 
     protected void recordAuthenticationEvent(String operation, AbstractAuthenticationEvent event, String message) {
+        String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
         try {
             var username = StringUtils.substring(event.getAuthentication().getName(), 0, MAX_USERNAME_LENGTH);
-            var site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            var site = siteService.getSite(systemSite);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(operation);
             auditLog.setActorId(username);
@@ -72,7 +73,7 @@ public abstract class AbstractAuditListener {
                         RequestContext.getCurrent().getRequest().getRemoteAddr());
             }
         } catch (SiteNotFoundException e) {
-            // This never happens
+            logger.error("Site not found '{}'", systemSite, e);
         }
     }
 
@@ -83,10 +84,11 @@ public abstract class AbstractAuditListener {
      * @param message a log message for the event
      */
     protected void recordSessionTimeoutEvent(String operation, SecurityContext context, String message) {
+        String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
         try {
             var name = context.getAuthentication().getName();
             var username = StringUtils.substring(name, 0, MAX_USERNAME_LENGTH);
-            var site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            var site = siteService.getSite(systemSite);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(operation);
             auditLog.setActorId(username);
@@ -100,7 +102,7 @@ public abstract class AbstractAuditListener {
                 logger.info(message, name);
             }
         } catch (SiteNotFoundException e) {
-            // This never happens
+            logger.error("Site not found '{}'", systemSite, e);
         }
     }
 }
