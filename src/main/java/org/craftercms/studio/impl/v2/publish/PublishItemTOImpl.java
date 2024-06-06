@@ -14,30 +14,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.repository.blob;
+package org.craftercms.studio.impl.v2.publish;
 
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 
 /**
- * {@link PublishItemTO} implementation that wraps another {@link PublishItemTO}
- * to be passed to a {@link StudioBlobStore} publish operation.
- * Notice that path should be the path in the blob store, not the path in the content repository.
- *
- * @param <T> the type of the wrapped item
+ * {@link PublishItemTO} implementation that wraps a {@link PublishItem}
+ * Notice that the same {@link PublishItem} might be wrapped by more than
+ * one {@link PublishItemTO} instance, each with a different path and
+ * action. e.g.: A move operation will be expanded to a DELETE and an ADD
  */
-public class BlobPublishItemTO<T extends PublishItemTO> implements PublishItemTO {
-
-    private final T wrappedItem;
+public class PublishItemTOImpl implements PublishItemTO {
+    private final PublishItem publishItem;
     private final String path;
+    private final PublishItem.Action action;
 
-    public BlobPublishItemTO(final T wrappedItem, final String path) {
-        this.wrappedItem = wrappedItem;
+    public PublishItemTOImpl(final PublishItem publishItem, final String path, final PublishItem.Action action) {
+        this.publishItem = publishItem;
         this.path = path;
+        this.action = action;
     }
 
-    public T getWrappedItem() {
-        return wrappedItem;
+    public PublishItem getPublishItem() {
+        return publishItem;
     }
 
     @Override
@@ -47,16 +47,16 @@ public class BlobPublishItemTO<T extends PublishItemTO> implements PublishItemTO
 
     @Override
     public PublishItem.Action getAction() {
-        return wrappedItem.getAction();
+        return action;
     }
 
     @Override
     public String getError() {
-        return wrappedItem.getError();
+        return publishItem.getError();
     }
 
     @Override
     public void setError(String error) {
-        wrappedItem.setError(error);
+        publishItem.setError(error);
     }
 }

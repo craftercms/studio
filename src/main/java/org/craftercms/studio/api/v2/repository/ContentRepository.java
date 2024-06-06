@@ -31,6 +31,7 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.util.Collection;
