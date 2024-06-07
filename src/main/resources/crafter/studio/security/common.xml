@@ -43,6 +43,12 @@
         <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
     </bean>
 
+    <bean id="sessionTimeoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditSessionTimeoutListener">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+    </bean>
+
     <!-- Users -->
 
     <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
