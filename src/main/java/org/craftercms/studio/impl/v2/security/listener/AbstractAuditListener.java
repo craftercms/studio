@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
+import org.springframework.security.core.context.SecurityContext;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
@@ -54,9 +55,10 @@ public abstract class AbstractAuditListener {
     }
 
     protected void recordAuthenticationEvent(String operation, AbstractAuthenticationEvent event, String message) {
+        String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
         try {
             var username = StringUtils.substring(event.getAuthentication().getName(), 0, MAX_USERNAME_LENGTH);
-            var site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            var site = siteService.getSite(systemSite);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(operation);
             auditLog.setActorId(username);
@@ -71,7 +73,36 @@ public abstract class AbstractAuditListener {
                         RequestContext.getCurrent().getRequest().getRemoteAddr());
             }
         } catch (SiteNotFoundException e) {
-            // This never happens
+            logger.error("Site not found '{}'", systemSite, e);
+        }
+    }
+
+    /**
+     * Perform audit log for session timeout event
+     * @param operation audit type operation
+     * @param context the security context of the timeout session
+     * @param message a log message for the event
+     */
+    protected void recordSessionTimeoutEvent(String operation, SecurityContext context, String message) {
+        String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
+        try {
+            var name = context.getAuthentication().getName();
+            var username = StringUtils.substring(name, 0, MAX_USERNAME_LENGTH);
+            var site = siteService.getSite(systemSite);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(operation);
+            auditLog.setActorId(username);
+            auditLog.setSiteId(site.getId());
+            auditLog.setPrimaryTargetId(username);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(username);
+            auditServiceInternal.insertAuditLog(auditLog);
+
+            if (isNotEmpty(message)) {
+                logger.info(message, name);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found '{}'", systemSite, e);
         }
     }
 }
