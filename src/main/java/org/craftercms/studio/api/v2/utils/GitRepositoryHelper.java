@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -109,7 +109,13 @@ public class GitRepositoryHelper implements DisposableBean {
     public static final String CONFIG_KEY_RESOURCE = "resource";
     public static final String CONFIG_KEY_FOLDER = "folder";
 
+    // firstname lastname
+    public static final String USERNAME_FORMAT = "%s %s";
+
     private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
+    private static final String GIT_CONFIG_PROPERTY_EMAIL = "email";
+    private static final String GIT_CONFIG_PROPERTY_NAME = "name";
+    private static final String GIT_CONFIG_SECTION_USER = "user";
 
     private StudioConfiguration studioConfiguration;
     private TextEncryptor encryptor;
@@ -374,7 +380,7 @@ public class GitRepositoryHelper implements DisposableBean {
      */
     public PersonIdent getAuthorIdent(User user) {
         PersonIdent currentUserIdent =
-                new PersonIdent(format("%s %s", user.getFirstName(), user.getLastName()), user.getEmail());
+                new PersonIdent(format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()), user.getEmail());
 
         return currentUserIdent;
     }
@@ -1350,7 +1356,7 @@ public class GitRepositoryHelper implements DisposableBean {
     public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
-                new PersonIdent(format("%s %s", user.getFirstName(),user.getLastName()), user.getEmail());
+                new PersonIdent(format(USERNAME_FORMAT, user.getFirstName(),user.getLastName()), user.getEmail());
 
         return currentUserIdent;
     }
@@ -1464,5 +1470,29 @@ public class GitRepositoryHelper implements DisposableBean {
                     .setStartPoint(sourceBranch);
             retryingRepositoryOperationFacade.call(checkoutCommand);
         }
+    }
+
+    /**
+     * Commit a tree to the repository.
+     * Since git-commit-tree does not accept an author parameter,
+     * this method will configure the user and email in the repository local configuration
+     * before committing the tree.
+     *
+     * @param repo           the git repository
+     * @param tree           the tree to commit
+     * @param parentCommitId the parent commit id
+     * @param user           the user to be configured as commit author
+     * @param comment        the commit message
+     * @return the commit id
+     * @throws IOException if an error occurs while commiting the tree or saving the configuration
+     */
+    public String commitTree(final Repository repo, final RevTree tree,
+                             final ObjectId parentCommitId, User user, final String comment) throws IOException {
+        // Git commit-tree does not have an author param
+        repo.getConfig().setString(GIT_CONFIG_SECTION_USER, null, GIT_CONFIG_PROPERTY_NAME,
+                format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()));
+        repo.getConfig().setString(GIT_CONFIG_SECTION_USER, null, GIT_CONFIG_PROPERTY_EMAIL, user.getEmail());
+        repo.getConfig().save();
+        return gitCli.commitTree(repo.getDirectory(), tree, parentCommitId, comment);
     }
 }

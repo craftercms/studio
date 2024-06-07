@@ -24,6 +24,8 @@ import org.craftercms.studio.api.v2.utils.git.cli.GitCliOutputExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.CompositeGitCliExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.NoChangesToCommitExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.RepositoryLockedExceptionResolver;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.revwalk.RevTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +34,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.TMP_FILE_SUFFIX;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 
 /**
  * Allows doing Git operations throw the CLI.
@@ -83,10 +89,13 @@ public class GitCli {
         return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER);
     }
 
-    protected String executeGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver)
-            throws IOException, InterruptedException {
+    protected String executeGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver) throws IOException, InterruptedException {
         checkGitDirectory(directory);
+        return doExecuteGitCommand(directory, commandLine, exceptionResolver);
+    }
 
+    private String doExecuteGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver)
+            throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(commandLine).directory(new File(directory));
         logger.debug("Executing git command: '{}'", commandLine);
 
@@ -174,12 +183,16 @@ public class GitCli {
      * @param directory the directory to check
      * @throws GitCliException if the directory does not exist or is not a Git repository
      */
-    private static void checkGitDirectory(final String directory) throws GitCliException {
+    private void checkGitDirectory(final String directory) throws GitCliException {
         if (Files.notExists(Paths.get(directory))) {
             throw new GitCliException(format("Directory '%s' does not exist", directory));
         }
-        if (Files.notExists(Paths.get(directory, ".git"))) {
-            throw new GitCliException(format("Directory '%s' is not a Git repository", directory));
+
+        GitCommandLine checkGitDir = new GitCommandLine("rev-parse", "--git-dir");
+        try {
+            doExecuteGitCommand(directory, checkGitDir, DEFAULT_EX_RESOLVER);
+        } catch (Exception e) {
+            throw new GitCliException(format("Directory '%s' is not a Git repository", directory), e);
         }
     }
 
@@ -225,6 +238,33 @@ public class GitCli {
         } catch (Exception e) {
             throw new GitCliException("Git commit failed on directory " + directory + " for paths " +
                     ArrayUtils.toString(paths), e);
+        }
+    }
+
+    /**
+     * Commit a tree to the repository
+     *
+     * @param repoDir        the repository directory
+     * @param tree           the tree to commit
+     * @param parentCommitId the parent commit id
+     * @param comment        the commit comment
+     * @return the commit id (git commit-tree output)
+     * @throws IOException if an error occurs executing the git command or when accessing the file system
+     */
+    public String commitTree(File repoDir, RevTree tree, ObjectId parentCommitId, String comment) throws IOException {
+        GitCommandLine commitTreeCl = new GitCommandLine("commit-tree");
+        commitTreeCl.addParam(tree.getName());
+        commitTreeCl.addParams("-p", parentCommitId.getName());
+        final Path commentTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
+
+        try {
+            Files.write(commentTempFile, comment.getBytes());
+            commitTreeCl.addParams("-F", commentTempFile.toRealPath().toString());
+            return StringUtils.trim(executeGitCommand(repoDir.getAbsolutePath(), commitTreeCl));
+        } catch (Exception e) {
+            throw new GitCliException("Git commit-tree failed on directory " + repoDir.getAbsolutePath(), e);
+        } finally {
+            Files.deleteIfExists(commentTempFile);
         }
     }
 

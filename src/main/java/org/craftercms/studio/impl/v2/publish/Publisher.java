@@ -134,9 +134,10 @@ public class Publisher implements ApplicationEventPublisherAware {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
         publishDao.updatePackageState(packageId, PROCESSING);
+        List<Long> affectedItemIds = null;
         try {
             Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
-            List<Long> affectedItemIds = publishItems.stream().map(PublishItem::getItemId).toList();
+             affectedItemIds = publishItems.stream().map(PublishItem::getItemId).toList();
             // Set all affected items to system processing
             itemServiceInternal.updateStateBitsByIds(affectedItemIds, SYSTEM_PROCESSING.value, 0);
 
@@ -173,6 +174,11 @@ public class Publisher implements ApplicationEventPublisherAware {
             publishDao.updateFailedPackage(packageId, PublishPackage.PackageState.FAILED, e.getMessage());
             String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
             throw new ServiceLayerException(exceptionMessage, e);
+        } finally {
+            if(affectedItemIds != null) {
+                // Clear system processing bit for all affected items
+                itemServiceInternal.updateStateBitsByIds(affectedItemIds, 0, SYSTEM_PROCESSING.value);
+            }
         }
     }
 

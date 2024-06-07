@@ -52,6 +52,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.*;
@@ -77,19 +78,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
+import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
@@ -99,6 +102,7 @@ import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
 public class GitContentRepository implements ContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
+    private static final String REFS_HEADS_FORMAT = "refs/heads/%s";
 
     private GitRepositoryHelper helper;
     private StudioConfiguration studioConfiguration;
@@ -1276,32 +1280,62 @@ public class GitContentRepository implements ContentRepository {
                                                                     final Collection<T> publishItems)
             throws ServiceLayerException {
         String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
+                siteId, publishPackage.getId(), publishingTarget);
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         if (repo == null) {
             throw new PublishedRepositoryNotFoundException(
                     format("Failed to publish package '%s' for site '%s': published repository not found",
                             publishPackage.getId(), siteId));
         }
-
-        /*
-        TODO:
-        - Push to published or pull from sandbox
-        - Load the tree from the package commitId
-        - Commit the tree to the target branch
-         */
-
-
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
-        try {
-            try (Git git = Git.wrap(repo)) {
+        try (Git git = Git.wrap(repo)) {
+            logger.debug("Fetching changes from sandbox to published repo for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget);
+            retryingRepositoryOperationFacade.call(git.fetch());
+            RevTree sandboxTree = helper.getTreeForCommit(repo, publishPackage.getCommitId());
+            ObjectId publishedLastCommitId = repo.resolve(publishingTarget);
+            logger.debug("Creating new commit for tree '{}' in published repo for site '{}' package '{}' target '{}'",
+                    sandboxTree, siteId, publishPackage.getId(), publishingTarget);
 
-            }
+
+            User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
+            String newCommitId = helper.commitTree(repo, sandboxTree,
+                    publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
+            logger.debug("Updating target branch '{}' in published repo for site '{}' package '{}' with new commit ID '{}'",
+                    publishingTarget, siteId, publishPackage.getId(), newCommitId);
+            RefUpdate refUpdate = repo.updateRef(format(REFS_HEADS_FORMAT, publishingTarget));
+            refUpdate.setNewObjectId(repo.resolve(newCommitId));
+            refUpdate.update();
+
+            logger.debug("Published all changes for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget);
+            return new PublishChangeSet<>(newCommitId, publishItems, emptyList());
+        } catch (GitAPIException | IOException | UserNotFoundException e) {
+            logger.error("Failed to publish all changes for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget, e);
+            throw new ServiceLayerException(format("Failed to publish all changes for site '%s' package '%s' target '%s'",
+                    siteId, publishPackage.getId(), publishingTarget), e);
         } finally {
             generalLockService.unlock(repoLockKey);
         }
+    }
 
-        return ContentRepository.super.publishAll(publishPackage, publishingTarget, publishItems);
+    private String getPublishCommitMessage(final PublishPackage publishPackage, final User user) throws UserNotFoundException, ServiceLayerException {
+        String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
+
+        commitMessage = commitMessage.replace("{username}", user.getUsername());
+        commitMessage =
+                commitMessage.replace("{datetime}",
+                        DateUtils.getCurrentTime().format(
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
+        commitMessage = commitMessage.replace("{source}", "UI");
+        commitMessage = commitMessage.replace("{message}", defaultIfEmpty(publishPackage.getComment(), ""));
+        commitMessage = commitMessage.replace("{commit_id}", publishPackage.getCommitId());
+        commitMessage = commitMessage.replace("{package_id}", String.valueOf(publishPackage.getId()));
+
+        return commitMessage;
     }
 //
 //    @Override
