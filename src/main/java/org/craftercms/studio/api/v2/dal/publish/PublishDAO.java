@@ -46,6 +46,7 @@ public interface PublishDAO {
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
     String ERROR = "error";
+    String ITEM_SUCCESS_STATE = "itemSuccessState";
 
     /**
      * Convenience transactional method to create a package and its items

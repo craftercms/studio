@@ -44,19 +44,25 @@
         AND target = #{target}
     </delete>
 
-    <delete id="clearForSiteAndTarget">
-        DELETE item_target FROM item_target INNER JOIN item
-        WHERE item.id = item_target.item_id
-        AND site_id = #{siteId}
-        AND item_target.target = #{target}
-    </delete>
+    <update id="updateForCompletePackage">
+        UPDATE item_target it
+        SET it.old_path = null,
+            it.published_commit_id = #{commitId},
+            it.last_published_on = #{timestamp}
+        WHERE it.item_id IN <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemIdsForPackage"/>
+        AND it.target = #{target}
+    </update>
 
-    <delete id="clearForItemIds">
-        DELETE FROM item_target
-        WHERE item_id IN
-        <foreach collection="itemIds" item="itemId" open="(" close=")" separator=",">
-            #{itemId}
-        </foreach>
-        AND target = #{target}
-    </delete>
+    <insert id="insertForInitialPublish">
+        INSERT INTO item_target
+        (item_id, target, old_path, published_commit_id, last_published_on)
+        SELECT i.id, t.target, null, #{commitId}, #{timestamp}
+        FROM item i,
+        (
+            <foreach collection="targets" item="target" index="index" separator="UNION" >
+                (SELECT #{target} target)
+            </foreach>
+        ) AS t
+        WHERE i.site_id = #{siteId}
+    </insert>
 </mapper>

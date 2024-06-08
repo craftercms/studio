@@ -18,6 +18,8 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -44,6 +46,7 @@ public interface ItemDAO {
 
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
     String TIMESTAMP = "timestamp";
+    String PUBLISH_PACKAGE_ID = "publishPackageId";
 
     Map<String, String> SORT_FIELD_MAP = Map.of(
             "id", "id",
@@ -599,11 +602,36 @@ public interface ItemDAO {
                               @Param(ON_STATES_BIT_MAP) long onStateBitMap,
                               @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
 
+
     /**
-     * Update last_published_on for items matching the given ids
+     * Update states for successful publish items in the package.
      *
-     * @param itemIds   the item ids
-     * @param timestamp the new last_publish_on timestamp
+     * @param packageId the package id
+     * @param onMask    states to flip on
+     * @param offMask   states to flip off
+     *                  // TODO: review timestamp: move to item_target?
+     * @param timestamp the timestamp for published_on date
      */
-    void updateLastPublishedOnByIds(@Param(ITEM_IDS) Collection<Long> itemIds, @Param(TIMESTAMP) Instant timestamp);
+    default void updateForCompletePackage(long packageId,
+                                          final long onMask,
+                                          final long offMask,
+                                          final Instant timestamp) {
+        updateForCompletePackage(packageId, onMask, offMask, timestamp, PublishItem.State.PUBLISHED);
+    }
+
+    /**
+     * Update states for successful publish items in the package.
+     *
+     * @param packageId        the package id
+     * @param onMask           states to flip on
+     * @param offMask          states to flip off
+     *                         // TODO: review timestamp: move to item_target?
+     * @param timestamp        the timestamp for published_on date
+     * @param itemSuccessState the state of the successful items to filter
+     */
+    void updateForCompletePackage(@Param(PACKAGE_ID) long packageId,
+                                  @Param(ON_STATES_BIT_MAP) long onMask,
+                                  @Param(OFF_STATES_BIT_MAP) long offMask,
+                                  @Param(TIMESTAMP) Instant timestamp,
+                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) PublishItem.State itemSuccessState);
 }

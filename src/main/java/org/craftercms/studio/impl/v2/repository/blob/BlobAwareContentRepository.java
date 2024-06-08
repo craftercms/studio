@@ -765,17 +765,22 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         }
 
         // If there are no errors, just ask the repo to publish all. Otherwise pass the list of successful items
-        // TODO: call git repo to publish the items
         PublishChangeSet<T> committedChangeset = null;
         if (isEmpty(blobFailedItems)) {
+            // TODO: Create another publish-all method for git repos that won't require the list of items
             committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, publishItems);
-//        } else {
-//            Collection<T> gitRepoItems = subtract(publishItems, blobFailedItems);
-//            committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
+        } else {
+            Collection<T> gitRepoItems = subtract(publishItems, blobFailedItems);
+            committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
         }
-//
+
         return new PublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems(),
                 union(blobFailedItems, committedChangeset.failedItems()));
+    }
+
+    @Override
+    public <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage, String publishingTarget, Collection<T> publishItems) throws ServiceLayerException {
+        return null;
     }
 
     @Override

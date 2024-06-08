@@ -652,9 +652,11 @@ CREATE TABLE IF NOT EXISTS `item_publish_item`
 */
 CREATE TABLE IF NOT EXISTS `item_target`
 (
-    `item_id`	BIGINT	        NOT NULL,
-    `target`	VARCHAR(20)	    NOT NULL,
-    `old_path`	VARCHAR(2048)   NOT NULL,
+    `item_id`       	    BIGINT	        NOT NULL,
+    `target`	            VARCHAR(20)	    NOT NULL,
+    `old_path`              VARCHAR(2048)   NULL,
+    `last_published_on`     TIMESTAMP       NULL,
+    `published_commit_id`   VARCHAR(40)     NULL,
     PRIMARY KEY(`item_id`, `target`),
     FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )

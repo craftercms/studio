@@ -17,8 +17,12 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem.State;
 
+import java.time.Instant;
 import java.util.Collection;
+
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.State.PUBLISHED;
 
 /**
  * Provide access to the item_target data.
@@ -26,10 +30,13 @@ import java.util.Collection;
 public interface ItemTargetDAO {
 
     String SITE_ID = "siteId";
+    String PACKAGE_ID = "packageId";
+    String COMMIT_ID = "commitId";
     String PATH = "path";
     String ITEM_ID = "itemId";
-    String ITEM_IDS = "itemIds";
     String TARGET = "target";
+    String TARGETS = "targets";
+    String TIMESTAMP = "timestamp";
 
     /**
      * Get the item target records by item path
@@ -56,18 +63,57 @@ public interface ItemTargetDAO {
     void clearForItemAndTarget(@Param(ITEM_ID) long itemId, @Param(TARGET) String target);
 
     /**
-     * Clear all records for the given site and target
+     * Update for successful publish items in the package.
+     * For each successful PublishItem:
+     * - Clear the oldPath
+     * - Set the commitId
+     * - Set the lastPublishedOn date to now
      *
-     * @param siteId the site id
-     * @param target the target
+     * @param packageId the package id
+     * @param commitId  the target published commit id
+     * @param timestamp the timestamp for published_on date
+     * @param target    the target
      */
-    void clearForSiteAndTarget(@Param(SITE_ID) long siteId, @Param(TARGET) String target);
+    default void updateForCompletePackage(final long packageId,
+                                          final String commitId,
+                                          final String target,
+                                          final Instant timestamp) {
+        updateForCompletePackage(packageId,
+                commitId,
+                target,
+                timestamp,
+                PUBLISHED);
+
+    }
 
     /**
-     * Clear item_target record for the given ids
+     * Update for successful publish items in the package.
+     * For each successful PublishItem:
+     * - Clear the oldPath
+     * - Set the commitId
+     * - Set the lastPublishedOn date to now
      *
-     * @param itemIds the item ids
-     * @param target  the target
+     * @param packageId        the package id
+     * @param commitId         the target published commit id
+     * @param target           the target
+     * @param itemSuccessState the state of the successful items to filter
      */
-    void clearForItemIds(@Param(ITEM_IDS) Collection<Long> itemIds, @Param(TARGET) String target);
+    void updateForCompletePackage(@Param(PACKAGE_ID) long packageId,
+                                  @Param(COMMIT_ID) String commitId,
+                                  @Param(TARGET) String target,
+                                  @Param(TIMESTAMP) Instant timestamp,
+                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) State itemSuccessState);
+
+    /**
+     * Populate the item_target table for the initial publish.
+     *
+     * @param siteId    the site id
+     * @param targets   the publishing targets
+     * @param commitId  the commit id of published repository
+     * @param timestamp the timestamp for the published_on date
+     */
+    void insertForInitialPublish(@Param(SITE_ID) long siteId,
+                                 @Param(TARGETS) Collection<String> targets,
+                                 @Param(COMMIT_ID) String commitId,
+                                 @Param(TIMESTAMP) Instant timestamp);
 }

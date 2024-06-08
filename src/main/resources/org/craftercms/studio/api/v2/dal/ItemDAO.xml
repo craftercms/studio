@@ -806,12 +806,11 @@
         </foreach>
     </update>
 
-    <update id="updateLastPublishedOnByIds">
+    <update id="updateForCompletePackage">
         UPDATE item
-        SET last_published_on = #{timestamp}
+        SET state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
+            last_published_on = #{timestamp}
         WHERE id IN
-        <foreach collection="itemIds" item="itemId" index="index" open="(" separator="," close=")">
-            #{itemId}
-        </foreach>
+        <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemIdsForPackage"/>
     </update>
 </mapper>

@@ -429,10 +429,12 @@ public interface ItemServiceInternal {
     void updateSiteLastPublishedOn(String siteId, Instant timestamp);
 
     /**
-     * Update last_published_on for items matching the given ids
+     * Update the state for all successful items in the given package
      *
-     * @param itemIds   the item ids
-     * @param timestamp the new last_publish_on timestamp
+     * @param publishPackageId the package id
+     * @param onMask           the mask of states to turn on
+     * @param offMask          the mask of states to turn off
+     * @param timestamp        the timestamp to set for published_on
      */
-    void updateLastPublishedOnByIds(Collection<Long> itemIds, Instant timestamp);
+    void updateForCompletePackage(long publishPackageId, long onMask, long offMask, Instant timestamp);
 }

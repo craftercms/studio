@@ -1299,16 +1299,9 @@ public class GitContentRepository implements ContentRepository {
             logger.debug("Creating new commit for tree '{}' in published repo for site '{}' package '{}' target '{}'",
                     sandboxTree, siteId, publishPackage.getId(), publishingTarget);
 
-
             User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
             String newCommitId = helper.commitTree(repo, sandboxTree,
                     publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
-            logger.debug("Updating target branch '{}' in published repo for site '{}' package '{}' with new commit ID '{}'",
-                    publishingTarget, siteId, publishPackage.getId(), newCommitId);
-            RefUpdate refUpdate = repo.updateRef(format(REFS_HEADS_FORMAT, publishingTarget));
-            refUpdate.setNewObjectId(repo.resolve(newCommitId));
-            refUpdate.update();
-
             logger.debug("Published all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
             return new PublishChangeSet<>(newCommitId, publishItems, emptyList());
@@ -1320,6 +1313,28 @@ public class GitContentRepository implements ContentRepository {
         } finally {
             generalLockService.unlock(repoLockKey);
         }
+    }
+
+    @Override
+    public void updateRef(final String siteId, final long packageId,
+                          final String newCommitId, final String publishingTarget) throws IOException {
+        Repository repo = helper.getRepository(siteId, PUBLISHED);
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        generalLockService.lock(repoLockKey);
+        try {
+            logger.debug("Updating target branch '{}' in published repo for site '{}' package '{}' with new commit ID '{}'",
+                    publishingTarget, siteId, packageId, newCommitId);
+            RefUpdate refUpdate = repo.updateRef(format(REFS_HEADS_FORMAT, publishingTarget));
+            refUpdate.setNewObjectId(repo.resolve(newCommitId));
+            refUpdate.update();
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
+    @Override
+    public <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage, String publishingTarget, Collection<T> publishItems) throws ServiceLayerException {
+        return null;
     }
 
     private String getPublishCommitMessage(final PublishPackage publishPackage, final User user) throws UserNotFoundException, ServiceLayerException {

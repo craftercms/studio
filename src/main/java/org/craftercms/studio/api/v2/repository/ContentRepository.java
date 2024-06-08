@@ -330,7 +330,9 @@ public interface ContentRepository {
     /**
      * Publishes all changes for the given site and target
      *
+     * @param publishPackage   the publish package
      * @param publishingTarget the publishing target
+     * @param publishItems     the items to publish
      * @return the change set listing the affected paths and new commit ids (comparing the published repository target branch before and after the publish)
      */
     default <T extends PublishItemTO> PublishChangeSet<T> publishAll(PublishPackage publishPackage,
@@ -338,6 +340,23 @@ public interface ContentRepository {
                                                                      Collection<T> publishItems) throws ServiceLayerException {
         // TODO: implement this method
         return new PublishChangeSet<>(null, emptyList(), emptyList());
+    }
+
+    /**
+     * Publishes the given items to the given target
+     *
+     * @param publishPackage   the publish package
+     * @param publishingTarget the publishing target
+     * @param publishItems     the items to publish
+     * @param <T>              the type of the {@link PublishItemTO} objects
+     * @return the change set listing the affected paths and new commit id
+     * @throws ServiceLayerException if there is any error while publishing
+     */
+    default <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
+                                                                  String publishingTarget,
+                                                                  Collection<T> publishItems) throws ServiceLayerException {
+        // TODO: implement this method
+        return null;
     }
 
     /**
@@ -424,6 +443,18 @@ public interface ContentRepository {
      * @throws ServiceLayerException if there is any commit ID that is not valid for publishing
      */
     List<String> validatePublishCommits(String siteId, Collection<String> commitIds) throws IOException, ServiceLayerException;
+
+    /**
+     * Update the target branch ref to point to the given commit id
+     *
+     * @param siteId    the site id
+     * @param packageId the publish package id
+     * @param commitId  the commit id to update the target branch to
+     * @param target    the target branch to update
+     */
+    default void updateRef(String siteId, long packageId, String commitId, String target) throws IOException {
+        // TODO: move this to a new GitContentRepository interface
+    }
 
     /**
      * Store the result of a publish operation

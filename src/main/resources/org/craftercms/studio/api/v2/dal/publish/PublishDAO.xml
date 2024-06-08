@@ -208,4 +208,15 @@
         SET pi.state = updates.state,
             pi.error = updates.errorMessage
     </update>
+
+    <sql id="getSuccessfulItemIdsForPackage">
+        (
+            SELECT ipi.item_id
+            FROM publish_package pp
+                INNER JOIN publish_item pi ON pp.id = pi.package_id
+                INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+            WHERE pp.id = #{packageId}
+            AND pi.state = #{itemSuccessState}
+        )
+    </sql>
 </mapper>

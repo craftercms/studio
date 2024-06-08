@@ -577,8 +577,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void updateLastPublishedOnByIds(final Collection<Long> itemIds, final Instant timestamp) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOnByIds(itemIds, timestamp));
+    public void updateForCompletePackage(final long packageId, final long onMask, final long offMask, final Instant timestamp) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateForCompletePackage(packageId, onMask, offMask, timestamp));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

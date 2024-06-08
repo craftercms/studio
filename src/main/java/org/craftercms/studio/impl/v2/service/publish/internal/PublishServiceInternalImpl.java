@@ -600,6 +600,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         protected final boolean requestApproval;
         protected final String comment;
 
+        // TODO: Move the locking outside of this and theses classes singletons
         private PublishPackageBuilder(final Site site, final String target, final boolean requestApproval, final String comment) {
             this.site = site;
             this.target = target;
