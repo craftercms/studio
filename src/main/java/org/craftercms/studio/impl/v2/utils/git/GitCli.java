@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.utils.git;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +26,6 @@ import org.craftercms.studio.impl.v2.utils.git.cli.CompositeGitCliExceptionResol
 import org.craftercms.studio.impl.v2.utils.git.cli.NoChangesToCommitExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.RepositoryLockedExceptionResolver;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.revwalk.RevTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +36,15 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.trim;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TMP_FILE_SUFFIX;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 
@@ -62,6 +65,7 @@ public class GitCli {
     private static final String DEFAULT_GIT_COMMAND_NAME = "git";
     private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 minutes
     private static final int DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT = 30;
+    private static final int PATHS_BATCH_SIZE = 10;
 
     // Exception resolvers
     public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
@@ -84,19 +88,38 @@ public class GitCli {
         this.gitProcDestroyWaitForTimeoutSecs = gitProcDestroyWaitForTimeoutSecs;
     }
 
-    protected String executeGitCommand(String directory, GitCommandLine commandLine)
+    protected String executeGitCommand(String directory, GitCommandLine commandLine) throws IOException, InterruptedException {
+        return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER, null);
+    }
+
+    protected String executeGitCommand(String directory, GitCommandLine commandLine, File inputFile)
             throws IOException, InterruptedException {
-        return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER);
+        return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER, inputFile);
     }
 
     protected String executeGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver) throws IOException, InterruptedException {
-        checkGitDirectory(directory);
-        return doExecuteGitCommand(directory, commandLine, exceptionResolver);
+        return executeGitCommand(directory, commandLine, exceptionResolver, null);
     }
 
-    private String doExecuteGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver)
+    protected String executeGitCommand(String directory, GitCommandLine commandLine,
+                                       final GitCliOutputExceptionResolver exceptionResolver, final File inputFile) throws IOException, InterruptedException {
+        checkGitDirectory(directory);
+        return doExecuteGitCommand(directory, commandLine, exceptionResolver, inputFile);
+    }
+
+    private String doExecuteGitCommand(final String directory, final GitCommandLine commandLine,
+                                       final GitCliOutputExceptionResolver exceptionResolver)
+            throws IOException, InterruptedException {
+        return doExecuteGitCommand(directory, commandLine, exceptionResolver, null);
+    }
+
+    private String doExecuteGitCommand(final String directory, final GitCommandLine commandLine,
+                                       final GitCliOutputExceptionResolver exceptionResolver, final File inputFile)
             throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(commandLine).directory(new File(directory));
+        if (inputFile != null) {
+            pb.redirectInput(inputFile);
+        }
         logger.debug("Executing git command: '{}'", commandLine);
 
         // Start process
@@ -218,7 +241,7 @@ public class GitCli {
         restoreCl.addParam("--worktree");
         restoreCl.addParams(paths);
         try {
-            return StringUtils.trim(executeGitCommand(directory, restoreCl));
+            return trim(executeGitCommand(directory, restoreCl));
         } catch (Exception e) {
             throw new GitCliException(format("Git restore failed on directory '%s' for paths %s", directory, ArrayUtils.toString(paths)), e);
         }
@@ -234,7 +257,7 @@ public class GitCli {
 
         try {
             executeGitCommand(directory, commitCl, COMMIT_EX_RESOLVER);
-            return StringUtils.trim(executeGitCommand(directory, revParseCl));
+            return trim(executeGitCommand(directory, revParseCl));
         } catch (Exception e) {
             throw new GitCliException("Git commit failed on directory " + directory + " for paths " +
                     ArrayUtils.toString(paths), e);
@@ -245,22 +268,22 @@ public class GitCli {
      * Commit a tree to the repository
      *
      * @param repoDir        the repository directory
-     * @param tree           the tree to commit
+     * @param treeId           id of the tree to commit
      * @param parentCommitId the parent commit id
      * @param comment        the commit comment
      * @return the commit id (git commit-tree output)
      * @throws IOException if an error occurs executing the git command or when accessing the file system
      */
-    public String commitTree(File repoDir, RevTree tree, ObjectId parentCommitId, String comment) throws IOException {
+    public String commitTree(File repoDir, String treeId, ObjectId parentCommitId, String comment) throws IOException {
         GitCommandLine commitTreeCl = new GitCommandLine("commit-tree");
-        commitTreeCl.addParam(tree.getName());
+        commitTreeCl.addParam(treeId);
         commitTreeCl.addParams("-p", parentCommitId.getName());
         final Path commentTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
 
         try {
             Files.write(commentTempFile, comment.getBytes());
             commitTreeCl.addParams("-F", commentTempFile.toRealPath().toString());
-            return StringUtils.trim(executeGitCommand(repoDir.getAbsolutePath(), commitTreeCl));
+            return trim(executeGitCommand(repoDir.getAbsolutePath(), commitTreeCl));
         } catch (Exception e) {
             throw new GitCliException("Git commit-tree failed on directory " + repoDir.getAbsolutePath(), e);
         } finally {
@@ -280,6 +303,46 @@ public class GitCli {
             return StringUtils.isEmpty(result);
         } catch (Exception e) {
             throw new GitCliException("Git GC failed on directory " + directory, e);
+        }
+    }
+
+    /**
+     * Update index and write a new tree to the repository
+     * This method will read a tree from the parent commit, update the index with the <code>commitId</code> version
+     * of the files and then write the tree
+     *
+     * @param directory      the repository directory
+     * @param paths          the paths to write to the tree
+     * @param commitId       the commit id to get the new versions from
+     * @param parentCommitId the parent to read initial tree from
+     * @return the new tree id
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public String writeTree(final File directory, final List<String> paths, final String commitId, final ObjectId parentCommitId)
+            throws IOException, InterruptedException {
+        // git read-tree target_branch
+        GitCommandLine readTreeCl = new GitCommandLine("read-tree", parentCommitId.getName());
+        executeGitCommand(directory.getAbsolutePath(), readTreeCl);
+        final Path indexInfoTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
+        try {
+            // In batches, call git ls-tree and create index info file
+            for (List<String> pathsBatch : ListUtils.partition(paths, PATHS_BATCH_SIZE)) {
+                GitCommandLine lsTreeCl = new GitCommandLine("ls-tree", commitId);
+                pathsBatch.forEach(lsTreeCl::addParam);
+                String lsTreeOutput = executeGitCommand(directory.getAbsolutePath(), lsTreeCl);
+                Files.write(indexInfoTempFile, lsTreeOutput.getBytes(), StandardOpenOption.APPEND);
+            }
+
+            // Update index with correct version of published files
+            GitCommandLine updateIndexCl = new GitCommandLine("update-index", "--index-info");
+            executeGitCommand(directory.getAbsolutePath(), updateIndexCl, indexInfoTempFile.toRealPath().toFile());
+
+            // git write-tree
+            GitCommandLine writeTreeCl = new GitCommandLine("write-tree");
+            return trim(executeGitCommand(directory.getAbsolutePath(), writeTreeCl));
+        } finally {
+            Files.deleteIfExists(indexInfoTempFile);
         }
     }
 

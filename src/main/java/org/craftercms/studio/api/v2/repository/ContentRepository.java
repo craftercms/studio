@@ -29,9 +29,7 @@ import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -353,8 +351,7 @@ public interface ContentRepository {
      * @throws ServiceLayerException if there is any error while publishing
      */
     default <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
-                                                                  String publishingTarget,
-                                                                  Collection<T> publishItems) throws ServiceLayerException {
+                                                                  String publishingTarget,Collection<T> publishItems) throws ServiceLayerException {
         // TODO: implement this method
         return null;
     }

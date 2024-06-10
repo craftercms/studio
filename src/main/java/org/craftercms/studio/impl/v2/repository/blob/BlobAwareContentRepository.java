@@ -66,7 +66,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
@@ -780,7 +779,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     public <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage, String publishingTarget, Collection<T> publishItems) throws ServiceLayerException {
-        return null;
+        return localRepositoryV2.publish(publishPackage, publishingTarget, publishItems);
     }
 
     @Override

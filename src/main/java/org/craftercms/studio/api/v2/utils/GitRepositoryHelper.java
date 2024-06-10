@@ -1479,20 +1479,36 @@ public class GitRepositoryHelper implements DisposableBean {
      * before committing the tree.
      *
      * @param repo           the git repository
-     * @param tree           the tree to commit
+     * @param treeId           the id of the tree to commit
      * @param parentCommitId the parent commit id
      * @param user           the user to be configured as commit author
      * @param comment        the commit message
      * @return the commit id
      * @throws IOException if an error occurs while commiting the tree or saving the configuration
      */
-    public String commitTree(final Repository repo, final RevTree tree,
+    public String commitTree(final Repository repo, final String treeId,
                              final ObjectId parentCommitId, User user, final String comment) throws IOException {
         // Git commit-tree does not have an author param
         repo.getConfig().setString(GIT_CONFIG_SECTION_USER, null, GIT_CONFIG_PROPERTY_NAME,
                 format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()));
         repo.getConfig().setString(GIT_CONFIG_SECTION_USER, null, GIT_CONFIG_PROPERTY_EMAIL, user.getEmail());
         repo.getConfig().save();
-        return gitCli.commitTree(repo.getDirectory(), tree, parentCommitId, comment);
+        return gitCli.commitTree(repo.getDirectory(), treeId, parentCommitId, comment);
+    }
+
+    /**
+     * Write a tree to the repository
+     *
+     * @param repo           the repository
+     * @param paths          the paths to update
+     * @param commitId       the commit id to get the new file versions from
+     * @param parentCommitId the commit to read the initial tree from
+     * @return the new tree id
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public String writeTree(final Repository repo, final List<String> paths, final String commitId,
+                            final ObjectId parentCommitId) throws IOException, InterruptedException {
+        return gitCli.writeTree(repo.getDirectory(), paths, commitId, parentCommitId);
     }
 }

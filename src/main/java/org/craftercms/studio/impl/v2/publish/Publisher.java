@@ -225,6 +225,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                                                                         final String target, final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
         String siteId = publishPackage.getSite().getSiteId();
         long packageId = publishPackage.getId();
+
         boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), target);
         boolean isStagingTarget = !isLiveTarget;
         List<PublishItemTOImpl> publishItemTOs = publishItems.stream()
@@ -308,9 +309,6 @@ public class Publisher implements ApplicationEventPublisherAware {
                         .peek(pi -> pi.setState(PUBLISHED))
                         .toList();
 
-        // Notice these are the content item ids, not the publish item ids
-        Collection<Long> successfulItemIds = successfulItems.stream().map(PublishItem::getItemId).toList();
-
         long onMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
         long offMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK : PUBLISH_TO_STAGE_OFF_MASK;
         if (failedItems.isEmpty()) {
@@ -319,7 +317,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         } else {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
         }
-        if (!successfulItemIds.isEmpty()) {
+        if (!successfulItems.isEmpty()) {
             itemServiceInternal.updateForCompletePackage(packageId, onMask, offMask, now());
             itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, now());
         }

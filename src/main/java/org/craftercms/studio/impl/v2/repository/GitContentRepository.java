@@ -1300,7 +1300,7 @@ public class GitContentRepository implements ContentRepository {
                     sandboxTree, siteId, publishPackage.getId(), publishingTarget);
 
             User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
-            String newCommitId = helper.commitTree(repo, sandboxTree,
+            String newCommitId = helper.commitTree(repo, sandboxTree.getId().getName(),
                     publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
             logger.debug("Published all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
@@ -1334,7 +1334,44 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage, String publishingTarget, Collection<T> publishItems) throws ServiceLayerException {
-        return null;
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
+                siteId, publishPackage.getId(), publishingTarget);
+        Repository repo = helper.getRepository(siteId, PUBLISHED);
+        if (repo == null) {
+            throw new PublishedRepositoryNotFoundException(
+                    format("Failed to publish package '%s' for site '%s': published repository not found",
+                            publishPackage.getId(), siteId));
+        }
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            logger.debug("Fetching changes from sandbox to published repo for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget);
+            retryingRepositoryOperationFacade.call(git.fetch());
+            User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
+            ObjectId publishedLastCommitId = repo.resolve(publishingTarget);
+
+            // git read-tree target_branch
+            // git ls-tree commit_id list_of_paths | git update-index --index-info
+            // git write-tree
+            String newTreeId = helper.writeTree(repo,
+                    publishItems.stream().map(PublishItemTO::getPath).map(helper::getGitPath).toList(),
+                    publishPackage.getCommitId(),
+                    publishedLastCommitId);
+            // git commit-tree
+            String newCommitId = helper.commitTree(repo, newTreeId, publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
+            logger.debug("Published all changes for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget);
+            return new PublishChangeSet<>(newCommitId, publishItems, emptyList());
+        } catch (GitAPIException | IOException | UserNotFoundException | InterruptedException e) {
+            logger.error("Failed to publish changes for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget, e);
+            throw new ServiceLayerException(format("Failed to publish all changes for site '%s' package '%s' target '%s'",
+                    siteId, publishPackage.getId(), publishingTarget), e);
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
     }
 
     private String getPublishCommitMessage(final PublishPackage publishPackage, final User user) throws UserNotFoundException, ServiceLayerException {
