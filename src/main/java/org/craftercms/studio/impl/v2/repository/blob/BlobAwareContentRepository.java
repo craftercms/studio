@@ -797,4 +797,10 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     public List<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
         return localRepositoryV2.validatePublishCommits(siteId, commitIds);
     }
+
+    @Override
+    public void updateRef(final String siteId, final long packageId,
+                          final String commitId, final String target) throws IOException {
+        localRepositoryV2.updateRef(siteId, packageId, commitId, target);
+    }
 }
