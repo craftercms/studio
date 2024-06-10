@@ -125,7 +125,7 @@ public class RepositoryManagementServiceInternalImplTest {
     }
 
     @Test
-    public void testCommitResolution_noUncommittedChanges() throws Exception {
+    public void testCommitResolutionNoUncommittedChanges() throws Exception {
         when(status.hasUncommittedChanges()).thenReturn(false);
 
         boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
@@ -136,7 +136,7 @@ public class RepositoryManagementServiceInternalImplTest {
     }
 
     @Test
-    public void testCommitResolution_withUncommittedChanges() throws Exception {
+    public void testCommitResolutionWithUncommittedChanges() throws Exception {
         when(status.hasUncommittedChanges()).thenReturn(true);
         when(status.getMissing()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1, file_missing_2")));
         when(status.getUncommittedChanges()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1", "file_missing_2", "file1", "file2")));
@@ -157,7 +157,7 @@ public class RepositoryManagementServiceInternalImplTest {
     }
 
     @Test
-    public void testCommitResolution_exceptionThrown() throws UserNotFoundException, ServiceLayerException {
+    public void testCommitResolutionExceptionThrown() throws UserNotFoundException, ServiceLayerException {
         when(status.hasUncommittedChanges()).thenReturn(true);
         when(securityService.getCurrentUser()).thenReturn("not_exist_user");
         when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
