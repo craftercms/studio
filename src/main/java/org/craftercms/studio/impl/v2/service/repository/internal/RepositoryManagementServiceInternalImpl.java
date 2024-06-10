@@ -71,6 +71,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -786,37 +787,25 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean commitResolution(String siteId, String commitMessage)
             throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
-        logger.debug("Commit after resolving the merge conflicts in site '{}'", siteId);
+        logger.trace("Commit after resolving the merge conflicts in site '{}'", siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             StatusCommand statusCommand = git.status();
             Status status = retryingRepositoryOperationFacade.call(statusCommand);
+            if (!status.hasUncommittedChanges()) {
+                logger.trace("Git repository is clean. No uncommited files in site '{}'.", siteId);
+                return true;
+            }
 
-            logger.trace("Add all uncommitted files in site '{}'", siteId);
-            AddCommand addCommand = git.add();
-            for (String uncommitted : status.getUncommittedChanges()) {
-                addCommand.addFilepattern(uncommitted);
-            }
-            retryingRepositoryOperationFacade.call(addCommand);
-            logger.trace("Commit the changes in site '{}'", siteId);
-            CommitCommand commitCommand = git.commit();
-            String userName = securityService.getCurrentUser();
-            User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
-            PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
-            String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
-            String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+            Set<String> missingFiles = status.getMissing();
+            gitRemove(git, siteId, missingFiles);
 
-            StringBuilder sbMessage = new StringBuilder();
-            if (isNotEmpty(prologue)) {
-                sbMessage.append(prologue).append("\n\n");
-            }
-            sbMessage.append(commitMessage);
-            if (isNotEmpty(postscript)) {
-                sbMessage.append("\n\n").append(postscript);
-            }
-            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString());
-            retryingRepositoryOperationFacade.call(commitCommand);
+            Set<String> uncommittedChanges = status.getUncommittedChanges();
+            uncommittedChanges.removeAll(missingFiles);
+            gitAdd(git, siteId, uncommittedChanges);
+
+            gitCommit(git, siteId, commitMessage);
             return true;
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
             logger.error("Failed to commit the conflict resolution in site '{}'", siteId, e);
@@ -825,6 +814,76 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } finally {
             generalLockService.unlock(gitLockKey);
         }
+    }
+
+    /**
+     * Git operation to remove all missing files
+     * @param git the git client
+     * @param siteId the site identifier
+     * @param files set of files to remove
+     * @throws GitAPIException
+     */
+    protected void gitRemove(Git git, String siteId, Set<String> files) throws GitAPIException {
+        if (isEmpty(files)) {
+            return;
+        }
+
+        logger.trace("Remove all missing files in site '{}'", siteId);
+        RmCommand rmCommand = git.rm();
+        for (String missingFile : files) {
+            rmCommand.addFilepattern(missingFile);
+        }
+        retryingRepositoryOperationFacade.call(rmCommand);
+    }
+
+    /**
+     * Git operation to add all modified files
+     * @param git the git client
+     * @param siteId the site identifier
+     * @param files set of files to add
+     * @throws GitAPIException
+     */
+    protected void gitAdd(Git git, String siteId, Set<String> files) throws GitAPIException {
+        if (isEmpty(files)) {
+            return;
+        }
+
+        logger.trace("Add all uncommitted files in site '{}'", siteId);
+        AddCommand addCommand = git.add();
+        for (String file : files) {
+            addCommand.addFilepattern(file);
+        }
+        retryingRepositoryOperationFacade.call(addCommand);
+    }
+
+    /**
+     * Git operation to commit all pending changes
+     * @param git the git client
+     * @param siteId the site identifier
+     * @param commitMessage commit message
+     * @throws UserNotFoundException
+     * @throws ServiceLayerException
+     * @throws GitAPIException
+     */
+    protected void gitCommit(Git git, String siteId, String commitMessage) throws UserNotFoundException, ServiceLayerException, GitAPIException {
+        logger.trace("Commit the changes in site '{}'", siteId);
+        CommitCommand commitCommand = git.commit();
+        String userName = securityService.getCurrentUser();
+        User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
+        PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
+        String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+        String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+
+        StringBuilder sbMessage = new StringBuilder();
+        if (isNotEmpty(prologue)) {
+            sbMessage.append(prologue).append("\n\n");
+        }
+        sbMessage.append(commitMessage);
+        if (isNotEmpty(postscript)) {
+            sbMessage.append("\n\n").append(postscript);
+        }
+        commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString());
+        retryingRepositoryOperationFacade.call(commitCommand);
     }
 
     @Override
