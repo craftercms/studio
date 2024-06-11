@@ -70,6 +70,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.PUBLISH_ALL;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 /**
@@ -741,6 +742,19 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     public <T extends PublishItemTO> PublishChangeSet<T> publishAll(final PublishPackage publishPackage,
                                                                     final String publishingTarget,
                                                                     final Collection<T> publishItems) throws ServiceLayerException {
+        return publishInternal(publishPackage, publishingTarget, publishItems);
+    }
+
+    @Override
+    public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
+                                                                 final String publishingTarget,
+                                                                 final Collection<T> publishItems) throws ServiceLayerException {
+        return publishInternal(publishPackage, publishingTarget, publishItems);
+    }
+
+    private <T extends PublishItemTO> PublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
+                                                                     final String publishingTarget,
+                                                                     final Collection<T> publishItems) throws ServiceLayerException {
         List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
         List<T> blobFailedItems = new LinkedList<>();
         // TODO: update progress -> here we would say there are N blobstores
@@ -763,9 +777,9 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             }
         }
 
-        // If there are no errors, just ask the repo to publish all. Otherwise pass the list of successful items
-        PublishChangeSet<T> committedChangeset = null;
-        if (isEmpty(blobFailedItems)) {
+        // If there are no errors and package is publish-all, just ask the repo to publish all. Otherwise pass the list of successful items
+        PublishChangeSet<T> committedChangeset;
+        if (isEmpty(blobFailedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
             // TODO: Create another publish-all method for git repos that won't require the list of items
             committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, publishItems);
         } else {
@@ -775,11 +789,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
         return new PublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems(),
                 union(blobFailedItems, committedChangeset.failedItems()));
-    }
-
-    @Override
-    public <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage, String publishingTarget, Collection<T> publishItems) throws ServiceLayerException {
-        return localRepositoryV2.publish(publishPackage, publishingTarget, publishItems);
     }
 
     @Override

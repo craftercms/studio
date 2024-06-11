@@ -1501,14 +1501,15 @@ public class GitRepositoryHelper implements DisposableBean {
      *
      * @param repo           the repository
      * @param paths          the paths to update
+     * @param deletedPaths   the paths to delete from the tree
      * @param commitId       the commit id to get the new file versions from
      * @param parentCommitId the commit to read the initial tree from
      * @return the new tree id
      * @throws IOException
      * @throws InterruptedException
      */
-    public String writeTree(final Repository repo, final List<String> paths, final String commitId,
-                            final ObjectId parentCommitId) throws IOException, InterruptedException {
-        return gitCli.writeTree(repo.getDirectory(), paths, commitId, parentCommitId);
+    public String writeTree(final Repository repo, final List<String> paths, final List<String> deletedPaths,
+                            final String commitId, final ObjectId parentCommitId) throws IOException, InterruptedException {
+        return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths, commitId, parentCommitId);
     }
 }

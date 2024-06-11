@@ -38,6 +38,8 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem.Action;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
@@ -80,18 +82,21 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -386,7 +391,7 @@ public class GitContentRepository implements ContentRepository {
                             revCommit.getId().getName());
                     break;
                 case DELETE:
-                    repoOperation = new RepoOperation(DELETE, pathOld, commitTime, null,
+                    repoOperation = new RepoOperation(RepoOperation.Action.DELETE, pathOld, commitTime, null,
                             revCommit.getId().getName());
                     break;
                 case RENAME:
@@ -566,11 +571,11 @@ public class GitContentRepository implements ContentRepository {
                 List<String> dirs = dirStream.filter(x -> !x.equals(toDelete))
                                              .filter(Files::isDirectory)
                                              .map(y -> y.getFileName().toString())
-                                             .collect(Collectors.toList());
+                                             .collect(toList());
                 List<String> files = fileStream.filter(x -> !x.equals(toDelete))
                                                .filter(Files::isRegularFile)
                                                .map(y -> y.getFileName().toString())
-                                               .collect(Collectors.toList());
+                                               .collect(toList());
                 if (wasPage ||
                         (CollectionUtils.isEmpty(dirs) &&
                                 (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
@@ -1333,7 +1338,10 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage, String publishingTarget, Collection<T> publishItems) throws ServiceLayerException {
+    @LogExecutionTime
+    public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
+                                                                 final String publishingTarget,
+                                                                 final Collection<T> publishItems) throws ServiceLayerException {
         String siteId = publishPackage.getSite().getSiteId();
         logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
                 siteId, publishPackage.getId(), publishingTarget);
@@ -1352,11 +1360,17 @@ public class GitContentRepository implements ContentRepository {
             User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
             ObjectId publishedLastCommitId = repo.resolve(publishingTarget);
 
+            // Get affected paths, translate to git paths, group by action
+            Map<Action, List<String>> pathsByAction = publishItems.stream()
+                    .collect(groupingBy(PublishItemTO::getAction,
+                            mapping(((Function<String, String>) helper::getGitPath).compose(PublishItemTO::getPath), toList())));
+
             // git read-tree target_branch
             // git ls-tree commit_id list_of_paths | git update-index --index-info
             // git write-tree
             String newTreeId = helper.writeTree(repo,
-                    publishItems.stream().map(PublishItemTO::getPath).map(helper::getGitPath).toList(),
+                    pathsByAction.get(ADD),
+                    pathsByAction.get(DELETE),
                     publishPackage.getCommitId(),
                     publishedLastCommitId);
             // git commit-tree

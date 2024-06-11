@@ -44,6 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 import static org.apache.commons.lang3.StringUtils.trim;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TMP_FILE_SUFFIX;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
@@ -66,6 +67,12 @@ public class GitCli {
     private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 minutes
     private static final int DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT = 30;
     private static final int PATHS_BATCH_SIZE = 10;
+
+    /**
+     * The first 0 means to remove the path; the SHA-1 does not matter as long as it is well formatted. Then a tab followed by the path.
+     * <a href="https://git-scm.com/docs/git-update-index#_using_index_info">See git docs</a>
+     */
+    private static final String DELETE_INDEX_INFO_FORMAT = "0 0000000000000000000000000000000000000000\t%s\n";
 
     // Exception resolvers
     public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
@@ -313,27 +320,30 @@ public class GitCli {
      *
      * @param directory      the repository directory
      * @param paths          the paths to write to the tree
+     * @param deletedPaths   the paths to delete from the tree
      * @param commitId       the commit id to get the new versions from
      * @param parentCommitId the parent to read initial tree from
      * @return the new tree id
      * @throws IOException
      * @throws InterruptedException
      */
-    public String writeTree(final File directory, final List<String> paths, final String commitId, final ObjectId parentCommitId)
+    public String writeTree(final File directory, final List<String> paths, final List<String> deletedPaths, final String commitId, final ObjectId parentCommitId)
             throws IOException, InterruptedException {
         // git read-tree target_branch
         GitCommandLine readTreeCl = new GitCommandLine("read-tree", parentCommitId.getName());
         executeGitCommand(directory.getAbsolutePath(), readTreeCl);
         final Path indexInfoTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
         try {
+            for (String deletedPath : emptyIfNull(deletedPaths)) {
+                Files.writeString(indexInfoTempFile, format(DELETE_INDEX_INFO_FORMAT, deletedPath), StandardOpenOption.APPEND);
+            }
             // In batches, call git ls-tree and create index info file
-            for (List<String> pathsBatch : ListUtils.partition(paths, PATHS_BATCH_SIZE)) {
+            for (List<String> pathsBatch : ListUtils.partition(emptyIfNull(paths), PATHS_BATCH_SIZE)) {
                 GitCommandLine lsTreeCl = new GitCommandLine("ls-tree", commitId);
                 pathsBatch.forEach(lsTreeCl::addParam);
                 String lsTreeOutput = executeGitCommand(directory.getAbsolutePath(), lsTreeCl);
                 Files.write(indexInfoTempFile, lsTreeOutput.getBytes(), StandardOpenOption.APPEND);
             }
-
             // Update index with correct version of published files
             GitCommandLine updateIndexCl = new GitCommandLine("update-index", "--index-info");
             executeGitCommand(directory.getAbsolutePath(), updateIndexCl, indexInfoTempFile.toRealPath().toFile());

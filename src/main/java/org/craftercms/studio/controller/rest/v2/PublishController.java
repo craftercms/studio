@@ -236,11 +236,11 @@ public class PublishController {
         if (request.isRequestApproval()) {
             return publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(),
                     request.getPaths(), request.getCommitIds(), request.getSchedule(),
-                    request.getComment(), true);
+                    request.getComment(), request.isPublishAll());
         }
         return publishService.publish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
                 request.getCommitIds(), request.getSchedule(),
-                request.getComment(), true);
+                request.getComment(), request.isPublishAll());
     }
 
 }
