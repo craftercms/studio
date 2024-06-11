@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -96,23 +97,23 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean contentExists(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public boolean contentExists(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return contentServiceInternal.contentExists(siteId, path);
     }
 
     @Override
-    public boolean shallowContentExists(String site, String path) throws SiteNotFoundException {
-        siteService.checkSiteExists(site);
+    @RequireSiteExists
+    public boolean shallowContentExists(@SiteId String site, String path) throws SiteNotFoundException {
         return contentServiceInternal.shallowContentExists(site, path);
     }
 
     @Override
+    @RequireSiteExists
     // TODO: JM: Should we have a "is member of site" validation here?
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
     }
 
@@ -134,7 +135,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
         List<String> childItems = new ArrayList<>();
         childItems.addAll(subtreeItems);
@@ -211,7 +211,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                                String keyword, List<String> systemTypes, List<String> excludes,
                                                String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
                                                         sortStrategy, order, offset, limit);
     }
@@ -223,7 +222,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                                            Map<String, PathParams> pathParams)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         return contentServiceInternal.getChildrenByPaths(siteId, paths, pathParams);
     }
 
@@ -233,8 +231,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public Item getItem(@SiteId String siteId,
                         @ProtectedResourceId(PATH_RESOURCE_ID)  String path, boolean flatten)
             throws SiteNotFoundException, ContentNotFoundException {
-        siteService.checkSiteExists(siteId);
-
         try {
             return contentServiceInternal.getItem(siteId, path, flatten);
         } catch (PathNotFoundException e) {
@@ -249,8 +245,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public Document getItemDescriptor(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
             throws SiteNotFoundException, ContentNotFoundException {
-        siteService.checkSiteExists(siteId);
-
         try {
             Item item = contentServiceInternal.getItem(siteId, path, flatten);
             Document descriptor = item.getDescriptorDom();
@@ -270,7 +264,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public DetailedItem getItemByPath(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         contentServiceV1.checkContentExists(siteId, path);
         return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
@@ -282,7 +275,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                                    @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                                    boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, preferContent);
     }
 
@@ -292,7 +284,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void lockContent(@SiteId String siteId,
                             @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws UserNotFoundException, ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         generalLockService.lockContentItem(siteId, path);
         try {
             var item = itemServiceInternal.getItem(siteId, path);
@@ -322,7 +313,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void unlockContent(@SiteId String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
         generalLockService.lockContentItem(siteId, path);
         try {
@@ -376,7 +366,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         contentServiceV1.checkContentExists(siteId, path);
         return contentServiceInternal.getContentVersionHistory(siteId, path);
     }

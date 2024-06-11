@@ -26,12 +26,10 @@ import org.craftercms.commons.config.profiles.aws.S3Profile;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
@@ -82,11 +80,6 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      */
     protected String urlPattern;
 
-    /**
-     * Instance of {@link SiteService}
-     */
-    protected SiteService siteService;
-
     @Required
     public void setClientFactory(S3ClientCachingFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -122,7 +115,6 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                              @ValidateStringParam String filename,
                              InputStream content) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
-        siteService.checkSiteExists(siteId);
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
@@ -145,7 +137,6 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                                   @ValidateStringParam String path,
                                   @ValidateStringParam String type) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
-        siteService.checkSiteExists(siteId);
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();
@@ -196,10 +187,6 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         } else {
             return stripStart(appendIfMissing(prefix, delimiter), delimiter);
         }
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
     }
 
 }

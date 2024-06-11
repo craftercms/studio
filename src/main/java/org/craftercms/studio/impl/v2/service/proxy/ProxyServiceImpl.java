@@ -18,8 +18,6 @@ package org.craftercms.studio.impl.v2.service.proxy;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
@@ -41,13 +39,10 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
  */
 public class ProxyServiceImpl implements ProxyService {
 
-    protected final SiteService siteService;
-
     protected final ProxyService proxyServiceInternal;
 
-    @ConstructorProperties({"siteService", "proxyServiceInternal"})
-    public ProxyServiceImpl(final SiteService siteService, final ProxyService proxyServiceInternal) {
-        this.siteService = siteService;
+    @ConstructorProperties({"proxyServiceInternal"})
+    public ProxyServiceImpl(final ProxyService proxyServiceInternal) {
         this.proxyServiceInternal = proxyServiceInternal;
     }
 
@@ -65,8 +60,6 @@ public class ProxyServiceImpl implements ProxyService {
     @RequireSiteReady
     public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @SiteId final String siteId,
                                               final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
-
         return proxyServiceInternal.proxyEngine(body, siteId, request);
     }
 }

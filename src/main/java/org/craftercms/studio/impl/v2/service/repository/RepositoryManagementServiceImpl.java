@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableExcep
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
@@ -65,10 +66,10 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_ADD_REMOTE)
     public boolean addRemote(@SiteId String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
-        siteService.checkSiteExists(siteId);
         boolean toRet = repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
         insertAddRemoteAuditLog(siteId, OPERATION_ADD_REMOTE, remoteRepository.getRemoteName(),
                 remoteRepository.getRemoteName());
@@ -98,12 +99,12 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PULL_FROM_REMOTE)
     public MergeResult pullFromRemote(@SiteId String siteId, String remoteName,
                                       String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-        siteService.checkSiteExists(siteId);
         MergeResult mergeResult = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
                 mergeStrategy);
         insertAddRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
@@ -117,12 +118,12 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUSH_TO_REMOTE)
     public boolean pushToRemote(@SiteId String siteId, String remoteName,
                                 String remoteBranch, boolean force)
             throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-        siteService.checkSiteExists(siteId);
         boolean toRet = repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
         insertAddRemoteAuditLog(siteId, OPERATION_PUSH_TO_REMOTE, remoteName + "/" + remoteBranch,
                 remoteName + "/" + remoteBranch);
@@ -130,36 +131,36 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_REBUILD_DATABASE)
     public void rebuildDatabase(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         siteService.rebuildDatabase(siteId);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_REMOTE)
     public boolean removeRemote(@SiteId String siteId, String remoteName)
             throws SiteNotFoundException, RemoteNotRemovableException {
-        siteService.checkSiteExists(siteId);
         boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
         insertAddRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
         return toRet;
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_SITE_STATUS)
     public RepositoryStatus getRepositoryStatus(@SiteId String siteId)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_RESOLVE_CONFLICT)
     public RepositoryStatus resolveConflict(@SiteId String siteId,
                                             @ProtectedResourceId(PATH_RESOURCE_ID) String path, String resolution)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         boolean success = repositoryManagementServiceInternal.resolveConflict(siteId, path, resolution);
         if (success) {
             return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
@@ -168,19 +169,19 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_SITE_DIFF_CONFLICTED_FILE)
     public DiffConflictedFile getDiffForConflictedFile(@SiteId String siteId,
                                                        @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         return repositoryManagementServiceInternal.getDiffForConflictedFile(siteId, path);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_COMMIT_RESOLUTION)
     public RepositoryStatus commitResolution(@SiteId String siteId,
                                              String commitMessage) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         boolean success = repositoryManagementServiceInternal.commitResolution(siteId, commitMessage);
         if (success) {
             return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
@@ -189,10 +190,10 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_FAILED_PULL)
     public RepositoryStatus cancelFailedPull(@SiteId String siteId)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         boolean success = repositoryManagementServiceInternal.cancelFailedPull(siteId);
         if (success) {
             return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
@@ -201,10 +202,10 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UNLOCK_REPO)
     public boolean unlockRepository(@SiteId String siteId,
                                     GitRepositories repositoryType) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
     }
 

@@ -26,12 +26,10 @@ import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundExcept
 import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.slf4j.Logger;
@@ -102,11 +100,6 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      */
     protected String smoothExtension;
 
-    /**
-     * Instance of {@link SiteService}
-     */
-    protected SiteService siteService;
-
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
     }
@@ -169,7 +162,6 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                                           @ValidateStringParam final String outputProfileId,
                                           @ValidateStringParam final String filename,
                                           final InputStream content) throws AwsException, ConfigurationProfileNotFoundException, SiteNotFoundException {
-        siteService.checkSiteExists(site);
         MediaConvertProfile profile = getProfile(site, inputProfileId);
         AmazonS3 s3Client = getS3Client(profile);
         AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);
@@ -269,10 +261,6 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
     protected String createUrl(String profileId, String fullUri) {
         AmazonS3URI uri = new AmazonS3URI(fullUri);
         return format(urlPattern, profileId, uri.getKey());
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
     }
 
 }

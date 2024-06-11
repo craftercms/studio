@@ -21,7 +21,6 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -32,19 +31,15 @@ import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public class DependencyServiceImpl implements DependencyService {
 
     private final DependencyServiceInternal dependencyServiceInternal;
-    private final SiteService siteService;
 
-    @ConstructorProperties({"dependencyServiceInternal", "siteService"})
-    public DependencyServiceImpl(final DependencyServiceInternal dependencyServiceInternal, final SiteService siteService) {
+    @ConstructorProperties({"dependencyServiceInternal"})
+    public DependencyServiceImpl(final DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-        this.siteService = siteService;
     }
 
     @Override
@@ -53,7 +48,6 @@ public class DependencyServiceImpl implements DependencyService {
     public List<String> getSoftDependencies(@SiteId String siteId,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, paths);
         toRet.removeAll(paths);
         return toRet;
@@ -64,7 +58,6 @@ public class DependencyServiceImpl implements DependencyService {
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getDependentItems(@SiteId String siteId,
                                           @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return dependencyServiceInternal.getDependentItems(siteId, paths);
     }
 
@@ -73,7 +66,6 @@ public class DependencyServiceImpl implements DependencyService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getHardDependencies(@SiteId String site,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
-        siteService.checkSiteExists(site);
         return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 }

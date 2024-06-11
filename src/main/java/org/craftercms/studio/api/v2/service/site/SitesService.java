@@ -27,7 +27,29 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 
 import java.util.List;
 
+import static java.lang.String.format;
+
 public interface SitesService {
+
+    /**
+     * Checks if a site exists. If it does not, it throws a {@link SiteNotFoundException}
+     *
+     * @param siteId site ID
+     * @throws SiteNotFoundException if no site is found for the given site ID
+     */
+    default void checkSiteExists(String siteId) throws SiteNotFoundException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException(format("Site '%s' not found.", siteId));
+        }
+    }
+
+    /**
+     * Check if site already exists
+     *
+     * @param siteId site ID
+     * @return true if site exists, false otherwise
+     */
+    boolean exists(String siteId);
 
     /**
      * Get list of available blueprints

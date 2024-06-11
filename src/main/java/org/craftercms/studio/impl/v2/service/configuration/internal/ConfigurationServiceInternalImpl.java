@@ -35,6 +35,8 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
@@ -391,13 +393,13 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     }
 
     @Override
-    public void writeConfiguration(String siteId,
+    @RequireSiteExists
+    public void writeConfiguration(@SiteId String siteId,
                                    String module,
                                    String path,
                                    String environment,
                                    InputStream content)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
         applicationEventPublisher.publishEvent(
@@ -610,12 +612,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     }
 
     @Override
-    public ConfigurationHistory getConfigurationHistory(String siteId,
+    @RequireSiteExists
+    public ConfigurationHistory getConfigurationHistory(@SiteId String siteId,
                                                         String module,
                                                         String path,
                                                         String environment)
             throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
         String configPath;
         if (!isEmpty(environment)) {
             String configBasePath =
@@ -655,8 +657,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
     @Override
     @SuppressWarnings("rawtypes")
-    public TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
+    @RequireSiteExists
+    public TranslationConfiguration getTranslationConfiguration(@SiteId String siteId) throws ServiceLayerException {
         TranslationConfiguration translationConfiguration = new TranslationConfiguration();
         if (contentServiceInternal.contentExists(siteId, translationConfig)) {
             try (InputStream is = contentService.getContent(siteId, translationConfig)) {

@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.policy.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -74,8 +75,6 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
-import org.craftercms.studio.permissions.PermissionResolverImpl;
-import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -1878,8 +1877,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteExists
     public String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException {
-        siteService.checkSiteExists(site);
         List<Item> items = itemServiceInternal.getItems(site, List.of(path), false);
         if (CollectionUtils.isEmpty(items)) {
             return getContentTypeClass(site, path);
@@ -2727,12 +2726,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch)
+    @RequireSiteExists
+    public boolean pushToRemote(@SiteId String siteId, String remoteName, String remoteBranch)
             throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException();
-        }
-
         boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -2748,11 +2744,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch)
+    @RequireSiteExists
+    public boolean pullFromRemote(@SiteId String siteId, String remoteName, String remoteBranch)
             throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
         boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();

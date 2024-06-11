@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
@@ -75,7 +74,6 @@ public class DependencyServiceImpl implements DependencyService {
 
     protected DependencyMapper dependencyMapper;
     protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
     protected ContentService contentService;
     protected DependencyResolver dependencyResolver;
     protected PlatformTransactionManager transactionManager;
@@ -228,13 +226,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public Set<String> getItemSpecificDependencies(String site, String path, int depth)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         // Check if content exists
         if (!contentService.contentExists(site, path)) {
             throw new ContentNotFoundException();
@@ -276,10 +270,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public Set<String> getItemDependencies(String site, String path, int depth)
             throws ServiceLayerException {
-        // Check if site exists
-        siteService.checkSiteExists(site);
         // Check if content exists
         contentService.checkContentExists(site, path);
 
@@ -318,13 +311,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public Set<String> getItemsDependingOn(String site, String path, int depth)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         // Check if content exists
         contentService.checkContentExists(site, path);
 
@@ -363,13 +352,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public Set<String> moveDependencies(String site, String oldPath, String newPath)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         // Check if content exists
         if (!contentService.contentExists(site, newPath)) {
             throw new ContentNotFoundException();
@@ -385,12 +370,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public void deleteItemDependencies(String site, String path)
             throws ServiceLayerException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         logger.debug("Delete dependencies for item site '{}' path '{}'", site, path);
         Map<String, String> params = new HashMap<>();
         params.put(SITE_PARAM, site);
@@ -407,13 +389,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public Set<String> getDeleteDependencies(String site, String path)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(format("Site '%s' not found", site));
-        }
-
         // Check if content exists
         if (!contentService.contentExists(site, path)) {
             throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'",
@@ -428,12 +406,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteExists
     public Set<String> getDeleteDependencies(String site, List<String> paths)
             throws ServiceLayerException {
-        // Check if site exists
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(format("Site '%s' not found", site));
-        }
         StringBuilder sbPaths = new StringBuilder();
         for (String path : paths) {
             // Check if content exists
@@ -659,14 +634,6 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
     }
 
     public ContentService getContentService() {

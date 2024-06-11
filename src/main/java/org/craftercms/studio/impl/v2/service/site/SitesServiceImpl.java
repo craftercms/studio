@@ -88,7 +88,6 @@ public class SitesServiceImpl implements SitesService {
         if (isBlank(name) && isBlank(description)) {
             throw new InvalidParametersException("The request needs to include a name or a description");
         }
-        siteService.checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
     }
 
@@ -100,10 +99,14 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
+    public boolean exists(String siteId) {
+        return sitesServiceInternal.exists(siteId);
+    }
+
+    @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
     public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
         PublishingProgressObserver publishingProgressObserver =
                 publishingProgressServiceInternal.getPublishingProgress(siteId);
@@ -121,7 +124,6 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
     public void clearPublishingLock(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 
@@ -136,7 +138,6 @@ public class SitesServiceImpl implements SitesService {
             PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
     public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException {
-        siteService.checkSiteExists(sourceSiteId);
         if (siteService.exists(siteId)) {
             throw new SiteAlreadyExistsException(siteId);
         }

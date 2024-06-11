@@ -33,7 +33,6 @@ import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 /**
@@ -45,13 +44,11 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class ClipboardServiceImpl implements ClipboardService {
 
     protected final ClipboardServiceInternal clipboardServiceInternal;
-    protected final SiteService siteService;
     protected ContentService contentService;
 
-    @ConstructorProperties({"clipboardServiceInternal", "siteService", "contentService"})
-    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, SiteService siteService, ContentService contentService) {
+    @ConstructorProperties({"clipboardServiceInternal", "contentService"})
+    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, ContentService contentService) {
         this.clipboardServiceInternal = clipboardServiceInternal;
-        this.siteService = siteService;
         this.contentService = contentService;
     }
 
@@ -62,7 +59,6 @@ public class ClipboardServiceImpl implements ClipboardService {
                                    Operation operation,
                                    @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
                                    PasteItem item) throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
     }
 
@@ -73,7 +69,6 @@ public class ClipboardServiceImpl implements ClipboardService {
                                 @ProtectedResourceId(PATH_RESOURCE_ID)
                                 String path)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         contentService.checkContentExists(siteId, path);
         return clipboardServiceInternal.duplicateItem(siteId, path);
     }
