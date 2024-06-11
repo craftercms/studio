@@ -20,7 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -52,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -511,24 +509,43 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     /**
      * Routes the request to the appropriate method based on the site's publishing repo status.
      */
-    private long routePackageSubmission(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
-                                        final List<String> commitIds, final Instant schedule, final String comment,
+    private long routePackageSubmission(final String siteId, final String publishingTarget,
+                                        final List<PublishRequestPath> paths, final List<String> commitIds,
+                                        final Instant schedule, final String comment,
                                         final boolean requestApproval, final boolean publishAll)
             throws ServiceLayerException, AuthenticationException {
         Site site = siteService.getSite(siteId);
-        if (!site.isSitePublishedRepoCreated()) {
-            return new InitialPublishPackageBuilder(site, publishingTarget, requestApproval, comment).build();
-        }
-
-        if (publishAll) {
-            if (schedule != null) {
-                throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
+        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPullOrSubmitPublishingLockKey(site.getSiteId());
+        acquirePublishLock(lockKey);
+        try {
+            if (!site.isSitePublishedRepoCreated()) {
+                return buildInitialPublishPackage(site, publishingTarget, requestApproval, comment);
             }
-            return new PublishAllPackageBuilder(site, publishingTarget, requestApproval, comment).build();
-        }
 
-        return new ItemListPublishPackageBuilder(site, publishingTarget,
-                paths, commitIds, schedule, comment, requestApproval).build();
+            if (publishAll) {
+                if (schedule != null) {
+                    throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
+                }
+                return buildPublishAllPackage(site, publishingTarget, requestApproval, comment);
+            }
+
+            return buildItemListPackage(site, publishingTarget,
+                    paths, commitIds, requestApproval, schedule, comment);
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    /**
+     * Acquire the lock to prevent concurrent publish requests, or throw an exception if the lock cannot be acquired.
+     *
+     * @throws ServiceLayerException if the lock cannot be acquired
+     */
+    private void acquirePublishLock(final String lockKey) throws ServiceLayerException {
+        boolean lockAcquired = generalLockService.tryLock(lockKey);
+        if (!lockAcquired) {
+            throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
+        }
     }
 
     @Override
@@ -589,204 +606,170 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     /**
-     * Publish package builder.
-     * Encapsulates the logic to build a publish package and its items according to the different parameters
+     * Create a new publish package and populate it with the necessary information.
+     *
+     * @return the newly created publish package
+     * @throws AuthenticationException if unable to find the current user
      */
-    private abstract class PublishPackageBuilder {
-
-        protected final Site site;
-        protected final String target;
-        protected final String lockKey;
-        protected final boolean requestApproval;
-        protected final String comment;
-
-        // TODO: Move the locking outside of this and theses classes singletons
-        private PublishPackageBuilder(final Site site, final String target, final boolean requestApproval, final String comment) {
-            this.site = site;
-            this.target = target;
-            this.requestApproval = requestApproval;
-            this.comment = comment;
-            lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPullOrSubmitPublishingLockKey(site.getSiteId());
-        }
-
-        /**
-         * Create a new publish package and populate it with the necessary information.
-         *
-         * @return the newly created publish package
-         * @throws AuthenticationException if unable to find the current user
-         */
-        protected PublishPackage createPackage() throws AuthenticationException {
-            PublishPackage publishPackage = new PublishPackage();
-            publishPackage.setPackageType(getPackageType());
-            publishPackage.setSiteId(site.getId());
-            publishPackage.setTarget(target);
-            publishPackage.setComment(comment);
-            publishPackage.setSubmitterId(userServiceInternal.getCurrentUser().getId());
-            publishPackage.setCommitId(site.getLastCommitId());
-            publishPackage.setApprovalState(requestApproval ? SUBMITTED : APPROVED);
-            return publishPackage;
-        }
-
-        /**
-         * Get the package type for this builder.
-         */
-        protected abstract PackageType getPackageType();
-
-        /**
-         * Get items to be published.
-         */
-        @NonNull
-        protected Collection<PublishItem> getItems() throws ServiceLayerException, IOException {
-            return emptyList();
-        }
-
-        /**
-         * Template method to build a publish package and its items.
-         *
-         * @return the id of the created package
-         */
-        public long build()
-                throws ServiceLayerException, AuthenticationException {
-            acquireLock();
-
-            try {
-                // Combine list of paths and list of commit changes
-                Collection<PublishItem> publishItems = getItems();
-
-                // Create package
-                PublishPackage publishPackage = createPackage();
-                retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems));
-                auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
-
-                applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : APPROVE));
-                if (!requestApproval) {
-                    notifyPublisher(publishPackage);
-                }
-                return publishPackage.getId();
-            } catch (IOException e) {
-                logger.error("Failed to submit publish package: ", e);
-                throw new ServiceLayerException("Failed to submit publish package", e);
-            } finally {
-                generalLockService.unlock(lockKey);
-            }
-        }
-
-        /**
-         * Notify (if needed) the publisher to process the publish package.
-         *
-         * @param publishPackage the newly created publish package
-         */
-        protected void notifyPublisher(final PublishPackage publishPackage) {
-            applicationContext.publishEvent(new RequestPublishEvent(site.getSiteId(), publishPackage.getId()));
-        }
-
-        /**
-         * Acquire the lock to prevent concurrent publish requests, or throw an exception if the lock cannot be acquired.
-         *
-         * @throws ServiceLayerException if the lock cannot be acquired
-         */
-        private void acquireLock() throws ServiceLayerException {
-            boolean lockAcquired = generalLockService.tryLock(lockKey);
-            if (!lockAcquired) {
-                throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
-            }
-        }
+    protected PublishPackage createPackage(final Site site,
+                                           final String target,
+                                           final PackageType packageType,
+                                           final boolean requestApproval,
+                                           final Instant schedule,
+                                           final String comment) throws AuthenticationException {
+        PublishPackage publishPackage = new PublishPackage();
+        publishPackage.setPackageType(packageType);
+        publishPackage.setSiteId(site.getId());
+        publishPackage.setTarget(target);
+        publishPackage.setSchedule(schedule);
+        publishPackage.setComment(comment);
+        publishPackage.setSubmitterId(userServiceInternal.getCurrentUser().getId());
+        publishPackage.setCommitId(site.getLastCommitId());
+        publishPackage.setApprovalState(requestApproval ? SUBMITTED : APPROVED);
+        return publishPackage;
     }
 
     /**
-     * Publish all package builder.
-     * {@link PublishPackageBuilder} implementation that will create {@link PublishItem}s for each unpublished
-     * path in the site without caring about dependencies.
+     * Template method to build a publish package and its items.
+     *
+     * @return the id of the created package
      */
-    private class PublishAllPackageBuilder extends PublishPackageBuilder {
-
-        public PublishAllPackageBuilder(Site site, String publishingTarget, boolean requestApproval, String comment) throws SiteNotFoundException {
-            super(site, publishingTarget, requestApproval, comment);
-        }
-
-        @Override
-        protected PackageType getPackageType() {
-            return PUBLISH_ALL;
-        }
-
-        @NotNull
-        @Override
-        protected Collection<PublishItem> getItems() throws InvalidParametersException {
-            List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
-                    .map(path -> createPublishItem(site, path, ADD, true))
-                    .toList();
-            if (publishItems.isEmpty()) {
-                throw new InvalidParametersException("Failed to submit publish package: No items to publish");
-            }
-            return publishItems;
-        }
-    }
-
-    /**
-     * Initial publish package builder.
-     */
-    private class InitialPublishPackageBuilder extends PublishPackageBuilder {
-        public InitialPublishPackageBuilder(Site site, String publishingTarget, boolean requestApproval, String comment) throws SiteNotFoundException {
-            super(site, publishingTarget, requestApproval, comment);
-        }
-
-        @Override
-        protected PackageType getPackageType() {
-            return INITIAL_PUBLISH;
-        }
-    }
-
-    /**
-     * Item list publish package builder.
-     * This builder will create {@link PublishItem}s for each path in the list of {@link PublishRequestPath}s and
-     * commit ids, including their hard dependencies.
-     */
-    private class ItemListPublishPackageBuilder extends PublishPackageBuilder {
-        private final Collection<PublishRequestPath> paths;
-        private final Collection<String> commitIds;
-        private final Instant schedule;
-
-        public ItemListPublishPackageBuilder(Site site, String target, List<PublishRequestPath> paths,
-                                             List<String> commitIds, Instant schedule,
-                                             String comment, boolean requestApproval) throws SiteNotFoundException {
-            super(site, target,requestApproval, comment);
-            this.paths = paths;
-            this.commitIds = commitIds;
-            this.schedule = schedule;
-        }
-
-        @Override
-        protected PublishPackage createPackage() throws AuthenticationException {
-            PublishPackage publishPackage = super.createPackage();
-            publishPackage.setSchedule(schedule);
-            return publishPackage;
-        }
-
-        @Override
-        protected PackageType getPackageType() {
-            return ITEM_LIST;
-        }
-
-        @NotNull
-        @Override
-        protected Collection<PublishItem> getItems() throws ServiceLayerException, IOException {
+    protected long buildPublishPackage(final Site site,
+                                    final String target,
+                                    final PackageType packageType,
+                                    final Collection<PublishRequestPath> paths,
+                                    final Collection<String> commitIds,
+                                    final boolean requestApproval,
+                                    final Instant schedule,
+                                    final String comment,
+                                    final GetPublishItems getPublishItemsFunction)
+            throws ServiceLayerException, AuthenticationException {
+        try {
             // Combine list of paths and list of commit changes
-            Map<String, PublishItem> publishItemsByPath = new HashMap<>();
-            createPublishItemsFromCommitIds(site, commitIds, publishItemsByPath);
-            createPublishItemsFromPaths(site, paths, publishItemsByPath);
-            createPublishItemsForHardDeps(site, publishItemsByPath);
+            Collection<PublishItem> publishItems = getPublishItemsFunction.get(site, paths, commitIds);
 
-            if (publishItemsByPath.isEmpty()) {
-                throw new InvalidParametersException("Failed to submit publish package: No items to publish");
-            }
-            return publishItemsByPath.values();
-        }
+            // Create package
+            PublishPackage publishPackage = createPackage(site, target, packageType, requestApproval, schedule, comment);
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems));
+            auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
-        @Override
-        protected void notifyPublisher(PublishPackage publishPackage) {
-            if (schedule == null) {
-                super.notifyPublisher(publishPackage);
+            applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : APPROVE));
+            if (!requestApproval) {
+                notifyPublisher(publishPackage, site);
             }
+            return publishPackage.getId();
+        } catch (IOException e) {
+            logger.error("Failed to submit publish package: ", e);
+            throw new ServiceLayerException("Failed to submit publish package", e);
         }
+    }
+
+    /**
+     * Notify (if needed) the publisher to process the publish package.
+     *
+     * @param publishPackage the newly created publish package
+     * @param site           the site
+     */
+    protected void notifyPublisher(final PublishPackage publishPackage, Site site) {
+        if (publishPackage.getSchedule() == null) {
+            applicationContext.publishEvent(
+                    new RequestPublishEvent(site.getSiteId(), publishPackage.getId()));
+        }
+    }
+
+    /**
+     * Functional interface for a method that creates a collection of {@link PublishItem} objects
+     * for a given request
+     */
+    @FunctionalInterface
+    protected interface GetPublishItems {
+        Collection<PublishItem> get(final Site site,
+                                    final Collection<PublishRequestPath> paths,
+                                    final Collection<String> commitIds)
+                throws ServiceLayerException, IOException;
+    }
+
+    /**
+     * Build an initial publish package for a site.
+     * @param site the site
+     * @param publishingTarget the publishing target
+     * @param requestApproval whether to request approval
+     * @param comment the comment
+     * @return created package id
+     */
+    protected long buildInitialPublishPackage(Site site, String publishingTarget, boolean requestApproval, String comment)
+            throws AuthenticationException, ServiceLayerException {
+        return buildPublishPackage(site, publishingTarget, INITIAL_PUBLISH, emptyList(), emptyList(), requestApproval, null, comment, (s, p, c) -> emptyList());
+    }
+
+    /**
+     * Create a collection of {@link PublishItem} objects for a publish all request.
+     * @param site the site
+     * @param paths the publish paths
+     * @param commitIds the commit ids
+     * @return the collection of publish items
+     */
+    @NotNull
+    protected Collection<PublishItem> getPublishAllItems(Site site, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws InvalidParametersException {
+        List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
+                .map(path -> createPublishItem(site, path, ADD, true))
+                .toList();
+        if (publishItems.isEmpty()) {
+            throw new InvalidParametersException("Failed to submit publish package: No items to publish");
+        }
+        return publishItems;
+    }
+
+    /**
+     * Build a publish all package for a site.
+     *
+     * @param site             the site
+     * @param publishingTarget the publishing target
+     * @param requestApproval  whether to request approval
+     * @param comment          the comment
+     * @return created package id
+     */
+    protected long buildPublishAllPackage(Site site, String publishingTarget, boolean requestApproval, String comment) throws AuthenticationException, ServiceLayerException {
+        return buildPublishPackage(site, publishingTarget, PUBLISH_ALL, emptyList(), emptyList(), requestApproval, null, comment, this::getPublishAllItems);
+    }
+
+    /**
+     * Create a collection of {@link PublishItem} objects for a list package request.
+     *
+     * @param site      the site
+     * @param paths     the publish paths
+     * @param commitIds the commit ids
+     * @return the collection of publish items
+     */
+    @NotNull
+    protected Collection<PublishItem> getItemListPackageItems(final Site site, final Collection<PublishRequestPath> paths,
+                                                              final Collection<String> commitIds) throws ServiceLayerException, IOException {
+        // Combine list of paths and list of commit changes
+        Map<String, PublishItem> publishItemsByPath = new HashMap<>();
+        createPublishItemsFromCommitIds(site, commitIds, publishItemsByPath);
+        createPublishItemsFromPaths(site, paths, publishItemsByPath);
+        createPublishItemsForHardDeps(site, publishItemsByPath);
+
+        if (publishItemsByPath.isEmpty()) {
+            throw new InvalidParametersException("Failed to submit publish package: No items to publish");
+        }
+        return publishItemsByPath.values();
+    }
+
+    /**
+     * Build an item list package for a site.
+     *
+     * @param site            the site
+     * @param target          the publishing target
+     * @param paths           the publish paths
+     * @param commitIds       the commit ids
+     * @param requestApproval whether to request approval
+     * @param schedule        the schedule
+     * @param comment         the comment
+     * @return created package id
+     */
+    protected long buildItemListPackage(Site site, String target, Collection<PublishRequestPath> paths, Collection<String> commitIds, boolean requestApproval, Instant schedule, String comment)
+            throws ServiceLayerException, AuthenticationException {
+        return buildPublishPackage(site, target, ITEM_LIST, paths, commitIds, requestApproval, schedule, comment, this::getItemListPackageItems);
     }
 }
