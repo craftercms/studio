@@ -351,7 +351,8 @@ public interface ContentRepository {
      * @throws ServiceLayerException if there is any error while publishing
      */
     default <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
-                                                                  String publishingTarget,Collection<T> publishItems) throws ServiceLayerException {
+                                                                  String publishingTarget,
+                                                                  Collection<T> publishItems) throws ServiceLayerException {
         // TODO: implement this method
         return null;
     }
