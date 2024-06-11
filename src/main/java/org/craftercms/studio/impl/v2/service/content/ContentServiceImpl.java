@@ -113,7 +113,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @RequireSiteExists
     // TODO: JM: Should we have a "is member of site" validation here?
-    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException {
+    public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws SiteNotFoundException {
         return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
     }
 

@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -212,7 +213,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     @RequireSiteExists
-    public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
+    public String getContentTypeTemplatePath(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
         Document definition = getFormDefinitionDocument(siteId, contentTypeId);
 
         Node templateNode = definition.selectSingleNode(templateXPath);
@@ -226,7 +227,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     @RequireSiteExists
-    public Collection<String> getAllModelDefinitions(String site) throws ServiceLayerException {
+    public Collection<String> getAllModelDefinitions(@SiteId String site) throws ServiceLayerException {
         List<String> modelDefinitions = new LinkedList<>();
 
         Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, site);

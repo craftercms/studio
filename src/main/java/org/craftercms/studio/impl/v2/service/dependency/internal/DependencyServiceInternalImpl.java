@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
@@ -108,7 +109,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     @RequireSiteExists
-    public List<String> getHardDependencies(String site, List<String> paths)
+    public List<String> getHardDependencies(@SiteId String site, List<String> paths)
             throws ServiceLayerException {
         Map<String, String> dependencies = calculateHardDependencies(site, paths);
         return new ArrayList<>(dependencies.keySet());

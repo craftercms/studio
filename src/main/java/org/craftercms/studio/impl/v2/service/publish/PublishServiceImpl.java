@@ -172,7 +172,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @RequireSiteExists
-    public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
+    public List<DeploymentHistoryGroup> getDeploymentHistory(@SiteId String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) throws ServiceLayerException, UserNotFoundException {
         ZonedDateTime toDate = DateUtils.getCurrentTime();
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
