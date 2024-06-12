@@ -20,12 +20,14 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.exception.publish.PublishException;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.craftercms.studio.impl.v2.repository.GitContentRepository;
+import org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -34,13 +36,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.*;
@@ -51,6 +54,7 @@ import static org.testng.Assert.*;
 public class BlobAwareContentRepositoryTest {
 
     public static final String SITE = "test";
+    public static final long SITE_ID = 123;
     public static final String PARENT_PATH = "/static-assets";
     public static final String ORIGINAL_PATH = PARENT_PATH + "/test.txt";
     public static final String LOCAL_FOLDER_PATH = PARENT_PATH + "/local/test";
@@ -78,10 +82,10 @@ public class BlobAwareContentRepositoryTest {
     private BlobAwareContentRepository proxy;
 
     @Mock
-    private org.craftercms.studio.impl.v1.repository.git.GitContentRepository localV1;
+    private org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl localV1;
 
     @Mock
-    private GitContentRepository localRepositoryV2;
+    private GitContentRepositoryImpl localRepositoryV2;
 
     @Mock
     private StudioBlobStore store;
@@ -90,7 +94,13 @@ public class BlobAwareContentRepositoryTest {
     private StudioBlobStoreResolver resolver;
 
     @Captor
-    private ArgumentCaptor<List<DeploymentItemTO>> itemsCaptor;
+    private ArgumentCaptor<List<PublishItemTO>> itemsCaptor;
+
+    @Mock
+    private Site site;
+
+    @Mock
+    private PublishPackage publishPackage;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -100,6 +110,7 @@ public class BlobAwareContentRepositoryTest {
 
         when(resolver.getByPaths(SITE, FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH)).thenReturn(store);
+        when(store.isCompatible(ORIGINAL_PATH)).thenReturn(true);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
@@ -124,11 +135,15 @@ public class BlobAwareContentRepositoryTest {
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
         when(store.getContent(SITE, ORIGINAL_PATH, false)).thenReturn(CONTENT);
         when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
-        when(store.isFolder(SITE, PARENT_PATH)).thenReturn(false);
-        when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
-        when(store.isFolder(SITE,LOCAL_FOLDER_PATH)).thenReturn(true);
 
         proxy.setFileExtension(BLOB_EXT);
+
+        when(site.getSiteId()).thenReturn(SITE);
+        when(site.getId()).thenReturn(SITE_ID);
+
+        when(localRepositoryV2.publish(any(), any(), any())).thenReturn(new GitPublishChangeSet<>(COMMIT_1, emptyList(), emptyList()));
+
+        when(publishPackage.getSite()).thenReturn(site);
     }
 
     @Test
@@ -228,25 +243,6 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void copyFileTest() throws ServiceLayerException {
-        when(store.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(EMPTY);
-        when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
-
-        proxy.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
-
-        verify(store).copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
-        verify(localV1).copyContent(SITE, POINTER_PATH, NEW_POINTER_PATH);
-    }
-
-    @Test
-    public void copyFolderTest() throws ServiceLayerException {
-        proxy.copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
-
-        verify(store).copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
-        verify(localV1).copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
-    }
-
-    @Test
     public void getContentChildrenWithoutRemoteTest() {
         RepositoryItem item = new RepositoryItem();
         item.path = ORIGINAL_PATH;
@@ -281,67 +277,69 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void publishRemoteFileTest() throws PublishException {
-        DeploymentItemTO item = new DeploymentItemTO();
-        item.setSite(SITE);
-        item.setPath(ORIGINAL_PATH);
-        List<DeploymentItemTO> items = singletonList(item);
-        proxy.publish(SITE, EMPTY, items, ENV, USER, COMMENT);
+    public void publishRemoteFileTest() throws ServiceLayerException {
+        PublishItemTO publishItemTO = mock(PublishItemTO.class);
+        when(publishItemTO.getPath()).thenReturn(ORIGINAL_PATH);
+        when(publishItemTO.getAction()).thenReturn(ADD);
+        when(publishItemTO.getError()).thenReturn(null);
 
-        DeploymentItemTO pointerItem = new DeploymentItemTO();
-        pointerItem.setSite(SITE);
-        pointerItem.setPath(POINTER_PATH);
+        when(store.publish(any(), any(), any())).thenReturn(new StudioBlobStore.PublishChangeSet<>(emptyList(), emptyList()));
 
-        verify(store).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
-        assertEquals(itemsCaptor.getValue().get(0), item);
+        List<PublishItemTO> publishItems = singletonList(publishItemTO);
+        proxy.publish(publishPackage, ENV, publishItems);
 
-        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
-        assertEquals(itemsCaptor.getValue().get(0), pointerItem);
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+
+        PublishItemTO capturedPublishItem = itemsCaptor.getValue().get(0);
+        assertEquals(capturedPublishItem.getPath(), ORIGINAL_PATH);
+        assertEquals(capturedPublishItem.getAction(), ADD);
+
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
+        capturedPublishItem = itemsCaptor.getValue().get(0);
+        assertEquals(capturedPublishItem.getPath(), POINTER_PATH);
     }
 
     @Test
-    public void publishLocalFileTest() throws PublishException {
-        DeploymentItemTO item = new DeploymentItemTO();
-        item.setSite(SITE);
-        item.setPath(LOCAL_PATH);
-        List<DeploymentItemTO> items = singletonList(item);
-        proxy.publish(SITE, EMPTY, items, ENV, USER, COMMENT);
+    public void publishLocalFileTest() throws ServiceLayerException {
+        PublishItemTO publishItemTO = mock(PublishItemTO.class);
+        when(publishItemTO.getPath()).thenReturn(LOCAL_PATH);
+        when(publishItemTO.getAction()).thenReturn(ADD);
+        List<PublishItemTO> publishItems = singletonList(publishItemTO);
 
-        DeploymentItemTO pointerItem = new DeploymentItemTO();
-        pointerItem.setSite(SITE);
-        pointerItem.setPath(LOCAL_PATH);
+        proxy.publish(publishPackage, ENV, publishItems);
 
-        verify(store, never()).publish(any(), any(), any(), any(), any(), any());
+        verify(store, never()).publish(any(), any(), any());
 
-        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
-        assertEquals(itemsCaptor.getValue().get(0), pointerItem);
+        verify(localRepositoryV2).publish(any(),eq(ENV), itemsCaptor.capture());
+        PublishItemTO capturedPublishItem = itemsCaptor.getValue().get(0);
+        assertEquals(capturedPublishItem.getPath(), LOCAL_PATH);
+        assertEquals(capturedPublishItem.getAction(), ADD);
     }
 
     @Test
-    public void publishMixFilesTest() throws PublishException {
-        DeploymentItemTO remoteItem = new DeploymentItemTO();
-        remoteItem.setSite(SITE);
-        remoteItem.setPath(ORIGINAL_PATH);
+    public void publishMixFilesTest() throws ServiceLayerException {
 
-        DeploymentItemTO localItem = new DeploymentItemTO();
-        localItem.setSite(SITE);
-        localItem.setPath(LOCAL_PATH);
+        PublishItemTO remoteItem = mock(PublishItemTO.class);
+        when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
+        when(remoteItem.getAction()).thenReturn(ADD);
 
-        DeploymentItemTO pointerItem = new DeploymentItemTO();
-        pointerItem.setSite(SITE);
-        pointerItem.setPath(POINTER_PATH);
+        PublishItemTO localItem = mock(PublishItemTO.class);
+        when(localItem.getPath()).thenReturn(LOCAL_PATH);
+        when(localItem.getAction()).thenReturn(ADD);
 
-        List<DeploymentItemTO> items = Arrays.asList(remoteItem, localItem);
-        proxy.publish(SITE, EMPTY, items, ENV, USER, COMMENT);
+        when(store.publish(any(), any(), any())).thenReturn(new StudioBlobStore.PublishChangeSet<>(emptyList(), emptyList()));
 
-        verify(store).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
-        assertTrue(itemsCaptor.getValue().contains(remoteItem), "remote file should have been published");
+        List<PublishItemTO> items = List.of(remoteItem, localItem);
+        proxy.publish(publishPackage, ENV, items);
 
-        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
-        assertTrue(itemsCaptor.getValue().contains(pointerItem), "pointer file should have been published");
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
 
-        verify(localRepositoryV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
-        assertTrue(itemsCaptor.getValue().contains(localItem), "local file should have been published");
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(POINTER_PATH)), "pointer file should have been published");
+
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(LOCAL_PATH)), "local file should have been published");
     }
 
     @Test

@@ -65,7 +65,7 @@ import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -141,8 +141,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     protected Deployer deployer;
     protected ContentService contentService;
-    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepository;
-    protected ContentRepository contentRepositoryV2;
+    protected org.craftercms.studio.api.v1.repository.GitContentRepository contentRepository;
+    protected GitContentRepository contentRepositoryV2;
     protected DependencyService dependencyService;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -1139,7 +1139,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.contentService = contentService;
     }
 
-    public void setContentRepository(org.craftercms.studio.api.v1.repository.ContentRepository repo) {
+    public void setContentRepository(org.craftercms.studio.api.v1.repository.GitContentRepository repo) {
         contentRepository = repo;
     }
 
@@ -1195,7 +1195,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.configurationServiceInternal = configurationServiceInternal;
     }
 
-    public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
+    public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
 

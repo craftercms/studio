@@ -34,21 +34,17 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem.Action;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
-import org.craftercms.studio.api.v2.exception.publish.PublishException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -97,16 +93,20 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
 
-public class GitContentRepository implements ContentRepository {
+/**
+ * Implementation of the GitContentRepositoryImpl interface.
+ */
+public class GitContentRepositoryImpl implements GitContentRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryImpl.class);
     private static final String REFS_HEADS_FORMAT = "refs/heads/%s";
 
     private GitRepositoryHelper helper;
@@ -118,7 +118,6 @@ public class GitContentRepository implements ContentRepository {
     private ContentStoreService contentStoreService;
     private GeneralLockService generalLockService;
     private SitesService siteService;
-    private ItemServiceInternal itemServiceInternal;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
@@ -455,43 +454,6 @@ public class GitContentRepository implements ContentRepository {
         }
 
         return toReturn;
-    }
-
-    @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) throws PublishException {
-        if (CollectionUtils.isEmpty(deploymentItems)) {
-            return;
-        }
-        String gitLockKey = helper.getPublishedRepoLockKey(site);
-        generalLockService.lock(gitLockKey);
-        try {
-            Repository repo = helper.getRepository(site, PUBLISHED);
-            boolean repoCreated = false;
-            if (Objects.isNull(repo)) {
-                helper.createPublishedRepository(site);
-                repo = helper.getRepository(site, PUBLISHED);
-                repoCreated = Objects.nonNull(repo);
-            }
-            String path;
-            String sandboxBranchName = sandboxBranch;
-            if (isEmpty(sandboxBranchName)) {
-                sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
-            }
-
-            // TODO: implement new publishing system
-
-            if (repoCreated) {
-                siteService.setPublishedRepoCreated(site);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to publish site '{}' to publishing target '{}'",
-                    site, environment, e);
-            throw new PublishException(format("Failed to publish site '%s' to publishing target " +
-                            "'%s'", site, environment), e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
     }
 
     /**
@@ -926,37 +888,6 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public String getLastEditCommitId(String siteId, String path) {
-        String toReturn = EMPTY;
-        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
-        generalLockService.lock(gitLockKey);
-        try {
-            Repository repository = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-            if (repository != null) {
-                ObjectId head = repository.resolve(HEAD);
-                String gitPath = helper.getGitPath(path);
-                try (Git git = new Git(repository)) {
-                    LogCommand logCommand =  git.log().add(head).addPath(gitPath);
-                    Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-                    Iterator<RevCommit> iterator = commits.iterator();
-                    if (iterator.hasNext()) {
-                        RevCommit revCommit = iterator.next();
-                        toReturn = revCommit.getName();
-                    }
-                } catch (IOException | GitAPIException e) {
-                    logger.error("Failed to get the history for content item at site '{}' path '{}'", siteId, path);
-                }
-            }
-        } catch (IOException e) {
-            logger.error("Failed to get the last commit ID in site '{}' path '{}'", siteId, path, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
-        return toReturn;
-    }
-
-    @Override
     @LogExecutionTime
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = new TreeMap<>();
@@ -1280,7 +1211,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public <T extends PublishItemTO> PublishChangeSet<T> publishAll(final PublishPackage publishPackage,
+    public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
                                                                     final String publishingTarget,
                                                                     final Collection<T> publishItems)
             throws ServiceLayerException {
@@ -1309,7 +1240,7 @@ public class GitContentRepository implements ContentRepository {
                     publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
             logger.debug("Published all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
-            return new PublishChangeSet<>(newCommitId, publishItems, emptyList());
+            return new GitPublishChangeSet<>(newCommitId, publishItems, emptyList());
         } catch (GitAPIException | IOException | UserNotFoundException e) {
             logger.error("Failed to publish all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget, e);
@@ -1339,7 +1270,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     @LogExecutionTime
-    public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
+    public <T extends PublishItemTO> GitPublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
                                                                  final Collection<T> publishItems) throws ServiceLayerException {
         String siteId = publishPackage.getSite().getSiteId();
@@ -1377,7 +1308,7 @@ public class GitContentRepository implements ContentRepository {
             String newCommitId = helper.commitTree(repo, newTreeId, publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
             logger.debug("Published all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
-            return new PublishChangeSet<>(newCommitId, publishItems, emptyList());
+            return new GitPublishChangeSet<>(newCommitId, publishItems, emptyList());
         } catch (GitAPIException | IOException | UserNotFoundException | InterruptedException e) {
             logger.error("Failed to publish changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget, e);
@@ -1403,151 +1334,6 @@ public class GitContentRepository implements ContentRepository {
 
         return commitMessage;
     }
-//
-//    @Override
-//    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
-//        // get the published repo
-//        Site site = siteService.getSite(siteId);
-//        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-//        // if the published repo doesn't exist yet, trigger an initial publish
-//        if (repo == null) {
-//            logger.info("Prepare for initial publish in site '{}'", siteId);
-//            initialPublish(siteId);
-//            return new RepositoryChanges(true);
-//        }
-//        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
-//        generalLockService.lock(repoLockKey);
-//        try (Git git = Git.wrap(repo)) {
-//            resetIfNeeded(repo, git);
-//            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-//            // checkout master and pull from sandbox
-//            checkoutBranch(git, site.getSandboxBranch());
-//            retryingRepositoryOperationFacade.call(git.pull()
-//                    .setRemote(DEFAULT_REMOTE_NAME)
-//                    .setStrategy(THEIRS));
-//            // check if the target branch exists,
-//            boolean branchExist = branchExists(repo, publishingTarget);
-//            boolean stagingTarget = publishingTarget.equals(servicesConfig.getStagingEnvironment(siteId));
-//            if (!branchExist && !stagingTarget) {
-//                logger.error("Publishing target '{}' not found in site '{}'", publishingTarget, siteId);
-//                throw new PublishedRepositoryNotFoundException(format("Publishing target '%s' not " +
-//                        "found in site '%s'", publishingTarget, siteId));
-//            }
-//            // checkout target branch
-//            boolean createBranch = !branchExist && stagingTarget;
-//            checkoutBranch(git, publishingTarget, createBranch);
-//
-//            // checkout temp branch
-//            checkoutBranch(git, inProgressBranchName, true);
-//            // delete all files
-//            File[] files = repo.getWorkTree()
-//                    .listFiles((FileFilter) new NotFileFilter(new PrefixFileFilter(DOT_GIT)));
-//            for (File file : files) {
-//                if (file.isDirectory()) {
-//                    FileUtils.deleteDirectory(file);
-//                } else {
-//                    file.delete();
-//                }
-//            }
-//            // checkout all files from master
-//            retryingRepositoryOperationFacade.call(git.checkout()
-//                                                      .setStartPoint(site.getSandboxBranch())
-//                                                      .setAllPaths(true));
-//
-//            Status status = git.status().call();
-//            Set<String> updatedPaths = new HashSet<>();
-//            updatedPaths.addAll(status.getAdded());
-//            updatedPaths.addAll(status.getChanged());
-//            Set<String> deletedPaths = new HashSet<>(status.getMissing());
-//
-//            // remove files from the restricted list
-//            List<String> patterns = studioConfiguration.getList(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX,
-//                    String.class);
-//
-//            Set<String> ignored = union(updatedPaths, deletedPaths).stream()
-//                    .filter(path ->
-//                            RegexUtils.matchesAny(path, patterns))
-//                    .collect(toSet());
-//            if (CollectionUtils.isNotEmpty(ignored)) {
-//                RmCommand rm = git.rm();
-//                ignored.forEach(rm::addFilepattern);
-//                retryingRepositoryOperationFacade.call(rm);
-//
-//                updatedPaths.removeAll(ignored);
-//                deletedPaths.removeAll(ignored);
-//            }
-//
-//            // add deleted files (this is not done automatically by checkout)
-//            if (CollectionUtils.isNotEmpty(deletedPaths)) {
-//                AddCommand add = git.add().setUpdate(true);
-//                deletedPaths.forEach(add::addFilepattern);
-//                retryingRepositoryOperationFacade.call(add);
-//            }
-//
-//            return new RepositoryChanges(updatedPaths, deletedPaths);
-//        } catch (GitAPIException | IOException e) {
-//            throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
-//                    publishingTarget, e);
-//        }
-//    }
-//
-//    @Override
-//    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
-//            throws ServiceLayerException {
-//        if (changes.isInitialPublish()) {
-//            return;
-//        }
-//        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
-//        try {
-//            logger.info("Perform Publish All for site '{}' to target '{}'", siteId, publishingTarget);
-//            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-//            Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-//            try (Git git = Git.wrap(repo)) {
-//                try {
-//                    if (!changes.getFailedPaths().isEmpty()) {
-//                        // Some items failed publish, let's not commit those changes
-//                        ResetCommand resetCommand = git.reset();
-//                        changes.getFailedPaths().forEach(resetCommand::addPath);
-//                        retryingRepositoryOperationFacade.call(resetCommand);
-//
-//                        // Clean repo is needed for new files failures
-//                        retryingRepositoryOperationFacade.call(git.clean().setCleanDirectories(true).setForce(true));
-//                        // Checkout for updates
-//                        retryingRepositoryOperationFacade.call(git.checkout().addPaths(List.copyOf(changes.getFailedPaths())));
-//                    }
-//                    // commit all files
-//                    String commitMessage = StringUtils.isNotEmpty(comment) ? comment : helper.getCommitMessage(REPO_PUBLISH_ALL_COMMIT_MESSAGE);
-//                    retryingRepositoryOperationFacade.call(git.commit()
-//                                                              .setMessage(commitMessage)
-//                                                              .setAllowEmpty(false));
-//                    // checkout target branch
-//                    checkoutBranch(git, publishingTarget);
-//                    // merge from temp branch
-//                    retryingRepositoryOperationFacade.call(git.merge()
-//                                                              .setCommit(true)
-//                                                              .include(repo.findRef(inProgressBranchName)));
-//                } catch (EmptyCommitException e) {
-//                    logger.info("No changes detected in site '{}' for target '{}'", siteId, publishingTarget);
-//
-//                    // checkout target branch
-//                    checkoutBranch(git, publishingTarget);
-//                }
-//
-//                // delete temp branch
-//                retryingRepositoryOperationFacade.call(git.branchDelete()
-//                                                          .setBranchNames(inProgressBranchName));
-//            } catch (GitAPIException | IOException e) {
-//                logger.error("Failed to publish changes from site '{}' to target '{}'", siteId, publishingTarget, e);
-//                throw new ServiceLayerException(format("Failed to publish changes from site '%s' to target '%s'",
-//                        siteId, publishingTarget), e);
-//            }
-//
-//            logger.info("Completed Publish All for site '{}' to target '{}'", siteId, publishingTarget);
-//        } finally {
-//            // unlock the repo in any case
-//            generalLockService.unlock(repoLockKey);
-//        }
-//    }
 
     @Override
     public List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException {
@@ -1730,10 +1516,6 @@ public class GitContentRepository implements ContentRepository {
         this.siteService = siteService;
     }
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
-
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
@@ -1753,5 +1535,4 @@ public class GitContentRepository implements ContentRepository {
     public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
         this.scriptRunnerFactory = scriptRunnerFactory;
     }
-
 }

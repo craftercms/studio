@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.doReturn;
 
-public class GitContentRepositoryTest extends BaseRepositoryTestCase {
+public class GitContentRepositoryImplTest extends BaseRepositoryTestCase {
 
     public static final String SITE_NAME = "site1";
 
@@ -45,7 +45,7 @@ public class GitContentRepositoryTest extends BaseRepositoryTestCase {
     protected StudioConfiguration studioConfiguration;
 
     @InjectMocks
-    GitContentRepository gitContentRepository;
+    GitContentRepositoryImpl gitContentRepository;
 
     @Override
     public void setUp() throws Exception {

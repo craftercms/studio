@@ -62,6 +62,7 @@ import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -130,8 +131,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private static final String COPY_DEP = "{copyDep}";
     private static final String ELM_ORDER_DEFAULT_SELECTOR = "//" + DmXmlConstants.ELM_ORDER_DEFAULT;
 
-    private ContentRepository _contentRepository;
-    private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
+    private org.craftercms.studio.api.v1.repository.GitContentRepository _contentRepository;
+    private GitContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected DependencyService dependencyService;
     protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2;
@@ -2752,7 +2753,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.applicationContext = applicationContext;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(org.craftercms.studio.api.v1.repository.GitContentRepository contentRepository) {
         this._contentRepository = contentRepository;
     }
 
@@ -2812,7 +2813,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
+    public void setContentRepositoryV2(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

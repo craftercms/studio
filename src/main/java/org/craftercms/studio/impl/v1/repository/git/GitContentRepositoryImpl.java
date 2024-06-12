@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -90,9 +90,9 @@ import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.*;
 
-public class GitContentRepository implements ContentRepository, ServletContextAware {
+public class GitContentRepositoryImpl implements GitContentRepository, ServletContextAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryImpl.class);
 
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
@@ -432,44 +432,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             generalLockService.unlock(gitLockKey);
         }
         return toRet;
-    }
-
-    @Override
-    public String copyContent(String site, String fromPath, String toPath) {
-        String commitId = null;
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-        generalLockService.lock(gitLockKey);
-        try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-            Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
-            File sourceFile = sourcePath.toFile();
-            Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
-            File targetFile = targetPath.toFile();
-
-            // Check if we're copying a single file or whole subtree
-            FileUtils.copyDirectory(sourceFile, targetFile);
-
-            // The operation is done on disk, now it's time to commit
-            boolean result = helper.addFiles(repo, site, toPath);
-            if (result) {
-                commitId = helper.commitFiles(repo, site,
-                                                helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
-                                                    .replaceAll(PATTERN_FROM_PATH, fromPath)
-                                                    .replaceAll(PATTERN_TO_PATH, toPath),
-                                                helper.getCurrentUserIdent(),
-                                                fromPath, toPath);
-            } else {
-                logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
-                        site, fromPath, toPath);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
-                    site, fromPath, toPath, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
-        return commitId;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,7 +33,7 @@ import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -83,7 +83,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     private static final Logger logger = LoggerFactory.getLogger(PublishServiceInternalImpl.class);
 
-    private ContentRepository contentRepository;
+    private GitContentRepository contentRepository;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private StudioUtils studioUtils;
 
@@ -553,7 +553,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         this.applicationContext = applicationContext;
     }
 
-    public void setContentRepository(final ContentRepository contentRepository) {
+    public void setContentRepository(final GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

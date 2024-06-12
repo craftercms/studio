@@ -13,23 +13,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.repository.blob;
+
+package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
 
 /**
- * {@link ContentRepository} extension that provides blob aware operations.
+ * Interface for content repositories that support publishing
  */
-public interface StudioBlobAwareContentRepository extends GitContentRepository {
-
+public interface PublishCapableContentRepository {
     /**
-     * Extract every blob from the source site and storeit in the target site in the blob store matching its path
+     * Execute initial publish for given site
      *
-     * @param sourceSiteId the source site
-     * @param siteId       the target site
-     * @throws ServiceLayerException if an error occurs during the operation
+     * @param siteId site identifier
+     * @return commit id of the initial publish.
+     * After this method runs, the returned value is the same as the last
+     * commit in the published repository for both branches(live and staging, if configured)
      */
-    void duplicateBlobs(String sourceSiteId, String siteId) throws ServiceLayerException;
+    String initialPublish(String siteId) throws ServiceLayerException;
 }

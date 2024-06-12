@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -27,7 +28,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -64,7 +65,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 
-    private ContentRepository contentRepository;
+    private GitContentRepository contentRepository;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
@@ -328,7 +329,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         }
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

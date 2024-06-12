@@ -32,7 +32,8 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.ContentRepository.PublishChangeSet;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -77,7 +78,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private ApplicationEventPublisher eventPublisher;
     private final ItemServiceInternal itemServiceInternal;
     private final AuditServiceInternal auditServiceInternal;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
     private final GeneralLockService generalLockService;
     private final ServicesConfig servicesConfig;
     private final ItemTargetDAO itemTargetDAO;
@@ -87,7 +88,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
                      final ItemServiceInternal itemServiceInternal,
                      final AuditServiceInternal auditServiceInternal,
-                     final ContentRepository contentRepository,
+                     final GitContentRepository contentRepository,
                      final GeneralLockService generalLockService,
                      final ServicesConfig servicesConfig,
                      final ItemTargetDAO itemTargetDAO) {
@@ -201,12 +202,12 @@ public class Publisher implements ApplicationEventPublisherAware {
 
         boolean errors = false;
         if (isLiveTarget && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            PublishChangeSet<PublishItemTOImpl> stagingChangeset = targetPublisher.run(publishPackage,
+            GitPublishChangeSet<PublishItemTOImpl> stagingChangeset = targetPublisher.run(publishPackage,
                     servicesConfig.getStagingEnvironment(siteId), publishItems);
             publishPackage.setPublishedStagingCommitId(stagingChangeset.commitId());
             errors |= isNotEmpty(stagingChangeset.failedItems());
         }
-        PublishChangeSet<PublishItemTOImpl> targetChangeset = targetPublisher.run(publishPackage, target, publishItems);
+        GitPublishChangeSet<PublishItemTOImpl> targetChangeset = targetPublisher.run(publishPackage, target, publishItems);
         errors |= isNotEmpty(targetChangeset.failedItems());
 
         if (isLiveTarget) {
@@ -230,7 +231,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * @return the change set resulting from the publish operation
      */
     @NonNull
-    private PublishChangeSet<PublishItemTOImpl> doPublishItemListTarget(final PublishPackage publishPackage,
+    private GitPublishChangeSet<PublishItemTOImpl> doPublishItemListTarget(final PublishPackage publishPackage,
                                                                         final String target, final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
         return doPublishTarget(publishPackage, target, publishItems, contentRepository::publish);
     }
@@ -241,7 +242,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * be called twice, once for the staging target and once for the live target
      */
     @NonNull
-    private PublishChangeSet<PublishItemTOImpl> doPublishTarget(final PublishPackage publishPackage,
+    private GitPublishChangeSet<PublishItemTOImpl> doPublishTarget(final PublishPackage publishPackage,
                                                                 final String target,
                                                                 final Collection<PublishItem> publishItems,
                                                                 final RepoPublishFunction repoPublishFunction)
@@ -264,7 +265,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                 }).flatMap(List::stream)
                 .toList();
 
-        PublishChangeSet<PublishItemTOImpl> publishChangeSet = repoPublishFunction.run(publishPackage, target, publishItemTOs);
+        GitPublishChangeSet<PublishItemTOImpl> publishChangeSet = repoPublishFunction.run(publishPackage, target, publishItemTOs);
 
         Set<PublishItem> failedItems = publishChangeSet.failedItems().stream()
                 .map(PublishItemTOImpl::getPublishItem)
@@ -305,7 +306,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * @return the change set resulting from the publish operation
      */
     @NonNull
-    private PublishChangeSet<PublishItemTOImpl> doPublishAllTarget(final PublishPackage publishPackage,
+    private GitPublishChangeSet<PublishItemTOImpl> doPublishAllTarget(final PublishPackage publishPackage,
                                                                    final String target, final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
         return doPublishTarget(publishPackage, target, publishItems, contentRepository::publishAll);
     }
@@ -315,7 +316,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      */
     @FunctionalInterface
     private interface TargetPublisherFunction {
-        PublishChangeSet<PublishItemTOImpl> run(final PublishPackage publishPackage,
+        GitPublishChangeSet<PublishItemTOImpl> run(final PublishPackage publishPackage,
                                                 final String target,
                                                 final Collection<PublishItem> publishItems)
                 throws ServiceLayerException, IOException;
@@ -326,7 +327,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      */
     @FunctionalInterface
     private interface RepoPublishFunction {
-        PublishChangeSet<PublishItemTOImpl> run(PublishPackage publishPackage,
+        GitPublishChangeSet<PublishItemTOImpl> run(PublishPackage publishPackage,
                                                 String publishingTarget,
                                                 Collection<PublishItemTOImpl> publishItems) throws ServiceLayerException;
     }

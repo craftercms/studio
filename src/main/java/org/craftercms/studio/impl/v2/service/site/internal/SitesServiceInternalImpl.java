@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
@@ -77,7 +77,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
     private final PluginDescriptorReader descriptorReader;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
     private final StudioBlobAwareContentRepository blobAwareRepository;
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
@@ -97,7 +97,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "retryingDatabaseOperationFacade", "siteServiceV1",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
-    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
+    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
                                     StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,

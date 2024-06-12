@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
@@ -48,11 +48,11 @@ public class SitesServiceImpl implements SitesService {
 
     private final SitesService sitesServiceInternal;
     private final PublishingProgressServiceInternal publishingProgressServiceInternal;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
 
     @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository"})
     public SitesServiceImpl(final SitesService sitesServiceInternal, final PublishingProgressServiceInternal publishingProgressServiceInternal,
-                            final ContentRepository contentRepository) {
+                            final GitContentRepository contentRepository) {
         this.sitesServiceInternal = sitesServiceInternal;
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
         this.contentRepository = contentRepository;

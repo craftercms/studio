@@ -37,26 +37,22 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -80,7 +76,9 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
  * @author joseross
  * @since 3.1.6
  */
-public class BlobAwareContentRepository implements ContentRepository, StudioBlobAwareContentRepository {
+public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.repository.GitContentRepository,
+        StudioBlobAwareContentRepository,
+        org.craftercms.studio.api.v2.repository.GitContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(BlobAwareContentRepository.class);
 
@@ -89,9 +87,9 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
      */
     protected String fileExtension;
 
-    protected GitContentRepository localRepositoryV1;
+    protected GitContentRepositoryImpl localRepositoryV1;
 
-    protected org.craftercms.studio.api.v2.repository.ContentRepository localRepositoryV2;
+    protected org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2;
 
     protected StudioBlobStoreResolver blobStoreResolver;
     private ServicesConfig servicesConfig;
@@ -106,11 +104,11 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         this.fileExtension = fileExtension;
     }
 
-    public void setLocalRepositoryV1(GitContentRepository localRepositoryV1) {
+    public void setLocalRepositoryV1(GitContentRepositoryImpl localRepositoryV1) {
         this.localRepositoryV1 = localRepositoryV1;
     }
 
-    public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository localRepositoryV2) {
+    public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2) {
         this.localRepositoryV2 = localRepositoryV2;
     }
 
@@ -344,34 +342,11 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
-        logger.debug("Copy content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
-        try {
-            StudioBlobStore store = getBlobStore(site, fromPath, toPath);
-            if (store != null) {
-                String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
-                if (result != null) {
-                    return localRepositoryV1.copyContent(site, getPointerPath(site, fromPath),
-                            getPointerPath(site, toPath));
-                }
-            }
-            return localRepositoryV1.copyContent(site, fromPath, toPath);
-        } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site '{}', " +
-                    "will copy from '{}' to '{}' in the local repository", site, fromPath, toPath);
-            return localRepositoryV1.copyContent(site, fromPath, toPath);
-        } catch (Exception e) {
-            logger.error("Failed to copy content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
-            return null;
-        }
-    }
-
-    @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
         RepositoryItem[] children = localRepositoryV1.getContentChildren(site, path);
         return Stream.of(children)
                 .peek(item -> item.name = getOriginalPath(item.name))
-                .collect(toList())
+                .toList()
                 .toArray(new RepositoryItem[children.length]);
     }
 
@@ -526,17 +501,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         return localRepositoryV2.deleteSite(siteId);
     }
 
-    protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
-        DeploymentItemTO pointer = new DeploymentItemTO();
-        pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
-        pointer.setSite(item.getSite());
-        pointer.setMove(item.isMove());
-        pointer.setDelete(item.isDelete());
-        pointer.setOldPath(StringUtils.isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
-        pointer.setPackageId(item.getPackageId());
-        return pointer;
-    }
-
     @Override
     public String getRepoLastCommitId(String site) {
         return localRepositoryV1.getRepoLastCommitId(site);
@@ -597,43 +561,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) throws PublishException {
-        logger.debug("Publish the items '{}' in site '{}' to target '{}'", deploymentItems, site, environment);
-        Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
-        MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
-        List<DeploymentItemTO> localItems = new LinkedList<>();
-        try {
-            for (DeploymentItemTO item : deploymentItems) {
-                boolean pointerExists = pointersExist(site, item.getPath()) &&
-                        (StringUtils.isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()));
-                if (pointerExists || item.isDelete() || item.isMove()) {
-                    logger.trace("Look for the blob store for the item at site '{}' path '{}'", site, item);
-                    StudioBlobStore store = getBlobStore(site, item.getPath());
-                    if (store != null) {
-                        stores.putIfAbsent(store.getId(), store);
-                        items.add(store.getId(), item);
-                        localItems.add(mapDeploymentItem(item));
-                        continue;
-                    }
-                }
-                localItems.add(item);
-            }
-            for (String storeId : stores.keySet()) {
-                logger.trace("Publish the blobs in site '{}' to target '{}' using the store '{}'",
-                        site, environment, storeId);
-                stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment);
-            }
-            logger.debug("Publish the local files in site '{}' to target '{}'", site, environment);
-            localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
-        } catch (Exception e) {
-            logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);
-            throw new PublishException(format("Failed to publish items in site '%s' to target '%s'",
-                    site, environment), e);
-        }
-    }
-
-    @Override
     public boolean commitIdExists(String site, String commitId) {
         return localRepositoryV2.commitIdExists(site, commitId);
     }
@@ -689,11 +616,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public String getLastEditCommitId(String siteId, String path) {
-        return localRepositoryV2.getLastEditCommitId(siteId, path);
-    }
-
-    @Override
     @LogExecutionTime
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
@@ -739,20 +661,20 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public <T extends PublishItemTO> PublishChangeSet<T> publishAll(final PublishPackage publishPackage,
-                                                                    final String publishingTarget,
-                                                                    final Collection<T> publishItems) throws ServiceLayerException {
+    public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
+                                                                       final String publishingTarget,
+                                                                       final Collection<T> publishItems) throws ServiceLayerException {
         return publishInternal(publishPackage, publishingTarget, publishItems);
     }
 
     @Override
-    public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
+    public <T extends PublishItemTO> GitPublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
                                                                  final Collection<T> publishItems) throws ServiceLayerException {
         return publishInternal(publishPackage, publishingTarget, publishItems);
     }
 
-    private <T extends PublishItemTO> PublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
+    private <T extends PublishItemTO> GitPublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
                                                                      final String publishingTarget,
                                                                      final Collection<T> publishItems) throws ServiceLayerException {
         List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
@@ -767,8 +689,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             // TODO: update progress -> here we would update current blobstore report saying there are blobStoreItems.size() items
 
             if (!(blobStoreItems.isEmpty())) {
-                // TODO: Create another method specific to blobstores that won't require commitId and comment
-                PublishChangeSet<BlobPublishItemTO<T>> blobStoreResultChangeset = blobStore.publish(publishPackage,
+                StudioBlobStore.PublishChangeSet<BlobPublishItemTO<T>> blobStoreResultChangeset = blobStore.publish(publishPackage,
                         publishingTarget, blobStoreItems);
 
                 blobFailedItems.addAll(blobStoreResultChangeset.failedItems().stream()
@@ -778,7 +699,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         }
 
         // If there are no errors and package is publish-all, just ask the repo to publish all. Otherwise pass the list of successful items
-        PublishChangeSet<T> committedChangeset;
+        GitPublishChangeSet<T> committedChangeset;
         if (isEmpty(blobFailedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
             // TODO: Create another publish-all method for git repos that won't require the list of items
             committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, publishItems);
@@ -787,7 +708,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
         }
 
-        return new PublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems(),
+        return new GitPublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems(),
                 union(blobFailedItems, committedChangeset.failedItems()));
     }
 

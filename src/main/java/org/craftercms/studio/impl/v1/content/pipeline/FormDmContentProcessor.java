@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,7 +31,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -56,9 +56,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
-    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
+    protected org.craftercms.studio.api.v1.repository.GitContentRepository contentRepositoryV1;
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
     /**
@@ -363,7 +363,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         this.servicesConfig = servicesConfig;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
@@ -371,7 +371,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
+    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.GitContentRepository contentRepositoryV1) {
         this.contentRepositoryV1 = contentRepositoryV1;
     }
 

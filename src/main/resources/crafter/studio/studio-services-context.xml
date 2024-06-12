@@ -831,7 +831,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
-    <bean id="gitContentRepository" class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository">
+    <bean id="gitContentRepository" class="org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
@@ -844,7 +844,7 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
-    <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
+    <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
@@ -854,7 +854,6 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="siteService" ref="sitesServiceInternal" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />

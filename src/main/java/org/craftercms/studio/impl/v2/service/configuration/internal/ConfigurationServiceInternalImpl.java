@@ -40,7 +40,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -112,7 +112,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     private ServicesConfig servicesConfig;
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
-    private ContentRepository contentRepository;
+    private GitContentRepository contentRepository;
     private DependencyService dependencyService;
 
     private String translationConfig;
@@ -879,7 +879,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
         this.configurationCache = configurationCache;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

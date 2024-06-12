@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -58,7 +58,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected DependencyMapper dependencyMapper;
     protected StudioConfiguration studioConfiguration;
     protected ContentService contentService;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
     protected ItemDAO itemDao;
@@ -456,7 +456,7 @@ public class DependencyServiceImpl implements DependencyService {
         this.contentService = contentService;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

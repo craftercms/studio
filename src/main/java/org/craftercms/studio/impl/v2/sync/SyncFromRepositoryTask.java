@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -94,7 +94,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final ItemServiceInternal itemServiceInternal;
     private final ContentService contentService;
     private final ConfigurationService configurationService;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
     private ApplicationEventPublisher eventPublisher;
 
@@ -109,7 +109,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                                   StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
-                                  ContentRepository contentRepository, StudioConfiguration studioConfiguration) {
+                                  GitContentRepository contentRepository, StudioConfiguration studioConfiguration) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
