@@ -167,7 +167,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     @RequireSiteExists
-    public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
+    public ImmutablePair<String, Resource> getContentTypePreviewImage(@SiteId String siteId,
                                                                       @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
 
         String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);

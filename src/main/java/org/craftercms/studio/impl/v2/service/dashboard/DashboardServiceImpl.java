@@ -220,7 +220,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @RequireSiteExists
-    public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
+    public ExpiringContentResult getContentExpired(@SiteId String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException, UserNotFoundException {
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiredQuery();

@@ -1878,7 +1878,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteExists
-    public String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException {
+    public String getItemContentType(@SiteId String site, String path) throws DocumentException, SiteNotFoundException {
         List<Item> items = itemServiceInternal.getItems(site, List.of(path), false);
         if (CollectionUtils.isEmpty(items)) {
             return getContentTypeClass(site, path);
