@@ -53,8 +53,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -63,9 +66,9 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.*;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.PUBLISH_ALL;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
@@ -675,41 +678,58 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     private <T extends PublishItemTO> GitPublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
-                                                                     final String publishingTarget,
-                                                                     final Collection<T> publishItems) throws ServiceLayerException {
+                                                                             final String publishingTarget,
+                                                                             final Collection<T> publishItems) throws ServiceLayerException {
         List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
-        List<T> blobFailedItems = new LinkedList<>();
-        // TODO: update progress -> here we would say there are N blobstores
-        for (StudioBlobStore blobStore : blobStores) {
-            // Filter the items that are compatible with the blob store
-            Collection<BlobPublishItemTO<T>> blobStoreItems = publishItems.stream()
-                    .filter(item -> blobStore.isCompatible(item.getPath()))
-                    .map(item -> new BlobPublishItemTO<>(item, getOriginalPath(item.getPath())))
-                    .toList();
-            // TODO: update progress -> here we would update current blobstore report saying there are blobStoreItems.size() items
+        List<T> failedItems = new LinkedList<>();
 
-            if (!(blobStoreItems.isEmpty())) {
-                StudioBlobStore.PublishChangeSet<BlobPublishItemTO<T>> blobStoreResultChangeset = blobStore.publish(publishPackage,
-                        publishingTarget, blobStoreItems);
+        List<BlobAwarePublishItemTOWrapper<T>> gitRepoItems = new LinkedList<>();
+        MultiValueMap<StudioBlobStore, BlobAwarePublishItemTOWrapper<T>> itemsByBlobStore = new LinkedMultiValueMap<>();
 
-                blobFailedItems.addAll(blobStoreResultChangeset.failedItems().stream()
-                        .map(BlobPublishItemTO::getWrappedItem)
-                        .toList());
-            }
+        for (T publishItem : publishItems) {
+            Optional<StudioBlobStore> blobStore = blobStores.stream().filter(store -> store.isCompatible(publishItem.getPath())).findFirst();
+            blobStore.ifPresentOrElse(
+                    store -> itemsByBlobStore.add(store, new BlobAwarePublishItemTOWrapper<>(publishItem, getOriginalPath(publishItem.getPath()))),
+                    () -> gitRepoItems.add(new BlobAwarePublishItemTOWrapper<>(publishItem, publishItem.getPath())));
         }
 
-        // If there are no errors and package is publish-all, just ask the repo to publish all. Otherwise pass the list of successful items
-        GitPublishChangeSet<T> committedChangeset;
-        if (isEmpty(blobFailedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
-            // TODO: Create another publish-all method for git repos that won't require the list of items
-            committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, publishItems);
+        itemsByBlobStore.forEach((blobStore, blobStoreItems) -> {
+            StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
+                    publishingTarget, blobStoreItems);
+
+            failedItems.addAll(storeChangeset.failedItems().stream()
+                    .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
+                    .toList());
+            gitRepoItems.addAll(storeChangeset.successfulItems().stream()
+                    .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
+                    .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
+                    .toList());
+        });
+
+        GitPublishChangeSet<BlobAwarePublishItemTOWrapper<T>> committedChangeset;
+        if (isEmpty(failedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
+            committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, gitRepoItems);
         } else {
-            Collection<T> gitRepoItems = subtract(publishItems, blobFailedItems);
             committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
         }
 
-        return new GitPublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems(),
-                union(blobFailedItems, committedChangeset.failedItems()));
+        return new GitPublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems().stream().map(BlobAwarePublishItemTOWrapper::getWrappedItem).toList(),
+                union(failedItems, committedChangeset.failedItems().stream().map(BlobAwarePublishItemTOWrapper::getWrappedItem).toList()));
+    }
+
+    /**
+     * Gets an asset path and translate it
+     * to the actual file path in git repo.
+     * e.g.:
+     * /static-assets/test/my-image.png
+     * to
+     * static-assets/test/my-image.png.blob
+     *
+     * @param blobPath the asset path
+     * @return the git repo path
+     */
+    protected String getRepoPath(final String blobPath) {
+        return removeStart(appendIfMissing(blobPath, "." + fileExtension), File.separator);
     }
 
     @Override

@@ -26,16 +26,19 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore.PublishChangeSet;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -43,6 +46,7 @@ import java.util.TreeMap;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -61,6 +65,7 @@ public class BlobAwareContentRepositoryTest {
 
     public static final String BLOB_EXT = "blob";
     public static final String POINTER_PATH = ORIGINAL_PATH + "." + BLOB_EXT;
+    public static final String GIT_REPO_PATH = removeStart(ORIGINAL_PATH + "." + BLOB_EXT, "/");
     public static final String FOLDER_PATH = PARENT_PATH + "/folder";
     public static final String NEW_FOLDER_PATH = FOLDER_PATH + "2";
     public static final String NEW_FILE_PATH = FOLDER_PATH + "/test.txt";
@@ -283,7 +288,11 @@ public class BlobAwareContentRepositoryTest {
         when(publishItemTO.getAction()).thenReturn(ADD);
         when(publishItemTO.getError()).thenReturn(null);
 
-        when(store.publish(any(), any(), any())).thenReturn(new StudioBlobStore.PublishChangeSet<>(emptyList(), emptyList()));
+        when(store.publish(any(), any(), any())).then((Answer<PublishChangeSet>) invocationOnMock -> {
+            Collection itemsParam = invocationOnMock.getArgument(2, Collection.class);
+
+            return new PublishChangeSet<>(itemsParam, emptyList());
+        });
 
         List<PublishItemTO> publishItems = singletonList(publishItemTO);
         proxy.publish(publishPackage, ENV, publishItems);
@@ -296,7 +305,7 @@ public class BlobAwareContentRepositoryTest {
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
         capturedPublishItem = itemsCaptor.getValue().get(0);
-        assertEquals(capturedPublishItem.getPath(), POINTER_PATH);
+        assertEquals(capturedPublishItem.getPath(), GIT_REPO_PATH);
     }
 
     @Test
@@ -327,7 +336,11 @@ public class BlobAwareContentRepositoryTest {
         when(localItem.getPath()).thenReturn(LOCAL_PATH);
         when(localItem.getAction()).thenReturn(ADD);
 
-        when(store.publish(any(), any(), any())).thenReturn(new StudioBlobStore.PublishChangeSet<>(emptyList(), emptyList()));
+        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet>) invocationOnMock -> {
+            Collection itemsParam = invocationOnMock.getArgument(2, Collection.class);
+
+            return new PublishChangeSet<>(itemsParam, emptyList());
+        });
 
         List<PublishItemTO> items = List.of(remoteItem, localItem);
         proxy.publish(publishPackage, ENV, items);
@@ -336,7 +349,7 @@ public class BlobAwareContentRepositoryTest {
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
-        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(POINTER_PATH)), "pointer file should have been published");
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(GIT_REPO_PATH)), "pointer file should have been published");
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(LOCAL_PATH)), "local file should have been published");

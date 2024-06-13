@@ -17,22 +17,23 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 
 /**
  * {@link PublishItemTO} implementation that wraps another {@link PublishItemTO}
- * to be passed to a {@link StudioBlobStore} publish operation.
- * Notice that path should be the path in the blob store, not the path in the content repository.
+ * to be passed to a {@link StudioBlobStore} or {@link GitContentRepository} publish operation.
+ * Notice that path should be the path in the underlying repository (i.e.: git repository or blob store), not the logical path in the site.
  *
  * @param <T> the type of the wrapped item
  */
-public class BlobPublishItemTO<T extends PublishItemTO> implements PublishItemTO {
+public class BlobAwarePublishItemTOWrapper<T extends PublishItemTO> implements PublishItemTO {
 
     private final T wrappedItem;
     private final String path;
 
-    public BlobPublishItemTO(final T wrappedItem, final String path) {
+    public BlobAwarePublishItemTOWrapper(final T wrappedItem, final String path) {
         this.wrappedItem = wrappedItem;
         this.path = path;
     }

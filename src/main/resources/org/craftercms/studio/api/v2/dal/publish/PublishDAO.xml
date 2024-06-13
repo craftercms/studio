@@ -185,6 +185,7 @@
     </update>
 
     <select id="getPublishItems" resultMap="PublishItemMap">
+        <!-- TODO: get the old paths from item_target table if record exists (i.e. item is not deleted) -->
         SELECT pi.*, ipi.item_id
         FROM publish_item pi
         LEFT OUTER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
