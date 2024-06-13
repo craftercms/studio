@@ -27,8 +27,9 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -73,7 +74,6 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final ConfigurationService configurationService;
     protected final ItemDAO itemDao;
     protected ContentService contentService;
-    protected final SiteService siteService;
 
     protected final String contentTypeBasePathPattern;
     protected final String contentTypesRootPath;
@@ -87,13 +87,13 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     private final GitRepositoryHelper gitRepositoryHelper;
 
     @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
-            "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
+            "contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
             "contentTypesRootPath",
             "templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
             "gitRepositoryHelper"})
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
-                                          SiteService siteService, String contentTypeBasePathPattern,
+                                          String contentTypeBasePathPattern,
                                           String contentTypeDefinitionFilename, String contentTypeConfigFilename,
                                           String contentTypesRootPath, String templateXPath,
                                           String controllerPattern, String controllerFormat,
@@ -103,7 +103,6 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         this.securityService = securityService;
         this.configurationService = configurationService;
         this.itemDao = itemDao;
-        this.siteService = siteService;
         this.contentTypeBasePathPattern = contentTypeBasePathPattern;
         this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
         this.contentTypeConfigFilename = contentTypeConfigFilename;
@@ -167,7 +166,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     }
 
     @Override
-    public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
+    @RequireSiteExists
+    public ImmutablePair<String, Resource> getContentTypePreviewImage(@SiteId String siteId,
                                                                       @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
 
         String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
@@ -212,7 +212,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     }
 
     @Override
-    public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
+    @RequireSiteExists
+    public String getContentTypeTemplatePath(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
         Document definition = getFormDefinitionDocument(siteId, contentTypeId);
 
         Node templateNode = definition.selectSingleNode(templateXPath);
@@ -225,8 +226,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     }
 
     @Override
-    public Collection<String> getAllModelDefinitions(String site) throws ServiceLayerException {
-        siteService.checkSiteExists(site);
+    @RequireSiteExists
+    public Collection<String> getAllModelDefinitions(@SiteId String site) throws ServiceLayerException {
         List<String> modelDefinitions = new LinkedList<>();
 
         Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, site);
@@ -285,8 +286,6 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
      * @throws ServiceLayerException
      */
     protected Document getFormDefinitionDocument(String siteId, String contentTypeId) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
-
         String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
         Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
 

@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
@@ -73,28 +74,28 @@ public class PublishServiceImpl implements PublishService {
     private UserServiceInternal userServiceInternal;
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public int getPublishingPackagesTotal(@SiteId String siteId, String environment,
                                           String path, List<String> states)
             throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public List<PublishingPackage> getPublishingPackages(@SiteId String siteId,
                                                          String environment, String path, List<String> states,
                                                          int offset, int limit) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public PublishingPackageDetails getPublishingPackageDetails(@SiteId String siteId,
                                                                 String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException {
-        siteService.checkSiteExists(siteId);
         PublishingPackageDetails publishingPackageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
         if (isEmpty(publishingPackageDetails.getItems())) {
             throw new PublishingPackageNotFoundException(siteId, packageId);
@@ -104,10 +105,10 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
     public void cancelPublishingPackages(@SiteId String siteId,
                                          List<String> packageIds) throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         SiteFeed siteFeed = siteService.getSite(siteId);
         String username = securityService.getCurrentUser();
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
@@ -170,9 +171,9 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
+    @RequireSiteExists
+    public List<DeploymentHistoryGroup> getDeploymentHistory(@SiteId String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         ZonedDateTime toDate = DateUtils.getCurrentTime();
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
         List<String> environments = studioUtils.getEnvironmentNames(siteId);
@@ -223,10 +224,10 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public RepositoryChanges publishAll(@SiteId String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
-        siteService.checkSiteExists(siteId);
         if (LIVE_ENVIRONMENT.equals(publishingTarget) && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
             publishServiceInternal.publishAll(siteId, stagingEnvironment, comment);
@@ -269,10 +270,10 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @RequireSiteExists
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(
             @SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         var availablePublishingTargets = new ArrayList<PublishingTarget>();
         var liveTarget = new PublishingTarget();
         liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
@@ -286,9 +287,9 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
         return publishServiceInternal.isSitePublished(siteId);
     }
 

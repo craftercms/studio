@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -42,6 +41,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -655,13 +656,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     @Override
     @Valid
+    @RequireSiteExists
     @HasPermission(type= DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-    public boolean enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam String site, boolean enabled)
+    public boolean enablePublishing(@SiteId @ValidateStringParam String site, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-
         boolean toRet = siteService.enablePublishing(site, enabled);
         String status;
         if (enabled) {
@@ -699,13 +697,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     @Override
     @Valid
-    public void publishCommits(@ValidateStringParam String site,
+    @RequireSiteExists
+    public void publishCommits(@SiteId String site,
                                @ValidateStringParam String environment,
                                List<String> commitIds, @ValidateStringParam String comment)
             throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
         Set<String> environments = getAllPublishedEnvironments(site);
         if (!environments.contains(environment)) {
             throw new EnvironmentNotFoundException();
@@ -820,13 +816,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    public void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
+    @RequireSiteExists
+    public void publishItems(@SiteId String site, String environment, ZonedDateTime schedule, List<String> paths,
                              String submissionComment)
             throws ServiceLayerException, DeploymentException, UserNotFoundException {
-
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
         Set<String> environements = getAllPublishedEnvironments(site);
         if (!environements.contains(environment)) {
             throw new EnvironmentNotFoundException();
@@ -852,10 +845,8 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
+    @RequireSiteExists
+    public void resetStagingEnvironment(@SiteId String siteId) throws ServiceLayerException, CryptoException {
         contentRepository.resetStagingRepository(siteId);
     }
 
