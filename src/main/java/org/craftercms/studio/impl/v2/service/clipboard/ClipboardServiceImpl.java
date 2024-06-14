@@ -20,8 +20,8 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
@@ -44,12 +44,10 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class ClipboardServiceImpl implements ClipboardService {
 
     protected final ClipboardServiceInternal clipboardServiceInternal;
-    protected ContentService contentService;
 
-    @ConstructorProperties({"clipboardServiceInternal", "contentService"})
-    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, ContentService contentService) {
+    @ConstructorProperties({"clipboardServiceInternal"})
+    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal) {
         this.clipboardServiceInternal = clipboardServiceInternal;
-        this.contentService = contentService;
     }
 
     @Override
@@ -63,13 +61,10 @@ public class ClipboardServiceImpl implements ClipboardService {
     }
 
     @Override
-    @RequireSiteReady
+    @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public String duplicateItem(@SiteId String siteId,
-                                @ProtectedResourceId(PATH_RESOURCE_ID)
-                                String path)
+    public String duplicateItem(@SiteId String siteId, @ContentPath String path)
             throws ServiceLayerException, UserNotFoundException {
-        contentService.checkContentExists(siteId, path);
         return clipboardServiceInternal.duplicateItem(siteId, path);
     }
 }

@@ -23,6 +23,8 @@ import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.slf4j.Logger;
@@ -271,12 +273,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    @RequireSiteExists
-    public Set<String> getItemDependencies(@SiteId String site, String path, int depth)
+    @RequireContentExists
+    public Set<String> getItemDependencies(@SiteId String site, @ContentPath String path, int depth)
             throws ServiceLayerException {
-        // Check if content exists
-        contentService.checkContentExists(site, path);
-
         logger.debug("Get item dependencies for site '{}' path '{}'", site, path);
 
         Set<String> toRet = new HashSet<>();
@@ -312,12 +311,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    @RequireSiteExists
-    public Set<String> getItemsDependingOn(@SiteId String site, String path, int depth)
+    @RequireContentExists
+    public Set<String> getItemsDependingOn(@SiteId String site, @ContentPath String path, int depth)
             throws ServiceLayerException {
-        // Check if content exists
-        contentService.checkContentExists(site, path);
-
         logger.debug("Get items depending on item site '{}' path '{}'", site, path);
         Set<String> toRet = new HashSet<>();
         Set<String> paths = new HashSet<>();
