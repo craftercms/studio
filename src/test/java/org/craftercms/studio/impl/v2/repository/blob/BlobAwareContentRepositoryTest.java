@@ -34,6 +34,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -49,7 +50,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.MockitoAnnotations.openMocks;
 import static org.testng.Assert.*;
 
 /**
@@ -76,7 +77,6 @@ public class BlobAwareContentRepositoryTest {
     public static final long SIZE = 42;
     public static final String USER = "John Doe";
     public static final String ENV = "live";
-    public static final String COMMENT = "Going live!";
     public static final String STORE_ID = "BLOB_STORE";
     public static final String LOCAL_PATH = "/site/website/index.xml";
     public static final String CONFIG_PATH = "/config/studio/site-config.xml";
@@ -107,9 +107,16 @@ public class BlobAwareContentRepositoryTest {
     @Mock
     private PublishPackage publishPackage;
 
+    private AutoCloseable mocks;
+
+    @AfterMethod
+    public void tearDown() throws Exception {
+        mocks.close();
+    }
+
     @BeforeMethod
     public void setUp() throws Exception {
-        initMocks(this);
+        mocks = openMocks(this);
 
         when(store.getId()).thenReturn(STORE_ID);
 
@@ -251,7 +258,7 @@ public class BlobAwareContentRepositoryTest {
     public void getContentChildrenWithoutRemoteTest() {
         RepositoryItem item = new RepositoryItem();
         item.path = ORIGINAL_PATH;
-        when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[] { item });
+        when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[]{item});
 
         RepositoryItem[] result = proxy.getContentChildren(SITE, PARENT_PATH);
 
@@ -265,7 +272,7 @@ public class BlobAwareContentRepositoryTest {
         RepositoryItem item = new RepositoryItem();
         item.path = PARENT_PATH;
         item.name = FilenameUtils.getName(POINTER_PATH);
-        when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[] { item });
+        when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[]{item});
 
         RepositoryItem[] result = proxy.getContentChildren(SITE, PARENT_PATH);
 
@@ -282,15 +289,15 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void publishRemoteFileTest() throws ServiceLayerException {
         PublishItemTO publishItemTO = mock(PublishItemTO.class);
         when(publishItemTO.getPath()).thenReturn(ORIGINAL_PATH);
         when(publishItemTO.getAction()).thenReturn(ADD);
         when(publishItemTO.getError()).thenReturn(null);
 
-        when(store.publish(any(), any(), any())).then((Answer<PublishChangeSet>) invocationOnMock -> {
-            Collection itemsParam = invocationOnMock.getArgument(2, Collection.class);
-
+        when(store.publish(any(), any(), any())).then((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+            Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             return new PublishChangeSet<>(itemsParam, emptyList());
         });
 
@@ -319,13 +326,14 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store, never()).publish(any(), any(), any());
 
-        verify(localRepositoryV2).publish(any(),eq(ENV), itemsCaptor.capture());
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
         PublishItemTO capturedPublishItem = itemsCaptor.getValue().get(0);
         assertEquals(capturedPublishItem.getPath(), LOCAL_PATH);
         assertEquals(capturedPublishItem.getAction(), ADD);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void publishMixFilesTest() throws ServiceLayerException {
 
         PublishItemTO remoteItem = mock(PublishItemTO.class);
@@ -336,9 +344,8 @@ public class BlobAwareContentRepositoryTest {
         when(localItem.getPath()).thenReturn(LOCAL_PATH);
         when(localItem.getAction()).thenReturn(ADD);
 
-        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet>) invocationOnMock -> {
-            Collection itemsParam = invocationOnMock.getArgument(2, Collection.class);
-
+        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+            Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             return new PublishChangeSet<>(itemsParam, emptyList());
         });
 
@@ -361,7 +368,7 @@ public class BlobAwareContentRepositoryTest {
         VersionTO version2 = new VersionTO();
 
         when(localV1.getContentVersionHistory(eq(SITE), eq(POINTER_PATH)))
-                .thenReturn(new VersionTO[] { version1, version2 });
+                .thenReturn(new VersionTO[]{version1, version2});
 
         VersionTO[] versions = proxy.getContentVersionHistory(SITE, ORIGINAL_PATH);
 
@@ -394,7 +401,7 @@ public class BlobAwareContentRepositoryTest {
         verify(localRepositoryV2).initialPublish(SITE);
     }
 
-    @Test(expectedExceptions=SiteNotFoundException.class)
+    @Test(expectedExceptions = SiteNotFoundException.class)
     public void blobAwareRepoBubblesUpSiteNotFoundExceptionTest() throws ServiceLayerException {
         String nonExistingSite = "nonExistingSite";
         doThrow(SiteNotFoundException.class).when(localRepositoryV2).initialPublish(nonExistingSite);
