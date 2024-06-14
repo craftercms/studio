@@ -59,7 +59,7 @@ public class RequireSiteExistsAnnotationHandler {
             "execution(@(@RequireSiteExists *) * *(..))")
     public Object requireSiteExists(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
-        String siteId = SiteAnnotationUtils.getSiteId(pjp, method);
+        String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
 
         if (StringUtils.isNotEmpty(siteId)) {
             RequireSiteExists annotation = AnnotationUtils.findAnnotation(method, RequireSiteExists.class);

@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
@@ -58,7 +57,7 @@ public class RequireSiteStateAnnotationHandler {
             "execution(@(@RequireSiteState *) * *(..))")
     public Object checkSiteState(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
-        String siteId = SiteAnnotationUtils.getSiteId(pjp, method);
+        String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
 
         if (StringUtils.isNotEmpty(siteId)) {
             RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);

@@ -82,6 +82,7 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.model.blobstore.BlobStoreDetails;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
@@ -287,22 +288,17 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
 
-                long startGetChangeSetCreatedFilesMark = 0;
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Start change-set calculation for site '{}'", siteName);
-                    startGetChangeSetCreatedFilesMark = System.currentTimeMillis();
-                }
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Finished change-set calculation for site '{}' in '{}' milliseconds",
-                            siteName, (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
-                }
 
                 logger.debug("Add audit log to site '{}'", siteName);
                 insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
 
-                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+                TimeUtils.logExecutionTime(() -> {
+                    processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+                    return null;
+                }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s",
+                        Arrays.asList(siteId, createdFiles, creator, now, lastCommitId)));
 
                 contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
                 updateLastCommitId(siteId, lastCommitId);
@@ -397,7 +393,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now, String lastCommitId) {
-        long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         SiteFeed siteFeed;
         try {
             siteFeed = getSite(siteId);
@@ -485,10 +480,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
             studioDBScriptRunner.execute(createdFileScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-            if (logger.isDebugEnabled()) {
-                logger.debug("ProcessCreatedFiles finished in '{}' milliseconds",
-                        (System.currentTimeMillis() - startProcessCreatedFilesMark));
-            }
         } catch (IOException e) {
             logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
         } finally {
@@ -754,16 +745,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
             String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
-            long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L ;
             Map<String, String> createdFiles =
                     contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Get the change-set of created files finished in '{}' milliseconds",
-                        (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
-            }
 
             insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
-            processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+            TimeUtils.logExecutionTime(() -> {
+                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+                return null;
+            }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s",
+                    Arrays.asList(siteId, createdFiles, creator, now, lastCommitId)));
             contentRepositoryV2.populateGitLog(siteId);
 
             updateLastCommitId(siteId, lastCommitId);

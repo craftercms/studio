@@ -35,9 +35,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
-import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -76,7 +74,6 @@ import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
@@ -260,11 +257,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
-    public DetailedItem getItemByPath(@SiteId String siteId,
-                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
+    public DetailedItem getItemByPath(@SiteId String siteId, @ContentPath String path, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        contentServiceV1.checkContentExists(siteId, path);
         return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
 
@@ -364,9 +360,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
-        contentServiceV1.checkContentExists(siteId, path);
+    public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
         return contentServiceInternal.getContentVersionHistory(siteId, path);
     }
 
