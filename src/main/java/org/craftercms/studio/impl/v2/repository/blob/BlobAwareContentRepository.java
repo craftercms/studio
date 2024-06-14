@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
@@ -756,6 +757,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
+    @LogExecutionTime
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
         Map<String, String> newChangeSet = new TreeMap<>();

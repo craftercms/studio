@@ -17,6 +17,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.model.contentType.ModelDefinitions;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -37,7 +38,9 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping("/api/2/model")
 public class ModelController {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
+
     private final ContentTypeService contentTypeService;
 
     @ConstructorProperties({"contentTypeService"})
@@ -46,16 +49,9 @@ public class ModelController {
     }
 
     @PostMapping("/{siteId}/definitions")
+    @LogExecutionTime
     public ResponseBody getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
         ModelDefinitions result = new ModelDefinitions(contentTypeService.getAllModelDefinitions(siteId));
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("Get all content types for site '{}' took '{}' milliseconds", siteId, System.currentTimeMillis() - startTime);
-        }
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);

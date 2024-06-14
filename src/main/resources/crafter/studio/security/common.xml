@@ -178,6 +178,8 @@
         <constructor-arg name="contentRepository" ref="contentRepository"/>
     </bean>
 
+    <bean id="studio.logExecutionTimeAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.LogExecutionTimeAnnotationHandler" />
+
     <bean id="studio.HasAllPermissionsAnnotationHandler"
           class="org.craftercms.studio.api.v2.security.HasAllPermissionsAnnotationHandler">
         <constructor-arg name="permissionEvaluators">

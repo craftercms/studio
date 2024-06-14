@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
@@ -1418,6 +1419,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
+    @LogExecutionTime
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = new TreeMap<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
