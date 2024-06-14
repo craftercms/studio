@@ -62,11 +62,14 @@ public class BlobAwareContentRepositoryTest {
     public static final long SITE_ID = 123;
     public static final String PARENT_PATH = "/static-assets";
     public static final String ORIGINAL_PATH = PARENT_PATH + "/test.txt";
+    public static final String ORIGINAL_PATH_2 = PARENT_PATH + "/test2.txt";
     public static final String LOCAL_FOLDER_PATH = PARENT_PATH + "/local/test";
 
     public static final String BLOB_EXT = "blob";
     public static final String POINTER_PATH = ORIGINAL_PATH + "." + BLOB_EXT;
     public static final String GIT_REPO_PATH = removeStart(ORIGINAL_PATH + "." + BLOB_EXT, "/");
+    public static final String POINTER_PATH_2 = ORIGINAL_PATH_2 + "." + BLOB_EXT;
+    public static final String GIT_REPO_PATH_2 = removeStart(ORIGINAL_PATH_2 + "." + BLOB_EXT, "/");
     public static final String FOLDER_PATH = PARENT_PATH + "/folder";
     public static final String NEW_FOLDER_PATH = FOLDER_PATH + "2";
     public static final String NEW_FILE_PATH = FOLDER_PATH + "/test.txt";
@@ -115,6 +118,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @BeforeMethod
+    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
         mocks = openMocks(this);
 
@@ -122,7 +126,9 @@ public class BlobAwareContentRepositoryTest {
 
         when(resolver.getByPaths(SITE, FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, ORIGINAL_PATH_2)).thenReturn(store);
         when(store.isCompatible(ORIGINAL_PATH)).thenReturn(true);
+        when(store.isCompatible(ORIGINAL_PATH_2)).thenReturn(true);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
@@ -135,7 +141,9 @@ public class BlobAwareContentRepositoryTest {
 
         when(localV1.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
+        when(localV1.contentExists(SITE, POINTER_PATH_2)).thenReturn(true);
         when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
+        when(localV1.getContent(SITE, POINTER_PATH_2)).thenReturn(POINTER);
         when(localRepositoryV2.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
         Map<String, String> delta = new TreeMap<>();
@@ -153,7 +161,12 @@ public class BlobAwareContentRepositoryTest {
         when(site.getSiteId()).thenReturn(SITE);
         when(site.getId()).thenReturn(SITE_ID);
 
-        when(localRepositoryV2.publish(any(), any(), any())).thenReturn(new GitPublishChangeSet<>(COMMIT_1, emptyList(), emptyList()));
+        when(localRepositoryV2.publish(any(), any(), any())).thenAnswer((Answer<GitPublishChangeSet<PublishItemTO>>) invocation -> {
+            Collection<PublishItemTO> itemsParam = invocation.getArgument(2, Collection.class);
+
+            return new GitPublishChangeSet<>(COMMIT_1, itemsParam, emptyList());
+        });
+
 
         when(publishPackage.getSite()).thenReturn(site);
     }
@@ -335,7 +348,6 @@ public class BlobAwareContentRepositoryTest {
     @Test
     @SuppressWarnings("unchecked")
     public void publishMixFilesTest() throws ServiceLayerException {
-
         PublishItemTO remoteItem = mock(PublishItemTO.class);
         when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
         when(remoteItem.getAction()).thenReturn(ADD);
@@ -358,8 +370,108 @@ public class BlobAwareContentRepositoryTest {
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(GIT_REPO_PATH)), "pointer file should have been published");
 
-        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(LOCAL_PATH)), "local file should have been published");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void failedBlobTest() throws ServiceLayerException {
+        PublishItemTO remoteItem = mock(PublishItemTO.class);
+        when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
+        when(remoteItem.getAction()).thenReturn(ADD);
+
+        PublishItemTO localItem = mock(PublishItemTO.class);
+        when(localItem.getPath()).thenReturn(LOCAL_PATH);
+        when(localItem.getAction()).thenReturn(ADD);
+
+        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+            Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
+            itemsParam.stream().findFirst().ifPresent(i -> i.setError("ERROR"));
+            return new PublishChangeSet<>(emptyList(), itemsParam);
+        });
+
+        List<PublishItemTO> items = List.of(remoteItem, localItem);
+        GitPublishChangeSet<PublishItemTO> resultChangeSet = proxy.publish(publishPackage, ENV, items);
+
+        assertEquals(resultChangeSet.failedItems().size(), 1, "Exactly one failed item was expected");
+        assertEquals(resultChangeSet.successfulItems().size(), 1, "Exactly one successful item was expected");
+
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
+
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().noneMatch(i -> i.getPath().equals(GIT_REPO_PATH)), "pointer file should NOT have been published");
+
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(LOCAL_PATH)), "local file should have been published");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void partiallyFailedBlobsTest() throws ServiceLayerException {
+        PublishItemTO remoteItem = mock(PublishItemTO.class);
+        when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
+        when(remoteItem.getAction()).thenReturn(ADD);
+        PublishItemTO remoteItem2 = mock(PublishItemTO.class);
+        when(remoteItem2.getPath()).thenReturn(ORIGINAL_PATH_2);
+        when(remoteItem2.getAction()).thenReturn(ADD);
+
+        PublishItemTO localItem = mock(PublishItemTO.class);
+        when(localItem.getPath()).thenReturn(LOCAL_PATH);
+        when(localItem.getAction()).thenReturn(ADD);
+
+        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+            Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
+            List<PublishItemTO> failed = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH)).peek(i -> i.setError("ERROR")).toList();
+            List<PublishItemTO> successful = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH_2)).toList();
+            itemsParam.stream().findFirst().ifPresent(i -> i.setError("ERROR"));
+            return new PublishChangeSet<>(successful, failed);
+        });
+
+        List<PublishItemTO> items = List.of(remoteItem, localItem, remoteItem2);
+        GitPublishChangeSet<PublishItemTO> resultChangeSet = proxy.publish(publishPackage, ENV, items);
+
+        assertEquals(resultChangeSet.failedItems().size(), 1, "Exactly one failed item was expected");
+        assertEquals(resultChangeSet.successfulItems().size(), 2, "Exactly two successful item was expected");
+
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertEquals(itemsCaptor.getValue().size(), 2, "Only two blobStore items should have been published");
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
+
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().noneMatch(i -> i.getPath().equals(GIT_REPO_PATH)), "pointer file should NOT have been published");
+
+        verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(GIT_REPO_PATH_2)), "pointer file should have been published");
+
+        assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(LOCAL_PATH)), "local file should have been published");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void allItemsAreBlobsFailed() throws ServiceLayerException {
+        PublishItemTO remoteItem1 = mock(PublishItemTO.class);
+        when(remoteItem1.getPath()).thenReturn(ORIGINAL_PATH);
+        when(remoteItem1.getAction()).thenReturn(ADD);
+        PublishItemTO remoteItem2 = mock(PublishItemTO.class);
+        when(remoteItem2.getPath()).thenReturn(ORIGINAL_PATH_2);
+        when(remoteItem2.getAction()).thenReturn(ADD);
+
+        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+            Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
+            itemsParam.forEach(i -> i.setError("ERROR"));
+            return new PublishChangeSet<>(emptyList(), itemsParam);
+        });
+        when(localRepositoryV2.publish(any(), any(), any())).thenCallRealMethod();
+
+        List<PublishItemTO> items = List.of(remoteItem1, remoteItem2);
+
+        GitPublishChangeSet<PublishItemTO> resultChangeSet = proxy.publish(publishPackage, ENV, items);
+        assertEquals(resultChangeSet.successfulItems().size(), 0, "No successful items were expected");
+        assertEquals(resultChangeSet.failedItems().size(), 2, "Exactly two failed items were expected");
+        assertNull(resultChangeSet.commitId(), "No commit id was expected");
+
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        assertEquals(itemsCaptor.getValue().size(), 2, "Exactly two blobStore items should have been published");
     }
 
     @Test

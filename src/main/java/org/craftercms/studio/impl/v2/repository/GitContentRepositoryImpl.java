@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -85,9 +86,11 @@ import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
@@ -269,7 +272,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                                         logger.debug("Number of diff entries '{}'", diffEntries.size());
                                     }
 
-                                    if (CollectionUtils.isEmpty(diffEntries)) {
+                                    if (isEmpty(diffEntries)) {
                                         ObjectId objCommitIdPrevious = repo.resolve(commitIdTo + "~");
                                         if (Objects.nonNull(objCommitIdPrevious)) {
                                             RevTree previousTree = helper.getTreeForCommit(repo,
@@ -539,8 +542,8 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                                                .map(y -> y.getFileName().toString())
                                                .collect(toList());
                 if (wasPage ||
-                        (CollectionUtils.isEmpty(dirs) &&
-                                (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+                        (isEmpty(dirs) &&
+                                (isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
                     if (CollectionUtils.isNotEmpty(dirs)) {
                         for (String child : dirs) {
                             Path childToDelete = Paths.get(folderToDelete, child);
@@ -804,7 +807,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
 
     @Override
     public boolean isFolder(final String siteId, final String path) {
-        Path p = Paths.get(helper.buildRepoPath(StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX, siteId)
+        Path p = Paths.get(helper.buildRepoPath(isEmpty(siteId) ? GLOBAL : SANDBOX, siteId)
                 .toAbsolutePath().toString(), path);
         File file = p.toFile();
         return file.isDirectory();
@@ -1276,6 +1279,12 @@ public class GitContentRepositoryImpl implements GitContentRepository {
         String siteId = publishPackage.getSite().getSiteId();
         logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
                 siteId, publishPackage.getId(), publishingTarget);
+        if (isEmpty(publishItems)) {
+            logger.warn("No items to publish for site '{}' package '{}' target '{}'",
+                    siteId, publishPackage.getId(), publishingTarget);
+            throw new PublishException(format("No items to publish for site '%s' package '%s' target '%s'",
+                    siteId, publishPackage.getId(), publishingTarget));
+        }
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         if (repo == null) {
             throw new PublishedRepositoryNotFoundException(

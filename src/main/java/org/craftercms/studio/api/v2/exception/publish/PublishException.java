@@ -26,4 +26,8 @@ public class PublishException extends ServiceLayerException {
     public PublishException(String message, Exception e) {
         super(message, e);
     }
+
+    public PublishException(String message) {
+        super(message);
+    }
 }

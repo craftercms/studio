@@ -65,6 +65,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -107,14 +108,17 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
         this.fileExtension = fileExtension;
     }
 
+    @SuppressWarnings("unused")
     public void setLocalRepositoryV1(GitContentRepositoryImpl localRepositoryV1) {
         this.localRepositoryV1 = localRepositoryV1;
     }
 
+    @SuppressWarnings("unused")
     public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2) {
         this.localRepositoryV2 = localRepositoryV2;
     }
 
+    @SuppressWarnings("unused")
     public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
         this.blobStoreResolver = blobStoreResolver;
     }
@@ -145,7 +149,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
             throw new IllegalArgumentException("At least one path needs to be provided");
         }
 
-        return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
+        return blobStoreResolver.getByPaths(site, paths);
     }
 
     protected boolean pointersExist(String siteId, String... paths) {
@@ -705,6 +709,10 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
                     .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
                     .toList());
         });
+
+        if (isEmpty(gitRepoItems)) {
+            return new GitPublishChangeSet<>(null, emptyList(), failedItems);
+        }
 
         GitPublishChangeSet<BlobAwarePublishItemTOWrapper<T>> committedChangeset;
         if (isEmpty(failedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {

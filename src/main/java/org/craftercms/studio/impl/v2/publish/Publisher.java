@@ -217,6 +217,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
 
         Instant now = now();
+        // TODO: handle the case where ALL items failed
         publishPackage.setPackageState(errors ? COMPLETED_WITH_ERRORS : COMPLETED);
         publishPackage.setPublishedOn(now);
         publishDao.updatePackage(publishPackage);

@@ -353,7 +353,7 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      * @param publishItems     the items to publish
      * @param <T>              the type of the {@link PublishItemTO} objects
      * @return the change set listing the affected paths and new commit id
-     * @throws ServiceLayerException if there is any error while publishing
+     * @throws ServiceLayerException if there is any error while publishing or publishItems is null or empty
      */
     <T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
                                                              String publishingTarget,
