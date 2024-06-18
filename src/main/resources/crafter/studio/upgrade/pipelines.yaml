@@ -1096,6 +1096,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.2.xslt
               commitDetails: Change 'Change Content Type' permission to 'change_content_type'
+        - currentVersion: 4.1.2
+          nextVersion: 4.2.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.xslt
+              commitDetails: Remove ~DASHBOARD~ permissions
 
   role-mappings-config:
     module: studio

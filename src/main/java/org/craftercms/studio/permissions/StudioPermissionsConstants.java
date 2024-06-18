@@ -45,6 +45,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_LIST_REMOTES = "list_remotes";
     public static final String PERMISSION_PUBLISH = "publish";
     public static final String PERMISSION_PUBLISH_STATUS = "publish_status";
+    public static final String PERMISSION_PUBLISH_BY_COMMITS = "publish_by_commits";
     public static final String PERMISSION_PUBLISH_CLEAR_LOCK = "publish_clear_lock";
     public static final String PERMISSION_PULL_FROM_REMOTE = "pull_from_remote";
     public static final String PERMISSION_PUSH_TO_REMOTE = "push_to_remote";
