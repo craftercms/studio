@@ -53,12 +53,17 @@ public class BlobAwarePublishItemTOWrapper<T extends PublishItemTO> implements P
     }
 
     @Override
-    public String getError() {
+    public int getError() {
         return wrappedItem.getError();
     }
 
     @Override
-    public void setError(String error) {
-        wrappedItem.setError(error);
+    public void setFailed(int error) {
+        wrappedItem.setFailed(error);
+    }
+
+    @Override
+    public void setCompleted() {
+        wrappedItem.setCompleted();
     }
 }

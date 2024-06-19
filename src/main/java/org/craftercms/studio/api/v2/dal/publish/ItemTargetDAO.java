@@ -17,12 +17,9 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem.State;
 
 import java.time.Instant;
 import java.util.Collection;
-
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.State.PUBLISHED;
 
 /**
  * Provide access to the item_target data.
@@ -48,45 +45,6 @@ public interface ItemTargetDAO {
     Collection<ItemTarget> getByItemPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
     /**
-     * Clear all records for the given item
-     *
-     * @param itemId the item id
-     */
-    void clearForItem(@Param(ITEM_ID) long itemId);
-
-    /**
-     * Clear the record (if exists) for the given item and target
-     *
-     * @param itemId the item id
-     * @param target the target
-     */
-    void clearForItemAndTarget(@Param(ITEM_ID) long itemId, @Param(TARGET) String target);
-
-    /**
-     * Update for successful publish items in the package.
-     * For each successful PublishItem:
-     * - Clear the oldPath
-     * - Set the commitId
-     * - Set the lastPublishedOn date to now
-     *
-     * @param packageId the package id
-     * @param commitId  the target published commit id
-     * @param timestamp the timestamp for published_on date
-     * @param target    the target
-     */
-    default void updateForCompletePackage(final long packageId,
-                                          final String commitId,
-                                          final String target,
-                                          final Instant timestamp) {
-        updateForCompletePackage(packageId,
-                commitId,
-                target,
-                timestamp,
-                PUBLISHED);
-
-    }
-
-    /**
      * Update for successful publish items in the package.
      * For each successful PublishItem:
      * - Clear the oldPath
@@ -102,7 +60,7 @@ public interface ItemTargetDAO {
                                   @Param(COMMIT_ID) String commitId,
                                   @Param(TARGET) String target,
                                   @Param(TIMESTAMP) Instant timestamp,
-                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) State itemSuccessState);
+                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 
     /**
      * Populate the item_target table for the initial publish.

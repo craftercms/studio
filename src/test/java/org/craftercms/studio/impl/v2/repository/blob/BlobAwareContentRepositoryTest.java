@@ -386,7 +386,7 @@ public class BlobAwareContentRepositoryTest {
 
         when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
-            itemsParam.stream().findFirst().ifPresent(i -> i.setError("ERROR"));
+            itemsParam.stream().findFirst().ifPresent(i -> i.setFailed(101));
             return new PublishChangeSet<>(emptyList(), itemsParam);
         });
 
@@ -421,9 +421,9 @@ public class BlobAwareContentRepositoryTest {
 
         when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
-            List<PublishItemTO> failed = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH)).peek(i -> i.setError("ERROR")).toList();
+            List<PublishItemTO> failed = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH)).peek(i -> i.setFailed(101)).toList();
             List<PublishItemTO> successful = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH_2)).toList();
-            itemsParam.stream().findFirst().ifPresent(i -> i.setError("ERROR"));
+            itemsParam.stream().findFirst().ifPresent(i -> i.setFailed(101));
             return new PublishChangeSet<>(successful, failed);
         });
 
@@ -458,7 +458,7 @@ public class BlobAwareContentRepositoryTest {
 
         when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
-            itemsParam.forEach(i -> i.setError("ERROR"));
+            itemsParam.forEach(i -> i.setFailed(101));
             return new PublishChangeSet<>(emptyList(), itemsParam);
         });
         when(localRepositoryV2.publish(any(), any(), any())).thenCallRealMethod();

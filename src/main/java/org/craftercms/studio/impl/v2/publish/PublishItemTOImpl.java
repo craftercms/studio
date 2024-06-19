@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v2.publish;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.*;
+
 /**
  * {@link PublishItemTO} implementation that wraps a {@link PublishItem}
  * Notice that the same {@link PublishItem} might be wrapped by more than
@@ -29,11 +31,16 @@ public class PublishItemTOImpl implements PublishItemTO {
     private final PublishItem publishItem;
     private final String path;
     private final PublishItem.Action action;
+    private final TargetStrategy targetStrategy;
 
-    public PublishItemTOImpl(final PublishItem publishItem, final String path, final PublishItem.Action action) {
+    private static final TargetStrategy LIVE_STRATEGY = new LiveStrategy();
+    private static final TargetStrategy STAGING_STRATEGY = new StagingStrategy();
+
+    public PublishItemTOImpl(final PublishItem publishItem, final String path, final PublishItem.Action action, final boolean isLiveTarget) {
         this.publishItem = publishItem;
         this.path = path;
         this.action = action;
+        targetStrategy = isLiveTarget ? LIVE_STRATEGY : STAGING_STRATEGY;
     }
 
     public PublishItem getPublishItem() {
@@ -51,12 +58,71 @@ public class PublishItemTOImpl implements PublishItemTO {
     }
 
     @Override
-    public String getError() {
-        return publishItem.getError();
+    public int getError() {
+        return targetStrategy.getError(publishItem);
     }
 
     @Override
-    public void setError(String error) {
-        publishItem.setError(error);
+    public void setFailed(final int error) {
+        targetStrategy.setFailed(publishItem, error);
+    }
+
+    @Override
+    public void setCompleted() {
+        targetStrategy.setCompleted(publishItem);
+    }
+
+    /**
+     * Stategy to access the target specific fields of the {@link PublishItem}
+     */
+    private interface TargetStrategy {
+        void setCompleted(PublishItem publishItem);
+
+        void setFailed(PublishItem publishItem, final int error);
+
+        int getError(PublishItem publishItem);
+    }
+
+    /**
+     * Strategy for the live target
+     */
+    private static class LiveStrategy implements TargetStrategy {
+
+        @Override
+        public void setCompleted(PublishItem publishItem) {
+            publishItem.setPublishState(publishItem.getPublishState() | LIVE_COMPLETED.value);
+        }
+
+        @Override
+        public void setFailed(PublishItem publishItem, int error) {
+            publishItem.setLiveError(error);
+            publishItem.setPublishState(publishItem.getPublishState() | LIVE_FAILED.value);
+        }
+
+        @Override
+        public int getError(PublishItem publishItem) {
+            return publishItem.getLiveError();
+        }
+    }
+
+    /**
+     * Strategy for the staging target
+     */
+    private static class StagingStrategy implements TargetStrategy {
+        @Override
+        public void setCompleted(PublishItem publishItem) {
+            publishItem.setPublishState(publishItem.getPublishState() | STAGING_COMPLETED.value);
+        }
+
+        @Override
+        public void setFailed(PublishItem publishItem, int error) {
+            publishItem.setStagingError(error);
+            publishItem.setPublishState(publishItem.getPublishState() | STAGING_FAILED.value);
+        }
+
+        @Override
+        public int getError(PublishItem publishItem) {
+            return publishItem.getStagingError();
+        }
     }
 }

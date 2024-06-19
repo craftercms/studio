@@ -57,8 +57,8 @@ BEGIN
     INSERT INTO dependency (id, site, source_path, target_path, type)
         SELECT null, siteId, d.source_path, d.target_path, d.type FROM dependency d WHERE d.site = sourceSiteId;
 
-    INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored)
-        SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
+    INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored)
+        SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
 /* TODO:
     Duplicate data from the tables:
@@ -476,7 +476,6 @@ CREATE TABLE IF NOT EXISTS `item` (
   `created_on`              TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
   `last_modified_by`        BIGINT          NULL,
   `last_modified_on`        TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
-  `last_published_on`       TIMESTAMP       NULL,
   `label`                   VARCHAR(256)    NULL,
   `content_type_id`         VARCHAR(256)    NULL,
   `system_type`             VARCHAR(64)     NULL,
@@ -590,8 +589,9 @@ CREATE TABLE IF NOT EXISTS `publish_package`
     `target`	                    VARCHAR(20)	    NOT NULL,
     `schedule`	                    TIMESTAMP,
     `approval_state`	            ENUM ('SUBMITTED', 'APPROVED', 'REJECTED')	NOT NULL,
-    `package_state`	                ENUM ('READY', 'PROCESSING', 'COMPLETED', 'COMPLETED_WITH_ERRORS', 'FAILED', 'CANCELLED')	NOT NULL,
-    `error`	                        TEXT,
+    `package_state`	                BIGINT          NOT NULL,
+    `live_error`	                INT,
+    `staging_error`	                INT,
     `submitter_id`	                BIGINT(20),
     `submitter_comment`	            TEXT,
     `submitted_on`	                TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -620,12 +620,11 @@ CREATE TABLE IF NOT EXISTS `publish_item`
     `id`	            BIGINT(20)      NOT NULL AUTO_INCREMENT,
     `package_id`	    BIGINT(20)	    NOT NULL,
     `path`	            VARCHAR(2048)	NOT NULL,
-    `live_old_path`     VARCHAR(2048),
-    `staging_old_path`  VARCHAR(2048),
     `action`	        ENUM('ADD', 'DELETE')	        NOT NULL,
     `user_requested`	BOOLEAN	        NOT NULL,
-    `state`	            ENUM('PENDING', 'PUBLISHED', 'FAILED')	NOT NULL,
-    `error`	            TEXT,
+    `publish_state`     BIGINT      	NOT NULL,
+    `live_error`        INT,
+    `staging_error`     INT,
     PRIMARY KEY(`id`),
     FOREIGN KEY `publish_item_package_id`(`package_id`) REFERENCES `publish_package` (`id`) ON DELETE CASCADE
 )
@@ -655,8 +654,8 @@ CREATE TABLE IF NOT EXISTS `item_target`
     `item_id`       	    BIGINT	        NOT NULL,
     `target`	            VARCHAR(20)	    NOT NULL,
     `old_path`              VARCHAR(2048)   NULL,
-    `last_published_on`     TIMESTAMP       NULL,
-    `published_commit_id`   VARCHAR(40)     NULL,
+    `last_published_on`     TIMESTAMP       NOT NULL,
+    `published_commit_id`   VARCHAR(40)     NOT NULL,
     PRIMARY KEY(`item_id`, `target`),
     FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )

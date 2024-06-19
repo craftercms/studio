@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -312,14 +311,6 @@ public interface ItemServiceInternal {
     List<String> getChangeSetForSubtree(String siteId, String path);
 
     /**
-     * Update last published date for item
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param lastPublishedOn published date
-     */
-    void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn);
-
-    /**
      * Lock item for given lock owner
      * @param siteId site identifier
      * @param path item path
@@ -421,20 +412,11 @@ public interface ItemServiceInternal {
     Collection<String> getChildrenPaths(long siteId, String path);
 
     /**
-     * Update the last published date for all the site content
-     *
-     * @param siteId    the site id
-     * @param timestamp the timestamp to set
-     */
-    void updateSiteLastPublishedOn(String siteId, Instant timestamp);
-
-    /**
      * Update the state for all successful items in the given package
      *
      * @param publishPackageId the package id
      * @param onMask           the mask of states to turn on
      * @param offMask          the mask of states to turn off
-     * @param timestamp        the timestamp to set for published_on
      */
-    void updateForCompletePackage(long publishPackageId, long onMask, long offMask, Instant timestamp);
+    void updateForCompletePackage(long publishPackageId, long onMask, long offMask, long successPublishState);
 }

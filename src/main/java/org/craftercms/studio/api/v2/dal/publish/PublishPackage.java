@@ -31,8 +31,9 @@ public class PublishPackage {
     protected String target;
     protected Instant schedule;
     protected ApprovalState approvalState;
-    protected PackageState packageState;
-    protected String error;
+    protected long packageState;
+    protected int liveError;
+    protected int stagingError;
     protected long submitterId;
     protected String comment;
     protected Instant submittedOn;
@@ -120,11 +121,11 @@ public class PublishPackage {
         this.approvalState = approvalState;
     }
 
-    public PackageState getPackageState() {
+    public long getPackageState() {
         return packageState;
     }
 
-    public void setPackageState(PackageState packageState) {
+    public void setPackageState(long packageState) {
         this.packageState = packageState;
     }
 
@@ -152,12 +153,20 @@ public class PublishPackage {
         this.publishedLiveCommitId = publishedLiveCommitId;
     }
 
-    public String getError() {
-        return error;
+    public int getLiveError() {
+        return liveError;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setLiveError(int liveError) {
+        this.liveError = liveError;
+    }
+
+    public int getStagingError() {
+        return stagingError;
+    }
+
+    public void setStagingError(int stagingError) {
+        this.stagingError = stagingError;
     }
 
     public Instant getSubmittedOn() {
@@ -213,12 +222,21 @@ public class PublishPackage {
      * Possible values for the package processing state
      */
     public enum PackageState {
-        READY,
-        PROCESSING,
-        COMPLETED,
-        COMPLETED_WITH_ERRORS,
-        FAILED,
-        CANCELLED
+        READY(0),
+        PROCESSING(1),
+        LIVE_SUCCESS(2),
+        LIVE_COMPLETED_WITH_ERRORS(3),
+        LIVE_FAILED(4),
+        STAGING_SUCCESS(5),
+        STAGING_COMPLETED_WITH_ERRORS(6),
+        STAGING_FAILED(7),
+        CANCELLED(8);
+
+        public final long value;
+
+        PackageState(final long exponent) {
+            this.value = Math.round(Math.pow(2, exponent));
+        }
     }
 
     /**

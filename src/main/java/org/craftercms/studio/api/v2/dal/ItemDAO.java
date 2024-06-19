@@ -19,10 +19,7 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +27,8 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_COMPLETED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_COMPLETED;
 
 public interface ItemDAO {
 
@@ -46,7 +45,8 @@ public interface ItemDAO {
 
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
     String TIMESTAMP = "timestamp";
-    String PUBLISH_PACKAGE_ID = "publishPackageId";
+    String STAGING_PUBLISHED_STATE = "stagingPublishedState";
+    String LIVE_PUBLISHED_STATE = "livePublishedState";
 
     Map<String, String> SORT_FIELD_MAP = Map.of(
             "id", "id",
@@ -127,11 +127,31 @@ public interface ItemDAO {
      * @param stagingEnvironment staging environment
      * @return item identified by given id
      */
+    default DetailedItem getItemById(long id,
+                                     String siteId,
+                                     String systemTypeFolder,
+                                     String stagingEnvironment,
+                                     String liveEnvironment) {
+        return getItemById(id, siteId, systemTypeFolder, stagingEnvironment, liveEnvironment, LIVE_COMPLETED.value, STAGING_COMPLETED.value);
+    }
+
+    /**
+     * Get item by id
+     *
+     * @param id                 item id
+     * @param siteId             site identifier
+     * @param systemTypeFolder   value for system type folder
+     * @param liveEnvironment    live environment
+     * @param stagingEnvironment staging environment
+     * @return item identified by given id
+     */
     DetailedItem getItemById(@Param(ID) long id,
                              @Param(SITE_ID) String siteId,
                              @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                             @Param(LIVE_ENVIRONMENT) String liveEnvironment);
+                             @Param(LIVE_ENVIRONMENT) String liveEnvironment,
+                             @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
+                             @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState);
 
     /**
      * Get item for given site and path
@@ -145,7 +165,8 @@ public interface ItemDAO {
     default DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
                                                 @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                 @Param(LIVE_ENVIRONMENT) String liveEnvironment) {
-        return getItemBySiteIdAndPath(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment);
+        return getItemBySiteIdAndPath(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment,
+                LIVE_COMPLETED.value, STAGING_COMPLETED.value);
     }
 
     /**
@@ -161,7 +182,9 @@ public interface ItemDAO {
     DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
                                         @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                         @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                                        @Param(LIVE_ENVIRONMENT) String liveEnvironment);
+                                        @Param(LIVE_ENVIRONMENT) String liveEnvironment,
+                                        @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
+                                        @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState);
 
     /**
      * Get item with prefer content option for given site and path
@@ -176,7 +199,8 @@ public interface ItemDAO {
     default DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
                                                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                              @Param(LIVE_ENVIRONMENT) String liveEnvironment) {
-        return getItemBySiteIdAndPathPreferContent(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment);
+        return getItemBySiteIdAndPathPreferContent(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment,
+                LIVE_COMPLETED.value, STAGING_COMPLETED.value);
     }
 
     /**
@@ -192,7 +216,9 @@ public interface ItemDAO {
     DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
                                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                                      @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                                                     @Param(LIVE_ENVIRONMENT) String liveEnvironment);
+                                                     @Param(LIVE_ENVIRONMENT) String liveEnvironment,
+                                                     @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
+                                                     @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState);
 
     /**
      * Update item
@@ -306,7 +332,7 @@ public interface ItemDAO {
                                                         @Param(LIVE_ENVIRONMENT) String liveEnvironment,
                                                         @Param(OFFSET) int offset, @Param(LIMIT) int limit) {
         return getDetailedItemsByStates(siteId, statesBitMap, CONTENT_TYPE_FOLDER, null, systemTypes, sortFields,
-                stagingEnvironment, liveEnvironment, offset, limit);
+                stagingEnvironment, liveEnvironment, LIVE_COMPLETED.value, STAGING_COMPLETED.value, offset, limit);
     }
 
     /**
@@ -332,6 +358,8 @@ public interface ItemDAO {
                                                 @Param(SORT_FIELDS) List<SortField> sortFields,
                                                 @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                 @Param(LIVE_ENVIRONMENT) String liveEnvironment,
+                                                @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
+                                                @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState,
                                                 @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
@@ -461,16 +489,6 @@ public interface ItemDAO {
                                         @Param(IN_PROGRESS_MASK) long inProgressMask);
 
     /**
-     * Update last published date for item
-     *
-     * @param siteId          site identifier
-     * @param path            path of the item
-     * @param lastPublishedOn published date
-     */
-    void updateLastPublishedOn(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                               @Param(LAST_PUBLISHED_ON) ZonedDateTime lastPublishedOn);
-
-    /**
      * Finds all items related to a given content-type
      *
      * @param siteId      the id of the site
@@ -576,16 +594,8 @@ public interface ItemDAO {
      */
     Collection<String> getChildrenPaths(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
-    /**
-     * Update the last published date for all the site content
-     *
-     * @param siteId    the site id
-     * @param timestamp the timestamp to set
-     */
-    void updateSiteLastPublishedOn(@Param(SITE_ID) String siteId, @Param(LAST_PUBLISHED_ON) Instant timestamp);
-
     default Collection<String> getUnpublishedPaths(final long siteId) {
-        return getUnpublishedPaths(siteId,  UNPUBLISHED_MASK);
+        return getUnpublishedPaths(siteId, UNPUBLISHED_MASK);
     }
 
     Collection<String> getUnpublishedPaths(@Param(SITE_ID) long siteId,
@@ -602,36 +612,16 @@ public interface ItemDAO {
                               @Param(ON_STATES_BIT_MAP) long onStateBitMap,
                               @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
 
-
-    /**
-     * Update states for successful publish items in the package.
-     *
-     * @param packageId the package id
-     * @param onMask    states to flip on
-     * @param offMask   states to flip off
-     *                  // TODO: review timestamp: move to item_target?
-     * @param timestamp the timestamp for published_on date
-     */
-    default void updateForCompletePackage(long packageId,
-                                          final long onMask,
-                                          final long offMask,
-                                          final Instant timestamp) {
-        updateForCompletePackage(packageId, onMask, offMask, timestamp, PublishItem.State.PUBLISHED);
-    }
-
     /**
      * Update states for successful publish items in the package.
      *
      * @param packageId        the package id
      * @param onMask           states to flip on
      * @param offMask          states to flip off
-     *                         // TODO: review timestamp: move to item_target?
-     * @param timestamp        the timestamp for published_on date
      * @param itemSuccessState the state of the successful items to filter
      */
     void updateForCompletePackage(@Param(PACKAGE_ID) long packageId,
                                   @Param(ON_STATES_BIT_MAP) long onMask,
                                   @Param(OFF_STATES_BIT_MAP) long offMask,
-                                  @Param(TIMESTAMP) Instant timestamp,
-                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) PublishItem.State itemSuccessState);
+                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 }

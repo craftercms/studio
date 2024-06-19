@@ -14,21 +14,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.repository;
+package org.craftercms.studio.impl.v2.utils;
 
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.model.rest.ApiResponse;
 
 /**
- * Represents a publish item to be processed
+ * Utility class for publish operations.
  */
-public interface PublishItemTO {
-    String getPath();
+public class PublishUtils {
 
-    PublishItem.Action getAction();
-
-    int getError();
-
-    void setFailed(int error);
-
-    void setCompleted();
+    /**
+     * Translates an exception during publishing to an error code.
+     *
+     * @param e the exception
+     * @return the error code
+     */
+    public static int translateException(final Exception e) {
+        // TODO: implement
+        return ApiResponse.INTERNAL_SYSTEM_FAILURE.getCode();
+    }
 }

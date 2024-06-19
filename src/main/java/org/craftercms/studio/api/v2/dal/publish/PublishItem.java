@@ -27,8 +27,9 @@ public class PublishItem {
     protected String stagingOldPath;
     protected Action action;
     protected boolean userRequested;
-    protected State state;
-    protected String error;
+    protected long publishState;
+    protected int liveError;
+    protected int stagingError;
 
     protected long itemId;
 
@@ -36,6 +37,7 @@ public class PublishItem {
         return itemId;
     }
 
+    @SuppressWarnings("unused")
     public void setItemId(long itemId) {
         this.itemId = itemId;
     }
@@ -96,20 +98,30 @@ public class PublishItem {
         this.userRequested = userRequested;
     }
 
-    public State getState() {
-        return state;
+    public long getPublishState() {
+        return publishState;
     }
 
-    public void setState(State state) {
-        this.state = state;
+    public void setPublishState(long publishState) {
+        this.publishState = publishState;
     }
 
-    public String getError() {
-        return error;
+    public int getLiveError() {
+        return liveError;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    @SuppressWarnings("unused")
+    public void setLiveError(int liveError) {
+        this.liveError = liveError;
+    }
+
+    public int getStagingError() {
+        return stagingError;
+    }
+
+    @SuppressWarnings("unused")
+    public void setStagingError(int stagingError) {
+        this.stagingError = stagingError;
     }
 
     /**
@@ -123,9 +135,22 @@ public class PublishItem {
     /**
      * Represents the processing state of this item
      */
-    public enum State {
-        PENDING,
-        PUBLISHED,
-        FAILED
+    public enum PublishState {
+        // Item is pending to be processed
+        PENDING(0),
+        // Live operation was completed
+        LIVE_COMPLETED(1),
+        // There was an error during live operation (even if completed)
+        LIVE_FAILED(2),
+        // Staging operation was completed
+        STAGING_COMPLETED(3),
+        // There was an error during staging operation (even if completed)
+        STAGING_FAILED(4);
+
+        public final long value;
+
+        PublishState(final long exponent) {
+            this.value = Math.round(Math.pow(2, exponent));
+        }
     }
 }

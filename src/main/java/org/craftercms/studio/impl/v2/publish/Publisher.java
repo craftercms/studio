@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -37,6 +38,7 @@ import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishCh
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,9 +64,10 @@ import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.State.FAILED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.State.PUBLISHED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.PROCESSING;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.STAGING_FAILED;
+import static org.springframework.data.util.Predicates.negate;
 
 /**
  * Listen for {@link RequestPublishEvent} and handle accordingly.
@@ -139,7 +142,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
-        publishDao.updatePackageState(packageId, PROCESSING);
+        publishDao.updatePackageState(packageId, PROCESSING.value);
         List<Long> affectedItemIds = null;
         try {
             Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
@@ -177,7 +180,8 @@ public class Publisher implements ApplicationEventPublisherAware {
             // TODO: Complete package progress
         } catch (Exception e) {
             logger.error("Failed to publish package '{}' for site '{}'", packageId, siteId, e);
-            publishDao.updateFailedPackage(packageId, PublishPackage.PackageState.FAILED, e.getMessage());
+            int errorCode = PublishUtils.translateException(e);
+            publishDao.updateFailedPackage(packageId, PackageState.LIVE_FAILED.value + STAGING_FAILED.value, errorCode, errorCode);
             String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
             throw new ServiceLayerException(exceptionMessage, e);
         } finally {
@@ -199,16 +203,24 @@ public class Publisher implements ApplicationEventPublisherAware {
         String target = publishPackage.getTarget();
 
         boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), target);
-
-        boolean errors = false;
+        long successPublishState = isLiveTarget ? LIVE_COMPLETED.value : STAGING_COMPLETED.value;
+        long packageState = PROCESSING.value;
         if (isLiveTarget && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             GitPublishChangeSet<PublishItemTOImpl> stagingChangeset = targetPublisher.run(publishPackage,
-                    servicesConfig.getStagingEnvironment(siteId), publishItems);
+                    servicesConfig.getStagingEnvironment(siteId), publishItems, STAGING_COMPLETED.value);
             publishPackage.setPublishedStagingCommitId(stagingChangeset.commitId());
-            errors |= isNotEmpty(stagingChangeset.failedItems());
+            if (isNotEmpty(stagingChangeset.failedItems())) {
+                packageState |= PackageState.STAGING_FAILED.value;
+            } else {
+                packageState |= PackageState.STAGING_SUCCESS.value;
+            }
         }
-        GitPublishChangeSet<PublishItemTOImpl> targetChangeset = targetPublisher.run(publishPackage, target, publishItems);
-        errors |= isNotEmpty(targetChangeset.failedItems());
+        GitPublishChangeSet<PublishItemTOImpl> targetChangeset = targetPublisher.run(publishPackage, target, publishItems, successPublishState);
+        if (isNotEmpty(targetChangeset.failedItems())) {
+            packageState |= isLiveTarget ? PackageState.LIVE_FAILED.value : PackageState.STAGING_FAILED.value;
+        } else {
+            packageState |= isLiveTarget ? PackageState.LIVE_SUCCESS.value : PackageState.STAGING_SUCCESS.value;
+        }
 
         if (isLiveTarget) {
             publishPackage.setPublishedLiveCommitId(targetChangeset.commitId());
@@ -218,7 +230,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 
         Instant now = now();
         // TODO: handle the case where ALL items failed
-        publishPackage.setPackageState(errors ? COMPLETED_WITH_ERRORS : COMPLETED);
+        publishPackage.setPackageState(packageState);
         publishPackage.setPublishedOn(now);
         publishDao.updatePackage(publishPackage);
     }
@@ -233,8 +245,9 @@ public class Publisher implements ApplicationEventPublisherAware {
      */
     @NonNull
     private GitPublishChangeSet<PublishItemTOImpl> doPublishItemListTarget(final PublishPackage publishPackage,
-                                                                        final String target, final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
-        return doPublishTarget(publishPackage, target, publishItems, contentRepository::publish);
+                                                                           final String target, final Collection<PublishItem> publishItems,
+                                                                           final long successPublishState) throws ServiceLayerException, IOException {
+        return doPublishTarget(publishPackage, target, publishItems, contentRepository::publish, successPublishState);
     }
 
     /**
@@ -244,9 +257,10 @@ public class Publisher implements ApplicationEventPublisherAware {
      */
     @NonNull
     private GitPublishChangeSet<PublishItemTOImpl> doPublishTarget(final PublishPackage publishPackage,
-                                                                final String target,
-                                                                final Collection<PublishItem> publishItems,
-                                                                final RepoPublishFunction repoPublishFunction)
+                                                                   final String target,
+                                                                   final Collection<PublishItem> publishItems,
+                                                                   final RepoPublishFunction repoPublishFunction,
+                                                                   final long successPublishState)
             throws ServiceLayerException, IOException {
         String siteId = publishPackage.getSite().getSiteId();
         long packageId = publishPackage.getId();
@@ -256,11 +270,11 @@ public class Publisher implements ApplicationEventPublisherAware {
         List<PublishItemTOImpl> publishItemTOs = publishItems.stream()
                 .map(pi -> {
                     List<PublishItemTOImpl> items = new ArrayList<>();
-                    items.add(new PublishItemTOImpl(pi, pi.getPath(), pi.getAction()));
+                    items.add(new PublishItemTOImpl(pi, pi.getPath(), pi.getAction(), isLiveTarget));
                     if (pi.getLiveOldPath() != null && isLiveTarget) {
-                        items.add(new PublishItemTOImpl(pi, pi.getLiveOldPath(), DELETE));
+                        items.add(new PublishItemTOImpl(pi, pi.getLiveOldPath(), DELETE, isLiveTarget));
                     } else if (pi.getStagingOldPath() != null && isStagingTarget) {
-                        items.add(new PublishItemTOImpl(pi, pi.getStagingOldPath(), DELETE));
+                        items.add(new PublishItemTOImpl(pi, pi.getStagingOldPath(), DELETE, isLiveTarget));
                     }
                     return items;
                 }).flatMap(List::stream)
@@ -270,19 +284,17 @@ public class Publisher implements ApplicationEventPublisherAware {
 
         Set<PublishItem> failedItems = publishChangeSet.failedItems().stream()
                 .map(PublishItemTOImpl::getPublishItem)
-                .peek(pi -> pi.setState(FAILED))
                 .collect(Collectors.toSet());
 
-        Collection<PublishItem> successfulItems =
-                publishItems.stream()
-                        .filter(pi -> !failedItems.contains(pi))
-                        .peek(pi -> pi.setState(PUBLISHED))
-                        .toList();
+        Collection<PublishItem> successfulItems = publishChangeSet.successfulItems().stream()
+                .map(PublishItemTOImpl::getPublishItem)
+                .filter(negate(failedItems::contains))
+                .toList();
 
         long onMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
         long offMask = isLiveTarget ? PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK : PUBLISH_TO_STAGE_OFF_MASK;
         if (failedItems.isEmpty()) {
-            publishDao.updatePublishItemState(packageId, PUBLISHED);
+            publishDao.updatePublishItemState(packageId, successPublishState);
             if (publishPackage.getPackageType() == PublishPackage.PackageType.PUBLISH_ALL) {
                 cancelOutstandingTargetPackages(siteId, target);
             }
@@ -290,8 +302,8 @@ public class Publisher implements ApplicationEventPublisherAware {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
         }
         if (!successfulItems.isEmpty()) {
-            itemServiceInternal.updateForCompletePackage(packageId, onMask, offMask, now());
-            itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, now());
+            itemServiceInternal.updateForCompletePackage(packageId, onMask, offMask, successPublishState);
+            itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, now(), successPublishState);
         }
 
         contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
@@ -308,8 +320,9 @@ public class Publisher implements ApplicationEventPublisherAware {
      */
     @NonNull
     private GitPublishChangeSet<PublishItemTOImpl> doPublishAllTarget(final PublishPackage publishPackage,
-                                                                   final String target, final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
-        return doPublishTarget(publishPackage, target, publishItems, contentRepository::publishAll);
+                                                                      final String target, final Collection<PublishItem> publishItems,
+                                                                      final long successPublishState) throws ServiceLayerException, IOException {
+        return doPublishTarget(publishPackage, target, publishItems, contentRepository::publishAll, successPublishState);
     }
 
     /**
@@ -318,8 +331,9 @@ public class Publisher implements ApplicationEventPublisherAware {
     @FunctionalInterface
     private interface TargetPublisherFunction {
         GitPublishChangeSet<PublishItemTOImpl> run(final PublishPackage publishPackage,
-                                                final String target,
-                                                final Collection<PublishItem> publishItems)
+                                                   final String target,
+                                                   final Collection<PublishItem> publishItems,
+                                                   final long successPublishState)
                 throws ServiceLayerException, IOException;
     }
 
@@ -329,8 +343,8 @@ public class Publisher implements ApplicationEventPublisherAware {
     @FunctionalInterface
     private interface RepoPublishFunction {
         GitPublishChangeSet<PublishItemTOImpl> run(PublishPackage publishPackage,
-                                                String publishingTarget,
-                                                Collection<PublishItemTOImpl> publishItems) throws ServiceLayerException;
+                                                   String publishingTarget,
+                                                   Collection<PublishItemTOImpl> publishItems) throws ServiceLayerException;
     }
 
     /**
@@ -343,7 +357,6 @@ public class Publisher implements ApplicationEventPublisherAware {
         Instant now = now();
         cancelAllOutstandingPackages(siteId);
         itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
-        itemServiceInternal.updateSiteLastPublishedOn(siteId, now);
 
         Collection<String> targets = new ArrayList<>();
         targets.add(servicesConfig.getLiveEnvironment(siteId));
@@ -355,7 +368,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         publishPackage.setPublishedLiveCommitId(commitId);
         publishPackage.setPublishedStagingCommitId(commitId);
         publishPackage.setPublishedOn(now);
-        publishPackage.setPackageState(COMPLETED);
+        publishPackage.setPackageState(PackageState.LIVE_SUCCESS.value + PackageState.STAGING_SUCCESS.value);
         publishDao.updatePackage(publishPackage);
     }
 

@@ -31,7 +31,6 @@
         <result property="createdOn" column="created_on" />
         <result property="lastModifiedBy" column="last_modified_by" />
         <result property="lastModifiedOn" column="last_modified_on" />
-        <result property="lastPublishedOn" column="last_published_on" />
         <result property="submittedOn" column="submitted_on" />
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
@@ -68,10 +67,10 @@
 
     <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
         INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
-        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code,
+        last_modified_on, label, content_type_id, system_type, mime_type, locale_code,
         translation_source_id, size, parent_id, ignored) VALUES
         (#{siteId}, #{path}, #{previewUrl}, #{state}, #{lockedBy}, #{createdBy}, #{createdOn}, #{lastModifiedBy},
-         #{lastModifiedOn}, #{lastPublishedOn}, #{label}, #{contentTypeId}, #{systemType}, #{mimeType},
+         #{lastModifiedOn}, #{label}, #{contentTypeId}, #{systemType}, #{mimeType},
          #{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{ignoredAsInt})
         ON DUPLICATE KEY
         UPDATE
@@ -82,7 +81,6 @@
         locked_by = #{lockedBy},
         last_modified_by = #{lastModifiedBy},
         last_modified_on = #{lastModifiedOn},
-        last_published_on = #{lastPublishedOn},
         label = #{label},
         content_type_id = #{contentTypeId},
         system_type = #{systemType},
@@ -249,7 +247,7 @@
                         INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
                         INNER JOIN user u ON u.id = pp1.submitter_id
                     WHERE pp1.target = #{stagingEnvironment}
-                    AND pi1.state = 'PUBLISHED'
+                    AND (pi1.publish_state &amp; #{stagingPublishedState}) > 0
                     ORDER BY pp1.published_on desc LIMIT 0, 1
             ) as publishStaging ON publishStaging.item_id = i.id
             LEFT OUTER JOIN (
@@ -259,7 +257,7 @@
                         INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
                         INNER JOIN user u ON u.id = pp1.submitter_id
                     WHERE pp1.target = #{liveEnvironment}
-                    AND pi1.state = 'PUBLISHED'
+                    AND (pi1.publish_state &amp; #{livePublishedState}) > 0
                     ORDER BY pp1.published_on desc LIMIT 0, 1
             ) as publishLive ON publishLive.item_id = i.id
     </sql>
@@ -477,7 +475,6 @@
             locked_by = #{lockedBy},
             last_modified_by = #{lastModifiedBy},
             last_modified_on = #{lastModifiedOn},
-            last_published_on = #{lastPublishedOn},
             label = #{label},
             content_type_id = #{contentTypeId},
             system_type = #{systemType},
@@ -637,21 +634,6 @@
         AND (i.state &amp; #{inProgressMask}) &gt; 0
     </select>
 
-    <update id="updateLastPublishedOn">
-        UPDATE item i INNER JOIN site s ON i.site_id = s.id
-        SET i.last_published_on = #{lastPublishedOn}
-        WHERE s.site_id = #{siteId}
-          AND s.deleted = 0
-          AND i.path = #{path}
-    </update>
-
-    <update id="updateSiteLastPublishedOn">
-        UPDATE item i INNER JOIN site s ON i.site_id = s.id
-        SET i.last_published_on = #{lastPublishedOn}
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-    </update>
-
     <select id="getContentTypeUsages" resultType="org.craftercms.studio.api.v2.dal.Item">
         SELECT
           I.path, I.system_type AS systemType
@@ -808,8 +790,7 @@
 
     <update id="updateForCompletePackage">
         UPDATE item
-        SET state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
-            last_published_on = #{timestamp}
+        SET state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
         WHERE id IN
         <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemIdsForPackage"/>
     </update>

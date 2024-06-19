@@ -38,8 +38,6 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -457,11 +455,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOn(siteId, path, lastPublishedOn));
-    }
-
-    @Override
     public void lockItemByPath(String siteId, String path, String username)
             throws UserNotFoundException, ServiceLayerException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
@@ -572,13 +565,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void updateSiteLastPublishedOn(final String siteId, final Instant timestamp) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateSiteLastPublishedOn(siteId, timestamp));
-    }
-
-    @Override
-    public void updateForCompletePackage(final long packageId, final long onMask, final long offMask, final Instant timestamp) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateForCompletePackage(packageId, onMask, offMask, timestamp));
+    public void updateForCompletePackage(final long packageId, final long onMask, final long offMask, final long successPublishState) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateForCompletePackage(packageId, onMask, offMask, successPublishState));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

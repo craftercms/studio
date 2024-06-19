@@ -19,26 +19,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.publish.PublishDAO">
-    <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
-        <id property="id" column="id"/>
-        <result property="siteId" column="site_id"/>
-        <result property="target" column="target"/>
-        <result property="schedule" column="schedule"/>
-        <result property="approvalState" column="approval_state"/>
-        <result property="packageState" column="package_state"/>
-        <result property="error" column="error"/>
-        <result property="submitterId" column="submitter_id"/>
-        <result property="comment" column="submitter_comment"/>
-        <result property="submittedOn" column="submitted_on"/>
-        <result property="reviewerId" column="reviewer_id"/>
-        <result property="reviewerComment" column="reviewer_comment"/>
-        <result property="reviewedOn" column="reviewed_on"/>
-        <result property="publishedOn" column="published_on"/>
-        <result property="packageType" column="package_type"/>
-        <result property="commitId" column="commit_id"/>
-        <result property="publishedStagingCommitId" column="published_staging_commit_id"/>
-        <result property="publishedLiveCommitId" column="published_live_commit_id"/>
-
+    <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage" autoMapping="true">
         <association property="site" column="site_id"
                      select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
     </resultMap>
@@ -46,9 +27,9 @@
     <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
     </resultMap>
 
-    <insert id="insertPackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage"
+    <insert id="insertPackage"
             useGeneratedKeys="true"
-            keyProperty="id">
+            keyProperty="publishPackage.id">
         INSERT INTO publish_package
         (site_id,
         target,
@@ -60,36 +41,32 @@
         package_type,
         commit_id)
         VALUES
-        (#{siteId},
-        #{target},
-        #{schedule},
-        #{approvalState},
-        'READY',
-        #{submitterId},
-        #{comment},
-        #{packageType},
-        #{commitId});
+        (#{publishPackage.siteId},
+        #{publishPackage.target},
+        #{publishPackage.schedule},
+        #{publishPackage.approvalState},
+        #{readyState},
+        #{publishPackage.submitterId},
+        #{publishPackage.comment},
+        #{publishPackage.packageType},
+        #{publishPackage.commitId});
     </insert>
 
     <insert id="insertItems" useGeneratedKeys="true" keyProperty="items.id">
         INSERT INTO publish_item
         (package_id,
         path,
-        live_old_path,
-        staging_old_path,
         action,
         user_requested,
-        state)
+        publish_state)
         VALUES
         <!-- TODO: review max parameters count configs and batch as necessary -->
         <foreach collection="items" item="item" index="index" separator="," >
             (#{packageId},
             #{item.path},
-            #{item.liveOldPath},
-            #{item.stagingOldPath},
             #{item.action},
             #{item.userRequested},
-            'PENDING')
+            #{publishState})
         </foreach>
     </insert>
 
@@ -117,10 +94,7 @@
                             <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
                                 #{approvalState}
                             </foreach>
-                    AND pp.package_state IN
-                            <foreach collection="packageStates" item="packageState" open="(" separator="," close=")">
-                                #{packageState}
-                            </foreach>
+                    AND (pp.package_state &amp; #{packageState}) = #{packageState}
                     AND (pp.schedule IS NULL OR pp.schedule &gt; NOW())
                     AND pp.site_id = s.id
                     ORDER BY pp.schedule, pp.submitted_on LIMIT 1
@@ -146,7 +120,8 @@
         UPDATE publish_package
         SET approval_state = #{publishPackage.approvalState},
             package_state = #{publishPackage.packageState},
-            error = #{publishPackage.error},
+            live_error = #{publishPackage.liveError},
+            staging_error = #{publishPackage.stagingError},
             reviewed_on = #{publishPackage.reviewedOn},
             published_on = #{publishPackage.publishedOn},
             published_staging_commit_id = #{publishPackage.publishedStagingCommitId},
@@ -157,7 +132,8 @@
     <update id="updateFailedPackage">
         UPDATE publish_package
         SET package_state = #{packageState},
-            error = #{error}
+            live_error = #{liveError},
+            staging_error = #{stagingError}
         WHERE id = #{packageId}
     </update>
 
@@ -168,10 +144,7 @@
                     <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
                         #{approvalState}
                     </foreach>
-        AND package_state IN
-                    <foreach collection="packageStates" item="packageState" open="(" separator="," close=")">
-                        #{packageState}
-                    </foreach>
+        AND (package_state &amp; #{packageState}) = #{packageState}
         AND site_id = #{siteId}
         <if test="target != null">
             AND target = #{target}
@@ -194,7 +167,7 @@
 
     <update id="updatePublishItemState">
         UPDATE publish_item
-        SET state = #{itemState}
+        SET publish_state = (publish_state | #{itemState})
         WHERE package_id = #{packageId}
     </update>
 
@@ -203,11 +176,12 @@
         UPDATE publish_item pi
         INNER JOIN (
             <foreach collection="items" item="item" index="index" separator="UNION" >
-                (SELECT #{item.id} AS id, #{item.state} AS state, #{item.error} AS errorMessage)
+                (SELECT #{item.id} AS id, #{item.publishState} AS state, #{item.liveError} AS liveError, #{item.stagingError} AS stagingError)
             </foreach>
         ) AS updates ON pi.id = updates.id
-        SET pi.state = updates.state,
-            pi.error = updates.errorMessage
+        SET pi.publish_state = updates.state,
+            pi.live_error = updates.liveError,
+            pi.staging_error = updates.stagingError
     </update>
 
     <sql id="getSuccessfulItemIdsForPackage">
@@ -217,7 +191,7 @@
                 INNER JOIN publish_item pi ON pp.id = pi.package_id
                 INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
             WHERE pp.id = #{packageId}
-            AND pi.state = #{itemSuccessState}
+            AND (pi.publish_state &amp; #{itemSuccessState}) > 0
         )
     </sql>
 </mapper>

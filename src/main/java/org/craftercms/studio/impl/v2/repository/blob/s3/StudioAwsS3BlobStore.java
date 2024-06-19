@@ -30,9 +30,9 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
-import org.craftercms.studio.api.v2.repository.PublishCapableContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -417,12 +417,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 // TODO: check if readonly? Or just ignore?
                 copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
                         getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
-            } catch (
-                    Exception e) { // TODO: here we should not catch exceptions that fail the whole package. e.g.: S3 down, bucket does exist, etc.
+                updatedItem.setCompleted();
+            } catch (Exception e) { // TODO: here we should not catch exceptions that fail the whole package. e.g.: S3 down, bucket does exist, etc.
                 String message = format("Failed to publish '%s' from bucket '%s' to bucket '%s' for site '%s' package '%s': %s",
                         updatedPath, previewMapping.target, targetMapping.target, siteId, publishPackage.getId(), e.getMessage());
                 logger.error(message, e);
-                updatedItem.setError(message);
+                updatedItem.setFailed(PublishUtils.translateException(e));
                 failedItems.add(updatedItem);
             }
         }

@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import java.time.Instant;
+
 /**
  * Represents a record from item_target table containing the old path of an item
  * for a publishing target, if any.
@@ -24,11 +26,14 @@ public class ItemTarget {
     protected long itemId;
     protected String target;
     protected String oldPath;
+    protected Instant lastPublishedOn;
+    protected String publishedCommitId;
 
     public long getItemId() {
         return itemId;
     }
 
+    @SuppressWarnings("unused")
     public void setItemId(long itemId) {
         this.itemId = itemId;
     }
@@ -37,6 +42,7 @@ public class ItemTarget {
         return target;
     }
 
+    @SuppressWarnings("unused")
     public void setTarget(String target) {
         this.target = target;
     }
@@ -45,7 +51,26 @@ public class ItemTarget {
         return oldPath;
     }
 
+    @SuppressWarnings("unused")
     public void setOldPath(String oldPath) {
         this.oldPath = oldPath;
+    }
+
+    public Instant getLastPublishedOn() {
+        return lastPublishedOn;
+    }
+
+    @SuppressWarnings("unused")
+    public void setLastPublishedOn(Instant lastPublishedOn) {
+        this.lastPublishedOn = lastPublishedOn;
+    }
+
+    public String getPublishedCommitId() {
+        return publishedCommitId;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPublishedCommitId(String publishedCommitId) {
+        this.publishedCommitId = publishedCommitId;
     }
 }
