@@ -39,6 +39,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -303,7 +304,7 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void publishRemoteFileTest() throws ServiceLayerException {
+    public void publishRemoteFileTest() throws ServiceLayerException, IOException {
         PublishItemTO publishItemTO = mock(PublishItemTO.class);
         when(publishItemTO.getPath()).thenReturn(ORIGINAL_PATH);
         when(publishItemTO.getAction()).thenReturn(ADD);
@@ -329,7 +330,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void publishLocalFileTest() throws ServiceLayerException {
+    public void publishLocalFileTest() throws ServiceLayerException, IOException {
         PublishItemTO publishItemTO = mock(PublishItemTO.class);
         when(publishItemTO.getPath()).thenReturn(LOCAL_PATH);
         when(publishItemTO.getAction()).thenReturn(ADD);
@@ -347,7 +348,7 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void publishMixFilesTest() throws ServiceLayerException {
+    public void publishMixFilesTest() throws ServiceLayerException, IOException {
         PublishItemTO remoteItem = mock(PublishItemTO.class);
         when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
         when(remoteItem.getAction()).thenReturn(ADD);
@@ -375,7 +376,7 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void failedBlobTest() throws ServiceLayerException {
+    public void failedBlobTest() throws ServiceLayerException, IOException {
         PublishItemTO remoteItem = mock(PublishItemTO.class);
         when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
         when(remoteItem.getAction()).thenReturn(ADD);
@@ -407,7 +408,7 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void partiallyFailedBlobsTest() throws ServiceLayerException {
+    public void partiallyFailedBlobsTest() throws ServiceLayerException, IOException {
         PublishItemTO remoteItem = mock(PublishItemTO.class);
         when(remoteItem.getPath()).thenReturn(ORIGINAL_PATH);
         when(remoteItem.getAction()).thenReturn(ADD);
@@ -448,7 +449,7 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void allItemsAreBlobsFailed() throws ServiceLayerException {
+    public void allItemsAreBlobsFailed() throws ServiceLayerException, IOException {
         PublishItemTO remoteItem1 = mock(PublishItemTO.class);
         when(remoteItem1.getPath()).thenReturn(ORIGINAL_PATH);
         when(remoteItem1.getAction()).thenReturn(ADD);

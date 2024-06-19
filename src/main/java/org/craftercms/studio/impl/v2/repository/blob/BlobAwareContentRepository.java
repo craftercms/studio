@@ -670,20 +670,20 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     @Override
     public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
                                                                        final String publishingTarget,
-                                                                       final Collection<T> publishItems) throws ServiceLayerException {
+                                                                       final Collection<T> publishItems) throws ServiceLayerException, IOException {
         return publishInternal(publishPackage, publishingTarget, publishItems);
     }
 
     @Override
     public <T extends PublishItemTO> GitPublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
-                                                                 final Collection<T> publishItems) throws ServiceLayerException {
+                                                                 final Collection<T> publishItems) throws ServiceLayerException, IOException {
         return publishInternal(publishPackage, publishingTarget, publishItems);
     }
 
     private <T extends PublishItemTO> GitPublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
                                                                              final String publishingTarget,
-                                                                             final Collection<T> publishItems) throws ServiceLayerException {
+                                                                             final Collection<T> publishItems) throws ServiceLayerException, IOException {
         List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
         List<T> failedItems = new LinkedList<>();
 

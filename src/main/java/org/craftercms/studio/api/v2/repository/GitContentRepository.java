@@ -343,7 +343,7 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      */
     <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(PublishPackage publishPackage,
                                                                 String publishingTarget,
-                                                                Collection<T> publishItems) throws ServiceLayerException;
+                                                                Collection<T> publishItems) throws ServiceLayerException, IOException;
 
     /**
      * Publishes the given items to the given target
@@ -357,7 +357,7 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      */
     <T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
                                                              String publishingTarget,
-                                                             Collection<T> publishItems) throws ServiceLayerException;
+                                                             Collection<T> publishItems) throws ServiceLayerException, IOException;
 
     /**
      * Create copies of the source site's repositories.

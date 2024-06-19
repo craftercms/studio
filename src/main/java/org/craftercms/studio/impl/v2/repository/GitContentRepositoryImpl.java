@@ -89,8 +89,9 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
@@ -1217,7 +1218,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
                                                                     final String publishingTarget,
                                                                     final Collection<T> publishItems)
-            throws ServiceLayerException {
+            throws ServiceLayerException, IOException {
         String siteId = publishPackage.getSite().getSiteId();
         logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
                 siteId, publishPackage.getId(), publishingTarget);
@@ -1227,6 +1228,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                     format("Failed to publish package '%s' for site '%s': published repository not found",
                             publishPackage.getId(), siteId));
         }
+        ensureEnvironmentBranch(siteId, publishingTarget, repo, publishPackage.getSite().getSandboxBranch());
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
         try (Git git = Git.wrap(repo)) {
@@ -1275,7 +1277,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     @LogExecutionTime
     public <T extends PublishItemTO> GitPublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
-                                                                 final Collection<T> publishItems) throws ServiceLayerException {
+                                                                 final Collection<T> publishItems) throws ServiceLayerException, IOException {
         String siteId = publishPackage.getSite().getSiteId();
         logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
                 siteId, publishPackage.getId(), publishingTarget);
@@ -1291,6 +1293,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                     format("Failed to publish package '%s' for site '%s': published repository not found",
                             publishPackage.getId(), siteId));
         }
+        ensureEnvironmentBranch(siteId, publishingTarget, repo, publishPackage.getSite().getSandboxBranch());
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
         try (Git git = Git.wrap(repo)) {

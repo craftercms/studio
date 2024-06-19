@@ -344,7 +344,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private interface RepoPublishFunction {
         GitPublishChangeSet<PublishItemTOImpl> run(PublishPackage publishPackage,
                                                    String publishingTarget,
-                                                   Collection<PublishItemTOImpl> publishItems) throws ServiceLayerException;
+                                                   Collection<PublishItemTOImpl> publishItems) throws ServiceLayerException, IOException;
     }
 
     /**
