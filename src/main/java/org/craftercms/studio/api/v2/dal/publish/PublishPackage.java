@@ -35,7 +35,7 @@ public class PublishPackage {
     protected int liveError;
     protected int stagingError;
     protected long submitterId;
-    protected String comment;
+    protected String submitterComment;
     protected Instant submittedOn;
     protected long reviewerId;
     protected String reviewerComment;
@@ -89,12 +89,12 @@ public class PublishPackage {
         this.commitId = commitId;
     }
 
-    public String getComment() {
-        return comment;
+    public String getSubmitterComment() {
+        return submitterComment;
     }
 
-    public void setComment(final String comment) {
-        this.comment = comment;
+    public void setSubmitterComment(final String comment) {
+        this.submitterComment = comment;
     }
 
     public long getSubmitterId() {

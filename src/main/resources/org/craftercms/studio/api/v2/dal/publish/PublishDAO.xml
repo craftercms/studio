@@ -47,7 +47,7 @@
         #{publishPackage.approvalState},
         #{readyState},
         #{publishPackage.submitterId},
-        #{publishPackage.comment},
+        #{publishPackage.submitterComment},
         #{publishPackage.packageType},
         #{publishPackage.commitId});
     </insert>

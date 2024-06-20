@@ -363,7 +363,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         AuditLogParameter commentParam = new AuditLogParameter();
         commentParam.setTargetId(TARGET_TYPE_SUBMISSION_COMMENT);
         commentParam.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
-        commentParam.setTargetValue(defaultIfEmpty(p.getComment(), ""));
+        commentParam.setTargetValue(defaultIfEmpty(p.getSubmitterComment(), ""));
 
         AuditLogParameter packageParam = new AuditLogParameter();
         packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
@@ -623,7 +623,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         publishPackage.setSiteId(site.getId());
         publishPackage.setTarget(target);
         publishPackage.setSchedule(schedule);
-        publishPackage.setComment(comment);
+        publishPackage.setSubmitterComment(comment);
         publishPackage.setSubmitterId(userServiceInternal.getCurrentUser().getId());
         publishPackage.setCommitId(site.getLastCommitId());
         publishPackage.setApprovalState(requestApproval ? SUBMITTED : APPROVED);

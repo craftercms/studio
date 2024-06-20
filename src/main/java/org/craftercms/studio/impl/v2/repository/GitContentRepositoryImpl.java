@@ -1340,7 +1340,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                         DateUtils.getCurrentTime().format(
                                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
         commitMessage = commitMessage.replace("{source}", "UI");
-        commitMessage = commitMessage.replace("{message}", defaultIfEmpty(publishPackage.getComment(), ""));
+        commitMessage = commitMessage.replace("{message}", defaultIfEmpty(publishPackage.getSubmitterComment(), ""));
         commitMessage = commitMessage.replace("{commit_id}", publishPackage.getCommitId());
         commitMessage = commitMessage.replace("{package_id}", String.valueOf(publishPackage.getId()));
 
