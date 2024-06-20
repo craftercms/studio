@@ -407,5 +407,14 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
         public boolean completed() {
             return !ObjectUtils.isEmpty(commitId);
         }
+
+        /**
+         * Check if there are failed items
+         *
+         * @return true if failed items list contains items, false otherwise
+         */
+        public boolean hasFailedItems() {
+            return !ObjectUtils.isEmpty(failedItems);
+        }
     }
 }

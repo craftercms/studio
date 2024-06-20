@@ -286,17 +286,19 @@ public class Publisher implements ApplicationEventPublisherAware {
             }
         } else {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
+
         }
         if (publishChangeSet.completed()) {
             itemServiceInternal.updateForCompletePackage(packageId, publishPackageTO.getCompletedOnMask(), publishPackageTO.getCompletedOffMask(), publishPackageTO.getItemSuccessState());
             itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, now(), publishPackageTO.getItemSuccessState());
             publishPackageTO.setPublishedCommitId(publishChangeSet.commitId());
-        }
-
-        if (isNotEmpty(publishChangeSet.failedItems())) {
-            publishPackageTO.setFailed();
+            if (publishChangeSet.hasFailedItems()) {
+                publishPackageTO.setCompletedWithErrors();
+            } else {
+                publishPackageTO.setSuccess();
+            }
         } else {
-            publishPackageTO.setSuccess();
+            publishPackageTO.setFailed();
         }
         publishDao.updatePackage(publishPackageTO.getPackage());
 

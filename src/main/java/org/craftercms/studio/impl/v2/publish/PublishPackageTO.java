@@ -84,6 +84,10 @@ public class PublishPackageTO {
         return targetStrategy.getItemSuccessState();
     }
 
+    public void setCompletedWithErrors() {
+        targetStrategy.setCompletedWithErrors(publishPackage);
+    }
+
     /**
      * Stategy to access the target specific fields of the {@link PublishPackage}
      */
@@ -93,6 +97,8 @@ public class PublishPackageTO {
         void setFailed(final PublishPackage publishPackage);
 
         void setPublishedCommitId(PublishPackage publishPackage, String commitId);
+
+        void setCompletedWithErrors(PublishPackage publishPackage);
 
         long getCompletedOnMask();
 
@@ -113,6 +119,11 @@ public class PublishPackageTO {
         @Override
         public void setFailed(final PublishPackage publishPackage) {
             publishPackage.setPackageState(publishPackage.getPackageState() | LIVE_FAILED.value);
+        }
+
+        @Override
+        public void setCompletedWithErrors(PublishPackage publishPackage) {
+            publishPackage.setPackageState(publishPackage.getPackageState() | LIVE_COMPLETED_WITH_ERRORS.value);
         }
 
         @Override
@@ -148,6 +159,11 @@ public class PublishPackageTO {
         @Override
         public void setFailed(final PublishPackage publishPackage) {
             publishPackage.setPackageState(publishPackage.getPackageState() | STAGING_FAILED.value);
+        }
+
+        @Override
+        public void setCompletedWithErrors(PublishPackage publishPackage) {
+            publishPackage.setPackageState(publishPackage.getPackageState() | STAGING_COMPLETED_WITH_ERRORS.value);
         }
 
         @Override
