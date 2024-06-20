@@ -42,9 +42,7 @@ public interface PublishDAO {
     String PACKAGE_READY_STATE = "readyState";
     String ITEMS = "items";
     String APPROVAL_STATES = "approvalStates";
-    String PACKAGE_STATES = "packageStates";
     String PACKAGE_STATE = "packageState";
-    String ITEM_STATE = "itemState";
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
     String ERROR = "error";
@@ -52,6 +50,10 @@ public interface PublishDAO {
     String STAGING_ERROR = "stagingError";
     String ITEM_SUCCESS_STATE = "itemSuccessState";
     String ITEM_PUBLISHED_STATE = "publishState";
+
+    String ON_STATES_BIT_MAP = "onStatesBitMap";
+
+    String OFF_STATES_BIT_MAP = "offStatesBitMap";
 
     /**
      * Convenience transactional method to create a package and its items
@@ -192,10 +194,16 @@ public interface PublishDAO {
     /**
      * Update the state of a package
      *
-     * @param packageId    the package id
-     * @param packageState the new state
+     * @param publishPackage  the package to update
+     * @param onStatesBitMap  the state bits to set to on
+     * @param offStatesBitMap the state bits to set to off
      */
-    void updatePackageState(@Param(PACKAGE_ID) long packageId, @Param(PACKAGE_STATE) long packageState);
+    default void updatePackageState(final PublishPackage publishPackage,
+                                    final long onStatesBitMap,
+                                    final long offStatesBitMap) {
+        publishPackage.setPackageState((publishPackage.getPackageState() | onStatesBitMap) & ~offStatesBitMap);
+        updatePackage(publishPackage);
+    }
 
     /**
      * Get the publish items for the given package
@@ -209,9 +217,12 @@ public interface PublishDAO {
      * Update the state for all publish items in the package
      *
      * @param id        the package id
-     * @param itemState the new state to set
+     * @param onStatesBitMap  the state bits to set to on
+     * @param offStatesBitMap the state bits to set to off
      */
-    void updatePublishItemState(@Param(PACKAGE_ID) long id, @Param(ITEM_STATE) long itemState);
+    void updatePublishItemState(@Param(PACKAGE_ID) long id,
+                                @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                                @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
      * Update the state and error (if any) for the given publish items

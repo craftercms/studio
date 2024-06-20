@@ -151,12 +151,6 @@
         </if>
     </update>
 
-    <update id="updatePackageState">
-        UPDATE publish_package
-        SET package_state = #{packageState}
-        WHERE id = #{packageId}
-    </update>
-
     <select id="getPublishItems" resultMap="PublishItemMap">
         <!-- TODO: get the old paths from item_target table if record exists (i.e. item is not deleted) -->
         SELECT pi.*, ipi.item_id
@@ -167,7 +161,7 @@
 
     <update id="updatePublishItemState">
         UPDATE publish_item
-        SET publish_state = (publish_state | #{itemState})
+        SET publish_state = (publish_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
         WHERE package_id = #{packageId}
     </update>
 

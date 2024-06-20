@@ -66,8 +66,7 @@ import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.PROCESSING;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.STAGING_FAILED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
 import static org.springframework.data.util.Predicates.negate;
 
 /**
@@ -148,7 +147,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
-        publishDao.updatePackageState(packageId, PROCESSING.value);
+        publishDao.updatePackageState(publishPackage, PROCESSING.value, READY.value);
         List<Long> affectedItemIds = null;
         try {
             Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
@@ -187,6 +186,7 @@ public class Publisher implements ApplicationEventPublisherAware {
             String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
             throw new ServiceLayerException(exceptionMessage, e);
         } finally {
+            publishDao.updatePackageState(publishPackage, 0, PROCESSING.value);
             if (affectedItemIds != null) {
                 // Clear system processing bit for all affected items
                 itemServiceInternal.updateStateBitsByIds(affectedItemIds, 0, SYSTEM_PROCESSING.value);
@@ -279,7 +279,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                 .toList();
 
         if (failedItems.isEmpty()) {
-            publishDao.updatePublishItemState(packageId, publishPackageTO.getItemSuccessState());
+            publishDao.updatePublishItemState(packageId, publishPackageTO.getItemSuccessState(), 0);
             if (publishPackageTO.getPackageType() == PublishPackage.PackageType.PUBLISH_ALL) {
                 cancelOutstandingTargetPackages(siteId, target);
             }
