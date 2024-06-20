@@ -95,7 +95,7 @@
                                 #{approvalState}
                             </foreach>
                     AND (pp.package_state &amp; #{packageState}) = #{packageState}
-                    AND (pp.schedule IS NULL OR pp.schedule &gt; NOW())
+                    AND (pp.schedule IS NULL OR pp.schedule &lt; NOW())
                     AND pp.site_id = s.id
                     ORDER BY pp.schedule, pp.submitted_on LIMIT 1
                 ) AS id

@@ -405,13 +405,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
         Map<PublishItem.Action, List<T>> itemsByAction = blobStoreItems.stream().collect(groupingBy(PublishItemTO::getAction, Collectors.toList()));
         Collection<T> failedItems = new ArrayList<>();
-        for (List<? extends PublishItemTO> batch : ListUtils.partition(new LinkedList<>(itemsByAction.get(DELETE)), DELETE_BATCH_SIZE)) {
+        for (List<? extends PublishItemTO> batch : ListUtils.partition(new LinkedList<>(itemsByAction.computeIfAbsent(DELETE, k -> emptyList())), DELETE_BATCH_SIZE)) {
             String[] keys = batch.stream().map(PublishItemTO::getPath).map(path -> getKey(targetMapping, path)).toArray(String[]::new);
             // TODO: here we should add a callback to report progress/failure traceable to each PublishItemTO
             deleteS3Objects(getClient(), targetMapping.target, keys);
         }
-
-        for (T updatedItem : itemsByAction.get(ADD)) {
+        for (T updatedItem : itemsByAction.computeIfAbsent(ADD, k -> emptyList())) {
             String updatedPath = updatedItem.getPath();
             try {
                 // TODO: check if readonly? Or just ignore?
