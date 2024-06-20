@@ -138,14 +138,15 @@ public class PublishItem {
     public enum PublishState {
         // Item is pending to be processed
         PENDING(0),
+        PROCESSING(1),
         // Live operation was completed
-        LIVE_COMPLETED(1),
+        LIVE_COMPLETED(2),
         // There was an error during live operation (even if completed)
-        LIVE_FAILED(2),
+        LIVE_FAILED(3),
         // Staging operation was completed
-        STAGING_COMPLETED(3),
+        STAGING_COMPLETED(4),
         // There was an error during staging operation (even if completed)
-        STAGING_FAILED(4);
+        STAGING_FAILED(5);
 
         public final long value;
 

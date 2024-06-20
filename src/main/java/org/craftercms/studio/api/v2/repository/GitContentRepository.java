@@ -28,6 +28,9 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -36,6 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Interface for content repositories that support git operations
@@ -260,10 +264,10 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      * Create a new site based on a blueprint
      *
      * @param blueprintLocation blueprint location
-     * @param siteId site identifier
-     * @param sandboxBranch sandbox branch name
-     * @param params site parameters
-     * @param creator site creator
+     * @param siteId            site identifier
+     * @param sandboxBranch     sandbox branch name
+     * @param params            site parameters
+     * @param creator           site creator
      * @return true if successful, false otherwise
      */
     boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
@@ -272,26 +276,25 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     /**
      * Create new site as a clone from remote repository
      *
-     * @param siteId         site identifier
-     * @param sandboxBranch  sandbox branch name
-     * @param remoteName     remote name
-     * @param remoteUrl      remote repository url
-     * @param remoteBranch   remote branch name
-     * @param singleBranch   flag to signal if clone single branch or full repository
+     * @param siteId             site identifier
+     * @param sandboxBranch      sandbox branch name
+     * @param remoteName         remote name
+     * @param remoteUrl          remote repository url
+     * @param remoteBranch       remote branch name
+     * @param singleBranch       flag to signal if clone single branch or full repository
      * @param authenticationType type of authentication to use to connect remote repository
-     * @param remoteUsername remote username
-     * @param remotePassword remote password
-     * @param remoteToken    remote token
-     * @param remotePrivateKey remote private key
-     * @param params         site parameters
-     * @param createAsOrphan create as orphan
-     * @param creator        site creator
+     * @param remoteUsername     remote username
+     * @param remotePassword     remote password
+     * @param remoteToken        remote token
+     * @param remotePrivateKey   remote private key
+     * @param params             site parameters
+     * @param createAsOrphan     create as orphan
+     * @param creator            site creator
      * @return true if success
-     *
-     * @throws InvalidRemoteRepositoryException invalid remote repository
+     * @throws InvalidRemoteRepositoryException            invalid remote repository
      * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
-     * @throws RemoteRepositoryNotFoundException remote repository not found
-     * @throws ServiceLayerException general service error
+     * @throws RemoteRepositoryNotFoundException           remote repository not found
+     * @throws ServiceLayerException                       general service error
      */
     boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                   String remoteBranch, boolean singleBranch, String authenticationType,
@@ -329,6 +332,7 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
 
     /**
      * Deletes the underlying git repositories for a site
+     *
      * @param siteId the id of the site
      * @return true if successful, false otherwise
      */
@@ -394,5 +398,14 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     record GitPublishChangeSet<T extends PublishItemTO>(String commitId,
                                                         Collection<T> successfulItems,
                                                         Collection<T> failedItems) {
+
+        /**
+         * Check if there are successfully published changes
+         *
+         * @return true if the package had successful changes and a commit was created, false otherwise
+         */
+        public boolean completed() {
+            return !ObjectUtils.isEmpty(commitId);
+        }
     }
 }

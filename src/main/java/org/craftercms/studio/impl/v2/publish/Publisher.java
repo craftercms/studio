@@ -148,6 +148,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
         publishDao.updatePackageState(publishPackage, PROCESSING.value, READY.value);
+        publishDao.updatePublishItemState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
         List<Long> affectedItemIds = null;
         try {
             Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
@@ -214,9 +215,9 @@ public class Publisher implements ApplicationEventPublisherAware {
 
         Instant now = now();
         // TODO: handle the case where ALL items failed
-        publishPackage.setPackageState(publishPackage.getPackageState() & ~PROCESSING.value);
         publishPackage.setPublishedOn(now);
-        publishDao.updatePackage(publishPackage);
+        publishDao.updatePackageState(publishPackage, 0, PROCESSING.value);
+        publishDao.updatePublishItemState(publishPackage.getId(), 0, PublishItem.PublishState.PROCESSING.value);
     }
 
     private PublishPackageTO getPublishPackageTO(final PublishPackage publishPackage, final boolean isLiveTarget) {
@@ -286,12 +287,12 @@ public class Publisher implements ApplicationEventPublisherAware {
         } else {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
         }
-        if (!successfulItems.isEmpty()) {
+        if (publishChangeSet.completed()) {
             itemServiceInternal.updateForCompletePackage(packageId, publishPackageTO.getCompletedOnMask(), publishPackageTO.getCompletedOffMask(), publishPackageTO.getItemSuccessState());
             itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, now(), publishPackageTO.getItemSuccessState());
+            publishPackageTO.setPublishedCommitId(publishChangeSet.commitId());
         }
 
-        publishPackageTO.setPublishedCommitId(publishChangeSet.commitId());
         if (isNotEmpty(publishChangeSet.failedItems())) {
             publishPackageTO.setFailed();
         } else {
@@ -299,7 +300,9 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
         publishDao.updatePackage(publishPackageTO.getPackage());
 
-        contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
+        if (publishChangeSet.completed()) {
+            contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
+        }
     }
 
     /**

@@ -308,7 +308,7 @@ public class BlobAwareContentRepositoryTest {
         PublishItemTO publishItemTO = mock(PublishItemTO.class);
         when(publishItemTO.getPath()).thenReturn(ORIGINAL_PATH);
         when(publishItemTO.getAction()).thenReturn(ADD);
-        when(publishItemTO.getError()).thenReturn(null);
+        when(publishItemTO.getError()).thenReturn(0);
 
         when(store.publish(any(), any(), any())).then((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
@@ -320,12 +320,12 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
 
-        PublishItemTO capturedPublishItem = itemsCaptor.getValue().get(0);
+        PublishItemTO capturedPublishItem = itemsCaptor.getValue().getFirst();
         assertEquals(capturedPublishItem.getPath(), ORIGINAL_PATH);
         assertEquals(capturedPublishItem.getAction(), ADD);
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
-        capturedPublishItem = itemsCaptor.getValue().get(0);
+        capturedPublishItem = itemsCaptor.getValue().getFirst();
         assertEquals(capturedPublishItem.getPath(), GIT_REPO_PATH);
     }
 
@@ -341,7 +341,7 @@ public class BlobAwareContentRepositoryTest {
         verify(store, never()).publish(any(), any(), any());
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
-        PublishItemTO capturedPublishItem = itemsCaptor.getValue().get(0);
+        PublishItemTO capturedPublishItem = itemsCaptor.getValue().getFirst();
         assertEquals(capturedPublishItem.getPath(), LOCAL_PATH);
         assertEquals(capturedPublishItem.getAction(), ADD);
     }
