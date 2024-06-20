@@ -20,6 +20,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.publish.PublishDAO">
     <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage" autoMapping="true">
+        <result property="siteId" column="site_id"/>
         <association property="site" column="site_id"
                      select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
     </resultMap>
