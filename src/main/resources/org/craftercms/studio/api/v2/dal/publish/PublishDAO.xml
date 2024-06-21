@@ -84,6 +84,17 @@
         WHERE i.id IS NOT NULL
     </insert>
 
+    <update id="updateItemStateBits">
+        UPDATE item,
+            (SELECT i.id
+            FROM item i INNER JOIN item_publish_item ipi ON i.id = ipi.item_id
+            INNER JOIN publish_item pi ON ipi.publish_item_id = pi.id
+            WHERE pi.package_id = #{packageId}
+            ) AS updates
+        SET item.state = (item.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE item.id = updates.id
+    </update>
+
     <select id="getNextPublishPackages" resultMap="PublishPackageMap">
         SELECT *
         FROM (

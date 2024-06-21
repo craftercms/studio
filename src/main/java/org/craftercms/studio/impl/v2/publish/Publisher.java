@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
@@ -149,12 +148,10 @@ public class Publisher implements ApplicationEventPublisherAware {
         String siteId = publishPackage.getSite().getSiteId();
         publishDao.updatePackageState(publishPackage, PROCESSING.value, READY.value);
         publishDao.updatePublishItemState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
-        List<Long> affectedItemIds = null;
         try {
             Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
-            affectedItemIds = publishItems.stream().map(PublishItem::getItemId).toList();
             // Set all affected items to system processing
-            itemServiceInternal.updateStateBitsByIds(affectedItemIds, SYSTEM_PROCESSING.value, 0);
+            publishDao.updateItemStateBits(packageId, SYSTEM_PROCESSING.value, 0);
             auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);
 
             // TODO: Initiate package progress reporting
@@ -176,7 +173,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                                 publishPackage.getPackageType(), packageId, siteId));
             }
             // Clear system processing bit for all affected items
-            itemServiceInternal.updateStateBitsByIds(affectedItemIds, 0, SYSTEM_PROCESSING.value);
+            publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
             auditPublishOperation(publishPackage, OPERATION_PUBLISHED);
             eventPublisher.publishEvent(new PublishEvent(siteId));
             // TODO: Complete package progress
@@ -187,11 +184,9 @@ public class Publisher implements ApplicationEventPublisherAware {
             String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
             throw new ServiceLayerException(exceptionMessage, e);
         } finally {
+            // Clear system processing bit for all affected items
             publishDao.updatePackageState(publishPackage, 0, PROCESSING.value);
-            if (affectedItemIds != null) {
-                // Clear system processing bit for all affected items
-                itemServiceInternal.updateStateBitsByIds(affectedItemIds, 0, SYSTEM_PROCESSING.value);
-            }
+            publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
         }
     }
 

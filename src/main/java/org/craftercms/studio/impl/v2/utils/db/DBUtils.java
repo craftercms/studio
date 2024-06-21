@@ -54,11 +54,11 @@ public class DBUtils {
                 exception.set(e);
             }
         });
-        logger.trace("Completed transaction '{}'", transactionName);
         if (exception.get() != null) {
             logger.error("Error occurred during transaction '{}', rolling back", exception);
             throw exception.get();
         }
+        logger.trace("Completed transaction '{}'", transactionName);
     }
 
     /**

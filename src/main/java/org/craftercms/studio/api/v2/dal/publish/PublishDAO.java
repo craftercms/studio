@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
@@ -60,15 +62,49 @@ public interface PublishDAO {
      *
      * @param publishPackage the package
      * @param publishItems   the items
+     * @param isLiveTarget   if the target is live
      */
     @Transactional
-    default void insertPackageAndItems(final PublishPackage publishPackage, final Collection<PublishItem> publishItems) {
+    default void insertPackageAndItems(final PublishPackage publishPackage, final Collection<PublishItem> publishItems, boolean isLiveTarget) {
         insertPackage(publishPackage, READY.value);
         if (!isEmpty(publishItems)) {
             insertItems(publishPackage.getId(), publishItems, PENDING.value);
             insertItemPublishItems(publishItems);
+            updateItemStateBits(publishPackage, isLiveTarget);
         }
     }
+
+    /**
+     * Update the item state bits for a all items in a package
+     *
+     * @param publishPackage the package
+     * @param isLiveTarget   if the target is live
+     */
+    default void updateItemStateBits(final PublishPackage publishPackage, boolean isLiveTarget) {
+        long onMask = 0;
+        long offMask = USER_LOCKED.value + SYSTEM_PROCESSING.value;
+        if (publishPackage.getSchedule() != null) {
+            onMask |= SCHEDULED.value;
+        }
+        if (SUBMITTED.equals(publishPackage.getApprovalState())) {
+            onMask |= ItemState.IN_WORKFLOW.value;
+        }
+        if (isLiveTarget) {
+            onMask |= ItemState.DESTINATION.value;
+        }
+        updateItemStateBits(publishPackage.getId(), onMask, offMask);
+    }
+
+    /**
+     * Update the item state bits for a all items in a package
+     *
+     * @param packageId       the package id
+     * @param onStatesBitMap  the state bits to set to on
+     * @param offStatesBitMap the state bits to set to off
+     */
+    void updateItemStateBits(@Param(PACKAGE_ID) long packageId,
+                             @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                             @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
      * Insert item_publish_item records for the given publish items.
@@ -108,7 +144,7 @@ public interface PublishDAO {
      * Get the next publish packages to process for every site matching the given states
      *
      * @param approvalStates the package approval states to match
-     * @param packageState  the package state to match
+     * @param packageState   the package state to match
      * @param siteStates     the site states to match
      * @return the next publish packages to process
      */
@@ -216,7 +252,7 @@ public interface PublishDAO {
     /**
      * Update the state for all publish items in the package
      *
-     * @param id        the package id
+     * @param id              the package id
      * @param onStatesBitMap  the state bits to set to on
      * @param offStatesBitMap the state bits to set to off
      */

@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -651,7 +652,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
             // Create package
             PublishPackage publishPackage = createPackage(site, target, packageType, requestApproval, schedule, comment);
-            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems));
+
+            boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
             applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : APPROVE));
