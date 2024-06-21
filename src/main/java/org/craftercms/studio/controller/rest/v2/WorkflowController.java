@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.workflow.*;
 import org.springframework.validation.annotation.Validated;
@@ -142,10 +143,21 @@ public class WorkflowController {
 
     @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public Result requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
-            throws ServiceLayerException, UserNotFoundException {
-        // TODO: call publish service publish method
-
-        Result result = new Result();
+            throws ServiceLayerException, AuthenticationException {
+        List<String> paths = new ArrayList<>(requestPublishRequestBody.getItems());
+        if (!isEmpty(requestPublishRequestBody.getOptionalDependencies())) {
+            paths.addAll(requestPublishRequestBody.getOptionalDependencies());
+        }
+        List<PublishService.PublishRequestPath> requestPaths =
+                paths.stream()
+                        .map(item -> new PublishService.PublishRequestPath(item, false, false))
+                        .toList();
+        Instant schedule = requestPublishRequestBody.getSchedule() != null ?
+                requestPublishRequestBody.getSchedule().toInstant() : null;
+        long packageId = publishService.requestPublish(requestPublishRequestBody.getSiteId(), requestPublishRequestBody.getPublishingTarget(),
+                requestPaths, emptyList(), schedule, requestPublishRequestBody.getComment(), false);
+        ResultOne<Long> result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         result.setResponse(OK);
         return result;
     }
@@ -164,10 +176,11 @@ public class WorkflowController {
                         .toList();
         Instant schedule = publishRequestBody.getSchedule() != null ?
                 publishRequestBody.getSchedule().toInstant() : null;
-        publishService.publish(publishRequestBody.getSiteId(), publishRequestBody.getPublishingTarget(),
+        long packageId = publishService.publish(publishRequestBody.getSiteId(), publishRequestBody.getPublishingTarget(),
                 requestPaths, emptyList(),
                 schedule, publishRequestBody.getComment(), false);
-        Result result = new Result();
+        ResultOne<Long> result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         result.setResponse(OK);
         return result;
     }

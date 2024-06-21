@@ -2540,7 +2540,7 @@ paths:
                     type: string
                   packageId:
                     type: number
-                    description: asdf
+                    description: package ID
                 example:
                   message: "OK"
                   packageId: 15
@@ -2862,7 +2862,7 @@ paths:
                     type: string
                   packageId:
                     type: number
-                    description: asdf
+                    description: package ID
                 example:
                   message: "OK"
                   packageId: 15
@@ -9033,6 +9033,9 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  packageId:
+                    type: number
+                    description: package ID
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -9097,6 +9100,9 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  packageId:
+                    type: number
+                    description: package ID
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
