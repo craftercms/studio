@@ -277,7 +277,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         if (failedItems.isEmpty()) {
             publishDao.updatePublishItemState(packageId, publishPackageTO.getItemSuccessState(), 0);
             if (publishPackageTO.getPackageType() == PublishPackage.PackageType.PUBLISH_ALL) {
-                cancelOutstandingTargetPackages(siteId, target);
+                cancelOutstandingTargetPackages(publishPackageTO.getSite().getId(), target);
             }
         } else {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
@@ -356,7 +356,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         Instant now = now();
         DBUtils.runInTransaction(transactionManager,
                 format(PUBLISH_TRANSACTION_NAME_FORMAT, publishPackage.getSite().getSiteId(), publishPackage.getId(), "INITIAL_PUBLISH"), () -> {
-                    cancelAllOutstandingPackages(siteId);
+                    cancelAllOutstandingPackages(publishPackage.getSiteId());
                     itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
 
                     Collection<String> targets = new ArrayList<>();
@@ -374,7 +374,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                 });
     }
 
-    private void cancelAllOutstandingPackages(final String siteId) {
+    private void cancelAllOutstandingPackages(final long siteId) {
         try {
             publishDao.cancelAllOutstandingPackages(siteId);
         } catch (Exception e) {
@@ -382,7 +382,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
     }
 
-    private void cancelOutstandingTargetPackages(final String siteId, final String target) {
+    private void cancelOutstandingTargetPackages(final long siteId, final String target) {
         try {
             publishDao.cancelOutstandingPackages(siteId, target);
         } catch (Exception e) {

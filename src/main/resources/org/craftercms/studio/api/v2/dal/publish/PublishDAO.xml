@@ -156,7 +156,7 @@
                     <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
                         #{approvalState}
                     </foreach>
-        AND (package_state &amp; #{packageState}) = #{packageState}
+        AND (package_state &amp; #{packageState}) > 0
         AND site_id = #{siteId}
         <if test="target != null">
             AND target = #{target}

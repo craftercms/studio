@@ -197,8 +197,8 @@ public interface PublishDAO {
      * @param siteId the site id
      * @param target the target
      */
-    default void cancelOutstandingPackages(final String siteId, final String target) {
-        cancelOutstandingPackages(siteId, target, PackageState.CANCELLED, READY, List.of(SUBMITTED, APPROVED));
+    default void cancelOutstandingPackages(final long siteId, final String target) {
+        cancelOutstandingPackages(siteId, target, PackageState.CANCELLED.value, READY.value, List.of(SUBMITTED, APPROVED));
     }
 
     /**
@@ -206,8 +206,8 @@ public interface PublishDAO {
      *
      * @param siteId the site id
      */
-    default void cancelAllOutstandingPackages(final String siteId) {
-        cancelOutstandingPackages(siteId, null, PackageState.CANCELLED, READY, List.of(SUBMITTED, APPROVED));
+    default void cancelAllOutstandingPackages(final long siteId) {
+        cancelOutstandingPackages(siteId, null, PackageState.CANCELLED.value, READY.value, List.of(SUBMITTED, APPROVED));
     }
 
 
@@ -219,12 +219,12 @@ public interface PublishDAO {
      * @param target         the target to cancel packages for, null for any target
      * @param cancelledState the state to set the packages to
      * @param stateToCancel  the package state to match
-     * @param approvalStates the approval states to match
+     * @param approvalStates the approval states to filter by (it will match packages having any of the given flags in their approval_state)
      */
-    void cancelOutstandingPackages(@Param(SITE_ID) String siteId,
+    void cancelOutstandingPackages(@Param(SITE_ID) long siteId,
                                    @Param(TARGET) String target,
-                                   @Param(CANCELLED_STATE) PackageState cancelledState,
-                                   @Param(PACKAGE_STATE) PackageState stateToCancel,
+                                   @Param(CANCELLED_STATE) long cancelledState,
+                                   @Param(PACKAGE_STATE) long stateToCancel,
                                    @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates);
 
     /**
