@@ -2490,7 +2490,7 @@ paths:
       tags:
         - publishing
       summary: Publish commits from sandbox repository by commit id.
-      description: "Required role: none"
+      description: "Required role: Admin, Site Admin or the permission 'publish_by_commits'"
       operationId: publishCommits
       requestBody:
         description: Publish commits from sandbox repository request body
