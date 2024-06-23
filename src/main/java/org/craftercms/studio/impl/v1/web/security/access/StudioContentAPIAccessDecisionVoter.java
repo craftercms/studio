@@ -97,7 +97,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                 logger.debug("Failed to extract the username from the POST request", e);
             }
         }
-        pathParam = defaultIfEmpty(pathParam, "");
+        pathParam = defaultIfEmpty(pathParam, DEFAULT_PERMISSION_VOTER_PATH);
         User currentUser = (User) authentication.getPrincipal();
         if (!siteService.exists(siteParam)) {
             logger.trace("Site '{}' does not exist. The request with URL '{}' has access '{}'", siteParam, requestUri, toRet);

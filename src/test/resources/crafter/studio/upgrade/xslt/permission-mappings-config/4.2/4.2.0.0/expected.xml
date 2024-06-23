@@ -29,7 +29,7 @@
   View the sample for a good starting point.
 -->
 <permissions>
-    <version>4.2.0.0</version>
+    <version>4.2.0</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -271,6 +271,24 @@
                 <permission>content_search</permission>
                 <permission>read_configuration</permission>
                 <permission>publish_by_commits</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="test_without_default_rule">
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>publish_by_commits</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="test_with_publish_by_commits_permission">
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>publish_by_commits</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
             </allowed-permissions>
         </rule>
     </role>

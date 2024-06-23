@@ -35,13 +35,12 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_BY_COMMITS;
+
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
-    private final static String STATUS = "/api/1/services/api/1/publish/status.json";
-    private final static String COMMITS = "/api/1/services/api/1/publish/commits.json";
-    private final static String PUBLISH_ITEMS = "/api/1/services/api/1/publish/publish-items.json";
-    private final static String RESET_STAGING = "/api/1/services/api/1/publish/reset-staging.json";
+    private static final Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
+    private static final String COMMITS = "/api/1/services/api/1/publish/commits.json";
 
     @Override
     public boolean supports(ConfigAttribute configAttribute) {
@@ -80,24 +79,11 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
             }
             User currentUser = (User) authentication.getPrincipal();
             switch (requestUri) {
-                case STATUS:
-                    if (siteService.exists(siteParam)) {
-                        if (isSiteMember(siteParam, currentUser)) {
-                            toRet = ACCESS_GRANTED;
-                        } else {
-                            toRet = ACCESS_DENIED;
-                        }
-                    } else {
-                        toRet = ACCESS_ABSTAIN;
-                    }
-                    break;
                 case COMMITS:
-                case PUBLISH_ITEMS:
-                case RESET_STAGING:
                     if (siteService.exists(siteParam)) {
                         if (currentUser != null &&
-                                (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, "~DASHBOARD~",
-                                        currentUser.getUsername(), "publish"))) {
+                                (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, DEFAULT_PERMISSION_VOTER_PATH,
+                                        currentUser.getUsername(), PERMISSION_PUBLISH_BY_COMMITS))) {
                             toRet = ACCESS_GRANTED;
                         } else {
                             toRet = ACCESS_DENIED;
