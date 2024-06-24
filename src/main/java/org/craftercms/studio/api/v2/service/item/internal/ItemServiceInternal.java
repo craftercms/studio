@@ -412,11 +412,16 @@ public interface ItemServiceInternal {
     Collection<String> getChildrenPaths(long siteId, String path);
 
     /**
-     * Update the state for all successful items in the given package
+     * Update the state for all items in the given package. For successful items, the successOnMask will be turned on
+     * For all items, the completedOffMask will be turn off
      *
-     * @param publishPackageId the package id
-     * @param onMask           the mask of states to turn on
-     * @param offMask          the mask of states to turn off
+     * @param publishPackageId    the package id
+     * @param successOnMask       the mask of states to turn on for successful items
+     * @param successOffMask      the mask of states to turn off for successful items
+     * @param failureOnMask       the mask of states to turn on for failed items
+     * @param failureOffMask      the mask of states to turn off for failed items
+     * @param successPublishState the state to set for successful items
      */
-    void updateForCompletePackage(long publishPackageId, long onMask, long offMask, long successPublishState);
+    void updateForCompletePackage(long publishPackageId, long successOnMask, long successOffMask,
+                                  long failureOnMask, long failureOffMask, long successPublishState);
 }

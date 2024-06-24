@@ -167,7 +167,6 @@ public interface PublishDAO {
      *                       for the updatable fields:
      *                       <ul>
      *                           <li>approval_state</li>
-     *                           <li>package_state</li>
      *                           <li>live_error</li>
      *                           <li>staging_error</li>
      *                           <li>reviewed_on</li>
@@ -230,16 +229,13 @@ public interface PublishDAO {
     /**
      * Update the state of a package
      *
-     * @param publishPackage  the package to update
+     * @param packageId       id of the package to update
      * @param onStatesBitMap  the state bits to set to on
      * @param offStatesBitMap the state bits to set to off
      */
-    default void updatePackageState(final PublishPackage publishPackage,
-                                    final long onStatesBitMap,
-                                    final long offStatesBitMap) {
-        publishPackage.setPackageState((publishPackage.getPackageState() | onStatesBitMap) & ~offStatesBitMap);
-        updatePackage(publishPackage);
-    }
+    void updatePackageState(@Param(PACKAGE_ID) final long packageId,
+                            @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
+                            @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap);
 
     /**
      * Get the publish items for the given package

@@ -174,7 +174,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
                     return store.contentExists(site, normalize(path));
                 }
             }
-            return localRepositoryV1.contentExists(site, path);
+            return localRepositoryV2.contentExists(site, path);
         } catch (Exception e) {
             logger.error("Failed to check if content exists in site '{}' path '{}'", site, path, e);
             return false;

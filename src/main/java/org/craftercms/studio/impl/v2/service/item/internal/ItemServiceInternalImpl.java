@@ -565,8 +565,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void updateForCompletePackage(final long packageId, final long onMask, final long offMask, final long successPublishState) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateForCompletePackage(packageId, onMask, offMask, successPublishState));
+    public void updateForCompletePackage(final long packageId, final long successOnMask, final long successOffMask,
+                                         final long failureOnMask, final long failureOffMask, final long successPublishState) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateForCompletePackage(packageId, successOnMask, successOffMask,
+                failureOnMask, failureOffMask, successPublishState));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

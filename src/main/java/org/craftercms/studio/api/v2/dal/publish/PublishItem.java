@@ -140,11 +140,11 @@ public class PublishItem {
         PENDING(0),
         PROCESSING(1),
         // Live operation was completed
-        LIVE_COMPLETED(2),
+        LIVE_SUCCESS(2),
         // There was an error during live operation (even if completed)
         LIVE_FAILED(3),
         // Staging operation was completed
-        STAGING_COMPLETED(4),
+        STAGING_SUCCESS(4),
         // There was an error during staging operation (even if completed)
         STAGING_FAILED(5);
 

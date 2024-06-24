@@ -27,8 +27,8 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_COMPLETED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_COMPLETED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_SUCCESS;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_SUCCESS;
 
 public interface ItemDAO {
 
@@ -42,6 +42,10 @@ public interface ItemDAO {
     String ITEM_IDS = "itemIds";
 
     String ON_STATES_BIT_MAP = "onStatesBitMap";
+    String SUCCESS_ON_BIT_MAP = "successOnStatesBitMap";
+    String SUCCESS_OFF_BIT_MAP = "successOffStatesBitMap";
+    String FAILURE_ON_BIT_MAP = "failureOnStatesBitMap";
+    String FAILURE_OFF_BIT_MAP = "failureOffStatesBitMap";
 
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
     String TIMESTAMP = "timestamp";
@@ -132,7 +136,7 @@ public interface ItemDAO {
                                      String systemTypeFolder,
                                      String stagingEnvironment,
                                      String liveEnvironment) {
-        return getItemById(id, siteId, systemTypeFolder, stagingEnvironment, liveEnvironment, LIVE_COMPLETED.value, STAGING_COMPLETED.value);
+        return getItemById(id, siteId, systemTypeFolder, stagingEnvironment, liveEnvironment, LIVE_SUCCESS.value, STAGING_SUCCESS.value);
     }
 
     /**
@@ -166,7 +170,7 @@ public interface ItemDAO {
                                                 @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                 @Param(LIVE_ENVIRONMENT) String liveEnvironment) {
         return getItemBySiteIdAndPath(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment,
-                LIVE_COMPLETED.value, STAGING_COMPLETED.value);
+                LIVE_SUCCESS.value, STAGING_SUCCESS.value);
     }
 
     /**
@@ -200,7 +204,7 @@ public interface ItemDAO {
                                                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                              @Param(LIVE_ENVIRONMENT) String liveEnvironment) {
         return getItemBySiteIdAndPathPreferContent(siteId, path, CONTENT_TYPE_FOLDER, stagingEnvironment, liveEnvironment,
-                LIVE_COMPLETED.value, STAGING_COMPLETED.value);
+                LIVE_SUCCESS.value, STAGING_SUCCESS.value);
     }
 
     /**
@@ -332,7 +336,7 @@ public interface ItemDAO {
                                                         @Param(LIVE_ENVIRONMENT) String liveEnvironment,
                                                         @Param(OFFSET) int offset, @Param(LIMIT) int limit) {
         return getDetailedItemsByStates(siteId, statesBitMap, CONTENT_TYPE_FOLDER, null, systemTypes, sortFields,
-                stagingEnvironment, liveEnvironment, LIVE_COMPLETED.value, STAGING_COMPLETED.value, offset, limit);
+                stagingEnvironment, liveEnvironment, LIVE_SUCCESS.value, STAGING_SUCCESS.value, offset, limit);
     }
 
     /**
@@ -616,12 +620,16 @@ public interface ItemDAO {
      * Update states for successful publish items in the package.
      *
      * @param packageId        the package id
-     * @param onMask           states to flip on
-     * @param offMask          states to flip off
+     * @param successOnMask    states to flip on for successful items
+     * @param successOffMask   states to flip off for successful items
+     * @param failureOnMask    states to flip on for failed items
+     * @param failureOffMask   states to flip off for failed items
      * @param itemSuccessState the state of the successful items to filter
      */
     void updateForCompletePackage(@Param(PACKAGE_ID) long packageId,
-                                  @Param(ON_STATES_BIT_MAP) long onMask,
-                                  @Param(OFF_STATES_BIT_MAP) long offMask,
+                                  @Param(SUCCESS_ON_BIT_MAP) long successOnMask,
+                                  @Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
+                                  @Param(FAILURE_ON_BIT_MAP) long failureOnMask,
+                                  @Param(FAILURE_OFF_BIT_MAP) long failureOffMask,
                                   @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 }

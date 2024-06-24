@@ -17,11 +17,10 @@
 package org.craftercms.studio.impl.v2.publish;
 
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_COMPLETED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_COMPLETED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
 
 /**
@@ -43,12 +42,16 @@ public class PublishPackageTO {
         return publishPackage;
     }
 
-    public void setSuccess() {
-        targetStrategy.setSuccess(publishPackage);
+    public long getSuccessOnBits() {
+        return targetStrategy.getSuccessOnBits();
     }
 
-    public void setFailed() {
-        targetStrategy.setFailed(publishPackage);
+    public long getFailedOnBits() {
+        return targetStrategy.getFailedOnBits();
+    }
+
+    public long getCompletedWithErrorsOnBits() {
+        return targetStrategy.getCompletedWithErrorsOnBits();
     }
 
     public long getId() {
@@ -59,11 +62,6 @@ public class PublishPackageTO {
         return getPackage().getSite();
     }
 
-    @SuppressWarnings("unused")
-    public long getPackageState() {
-        return getPackage().getPackageState();
-    }
-
     public void setPublishedCommitId(String commitId) {
         targetStrategy.setPublishedCommitId(publishPackage, commitId);
     }
@@ -72,37 +70,38 @@ public class PublishPackageTO {
         return getPackage().getPackageType();
     }
 
-    public long getCompletedOnMask() {
-        return targetStrategy.getCompletedOnMask();
+    public long getSuccessOnMask() {
+        return targetStrategy.getSuccessOnMask();
     }
 
-    public long getCompletedOffMask() {
-        return targetStrategy.getCompletedOffMask();
+    public long getSuccessOffMask() {
+        return targetStrategy.getSuccessOffMask();
+    }
+
+    public long getFailureOffMask() {
+        return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
     }
 
     public long getItemSuccessState() {
         return targetStrategy.getItemSuccessState();
     }
 
-    public void setCompletedWithErrors() {
-        targetStrategy.setCompletedWithErrors(publishPackage);
-    }
-
     /**
      * Stategy to access the target specific fields of the {@link PublishPackage}
      */
     private interface TargetStrategy {
-        void setSuccess(final PublishPackage publishPackage);
 
-        void setFailed(final PublishPackage publishPackage);
+        long getSuccessOnBits();
+
+        long getFailedOnBits();
 
         void setPublishedCommitId(PublishPackage publishPackage, String commitId);
 
-        void setCompletedWithErrors(PublishPackage publishPackage);
+        long getCompletedWithErrorsOnBits();
 
-        long getCompletedOnMask();
+        long getSuccessOnMask();
 
-        long getCompletedOffMask();
+        long getSuccessOffMask();
 
         long getItemSuccessState();
     }
@@ -112,18 +111,18 @@ public class PublishPackageTO {
      */
     private static class LiveStrategy implements TargetStrategy {
         @Override
-        public void setSuccess(final PublishPackage publishPackage) {
-            publishPackage.setPackageState(publishPackage.getPackageState() | LIVE_SUCCESS.value);
+        public long getSuccessOnBits() {
+            return LIVE_SUCCESS.value;
         }
 
         @Override
-        public void setFailed(final PublishPackage publishPackage) {
-            publishPackage.setPackageState(publishPackage.getPackageState() | LIVE_FAILED.value);
+        public long getFailedOnBits() {
+            return LIVE_FAILED.value;
         }
 
         @Override
-        public void setCompletedWithErrors(PublishPackage publishPackage) {
-            publishPackage.setPackageState(publishPackage.getPackageState() | LIVE_COMPLETED_WITH_ERRORS.value);
+        public long getCompletedWithErrorsOnBits() {
+            return LIVE_COMPLETED_WITH_ERRORS.value;
         }
 
         @Override
@@ -132,18 +131,18 @@ public class PublishPackageTO {
         }
 
         @Override
-        public long getCompletedOnMask() {
+        public long getSuccessOnMask() {
             return LIVE.value;
         }
 
         @Override
-        public long getCompletedOffMask() {
+        public long getSuccessOffMask() {
             return NEW.value + MODIFIED.value + USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
         }
 
         @Override
         public long getItemSuccessState() {
-            return LIVE_COMPLETED.value;
+            return PublishItem.PublishState.LIVE_SUCCESS.value;
         }
     }
 
@@ -152,18 +151,18 @@ public class PublishPackageTO {
      */
     private static class StagingStrategy implements TargetStrategy {
         @Override
-        public void setSuccess(final PublishPackage publishPackage) {
-            publishPackage.setPackageState(publishPackage.getPackageState() | STAGING_SUCCESS.value);
+        public long getSuccessOnBits() {
+            return STAGING_SUCCESS.value;
         }
 
         @Override
-        public void setFailed(final PublishPackage publishPackage) {
-            publishPackage.setPackageState(publishPackage.getPackageState() | STAGING_FAILED.value);
+        public long getFailedOnBits() {
+            return STAGING_FAILED.value;
         }
 
         @Override
-        public void setCompletedWithErrors(PublishPackage publishPackage) {
-            publishPackage.setPackageState(publishPackage.getPackageState() | STAGING_COMPLETED_WITH_ERRORS.value);
+        public long getCompletedWithErrorsOnBits() {
+            return STAGING_COMPLETED_WITH_ERRORS.value;
         }
 
         @Override
@@ -172,18 +171,18 @@ public class PublishPackageTO {
         }
 
         @Override
-        public long getCompletedOnMask() {
+        public long getSuccessOnMask() {
             return STAGED.value;
         }
 
         @Override
-        public long getCompletedOffMask() {
+        public long getSuccessOffMask() {
             return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
         }
 
         @Override
         public long getItemSuccessState() {
-            return STAGING_COMPLETED.value;
+            return PublishItem.PublishState.STAGING_SUCCESS.value;
         }
     }
 }

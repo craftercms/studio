@@ -176,7 +176,7 @@ public class BlobAwareContentRepositoryTest {
     public void configShouldNotBeIntercepted() {
         proxy.contentExists(SITE, CONFIG_PATH);
 
-        verify(localV1).contentExists(SITE, CONFIG_PATH);
+        verify(localRepositoryV2).contentExists(SITE, CONFIG_PATH);
         verify(store, never()).contentExists(SITE, CONFIG_PATH);
     }
 

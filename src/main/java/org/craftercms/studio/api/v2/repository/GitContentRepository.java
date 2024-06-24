@@ -28,9 +28,7 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -39,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Interface for content repositories that support git operations

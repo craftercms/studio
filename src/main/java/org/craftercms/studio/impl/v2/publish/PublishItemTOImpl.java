@@ -90,7 +90,9 @@ public class PublishItemTOImpl implements PublishItemTO {
 
         @Override
         public void setCompleted(PublishItem publishItem) {
-            publishItem.setPublishState(publishItem.getPublishState() | LIVE_COMPLETED.value);
+            if ((publishItem.getPublishState() & LIVE_FAILED.value) == 0) {
+                publishItem.setPublishState(publishItem.getPublishState() | LIVE_SUCCESS.value);
+            }
         }
 
         @Override
@@ -111,7 +113,9 @@ public class PublishItemTOImpl implements PublishItemTO {
     private static class StagingStrategy implements TargetStrategy {
         @Override
         public void setCompleted(PublishItem publishItem) {
-            publishItem.setPublishState(publishItem.getPublishState() | STAGING_COMPLETED.value);
+            if ((publishItem.getPublishState() & STAGING_FAILED.value) == 0) {
+                publishItem.setPublishState(publishItem.getPublishState() | STAGING_SUCCESS.value);
+            }
         }
 
         @Override
