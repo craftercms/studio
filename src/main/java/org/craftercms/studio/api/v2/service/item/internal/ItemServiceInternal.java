@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
@@ -412,8 +411,9 @@ public interface ItemServiceInternal {
     Collection<String> getChildrenPaths(long siteId, String path);
 
     /**
-     * Update the state for all items in the given package. For successful items, the successOnMask will be turned on
-     * For all items, the completedOffMask will be turn off
+     * Update the state for all items in the given package.
+     * It will determine if the item was successful by comparing its PublishItem to successPublishState parameter,
+     * then it will turn on/off the state bits accordingly.
      *
      * @param publishPackageId    the package id
      * @param successOnMask       the mask of states to turn on for successful items

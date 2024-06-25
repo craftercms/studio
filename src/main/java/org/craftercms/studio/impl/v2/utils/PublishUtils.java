@@ -16,7 +16,16 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
+import org.craftercms.core.util.ExceptionUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.rest.ApiResponse;
+import org.springframework.lang.NonNull;
+import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+
+import java.net.ConnectException;
 
 /**
  * Utility class for publish operations.
@@ -29,8 +38,44 @@ public class PublishUtils {
      * @param e the exception
      * @return the error code
      */
-    public static int translateException(final Exception e) {
+    public static int translateItemException(final Exception e) throws ServiceLayerException {
+        PublishErrorCode publishErrorCode = translateExceptionInternal(e);
+        if (publishErrorCode.packageLevel) {
+            throw new PublishException("Unable to continue publishing package", e);
+        }
+        return publishErrorCode.code();
+    }
+
+    public static int translatePackageException(final Exception e) {
+        return translateExceptionInternal(e).code;
+    }
+
+    @NonNull
+    private static PublishErrorCode translateExceptionInternal(final Exception e) {
         // TODO: implement
-        return ApiResponse.INTERNAL_SYSTEM_FAILURE.getCode();
+        if (ExceptionUtils.getThrowableOfType(e, ConnectException.class) != null) {
+            return new PublishErrorCode(ApiResponse.S3_UNREACHABLE.getCode(), true);
+        }
+        if (ExceptionUtils.getThrowableOfType(e, NoSuchBucketException.class) != null) {
+            return new PublishErrorCode(ApiResponse.S3_BUCKET_NOT_FOUND.getCode(), true);
+        }
+        if (ExceptionUtils.getThrowableOfType(e, NoSuchKeyException.class) != null) {
+            return new PublishErrorCode(ApiResponse.S3_KEY_NOT_FOUND.getCode(), false);
+        }
+
+        SdkServiceException sdkServiceException = ExceptionUtils.getThrowableOfType(e, SdkServiceException.class);
+        if (sdkServiceException != null) {
+            switch (sdkServiceException.statusCode()) {
+                case 401:
+                    return new PublishErrorCode(ApiResponse.S3_UNAUTHORIZED.getCode(), true);
+                case 403:
+                    return new PublishErrorCode(ApiResponse.S3_FORBIDDEN.getCode(), true);
+            }
+        }
+
+        return new PublishErrorCode(ApiResponse.INTERNAL_SYSTEM_FAILURE.getCode(), false);
+    }
+
+    private record PublishErrorCode(int code, boolean packageLevel) {
     }
 }

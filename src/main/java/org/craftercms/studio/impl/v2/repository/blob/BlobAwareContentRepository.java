@@ -697,7 +697,9 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
                     () -> gitRepoItems.add(new BlobAwarePublishItemTOWrapper<>(publishItem, publishItem.getPath())));
         }
 
-        itemsByBlobStore.forEach((blobStore, blobStoreItems) -> {
+        for (Map.Entry<StudioBlobStore, List<BlobAwarePublishItemTOWrapper<T>>> entry : itemsByBlobStore.entrySet()) {
+            StudioBlobStore blobStore = entry.getKey();
+            List<BlobAwarePublishItemTOWrapper<T>> blobStoreItems = entry.getValue();
             StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
                     publishingTarget, blobStoreItems);
 
@@ -708,7 +710,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
                     .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
                     .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
                     .toList());
-        });
+        }
 
         if (isEmpty(gitRepoItems)) {
             return new GitPublishChangeSet<>(null, emptyList(), failedItems);

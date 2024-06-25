@@ -70,15 +70,15 @@ public class PublishPackageTO {
         return getPackage().getPackageType();
     }
 
-    public long getSuccessOnMask() {
-        return targetStrategy.getSuccessOnMask();
+    public long getItemSuccessOnMask() {
+        return targetStrategy.getItemSuccessOnMask();
     }
 
-    public long getSuccessOffMask() {
-        return targetStrategy.getSuccessOffMask();
+    public long getItemSuccessOffMask() {
+        return targetStrategy.getItemSuccessOffMask();
     }
 
-    public long getFailureOffMask() {
+    public long getItemFailureOffMask() {
         return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
     }
 
@@ -99,9 +99,9 @@ public class PublishPackageTO {
 
         long getCompletedWithErrorsOnBits();
 
-        long getSuccessOnMask();
+        long getItemSuccessOnMask();
 
-        long getSuccessOffMask();
+        long getItemSuccessOffMask();
 
         long getItemSuccessState();
     }
@@ -131,12 +131,12 @@ public class PublishPackageTO {
         }
 
         @Override
-        public long getSuccessOnMask() {
+        public long getItemSuccessOnMask() {
             return LIVE.value;
         }
 
         @Override
-        public long getSuccessOffMask() {
+        public long getItemSuccessOffMask() {
             return NEW.value + MODIFIED.value + USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
         }
 
@@ -171,12 +171,12 @@ public class PublishPackageTO {
         }
 
         @Override
-        public long getSuccessOnMask() {
+        public long getItemSuccessOnMask() {
             return STAGED.value;
         }
 
         @Override
-        public long getSuccessOffMask() {
+        public long getItemSuccessOffMask() {
             return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
         }
 

@@ -167,8 +167,6 @@ public interface PublishDAO {
      *                       for the updatable fields:
      *                       <ul>
      *                           <li>approval_state</li>
-     *                           <li>live_error</li>
-     *                           <li>staging_error</li>
      *                           <li>reviewed_on</li>
      *                           <li>published_on</li>
      *                           <li>published_staging_commit_id</li>
@@ -180,13 +178,15 @@ public interface PublishDAO {
     /**
      * Update state and error of a failed package
      *
-     * @param packageId    the package id
-     * @param failureState the new state
-     * @param stagingError the staging error code (0 if none)
-     * @param liveError    the live error code (0 if none)
+     * @param packageId       the package id
+     * @param onStatesBitMap  the state bits to set to on
+     * @param offStatesBitMap the state bits to set to off
+     * @param stagingError    the staging error code (0 if none)
+     * @param liveError       the live error code (0 if none)
      */
     void updateFailedPackage(@Param(PACKAGE_ID) final long packageId,
-                             @Param(PACKAGE_STATE) final long failureState,
+                             @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
+                             @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap,
                              @Param(STAGING_ERROR) final int stagingError,
                              @Param(LIVE_ERROR) final int liveError);
 

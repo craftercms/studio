@@ -177,8 +177,8 @@ public class Publisher implements ApplicationEventPublisherAware {
             // TODO: Complete package progress
         } catch (Exception e) {
             logger.error("Failed to publish package '{}' for site '{}'", packageId, siteId, e);
-            int errorCode = PublishUtils.translateException(e);
-            publishDao.updateFailedPackage(packageId, PackageState.LIVE_FAILED.value + STAGING_FAILED.value, errorCode, errorCode);
+            int errorCode = PublishUtils.translatePackageException(e);
+            publishDao.updateFailedPackage(packageId, PackageState.LIVE_FAILED.value + STAGING_FAILED.value, 0, errorCode, errorCode);
             String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
             throw new ServiceLayerException(exceptionMessage, e);
         } finally {
@@ -187,6 +187,7 @@ public class Publisher implements ApplicationEventPublisherAware {
             publishDao.updatePackageState(packageId, 0, PROCESSING.value);
             // Clear system processing bit for all affected items
             publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
+            publishDao.updatePublishItemState(packageId, 0, PublishItem.PublishState.PROCESSING.value);
         }
     }
 
@@ -195,8 +196,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      */
     private void doPublishItemList(final PublishPackage publishPackage,
                                    final Collection<PublishItem> publishItems,
-                                   final TargetPublisherFunction targetPublisher)
-            throws Exception {
+                                   final TargetPublisherFunction targetPublisher) {
         String siteId = publishPackage.getSite().getSiteId();
         String target = publishPackage.getTarget();
 
@@ -204,9 +204,38 @@ public class Publisher implements ApplicationEventPublisherAware {
 
         if (isLiveTarget && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
-            targetPublisher.run(getPublishPackageTO(publishPackage, false), stagingEnvironment, publishItems);
+            runTargetPublisher(publishPackage, publishItems, targetPublisher, false, stagingEnvironment);
         }
-        targetPublisher.run(getPublishPackageTO(publishPackage, isLiveTarget), target, publishItems);
+        runTargetPublisher(publishPackage, publishItems, targetPublisher, isLiveTarget, target);
+    }
+
+    /**
+     * Helper function to run the "target publisher" and handle exception.
+     * On exception, it will update the package and its PublishItems with the target-aware failing state
+     */
+    private void runTargetPublisher(final PublishPackage publishPackage,
+                                    final Collection<PublishItem> publishItems,
+                                    final TargetPublisherFunction targetPublisher,
+                                    final boolean isLiveTarget,
+                                    final String target) {
+        PublishPackageTO packageTO = getPublishPackageTO(publishPackage, isLiveTarget);
+        try {
+            targetPublisher.run(packageTO, target, publishItems);
+        } catch (Exception e) {
+            int errorCode = PublishUtils.translatePackageException(e);
+            int liveErrorCode = isLiveTarget ? errorCode : 0;
+            int stagingErrorCode = isLiveTarget ? 0 : errorCode;
+            publishDao.updateFailedPackage(publishPackage.getId(), packageTO.getFailedOnBits(),
+                    0, stagingErrorCode, liveErrorCode);
+            long onMask = isLiveTarget ? PublishItem.PublishState.LIVE_FAILED.value : PublishItem.PublishState.STAGING_FAILED.value;
+            publishDao.updatePublishItemState(publishPackage.getId(), onMask, 0);
+            itemServiceInternal.updateForCompletePackage(packageTO.getId(),
+                    packageTO.getItemSuccessOnMask(),
+                    packageTO.getItemSuccessOffMask(),
+                    0,
+                    packageTO.getItemFailureOffMask(),
+                    packageTO.getItemSuccessState());
+        }
     }
 
     private PublishPackageTO getPublishPackageTO(final PublishPackage publishPackage, final boolean isLiveTarget) {
@@ -277,10 +306,10 @@ public class Publisher implements ApplicationEventPublisherAware {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
         }
         itemServiceInternal.updateForCompletePackage(packageId,
-                packageTO.getSuccessOnMask(),
-                packageTO.getSuccessOffMask(),
+                packageTO.getItemSuccessOnMask(),
+                packageTO.getItemSuccessOffMask(),
                 0,
-                packageTO.getFailureOffMask(),
+                packageTO.getItemFailureOffMask(),
                 packageTO.getItemSuccessState());
         long packageStateOnBits;
         if (publishChangeSet.completed()) {

@@ -131,8 +131,6 @@
     <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
         UPDATE publish_package
         SET approval_state = #{publishPackage.approvalState},
-            live_error = #{publishPackage.liveError},
-            staging_error = #{publishPackage.stagingError},
             reviewed_on = #{publishPackage.reviewedOn},
             published_on = #{publishPackage.publishedOn},
             published_staging_commit_id = #{publishPackage.publishedStagingCommitId},
@@ -148,7 +146,7 @@
 
     <update id="updateFailedPackage">
         UPDATE publish_package
-        SET package_state = #{packageState},
+        SET package_state = (package_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
             live_error = #{liveError},
             staging_error = #{stagingError}
         WHERE id = #{packageId}

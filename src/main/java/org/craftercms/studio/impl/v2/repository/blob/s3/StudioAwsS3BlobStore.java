@@ -389,7 +389,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
-                                                                 final Collection<T> blobStoreItems) {
+                                                                 final Collection<T> blobStoreItems) throws ServiceLayerException {
         final String siteId = publishPackage.getSite().getSiteId();
         // If readonly, fail everything so shadow files are not committed
         if (readOnly) {
@@ -421,7 +421,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 String message = format("Failed to publish '%s' from bucket '%s' to bucket '%s' for site '%s' package '%s': %s",
                         updatedPath, previewMapping.target, targetMapping.target, siteId, publishPackage.getId(), e.getMessage());
                 logger.error(message, e);
-                updatedItem.setFailed(PublishUtils.translateException(e));
+                updatedItem.setFailed(PublishUtils.translateItemException(e));
                 failedItems.add(updatedItem);
             }
         }
