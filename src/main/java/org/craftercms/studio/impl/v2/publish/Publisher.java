@@ -182,6 +182,8 @@ public class Publisher implements ApplicationEventPublisherAware {
             String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
             throw new ServiceLayerException(exceptionMessage, e);
         } finally {
+            publishPackage.setPublishedOn(now());
+            publishDao.updatePackage(publishPackage);
             publishDao.updatePackageState(packageId, 0, PROCESSING.value);
             // Clear system processing bit for all affected items
             publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
@@ -205,12 +207,6 @@ public class Publisher implements ApplicationEventPublisherAware {
             targetPublisher.run(getPublishPackageTO(publishPackage, false), stagingEnvironment, publishItems);
         }
         targetPublisher.run(getPublishPackageTO(publishPackage, isLiveTarget), target, publishItems);
-
-        Instant now = now();
-        // TODO: handle the case where ALL items failed
-        publishPackage.setPublishedOn(now);
-        publishDao.updatePackageState(publishPackage.getId(), 0, PROCESSING.value);
-        publishDao.updatePublishItemState(publishPackage.getId(), 0, PublishItem.PublishState.PROCESSING.value);
     }
 
     private PublishPackageTO getPublishPackageTO(final PublishPackage publishPackage, final boolean isLiveTarget) {
