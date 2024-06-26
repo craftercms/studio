@@ -54,8 +54,8 @@ public class DBUtils {
                 exception.set(e);
             }
         });
-        if (exception.get() != null) {
-            logger.error("Error occurred during transaction '{}', rolling back", exception);
+        if (exception.hasValue()) {
+            logger.error("Error occurred during transaction '{}', rolling back", transactionName, exception.get());
             throw exception.get();
         }
         logger.trace("Completed transaction '{}'", transactionName);
@@ -78,6 +78,10 @@ public class DBUtils {
 
         public void set(T value) {
             this.value = value;
+        }
+
+        public boolean hasValue() {
+            return this.value != null;
         }
     }
 }
