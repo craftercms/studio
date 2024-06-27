@@ -34,24 +34,32 @@ public class PublishUtils {
 
     /**
      * Translates an exception during publishing to an error code.
+     * This method will throw an exception if the error should be handled at package level.
      *
      * @param e the exception
      * @return the error code
+     * @throws PublishException if the error should be handled at package level
      */
-    public static int translateItemException(final Exception e) throws ServiceLayerException {
+    public static int translateItemException(final Throwable e) throws PublishException {
         PublishErrorCode publishErrorCode = translateExceptionInternal(e);
         if (publishErrorCode.packageLevel) {
-            throw new PublishException("Unable to continue publishing package", e);
+            throw new PublishException("Exception should be handled at package level", e);
         }
         return publishErrorCode.code();
     }
 
-    public static int translatePackageException(final Exception e) {
+    /**
+     * Translates an exception during publishing to an error code.
+     *
+     * @param e the exception
+     * @return the error code
+     */
+    public static int translatePackageException(final Throwable e) {
         return translateExceptionInternal(e).code;
     }
 
     @NonNull
-    private static PublishErrorCode translateExceptionInternal(final Exception e) {
+    private static PublishErrorCode translateExceptionInternal(final Throwable e) {
         // TODO: implement
         if (ExceptionUtils.getThrowableOfType(e, ConnectException.class) != null) {
             return new PublishErrorCode(ApiResponse.S3_UNREACHABLE.getCode(), true);

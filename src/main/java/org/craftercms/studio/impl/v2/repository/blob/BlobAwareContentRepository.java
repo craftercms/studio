@@ -703,9 +703,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
             StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
                     publishingTarget, blobStoreItems);
 
-            failedItems.addAll(storeChangeset.failedItems().stream()
-                    .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
-                    .toList());
+            failedItems.addAll(unwrap(storeChangeset.failedItems()));
             gitRepoItems.addAll(storeChangeset.successfulItems().stream()
                     .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
                     .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
@@ -723,8 +721,12 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
             committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
         }
 
-        return new GitPublishChangeSet<>(committedChangeset.commitId(), committedChangeset.successfulItems().stream().map(BlobAwarePublishItemTOWrapper::getWrappedItem).toList(),
-                union(failedItems, committedChangeset.failedItems().stream().map(BlobAwarePublishItemTOWrapper::getWrappedItem).toList()));
+        return new GitPublishChangeSet<>(committedChangeset.commitId(), unwrap(committedChangeset.successfulItems()),
+                union(failedItems, unwrap(committedChangeset.failedItems())));
+    }
+
+    private <T extends PublishItemTO> Collection<T> unwrap(Collection<BlobAwarePublishItemTOWrapper<T>> items) {
+        return items.stream().map(BlobAwarePublishItemTOWrapper::getWrappedItem).toList();
     }
 
     /**

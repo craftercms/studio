@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
  */
 public class PublishException extends ServiceLayerException {
-    public PublishException(String message, Exception e) {
+    public PublishException(String message, Throwable e) {
         super(message, e);
     }
 

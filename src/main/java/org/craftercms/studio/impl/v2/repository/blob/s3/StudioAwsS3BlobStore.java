@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.impl.v2.utils.PublishUtils;
@@ -51,6 +52,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
@@ -407,26 +409,45 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         Collection<T> failedItems = new ArrayList<>();
         for (List<? extends PublishItemTO> batch : ListUtils.partition(new LinkedList<>(itemsByAction.computeIfAbsent(DELETE, k -> emptyList())), DELETE_BATCH_SIZE)) {
             String[] keys = batch.stream().map(PublishItemTO::getPath).map(path -> getKey(targetMapping, path)).toArray(String[]::new);
-            // TODO: here we should add a callback to report progress/failure traceable to each PublishItemTO
             deleteS3Objects(getClient(), targetMapping.target, keys);
+            batch.forEach(PublishItemTO::setCompleted);
         }
-        for (T updatedItem : itemsByAction.computeIfAbsent(ADD, k -> emptyList())) {
-            String updatedPath = updatedItem.getPath();
-            try {
-                // TODO: check if readonly? Or just ignore?
-                copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
-                        getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
-                updatedItem.setCompleted();
-            } catch (Exception e) { // TODO: here we should not catch exceptions that fail the whole package. e.g.: S3 down, bucket does exist, etc.
-                String message = format("Failed to publish '%s' from bucket '%s' to bucket '%s' for site '%s' package '%s': %s",
-                        updatedPath, previewMapping.target, targetMapping.target, siteId, publishPackage.getId(), e.getMessage());
-                logger.error(message, e);
-                updatedItem.setFailed(PublishUtils.translateItemException(e));
-                failedItems.add(updatedItem);
-            }
+
+        List<AwsUtils.CopyPathRequest> updatedPaths = itemsByAction.computeIfAbsent(ADD, k -> emptyList()).stream()
+                .map(i-> getRequest(i, failedItems))
+                .toList();
+
+        if (isNotEmpty(updatedPaths)) {
+            AwsUtils.copyObjectsResultAware(getAsyncClient(), taskExecutor.getThreadPoolExecutor(),
+                    previewMapping.target, previewMapping.prefix,
+                    targetMapping.target, targetMapping.prefix, updatedPaths);
         }
         logger.info("Completed Publish for site '{}', package '{}' to target '{}'", siteId, publishPackage.getId(), targetMapping);
         return new PublishChangeSet<>(subtract(blobStoreItems, failedItems), failedItems);
+    }
+
+    private <T extends PublishItemTO> AwsUtils.CopyPathRequest getRequest(final T publishItemTO, final Collection<T> failedItems) {
+        return new AwsUtils.CopyPathRequest() {
+            @Override
+            public String getPath() {
+                return publishItemTO.getPath();
+            }
+
+            @Override
+            public void fail(Throwable throwable) {
+                try {
+                    publishItemTO.setFailed(PublishUtils.translateItemException(throwable));
+                    failedItems.add(publishItemTO);
+                } catch (PublishException e) {
+                    throw new BlobStoreException(format("Unable to continue publishing package: %s", e.getMessage()), e);
+                }
+            }
+
+            @Override
+            public void complete() {
+                publishItemTO.setCompleted();
+            }
+        };
     }
 
     @Override
