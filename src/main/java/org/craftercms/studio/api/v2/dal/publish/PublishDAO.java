@@ -69,7 +69,7 @@ public interface PublishDAO {
         insertPackage(publishPackage, READY.value);
         if (!isEmpty(publishItems)) {
             insertItems(publishPackage.getId(), publishItems, PENDING.value);
-            insertItemPublishItems(publishItems);
+            insertItemPublishItems(publishPackage.getId());
             updateItemStateBits(publishPackage, isLiveTarget);
         }
     }
@@ -107,12 +107,12 @@ public interface PublishDAO {
                              @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
-     * Insert item_publish_item records for the given publish items.
+     * Insert item_publish_item records for the publish_item's belonging to the given package.
      * Notice this will insert a record to item_publish_item table for each non-delete publishItem
      *
-     * @param publishItems the publish items
+     * @param packageId the package id
      */
-    void insertItemPublishItems(Collection<PublishItem> publishItems);
+    void insertItemPublishItems(@Param(PACKAGE_ID) long packageId);
 
     /**
      * Insert a new publish package
@@ -126,6 +126,7 @@ public interface PublishDAO {
      *
      * @param packageId    the package id
      * @param publishItems the items to insert
+     * @param publishState the state to set the items to
      */
     void insertItems(@Param(PACKAGE_ID) long packageId,
                      @Param(ITEMS) Collection<PublishItem> publishItems,

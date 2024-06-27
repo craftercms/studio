@@ -53,7 +53,7 @@
         #{publishPackage.commitId});
     </insert>
 
-    <insert id="insertItems" useGeneratedKeys="true" keyProperty="items.id">
+    <insert id="insertItems">
         INSERT INTO publish_item
         (package_id,
         path,
@@ -62,7 +62,7 @@
         publish_state)
         VALUES
         <!-- TODO: review max parameters count configs and batch as necessary -->
-        <foreach collection="items" item="item" index="index" separator="," >
+        <foreach collection="items" item="item" index="index" separator=",">
             (#{packageId},
             #{item.path},
             #{item.action},
@@ -73,15 +73,11 @@
 
     <insert id="insertItemPublishItems">
         INSERT INTO item_publish_item
-        SELECT pi.id AS publish_item_id, i.id AS item_id
-        FROM
-            (
-            <foreach collection="publishItems" item="publishItem" index="index" separator="UNION" >
-                (SELECT #{publishItem.id} AS id, #{publishItem.path} AS path)
-            </foreach>
-            ) AS pi
-        LEFT OUTER JOIN item i ON pi.path = i.path
-        WHERE i.id IS NOT NULL
+        SELECT pi.id, i.id
+        FROM publish_package pp
+            INNER JOIN publish_item pi ON pp.id = pi.package_id
+            INNER JOIN item i ON pi.path = i.path AND i.site_id = pp.site_id
+        WHERE pp.id = #{packageId}
     </insert>
 
     <update id="updateItemStateBits">
