@@ -127,7 +127,10 @@
                 FROM dependency d
                 INNER JOIN deps ON deps.path = d.source_path
                 INNER JOIN item targetItem ON targetItem.path = d.target_path
+                INNER JOIN site s ON s.id = targetItem.site_id
                 WHERE d.site = #{siteId}
+                    AND s.deleted = 0
+                    AND s.site_id = #{siteId}
                     AND d.valid = 1
                     AND (
                         ((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
