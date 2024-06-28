@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import java.util.List;
+
 /**
  * Represents an item to be published.
  */
@@ -23,8 +25,7 @@ public class PublishItem {
     protected long id;
     protected long packageId;
     protected String path;
-    protected String liveOldPath;
-    protected String stagingOldPath;
+    protected List<ItemTarget> itemTargets;
     protected Action action;
     protected boolean userRequested;
     protected long publishState;
@@ -66,20 +67,16 @@ public class PublishItem {
         this.path = path;
     }
 
-    public String getLiveOldPath() {
-        return liveOldPath;
+    public String getPreviousPath(final String target) {
+        return itemTargets.stream()
+                .filter(itemTarget -> itemTarget.getTarget().equals(target))
+                .findFirst()
+                .map(ItemTarget::getPreviousPath)
+                .orElse(null);
     }
 
-    public void setLiveOldPath(String liveOldPath) {
-        this.liveOldPath = liveOldPath;
-    }
-
-    public String getStagingOldPath() {
-        return stagingOldPath;
-    }
-
-    public void setStagingOldPath(String stagingOldPath) {
-        this.stagingOldPath = stagingOldPath;
+    public List<ItemTarget> getItemTargets() {
+        return itemTargets;
     }
 
     public Action getAction() {

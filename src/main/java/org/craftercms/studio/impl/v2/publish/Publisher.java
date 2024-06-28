@@ -256,13 +256,12 @@ public class Publisher implements ApplicationEventPublisherAware {
         doPublishTarget(publishPackage, target, publishItems, contentRepository::publish);
     }
 
-    private List<PublishItemTOImpl> expandPublishItem(final PublishItem pi, final boolean isLiveTarget, final boolean isStagingTarget) {
+    private List<PublishItemTOImpl> expandPublishItem(final PublishItem pi, final String target, final boolean isLiveTarget) {
         List<PublishItemTOImpl> items = new ArrayList<>();
         items.add(new PublishItemTOImpl(pi, pi.getPath(), pi.getAction(), isLiveTarget));
-        if (pi.getLiveOldPath() != null && isLiveTarget) {
-            items.add(new PublishItemTOImpl(pi, pi.getLiveOldPath(), DELETE, true));
-        } else if (pi.getStagingOldPath() != null && isStagingTarget) {
-            items.add(new PublishItemTOImpl(pi, pi.getStagingOldPath(), DELETE, false));
+        String previousPath = pi.getPreviousPath(target);
+        if (previousPath != null) {
+            items.add(new PublishItemTOImpl(pi, previousPath, DELETE, isLiveTarget));
         }
         return items;
     }
@@ -280,10 +279,14 @@ public class Publisher implements ApplicationEventPublisherAware {
         String siteId = packageTO.getSite().getSiteId();
         long packageId = packageTO.getId();
 
-        boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), target);
-        boolean isStagingTarget = !isLiveTarget;
+        String liveTarget = servicesConfig.getLiveEnvironment(siteId);
+        boolean isLiveTarget = StringUtils.equals(liveTarget, target);
+        if (!isLiveTarget && !contentRepository.isTargetPublished(siteId, target)) {
+            itemTargetDAO.initStaging(packageTO.getSite().getId(), target, liveTarget);
+        }
+
         List<PublishItemTOImpl> publishItemTOs = publishItems.stream()
-                .map(pi -> expandPublishItem(pi, isLiveTarget, isStagingTarget))
+                .map(pi -> expandPublishItem(pi, target, isLiveTarget))
                 .flatMap(List::stream)
                 .toList();
 
@@ -385,7 +388,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         boolean stagingEnabled = servicesConfig.isStagingEnvironmentEnabled(siteId);
         Instant now = now();
         DBUtils.runInTransaction(transactionManager,
-                format(PUBLISH_TRANSACTION_NAME_FORMAT, publishPackage.getSite().getSiteId(), publishPackage.getId(), "INITIAL_PUBLISH"), () -> {
+                format(PUBLISH_TRANSACTION_NAME_FORMAT, publishPackage.getSite().getSiteId(), publishPackage.getId(), OPERATION_INITIAL_PUBLISH), () -> {
                     cancelAllOutstandingPackages(publishPackage.getSiteId());
                     itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
 

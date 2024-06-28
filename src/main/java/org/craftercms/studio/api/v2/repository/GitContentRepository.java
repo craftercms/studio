@@ -386,6 +386,15 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     Item getItem(String siteId, String path, boolean flatten);
 
     /**
+     * Check if content has been published to the target
+     *
+     * @param siteId the site id
+     * @param target the publishing target
+     * @return true if the target has been published, false otherwise
+     */
+    boolean isTargetPublished(String siteId, String target) throws IOException;
+
+    /**
      * Store the result of a publish operation
      *
      * @param successfulItems the paths that were updated

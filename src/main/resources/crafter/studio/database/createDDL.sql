@@ -653,7 +653,7 @@ CREATE TABLE IF NOT EXISTS `item_target`
 (
     `item_id`       	    BIGINT	        NOT NULL,
     `target`	            VARCHAR(20)	    NOT NULL,
-    `old_path`              VARCHAR(2048)   NULL,
+    `previous_path`         VARCHAR(2048)   NULL,
     `last_published_on`     TIMESTAMP       NOT NULL,
     `published_commit_id`   VARCHAR(40)     NOT NULL,
     PRIMARY KEY(`item_id`, `target`),

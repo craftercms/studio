@@ -30,8 +30,9 @@ public interface ItemTargetDAO {
     String PACKAGE_ID = "packageId";
     String COMMIT_ID = "commitId";
     String PATH = "path";
-    String ITEM_ID = "itemId";
     String TARGET = "target";
+    String LIVE_TARGET = "liveTarget";
+    String STAGING_TARGET = "stagingTarget";
     String TARGETS = "targets";
     String TIMESTAMP = "timestamp";
 
@@ -74,4 +75,15 @@ public interface ItemTargetDAO {
                                  @Param(TARGETS) Collection<String> targets,
                                  @Param(COMMIT_ID) String commitId,
                                  @Param(TIMESTAMP) Instant timestamp);
+
+    /**
+     * Initialize staging target data using the current live target items
+     *
+     * @param siteId        the site id
+     * @param stagingTarget the staging target
+     * @param liveTarget    the live target
+     */
+    void initStaging(@Param(SITE_ID) long siteId,
+                     @Param(STAGING_TARGET) String stagingTarget,
+                     @Param(LIVE_TARGET) String liveTarget);
 }

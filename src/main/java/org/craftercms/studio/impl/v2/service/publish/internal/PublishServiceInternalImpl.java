@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -28,7 +27,10 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.dal.publish.*;
+import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
@@ -66,7 +68,6 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
@@ -403,24 +404,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private PublishItem createPublishItem(final Site site, final String path,
                                           final PublishItem.Action action, final boolean userRequested) {
         PublishItem publishItem = new PublishItem();
-        Collection<ItemTarget> itemTargets = itemTargetDao.getByItemPath(site.getId(), path);
         publishItem.setAction(action);
         publishItem.setPath(path);
         publishItem.setUserRequested(userRequested);
-        if (!CollectionUtils.isNotEmpty(itemTargets)) {
-            return publishItem;
-        }
-        String liveTarget = servicesConfig.getLiveEnvironment(site.getSiteId());
-        String stagingTarget = servicesConfig.getStagingEnvironment(site.getSiteId());
-        itemTargets.forEach(itemTarget -> {
-            if (isNotEmpty(itemTarget.getOldPath())) {
-                if (itemTarget.getTarget().equals(stagingTarget)) {
-                    publishItem.setStagingOldPath(itemTarget.getOldPath());
-                } else if (itemTarget.getTarget().equals(liveTarget)) {
-                    publishItem.setLiveOldPath(itemTarget.getOldPath());
-                }
-            }
-        });
         return publishItem;
     }
 

@@ -623,6 +623,11 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
+    public boolean isTargetPublished(final String siteId, final String target) throws IOException {
+        return localRepositoryV2.isTargetPublished(siteId, target);
+    }
+
+    @Override
     @LogExecutionTime
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);

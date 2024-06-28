@@ -30,18 +30,26 @@
         AND i.path = #{path}
     </select>
 
+    <select id="getByItemId" resultMap="ItemTargetMap">
+        SELECT it.*
+        FROM item_target it
+        WHERE it.item_id = #{itemId}
+    </select>
+
     <update id="updateForCompletePackage">
-        UPDATE item_target it
-        SET it.old_path = null,
-            it.published_commit_id = #{commitId},
-            it.last_published_on = #{timestamp}
-        WHERE it.item_id IN <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemIdsForPackage"/>
-        AND it.target = #{target}
+        INSERT INTO item_target
+        (item_id, target, previous_path, last_published_on, published_commit_id)
+        SELECT itemIds.item_id, #{target}, null, #{timestamp}, #{commitId}
+        FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemIdsForPackage"/> AS itemIds
+        ON DUPLICATE KEY UPDATE
+        previous_path = null,
+        last_published_on = #{timestamp},
+        published_commit_id = #{commitId}
     </update>
 
     <insert id="insertForInitialPublish">
         INSERT INTO item_target
-        (item_id, target, old_path, published_commit_id, last_published_on)
+        (item_id, target, previous_path, published_commit_id, last_published_on)
         SELECT i.id, t.target, null, #{commitId}, #{timestamp}
         FROM item i,
         (
@@ -50,5 +58,14 @@
             </foreach>
         ) AS t
         WHERE i.site_id = #{siteId}
+    </insert>
+
+    <insert id="initStaging">
+        INSERT INTO item_target
+        (item_id, target, previous_path, last_published_on, published_commit_id)
+        SELECT i.id, #{stagingTarget}, it.previous_path, it.last_published_on, it.published_commit_id
+        FROM item i INNER JOIN item_target it ON i.id = it.item_id
+        WHERE i.site_id = #{siteId}
+        AND it.target = #{liveTarget}
     </insert>
 </mapper>

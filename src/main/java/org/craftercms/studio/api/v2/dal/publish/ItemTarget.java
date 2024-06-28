@@ -25,7 +25,7 @@ import java.time.Instant;
 public class ItemTarget {
     protected long itemId;
     protected String target;
-    protected String oldPath;
+    protected String previousPath;
     protected Instant lastPublishedOn;
     protected String publishedCommitId;
 
@@ -47,13 +47,13 @@ public class ItemTarget {
         this.target = target;
     }
 
-    public String getOldPath() {
-        return oldPath;
+    public String getPreviousPath() {
+        return previousPath;
     }
 
     @SuppressWarnings("unused")
-    public void setOldPath(String oldPath) {
-        this.oldPath = oldPath;
+    public void setPreviousPath(String previousPath) {
+        this.previousPath = previousPath;
     }
 
     public Instant getLastPublishedOn() {

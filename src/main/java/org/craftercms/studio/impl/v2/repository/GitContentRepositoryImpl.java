@@ -873,6 +873,12 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     }
 
     @Override
+    public boolean isTargetPublished(String siteId, String target) throws IOException {
+        Repository repo = helper.getRepository(siteId, PUBLISHED);
+        return branchExists(repo, target);
+    }
+
+    @Override
     public long getContentSize(final String site, final String path) {
         // TODO: SJ: Reconsider this implementation for blob store backed repos
         try {
