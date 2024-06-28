@@ -222,6 +222,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         try {
             targetPublisher.run(packageTO, target, publishItems);
         } catch (Exception e) {
+            logger.error("Failed to publish package '{}' to target '{}' for site '{}'", publishPackage.getId(), target, publishPackage.getSite().getSiteId(), e);
             int errorCode = PublishUtils.translatePackageException(e);
             int liveErrorCode = isLiveTarget ? errorCode : 0;
             int stagingErrorCode = isLiveTarget ? 0 : errorCode;
