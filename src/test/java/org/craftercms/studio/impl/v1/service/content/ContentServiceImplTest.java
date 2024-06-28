@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.dom4j.DocumentException;
 import org.mockito.InjectMocks;
@@ -39,7 +40,7 @@ public class ContentServiceImplTest {
     private static final String SITE = "my_test_site";
 
     @Mock
-    private ContentRepository contentRepository;
+    private GitContentRepository contentRepository;
 
     @InjectMocks
     private ContentServiceImpl contentService;

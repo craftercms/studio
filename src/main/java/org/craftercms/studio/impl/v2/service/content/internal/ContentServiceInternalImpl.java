@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -27,7 +28,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -56,7 +57,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
@@ -65,7 +65,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 
-    private ContentRepository contentRepository;
+    private GitContentRepository contentRepository;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
@@ -196,8 +196,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
-                CONTENT_TYPE_FOLDER, COMPLETED,
+        List< org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
                 systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
         List<DetailedItem> result = new ArrayList<>();
         for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
@@ -217,15 +216,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        org.craftercms.studio.api.v2.dal.DetailedItem item;
+        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-                    stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv,
-                    liveEnv);
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, stagingEnv, liveEnv);
         }
         if (item == null) {
             throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
@@ -259,9 +256,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+            items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         } else {
-            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+            items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -332,7 +329,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         }
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

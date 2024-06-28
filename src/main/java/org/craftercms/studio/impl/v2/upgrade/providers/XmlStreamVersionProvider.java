@@ -17,7 +17,7 @@
 package org.craftercms.studio.impl.v2.upgrade.providers;
 
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -36,7 +36,7 @@ public class XmlStreamVersionProvider extends XmlFileVersionProvider {
 
     @ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository", "versionElementName"})
     public XmlStreamVersionProvider(String path, String xpath, String defaultVersion,
-                                    ContentRepository contentRepository, String versionElementName) {
+                                    GitContentRepository contentRepository, String versionElementName) {
         super(path, xpath, defaultVersion, contentRepository);
         this.versionElementName = versionElementName;
     }

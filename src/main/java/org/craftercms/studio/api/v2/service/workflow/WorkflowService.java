@@ -19,10 +19,8 @@ package org.craftercms.studio.api.v2.service.workflow;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface WorkflowService {
@@ -84,33 +82,8 @@ public interface WorkflowService {
     List<SandboxItem> getWorkflowAffectedPaths(String siteId, String path)
             throws UserNotFoundException, ServiceLayerException;
 
-    /**
-     * Request approval for content to be published
-     * @param siteId site identifier
-     * @param paths list of paths for content items
-     * @param optionalDependencies list of paths soft dependencies
-     * @param publishingTarget publishing target
-     * @param schedule schedule when to publish content
-     * @param comment submission comment
-     * @param sendEmailNotifications if true send email notifications
-     */
-    void requestPublish(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
-                        ZonedDateTime schedule, String comment, boolean sendEmailNotifications)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException;
 
-    /**
-     * Direct publish content
-     * @param siteId site identifier
-     * @param paths list of paths for content items to publish
-     * @param optionalDependencies list of paths soft dependencies
-     * @param publishingTarget publishing target
-     * @param schedule schedule when to publish content
-     * @param comment publishing comment
-     */
-    void publish(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
-                 ZonedDateTime schedule, String comment)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException;
-
+    // TODO: approve and reject should now work by package
     /**
      * Approve request for publish
      * @param siteId site identifier
@@ -120,9 +93,9 @@ public interface WorkflowService {
      * @param schedule schedule when to publish content
      * @param comment approval comment
      */
-    void approve(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
-                 ZonedDateTime schedule, String comment)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException;
+//    void approve(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
+//                 ZonedDateTime schedule, String comment)
+//            throws UserNotFoundException, ServiceLayerException, DeploymentException;
 
     /**
      * Reject request for publish
@@ -130,8 +103,8 @@ public interface WorkflowService {
      * @param paths list of paths for content items that author requested publish
      * @param comment rejection comment
      */
-    void reject(String siteId, List<String> paths, String comment)
-            throws ServiceLayerException, DeploymentException, UserNotFoundException;
+//    void reject(String siteId, List<String> paths, String comment)
+//            throws ServiceLayerException, DeploymentException, UserNotFoundException;
 
     /**
      * Delete content items
@@ -140,6 +113,7 @@ public interface WorkflowService {
      * @param optionalDependencies list of paths soft dependencies
      * @param comment deletion comment
      */
+    // TODO: review: is this a "workflow" operation?
     void delete(String siteId, List<String> paths, List<String> optionalDependencies, String comment)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException;
 }

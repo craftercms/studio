@@ -207,7 +207,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {
                 if (cancelWorkflow(site, relativePath)) {
-                    workflowService.removeFromWorkflow(site, relativePath, true);
+                    // TODO: implement for new publishing system
+//                    workflowService.removeFromWorkflow(site, relativePath, true);
                 }
             }
 

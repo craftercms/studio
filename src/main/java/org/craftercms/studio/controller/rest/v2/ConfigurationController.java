@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -28,7 +29,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
@@ -45,7 +45,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.InputStream;
 
@@ -179,7 +178,7 @@ public class ConfigurationController {
 
     @PostMapping("content-type/delete")
     public ResponseBody deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
                 request.isDeleteDependencies());
         var result = new Result();

@@ -27,7 +27,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -104,28 +103,21 @@ public class NotificationServiceImpl implements NotificationService {
         configuration.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23).build());
     }
 
-    @Override
-    @Valid
-    public void notifyDeploymentError(@ValidateStringParam final String site, final Throwable throwable,
-                                      final List<PublishRequest> filesUnableToPublish) {
-        try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-            final Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
-            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
-            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
-                    templateModel);
-        } catch (Throwable e) {
-            logger.error("Failed to send publishing error notification for site '{}'", site, e);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    @Valid
-    public void notifyDeploymentError(@ValidateStringParam final String name, final Throwable throwable) {
-        notifyDeploymentError(name, throwable, Collections.EMPTY_LIST);
-    }
+//    @Override
+//    @Valid
+//    public void notifyDeploymentError(@ValidateStringParam final String site, final Throwable throwable,
+//                                      final List<PublishRequest> filesUnableToPublish) {
+//        try {
+//            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
+//            final Map<String, Object> templateModel = new HashMap<>();
+//            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
+//            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
+//            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
+//                    templateModel);
+//        } catch (Throwable e) {
+//            logger.error("Failed to send publishing error notification for site '{}'", site, e);
+//        }
+//    }
 
     @Override
     @Valid

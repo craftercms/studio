@@ -20,7 +20,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
@@ -66,10 +65,9 @@ public interface ContentTypeServiceInternal {
      * @param deleteDependencies indicates if all dependencies should be deleted
      * @throws ServiceLayerException if there is any error deleting the files
      * @throws AuthenticationException if there is any error authenticating the user
-     * @throws DeploymentException if there is any error publishing the changes
      */
     void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**
      * Builds the path of the Groovy controller for a given content type id

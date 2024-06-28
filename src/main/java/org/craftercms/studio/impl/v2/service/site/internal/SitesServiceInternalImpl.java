@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
@@ -77,7 +77,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
     private final PluginDescriptorReader descriptorReader;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
     private final StudioBlobAwareContentRepository blobAwareRepository;
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
@@ -97,7 +97,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "retryingDatabaseOperationFacade", "siteServiceV1",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
-    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
+    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
                                     StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,
@@ -298,7 +298,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     @Override
     public void checkSiteState(final String siteId, final String requiredState) throws InvalidSiteStateException, SiteNotFoundException {
-        SiteFeed site = siteFeedMapper.getSite(Map.of(SITE_ID, siteId));
+        Site site = siteDao.getSite(siteId);
         if (site == null) {
             throw new SiteNotFoundException(format("Site '%s' not found.", siteId));
         }
@@ -539,6 +539,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public List<Site> getSitesByState(String state) {
         return siteDao.getSitesByState(state);
+    }
+
+    @Override
+    public void setPublishedRepoCreated(final String siteId) {
+        siteDao.setPublishedRepoCreated(siteId);
+    }
+
+    @Override
+    public void updatePublishingStatus(String siteId, String status) {
+        retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
     }
 
     /**

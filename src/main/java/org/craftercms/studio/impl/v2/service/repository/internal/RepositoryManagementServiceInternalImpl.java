@@ -31,7 +31,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
@@ -98,7 +98,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private TextEncryptor encryptor;
     private GeneralLockService generalLockService;
     private GitRepositoryHelper gitRepositoryHelper;
-    private ContentRepository contentRepositoryV2;
+    private GitContentRepository contentRepositoryV2;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private ApplicationContext applicationContext;
@@ -880,7 +880,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
-    public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
+    public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
 

@@ -106,6 +106,18 @@ public class ApiResponse {
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
             "Advise the user to enable publishing", StringUtils.EMPTY);
 
+    public static final ApiResponse S3_UNREACHABLE = new ApiResponse(8001, "S3 is unreachable",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+    public static final ApiResponse S3_BUCKET_NOT_FOUND = new ApiResponse(8002, "S3 bucket not found",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+    public static final ApiResponse S3_UNAUTHORIZED = new ApiResponse(8003, "S3 unauthorized access",
+            "Check your AWS credentials", StringUtils.EMPTY);
+    public static final ApiResponse S3_FORBIDDEN = new ApiResponse(8004, "S3 FORBIDDEN",
+            "Check your AWS credentials", StringUtils.EMPTY);
+
+    public static final ApiResponse S3_KEY_NOT_FOUND = new ApiResponse(8005, "S3 key not found",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+
     // 9000 - 10000
     public static final ApiResponse SEARCH_UNREACHABLE = new ApiResponse(9000, "Search is unreachable",
             "Advise the user that the search engine is not reachable", StringUtils.EMPTY);

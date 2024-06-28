@@ -79,8 +79,9 @@ try {
     } else {
         def context = DeploymentServices.createContext(applicationContext, request)
         try {
-            DeploymentServices.publishCommits(context, siteId, environment, commitIds, comment)
+            long packageId = DeploymentServices.publishCommits(context, siteId, environment, commitIds, comment)
             result.message = "OK"
+            result.packageId = packageId
             response.setStatus(200)
         } catch (SiteNotFoundException e) {
             response.setStatus(404)

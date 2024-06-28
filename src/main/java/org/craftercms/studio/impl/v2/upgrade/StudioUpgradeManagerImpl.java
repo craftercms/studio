@@ -28,35 +28,27 @@ import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.beans.ConstructorProperties;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.nio.file.Paths.get;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.text.StringSubstitutor.replace;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_CONFIGURATIONS;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_ENVIRONMENT;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_MODULE;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_PATH;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_0;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
 
@@ -81,7 +73,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 
     protected DataSource dataSource;
     protected DbIntegrityValidator integrityValidator;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
     protected StudioConfiguration studioConfiguration;
     protected InstanceService instanceService;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
@@ -93,7 +85,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                                     UpgradePipelineFactory<String> dbPipelineFactory,
                                     UpgradePipelineFactory<String> bpPipelineFactory, YamlConfigurationProvider configurationProvider,
                                     DataSource dataSource, DbIntegrityValidator integrityValidator,
-                                    ContentRepository contentRepository, StudioConfiguration studioConfiguration,
+                                    GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
                                     InstanceService instanceService,
                                     RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.dbVersionProvider = dbVersionProvider;

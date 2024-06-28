@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.publish.PublishDAO">
+    <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage" autoMapping="true">
+        <result property="siteId" column="site_id"/>
+        <association property="site" column="site_id"
+                     select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
+    </resultMap>
+
+    <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
+        <association property="itemTargets" column="item_id" select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
+    </resultMap>
+
+    <insert id="insertPackage"
+            useGeneratedKeys="true"
+            keyProperty="publishPackage.id">
+        INSERT INTO publish_package
+        (site_id,
+        target,
+        schedule,
+        approval_state,
+        package_state,
+        submitter_id,
+        submitter_comment,
+        package_type,
+        commit_id)
+        VALUES
+        (#{publishPackage.siteId},
+        #{publishPackage.target},
+        #{publishPackage.schedule},
+        #{publishPackage.approvalState},
+        #{readyState},
+        #{publishPackage.submitterId},
+        #{publishPackage.submitterComment},
+        #{publishPackage.packageType},
+        #{publishPackage.commitId});
+    </insert>
+
+    <insert id="insertItems">
+        INSERT INTO publish_item
+        (package_id,
+        path,
+        action,
+        user_requested,
+        publish_state)
+        VALUES
+        <!-- TODO: review max parameters count configs and batch as necessary -->
+        <foreach collection="items" item="item" index="index" separator=",">
+            (#{packageId},
+            #{item.path},
+            #{item.action},
+            #{item.userRequested},
+            #{publishState})
+        </foreach>
+    </insert>
+
+    <insert id="insertItemPublishItems">
+        INSERT INTO item_publish_item
+        SELECT pi.id, i.id
+        FROM publish_package pp
+            INNER JOIN publish_item pi ON pp.id = pi.package_id
+            INNER JOIN item i ON pi.path = i.path AND i.site_id = pp.site_id
+        WHERE pp.id = #{packageId}
+    </insert>
+
+    <update id="updateItemStateBits">
+        UPDATE item,
+            (SELECT i.id
+            FROM item i INNER JOIN item_publish_item ipi ON i.id = ipi.item_id
+            INNER JOIN publish_item pi ON ipi.publish_item_id = pi.id
+            WHERE pi.package_id = #{packageId}
+            ) AS updates
+        SET item.state = (item.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE item.id = updates.id
+    </update>
+
+    <select id="getNextPublishPackages" resultMap="PublishPackageMap">
+        SELECT *
+        FROM (
+            SELECT s.id as site_id,
+                (
+                    SELECT pp.id AS id
+                    FROM publish_package pp
+                    WHERE pp.approval_state IN
+                            <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                                #{approvalState}
+                            </foreach>
+                    AND (pp.package_state &amp; #{packageState}) = #{packageState}
+                    AND (pp.schedule IS NULL OR pp.schedule &lt; NOW())
+                    AND pp.site_id = s.id
+                    ORDER BY pp.schedule, pp.submitted_on LIMIT 1
+                ) AS id
+            FROM site s
+            WHERE s.deleted = 0
+            AND s.system = 0
+            AND s.state IN
+                    <foreach collection="siteStates" item="siteState" open="(" separator="," close=")">
+                        #{siteState}
+                    </foreach>
+        ) AS tbl
+        WHERE id IS NOT NULL
+    </select>
+
+    <select id="getById" resultMap="PublishPackageMap">
+        SELECT *
+        FROM publish_package
+        WHERE id = #{packageId}
+    </select>
+
+    <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
+        UPDATE publish_package
+        SET approval_state = #{publishPackage.approvalState},
+            reviewed_on = #{publishPackage.reviewedOn},
+            published_on = #{publishPackage.publishedOn},
+            published_staging_commit_id = #{publishPackage.publishedStagingCommitId},
+            published_live_commit_id = #{publishPackage.publishedLiveCommitId}
+        WHERE id = #{publishPackage.id}
+    </update>
+
+    <update id="updatePackageState">
+        UPDATE publish_package
+        SET package_state = (package_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE id = #{packageId}
+    </update>
+
+    <update id="updateFailedPackage">
+        UPDATE publish_package
+        SET package_state = (package_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
+            live_error = #{liveError},
+            staging_error = #{stagingError}
+        WHERE id = #{packageId}
+    </update>
+
+    <update id="cancelOutstandingPackages">
+        UPDATE publish_package
+            SET package_state = #{cancelledState}
+        WHERE approval_state IN
+                    <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                        #{approvalState}
+                    </foreach>
+        AND (package_state &amp; #{packageState}) > 0
+        AND site_id = #{siteId}
+        <if test="target != null">
+            AND target = #{target}
+        </if>
+    </update>
+
+    <select id="getPublishItems" resultMap="PublishItemMap">
+        SELECT pi.*, ipi.item_id
+        FROM publish_item pi
+        LEFT OUTER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+        WHERE pi.package_id = #{packageId}
+    </select>
+
+    <update id="updatePublishItemState">
+        UPDATE publish_item
+        SET publish_state = (publish_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE package_id = #{packageId}
+    </update>
+
+    <update id="updatePublishItemListState">
+        <!-- TODO: review max parameters count configs and batch as necessary -->
+        UPDATE publish_item pi
+        INNER JOIN (
+            <foreach collection="items" item="item" index="index" separator="UNION" >
+                (SELECT #{item.id} AS id, #{item.publishState} AS state, #{item.liveError} AS liveError, #{item.stagingError} AS stagingError)
+            </foreach>
+        ) AS updates ON pi.id = updates.id
+        SET pi.publish_state = updates.state,
+            pi.live_error = updates.liveError,
+            pi.staging_error = updates.stagingError
+    </update>
+
+    <sql id="getSuccessfulItemIdsForPackage">
+        (
+            SELECT ipi.item_id
+            FROM publish_package pp
+                INNER JOIN publish_item pi ON pp.id = pi.package_id
+                INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+            WHERE pp.id = #{packageId}
+            AND (pi.publish_state &amp; #{itemSuccessState}) > 0
+        )
+    </sql>
+</mapper>

@@ -209,20 +209,13 @@ public final class  QueryParameterNames {
     public static final String POSSIBLE_PARENTS = "possibleParents";
 
     public static final String NEW_MASK = "newMask";
+    public static final String NEW_IN_TARGET_MASK_ON = "newInTargetMaskOn";
+    public static final String NEW_IN_TARGET_MASK_OFF = "newInTargetMaskOff";
+    public static final String IS_LIVE_TARGET = "isLiveTarget";
 
     public static final String MODIFIED_MASK = "modifiedMask";
 
-    public static final String NON_CONTENT_ITEM_TYPES = "nonContentItemTypes";
-
-    public static final String IN_PROGRESS_MASK = "inProgressMask";
-
-    public static final String SUBMITTED_MASK = "submittedMask";
-
-    public static final String PREVIOUS_PATH = "previousPath";
-
     public static final String PARENTS = "parents";
-
-    public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
 
     public static final String SCRIPT_PATH = "scriptPath";
 
@@ -234,9 +227,6 @@ public final class  QueryParameterNames {
 
     public static final String PREFER_CONTENT = "preferContent";
     public static final String EXCLUDE_SYSTEM_TYPES = "excludeSystemTypes";
-
-    /** Workflow */
-    public static final String PUBLISHING_PACKAGE_ID = "publishingPackageId";
 
     public static final String WORKFLOW = "workflow";
 

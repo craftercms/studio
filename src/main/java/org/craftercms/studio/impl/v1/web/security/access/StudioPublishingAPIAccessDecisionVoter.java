@@ -40,7 +40,6 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
     private final static Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
     private final static String STATUS = "/api/1/services/api/1/publish/status.json";
     private final static String COMMITS = "/api/1/services/api/1/publish/commits.json";
-    private final static String PUBLISH_ITEMS = "/api/1/services/api/1/publish/publish-items.json";
     private final static String RESET_STAGING = "/api/1/services/api/1/publish/reset-staging.json";
 
     @Override
@@ -92,7 +91,6 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
                     }
                     break;
                 case COMMITS:
-                case PUBLISH_ITEMS:
                 case RESET_STAGING:
                     if (siteService.exists(siteParam)) {
                         if (currentUser != null &&

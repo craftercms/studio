@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -106,7 +105,7 @@ public interface ItemServiceInternal {
      * @param paths paths of items
      * @param isSystemProcessing true if item is being processed by system, otherwise false
      */
-    void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing);
+    void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing);
 
     /**
      * Update states to flip on list off states and flip off another list of states for item
@@ -127,6 +126,15 @@ public interface ItemServiceInternal {
      * @param offStateBitMap stats bitmap to flip off
      */
     void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Update states for items with given ids.
+     *
+     * @param ids            ids of items
+     * @param onStateBitMap  states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBitsByIds(Collection<Long> ids, long onStateBitMap, long offStateBitMap);
 
     Item.Builder instantiateItem(String siteName, String path);
 
@@ -225,13 +233,6 @@ public interface ItemServiceInternal {
     int countAllContentItems();
 
     /**
-     * Clear previous path of the content
-     * @param siteId site identifier
-     * @param path path of the content;
-     */
-    void clearPreviousPath(String siteId, String path);
-
-    /**
      * Convert Publishing History Item to Publishing Dashboard Item
      * @param historyItem publishing history item
      * @return publishing dashboard item
@@ -244,6 +245,14 @@ public interface ItemServiceInternal {
      * @return list of items
      */
     List<Item> getInProgressItems(String siteId);
+
+    /**
+     * Get the paths for items that are not published
+     *
+     * @param siteId the site id
+     * @return list of paths for non-folder unpublished items
+     */
+    Collection<String> getUnpublishedPaths(long siteId);
 
     /**
      * Check if item is update or new
@@ -299,14 +308,6 @@ public interface ItemServiceInternal {
      * @return list of items
      */
     List<String> getChangeSetForSubtree(String siteId, String path);
-
-    /**
-     * Update last published date for item
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param lastPublishedOn published date
-     */
-    void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn);
 
     /**
      * Lock item for given lock owner
@@ -399,4 +400,28 @@ public interface ItemServiceInternal {
      * @param path path of the folder where the new index.xml has been added
      */
     void updateNewPageChildren(String site, String path);
+
+    /**
+     * Get the non-folder paths of the children of the item at the given path, recursively.
+     *
+     * @param siteId the site id
+     * @param path   the path to get children for
+     * @return list of children paths
+     */
+    Collection<String> getChildrenPaths(long siteId, String path);
+
+    /**
+     * Update the state for all items in the given package.
+     * It will determine if the item was successful by comparing its PublishItem to successPublishState parameter,
+     * then it will turn on/off the state bits accordingly.
+     *
+     * @param publishPackageId    the package id
+     * @param successOnMask       the mask of states to turn on for successful items
+     * @param successOffMask      the mask of states to turn off for successful items
+     * @param failureOnMask       the mask of states to turn on for failed items
+     * @param failureOffMask      the mask of states to turn off for failed items
+     * @param successPublishState the state to set for successful items
+     */
+    void updateForCompletePackage(long publishPackageId, long successOnMask, long successOffMask,
+                                  long failureOnMask, long failureOffMask, long successPublishState);
 }

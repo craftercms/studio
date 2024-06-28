@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.impl.v1.service.site;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -51,7 +53,6 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
@@ -64,15 +65,14 @@ import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -93,8 +93,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -143,11 +141,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     protected Deployer deployer;
     protected ContentService contentService;
-    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepository;
-    protected ContentRepository contentRepositoryV2;
+    protected org.craftercms.studio.api.v1.repository.GitContentRepository contentRepository;
+    protected GitContentRepository contentRepositoryV2;
     protected DependencyService dependencyService;
     protected SecurityService securityService;
-    protected DeploymentService deploymentService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
@@ -158,7 +155,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected ConfigurationService configurationService;
     protected ConfigurationService configurationServiceInternal;
     protected ItemServiceInternal itemServiceInternal;
-    protected WorkflowServiceInternal workflowServiceInternal;
+    protected WorkflowService workflowServiceInternal;
     protected ApplicationContext applicationContext;
 
     @Autowired
@@ -167,7 +164,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected EntitlementValidator entitlementValidator;
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
-    protected DependencyServiceInternal dependencyServiceInternal;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     protected UserDAO userDao;
@@ -453,7 +450,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
                                     contentService.getContentTypeClass(siteId, path),
                                     StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-                                    contentRepositoryV2.getContentSize(siteId, path), null, null).getBytes(UTF_8),
+                                    contentRepositoryV2.getContentSize(siteId, path), null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 
@@ -493,7 +490,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     currentPath = currentPath + FILE_SEPARATOR + ancestor;
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                             , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                            Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                            Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                 }
@@ -744,9 +741,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @Valid
     @HasPermission(type= DefaultPermission.class, action = PERMISSION_DELETE_SITE)
-    public boolean deleteSite(@ValidateStringParam String siteId) {
+    public boolean deleteSite(String siteId) {
+        // TODO: JM: remove this method in favor of V2?
         boolean success = true;
         logger.info("Delete site '{}'", siteId);
         try {
@@ -794,11 +791,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             // delete database records
             logger.debug("Delete the database records for site '{}'", siteId);
             SiteFeed siteFeed = getSite(siteId);
-            workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
+            // TODO: implement for new publishing system
+//            workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.deleteSite(siteId, STATE_DELETED));
             retryingDatabaseOperationFacade.retry(() -> userDao.deleteUserPropertiesBySiteId(siteFeed.getId()));
             dependencyService.deleteSiteDependencies(siteId);
-            deploymentService.deleteDeploymentDataForSite(siteId);
+            // TODO: review/implement for new publishing system
+//            deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
             contentRepository.removeRemoteRepositoriesForSite(siteId);
@@ -1027,19 +1026,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
-    public boolean isPublishingEnabled(@ValidateStringParam String siteId) {
-        try {
-            SiteFeed siteFeed = getSite(siteId);
-            return siteFeed.getPublishingEnabled() > 0;
-        } catch (SiteNotFoundException e) {
-            logger.warn("Failed to check if publishing is enabled for Site '{}'. Site not found.",
-                    siteId, e);
-            return false;
-        }
-    }
-
-    @Override
-    @Valid
     public boolean enablePublishing(@ValidateStringParam String siteId, boolean enabled)
             throws SiteNotFoundException {
         if (exists(siteId)) {
@@ -1047,19 +1033,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             params.put("siteId", siteId);
             params.put("enabled", enabled ? 1 : 0);
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.enablePublishing(params));
-            return true;
-        } else {
-            throw new SiteNotFoundException();
-        }
-    }
-
-    @Override
-    @Valid
-    public boolean updatePublishingStatus(@ValidateStringParam String siteId,
-                                          @ValidateStringParam String status)
-            throws SiteNotFoundException {
-        if (exists(siteId)) {
-            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updatePublishingStatus(siteId, status));
             return true;
         } else {
             throw new SiteNotFoundException();
@@ -1153,16 +1126,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         return siteFeedMapper.getSiteState(siteId);
     }
 
-    @Override
-    public boolean isPublishedRepoCreated(String siteId) {
-        return siteFeedMapper.getPublishedRepoCreated(siteId) > 0;
-    }
-
-    @Override
-    public void setPublishedRepoCreated(String siteId) {
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setPublishedRepoCreated(siteId));
-    }
-
     public List<String> getDefaultGroups() {
         return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_GROUPS).split(","));
     }
@@ -1176,7 +1139,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.contentService = contentService;
     }
 
-    public void setContentRepository(org.craftercms.studio.api.v1.repository.ContentRepository repo) {
+    public void setContentRepository(org.craftercms.studio.api.v1.repository.GitContentRepository repo) {
         contentRepository = repo;
     }
 
@@ -1186,10 +1149,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
     }
 
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
@@ -1236,7 +1195,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.configurationServiceInternal = configurationServiceInternal;
     }
 
-    public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
+    public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
 
@@ -1244,7 +1203,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
+    public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
@@ -1252,7 +1211,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.studioDBScriptRunnerFactory = studioDBScriptRunner;
     }
 
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+    public void setDependencyServiceInternal(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 

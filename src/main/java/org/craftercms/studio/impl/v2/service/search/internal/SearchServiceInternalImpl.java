@@ -389,8 +389,8 @@ public class SearchServiceInternalImpl implements SearchService {
     }
 
     /**
-     * Adds the configured highlighting to the given builder
-     * @param builder the search builder to update
+     * Adds the configured highlighting to the given itemListBuilder
+     * @param builder the search itemListBuilder to update
      */
     protected void updateHighlighting(SearchRequest.Builder builder) {
         Highlight.Builder highlight = new Highlight.Builder();
@@ -533,7 +533,7 @@ public class SearchServiceInternalImpl implements SearchService {
             updateFilters(queryBuilder, params, siteFacets);
         }
 
-        // We need to copy it because the builder is immutable and there is no other way to check the queries
+        // We need to copy it because the itemListBuilder is immutable and there is no other way to check the queries
         BoolQuery query = queryBuilder.build();
         BoolQuery.Builder finalBuilder = new BoolQuery.Builder()
             .must(query.must())
@@ -576,8 +576,8 @@ public class SearchServiceInternalImpl implements SearchService {
     }
 
     /**
-     * Adds the aggregations needed to the given builder
-     * @param builder the search source builder
+     * Adds the aggregations needed to the given itemListBuilder
+     * @param builder the search source itemListBuilder
      * @param siteFacets the facets from the site configuration
      */
     protected void buildAggregations(SearchRequest.Builder builder, Map<String, FacetTO> siteFacets) {

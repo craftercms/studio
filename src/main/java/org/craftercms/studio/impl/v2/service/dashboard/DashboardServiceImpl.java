@@ -24,21 +24,19 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.search.SearchService;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -56,11 +54,6 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.NEW;
-import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
-import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -74,10 +67,10 @@ import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 public class DashboardServiceImpl implements DashboardService {
 
     private final ActivityStreamServiceInternal activityStreamServiceInternal;
-    private final PublishServiceInternal publishServiceInternal;
+    private final PublishService publishServiceInternal;
     private final ContentServiceInternal contentServiceInternal;
     private final SecurityService securityService;
-    private final WorkflowServiceInternal workflowServiceInternal;
+    private final WorkflowService workflowServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
     private final SearchService searchService;
     private final StudioConfiguration studioConfiguration;
@@ -88,9 +81,9 @@ public class DashboardServiceImpl implements DashboardService {
 
     @ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
             "securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
-    public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishServiceInternal publishServiceInternal,
+    public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
                                 final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
-                                final WorkflowServiceInternal workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
+                                final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
                                 final SearchService searchService, final StudioConfiguration studioConfiguration) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
         this.publishServiceInternal = publishServiceInternal;
@@ -161,14 +154,16 @@ public class DashboardServiceImpl implements DashboardService {
                                                              String publishingPackageId,
                                                              List<SortField> sortFields)
             throws UserNotFoundException, ServiceLayerException {
-        var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(siteId, publishingPackageId);
-        if (isEmpty(workflowEntries)) {
-            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
-        }
-        var ids = workflowEntries.stream()
-                .map(Workflow::getItemId)
-                .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, true);
+        // TODO: implement for new publishing system
+//        var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(siteId, publishingPackageId);
+//        if (isEmpty(workflowEntries)) {
+//            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
+//        }
+//        var ids = workflowEntries.stream()
+//                .map(Workflow::getItemId)
+//                .collect(toList());
+//        return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, true);
+        return emptyList();
     }
 
     @Override
@@ -263,20 +258,22 @@ public class DashboardServiceImpl implements DashboardService {
             @SiteId String siteId, String publishingTarget,
             String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
             List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
-        var items =
-                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
-        if (items.isEmpty()) {
-            return emptyList();
-        }
-
-        var paths = items.stream().map(PublishRequest::getPath).collect(toList());
-        List<DetailedItem> result = new ArrayList<>();
-        for (String path : paths) {
-            var item = contentServiceInternal.getItemByPath(siteId, path, false);
-            result.add(item);
-        }
-
-        return result;
+        // TODO: fix for new publishing system
+        return emptyList();
+//        var items =
+//                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
+//        if (items.isEmpty()) {
+//            return emptyList();
+//        }
+//
+//        var paths = items.stream().map(PublishRequest::getPath).collect(toList());
+//        List<DetailedItem> result = new ArrayList<>();
+//        for (String path : paths) {
+//            var item = contentServiceInternal.getItemByPath(siteId, path, false);
+//            result.add(item);
+//        }
+//
+//        return result;
     }
 
     @Override
@@ -330,15 +327,17 @@ public class DashboardServiceImpl implements DashboardService {
     public List<SandboxItem> getPublishingHistoryDetail(@SiteId String siteId,
                                                         String publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
-        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
-        if (isEmpty(packageDetails)) {
-            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
-        }
-
-        var paths = packageDetails.stream()
-                .map(PublishRequest::getPath)
-                .collect(toList());
-        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
+        // TODO: fix for new publishing system
+        return emptyList();
+//        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
+//        if (isEmpty(packageDetails)) {
+//            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
+//        }
+//
+//        var paths = packageDetails.stream()
+//                .map(PublishRequest::getPath)
+//                .collect(toList());
+//        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
     @Override
@@ -347,10 +346,11 @@ public class DashboardServiceImpl implements DashboardService {
     public PublishingStats getPublishingStats(@SiteId String siteId, int days) throws SiteNotFoundException {
         var publishingStats = new PublishingStats();
         publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
-        publishingStats.setNumberOfNewAndPublishedItems(
-                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_CREATE, COMPLETED, NEW));
-        publishingStats.setNumberOfEditedAndPublishedItems(
-                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_UPDATE, COMPLETED, UPDATE));
+        // TODO: fix for new publishing system
+//        publishingStats.setNumberOfNewAndPublishedItems(
+//                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_CREATE, COMPLETED, NEW));
+//        publishingStats.setNumberOfEditedAndPublishedItems(
+//                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_UPDATE, COMPLETED, UPDATE));
         return publishingStats;
     }
 

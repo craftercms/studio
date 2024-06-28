@@ -28,10 +28,10 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -89,12 +89,12 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final SitesService sitesService;
     private final GeneralLockService generalLockService;
     private final AuditServiceInternal auditServiceInternal;
-    private final DependencyServiceInternal dependencyServiceInternal;
+    private final DependencyService dependencyServiceInternal;
     private final UserServiceInternal userServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
     private final ContentService contentService;
     private final ConfigurationService configurationService;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
     private ApplicationEventPublisher eventPublisher;
 
@@ -106,10 +106,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "contentRepository", "studioConfiguration"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
-                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
+                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
-                                  ContentRepository contentRepository, StudioConfiguration studioConfiguration) {
+                                  GitContentRepository contentRepository, StudioConfiguration studioConfiguration) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -412,8 +412,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
                     StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
                     Locale.US.toString(), null,
-                    contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null,
-                    null).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null)
+                    .getBytes(UTF_8), StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             logger.debug("Extract dependencies from site '{}' path '{}'",
                     site.getSiteId(), repoOperation.getPath());
@@ -546,7 +546,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 currentPath = currentPath + FILE_SEPARATOR + ancestor;
                 Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                                 , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                                Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                                Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
                 Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             }

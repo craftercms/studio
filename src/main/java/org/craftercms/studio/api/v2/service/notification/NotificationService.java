@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.service.notification;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
 
 import jakarta.validation.Valid;
 import java.time.ZonedDateTime;
@@ -45,14 +44,8 @@ public interface NotificationService {
      * @param filesUnableToPublish List of files that where unable to publish (can be null)
      *
      */
-    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish);
-
-    /**
-     * <p>Sends a email to configure emails when a deployment had fail</p>
-     * @param name Name of the site which the deployment fail.
-     * @param throwable Throwable error which break the deployment. (Can be null)
-     */
-    void notifyDeploymentError(final String name, final Throwable throwable);
+    // TODO: fix for new publishing system
+//    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish);
 
     /**
      * Process and Sends a generic email.

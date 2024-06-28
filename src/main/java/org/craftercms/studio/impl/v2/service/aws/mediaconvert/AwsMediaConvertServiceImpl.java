@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.aws.mediaconvert;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,22 +40,12 @@ import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
 import org.craftercms.studio.model.aws.mediaconvert.MediaConvertResult;
-import com.amazonaws.services.mediaconvert.AWSMediaConvert;
-import com.amazonaws.services.mediaconvert.AWSMediaConvertClientBuilder;
-import com.amazonaws.services.mediaconvert.model.CmafGroupSettings;
-import com.amazonaws.services.mediaconvert.model.CreateJobRequest;
-import com.amazonaws.services.mediaconvert.model.CreateJobResult;
-import com.amazonaws.services.mediaconvert.model.DashIsoGroupSettings;
-import com.amazonaws.services.mediaconvert.model.FileGroupSettings;
-import com.amazonaws.services.mediaconvert.model.GetJobTemplateRequest;
-import com.amazonaws.services.mediaconvert.model.HlsGroupSettings;
-import com.amazonaws.services.mediaconvert.model.Input;
-import com.amazonaws.services.mediaconvert.model.JobSettings;
-import com.amazonaws.services.mediaconvert.model.JobTemplate;
-import com.amazonaws.services.mediaconvert.model.MsSmoothGroupSettings;
-import com.amazonaws.services.mediaconvert.model.OutputGroupType;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.mediaconvert.MediaConvertClient;
+import software.amazon.awssdk.services.mediaconvert.model.*;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Uri;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_S3_WRITE;
@@ -116,25 +107,25 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
     }
 
     /**
-     * Creates an instance of {@link AmazonS3} to upload the files.
+     * Creates an instance of {@link S3Client} to upload the files.
      * @param profile AWS profile
      * @return an S3 client
      */
-    protected AmazonS3 getS3Client(MediaConvertProfile profile) {
-        return S3Utils.createClient(profile, false);
+    protected S3Client getS3Client(MediaConvertProfile profile) {
+        return S3Utils.createClient(profile, false, S3Client.builder(), S3ClientBuilder::build);
     }
 
     /**
-     * Creates an instance of {@link AWSMediaConvert} to start the transcoding jobs.
+     * Creates an instance of {@link MediaConvertClient} to start the transcoding jobs.
      * @param profile AWS profile
      * @return a MediaConvert client
      */
-    protected AWSMediaConvert getMediaConvertClient(MediaConvertProfile profile) {
-        return AWSMediaConvertClientBuilder.standard()
-            .withCredentials(profile.getCredentialsProvider())
-            .withEndpointConfiguration(
-                new AWSMediaConvertClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()))
-            .build();
+    protected MediaConvertClient getMediaConvertClient(MediaConvertProfile profile) {
+        return MediaConvertClient.builder()
+                .credentialsProvider(profile.getCredentialsProvider())
+                .region(Region.of(profile.getRegion()))
+                .endpointOverride(URI.create(profile.getEndpoint()))
+                .build();
     }
 
     /**
@@ -149,8 +140,8 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                                           @ValidateStringParam final String filename,
                                           final InputStream content) throws AwsException, ConfigurationProfileNotFoundException, SiteNotFoundException {
         MediaConvertProfile profile = getProfile(site, inputProfileId);
-        AmazonS3 s3Client = getS3Client(profile);
-        AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);
+        S3Client s3Client = getS3Client(profile);
+        MediaConvertClient mediaConvertClient = getMediaConvertClient(profile);
 
         String[] pathTokens = profile.getInputPath().split("/", 2);
         String inputBucket = pathTokens[0];
@@ -162,62 +153,66 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
 
         String originalName = FilenameUtils.getBaseName(filename);
 
-        JobTemplate jobTemplate = mediaConvertClient.getJobTemplate(new GetJobTemplateRequest()
-            .withName(profile.getTemplate())).getJobTemplate();
+        GetJobTemplateResponse getJobTemplateResponse = mediaConvertClient.getJobTemplate(
+                GetJobTemplateRequest.builder()
+                        .name(profile.getTemplate())
+                        .build());
 
-        JobSettings jobSettings = new JobSettings()
-            .withInputs(new Input().withFileInput(
-                AwsUtils.getS3Url(profile.getInputPath(), filename)));
+        JobSettings jobSettings = JobSettings.builder()
+                .inputs(Input.builder()
+                        .fileInput(AwsUtils.getS3Url(profile.getInputPath(), filename))
+                        .build())
+                .build();
 
-        CreateJobRequest createJobRequest = new CreateJobRequest()
-            .withJobTemplate(profile.getTemplate())
-            .withSettings(jobSettings)
-            .withRole(profile.getRole())
-            .withQueue(profile.getQueue());
+        CreateJobRequest createJobRequest = CreateJobRequest.builder()
+                .jobTemplate(profile.getTemplate())
+                .settings(jobSettings)
+                .role(profile.getRole())
+                .queue(profile.getQueue())
+                .build();
 
         logger.info("Transcode file '{}' in site '{}'", filename, site);
-        CreateJobResult createJobResult = mediaConvertClient.createJob(createJobRequest);
+        CreateJobResponse createJobResponse = mediaConvertClient.createJob(createJobRequest);
         logger.debug("Transcode job '{}' in site '{}' started successfully",
-                createJobResult.getJob().getArn(), site);
+                createJobResponse.job().arn(), site);
 
-        return buildResult(jobTemplate, createJobResult, outputProfileId, originalName);
+        return buildResult(s3Client, getJobTemplateResponse.jobTemplate(), createJobResponse, outputProfileId, originalName);
     }
 
-
-    protected MediaConvertResult buildResult(JobTemplate jobTemplate, CreateJobResult createJobResult,
+    protected MediaConvertResult buildResult(S3Client s3Client, JobTemplate jobTemplate, CreateJobResponse createJobResponse,
                                              String outputProfileId, String originalName) {
         List<String> urls = new LinkedList<>();
-        jobTemplate.getSettings().getOutputGroups().forEach(outputGroup -> {
-            logger.debug("Add the URLs from group '{}'", outputGroup.getName());
-            OutputGroupType type = OutputGroupType.valueOf(outputGroup.getOutputGroupSettings().getType());
+        jobTemplate.settings().outputGroups().forEach(outputGroup -> {
+            logger.debug("Add the URLs from group '{}'", outputGroup.name());
+            OutputGroupType type = outputGroup.outputGroupSettings().type();
             switch (type) {
                 case FILE_GROUP_SETTINGS:
-                    FileGroupSettings fileSettings = outputGroup.getOutputGroupSettings().getFileGroupSettings();
-                    outputGroup.getOutputs().forEach(output -> {
-                        addUrl(urls, outputProfileId, fileSettings.getDestination(), originalName,
-                            output.getNameModifier(), output.getExtension());
+                    FileGroupSettings fileSettings = outputGroup.outputGroupSettings().fileGroupSettings();
+                    outputGroup.outputs().forEach(output -> {
+                        addUrl(s3Client, urls, outputProfileId, fileSettings.destination(), originalName,
+                            output.nameModifier(), output.extension());
                     });
                     break;
                 case HLS_GROUP_SETTINGS:
-                    HlsGroupSettings hlsSettings = outputGroup.getOutputGroupSettings().getHlsGroupSettings();
-                    addUrl(urls, outputProfileId, hlsSettings.getDestination(), originalName,
+                    HlsGroupSettings hlsSettings = outputGroup.outputGroupSettings().hlsGroupSettings();
+                    addUrl(s3Client, urls, outputProfileId, hlsSettings.destination(), originalName,
                             StringUtils.EMPTY, hlsExtension);
                     break;
                 case DASH_ISO_GROUP_SETTINGS:
-                    DashIsoGroupSettings dashSettings = outputGroup.getOutputGroupSettings().getDashIsoGroupSettings();
-                    addUrl(urls, outputProfileId, dashSettings.getDestination(), originalName,
+                    DashIsoGroupSettings dashSettings = outputGroup.outputGroupSettings().dashIsoGroupSettings();
+                    addUrl(s3Client, urls, outputProfileId, dashSettings.destination(), originalName,
                         StringUtils.EMPTY, dashExtension);
                     break;
                 case MS_SMOOTH_GROUP_SETTINGS:
-                    MsSmoothGroupSettings smoothSettings = outputGroup.getOutputGroupSettings().getMsSmoothGroupSettings();
-                    addUrl(urls, outputProfileId, smoothSettings.getDestination(), originalName,
+                    MsSmoothGroupSettings smoothSettings = outputGroup.outputGroupSettings().msSmoothGroupSettings();
+                    addUrl(s3Client, urls, outputProfileId, smoothSettings.destination(), originalName,
                         StringUtils.EMPTY, smoothExtension);
                     break;
                 case CMAF_GROUP_SETTINGS:
-                    CmafGroupSettings cmafSettings = outputGroup.getOutputGroupSettings().getCmafGroupSettings();
-                    addUrl(urls, outputProfileId, cmafSettings.getDestination(), originalName,
+                    CmafGroupSettings cmafSettings = outputGroup.outputGroupSettings().cmafGroupSettings();
+                    addUrl(s3Client, urls, outputProfileId, cmafSettings.destination(), originalName,
                         StringUtils.EMPTY, hlsExtension);
-                    addUrl(urls, outputProfileId, cmafSettings.getDestination(), originalName,
+                    addUrl(s3Client, urls, outputProfileId, cmafSettings.destination(), originalName,
                         StringUtils.EMPTY, dashExtension);
                     break;
                 default:
@@ -226,17 +221,17 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         });
 
         MediaConvertResult result = new MediaConvertResult();
-        result.setJobId(createJobResult.getJob().getId());
-        result.setJobArn(createJobResult.getJob().getArn());
+        result.setJobId(createJobResponse.job().id());
+        result.setJobArn(createJobResponse.job().arn());
         result.setUrls(urls);
 
         return result;
     }
 
-    protected void addUrl(List<String> urls, String outputProfileId, String destination, String originalName,
+    protected void addUrl(S3Client s3Client, List<String> urls, String outputProfileId, String destination, String originalName,
                             String modifier, String extension) {
         String url = StringUtils.appendIfMissing(destination, delimiter) + originalName + modifier + "." + extension;
-        url = createUrl(outputProfileId, url);
+        url = createUrl(s3Client, outputProfileId, url);
         logger.debug("Add the URL '{}'", url);
         urls.add(url);
     }
@@ -244,9 +239,9 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
     /**
      * Builds a remote-asset url using the given profile and S3 URI
      */
-    protected String createUrl(String profileId, String fullUri) {
-        AmazonS3URI uri = new AmazonS3URI(fullUri);
-        return format(urlPattern, profileId, uri.getKey());
+    protected String createUrl(S3Client s3Client, String profileId, String fullUri) {
+        S3Uri uri = s3Client.utilities().parseUri(URI.create(fullUri));
+        return format(urlPattern, profileId, uri.key());
     }
 
 }
