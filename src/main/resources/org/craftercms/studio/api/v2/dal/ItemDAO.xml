@@ -528,20 +528,26 @@
         DELETE FROM item WHERE site_id = #{siteId} AND (path = #{folderPath} OR path LIKE #{pattern})
     </delete>
 
-    <update id="moveItem">
+    <update id="moveItemInternal">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET path = #{newPath},
             i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
             i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl})
-        <!-- We should populate new item_target table with previous path
-            i.previous_path = IFNULL(i.previous_path, #{oldPath}) -->
         <if test="label != null">
             , i.label = #{label}
         </if>
         <if test="parentId != null">
             , i.parent_id = #{parentId}
         </if>
-        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{oldPath}
+        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{previousPath}
+    </update>
+
+    <update id="updatePreviousPath">
+        UPDATE item_target it
+            INNER JOIN item i ON i.id = it.item_id
+            INNER JOIN site s ON s.id = i.site_id
+        SET it.previous_path = IFNULL(it.previous_path, #{previousPath})
+        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{newPath}
     </update>
 
     <select id="getMandatoryParentsForPublishing" resultType="String">

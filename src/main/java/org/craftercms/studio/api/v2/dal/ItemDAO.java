@@ -19,13 +19,14 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_SUCCESS;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_SUCCESS;
@@ -297,10 +298,41 @@ public interface ItemDAO {
     void deleteBySiteAndPathForFolder(@Param(SITE_ID) long siteId, @Param(FOLDER_PATH) String path);
 
     /**
-     * Move item
+     * Move item. Update item and item_target table to reflect an item moved from previousPath to newPath.
+     *
+     * @param siteId        the site id
+     * @param previousPath  the previous path
+     * @param newPath       the new path
+     * @param parentId      the new parent id
+     * @param oldPreviewUrl the old preview url
+     * @param newPreviewUrl the new preview url
+     * @param label         the new label
+     */
+    @Transactional
+    default void moveItem(String siteId, String previousPath, String newPath,
+                          Long parentId, String oldPreviewUrl,
+                          String newPreviewUrl, String label) {
+        moveItemInternal(siteId, previousPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+        updatePreviousPath(siteId, previousPath, newPath);
+    }
+
+    /**
+     * Update item_target table previous path if null.
+     * If previous_path is not null, it means the item has not been
+     * published after a move operation, so we don't need to update the previous path.
+     *
+     * @param siteId       the site id
+     * @param previousPath the previous path
+     * @param newPath      the new (current) path
+     */
+    void updatePreviousPath(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath);
+
+    /**
+     * Move item.
+     * DO NOT USE THIS METHOD DIRECTLY. USE moveItem INSTEAD.
      *
      * @param siteId          site identifier
-     * @param oldPath         old path
+     * @param previousPath    previous path
      * @param newPath         new path
      * @param parentId        new parent ID
      * @param oldPreviewUrl   old preview url
@@ -309,11 +341,11 @@ public interface ItemDAO {
      * @param onStatesBitMap  state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
-    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
-                  @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
-                  @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
-                  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-                  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+    void moveItemInternal(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
+                          @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
+                          @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
+                          @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                          @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
      * Get a list of {@link DetailedItem} for given site and filters (system_types, states)

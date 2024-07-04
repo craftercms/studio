@@ -43,7 +43,7 @@ public final class  QueryParameterNames {
     // Modifier
     public static final String MODIFIER = "modifier";
     // Old path
-    public static final String OLD_PATH = "oldPath";
+    public static final String PREVIOUS_PATH = "previousPath";
     // New path
     public static final String NEW_PATH = "newPath";
     // commit id
