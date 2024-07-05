@@ -22,14 +22,6 @@
     <resultMap id="ItemTargetMap" type="org.craftercms.studio.api.v2.dal.publish.ItemTarget" autoMapping="true">
     </resultMap>
 
-    <select id="getByItemPath" resultMap="ItemTargetMap">
-        SELECT it.*
-        FROM item_target it
-        INNER JOIN item i ON it.item_id = i.id
-        WHERE i.site_id = #{siteId}
-        AND i.path = #{path}
-    </select>
-
     <select id="getByItemId" resultMap="ItemTargetMap">
         SELECT it.*
         FROM item_target it

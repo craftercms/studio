@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO: deprecate/remove this API
 
 import groovy.json.JsonException
 import groovy.json.JsonSlurper

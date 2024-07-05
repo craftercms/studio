@@ -436,17 +436,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths) {
-        return itemDao.getMandatoryParentsForPublishing(siteId, paths, NEW_MASK, MODIFIED_MASK);
-    }
-
-    @Override
-    public List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(String siteId, List<String> parents) {
-        return itemDao
-                .getExistingRenamedChildrenOfMandatoryParentsForPublishing(siteId, parents, NEW_MASK, MODIFIED_MASK);
-    }
-
-    @Override
     public List<String> getChangeSetForSubtree(String siteId, String path) {
         String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
         return itemDao.getChangeSetForSubtree(siteId, path, likePath,

@@ -487,11 +487,6 @@ public interface ItemDAO {
                                                   @Param(NEW_MASK) long newMask,
                                                   @Param(MODIFIED_MASK) long modifiedMask);
 
-    List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(@Param(SITE_ID) String siteId,
-                                                                           @Param(PARENTS) List<String> parents,
-                                                                           @Param(NEW_MASK) long newMask,
-                                                                           @Param(MODIFIED_MASK) long modifiedMask);
-
     /**
      * Count all content items in the system
      *

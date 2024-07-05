@@ -40,15 +40,6 @@ public interface ItemTargetDAO {
     String TIMESTAMP = "timestamp";
 
     /**
-     * Get the item target records by item path
-     *
-     * @param siteId the site id
-     * @param path   the item path
-     * @return the item target record
-     */
-    Collection<ItemTarget> getByItemPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
-
-    /**
      * Update for successful publish items in the package.
      * For each successful PublishItem:
      * - Clear the oldPath

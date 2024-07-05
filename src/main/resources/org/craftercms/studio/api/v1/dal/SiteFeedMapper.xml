@@ -149,10 +149,6 @@
         SELECT * FROM site WHERE deleted = 1 AND system = 0
     </select>
 
-    <update id="setPublishedRepoCreated">
-        UPDATE site SET published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
-    </update>
-
     <update id="updateSite">
         UPDATE site
         <set>
@@ -173,12 +169,6 @@
 
     <select id="getSiteState" resultType="java.lang.String">
         SELECT s.state
-        FROM site s
-        WHERE s.site_id = #{siteId} AND s.deleted = 0
-    </select>
-
-    <select id="getPublishedRepoCreated" resultType="int">
-        SELECT s.published_repo_created
         FROM site s
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>

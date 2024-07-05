@@ -286,22 +286,6 @@ public interface ItemServiceInternal {
     boolean previousPathExists(String siteId, String path);
 
     /**
-     * Get mandatory parents for publishing for given site and list of paths
-     * @param siteId site identifier
-     * @param paths list of paths
-     * @return list of mandatory parents paths
-     */
-    List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths);
-
-    /**
-     * Get existing renamed children of mandatory parents for publishing
-     * @param siteId site identifier
-     * @param parents list of parents paths
-     * @return list of children paths
-     */
-    List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(String siteId, List<String> parents);
-
-    /**
      * Get change set for subtree
      * @param siteId site identifier
      * @param path root path of the subtree

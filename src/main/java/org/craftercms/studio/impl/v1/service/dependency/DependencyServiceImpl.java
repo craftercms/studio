@@ -352,12 +352,6 @@ public class DependencyServiceImpl implements DependencyService {
         return toRet;
     }
 
-    @Override
-    public Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException {
-        Map<String, String> dependencies = calculatePublishingDependencies(site, paths);
-        return dependencies.keySet();
-    }
-
     private Map<String, String> calculatePublishingDependencies(String site, List<String> paths)
             throws ServiceLayerException {
         Set<String> toRet = new HashSet<>();

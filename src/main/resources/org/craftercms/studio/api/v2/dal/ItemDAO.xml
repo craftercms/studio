@@ -578,27 +578,6 @@
         AND (i4.state &amp; #{modifiedMask}) > 0
     </select>
 
-    <select id="getExistingRenamedChildrenOfMandatoryParentsForPublishing" parameterType="java.util.Map" resultType="String">
-        SELECT i1.path as path
-        FROM item i1 INNER JOIN site s1 ON i1.site_id = s1.id
-        WHERE s1.site_id = #{siteId}
-        AND s1.deleted = 0
-        AND i1.ignored = 0
-        <!-- TODO: Implement this check with the new item_target table
-        AND NULLIF(TRIM(i1.previous_path), '') IS NOT NULL
-        -->
-        AND (i1.state &amp; #{modifiedMask}) > 0
-        AND (i1.state &amp; #{newMask}) = 0
-        AND i1.parent_id IN
-        (SELECT 12.id FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id
-        WHERE s2.site_id = #{siteId} AND s2.deleted = 0
-        AND i2.ignored = 0
-        AND i2.path IN
-        <foreach item="path" index="index" collection="parents" open="(" separator="," close=")">
-            #{path}
-        </foreach>)
-    </select>
-
     <select id="countAllContentItems" resultType="java.lang.Integer">
         SELECT count(1)
         FROM item i INNER JOIN site s ON i.site_id = s.id

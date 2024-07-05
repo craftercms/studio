@@ -154,14 +154,4 @@ public interface DependencyService {
      */
 	Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
             throws ServiceLayerException;
-
-    /**
-     * Calculate dependencies paths for publishing
-     * @param site site to use
-     * @param paths list of items to calculate dependencies for
-     * @return dependencies paths
-	 *
-	 * @throws ServiceLayerException general service error
-     */
-	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException;
 }

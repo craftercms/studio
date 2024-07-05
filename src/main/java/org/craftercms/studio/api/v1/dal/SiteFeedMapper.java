@@ -70,12 +70,6 @@ public interface SiteFeedMapper {
     List<SiteFeed> getDeletedSites();
 
     /**
-     * Set published repo created flag
-     * @param siteId site identifier
-     */
-    void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
-
-    /**
      * Updates the name and description for the given site
      *
      * @param siteId the id of the site
@@ -90,8 +84,6 @@ public interface SiteFeedMapper {
     List<String> getAllCreatedSites(@Param(STATE) String state);
 
     String getSiteState(@Param(SITE_ID) String siteId);
-
-    int getPublishedRepoCreated(@Param(SITE_ID) String siteId);
 
     /**
      * Get publishing status for site
