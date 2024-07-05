@@ -62,10 +62,7 @@ BEGIN
 
 /* TODO:
     Duplicate data from the tables:
-        publish_package
-        publish_item
-        item_publish_item
-        item_target
+        audit
         */
     /* parent_id points to original item parent */
     SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
@@ -73,6 +70,15 @@ BEGIN
 
     INSERT INTO navigation_order_sequence (folder_id, site, path, max_count)
         SELECT UUID(), siteId, nos.path, nos.max_count FROM navigation_order_sequence nos WHERE nos.site = sourceSiteId;
+
+    SELECT id FROM site WHERE site_id = sourceSiteId AND deleted = 0 INTO @sourceSiteNumericId;
+    INSERT INTO item_target(item_id, target, previous_path, last_published_on, published_commit_id)
+    SELECT newItem.id, target, previous_path, last_published_on, published_commit_id
+    FROM item_target it
+        INNER JOIN item sourceItem ON sourceItem.id = it.item_id
+        INNER JOIN item newItem ON sourceItem.path = newItem.path
+    WHERE sourceItem.site_id = @sourceSiteNumericId
+    AND newItem.site_id = @siteNumericId;
 END ;
 
 CREATE PROCEDURE addColumnIfNotExists(
