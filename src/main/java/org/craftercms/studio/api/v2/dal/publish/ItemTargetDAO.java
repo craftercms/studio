@@ -17,9 +17,12 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+
+import static java.time.Instant.now;
 
 /**
  * Provide access to the item_target data.
@@ -51,10 +54,38 @@ public interface ItemTargetDAO {
      * - Clear the oldPath
      * - Set the commitId
      * - Set the lastPublishedOn date to now
+     * - Clear any item_target.previous_path pointing to the published item path
      *
      * @param packageId        the package id
      * @param commitId         the target published commit id
      * @param target           the target
+     * @param itemSuccessState the state of the successful items to filter
+     */
+    @Transactional
+    default void updateForCompletePackage(long packageId, String commitId, String target, long itemSuccessState) {
+        updateForCompletePackage(packageId, commitId, target, now(), itemSuccessState);
+        clearPreviousPathForCompletePackage(packageId, target, itemSuccessState);
+    }
+
+    /**
+     * Clear the previous path for the successful items in the package.
+     * This will clear previous_path whenever previous_path points to an item in the package.
+     *
+     * @param packageId        the package id
+     * @param target           the target
+     * @param itemSuccessState the state of the successful items to filter
+     */
+    void clearPreviousPathForCompletePackage(@Param(PACKAGE_ID) long packageId,
+                                             @Param(TARGET) String target,
+                                             @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
+
+    /**
+     * Update for successful publish items in the package.
+     *
+     * @param packageId        the package id
+     * @param commitId         the target published commit id
+     * @param target           the target
+     * @param timestamp        the timestamp for the published_on date
      * @param itemSuccessState the state of the successful items to filter
      */
     void updateForCompletePackage(@Param(PACKAGE_ID) long packageId,

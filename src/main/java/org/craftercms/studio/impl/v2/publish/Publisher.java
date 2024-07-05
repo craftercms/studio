@@ -317,7 +317,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                 packageTO.getItemSuccessState());
         long packageStateOnBits;
         if (publishChangeSet.completed()) {
-            itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, now(), packageTO.getItemSuccessState());
+            itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, packageTO.getItemSuccessState());
             packageTO.setPublishedCommitId(publishChangeSet.commitId());
             publishDao.updatePackage(packageTO.getPackage());
             if (publishChangeSet.hasFailedItems()) {

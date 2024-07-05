@@ -422,7 +422,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                     previewMapping.target, previewMapping.prefix,
                     targetMapping.target, targetMapping.prefix, updatedPaths);
         }
-        logger.info("Completed Publish for site '{}', package '{}' to target '{}'", siteId, publishPackage.getId(), targetMapping);
+        logger.info("Completed Publish for site '{}', package '{}' to target '{}'", siteId, publishPackage.getId(), publishingTarget);
         return new PublishChangeSet<>(subtract(blobStoreItems, failedItems), failedItems);
     }
 

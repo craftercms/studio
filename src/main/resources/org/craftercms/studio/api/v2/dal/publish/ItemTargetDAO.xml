@@ -40,11 +40,21 @@
         INSERT INTO item_target
         (item_id, target, previous_path, last_published_on, published_commit_id)
         SELECT itemIds.item_id, #{target}, null, #{timestamp}, #{commitId}
-        FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemIdsForPackage"/> AS itemIds
+        FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemsForPackage"/> AS itemIds
         ON DUPLICATE KEY UPDATE
         previous_path = null,
         last_published_on = #{timestamp},
         published_commit_id = #{commitId}
+    </update>
+
+    <update id="clearPreviousPathForCompletePackage">
+        UPDATE item_target
+        SET previous_path = null
+        WHERE target = #{target}
+        AND previous_path IN (
+            SELECT successfulItems.path
+            FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemsForPackage"/> AS successfulItems
+        )
     </update>
 
     <insert id="insertForInitialPublish">

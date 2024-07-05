@@ -189,9 +189,9 @@
             pi.staging_error = updates.stagingError
     </update>
 
-    <sql id="getSuccessfulItemIdsForPackage">
+    <sql id="getSuccessfulItemsForPackage">
         (
-            SELECT ipi.item_id
+            SELECT ipi.item_id, pi.path
             FROM publish_package pp
                 INNER JOIN publish_item pi ON pp.id = pi.package_id
                 INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
