@@ -24,12 +24,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
@@ -61,8 +55,6 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
-import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
-import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
@@ -113,7 +105,8 @@ import static org.craftercms.commons.file.blob.BlobStore.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.*;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_INITIALIZING;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
@@ -741,116 +734,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @HasPermission(type= DefaultPermission.class, action = PERMISSION_DELETE_SITE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
     public boolean deleteSite(String siteId) {
-        // TODO: JM: remove this method in favor of V2?
-        boolean success = true;
-        logger.info("Delete site '{}'", siteId);
         try {
-            SiteFeed siteFeed = getSite(siteId);
-            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, STATE_DELETING));
-            applicationContext.publishEvent(new SiteDeletingEvent(siteId, siteFeed.getSiteUuid()));
-            logger.debug("Disable publishing for site '{}' prior to deleting it", siteId);
-            enablePublishing(siteId, false);
-        } catch (SiteNotFoundException e) {
-            success = false;
-            logger.error("Failed to stop publishing for site '{}'", siteId, e);
-        }
-
-        try {
-            logger.debug("Delete the Deployer targets for site '{}'", siteId);
-            deployer.deleteTargets(siteId);
+            sitesServiceInternal.deleteSite(siteId);
+            return true;
         } catch (Exception e) {
-            success = false;
-            logger.error("Failed to delete the Deployer targets for site '{}'", siteId, e);
+            logger.error("Failed to delete site '{}'", siteId, e);
+            return false;
         }
-
-        try {
-            logger.debug("Destroy the preview context for site '{}'", siteId);
-            success = success && destroySitePreviewContext(siteId);
-        } catch (Exception e) {
-            success = false;
-            logger.error("Failed to destroy the preview context for site '{}'", siteId, e);
-        }
-
-        try {
-            logger.debug("Delete the git repo for site '{}'", siteId);
-            contentRepository.deleteSite(siteId);
-        } catch (Exception e) {
-            success = false;
-            logger.error("Failed to delete the repository for site '{}'", siteId, e);
-        }
-
-        try {
-            configurationServiceInternal.invalidateConfiguration(siteId);
-        } catch (Exception e) {
-            logger.error("Failed to invalidate the configuration for site '{}'", siteId, e);
-        }
-
-        try {
-            // delete database records
-            logger.debug("Delete the database records for site '{}'", siteId);
-            SiteFeed siteFeed = getSite(siteId);
-            // TODO: implement for new publishing system
-//            workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
-            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.deleteSite(siteId, STATE_DELETED));
-            retryingDatabaseOperationFacade.retry(() -> userDao.deleteUserPropertiesBySiteId(siteFeed.getId()));
-            dependencyService.deleteSiteDependencies(siteId);
-            // TODO: review/implement for new publishing system
-//            deploymentService.deleteDeploymentDataForSite(siteId);
-            itemServiceInternal.deleteItemsForSite(siteFeed.getId());
-            dmPageNavigationOrderService.deleteSequencesForSite(siteId);
-            contentRepository.removeRemoteRepositoriesForSite(siteId);
-            auditServiceInternal.deleteAuditLogForSite(siteFeed.getId());
-            insertDeleteSiteAuditLog(siteId, siteFeed.getName());
-            applicationContext.publishEvent(new SiteDeletedEvent(siteFeed.getSiteId(), siteFeed.getSiteUuid()));
-        } catch (Exception e) {
-            success = false;
-            logger.error("Failed to delete the database records for site '{}'", siteId, e);
-        }
-
-        return success;
-    }
-
-    private void insertDeleteSiteAuditLog(String siteId, String siteName) throws SiteNotFoundException {
-        SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-        String user = securityService.getCurrentUser();
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_DELETE);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(user);
-        auditLog.setPrimaryTargetId(siteId);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteName);
-        auditServiceInternal.insertAuditLog(auditLog);
-    }
-
-    private boolean destroySitePreviewContext(String site) {
-        boolean toReturn = true;
-        String requestUrl = getDestroySitePreviewContextUrl(site);
-
-        HttpGet getRequest = new HttpGet(requestUrl);
-        RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
-        getRequest.setConfig(requestConfig);
-
-        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
-            CloseableHttpResponse response = client.execute(getRequest);
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                toReturn = false;
-            }
-        } catch (IOException e) {
-            logger.error("Failed to send the destroy preview context request for site '{}'", site, e);
-            toReturn = false;
-        } finally {
-            getRequest.releaseConnection();
-        }
-        return toReturn;
-    }
-
-    private String getDestroySitePreviewContextUrl(String site) {
-        String url = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL);
-        url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
-        return url;
     }
 
     @Override
