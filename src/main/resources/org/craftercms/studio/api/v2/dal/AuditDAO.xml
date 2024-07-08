@@ -284,9 +284,4 @@
         FROM audit a
         WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </select>
-
-    <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">
-        DELETE FROM audit
-        WHERE site_id = #{siteId}
-    </delete>
 </mapper>
