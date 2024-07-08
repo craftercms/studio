@@ -586,25 +586,16 @@
     </bean>
 
     <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="contentServiceInternal" ref="contentServiceInternal" />
-        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="securityService" ref="studio.securityService" />
-        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="notificationService" ref="cstudioNotificationService" />
-        <property name="dependencyService" ref="studioDependencyService" />
-        <property name="publishServiceInternal" ref="publishServiceInternal" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
+        <constructor-arg name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="dependencyService" ref="studioDependencyService" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"
