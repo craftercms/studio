@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class DeploymentServiceImpl implements DeploymentService {
 
     private PublishService publishService;
+    private SitesService siteService;
 
     // TODO: once publisher is refactored, make this class call new methods in PublishService for backwards compatibility
     @Override
@@ -57,7 +59,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
     public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
-        // TODO: implement for new publishing system
+        siteService.enablePublishing(siteId, enabled);
     }
 
     @Override
@@ -77,5 +79,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setPublishService(final PublishService publishService) {
         this.publishService = publishService;
+    }
+
+    public void setSiteService(final SitesService siteService) {
+        this.siteService = siteService;
     }
 }

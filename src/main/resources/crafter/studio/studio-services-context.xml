@@ -124,6 +124,7 @@
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl">
          <property name="publishService" ref="publishServiceInternal"/>
+         <property name="siteService" ref="sitesServiceInternal"/>
      </bean>
 
     <bean id="cstudioNotificationService"
