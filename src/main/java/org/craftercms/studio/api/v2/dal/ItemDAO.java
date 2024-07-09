@@ -90,6 +90,41 @@ public interface ItemDAO {
                                @Param(EXCLUDE_SYSTEM_TYPES) List<String> excludeSystemTypes,
                                @Param(EXCLUDES) List<String> excludes);
 
+
+    /**
+     * Get children for given path from database
+     *
+     * @param siteId             site identifier
+     * @param path               path to get children for
+     * @param localeCode         locale code
+     * @param keyword            filter by keyword
+     * @param systemTypes        filter by type
+     * @param excludeSystemTypes system types to exclude
+     * @param excludes           exclude items by path
+     * @param sortStrategy       sort strategy
+     * @param order              order of children
+     * @param offset             offset of the first record to return
+     * @param limit              number of children to return
+     * @return list of items (parent, level descriptor, children)
+     */
+    default List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId,
+                                         @Param(PATH) String path,
+                                         @Param(LOCALE_CODE) String localeCode,
+                                         @Param(KEYWORD) String keyword,
+                                         @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                         @Param(EXCLUDE_SYSTEM_TYPES) List<String> excludeSystemTypes,
+                                         @Param(EXCLUDES) List<String> excludes,
+                                         @Param(SORT_STRATEGY) String sortStrategy,
+                                         @Param(ORDER) String order,
+                                         @Param(OFFSET) int offset,
+                                         @Param(LIMIT) int limit) {
+        return getChildrenByPath(siteId, path, CONTENT_TYPE_FOLDER, localeCode,
+                keyword, systemTypes, excludeSystemTypes,
+                excludes, sortStrategy, order,
+                PublishPackage.PackageState.READY.value, List.of(APPROVED, SUBMITTED),
+                offset, limit);
+    }
+
     /**
      * Get children for given path from database
      *
@@ -103,11 +138,12 @@ public interface ItemDAO {
      * @param excludes           exclude items by path
      * @param sortStrategy       sort strategy
      * @param order              order of children
+     * @param packageState       package state mask
+     * @param approvalStates     package approval states to filter
      * @param offset             offset of the first record to return
      * @param limit              number of children to return
      * @return list of items (parent, level descriptor, children)
      */
-
     List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId,
                                  @Param(PATH) String path,
                                  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
@@ -118,6 +154,8 @@ public interface ItemDAO {
                                  @Param(EXCLUDES) List<String> excludes,
                                  @Param(SORT_STRATEGY) String sortStrategy,
                                  @Param(ORDER) String order,
+                                 @Param(PUBLISH_PACKAGE_STATE) long packageState,
+                                 @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates,
                                  @Param(OFFSET) int offset,
                                  @Param(LIMIT) int limit);
 

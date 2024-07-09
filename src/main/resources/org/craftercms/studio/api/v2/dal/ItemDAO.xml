@@ -147,8 +147,11 @@
                         FROM item_publish_item ipi1
                             INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
                             INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-                        WHERE pp1.package_state = 'READY'
-                        AND pp1.approval_state IN ('SUBMITTED', 'APPROVED')
+                        WHERE (pp1.package_state &amp; #{packageState}) > 0
+                        AND pp1.approval_state IN
+                                <foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
+                                    #{approvalState}
+                                </foreach>
                         ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
                 ) as submission ON submission.item_id = child.id
         WHERE parent.site_id = #{siteId}

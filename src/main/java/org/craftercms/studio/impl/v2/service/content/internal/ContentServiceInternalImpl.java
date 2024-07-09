@@ -112,7 +112,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         int total = itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword, systemTypes,
                 excludes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR));
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), parentFolderPath,
-                CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
+                locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setLevelDescriptor(getLevelDescriptor(siteFeed, path, locale));
         toRet.setOffset(offset);
@@ -123,7 +123,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private SandboxItem getLevelDescriptor(SiteFeed siteFeed, String path, String locale) throws UserNotFoundException, ServiceLayerException {
         List<Item> sandboxItemsByPath = itemDao.getChildrenByPath(siteFeed.getId(), path,
-                CONTENT_TYPE_FOLDER, locale, null, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
+                locale, null, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
         if (isEmpty(sandboxItemsByPath)) {
             return null;
         }
