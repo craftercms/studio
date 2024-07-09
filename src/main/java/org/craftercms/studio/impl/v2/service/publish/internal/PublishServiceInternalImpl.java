@@ -336,6 +336,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         return new PublishDependenciesResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
     }
 
+    @Override
+    public PublishPackage getPackageForItem(final String siteId, final String path) {
+        return publishDao.getPackageForItem(siteId, path);
+    }
+
     /**
      * Get common filter for commit repo operations to be included in publish dependencies
      * or actual publishing package submission

@@ -38,6 +38,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageSta
  */
 public interface PublishDAO {
     String SITE_ID = "siteId";
+    String PATH = "path";
     String TARGET = "target";
     String PACKAGE_ID = "packageId";
     String PUBLISH_PACKAGE = "publishPackage";
@@ -263,4 +264,28 @@ public interface PublishDAO {
      * @param items the publish item to update state and error columns for
      */
     void updatePublishItemListState(@Param(ITEMS) Collection<PublishItem> items);
+
+    /**
+     * Get the submitted package containing the given item
+     *
+     * @param siteId the site id
+     * @param path   the path of the item
+     * @return the package containing the item, or null if the item is not submitted to be published
+     */
+    default PublishPackage getPackageForItem(String siteId, String path) {
+        return getPackageForItem(siteId, path, READY.value);
+    }
+
+    /**
+     * Get the submitted package containing the given item
+     *
+     * @param siteId           the site id
+     * @param path             the path of the item
+     * @param packageState the mask to apply to the package state
+     * @return the package containing the item, or null if the item is not submitted to be published
+     */
+    PublishPackage getPackageForItem(@Param(SITE_ID) String siteId,
+                                     @Param(PATH) String path,
+                                     @Param(PACKAGE_STATE) long packageState);
+
 }

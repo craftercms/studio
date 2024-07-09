@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
@@ -182,6 +183,15 @@ public interface PublishService {
      * @throws IOException
      */
     PublishDependenciesResult getPublishDependencies(String siteId, String publishingTarget, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
+
+    /**
+     * Get the submitted package containing the given item
+     *
+     * @param siteId the site id
+     * @param path the path of the item
+     * @return the package containing the item, or null if the item is not submitted to be published
+     */
+    PublishPackage getPackageForItem(String siteId, String path);
 
     /**
      * A request to include a path in a publish request.

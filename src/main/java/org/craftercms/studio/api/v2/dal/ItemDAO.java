@@ -19,6 +19,8 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -30,6 +32,8 @@ import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_SUCCESS;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_SUCCESS;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 
 public interface ItemDAO {
 
@@ -52,6 +56,8 @@ public interface ItemDAO {
     String TIMESTAMP = "timestamp";
     String STAGING_PUBLISHED_STATE = "stagingPublishedState";
     String LIVE_PUBLISHED_STATE = "livePublishedState";
+    String PUBLISH_PACKAGE_STATE = "packageState";
+    String PUBLISH_PACKAGE_APPROVAL_STATES = "approvalStates";
 
     Map<String, String> SORT_FIELD_MAP = Map.of(
             "id", "id",
@@ -408,7 +414,9 @@ public interface ItemDAO {
      */
     default List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
                                              @Param(PREFER_CONTENT) boolean preferContent) {
-        return getSandboxItemsByPath(siteId, paths, CONTENT_TYPE_FOLDER, preferContent);
+        return getSandboxItemsByPath(siteId, paths, CONTENT_TYPE_FOLDER, preferContent,
+                PublishPackage.PackageState.READY.value,
+                List.of(APPROVED, SUBMITTED));
     }
 
     /**
@@ -418,11 +426,15 @@ public interface ItemDAO {
      * @param paths            paths to get items for
      * @param systemTypeFolder value for system type folder
      * @param preferContent    indicates if pages should be returned instead of folders when available
+     * @param packageState     package state mask
+     * @param approvalStates   package approval states to filter
      * @return list of items
      */
     List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                     @Param(PREFER_CONTENT) boolean preferContent);
+                                     @Param(PREFER_CONTENT) boolean preferContent,
+                                     @Param(PUBLISH_PACKAGE_STATE) long packageState,
+                                     @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates);
 
 
     /**
@@ -434,7 +446,9 @@ public interface ItemDAO {
      */
     default List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
                                                         @Param(SORT_FIELDS) List<SortField> sortFields) {
-        return getSandboxItemsByIdPreferContent(itemIds, CONTENT_TYPE_FOLDER, sortFields);
+        return getSandboxItemsByIdPreferContent(itemIds, CONTENT_TYPE_FOLDER, sortFields,
+                PublishPackage.PackageState.READY.value,
+                List.of(APPROVED, SUBMITTED));
     }
 
     /**
@@ -447,7 +461,9 @@ public interface ItemDAO {
      */
     List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
                                                 @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                                @Param(SORT_FIELDS) List<SortField> sortFields);
+                                                @Param(SORT_FIELDS) List<SortField> sortFields,
+                                                @Param(PUBLISH_PACKAGE_STATE) long packageState,
+                                                @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates);
 
     /**
      * Get sandbox items for given ids
@@ -458,7 +474,9 @@ public interface ItemDAO {
      */
     default List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
                                            @Param(SORT_FIELDS) List<SortField> sortFields) {
-        return getSandboxItemsById(itemIds, CONTENT_TYPE_FOLDER, sortFields);
+        return getSandboxItemsById(itemIds, CONTENT_TYPE_FOLDER, sortFields,
+                PublishPackage.PackageState.READY.value,
+                List.of(APPROVED, SUBMITTED));
     }
 
     /**
@@ -471,7 +489,9 @@ public interface ItemDAO {
      */
     List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
                                    @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                   @Param(SORT_FIELDS) List<SortField> sortFields);
+                                   @Param(SORT_FIELDS) List<SortField> sortFields,
+                                   @Param(PUBLISH_PACKAGE_STATE) long packageState,
+                                   @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates);
 
     /**
      * Get mandatory parents for publishing

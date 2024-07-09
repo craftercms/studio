@@ -199,4 +199,19 @@
             AND (pi.publish_state &amp; #{itemSuccessState}) > 0
         )
     </sql>
+
+    <select id="getPackageForItem" resultMap="PublishPackageMap">
+        SELECT pp.*
+        FROM publish_package pp
+            INNER JOIN site s ON pp.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND (pp.package_state &amp; #{packageState}) > 0
+        AND EXISTS (
+            SELECT 1
+            FROM publish_item pi
+            WHERE pi.package_id = pp.id
+            AND pi.path = #{path}
+        )
+        ORDER BY pp.schedule ASC LIMIT 1
+    </select>
 </mapper>

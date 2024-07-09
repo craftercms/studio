@@ -23,12 +23,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
@@ -63,7 +63,6 @@ public class PublishServiceImpl implements PublishService {
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
     private ItemServiceInternal itemServiceInternal;
-    private ServicesConfig servicesConfig;
     private ActivityStreamServiceInternal activityStreamServiceInternal;
     private UserServiceInternal userServiceInternal;
 
@@ -130,7 +129,6 @@ public class PublishServiceImpl implements PublishService {
     }
 
     private void createAuditLogEntry(SiteFeed siteFeed, String username, List<AuditLogParameter> auditLogParameters) {
-
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
         auditLog.setActorId(username);
@@ -205,6 +203,13 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public PublishPackage getPackageForItem(final String site, final String path) {
+        return publishServiceInternal.getPackageForItem(site, path);
+    }
+
+    @Override
+    @RequireSiteExists
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
         return publishServiceInternal.getAvailablePublishingTargets(siteId);
@@ -235,10 +240,6 @@ public class PublishServiceImpl implements PublishService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
     }
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {

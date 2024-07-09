@@ -113,7 +113,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER, preferContent);
+        return itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, preferContent);
     }
 
     @Override

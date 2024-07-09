@@ -40,7 +40,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -57,6 +56,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
@@ -66,6 +66,7 @@ import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -78,6 +79,7 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
+import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -94,6 +96,7 @@ import org.xml.sax.SAXException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -152,6 +155,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected UserServiceInternal userServiceInternal;
     protected ApplicationContext applicationContext;
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
+    protected PublishService publishServiceInternal;
 
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
     private GeneralLockService generalLockService;
@@ -1842,7 +1846,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
 
                 // POPULATE LOCK STATUS
-                populateMetadata(site, item);
+                populateMetadata(site, item, path);
 
                 // POPULATE WORKFLOW STATUS
                 if (!item.isFolder() || item.isContainer()) {
@@ -1996,7 +2000,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected void populateMetadata(String site, ContentItemTO item)
+    protected void populateMetadata(final String site, final ContentItemTO item, final String path)
             throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Refactor to return a ContentItemTO instead of changing the parameter
         // TODO: SJ: Change method name to be getContentItemMetadata or similar
@@ -2004,69 +2008,59 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         // TODO: SJ: Create a method String getValueIfNotNull(String) to use to return not null/empty string if null
         // TODO: SJ: Use that method to reduce redundant code here. 3.1+
-        // TODO: implement for new publishing system
-//        Item metadata = itemServiceInternal.getItem(site, item.getUri());
-//        WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(site, item.getUri());
-//        if (metadata != null) {
-//            // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
-//            // database if it's not null
-//            if (isNull(metadata.getLockOwner())) {
-//                item.setLockOwner("");
-//            } else {
-//                item.setLockOwner(metadata.getLockOwner().getUsername());
-//            }
-//
-//
-//            // Set the scheduled date
-//            if (workflowItem != null && workflowItem.getSchedule() != null) {
-//                item.scheduledDate = workflowItem.getSchedule();
-//                item.setScheduledDate(workflowItem.getSchedule());
-//            }
-//
-//            Person modifier = metadata.getModifier();
-//            String modifierUsername = modifier != null ? modifier.getUsername() : null;
-//            // Set the modifier (user) if known
-//            if (isEmpty(modifierUsername)) {
-//                item.setUser("");
-//                item.setUserLastName("");
-//                item.setUserFirstName("");
-//            } else {
-//                User u = userServiceInternal.getUserByIdOrUsername(-1, modifierUsername);
-//                item.user = modifierUsername;
-//                item.setUser(modifierUsername);
-//                item.userFirstName = u.getFirstName();
-//                item.setUserFirstName(u.getFirstName());
-//                item.userLastName = u.getLastName();
-//                item.setUserLastName(u.getLastName());
-//            }
-//
-//            if (metadata.getLastModifiedOn() != null) {
-//                item.lastEditDate = metadata.getLastModifiedOn();
-//                item.eventDate = metadata.getLastModifiedOn();
-//                item.setLastEditDate(metadata.getLastModifiedOn());
-//                item.setEventDate(metadata.getLastModifiedOn());
-//            }
-//
-//            if (metadata.getLastPublishedOn() != null) {
-//                item.published = true;
-//                item.setPublished(true);
-//                item.publishedDate = metadata.getLastPublishedOn();
-//                item.setPublishedDate(metadata.getLastPublishedOn());
-//            }
-//
-//            if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getSubmitterComment())) {
-//                item.setSubmissionComment(workflowItem.getSubmitterComment());
-//            }
-//            if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getTargetEnvironment())) {
-//                item.setSubmittedToEnvironment(workflowItem.getTargetEnvironment());
-//            }
-//            if (Objects.nonNull(workflowItem)) {
-//                item.isSubmitted = true;
-//                item.setSubmitted(true);
-//            }
-//        } else {
-//            item.setLockOwner("");
-//        }
+        Item metadata = itemServiceInternal.getItem(site, item.getUri());
+        if (metadata == null) {
+            item.setLockOwner("");
+            return;
+        }
+        // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
+        // database if it's not null
+        if (isNull(metadata.getLockOwner())) {
+            item.setLockOwner("");
+        } else {
+            item.setLockOwner(metadata.getLockOwner().getUsername());
+        }
+
+        Person modifier = metadata.getModifier();
+        String modifierUsername = modifier != null ? modifier.getUsername() : null;
+        // Set the modifier (user) if known
+        if (isEmpty(modifierUsername)) {
+            item.setUser("");
+            item.setUserLastName("");
+            item.setUserFirstName("");
+        } else {
+            User u = userServiceInternal.getUserByIdOrUsername(-1, modifierUsername);
+            item.user = modifierUsername;
+            item.setUser(modifierUsername);
+            item.userFirstName = u.getFirstName();
+            item.setUserFirstName(u.getFirstName());
+            item.userLastName = u.getLastName();
+            item.setUserLastName(u.getLastName());
+        }
+
+        if (metadata.getLastModifiedOn() != null) {
+            item.setLastEditDate(metadata.getLastModifiedOn());
+            item.setEventDate(metadata.getLastModifiedOn());
+        }
+
+        if (metadata.getLastPublishedOn() != null) {
+            item.setPublished(true);
+            item.setPublishedDate(metadata.getLastPublishedOn());
+        }
+
+        PublishPackage publishPackage = publishServiceInternal.getPackageForItem(site, path);
+        if (publishPackage != null) {
+            if (publishPackage.getSchedule() != null) {
+                item.setScheduledDate(publishPackage.getSchedule().atZone(ZoneOffset.UTC));
+            }
+            if (StringUtils.isNotEmpty(publishPackage.getSubmitterComment())) {
+                item.setSubmissionComment(publishPackage.getSubmitterComment());
+            }
+            if (StringUtils.isNotEmpty(publishPackage.getTarget())) {
+                item.setSubmittedToEnvironment(publishPackage.getTarget());
+            }
+            item.setSubmitted(true);
+        }
     }
 
     @Override
@@ -2839,6 +2833,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setGeneralLockService(final GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setPublishServiceInternal(final PublishService publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
     }
 
     /**
