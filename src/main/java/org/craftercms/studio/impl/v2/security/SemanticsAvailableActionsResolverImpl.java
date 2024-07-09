@@ -24,12 +24,14 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -58,6 +60,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private UserServiceInternal userServiceInternal;
     private StudioBlobStoreResolver studioBlobStoreResolver;
     private ContentTypeServiceInternal contentTypeServiceInternal;
+    private PublishService publishServiceInternal;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -145,12 +148,9 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             }
 
             if (isInWorkflow(itemState)) {
-                long workflowUserId = 0;
-//                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, itemPath);
+                PublishPackage publishPackage = publishServiceInternal.getPackageForItem(siteId, itemPath);
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-                // TODO: Implement for new publishing system
-//                if (user.getId() == workflow.getId()) {
-                if(user.getId() == workflowUserId) {
+                if (user.getId() == publishPackage.getSubmitterId()) {
                     result &= ~PUBLISH_APPROVE;
                     result &= ~PUBLISH_SCHEDULE;
                     result &= ~PUBLISH_REJECT;
@@ -255,4 +255,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         this.securityServiceV1 = securityServiceV1;
     }
 
+    public void setPublishServiceInternal(final PublishService publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
+    }
 }

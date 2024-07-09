@@ -259,6 +259,7 @@
         <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="securityServiceV1" ref="cstudioSecurityService"/>
+        <property name="publishServiceInternal" ref="publishServiceInternal"/>
     </bean>
 
     <bean id="studio.loginPageFilter"
