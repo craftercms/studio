@@ -405,7 +405,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                     publishPackage.setPublishedLiveCommitId(commitId);
                     publishPackage.setPublishedStagingCommitId(commitId);
                     publishPackage.setPublishedOn(now);
-                    publishPackage.setPackageState(PackageState.LIVE_SUCCESS.value + PackageState.STAGING_SUCCESS.value);
+                    publishDao.updatePackageState(publishPackage.getId(), PackageState.LIVE_SUCCESS.value + PackageState.STAGING_SUCCESS.value, 0);
                     publishDao.updatePackage(publishPackage);
                 });
     }
