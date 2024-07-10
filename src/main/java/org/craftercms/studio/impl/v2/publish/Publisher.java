@@ -286,6 +286,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
 
         List<PublishItemTOImpl> publishItemTOs = publishItems.stream()
+                .peek(pi->logger.debug("Processing publish item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
                 .map(pi -> expandPublishItem(pi, target, isLiveTarget))
                 .flatMap(List::stream)
                 .toList();
@@ -293,10 +294,12 @@ public class Publisher implements ApplicationEventPublisherAware {
         GitPublishChangeSet<PublishItemTOImpl> publishChangeSet = repoPublishFunction.run(packageTO.getPackage(), target, publishItemTOs);
 
         Set<PublishItem> failedItems = publishChangeSet.failedItems().stream()
+                .peek(pi -> logger.error("Failed to publish item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
                 .map(PublishItemTOImpl::getPublishItem)
                 .collect(Collectors.toSet());
 
         Collection<PublishItem> successfulItems = publishChangeSet.successfulItems().stream()
+                .peek(pi -> logger.debug("Successfully published item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
                 .map(PublishItemTOImpl::getPublishItem)
                 .filter(negate(failedItems::contains))
                 .toList();
