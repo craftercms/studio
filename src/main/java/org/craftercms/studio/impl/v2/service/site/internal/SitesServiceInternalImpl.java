@@ -458,7 +458,23 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     @Override
     public void enablePublishing(String siteId, boolean enabled) {
+        Site site = siteDao.getSite(siteId);
         retryingDatabaseOperationFacade.retry(() -> siteDao.enablePublishing(siteId, enabled));
+
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setSiteId(site.getId());
+        if (enabled) {
+            logger.info("Publishing started for site '{}'", siteId);
+            auditLog.setOperation(OPERATION_START_PUBLISHER);
+        } else {
+            logger.info("Publishing stopped for site '{}'", siteId);
+            auditLog.setOperation(OPERATION_STOP_PUBLISHER);
+        }
+        auditLog.setActorId(securityService.getCurrentUser());
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(site.getName());
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override

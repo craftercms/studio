@@ -35,9 +35,11 @@ import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.jetbrains.annotations.NotNull;
@@ -87,9 +89,11 @@ public class Publisher implements ApplicationEventPublisherAware {
     private final ServicesConfig servicesConfig;
     private final ItemTargetDAO itemTargetDAO;
     private final PlatformTransactionManager transactionManager;
+    private final ActivityStreamServiceInternal activityService;
 
     @ConstructorProperties({"siteDao", "publishDao", "itemServiceInternal", "auditServiceInternal",
-            "contentRepository", "generalLockService", "servicesConfig", "itemTargetDAO", "transactionManager"})
+            "contentRepository", "generalLockService", "servicesConfig", "itemTargetDAO", "transactionManager",
+            "activityService"})
     public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
                      final ItemServiceInternal itemServiceInternal,
                      final AuditServiceInternal auditServiceInternal,
@@ -97,7 +101,8 @@ public class Publisher implements ApplicationEventPublisherAware {
                      final GeneralLockService generalLockService,
                      final ServicesConfig servicesConfig,
                      final ItemTargetDAO itemTargetDAO,
-                     final PlatformTransactionManager transactionManager) {
+                     final PlatformTransactionManager transactionManager,
+                     final ActivityStreamServiceInternal activityService) {
         this.siteDao = siteDao;
         this.publishDao = publishDao;
         this.itemServiceInternal = itemServiceInternal;
@@ -107,6 +112,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         this.servicesConfig = servicesConfig;
         this.itemTargetDAO = itemTargetDAO;
         this.transactionManager = transactionManager;
+        this.activityService = activityService;
     }
 
     @Async
@@ -154,25 +160,31 @@ public class Publisher implements ApplicationEventPublisherAware {
             publishDao.updateItemStateBits(packageId, SYSTEM_PROCESSING.value, 0);
             auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);
 
+            String activityOperation;
             // TODO: Initiate package progress reporting
             switch (publishPackage.getPackageType()) {
                 case INITIAL_PUBLISH -> {
                     logger.debug("Processing initial publish package '{}' for site '{}'", packageId, siteId);
                     doInitialPublish(publishPackage);
+                    activityOperation = OPERATION_INITIAL_PUBLISH;
                 }
                 case PUBLISH_ALL -> {
                     logger.debug("Processing publish-all package '{}' for site '{}'", packageId, siteId);
                     doPublishItemList(publishPackage, publishItems, runInTransaction(this::doPublishAllTarget));
+                    activityOperation = OPERATION_PUBLISH_ALL;
                 }
                 case ITEM_LIST -> {
                     logger.debug("Processing publish package '{}' for site '{}'", packageId, siteId);
                     doPublishItemList(publishPackage, publishItems, runInTransaction(this::doPublishItemListTarget));
+                    activityOperation = OPERATION_PUBLISHED;
                 }
                 default ->
                         throw new ServiceLayerException(format("Unknown package type '%s' for package '%d' for site '%s'",
                                 publishPackage.getPackageType(), packageId, siteId));
             }
             auditPublishOperation(publishPackage, OPERATION_PUBLISHED);
+            activityService.insertActivity(publishPackage.getSiteId(), publishPackage.getSubmitterId(), activityOperation, DateUtils.getCurrentTime(),
+                    null, Long.toString(packageId));
             eventPublisher.publishEvent(new PublishEvent(siteId));
             // TODO: Complete package progress
         } catch (Exception e) {

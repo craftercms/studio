@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -37,7 +36,6 @@ import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -61,7 +59,6 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static java.time.ZonedDateTime.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -97,11 +94,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private AuditServiceInternal auditServiceInternal;
     private DependencyService dependencyServiceInternal;
     private PublishDAO publishDao;
-    private ItemTargetDAO itemTargetDao;
 
     private SitesService siteService;
     private GeneralLockService generalLockService;
-    private ActivityStreamServiceInternal activityService;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -379,7 +374,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         auditLog.setParameters(List.of(commentParam, packageParam));
         auditServiceInternal.insertAuditLog(auditLog);
-        activityService.insertActivity(p.getSiteId(), p.getSubmitterId(), TARGET_TYPE_PUBLISHING_PACKAGE, now(), null, null);
     }
 
     /**
@@ -582,20 +576,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         this.generalLockService = generalLockService;
     }
 
-    public void setActivityService(final ActivityStreamServiceInternal activityService) {
-        this.activityService = activityService;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
 
     public void setDependencyServiceInternal(DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-    }
-
-    public void setItemTargetDao(ItemTargetDAO itemTargetDao) {
-        this.itemTargetDao = itemTargetDao;
     }
 
     /**
