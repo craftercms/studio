@@ -154,7 +154,6 @@
         <constructor-arg name="contentService" ref="contentService"/>
         <constructor-arg name="dependencyService" ref="dependencyService"/>
         <constructor-arg name="clipboardService" ref="clipboardService"/>
-        <constructor-arg name="workflowService" ref="studio.workflowService" />
     </bean>
 
     <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">

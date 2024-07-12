@@ -66,17 +66,6 @@ public interface ContentService {
     List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
 
     /**
-     * Get child items for given path. Child item is
-     *  - belongs to item subtree
-     *  - is item specific dependency
-     *
-     * @param siteId site identifier
-     * @param path path to get child items for
-     * @return list of paths of child items
-     */
-    List<String> getChildItems(String siteId, String path);
-
-    /**
      * Get child items for given paths. Child item is
      *  - belongs to item subtree
      *  - is item specific dependency
@@ -88,33 +77,17 @@ public interface ContentService {
     List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
 
     /**
-     * Delete content for given path. Following content will be deleted:
-     *  - given path
-     *  - child items for given path
-     * @param siteId site identifier
-     * @param path content to be deleted
-     * @param submissionComment  submission comment
-     * @return true if success, otherwise false
-     *
-     * @throws ServiceLayerException general service error
-     * @throws AuthenticationException authentication error
-     */
-    boolean deleteContent(String siteId, String path, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
-
-    /**
      * Delete content for given paths. Following content will be deleted:
      *  - given paths
      *  - child items for given paths
      * @param siteId site identifier
      * @param paths content to be deleted
      * @param submissionComment submission comment
-     * @return true if success, otherwise false
      *
      * @throws ServiceLayerException general service error
      * @throws AuthenticationException authentication error
      */
-    boolean deleteContent(String siteId, List<String> paths, String submissionComment)
+    void deleteContent(String siteId, List<String> paths, String submissionComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**

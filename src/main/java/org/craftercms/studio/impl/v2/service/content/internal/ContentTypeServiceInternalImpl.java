@@ -197,10 +197,11 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         files.addAll(usage.getScripts());
         files.add(getContentTypePath(contentType));
 
-        if (!contentService.deleteContent(siteId, files, "Delete content-type " + contentType)) {
-            throw new ServiceLayerException("Error deleting content-type " + contentType + " in site "+ siteId);
+        try {
+            contentService.deleteContent(siteId, files, "Delete content-type " + contentType);
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Error deleting content-type '%s' in site '%s'", contentType, siteId), e);
         }
-
     }
 
     @Override

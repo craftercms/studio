@@ -461,15 +461,6 @@
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
         <property name="contentServiceInternal" ref="contentServiceInternal"/>
-        <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
-        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
-        <property name="userServiceInternal" ref="userServiceInternal"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="securityService" ref="studio.securityService" />
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="contentServiceV1" ref="cstudioContentService" />
     </bean>
 
     <bean id="contentServiceInternal"
@@ -482,6 +473,13 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="contentServiceV1" ref="cstudioContentService" />
     </bean>
 
     <bean id="contentTypeServiceInternal"

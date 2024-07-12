@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedExce
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -58,6 +57,7 @@ import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -74,18 +74,15 @@ public class ContentController {
 
     private final ContentService contentService;
     private final DependencyService dependencyService;
-    private final WorkflowService workflowService;
 
     //TODO: Migrate logic to new content service
     private final ClipboardService clipboardService;
 
-    @ConstructorProperties({"contentService", "dependencyService", "clipboardService", "workflowService"})
-    public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService,
-                             WorkflowService workflowService) {
+    @ConstructorProperties({"contentService", "dependencyService", "clipboardService"})
+    public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService) {
         this.contentService = contentService;
         this.dependencyService = dependencyService;
         this.clipboardService = clipboardService;
-        this.workflowService = workflowService;
     }
 
     @GetMapping(value = EXISTS, produces = APPLICATION_JSON_VALUE)
@@ -131,10 +128,16 @@ public class ContentController {
     @Valid
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
-            throws UserNotFoundException, ServiceLayerException {
-        workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
-                deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
+            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 
+        List<String> items = new ArrayList<>(deleteRequestBody.getItems());
+        if (isNotEmpty(deleteRequestBody.getOptionalDependencies())) {
+            items.addAll(deleteRequestBody.getOptionalDependencies());
+        }
+
+        contentService.deleteContent(deleteRequestBody.getSiteId(),
+                items,
+                deleteRequestBody.getComment());
         var responseBody = new ResponseBody();
         var result = new Result();
         result.setResponse(OK);
@@ -241,7 +244,7 @@ public class ContentController {
             List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
             if (preferContent) {
                 found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
-                        FILE_SEPARATOR + INDEX_FILE, "")).collect(Collectors.toList()));
+                        FILE_SEPARATOR + INDEX_FILE, "")).toList());
             }
             missing = CollectionUtils.subtract(paths, found);
         }
