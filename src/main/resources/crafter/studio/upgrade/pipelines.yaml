@@ -598,6 +598,16 @@ pipelines:
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file
       - currentVersion: 4.1.9
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.10
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.11
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.12
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.13
+        nextVersion: 4.2-t
+      - currentVersion: 4.2-t
         nextVersion: 4.2.0
         operations:
           - type: dbScriptUpgrader
