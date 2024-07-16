@@ -93,10 +93,22 @@ public abstract class StudioUtils {
         return Paths.get(tempDir, STUDIO_TEMPORARY_ROOT_DIR);
     }
 
-    public static String getSandboxRepoLockKey(final String site) {
-        return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+    /**
+     * Get the key for sandbox repo operations lock
+     *
+     * @param siteId the site id
+     * @return the lock key
+     */
+    public static String getSandboxRepoLockKey(final String siteId) {
+        return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
     }
 
+    /**
+     * Get the key for sync-from-repo task lock
+     *
+     * @param siteId the site id
+     * @return the lock key
+     */
     public static String getSyncFromRepoLockKey(final String siteId) {
         return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
     }
