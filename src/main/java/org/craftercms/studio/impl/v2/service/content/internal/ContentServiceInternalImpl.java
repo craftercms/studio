@@ -112,7 +112,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         int total = itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword, systemTypes,
-                excludes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR));
+                List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), parentFolderPath,
                 CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
