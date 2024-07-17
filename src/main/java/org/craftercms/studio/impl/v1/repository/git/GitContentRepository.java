@@ -353,8 +353,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
-        Map<String, String> toRet = new TreeMap<>();
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
+        String commitId = null;
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         generalLockService.lock(gitLockKey);
         try {
@@ -411,19 +411,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (result) {
                     StatusCommand statusCommand = git.status().addPath(gitToPath);
                     Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
-                    Set<String> changeSet = gitStatus.getAdded();
+                    List<String> changeSet = new ArrayList<>(gitStatus.getAdded().size() * 2);
                     PersonIdent user = helper.getCurrentUserIdent();
                     String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
                                                 .replaceAll(PATTERN_FROM_PATH, fromPath)
                                                 .replaceAll(PATTERN_TO_PATH,
                                                             toPath + (StringUtils.isNotEmpty(newName) ? newName : EMPTY));
-
-                    // TODO: AV - This can be easily done in a single commit
-                    for (String pathToCommit : changeSet) {
+                    for (String pathToCommit : gitStatus.getAdded()) {
                         String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-                        String commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit, pathRemoved);
-                        toRet.put(pathToCommit, commitId);
+                        changeSet.add(pathToCommit);
+                        changeSet.add(pathRemoved);
                     }
+                    return helper.commitFiles(repo, site, commitMsg, user, changeSet.toArray(new String[0]));
                 } else {
                     logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
                             site, fromPath, toPath, newName);
@@ -435,7 +434,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-        return toRet;
+        return commitId;
     }
 
     @Override

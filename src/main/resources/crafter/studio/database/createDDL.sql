@@ -66,6 +66,13 @@ BEGIN
 
     INSERT INTO navigation_order_sequence (folder_id, site, path, max_count)
         SELECT UUID(), siteId, nos.path, nos.max_count FROM navigation_order_sequence nos WHERE nos.site = sourceSiteId;
+
+    SELECT id FROM site WHERE site_id = sourceSiteId AND deleted = 0 INTO @sourceSiteNumericId;
+
+    INSERT INTO processed_commits (id, site_id, commit_id)
+        SELECT null, @siteNumericId, pc.commit_id
+        FROM processed_commits pc
+        WHERE site_id = @sourceSiteNumericId;
 END ;
 
 CREATE PROCEDURE addColumnIfNotExists(
@@ -197,6 +204,9 @@ BEGIN
 
         -- audit log
         DELETE FROM audit WHERE site_id = id;
+
+        -- processed_commits
+        DELETE FROM processed_commits WHERE site_id = id;
     END IF;
 END ;
 
@@ -324,6 +334,19 @@ CREATE TABLE IF NOT EXISTS `site` (
   INDEX `site_id_idx` (`site_id` ASC)
 )
 
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `processed_commits`
+(
+    `id`        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `site_id`   BIGINT(20)      NOT NULL,
+    `commit_id` CHAR(40)        NOT NULL,
+    PRIMARY KEY(`id`),
+    UNIQUE INDEX `ingested_commits_commit_id_site_id` (`commit_id`, `site_id`),
+    FOREIGN KEY `ingested_commits_site_id` (`site_id`) REFERENCES `site` (`id`)
+)
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;

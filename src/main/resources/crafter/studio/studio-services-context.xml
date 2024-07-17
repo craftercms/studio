@@ -77,6 +77,7 @@
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="contentServiceV2" ref="contentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="processedCommitsDao" ref="processedCommitsDao" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">

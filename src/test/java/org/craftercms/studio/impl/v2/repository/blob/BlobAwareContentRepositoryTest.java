@@ -128,6 +128,8 @@ public class BlobAwareContentRepositoryTest {
         when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
         when(store.isFolder(SITE,LOCAL_FOLDER_PATH)).thenReturn(true);
 
+        when(store.moveContent(any(),any(),any(),any())).thenReturn(EMPTY);
+
         proxy.setFileExtension(BLOB_EXT);
     }
 
