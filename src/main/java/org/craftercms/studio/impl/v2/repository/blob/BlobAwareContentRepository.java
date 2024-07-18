@@ -318,22 +318,17 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
         logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
-                Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
+                String result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
                     boolean isFolder = isFolder(site, fromPath);
-                    Map<String, String> diskResult =
+                    String diskResult =
                             localRepositoryV1.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
                                     isFolder ? toPath : getPointerPath(site, toPath), newName);
-                    Set<String> keys = new HashSet<>(diskResult.keySet());
-                    keys.forEach(k -> {
-                        String val = diskResult.get(k);
-                        diskResult.put(getPathFromPointerPath(site, k), val);
-                    });
                     return diskResult;
                 }
             }

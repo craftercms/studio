@@ -96,6 +96,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final ConfigurationService configurationService;
     private final GitContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
+    private final ProcessedCommitsDAO processedCommitsDAO;
     private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
@@ -103,13 +104,15 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "studioDBScriptRunnerFactory", "dependencyServiceInternal",
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService",
-            "contentRepository", "studioConfiguration"})
+            "contentRepository", "studioConfiguration",
+            "processedCommitsDAO"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
                                   StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
-                                  GitContentRepository contentRepository, StudioConfiguration studioConfiguration) {
+                                  GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
+                                  ProcessedCommitsDAO processedCommitsDAO) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -121,6 +124,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         this.configurationService = configurationService;
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
+        this.processedCommitsDAO = processedCommitsDAO;
     }
 
     @Async
@@ -145,7 +149,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             return;
         }
         String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
-        generalLockService.lock(syncFromRepoLockKey);
+        // Locking sandbox repo to avoid additional commits from being added to
+        // the processed_commits table (to avoid unintended deletes at the end of this block)
+        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        generalLockService.lock(syncFromRepoLockKey, sandboxRepoLockKey);
         try {
             // Get the last commit to be used along the sync process (instead of 'HEAD',
             // commits added after this point will be processed in subsequent executions of this method)
@@ -162,7 +169,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             String lastUnprocessedCommit = null;
             // This loop will iterate throw commits and find commit sequences that are not audited yet
             for (String commitId : unprocessedCommits) {
-                if (auditServiceInternal.isAudited(site.getId(), commitId)) {
+                if (processedCommitsDAO.isProcessed(site.getId(), commitId)) {
                     // If commit is already audited, ingest the changes in between, if any
                     if (lastUnprocessedCommit != null) {
                         ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
@@ -180,11 +187,13 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
                 updateLastCommitId(siteId, lastUnprocessedCommit);
             }
+            logger.debug("Removing processed_commits records for site '{}' previous to commit '{}'", siteId, lastCommitInRepo);
+            processedCommitsDAO.deleteBefore(site.getId(), lastCommitInRepo);
             logger.debug("Site '{}' is now synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
         } catch (UserNotFoundException | GitAPIException | IOException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
-            generalLockService.unlock(syncFromRepoLockKey);
+            generalLockService.unlock(syncFromRepoLockKey, sandboxRepoLockKey);
         }
     }
 
@@ -207,6 +216,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
         syncDatabaseWithRepo(site, operationsFromDelta.stream().sorted(comparing(RepoOperation::getAction)).toList());
         auditChangesFromGit(site, commitFrom, commitTo);
+        processedCommitsDAO.insertCommit(site.getId(), commitTo);
 
         // Sync all preview deployers
         try {
@@ -253,7 +263,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     site.getSiteId(), commitFrom, commitTo, e);
             throw e;
         }
-
         auditServiceInternal.insertAuditLog(auditLogEntry);
     }
 

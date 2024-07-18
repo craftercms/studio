@@ -111,7 +111,7 @@ public interface ContentRepository {
      * @param toPath   target path
      * @return Commit ID if successful, null otherwise
      */
-    default Map<String, String> moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+    default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
         return moveContent(site, fromPath, toPath, null);
     }
 
@@ -125,6 +125,6 @@ public interface ContentRepository {
      * @return Commit ID if successful, empty string otherwise
      */
     // TODO: SJ: Should refactor to be from path to path without the newName param
-    Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException;
+    String moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException;
 
 }

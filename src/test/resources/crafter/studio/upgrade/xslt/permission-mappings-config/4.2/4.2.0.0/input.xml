@@ -29,7 +29,7 @@
   View the sample for a good starting point.
 -->
 <permissions>
-    <version>4.2.0.0</version>
+    <version>4.2.0</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -111,6 +111,15 @@
                 <permission>content_copy</permission>
             </allowed-permissions>
         </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+            </allowed-permissions>
+        </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>s3_read</permission>
@@ -124,7 +133,6 @@
                 <permission>content_search</permission>
                 <permission>read_configuration</permission>
                 <permission>get_publishing_queue</permission>
-                <permission>publish_by_commits</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -163,6 +171,28 @@
                 <permission>content_read</permission>
             </allowed-permissions>
         </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>write_configuration</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+            </allowed-permissions>
+        </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>s3_read</permission>
@@ -181,7 +211,6 @@
                 <permission>read_configuration</permission>
                 <permission>write_configuration</permission>
                 <permission>set_item_states</permission>
-                <permission>publish_by_commits</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -225,6 +254,32 @@
                 <permission>content_read</permission>
             </allowed-permissions>
         </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>write_configuration</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
+                <permission>unlock_repository</permission>
+                <permission>item_unlock</permission>
+                <permission>content_read</permission>
+                <permission>repair_repository</permission>
+            </allowed-permissions>
+        </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>s3_read</permission>
@@ -245,7 +300,6 @@
                 <permission>read_configuration</permission>
                 <permission>write_configuration</permission>
                 <permission>set_item_states</permission>
-                <permission>publish_by_commits</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -260,6 +314,15 @@
                 <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+            </allowed-permissions>
+        </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>s3_read</permission>
@@ -270,7 +333,37 @@
                 <permission>content_read</permission>
                 <permission>content_search</permission>
                 <permission>read_configuration</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="test_without_default_rule">
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="test_with_publish_by_commits_permission">
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
                 <permission>publish_by_commits</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
             </allowed-permissions>
         </rule>
     </role>

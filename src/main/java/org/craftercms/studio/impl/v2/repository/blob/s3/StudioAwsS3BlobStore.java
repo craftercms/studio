@@ -53,8 +53,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
@@ -281,7 +280,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException {
+    public String moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException {
         checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Move content in site '{}' from '{}' to '{}'", site,
@@ -359,7 +358,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             //TODO: Check if this is really needed, it looks like newName is always null
             throw new UnsupportedOperationException();
         }
-        return Collections.emptyMap();
+        return EMPTY;
     }
 
     @Override

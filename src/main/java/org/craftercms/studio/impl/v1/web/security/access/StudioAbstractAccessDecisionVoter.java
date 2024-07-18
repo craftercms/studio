@@ -46,6 +46,11 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
     private final static Logger logger = LoggerFactory.getLogger(StudioAbstractAccessDecisionVoter.class);
 
+    /**
+     * The default path to use if there is no path parameter
+     */
+    public static final String DEFAULT_PERMISSION_VOTER_PATH = "";
+
     protected SecurityService securityService;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;

@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.validation.Valid;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,11 +65,8 @@ public class GeneralLockServiceImpl implements GeneralLockService {
 
     @Override
     public void lock(final String... lockKeys) {
-        // TODO: revisit this method to reduce the possibility of deadlocks (e.g. sort the keys before locking)
         logger.debug("Thread '{}' will attempt to lock multiple objects '{}'", Thread.currentThread().getName(), lockKeys);
-        for (String lockKey : lockKeys) {
-            lock(lockKey);
-        }
+        Arrays.stream(lockKeys).sorted().forEach(this::lock);
     }
 
     @Override

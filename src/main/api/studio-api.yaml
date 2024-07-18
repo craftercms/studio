@@ -2491,7 +2491,7 @@ paths:
       tags:
         - publishing
       summary: Publish commits from sandbox repository by commit id.
-      description: "Required role: none. <br /> This operation is deprecated, use /api/2/publish instead."
+      description: "Required role: Admin, Site Admin or the permission 'publish_by_commits'. <br /> This operation is deprecated, use /api/2/publish instead."
       operationId: publishCommits
       requestBody:
         description: Publish commits from sandbox repository request body
@@ -2630,45 +2630,6 @@ paths:
           $ref: '#/components/responses/api1Unauthorized'
         '403':
           $ref: '#/components/responses/api1Forbidden'
-        '404':
-          $ref: '#/components/responses/api1NotFound'
-        '500':
-          $ref: '#/components/responses/api1InternalServerError'
-
-  /api/1/services/api/1/publish/reset-staging.json:
-    post:
-      tags:
-        - publishing
-      summary: Reset Crafter Studio’s staging publishing target with the live publishing target.
-      description: "Required role: Admin, project/site member"
-      operationId: publishResetStaging
-      requestBody:
-        description: Reset staging request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                site_id:
-                  type: string
-                  description: Project/Site ID to use
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: "OK"
-        '400':
-          $ref: '#/components/responses/api1BadRequest'
-        '401':
-          $ref: '#/components/responses/api1Unauthorized'
         '404':
           $ref: '#/components/responses/api1NotFound'
         '500':
@@ -5463,7 +5424,7 @@ paths:
       tags:
         - content
       summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
-      description: 'Required permission "delete_content"'
+      description: 'Required permission "content_read"'
       operationId: getDeletePackage
       requestBody:
         content:

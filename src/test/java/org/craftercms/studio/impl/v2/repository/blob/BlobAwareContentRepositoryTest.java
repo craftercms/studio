@@ -157,6 +157,8 @@ public class BlobAwareContentRepositoryTest {
         when(store.getContent(SITE, ORIGINAL_PATH, false)).thenReturn(CONTENT);
         when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
 
+        when(store.moveContent(any(),any(),any(),any())).thenReturn(EMPTY);
+
         proxy.setFileExtension(BLOB_EXT);
 
         when(site.getSiteId()).thenReturn(SITE);
