@@ -153,6 +153,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
     private GeneralLockService generalLockService;
+    private ProcessedCommitsDAO processedCommitsDao;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -636,15 +637,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public boolean writeContent(@SiteId String site,
+    public boolean writeContent(@SiteId String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
         boolean result;
 
-        String commitId = _contentRepository.writeContent(site, path, content);
+        String commitId = _contentRepository.writeContent(siteId, path, content);
 
         result = StringUtils.isNotEmpty(commitId);
+        if (result) {
+            Site site = siteService.getSite(siteId);
+            processedCommitsDao.insertCommit(site.getId(), commitId);
+        }
         return result;
     }
 
@@ -692,6 +697,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
                 auditLog.setPrimaryTargetValue(folderPath);
                 auditServiceInternal.insertAuditLog(auditLog);
+                processedCommitsDao.insertCommit(siteFeed.getId(), commitId);
                 applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
                 toRet = true;
             }
@@ -1013,19 +1019,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.MOVE)
-    public String moveContent(@ValidateStringParam @SiteId String site,
+    public String moveContent(@ValidateStringParam @SiteId String siteId,
                               @ValidateSecurePathParam @ActionSourcePath String fromPath,
                               @ValidateSecurePathParam @ActionTargetPath String toPath) {
         String movePath = null;
 
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         generalLockService.lock(syncFromRepoLockKey);
         try {
             String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
                     fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
             String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 
-            PastedPathMap movePathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
+            PastedPathMap movePathMap = constructNewPathForCutCopy(siteId, fromPath, toPath, true);
             movePath = movePathMap.filePath;
             String moveFileName = movePathMap.fileName;
             String movePathOnly = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
@@ -1042,19 +1048,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 targetPath = movePath;
             }
 
-            logger.debug("Move file in site '{}' from '{}' to '{}', sourcePath '{}' to target path '{}'",
-                    site, fromPath, toPath, sourcePath, targetPath);
+            logger.debug("Move file in siteId '{}' from '{}' to '{}', sourcePath '{}' to target path '{}'",
+                    siteId, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
             // historically with MOVE it is not
-            Map<String, String> commitIds = _contentRepository.moveContent(site, sourcePath, targetPath);
+            String commitId = _contentRepository.moveContent(siteId, sourcePath, targetPath);
 
-            if (commitIds != null) {
+            if (commitId != null) {
                 String targetLabel = moveFileName;
                 // For page and components: update label in both DB and xml
                 Document movedDocument = null;
                 if (movePath.endsWith(DmConstants.XML_PATTERN)) {
-                    InputStream movedContentStream = getContent(site, movePath);
+                    InputStream movedContentStream = getContent(siteId, movePath);
                     movedDocument = ContentUtils.convertStreamToXml(movedContentStream);
                     if (movedDocument != null) {
                         Element root = movedDocument.getRootElement();
@@ -1063,31 +1069,33 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
 
+                Site site = siteService.getSite(siteId);
+                processedCommitsDao.insertCommit(site.getId(), commitId);
                 if (movedDocument != null) {
-                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
+                    writeContent(siteId, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
                 }
 
                 // Update the database with the commitId for the target item
-                var newParent = itemServiceInternal.getItem(site, toPath, true);
+                var newParent = itemServiceInternal.getItem(siteId, toPath, true);
                 Long parentId = newParent != null ? newParent.getId() : null;
-                updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
-                updateChildrenOnMove(site, fromPath, movePath);
+                updateDatabaseOnMove(siteId, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
+                updateChildrenOnMove(siteId, fromPath, movePath);
             } else {
-                logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
+                logger.error("Failed to move item in siteId '{}' from '{}' to '{}'", siteId, sourcePath, targetPath);
                 movePath = fromPath;
             }
 
-            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, movePath));
+            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), siteId, fromPath, movePath));
         } catch(ServiceLayerException e) {
-            logger.error("Failed to move item. Content not found while moving content in site '{}' from '{}' to '{}'," +
+            logger.error("Failed to move item. Content not found while moving content in siteId '{}' from '{}' to '{}'," +
                             " new name is '{}'",
-                            site, fromPath, toPath, movePath, e);
+                            siteId, fromPath, toPath, movePath, e);
         } catch(UserNotFoundException e) {
-            logger.error("Current user could not be found while moving content for site '{}' from '{}' to '{}', new name is '{}'",
-                    site, fromPath, toPath, movePath, e);
+            logger.error("Current user could not be found while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
+                    siteId, fromPath, toPath, movePath, e);
         } catch (DocumentException e) {
-            logger.error("Failed to update XML while moving content for site '{}' from '{}' to '{}', new name is '{}'",
-                    site, fromPath, toPath, movePath, e);
+            logger.error("Failed to update XML while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
+                    siteId, fromPath, toPath, movePath, e);
         } finally {
             generalLockService.unlock(syncFromRepoLockKey);
         }
@@ -2647,7 +2655,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.RENAME)
-    public boolean renameContent(@ValidateStringParam @SiteId String site,
+    public boolean renameContent(@ValidateStringParam @SiteId String siteId,
                                 @ValidateSecurePathParam @ActionTargetPath String path,
                                 @ValidateStringParam @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
@@ -2656,47 +2664,48 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
 
-        checkContentExists(site, path);
+        checkContentExists(siteId, path);
 
-        if (contentExists(site, targetPath)) {
-            throw new ContentExistException(format("Content '%s' in site '%s', cannot be renamed " +
-                                "because an item with the name '%s' already exists.", path, site, name));
+        if (contentExists(siteId, targetPath)) {
+            throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
+                                "because an item with the name '%s' already exists.", path, siteId, name));
         }
 
-        ContentItemTO sourceContentItem = getContentItem(site, path);
+        ContentItemTO sourceContentItem = getContentItem(siteId, path);
         boolean isFolder = sourceContentItem.isFolder();
         String contentType = sourceContentItem.getContentType();
 
         if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
-            throw new ServiceLayerException(format("Failed to rename content at site '%s' path '%s' " +
-                    "with content type '%s'", site, path, contentType));
+            throw new ServiceLayerException(format("Failed to rename content at siteId '%s' path '%s' " +
+                    "with content type '%s'", siteId, path, contentType));
         }
 
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
+        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
         generalLockService.lock(syncFromRepoLockKey);
         try {
-            logger.debug("Rename folder at site '{}' sourcePath '{}' to target path '{}'", site, path, targetPath);
+            logger.debug("Rename folder at siteId '{}' sourcePath '{}' to target path '{}'", siteId, path, targetPath);
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
             // historically with MOVE it is not
-            Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
+            String commitId = _contentRepository.moveContent(siteId, path, targetPath);
 
-            if (commitIds != null) {
+            if (commitId != null) {
                 // Update the database with the commitId for the target item
-                updateDatabaseOnMove(site, path, targetPath);
-                String commitId = commitIds.get(targetPath);
-                if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
+                updateDatabaseOnMove(siteId, path, targetPath);
+                if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
-                itemServiceInternal.persistItemAfterRenameContent(site, targetPath, name,
+                itemServiceInternal.persistItemAfterRenameContent(siteId, targetPath, name,
                         securityService.getCurrentUser(), commitId, contentType);
 
                 if (isFolder) {
-                    updateChildrenOnMove(site, path, targetPath);
+                    updateChildrenOnMove(siteId, path, targetPath);
                 }
-                applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
+                Site site = siteService.getSite(siteId);
+                processedCommitsDao.insertCommit(site.getId(), commitId);
+                applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), siteId, path, targetPath));
                 toRet = true;
 
             } else {
-                logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, path, targetPath);
+                logger.error("Failed to move item in siteId '{}' from '{}' to '{}'", siteId, path, targetPath);
             }
         } finally {
             generalLockService.unlock(syncFromRepoLockKey);
@@ -2836,6 +2845,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setGeneralLockService(final GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
+        this.processedCommitsDao = processedCommitsDao;
     }
 
     /**

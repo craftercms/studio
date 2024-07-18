@@ -269,7 +269,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException {
+    public String moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException {
         checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Move content in site '{}' from '{}' to '{}'", site,
@@ -347,7 +347,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             //TODO: Check if this is really needed, it looks like newName is always null
             throw new UnsupportedOperationException();
         }
-        return Collections.emptyMap();
+        return EMPTY;
     }
 
     @Override

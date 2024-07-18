@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,9 +17,22 @@ package org.craftercms.studio.api.v1.service;
 
 public interface GeneralLockService {
 
-    String MASTER_LOCK = "MASTER LOCK";
 
     void lock(String objectId);
+
+    /**
+     * Convenience method to lock multiple keys at once.
+     * This method will lock all the keys one by one
+     * @param lockKeys keys to lock
+     */
+    void lock(String... lockKeys);
+
+    /**
+     * Convenience method to unlock multiple keys at once.
+     *
+     * @param lockKeys keys to unlock
+     */
+    void unlock(String... lockKeys);
 
     void unlock(String objectId);
 
