@@ -142,7 +142,7 @@ public class SitesServiceInternalImplTest {
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(2)).insertAuditLog(any());
+        verify(auditServiceInternal, times(3)).insertAuditLog(any());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class SitesServiceInternalImplTest {
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(1)).insertAuditLog(any());
+        verify(auditServiceInternal, times(2)).insertAuditLog(any());
     }
 
     @Test
@@ -180,7 +180,7 @@ public class SitesServiceInternalImplTest {
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(1)).insertAuditLog(any());
+        verify(auditServiceInternal, times(2)).insertAuditLog(any());
     }
 
     @Test
