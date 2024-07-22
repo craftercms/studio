@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
@@ -288,16 +289,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         siteId, path));
             }
             var username = securityService.getCurrentUser();
-            if (Objects.isNull(item.getLockOwner())) {
-                contentServiceInternal.itemLockByPath(siteId, path);
-                itemServiceInternal.lockItemByPath(siteId, path, username);
-                applicationContext.publishEvent(
-                        new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
-            } else {
-                if (!StringUtils.equals(item.getLockOwner().getUsername(), username)) {
-                    throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
-                }
+            boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
+                    Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
+            if (lockedByAnotherUser) {
+                throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
             }
+
+            contentServiceInternal.itemLockByPath(siteId, path);
+            itemServiceInternal.lockItemByPath(siteId, path, username);
+            applicationContext.publishEvent(
+                    new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
         } finally {
             generalLockService.unlockContentItem(siteId, path);
         }
@@ -317,7 +318,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 logger.debug("Item not found in site '{}' path '{}'", siteId, path);
                 throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
             }
-            if (Objects.isNull(item.getLockOwner())) {
+            if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
                 logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
                 throw new ContentAlreadyUnlockedException();
             }

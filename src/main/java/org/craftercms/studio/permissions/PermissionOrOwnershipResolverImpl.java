@@ -22,6 +22,7 @@ import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
@@ -73,7 +74,7 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
         PermissionOrOwnership permission = new PermissionOrOwnership();
         permission.setAllowedActions(allowedActions);
-        if (Objects.nonNull(item) && Objects.nonNull(item.getLockOwner())) {
+        if (Objects.nonNull(item) && ItemState.isUserLocked(item.getState()) && Objects.nonNull(item.getLockOwner())) {
             permission.setOwner(username.equals(item.getLockOwner().getUsername()));
         }
 
