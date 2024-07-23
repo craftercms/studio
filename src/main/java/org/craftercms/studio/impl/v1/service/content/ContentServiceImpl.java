@@ -55,7 +55,6 @@ import org.craftercms.studio.api.v2.annotation.policy.*;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
-import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
@@ -723,91 +722,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, securityService.getCurrentUser(),
                 commitId, ancestor.getId());
         return itemServiceInternal.getItem(site, parentPath, true);
-    }
-
-    @Override
-    @Valid
-    public boolean deleteContent(@ValidateStringParam String site,
-                                 @ValidateSecurePathParam String path,
-                                 @ValidateStringParam String approver)
-            throws ServiceLayerException, UserNotFoundException {
-        return deleteContent(site, path, true, approver);
-    }
-
-    @Override
-    @Valid
-    public boolean deleteContent(@ValidateStringParam String site,
-                                 @ValidateSecurePathParam String path, boolean generateActivity,
-                                 @ValidateStringParam String approver)
-            throws ServiceLayerException, UserNotFoundException {
-        String commitId;
-        boolean toReturn = false;
-        if (generateActivity) {
-            generateDeleteActivity(site, path, approver);
-        }
-
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(site);
-        generalLockService.lock(syncFromRepoLockKey);
-        try {
-            commitId = _contentRepository.deleteContent(site, path, approver);
-
-            itemServiceInternal.deleteItem(site, path);
-            try {
-                dependencyServiceV2.deleteItemDependencies(site, path);
-            } catch (ServiceLayerException e) {
-                logger.error("Failed to delete dependencies for item at site '{}' path '{}'", site, path, e);
-            }
-
-            applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
-
-            // TODO: SJ: Add commitId to database for this item in version 2.7.x
-
-            if (commitId != null) {
-                toReturn = true;
-            }
-        } finally {
-            generalLockService.unlock(syncFromRepoLockKey);
-        }
-
-        return toReturn;
-    }
-
-    protected void generateDeleteActivity(String site, String path, String approver)
-            throws ServiceLayerException, UserNotFoundException {
-        // This method creates a database record to show the activity of deleting a file
-        // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
-        // TODO: SJ: activities. Fix in 3.1+ by introducing the audit service and refactoring accordingly
-        if (isEmpty(approver)) {
-            approver = securityService.getCurrentUser();
-        }
-        boolean exists = contentExists(site, path);
-        if (exists) {
-            User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
-            Item it = itemServiceInternal.getItem(site, path);
-            ContentItemTO item = getContentItem(site, path, 0);
-            logger.debug("Post delete activity for site '{}' path '{}' approved by '{}'", site, path, approver);
-            Site siteFeed = siteService.getSite(site);
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_DELETE);
-            auditLog.setSiteId(siteFeed.getId());
-            auditLog.setActorId(approver);
-            auditLog.setPrimaryTargetId(site + ":" + path);
-            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLog.setPrimaryTargetValue(path);
-            auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
-            auditServiceInternal.insertAuditLog(auditLog);
-
-            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_DELETE,
-                    DateUtils.getCurrentTime(), it, null);
-
-            // process content life cycle
-            if (path.endsWith(DmConstants.XML_PATTERN)) {
-
-                String contentType = item.getContentType();
-                dmContentLifeCycleService.process(site, approver, path,
-                        contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
-            }
-        }
     }
 
     @Override

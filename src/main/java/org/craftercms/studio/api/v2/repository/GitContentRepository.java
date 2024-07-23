@@ -395,6 +395,17 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     boolean isTargetPublished(String siteId, String target) throws IOException;
 
     /**
+     * Delete a list of items from the site repository
+     *
+     * @param siteId   site id
+     * @param paths    list of paths to delete
+     * @param approver the user that approved the delete operation
+     * @return the commit id of the delete operation
+     * @throws ServiceLayerException if there is any error while deleting the items
+     */
+    String deleteContent(String siteId, Collection<String> paths, String approver) throws ServiceLayerException;
+
+    /**
      * Store the result of a publish operation
      *
      * @param successfulItems the paths that were updated

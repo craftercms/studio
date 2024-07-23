@@ -230,7 +230,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) throws ServiceLayerException {
+    public void deleteContent(String site, String path) throws ServiceLayerException {
         checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Delete content at site '{}' path '{}'", site, getFullKey(previewMapping, path));
@@ -276,7 +276,6 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                         site, getFullKey(previewMapping, path)), e);
             }
         }
-        return OK;
     }
 
     @Override

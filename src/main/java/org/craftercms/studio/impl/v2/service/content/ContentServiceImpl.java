@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -94,11 +94,11 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-    public void deleteContent(@SiteId String siteId,
+    public long deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        contentServiceInternal.deleteContent(siteId, paths, submissionComment);
+        return contentServiceInternal.deleteContent(siteId, paths, submissionComment);
     }
 
     @Override

@@ -210,6 +210,13 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
+    public long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
+        return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, comment);
+    }
+
+    @Override
+    @RequireSiteExists
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
         return publishServiceInternal.getAvailablePublishingTargets(siteId);

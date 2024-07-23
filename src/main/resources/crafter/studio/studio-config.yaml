@@ -68,7 +68,7 @@ studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 # Create folder commit message
 studio.repo.createFolder.commitMessage: "Created folder site: {site} path: {path}"
 # Delete content commit message
-studio.repo.deleteContent.commitMessage: "Delete file {path}"
+studio.repo.deleteContent.commitMessage: "Delete files {path}"
 # Move content commit message
 studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
 # Copy content commit message

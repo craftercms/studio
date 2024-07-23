@@ -60,10 +60,6 @@ BEGIN
     INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored)
         SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
-/* TODO:
-    Duplicate data from the tables:
-        audit
-        */
     /* parent_id points to original item parent */
     SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
     CALL populateItemParentId(@siteNumericId);
@@ -229,7 +225,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.9', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.10', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -645,14 +641,16 @@ CREATE TABLE IF NOT EXISTS `publish_package`
 */
 CREATE TABLE IF NOT EXISTS `publish_item`
 (
-    `id`	            BIGINT(20)      NOT NULL AUTO_INCREMENT,
-    `package_id`	    BIGINT(20)	    NOT NULL,
-    `path`	            VARCHAR(2048)	NOT NULL,
-    `action`	        ENUM('ADD', 'DELETE')	        NOT NULL,
-    `user_requested`	BOOLEAN	        NOT NULL,
-    `publish_state`     BIGINT      	NOT NULL,
-    `live_error`        INT,
-    `staging_error`     INT,
+    `id`                    BIGINT(20)              NOT NULL AUTO_INCREMENT,
+    `package_id`            BIGINT(20)	            NOT NULL,
+    `path`                  VARCHAR(2048)	        NOT NULL,
+    `live_previous_path`    VARCHAR(2048),
+    `staging_previous_path` VARCHAR(2048),
+    `action`	            ENUM('ADD', 'DELETE')   NOT NULL,
+    `user_requested`    	BOOLEAN	                NOT NULL,
+    `publish_state`         BIGINT      	        NOT NULL,
+    `live_error`            INT,
+    `staging_error`         INT,
     PRIMARY KEY(`id`),
     FOREIGN KEY `publish_item_package_id`(`package_id`) REFERENCES `publish_package` (`id`) ON DELETE CASCADE
 )

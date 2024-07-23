@@ -16,10 +16,13 @@
 
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -27,9 +30,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.publish.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
@@ -52,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -59,6 +61,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -94,7 +97,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private AuditServiceInternal auditServiceInternal;
     private DependencyService dependencyServiceInternal;
     private PublishDAO publishDao;
-
+    private ItemTargetDAO itemTargetDao;
     private SitesService siteService;
     private GeneralLockService generalLockService;
 
@@ -336,6 +339,74 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         return publishDao.getPackageForItem(siteId, path);
     }
 
+    @Override
+    @Transactional
+    public long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
+        try {
+            if (!contentRepository.publishedRepositoryExists(siteId)) {
+                logger.warn("Site '{}' is not published, publish DELETE operations will be ignored", siteId);
+                return 0;
+            }
+            String liveTarget = servicesConfig.getLiveEnvironment(siteId);
+            PublishPackage publishPackage = createPackage(siteService.getSite(siteId), liveTarget, ITEM_LIST, false, null, comment);
+            Collection<PublishItem> publishItems = createDeletePublishItems(siteId, userRequestedPaths, dependencies);
+            if (CollectionUtils.isEmpty(publishItems)) {
+                logger.debug("Deleted items are not published, nothing to do.");
+                return 0;
+            }
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, true));
+            auditPublishSubmission(publishPackage, OPERATION_PUBLISH);
+
+            applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), APPROVE));
+            notifyPublisher(publishPackage, siteService.getSite(siteId));
+            return publishPackage.getId();
+        } catch (Exception e) {
+            String message = format("Failed to submit delete publish package for site '%s'", siteId);
+            logger.error(message, e);
+            throw new ServiceLayerException(message, e);
+        }
+    }
+
+    private Collection<PublishItem> createDeletePublishItems(final String siteId, final Collection<String> userRequestedPaths,
+                                                             final Collection<String> dependencies) throws SiteNotFoundException {
+        Site site = siteService.getSite(siteId);
+        Map<String, List<ItemTarget>> itemTargetsByPath = itemTargetDao.getItemTargetsByPath(site.getId(),
+                union(userRequestedPaths, dependencies));
+
+        Collection<PublishItem> publishItems = new ArrayList<>();
+        publishItems.addAll(userRequestedPaths.stream()
+                .map(path -> createPublishItem(path, PublishItem.Action.DELETE, true))
+                .toList());
+
+        publishItems.addAll(dependencies.stream()
+                .map(path -> createPublishItem(path, PublishItem.Action.DELETE, false))
+                .toList());
+
+        publishItems.addAll(union(dependencies, userRequestedPaths).stream()
+                .filter(path -> path.endsWith(DmConstants.SLASH_INDEX_FILE))
+                .map(path -> StringUtils.removeEnd(path, DmConstants.SLASH_INDEX_FILE))
+                .map(path -> createPublishItem(path, PublishItem.Action.DELETE, false))
+                .toList());
+
+        return publishItems.stream()
+                .filter(item -> itemTargetsByPath.containsKey(item.getPath()))
+                .peek(item -> setPreviousPaths(item, siteId, itemTargetsByPath.get(item.getPath())))
+                .toList();
+    }
+
+    private void setPreviousPaths(final PublishItem item, final String siteId, final Collection<ItemTarget> itemTargets) {
+        itemTargets.stream()
+                .filter(itemTarget -> StringUtils.isNotEmpty(itemTarget.getPreviousPath()))
+                .forEach(itemTarget -> {
+                    boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), itemTarget.getTarget());
+                    if (isLiveTarget) {
+                        item.setLivePreviousPath(itemTarget.getPreviousPath());
+                    } else {
+                        item.setStagingPreviousPath(itemTarget.getPreviousPath());
+                    }
+                });
+    }
+
     /**
      * Get common filter for commit repo operations to be included in publish dependencies
      * or actual publishing package submission
@@ -395,12 +466,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                         .flatMap(List::stream)
                         .filter(getCommitRepoOperationsFilter(site))
                         // TODO: review this: what if we are deleting a moved item? We should delete the old path, not the new
-                        .map(op -> createPublishItem(site, op.getPath(),
+                        .map(op -> createPublishItem(op.getPath(),
                                 op.getAction() == RepoOperation.Action.DELETE ? PublishItem.Action.DELETE : ADD, true))
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
 
-    private PublishItem createPublishItem(final Site site, final String path,
+    private PublishItem createPublishItem(final String path,
                                           final PublishItem.Action action, final boolean userRequested) {
         PublishItem publishItem = new PublishItem();
         publishItem.setAction(action);
@@ -438,7 +509,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         publishItemsByPath.putAll(
                 allPaths.stream()
                         .filter(path -> !publishItemsByPath.containsKey(path))
-                        .map(path -> createPublishItem(site, path, ADD, true))
+                        .map(path -> createPublishItem(path, ADD, true))
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
 
@@ -474,7 +545,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         publishItemsByPath.putAll(
                 dependencyServiceInternal.getHardDependencies(site.getSiteId(), paths).stream()
                         .filter(dep -> !publishItemsByPath.containsKey(dep))
-                        .map(dep -> createPublishItem(site, dep, ADD, false))
+                        .map(dep -> createPublishItem(dep, ADD, false))
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
 
@@ -566,6 +637,10 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     public void setPublishDao(final PublishDAO publishDao) {
         this.publishDao = publishDao;
+    }
+
+    public void setItemTargetDao(final ItemTargetDAO itemTargetDao) {
+        this.itemTargetDao = itemTargetDao;
     }
 
     public void setSiteService(final SitesService siteService) {
@@ -693,7 +768,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     @NotNull
     protected Collection<PublishItem> getPublishAllItems(Site site, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws InvalidParametersException {
         List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
-                .map(path -> createPublishItem(site, path, ADD, true))
+                .map(path -> createPublishItem(path, ADD, true))
                 .toList();
         if (publishItems.isEmpty()) {
             throw new InvalidParametersException("Failed to submit publish package: No items to publish");

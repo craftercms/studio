@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -97,8 +97,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
@@ -876,6 +875,48 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     public boolean isTargetPublished(String siteId, String target) throws IOException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         return branchExists(repo, target);
+    }
+
+    @Override
+    public String deleteContent(String site, Collection<String> paths,
+                                String approver) throws ServiceLayerException {
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        generalLockService.lock(gitLockKey);
+        try {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            try (Git git = new Git(repo)) {
+                List<String> pathsToCommit = new ArrayList<>(paths.size());
+                for (String path : paths) {
+                    String pathToDelete = helper.getGitPath(path);
+                    RmCommand rmCommand = git.rm().addFilepattern(pathToDelete).setCached(false);
+                    retryingRepositoryOperationFacade.call(rmCommand);
+
+                    String pathToCommit = pathToDelete;
+                    boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+                    if (isPage) {
+                        Path parentToDelete = Paths.get(pathToDelete).getParent();
+                        pathToCommit = parentToDelete.toString();
+                        deleteParentFolder(git, parentToDelete, true);
+                    }
+                    pathsToCommit.add(pathToCommit);
+                }
+                String commitMsg = helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
+                        .replaceAll(PATTERN_PATH, StringUtils.join(paths));
+                PersonIdent user = StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() :
+                        helper.getAuthorIdent(approver);
+
+                // TODO: SJ: we need to define messages in a string table of sorts
+                return helper.commitFiles(repo, site, commitMsg, user, pathsToCommit.toArray(new String[0]));
+            } catch (ServiceLayerException e) {
+                logger.error("Failed to delete content at site '{}' paths '{}'", site, paths, e);
+                throw e;
+            } catch (GitAPIException | UserNotFoundException | IOException e) {
+                logger.error("Failed to delete content at site '{}' paths '{}'", site, paths, e);
+                throw new ServiceLayerException(format("Failed to delete content at site '%s' paths '%s'", site, StringUtils.join(paths)), e);
+            }
+        } finally {
+            generalLockService.unlock(gitLockKey);
+        }
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -192,6 +192,16 @@ public interface PublishService {
      * @return the package containing the item, or null if the item is not submitted to be published
      */
     PublishPackage getPackageForItem(String siteId, String path);
+
+    /**
+     * Publish the deletion of the given paths.
+     *
+     * @param siteId             the site id
+     * @param userRequestedPaths the paths to delete as requested by the user
+     * @param dependencies       the delete dependencies of the requested paths
+     * @param comment            user user comment
+     */
+    long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException;
 
     /**
      * A request to include a path in a publish request.

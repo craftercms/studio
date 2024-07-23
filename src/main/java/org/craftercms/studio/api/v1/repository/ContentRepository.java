@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 import java.io.InputStream;
-import java.util.Map;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -92,16 +91,6 @@ public interface ContentRepository {
      * @return Commit Id if successful, null otherwise
      */
     String createFolder(String site, String path, String name) throws ServiceLayerException;
-
-    /**
-     * delete content
-     *
-     * @param site     site id where the operation will be executed
-     * @param path     path to content
-     * @param approver user that approves delete content
-     * @return Commit ID if successful, null otherwise
-     */
-    String deleteContent(String site, String path, String approver) throws ServiceLayerException;
 
     /**
      * move content from PathA to pathB

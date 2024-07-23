@@ -18,6 +18,8 @@ package org.craftercms.studio.api.v2.dal.publish;
 
 import java.util.List;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 /**
  * Represents an item to be published.
  */
@@ -25,6 +27,8 @@ public class PublishItem {
     protected long id;
     protected long packageId;
     protected String path;
+    protected String livePreviousPath;
+    protected String stagingPreviousPath;
     protected List<ItemTarget> itemTargets;
     protected Action action;
     protected boolean userRequested;
@@ -67,7 +71,26 @@ public class PublishItem {
         this.path = path;
     }
 
-    public String getPreviousPath(final String target) {
+    public String getLivePreviousPath() {
+        return livePreviousPath;
+    }
+
+    public void setLivePreviousPath(String livePreviousPath) {
+        this.livePreviousPath = livePreviousPath;
+    }
+
+    public String getStagingPreviousPath() {
+        return stagingPreviousPath;
+    }
+
+    public void setStagingPreviousPath(String stagingPreviousPath) {
+        this.stagingPreviousPath = stagingPreviousPath;
+    }
+
+    public String getPreviousPath(final String target, boolean isLiveTarget) {
+        if (isEmpty(itemTargets)) {
+            return isLiveTarget ? livePreviousPath : stagingPreviousPath;
+        }
         return itemTargets.stream()
                 .filter(itemTarget -> itemTarget.getTarget().equals(target))
                 .findFirst()

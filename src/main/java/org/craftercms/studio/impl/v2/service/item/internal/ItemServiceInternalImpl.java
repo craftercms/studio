@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -117,11 +117,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void deleteItem(String siteId, String path) {
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteFeed.getId(), path));
+    public void deleteItem(long siteId, String path) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteId, path));
     }
 
     @Override

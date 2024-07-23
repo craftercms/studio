@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.utils.git;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.utils.git.cli.GitCliOutputExceptionResolver;
@@ -67,12 +66,6 @@ public class GitCli {
     private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 minutes
     private static final int DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT = 30;
     private static final int PATHS_BATCH_SIZE = 10;
-
-    /**
-     * The first 0 means to remove the path; the SHA-1 does not matter as long as it is well formatted. Then a tab followed by the path.
-     * <a href="https://git-scm.com/docs/git-update-index#_using_index_info">See git docs</a>
-     */
-    private static final String DELETE_INDEX_INFO_FORMAT = "0 0000000000000000000000000000000000000000\t%s\n";
 
     // Exception resolvers
     public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
@@ -298,21 +291,6 @@ public class GitCli {
         }
     }
 
-    public boolean isRepoClean(String directory) throws GitCliException {
-        GitCommandLine statusCl = new GitCommandLine("status");
-        // The --porcelain option is a short version specifically for scripts
-        statusCl.addParam("--porcelain");
-
-        try {
-            String result = executeGitCommand(directory, statusCl, DEFAULT_EX_RESOLVER);
-
-            // No result means there's no changes, so the repo is clean
-            return StringUtils.isEmpty(result);
-        } catch (Exception e) {
-            throw new GitCliException("Git GC failed on directory " + directory, e);
-        }
-    }
-
     /**
      * Update index and write a new tree to the repository
      * This method will read a tree from the parent commit, update the index with the <code>commitId</code> version
@@ -324,8 +302,8 @@ public class GitCli {
      * @param commitId       the commit id to get the new versions from
      * @param parentCommitId the parent to read initial tree from
      * @return the new tree id
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException if an error occurs executing the git command or when accessing the file system
+     * @throws InterruptedException  if the thread is interrupted while waiting for the git process to finish
      */
     public String writeTree(final File directory, final List<String> paths, final List<String> deletedPaths, final String commitId, final ObjectId parentCommitId)
             throws IOException, InterruptedException {
@@ -334,8 +312,11 @@ public class GitCli {
         executeGitCommand(directory.getAbsolutePath(), readTreeCl);
         final Path indexInfoTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
         try {
-            for (String deletedPath : emptyIfNull(deletedPaths)) {
-                Files.writeString(indexInfoTempFile, format(DELETE_INDEX_INFO_FORMAT, deletedPath), StandardOpenOption.APPEND);
+            for (List<String> deletedPathsBatch : ListUtils.partition(emptyIfNull(deletedPaths), PATHS_BATCH_SIZE)) {
+                // Remove from the index
+                GitCommandLine rmCommand = new GitCommandLine("rm",  "-r", "--ignore-unmatch", "--cached");
+                deletedPathsBatch.forEach(rmCommand::addParam);
+                executeGitCommand(directory.getAbsolutePath(), rmCommand);
             }
             // In batches, call git ls-tree and create index info file
             for (List<String> pathsBatch : ListUtils.partition(emptyIfNull(paths), PATHS_BATCH_SIZE)) {

@@ -85,11 +85,13 @@ public interface ItemServiceInternal {
     void updateItem(Item item);
 
     /**
-     * Delete item
+     * Delete item with the given path.
+     * Notice that the parent folder will be deleted if path corresponds to a page.
+     *
      * @param siteId siteIdentifier
-     * @param path path of item to be deleted
+     * @param path   path of item to be deleted
      */
-    void deleteItem(String siteId, String path);
+    void deleteItem(long siteId, String path);
 
     /**
      * Set system processing for item

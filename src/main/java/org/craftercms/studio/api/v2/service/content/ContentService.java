@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -78,16 +78,17 @@ public interface ContentService {
 
     /**
      * Delete content for given paths. Following content will be deleted:
-     *  - given paths
-     *  - child items for given paths
-     * @param siteId site identifier
-     * @param paths content to be deleted
-     * @param submissionComment submission comment
+     * - given paths
+     * - child items for given paths
      *
-     * @throws ServiceLayerException general service error
+     * @param siteId            site identifier
+     * @param paths             content to be deleted
+     * @param submissionComment submission comment
+     * @return id of publish package, or 0 if no package was created (if the site has not been published)
+     * @throws ServiceLayerException   general service error
      * @throws AuthenticationException authentication error
      */
-    void deleteContent(String siteId, List<String> paths, String submissionComment)
+    long deleteContent(String siteId, List<String> paths, String submissionComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**

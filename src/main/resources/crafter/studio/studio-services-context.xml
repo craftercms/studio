@@ -469,7 +469,6 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="itemDao" ref="itemDao" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
@@ -477,10 +476,12 @@
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="siteService" ref="sitesServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentServiceV1" ref="cstudioContentService" />
+        <property name="publishServiceInternal" ref="publishServiceInternal"/>
+        <property name="processedCommitsDao" ref="processedCommitsDao"/>
     </bean>
 
     <bean id="contentTypeServiceInternal"
@@ -552,6 +553,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="auditServiceInternal" ref="auditServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+        <property name="itemTargetDao" ref="itemTargetDao"/>
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"

@@ -294,26 +294,34 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) throws ServiceLayerException {
-        logger.debug("Delete content in site '{}' path '{}'", site, path);
+    public String deleteContent(final String siteId, final Collection<String> paths,
+                                final String approver) throws ServiceLayerException {
+        logger.debug("Delete content in site '{}' path '{}'", siteId, paths);
         try {
-            StudioBlobStore store = getBlobStore(site, path);
-            if (store != null) {
-                String result = store.deleteContent(site, normalize(path), approver);
-                if (result != null) {
-                    return localRepositoryV1.deleteContent(site, getPointerPath(site, path), approver);
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            List<String> gitRepoPaths = new LinkedList<>();
+            MultiValueMap<StudioBlobStore, String> pathsByBlobStore = new LinkedMultiValueMap<>();
+            for (String path : paths) {
+                blobStores.stream()
+                        .filter(store -> store.isCompatible(path)).findFirst()
+                        .ifPresentOrElse(store -> {
+                                    pathsByBlobStore.add(store, path);
+                                    gitRepoPaths.add(getPointerPath(siteId, path));
+                                },
+                                () -> gitRepoPaths.add(path));
+            }
+            for (Map.Entry<StudioBlobStore, List<String>> entry : pathsByBlobStore.entrySet()) {
+                StudioBlobStore store = entry.getKey();
+                for (String path : entry.getValue()) {
+                    store.deleteContent(siteId, path);
                 }
             }
-            return localRepositoryV1.deleteContent(site, path, approver);
-        } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site '{}', " +
-                    "will delete '{}' in the local repository", site, path);
-            return localRepositoryV1.deleteContent(site, path, approver);
+            return localRepositoryV2.deleteContent(siteId, gitRepoPaths, approver);
         } catch (ServiceLayerException ex) {
             throw ex;
         } catch (Exception e) {
-            logger.error("Failed to delete content in site '{}' path '{}'", site, path, e);
-            throw new ServiceLayerException(format("Failed to delete content in site '%s' path '%s'", site, path), e);
+            logger.error("Failed to delete content in site '{}' path '{}'", siteId, paths, e);
+            throw new ServiceLayerException(format("Failed to delete content in site '%s' path '%s'", siteId, paths), e);
         }
     }
 

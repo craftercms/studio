@@ -271,7 +271,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private List<PublishItemTOImpl> expandPublishItem(final PublishItem pi, final String target, final boolean isLiveTarget) {
         List<PublishItemTOImpl> items = new ArrayList<>();
         items.add(new PublishItemTOImpl(pi, pi.getPath(), pi.getAction(), isLiveTarget));
-        String previousPath = pi.getPreviousPath(target);
+        String previousPath = pi.getPreviousPath(target, isLiveTarget);
         if (previousPath != null) {
             items.add(new PublishItemTOImpl(pi, previousPath, DELETE, isLiveTarget));
         }

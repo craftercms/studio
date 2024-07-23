@@ -287,5 +287,4 @@ public interface PublishDAO {
     PublishPackage getPackageForItem(@Param(SITE_ID) String siteId,
                                      @Param(PATH) String path,
                                      @Param(PACKAGE_STATE) long packageState);
-
 }

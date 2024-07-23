@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_SUCCESS;
@@ -58,6 +59,8 @@ public interface ItemDAO {
     String LIVE_PUBLISHED_STATE = "livePublishedState";
     String PUBLISH_PACKAGE_STATE = "packageState";
     String PUBLISH_PACKAGE_APPROVAL_STATES = "approvalStates";
+
+    String SYSTEM_TYPE_PAGE = "systemTypePage";
 
     Map<String, String> SORT_FIELD_MAP = Map.of(
             "id", "id",
@@ -277,12 +280,25 @@ public interface ItemDAO {
     void updateItem(Item item);
 
     /**
-     * Delete item
+     * Delete an item by path.
+     * Notice that the parent folder will be deleted if path corresponds to a page.
      *
-     * @param siteId site identifier
-     * @param path   path of item to delete
+     * @param siteId the site id
+     * @param path   the item path
      */
-    void deleteBySiteAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+    default void deleteBySiteAndPath(final long siteId, final String path) {
+        deleteBySiteAndPath(siteId, path, CONTENT_TYPE_PAGE);
+    }
+
+    /**
+     * Delete item
+     * Notice that the parent folder will be deleted if path corresponds to a page.
+     *
+     * @param siteId         site identifier
+     * @param path           path of item to delete
+     * @param systemTypePage system type page. In case the path corresponds to a page, the parent folder will be deleted as well.
+     */
+    void deleteBySiteAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path, @Param(SYSTEM_TYPE_PAGE) String systemTypePage);
 
     /**
      * Set items state

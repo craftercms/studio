@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -270,43 +270,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-        return commitId;
-    }
-
-    @Override
-    public String deleteContent(String site, String path, String approver) {
-        String commitId = null;
-        boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-        generalLockService.lock(gitLockKey);
-        try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-
-            try (Git git = new Git(repo)) {
-                String pathToDelete = helper.getGitPath(path);
-                Path parentToDelete = Paths.get(pathToDelete).getParent();
-                RmCommand rmCommand = git.rm().addFilepattern(pathToDelete).setCached(false);
-                retryingRepositoryOperationFacade.call(rmCommand);
-
-                String pathToCommit = pathToDelete;
-                if (isPage) {
-                    pathToCommit = deleteParentFolder(git, parentToDelete, true);
-                }
-
-                String commitMsg = helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
-                                            .replaceAll(PATTERN_PATH, path);
-                PersonIdent user = StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() :
-                                    helper.getAuthorIdent(approver);
-
-                // TODO: SJ: we need to define messages in a string table of sorts
-                commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit);
-            } catch (GitAPIException | UserNotFoundException | IOException | ServiceLayerException e) {
-                logger.error("Failed to delete content at site '{}' path '{}'", site, path, e);
-            }
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
         return commitId;
     }
 

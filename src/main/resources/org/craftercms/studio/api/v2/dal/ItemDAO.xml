@@ -502,7 +502,20 @@
     </update>
 
     <delete id="deleteBySiteAndPath" >
-        DELETE FROM item WHERE site_id = #{siteId} and path = #{path}
+        DELETE FROM item
+        WHERE site_id = #{siteId}
+        AND (
+                path = #{path}
+            OR
+                (   <!-- Delete the parent folder if item is a page -->
+                    path = TRIM(TRAILING '/index.xml' FROM #{path})
+                    AND EXISTS (SELECT 1
+                                FROM item
+                                WHERE site_id = #{siteId}
+                                AND path = #{path}
+                                AND system_type = #{systemTypePage})
+                )
+        )
     </delete>
 
     <update id="setStatesBySiteAndPathBulk" >

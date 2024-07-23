@@ -71,6 +71,14 @@ public interface StudioBlobStore extends BlobStore, ContentRepository,
                                                           Collection<T> blobStoreItems) throws ServiceLayerException;
 
     /**
+     * Delete the content at the given path
+     *
+     * @param site the site id
+     * @param path the path of the content
+     */
+    void deleteContent(String site, String path) throws ServiceLayerException;
+
+    /**
      * Store the result of a publish operation
      *
      * @param successfulItems the paths that were updated

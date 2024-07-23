@@ -22,6 +22,9 @@
     <resultMap id="ItemTargetMap" type="org.craftercms.studio.api.v2.dal.publish.ItemTarget" autoMapping="true">
     </resultMap>
 
+    <resultMap id="ItemTargetWithPathMap" type="org.craftercms.studio.api.v2.dal.publish.ItemTargetWithPath" extends="ItemTargetMap">
+    </resultMap>
+
     <select id="getByItemId" resultMap="ItemTargetMap">
         SELECT it.*
         FROM item_target it
@@ -70,4 +73,15 @@
         WHERE i.site_id = #{siteId}
         AND it.target = #{liveTarget}
     </insert>
+
+    <select id="getItemListTargets" resultMap="ItemTargetWithPathMap">
+        SELECT it.*, i.path
+        FROM item_target it INNER JOIN item i ON it.item_id = i.id
+        WHERE i.site_id = #{siteId}
+        AND i.path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")" >
+            #{path}
+        </foreach>
+    </select>
+
 </mapper>

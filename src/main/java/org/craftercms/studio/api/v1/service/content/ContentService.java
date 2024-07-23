@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -171,20 +171,6 @@ public interface ContentService {
      * @throws SiteNotFoundException site not found
      */
     boolean createFolder(String site, String path, String name)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * delete content at the path
-     *
-     * @param site - the project ID
-     * @param path path to content
-     * @return return true if successful
-     *
-     * @throws SiteNotFoundException site not found
-     */
-    boolean deleteContent(String site, String path, String approver) throws ServiceLayerException, UserNotFoundException;
-
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver)
             throws ServiceLayerException, UserNotFoundException;
 
     /**

@@ -1505,8 +1505,8 @@ public class GitRepositoryHelper implements DisposableBean {
      * @param commitId       the commit id to get the new file versions from
      * @param parentCommitId the commit to read the initial tree from
      * @return the new tree id
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException          if an error occurs while writing the tree
+     * @throws InterruptedException if the operation is interrupted while waiting for the git process to finish
      */
     public String writeTree(final Repository repo, final List<String> paths, final List<String> deletedPaths,
                             final String commitId, final ObjectId parentCommitId) throws IOException, InterruptedException {

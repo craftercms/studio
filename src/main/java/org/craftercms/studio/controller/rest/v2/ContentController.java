@@ -129,7 +129,6 @@ public class ContentController {
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
             throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-
         List<String> items = new ArrayList<>(deleteRequestBody.getItems());
         if (isNotEmpty(deleteRequestBody.getOptionalDependencies())) {
             items.addAll(deleteRequestBody.getOptionalDependencies());

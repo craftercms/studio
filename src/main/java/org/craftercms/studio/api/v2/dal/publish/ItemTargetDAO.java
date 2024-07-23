@@ -21,8 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static java.time.Instant.now;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Provide access to the item_target data.
@@ -38,6 +42,7 @@ public interface ItemTargetDAO {
     String STAGING_TARGET = "stagingTarget";
     String TARGETS = "targets";
     String TIMESTAMP = "timestamp";
+    String PATHS = "paths";
 
     /**
      * Update for successful publish items in the package.
@@ -108,4 +113,26 @@ public interface ItemTargetDAO {
     void initStaging(@Param(SITE_ID) long siteId,
                      @Param(STAGING_TARGET) String stagingTarget,
                      @Param(LIVE_TARGET) String liveTarget);
+
+    /**
+     * Get the item targets for the given paths, grouped by path
+     *
+     * @param siteId the site id
+     * @param paths  the paths
+     * @return the item targets grouped by path
+     */
+    default Map<String, List<ItemTarget>> getItemTargetsByPath(final long siteId, final Collection<String> paths) {
+        Collection<ItemTargetWithPath> itemListTargets = getItemListTargets(siteId, paths);
+        return itemListTargets.stream()
+                .collect(groupingBy(ItemTargetWithPath::getPath, toList()));
+    }
+
+    /**
+     * Get the item targets for the given paths
+     *
+     * @param siteId the site id
+     * @param paths  the paths
+     * @return the item targets
+     */
+    Collection<ItemTargetWithPath> getItemListTargets(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
 }

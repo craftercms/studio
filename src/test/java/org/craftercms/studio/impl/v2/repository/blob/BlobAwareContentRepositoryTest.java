@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -124,12 +124,12 @@ public class BlobAwareContentRepositoryTest {
         mocks = openMocks(this);
 
         when(store.getId()).thenReturn(STORE_ID);
-
         when(resolver.getByPaths(SITE, FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH_2)).thenReturn(store);
         when(store.isCompatible(ORIGINAL_PATH)).thenReturn(true);
         when(store.isCompatible(ORIGINAL_PATH_2)).thenReturn(true);
+        when(store.isCompatible(FOLDER_PATH)).thenReturn(true);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
@@ -221,37 +221,35 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     public void deleteFileTest() throws ServiceLayerException {
-        when(store.deleteContent(SITE, ORIGINAL_PATH, USER)).thenReturn(EMPTY);
+        proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), USER);
 
-        proxy.deleteContent(SITE, ORIGINAL_PATH, USER);
-
-        verify(store).deleteContent(SITE, ORIGINAL_PATH, USER);
-        verify(localV1).deleteContent(SITE, POINTER_PATH, USER);
+        verify(store).deleteContent(SITE, ORIGINAL_PATH);
+        verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), USER);
     }
 
     @Test
     public void deleteRemoteFolderTest() throws ServiceLayerException {
-        proxy.deleteContent(SITE, FOLDER_PATH, USER);
+        proxy.deleteContent(SITE, List.of(FOLDER_PATH), USER);
 
-        verify(store).deleteContent(SITE, FOLDER_PATH, USER);
-        verify(localV1).deleteContent(SITE, FOLDER_PATH, USER);
+        verify(store).deleteContent(SITE, FOLDER_PATH);
+        verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), USER);
     }
 
     @Test
     public void deleteLocalFolderTest() throws ServiceLayerException {
-        proxy.deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
+        proxy.deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), USER);
 
-        verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
-        verify(localV1).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
+        verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH);
+        verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), USER);
     }
 
     @Test
     public void deleteContentFailTest() throws ServiceLayerException {
-        when(store.deleteContent(SITE, ORIGINAL_PATH, USER)).thenReturn(null);
+        doThrow(ServiceLayerException.class).when(store).deleteContent(SITE, ORIGINAL_PATH);
 
-        proxy.deleteContent(SITE, ORIGINAL_PATH, USER);
+        assertThrows(ServiceLayerException.class, () -> proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), USER));
 
-        verify(localV1, never()).deleteContent(SITE, POINTER_PATH, USER);
+        verify(localRepositoryV2, never()).deleteContent(SITE, List.of(POINTER_PATH), USER);
     }
 
     @Test

@@ -58,6 +58,8 @@
         INSERT INTO publish_item
         (package_id,
         path,
+        live_previous_path,
+        staging_previous_path,
         action,
         user_requested,
         publish_state)
@@ -66,6 +68,8 @@
         <foreach collection="items" item="item" index="index" separator=",">
             (#{packageId},
             #{item.path},
+            #{item.livePreviousPath},
+            #{item.stagingPreviousPath},
             #{item.action},
             #{item.userRequested},
             #{publishState})
