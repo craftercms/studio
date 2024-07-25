@@ -2,6 +2,7 @@ version: "~> 1.0"
 git:
   depth: 1
   quiet: true
+dist: jammy
 language: java
 jdk:
   - openjdk21
