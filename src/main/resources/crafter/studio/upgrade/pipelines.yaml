@@ -671,6 +671,14 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade/4.2.x/4.2.0.9-to-4.2.0.10.sql
+      - currentVersion: 4.2.0.10
+        nextVersion: 4.2.0.11
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file to add aws.cloudformation.stackCapabilities
 
   # Pipeline to upgrade site repositories
   site:
