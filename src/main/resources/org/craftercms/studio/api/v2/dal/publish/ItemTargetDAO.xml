@@ -43,12 +43,15 @@
     </update>
 
     <update id="clearPreviousPathForCompletePackage">
-        UPDATE item_target
-        SET previous_path = null
-        WHERE target = #{target}
-        AND previous_path IN (
-            SELECT successfulItems.path
+        UPDATE item_target it
+        INNER JOIN item i ON i.id = it.item_id
+        SET it.previous_path = null
+        WHERE it.target = #{target}
+        AND EXISTS (
+            SELECT (1)
             FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemsForPackage"/> AS successfulItems
+            WHERE successfulItems.site_id = i.site_id
+            AND it.previous_path = successfulItems.path
         )
     </update>
 

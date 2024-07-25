@@ -195,7 +195,7 @@
 
     <sql id="getSuccessfulItemsForPackage">
         (
-            SELECT ipi.item_id, pi.path
+            SELECT pp.site_id, ipi.item_id, pi.path
             FROM publish_package pp
                 INNER JOIN publish_item pi ON pp.id = pi.package_id
                 INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
