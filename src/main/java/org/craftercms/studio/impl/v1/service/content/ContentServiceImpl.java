@@ -648,7 +648,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String commitId = _contentRepository.writeContent(siteId, path, content);
 
         result = StringUtils.isNotEmpty(commitId);
-        if (result) {
+        if (result && isNotEmpty(siteId)) {
             Site site = siteService.getSite(siteId);
             processedCommitsDao.insertCommit(site.getId(), commitId);
         }
