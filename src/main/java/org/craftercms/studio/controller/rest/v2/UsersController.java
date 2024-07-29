@@ -420,6 +420,12 @@ public class UsersController {
     public ResultOne<UserResponse> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest)
             throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
             AuthenticationException, UserNotFoundException {
+        int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
+        try {
+            TimeUnit.SECONDS.sleep(delay);
+        } catch (InterruptedException e) {
+            logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
+        }
         UserResponse user = userService.changePassword(changePasswordRequest.getUsername(),
                 changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
 
