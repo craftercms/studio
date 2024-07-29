@@ -646,12 +646,6 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
-                                                                 String environment, String path) {
-        return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
-    }
-
-    @Override
     public String getPreviousCommitId(String siteId, String commitId) {
         return localRepositoryV2.getPreviousCommitId(siteId, commitId);
     }

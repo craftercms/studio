@@ -53,7 +53,6 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffConfig;
@@ -1047,24 +1046,6 @@ public class GitContentRepositoryImpl implements GitContentRepository {
         return toReturn;
     }
 
-    @Override
-    public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repoType,
-                                                                 String environment, String path) {
-        DetailedItem.Environment environmentData = new DetailedItem.Environment();
-        try (Repository repo = helper.getRepository(siteId, repoType)) {
-            if (Objects.nonNull(repo)) {
-                RevTree tree = getTree(repo, environment);
-                if (Objects.nonNull(tree)) {
-                    populateProperties(siteId, repo, environmentData, path, environment);
-                }
-            }
-        } catch (IOException e) {
-            logger.error("Failed to get the environment properties for site '{}' path '{}' environment '{}'",
-                    siteId, path, environment);
-        }
-        return environmentData;
-    }
-
     private RevTree getTree(Repository repository, String branch) throws IOException {
         ObjectId lastCommitId = repository.resolve(R_HEADS + branch );
 
@@ -1076,40 +1057,6 @@ public class GitContentRepositoryImpl implements GitContentRepository {
             }
         } else {
             return null;
-        }
-    }
-
-    private void populateProperties(String siteId, Repository repository, DetailedItem.Environment environment,
-                                    String path, String branch) throws IOException {
-        // TODO: SJ: This seems to fail silently if repository is null, fix
-        if (repository != null) {
-            ObjectId head = repository.resolve(R_HEADS + branch);
-            String gitPath = helper.getGitPath(path);
-            try (Git git = new Git(repository)) {
-                LogCommand logCommand = git.log().add(head).addPath(gitPath);
-                Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-                Iterator<RevCommit> iterator = commits.iterator();
-                if (iterator.hasNext()) {
-                    RevCommit revCommit = iterator.next();
-                    environment.setDatePublished(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
-                    String publisherGit = revCommit.getAuthorIdent().getName();
-                    User publisher;
-                    try {
-                        publisher = userServiceInternal.getUserByGitName(publisherGit);
-                    } catch (ServiceLayerException | UserNotFoundException e) {
-                        logger.debug("Publisher user not found for site '{}' path '{}'. Using git repo user instead.",
-                                siteId, path);
-                        publisher = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
-                    }
-                    environment.setPublisher(publisher.getUsername());
-                }
-            } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e) {
-                logger.error("Failed to get the repository properties for content at site '{}' path '{}'",
-                        siteId, path);
-            }
-            // TODO: fix for new publishing system
-//            environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
-//                    PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
         }
     }
 

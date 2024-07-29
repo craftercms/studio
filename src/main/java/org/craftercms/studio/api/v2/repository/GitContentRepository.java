@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ObjectUtils;
@@ -160,18 +159,6 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      * @return map of paths (to operation, e.g.: C for created, D for deleted) of files that changed between two commits
      */
     Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo);
-
-    /**
-     * Get environment properties for item
-     *
-     * @param siteId      site identifier
-     * @param repo        repository type
-     * @param environment branch
-     * @param path        path of the item
-     * @return environment properties
-     */
-    DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo, String environment,
-                                                          String path);
 
     /**
      * Get the previous commit id from repository for given a site id and a commit id

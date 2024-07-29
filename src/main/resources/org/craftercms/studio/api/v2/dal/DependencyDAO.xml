@@ -93,7 +93,7 @@
     </sql>
 
     <!-- Recursively get:
-        - Non-published descendants of renamed parents
+        - Non-published (not new but not published to current path in target) descendants of renamed parents
      -->
     <sql id="recursiveChildrenForHardDeps">
         SELECT id, path, parent_id, system_type

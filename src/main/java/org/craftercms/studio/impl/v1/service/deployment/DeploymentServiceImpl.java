@@ -72,11 +72,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         return publishService.publish(site, environment, emptyList(), commitIds, null, comment, false);
     }
 
-    @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException {
-        // TODO: implement for new publishing system
-    }
-
     public void setPublishService(final PublishService publishService) {
         this.publishService = publishService;
     }

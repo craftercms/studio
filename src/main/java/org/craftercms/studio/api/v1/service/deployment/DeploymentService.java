@@ -59,11 +59,4 @@ public interface DeploymentService {
     long publishCommits(String site, String environment, List<String> commitIds, String comment)
             throws ServiceLayerException, AuthenticationException;
 
-
-    /**
-     * Reset staging environment to live for given site
-     *
-     * @param siteId site id to use for resetting
-     */
-    void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException;
 }

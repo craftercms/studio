@@ -46,9 +46,4 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.publishCommits(siteId, environment, commitIds, comment)
     }
-
-    static resetStagingEnvironment(context, siteId) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.resetStagingEnvironment(siteId)
-    }
 }
