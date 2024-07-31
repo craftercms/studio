@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -48,7 +47,6 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
@@ -120,7 +118,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     private List<CacheInvalidator<String, Object>> cacheInvalidators;
     private ContextManager contextManager;
     private ApplicationEventPublisher applicationEventPublisher;
-    private GeneralLockService generalLockService;
 
     @Override
     public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
@@ -395,17 +392,11 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                                    String environment,
                                    InputStream content)
             throws ServiceLayerException, UserNotFoundException {
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
-        generalLockService.lock(syncFromRepoLockKey);
-        try {
-            writeEnvironmentConfiguration(siteId, module, path, environment, content);
-            invalidateConfiguration(siteId, module, path, environment);
-            applicationEventPublisher.publishEvent(
-                    new ConfigurationEvent(securityService.getAuthentication(), siteId,
-                            getConfigurationPath(siteId, module, path, environment)));
-        } finally {
-            generalLockService.unlock(syncFromRepoLockKey);
-        }
+        writeEnvironmentConfiguration(siteId, module, path, environment, content);
+        invalidateConfiguration(siteId, module, path, environment);
+        applicationEventPublisher.publishEvent(
+                new ConfigurationEvent(securityService.getAuthentication(), siteId,
+                        getConfigurationPath(siteId, module, path, environment)));
     }
 
     public String getCacheKey(String siteId, String module, String path, String environment, String suffix) {
@@ -893,9 +884,5 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
     public void setContextManager(ContextManager contextManager) {
         this.contextManager = contextManager;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
     }
 }
