@@ -454,16 +454,16 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
                         siteId, path));
             }
             var username = securityService.getCurrentUser();
-            if (Objects.isNull(item.getLockOwner())) {
-                itemLockByPath(siteId, path);
-                itemServiceInternal.lockItemByPath(siteId, path, username);
-                eventPublisher.publishEvent(
-                        new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
-            } else {
-                if (!StringUtils.equals(item.getLockOwner().getUsername(), username)) {
-                    throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
-                }
+            boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
+                    Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
+            if (lockedByAnotherUser) {
+                throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
             }
+
+            itemLockByPath(siteId, path);
+            itemServiceInternal.lockItemByPath(siteId, path, username);
+            eventPublisher.publishEvent(
+                    new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
         } finally {
             generalLockService.unlockContentItem(siteId, path);
         }
@@ -479,7 +479,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
                 logger.debug("Item not found in site '{}' path '{}'", siteId, path);
                 throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
             }
-            if (Objects.isNull(item.getLockOwner())) {
+            if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
                 logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
                 throw new ContentAlreadyUnlockedException();
             }

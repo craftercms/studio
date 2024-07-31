@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -68,7 +69,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, item.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
         Person lockOwner = item.getLockOwner();
-        String lockOwnerUsername = lockOwner != null ? lockOwner.getUsername() : null;
+        boolean itemLocked = ItemState.isUserLocked(item.getState());
+        String lockOwnerUsername = itemLocked && lockOwner != null ? lockOwner.getUsername() : null;
         long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
                 StringUtils.equals(username, lockOwnerUsername));
 

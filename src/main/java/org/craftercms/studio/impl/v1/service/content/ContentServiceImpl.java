@@ -655,6 +655,21 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return result;
     }
 
+    @Override
+    @Valid
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    public boolean writeContentAndNotify(@SiteId String site,
+                                @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
+                                InputStream content)
+            throws ServiceLayerException {
+        boolean result = writeContent(site, path, content);
+        if (result) {
+            notifyContentEvent(site, path);
+        }
+
+        return result;
+    }
+
     /**
      * Notify when there is a content update
      * @param site site name
