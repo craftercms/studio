@@ -679,6 +679,14 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file to add aws.cloudformation.stackCapabilities
+      - currentVersion: 4.2.0.11
+        nextVersion: 4.2.0.12
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file content write path validator
 
   # Pipeline to upgrade site repositories
   site:
