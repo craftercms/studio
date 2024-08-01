@@ -146,19 +146,6 @@ public interface PublishRequestDAO {
                                               @Param(LIMIT) int limit);
 
     /**
-     * Get scheduled items for given site
-     * @param siteId site identifier
-     * @param state ready for live state
-     * @param contentTypeClass filter by content type class
-     * @param now current date time
-     * @return
-     */
-    List<PublishRequest> getScheduledItems(@Param(SITE_ID) String siteId,
-                                           @Param(STATE) String state,
-                                           @Param(CONTENT_TYPE_CLASS) String contentTypeClass,
-                                           @Param(NOW) ZonedDateTime now);
-
-    /**
      * Cancel scheduled items from publishing queue
      * @param siteId site identifier
      * @param paths list of paths of content items to be cancelled
