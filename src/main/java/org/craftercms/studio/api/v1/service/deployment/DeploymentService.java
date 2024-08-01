@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -44,7 +43,7 @@ public interface DeploymentService {
      *
      * @param site    site id
      * @param enabled true to enable publishing, false to disable publishing
-     * @throws SiteNotFoundException
+     * @throws SiteNotFoundException if the site cannot be found
      */
     void enablePublishing(String site, boolean enabled) throws SiteNotFoundException, AuthenticationException;
 

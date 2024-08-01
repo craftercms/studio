@@ -114,16 +114,6 @@ public abstract class StudioUtils {
     }
 
     /**
-     * Get the key for the lock used to make submitting publish requests and pulling operations mutually exclusive
-     *
-     * @param siteId the site id
-     * @return the lock key
-     */
-    public static String getPullOrSubmitPublishingLockKey(final String siteId) {
-        return SITE_PULL_OR_SUBMIT_PUBLISHING_LOCK.replaceAll(PATTERN_SITE, siteId);
-    }
-
-    /**
      * Get the key for the lock used to ensure publishing operations do not overlap for a site
      *
      * @param siteId the site id

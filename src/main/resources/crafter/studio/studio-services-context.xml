@@ -76,7 +76,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="contentServiceV2" ref="contentService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="publishServiceInternal" ref="publishServiceInternal"/>
         <property name="processedCommitsDao" ref="processedCommitsDao" />
     </bean>
@@ -321,7 +320,6 @@
         <property name="contentRepository" ref="gitContentRepositoryV2" />
         <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
         <property name="dependencyService" ref="dependencyServiceInternal"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contextManager" ref="contextManager"/>
     </bean>
 

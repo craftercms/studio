@@ -369,14 +369,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
                 remoteName, siteId);
         String gitLockKey = getSandboxRepoLockKey(siteId);
-        String pullOrSubmitPublishingLockKey = getPullOrSubmitPublishingLockKey(siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
         if (remoteRepository == null) {
             throw new RemoteRepositoryNotFoundException(format("Remote repository '%s' does not exist in site '%s'", remoteName, siteId));
         }
         logger.trace("Prepare the JGit pull command in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
-        generalLockService.lock(gitLockKey, pullOrSubmitPublishingLockKey);
+        generalLockService.lock(gitLockKey);
         Path tempKey = null;
         try (Git git = new Git(repo)) {
             PullCommand pullCommand = git.pull();
@@ -438,7 +437,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             } catch (IOException e) {
                 logger.warn("Failed to delete the file '{}'", tempKey, e);
             }
-            generalLockService.unlock(pullOrSubmitPublishingLockKey, gitLockKey);
+            generalLockService.unlock(gitLockKey);
         }
 
         return MergeResult.failed();

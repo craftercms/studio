@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import jakarta.validation.Valid;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;

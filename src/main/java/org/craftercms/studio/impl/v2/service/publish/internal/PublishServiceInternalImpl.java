@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.exception.repository.LockedRepositoryException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -573,8 +572,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                         final boolean requestApproval, final boolean publishAll)
             throws ServiceLayerException, AuthenticationException {
         Site site = siteService.getSite(siteId);
-        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getPullOrSubmitPublishingLockKey(site.getSiteId());
-        acquirePublishLock(lockKey);
+        String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey(site.getSiteId());
+        generalLockService.lock(lockKey);
         try {
             if (!site.isSitePublishedRepoCreated()) {
                 return buildInitialPublishPackage(site, publishingTarget, requestApproval, comment);
@@ -591,18 +590,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     paths, commitIds, requestApproval, schedule, comment);
         } finally {
             generalLockService.unlock(lockKey);
-        }
-    }
-
-    /**
-     * Acquire the lock to prevent concurrent publish requests, or throw an exception if the lock cannot be acquired.
-     *
-     * @throws ServiceLayerException if the lock cannot be acquired
-     */
-    private void acquirePublishLock(final String lockKey) throws ServiceLayerException {
-        boolean lockAcquired = generalLockService.tryLock(lockKey);
-        if (!lockAcquired) {
-            throw new LockedRepositoryException("Failed to submit publish all request: The repository is already locked for publishing or processing.");
         }
     }
 
