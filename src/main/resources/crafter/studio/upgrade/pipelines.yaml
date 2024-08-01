@@ -626,6 +626,14 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: 4.1.x/upgrade-4.1.12-to-4.1.13.sql
+      - currentVersion: 4.1.13
+        nextVersion: 4.1.14
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file content write path validator
 
   # Pipeline to upgrade site repositories
   site:

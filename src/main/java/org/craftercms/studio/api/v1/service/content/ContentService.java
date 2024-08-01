@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -171,6 +172,19 @@ public interface ContentService {
      * @param path path name
      */
     void notifyContentEvent(String site, String path);
+
+    /**
+     * Validate the input and create a folder
+     * @param site - the project ID
+     * @param path path to create a folder in
+     * @param name a folder name to create
+     * @return return the reference to the folder created
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     * @throws ValidationException
+     */
+    boolean validateAndCreateFolder(String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * create a folder
