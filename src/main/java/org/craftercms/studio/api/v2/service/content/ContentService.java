@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -176,17 +177,18 @@ public interface ContentService {
             throws ContentNotFoundException;
 
     /**
-    * Rename content for given path
-    * @param site  site identifier
-    * @param path path of the content
-    * @param name new name of the content
-    * @return true if success, otherwise false
-    *
-    * @throws ServiceLayerException general service error
-    * @throws UserNotFoundException user not found error
+     * Rename content for given path
+     * @param site  site identifier
+     * @param path path of the content
+     * @param name new name of the content
+     * @return true if success, otherwise false
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
+     * @throws ValidationException validation exception
     */
     boolean renameContent( String site, String path, String name)
-         throws ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * Returns content wrapped as a {@link Resource} instance

@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -494,7 +495,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException {
+    public boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException, ValidationException {
         logger.debug("rename path {} to new name {} for site {}", path, name, site);
         return contentServiceV1.renameContent(site, path, name);
     }
