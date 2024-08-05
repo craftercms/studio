@@ -336,7 +336,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                              String createFolders,
                              String edit,
                              String unlock)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        checkContentExists(site, path);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
 
