@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -171,6 +172,19 @@ public interface ContentService {
      * @param path path name
      */
     void notifyContentEvent(String site, String path);
+
+    /**
+     * Validate the input and create a folder
+     * @param site - the project ID
+     * @param path path to create a folder in
+     * @param name a folder name to create
+     * @return return the reference to the folder created
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     * @throws ValidationException
+     */
+    boolean validateAndCreateFolder(String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * create a folder
@@ -327,7 +341,7 @@ public interface ContentService {
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock)
-            throws ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * write content
@@ -352,7 +366,7 @@ public interface ContentService {
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
                                final String contentType, final InputStream input, final String createFolders,
                                final String edit, final String unlock, final boolean createFolder)
-                                throws ServiceLayerException;
+                                throws ServiceLayerException, ValidationException;
 
     Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
                                           String isImage, String allowedWidth, String allowedHeight,
@@ -388,16 +402,17 @@ public interface ContentService {
         throws ServiceLayerException;
 
     /**
-    * rename a content item
-    *
-    * @param site - the project ID
-    * @param path path to a folder to rename
-    * @param name a new folder name
-    * @return return the reference to the folder renamed
-    *
-    * @throws ServiceLayerException general service error
-    */
-    boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+     * rename a content item
+     *
+     * @param site - the project ID
+     * @param path path to a folder to rename
+     * @param name a new folder name
+     * @return return the reference to the folder renamed
+     *
+     * @throws ServiceLayerException general service error
+     */
+    boolean renameContent(String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * Push content to remote repository
