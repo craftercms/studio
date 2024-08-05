@@ -38,6 +38,7 @@
         FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemsForPackage"/> AS itemIds
         ON DUPLICATE KEY UPDATE
         previous_path = null,
+        renamed = 0,
         last_published_on = #{timestamp},
         published_commit_id = #{commitId}
     </update>

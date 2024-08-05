@@ -574,7 +574,8 @@
         UPDATE item_target it
             INNER JOIN item i ON i.id = it.item_id
             INNER JOIN site s ON s.id = i.site_id
-        SET it.previous_path = IFNULL(it.previous_path, #{previousPath})
+        SET it.previous_path = IFNULL(it.previous_path, #{previousPath}),
+            it.renamed = 1
         WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{newPath}
     </update>
 
