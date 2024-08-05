@@ -104,16 +104,6 @@ public abstract class StudioUtils {
     }
 
     /**
-     * Get the key for sync-from-repo task lock
-     *
-     * @param siteId the site id
-     * @return the lock key
-     */
-    public static String getSyncFromRepoLockKey(final String siteId) {
-        return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
-    }
-
-    /**
      * Get the key for the lock used to ensure publishing operations do not overlap for a site
      *
      * @param siteId the site id

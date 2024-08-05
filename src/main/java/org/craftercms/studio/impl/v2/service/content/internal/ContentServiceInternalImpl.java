@@ -365,9 +365,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     @Override
     public long deleteContent(String siteId, List<String> paths, String submissionComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
-        generalLockService.lock(syncFromRepoLockKey);
-        try {
             AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
             itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
             Site site = siteService.getSite(siteId);
@@ -405,9 +402,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
                 eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
             }
             return publishPackageId;
-        } finally {
-            generalLockService.unlock(syncFromRepoLockKey);
-        }
     }
 
     private void insertDeleteContentApprovedActivity(Site site, String approver, Collection<String> paths) {
