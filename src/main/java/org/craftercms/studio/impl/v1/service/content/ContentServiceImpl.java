@@ -2682,9 +2682,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public boolean renameContent(@ValidateStringParam String site,
                                 @ValidateSecurePathParam String path,
                                 @ValidateStringParam String name)
-            throws ServiceLayerException, UserNotFoundException {
-        boolean toRet = false;
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, name, REQUEST_PARAM_NAME);
 
+        boolean toRet = false;
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
 

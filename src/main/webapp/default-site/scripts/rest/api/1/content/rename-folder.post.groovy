@@ -49,6 +49,12 @@ if (invalidParams) {
     try {
         def context = ContentServices.createContext(applicationContext, request)
         result.result = ContentServices.renameFolder(site, path, name, context)
+    } catch (ContentNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Content does not exist at path '${path}' for site '${site}'".toString()
+    } catch (ValidationException e) {
+        response.setStatus(400)
+        result.message = "Invalid parameters"
     } catch (Exception e) {
         response.setStatus(500)
         result.message = "Internal server error"
