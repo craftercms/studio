@@ -578,34 +578,6 @@
         WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{newPath}
     </update>
 
-    <select id="getMandatoryParentsForPublishing" resultType="String">
-        SELECT i3.path AS path
-        FROM item i1 INNER JOIN site s ON i1.site_id = s.id INNER JOIN item i3 ON i1.parent_id = i3.id
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-        AND i1.ignored = 0
-        AND i1.path IN
-        <foreach item="path" index="index" collection="possibleParents"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND (i3.state &amp; #{newMask}) > 0
-        UNION
-        SELECT i4.path AS path
-        FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id INNER JOIN item i4 ON i2.parent_id = i4.id
-        WHERE s2.site_id = #{siteId}
-        <!-- TODO: Implement this check with the new item_target table
-        AND TRIM(IFNULL(i4.previous_path, '')) &lt;&gt; ''
-        -->
-        AND i2.ignored = 0
-        AND i2.path IN
-        <foreach item="path" index="index" collection="possibleParents"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND (i4.state &amp; #{modifiedMask}) > 0
-    </select>
-
     <select id="countAllContentItems" resultType="java.lang.Integer">
         SELECT count(1)
         FROM item i INNER JOIN site s ON i.site_id = s.id

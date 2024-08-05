@@ -41,8 +41,6 @@ public interface ItemDAO {
     String STATES = "states";
 
     String SITE_ID = "siteId";
-    String NEW_MASK = "newMask";
-    String MODIFIED_MASK = "modifiedMask";
     String NON_CONTENT_ITEM_TYPES = "nonContentItemTypes";
     String IN_PROGRESS_MASK = "inProgressMask";
     String ITEM_IDS = "itemIds";
@@ -546,20 +544,6 @@ public interface ItemDAO {
                                    @Param(SORT_FIELDS) List<SortField> sortFields,
                                    @Param(PUBLISH_PACKAGE_STATE) long packageState,
                                    @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates);
-
-    /**
-     * Get mandatory parents for publishing
-     *
-     * @param siteId          site identifier
-     * @param possibleParents possible parents
-     * @param newMask         states mask for detecting new items
-     * @param modifiedMask    states mask for detecting modified items
-     * @return list of mandatory parents
-     */
-    List<String> getMandatoryParentsForPublishing(@Param(SITE_ID) String siteId,
-                                                  @Param(POSSIBLE_PARENTS) List<String> possibleParents,
-                                                  @Param(NEW_MASK) long newMask,
-                                                  @Param(MODIFIED_MASK) long modifiedMask);
 
     /**
      * Count all content items in the system
