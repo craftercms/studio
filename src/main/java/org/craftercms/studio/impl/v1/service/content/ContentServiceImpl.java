@@ -317,6 +317,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Valid
     @ValidateAction(type = Type.CREATE)
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    @RequireSiteExists
     public void writeContent(@SiteId String site,
                              @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
                              @ActionTargetFilename String fileName,
@@ -325,7 +326,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                              String createFolders,
                              String edit,
                              String unlock)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
 
@@ -495,6 +499,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Valid
     @ValidateAction(type = Type.CREATE)
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    @RequireSiteExists
     public void writeContentAndRename(@SiteId final String site,
                                       @ValidateSecurePathParam final String path,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath final String targetPath,
@@ -504,12 +509,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                       @ValidateStringParam final String createFolders,
                                       @ValidateStringParam final  String edit,
                                       @ValidateStringParam final String unlock,
-                                      final boolean createFolder) throws ServiceLayerException {
+                                      final boolean createFolder) throws ServiceLayerException, ValidationException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename item at site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, targetPath, REQUEST_PARAM_TARGET);
+        validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
 
         // Check if the target path already exists and prevent any operation
         boolean isIndexFile = targetPath.endsWith(FILE_SEPARATOR + INDEX_FILE);
