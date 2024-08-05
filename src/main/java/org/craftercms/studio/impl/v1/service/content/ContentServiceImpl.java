@@ -337,7 +337,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                              String edit,
                              String unlock)
             throws ServiceLayerException, UserNotFoundException, ValidationException {
-        checkContentExists(site, path);
+        siteService.checkSiteExists(site);
         Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
         validateValue(pathValidator, path, REQUEST_PARAM_PATH);
         validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
@@ -526,6 +526,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         logger.debug("Write and rename item at site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
+        siteService.checkSiteExists(site);
         Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
         validateValue(pathValidator, path, REQUEST_PARAM_PATH);
         validateValue(pathValidator, targetPath, REQUEST_PARAM_TARGET);
@@ -695,7 +696,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public boolean validateAndCreateFolder(@SiteId String site, String path, String name)
             throws ServiceLayerException, UserNotFoundException, ValidationException {
         siteService.checkSiteExists(site);
-
         Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
         validateValue(pathValidator, path, REQUEST_PARAM_PATH);
         validateValue(pathValidator, name, REQUEST_PARAM_NAME);
@@ -2692,6 +2692,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 @ValidateSecurePathParam String path,
                                 @ValidateStringParam String name)
             throws ServiceLayerException, UserNotFoundException, ValidationException {
+        siteService.checkSiteExists(site);
         Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
         validateValue(pathValidator, path, REQUEST_PARAM_PATH);
         validateValue(pathValidator, name, REQUEST_PARAM_NAME);
