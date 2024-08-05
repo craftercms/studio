@@ -399,16 +399,19 @@ public interface ContentService {
         throws ServiceLayerException;
 
     /**
-    * rename a content item
-    *
-    * @param site - the project ID
-    * @param path path to a folder to rename
-    * @param name a new folder name
-    * @return return the reference to the folder renamed
-    *
-    * @throws ServiceLayerException general service error
+     * rename a content item
+     *
+     * @param site - the project ID
+     * @param path path to a folder to rename
+     * @param name a new folder name
+     * @return return the reference to the folder renamed
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     * @throws ValidationException validation exception
     */
-    boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+    boolean renameContent(String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * Push content to remote repository
