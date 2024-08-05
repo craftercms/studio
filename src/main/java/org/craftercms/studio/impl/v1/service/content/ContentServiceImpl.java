@@ -336,7 +336,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Valid
     @ValidateAction(type = Type.CREATE)
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    @RequireSiteExists
     public void writeContent(@SiteId final String site,
                              @ProtectedResourceId(PATH_RESOURCE_ID) @ActionTargetPath final String path,
                              @ActionTargetFilename final String fileName,
