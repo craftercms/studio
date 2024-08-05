@@ -17,6 +17,8 @@
 
 import org.apache.commons.lang3.StringUtils
 import scripts.api.ContentServices
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException
+import org.craftercms.commons.validation.ValidationException
 
 def site = request.getParameter("site_id")
 def path = request.getParameter("path")
