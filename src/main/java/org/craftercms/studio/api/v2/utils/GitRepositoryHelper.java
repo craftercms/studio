@@ -565,11 +565,9 @@ public class GitRepositoryHelper implements DisposableBean {
     /**
      * Create a site published git repository from scratch
      * @param siteId site to create
-     * @return true if successful, false otherwise
      */
-    public boolean createPublishedRepository(String siteId) {
+    public void createPublishedRepository(String siteId) throws GitAPIException, IOException {
         // Create Published by cloning Sandbox
-        boolean toRet = false;
         // Build a path for the site/sandbox
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
         // Built a path for the site/published
@@ -585,14 +583,12 @@ public class GitRepositoryHelper implements DisposableBean {
             optimizeRepository(publishedRepo);
             removePublishBlackList(publishedRepo);
             publishedRepo.close();
-            publishedGit.close();
-            toRet = true;
         } catch (GitAPIException | IOException e) {
             logger.error("Failed to add origin (sandbox) to the published repository in site '{}'", siteId, e);
+            throw e;
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-        return toRet;
     }
 
     public Repository createGitRepository(Path path) {

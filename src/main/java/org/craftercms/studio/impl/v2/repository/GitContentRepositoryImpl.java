@@ -27,7 +27,6 @@ import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
@@ -1177,20 +1176,34 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     }
 
     @Override
-    public String initialPublish(final String siteId) throws SiteNotFoundException {
+    public String initialPublish(final String siteId) throws ServiceLayerException {
         String commitId = getRepoLastCommitId(siteId);
-        // Create published repo
-        var created = helper.createPublishedRepository(siteId);
-        if (created) {
+
+        String publishedRepoLockKey = helper.getPublishedRepoLockKey(siteId);
+        generalLockService.lock(publishedRepoLockKey);
+        try {
+            // Create published repo
+            helper.createPublishedRepository(siteId);
+            Repository repo = helper.getRepository(siteId, PUBLISHED);
+            ObjectId commitIdObject = repo.resolve(commitId);
+            String treeId = helper.writeTree(repo, emptyList(), List.of(ALL_DOT_KEEP_PATTERN), commitId, commitIdObject);
+            User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+            String newCommitId = helper.commitTree(repo, treeId, commitIdObject, gitRepoUser, helper.getCommitMessage(REPO_INITIAL_PUBLISH_COMMIT_MESSAGE));
+
             // Create staging branch
             if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-                createEnvironmentBranch(siteId, commitId,
+                createEnvironmentBranch(siteId, newCommitId,
                         servicesConfig.getStagingEnvironment(siteId));
             }
             // Create live branch
-            createEnvironmentBranch(siteId, commitId,
+            createEnvironmentBranch(siteId, newCommitId,
                     servicesConfig.getLiveEnvironment(siteId));
             siteService.setPublishedRepoCreated(siteId);
+            commitId = newCommitId;
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Failed to perform initial publish for site '%s'", siteId), e);
+        } finally {
+            generalLockService.unlock(publishedRepoLockKey);
         }
 
         logger.info("Completed the initial publish of the site '{}'", siteId);
