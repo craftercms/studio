@@ -35,6 +35,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.exception.PermissionException;
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.asset.Asset;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessingConfigReader;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
@@ -48,8 +50,13 @@ import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.asset.processing.AssetProcessingService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.validation.Validator;
 
 import static java.lang.String.format;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
+import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_NAME;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 
 /**
  * Default implementation of {@link AssetProcessingService}.
@@ -88,7 +95,11 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
     @Override
     public Map<String, Object> processAsset(String site, String folder, String assetName, InputStream in, String isImage,
                                             String allowedWidth, String allowedHeight, String allowLessSize, String draft,
-                                            String unlock, String systemAsset) {
+                                            String unlock, String systemAsset) throws ValidationException {
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, folder, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, assetName, REQUEST_PARAM_NAME);
+
         String repoPath = UrlUtils.concat(folder, assetName);
         InputStream configIn;
 

@@ -28,8 +28,10 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -84,6 +86,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
+import org.springframework.validation.Validator;
 import org.xml.sax.SAXException;
 
 import javax.validation.Valid;
@@ -101,6 +104,8 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -109,6 +114,8 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -329,7 +336,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                              String createFolders,
                              String edit,
                              String unlock)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        siteService.checkSiteExists(site);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
 
@@ -508,12 +519,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                       @ValidateStringParam final String createFolders,
                                       @ValidateStringParam final  String edit,
                                       @ValidateStringParam final String unlock,
-                                      final boolean createFolder) throws ServiceLayerException {
+                                      final boolean createFolder) throws ServiceLayerException, ValidationException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename item at site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+
+        siteService.checkSiteExists(site);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, targetPath, REQUEST_PARAM_TARGET);
+        validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
 
         // Check if the target path already exists and prevent any operation
         boolean isIndexFile = targetPath.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -673,6 +690,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Valid
     public void notifyContentEvent(@ValidateStringParam String site, @ValidateSecurePathParam String path) {
         applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+    }
+
+    @Override
+    public boolean validateAndCreateFolder(@SiteId String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        siteService.checkSiteExists(site);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, name, REQUEST_PARAM_NAME);
+
+        return this.createFolder(site, path, name);
     }
 
     @Override
@@ -2663,9 +2691,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public boolean renameContent(@ValidateStringParam String site,
                                 @ValidateSecurePathParam String path,
                                 @ValidateStringParam String name)
-            throws ServiceLayerException, UserNotFoundException {
-        boolean toRet = false;
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        siteService.checkSiteExists(site);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, name, REQUEST_PARAM_NAME);
 
+        boolean toRet = false;
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
 

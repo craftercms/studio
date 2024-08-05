@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.exception.PathNotFoundException;
@@ -338,7 +339,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
     public boolean renameContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
-     throws ServiceLayerException, UserNotFoundException{
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
         logger.debug("rename path {} to new name {} for site {}", path, name, site);
         return contentServiceV1.renameContent(site, path, name);
     }
