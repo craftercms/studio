@@ -51,9 +51,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.annotation.policy.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -2657,16 +2655,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.RENAME)
+    @RequireContentExists
     public boolean renameContent(@ValidateStringParam @SiteId String site,
-                                @ValidateSecurePathParam @ActionTargetPath String path,
+                                @ValidateSecurePathParam @ActionTargetPath @ContentPath String path,
                                 @ValidateStringParam @ActionTargetFilename String name)
-            throws ServiceLayerException, UserNotFoundException {
-        boolean toRet = false;
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+        validateValue(pathValidator, name, REQUEST_PARAM_NAME);
 
+        boolean toRet = false;
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
-
-        checkContentExists(site, path);
 
         if (contentExists(site, targetPath)) {
             throw new ContentExistException(format("Content '%s' in site '%s', cannot be renamed " +

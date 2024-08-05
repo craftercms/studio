@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -286,7 +287,7 @@ public class ContentController {
 
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
-            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
+            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException, ValidationException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 
         var responseBody = new ResponseBody();
