@@ -39,11 +39,13 @@ import org.springframework.lang.NonNull;
 import org.xml.sax.SAXException;
 
 import jakarta.validation.Valid;
+
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_METHOD_WRITE_CONTENT_PREHOOK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 
@@ -113,6 +115,27 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
     }
 
+    @Override
+    public Object processContentWritePreHook(String site, String path, String contentType, InputStream inputStream) {
+        String scriptPath = getScriptPath(site, contentType);
+        if (!contentService.contentExists(site, scriptPath)) {
+            logger.error("No script found in site '{}' path '{}' content type '{}'", site, scriptPath, contentType);
+            return null;
+        }
+        String script = contentService.getContentAsString(site, scriptPath);
+
+        if (StringUtils.isNotEmpty(script)) {
+            try {
+                Object[] args = new Object[]{inputStream, new XmlContentLoader()};
+                return scriptExecutor.invokeScriptMethod(script, scriptPath, KEY_METHOD_WRITE_CONTENT_PREHOOK, args);
+            } catch (Exception e) {
+                logger.error("Failed to run pre-hook content lifecycle script in site '{}' path '{}'", site, path, e);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * get the content metadata extraction script
      *
@@ -177,6 +200,32 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
 
         /**
+         * return XML document from input stream
+         * @param is
+         * @return
+         */
+        public Document getContent(InputStream is) {
+            try {
+                SAXReader saxReader = new SAXReader();
+                try {
+                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                } catch (SAXException e){
+                    logger.error("Unable to turn off external entity loading, " +
+                            "this could be a security risk", e);
+                }
+                return saxReader.read(is);
+            } catch (DocumentException e) {
+                logger.error("Failed to read content from the input stream", e);
+                if (is != null) {
+                    ContentUtils.release(is);
+                }
+                return null;
+            }
+        }
+
+        /**
          * return XML document
          *
          * @param site
@@ -187,17 +236,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             InputStream is = null;
             try {
                 is = contentService.getContent(site, path);
-                SAXReader saxReader = new SAXReader();
-                try {
-                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                } catch (SAXException e){
-                    logger.error("Unable to turn off external entity loading in site '{}' path '{}', " +
-                            "this could be a security risk", site, path, e);
-                }
-                return saxReader.read(is);
-            } catch (DocumentException | ContentNotFoundException e) {
+                return this.getContent(is);
+            } catch (ContentNotFoundException e) {
                 logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
                 if (is != null) {
                     ContentUtils.release(is);

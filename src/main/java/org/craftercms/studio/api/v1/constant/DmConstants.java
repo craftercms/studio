@@ -75,6 +75,9 @@ public class DmConstants {
 	public final static String KEY_SCRIPT_DOCUMENT = "contentXml";
 	public final static String KEY_CONTENT_LOADER = "contentLoader";
 
+	/* script method names */
+	public static final String KEY_METHOD_WRITE_CONTENT_PREHOOK = "writeContentPreHook";
+
 	/* TODO: move this to configuration */
 	public static final String ROOT_PATTERN_PAGES = "/site/website";
 	public static final String ROOT_PATTERN_COMPONENTS = "/site/(components|component-bindings|indexes|resources)";

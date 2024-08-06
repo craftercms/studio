@@ -155,18 +155,6 @@ public interface ContentService {
     boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
-     * write content from an input stream and notify the subscribers.
-     *
-     * @param site    - the project ID
-     * @param path    path to content
-     * @param content stream of content to write
-     * @return return true if successful
-     *
-     * @throws ServiceLayerException general service error
-     */
-    boolean writeContentAndNotify(String site, String path, InputStream content) throws ServiceLayerException;
-
-    /**
      * Notify when there is a content update
      * @param site site name
      * @param path path name

@@ -422,7 +422,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             // TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
             // TODO: SJ: refactored in 2.7.x
-            processContent(site, id, input, true, params, getContentChainID(path));
+            processContent(site, path, id, contentType, input, true, params, getContentChainID(path));
 
             if (shouldUpdateChildrenParent) {
                 // Update folder's children parentId, so they become this new page children instead
@@ -616,7 +616,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     + "not yet published.", path, site));
             }
 
-            ResultTO result = processContent(site, id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+            ResultTO result = processContent(site, path, id, null, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
 
             if (isSystemAsset) {
@@ -664,21 +664,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             processedCommitsDao.insertCommit(site.getId(), commitId);
             applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
         }
-        return result;
-    }
-
-    @Override
-    @Valid
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public boolean writeContentAndNotify(@SiteId String site,
-                                @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
-                                InputStream content)
-            throws ServiceLayerException {
-        boolean result = writeContent(site, path, content);
-        if (result) {
-            notifyContentEvent(site, path);
-        }
-
         return result;
     }
 
@@ -953,9 +938,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                         // processContent will close the input stream
                         if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                            processContent(site, id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                            processContent(site, copyPath, id, contentType, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                         } else {
-                            processContent(site, id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                            processContent(site, copyPath, id, contentType, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                         }
 
                         itemServiceInternal.setSystemProcessing(site, copyPath, false);
@@ -2328,7 +2313,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Valid
-    protected ResultTO processContent(String siteId, String id, InputStream input, boolean isXml,
+    protected ResultTO processContent(String siteId, String path, String id, String contentType, InputStream input, boolean isXml,
                                    Map<String, String> params,
                                    String contentChainForm)
             throws ServiceLayerException, UserNotFoundException {
@@ -2341,7 +2326,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (logger.isDebugEnabled()) {
             startTime = System.currentTimeMillis();
         }
-        ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
+
+        Object preHookResult = null;
+        if (contentType != null && isXml) {
+            preHookResult = dmContentLifeCycleService.processContentWritePreHook(siteId, path, contentType, input);
+        }
+
+        ResultTO to = contentProcessor.processContent(id, preHookResult != null ? (InputStream) preHookResult : input, isXml, params, contentChainForm);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Write completed for '{}' in '{}' milliseconds.",

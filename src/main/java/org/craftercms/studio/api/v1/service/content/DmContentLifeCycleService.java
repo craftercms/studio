@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.InputStream;
 import java.util.Map;
 
 public interface DmContentLifeCycleService {
@@ -49,7 +50,7 @@ public interface DmContentLifeCycleService {
     }
 
     /**
-     * process contnet lifecycle
+     * process content lifecycle
      *
      * @param site
      * @param user
@@ -60,4 +61,15 @@ public interface DmContentLifeCycleService {
      */
     void process(String site, String user, String path, String contentType, ContentLifeCycleOperation operation,
                         Map<String, String> params);
+
+    /**
+     * Process content write pre-hook
+     * @param site site identifier
+     * @param path content path
+     * @param contentType content type
+     * @param inputStream content input stream
+     *
+     * @return pre-hook result
+     */
+    Object processContentWritePreHook(String site, String path, String contentType, InputStream inputStream);
 }

@@ -17,9 +17,25 @@
 package org.craftercms.studio.api.v1.script;
 
 import javax.script.ScriptException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 public interface ScriptExecutor {
 
     void executeScriptString(String script, Map<String, Object> model) throws ScriptException;
+
+    /**
+     * Invode a script method
+     * @param script script content
+     * @param scriptPath script path
+     * @param methodName method name
+     * @param args method arguments
+     * @return result of invoked method
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws IOException
+     */
+    Object invokeScriptMethod(String script, String scriptPath, String methodName, Object[] args)
+            throws InstantiationException, IllegalAccessException, IOException;
 }
