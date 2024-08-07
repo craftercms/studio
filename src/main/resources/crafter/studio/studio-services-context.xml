@@ -1023,12 +1023,7 @@
 
     <bean id="cstudioCheckImageSizeProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CheckImageSizeProcessor"/>
 
-    <bean id="cstudioAssetDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.AssetDmContentProcessor">
-        <property name="contentService" ref="cstudioContentService" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="contentRepository" ref="contentRepository"/>
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="contentRepositoryV1" ref="contentRepository" />
+    <bean id="cstudioAssetDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.AssetDmContentProcessor" parent="cstudioFormDmContentProcessor">
     </bean>
 
     <bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
@@ -1052,8 +1047,8 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="contentRepositoryV1" ref="contentRepository" />
         <property name="contentServiceV2" ref="contentService"/>
+        <property name="workflowService" ref="studio.workflowServiceInternal"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

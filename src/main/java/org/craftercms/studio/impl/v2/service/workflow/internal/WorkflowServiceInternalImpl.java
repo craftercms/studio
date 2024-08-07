@@ -63,12 +63,12 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
     }
 
     @Override
-    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
         itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
     }
 
     @Override
-    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
         itemServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
                 live, staged, isNew, modified);
     }
@@ -82,7 +82,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
             throw new ContentNotFoundException(path, siteId,
                     "Content not found for site " + siteId + " and path " + path);
         }
-        SandboxItem sandboxItem = sandboxItems.get(0);
+        SandboxItem sandboxItem = sandboxItems.getFirst();
         if (isInWorkflowOrScheduled(sandboxItem.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(sandboxItem.getState());
@@ -181,6 +181,17 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
         return deletePackage;
     }
 
+    @Override
+    public void cancelWorkflow(final String siteId, final String path) {
+        /*
+        * Get the list of packages affected
+        * Lock the packages
+        * Cancel all packages
+        * Update item states
+        */
+        // TODO: implement
+    }
+
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
                                  List<String> submitterList) {
         notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy);
@@ -190,10 +201,12 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
         this.itemServiceInternal = itemServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setDependencyServiceInternal(final org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
@@ -202,6 +215,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
         this.dependencyService = dependencyService;
     }
 
+    @SuppressWarnings("unused")
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
     }

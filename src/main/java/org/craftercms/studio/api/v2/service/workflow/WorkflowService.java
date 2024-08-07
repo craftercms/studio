@@ -116,4 +116,12 @@ public interface WorkflowService {
     // TODO: review: is this a "workflow" operation?
     void delete(String siteId, List<String> paths, List<String> optionalDependencies, String comment)
             throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Cancel all pending publish packages containing the given path
+     *
+     * @param siteId the site id
+     * @param path   the content path
+     */
+    void cancelWorkflow(String siteId, String path);
 }

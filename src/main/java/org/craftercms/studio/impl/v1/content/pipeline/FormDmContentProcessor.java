@@ -33,11 +33,13 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.lang.NonNull;
 
 import java.io.InputStream;
 import java.util.List;
@@ -58,20 +60,21 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ServicesConfig servicesConfig;
     protected GitContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
-    protected org.craftercms.studio.api.v1.repository.GitContentRepository contentRepositoryV1;
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+    private WorkflowService workflowService;
 
     /**
-     * default constructor
+     * Default constructor
      */
+    @SuppressWarnings("unused")
     public FormDmContentProcessor() {
-        super(NAME); 
+        super(NAME);
     }
  
     /**
      * constructor that sets the process name
      *
-     * @param name
+     * @param name name of this processor
      */
     public FormDmContentProcessor(String name) {
         super(name);
@@ -137,6 +140,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                             unlock(site, path);
                         }
                     } else {
+                        if (parentItem == null) {
+                            throw new ContentNotFoundException(format("The parent of content item at '%s' doesn't exist in site '%s'",
+                                    parentContentPath, site));
+                        }
                         createNewFile(site, parentItem, fileName, input, user, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                     }
@@ -166,28 +173,20 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     /**
-     * create new file to the given path. If the path is a file name, it will
+     * Create new file to the given path. If the path is a file name, it will
      * create a new folder with the same name as the file name (without the
      * prefix) and move the existing file to the folder created. Then it creates
      * new file to the folder
      *
-     * @param site
-     *            Site name
-     * @param fileName
-     *            new file name
-     * @param input
-     *            file content
-     * @param user
-     *            current user
-     * @throws ContentNotFoundException
+     * @param site     Site name
+     * @param fileName new file name
+     * @param input    file content
+     * @param user     current user
+     * @throws ContentNotFoundException if content at the path does not exist
      */
-    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, InputStream input,
+    protected ContentItemTO createNewFile(String site, @NonNull ContentItemTO parentItem, String fileName, InputStream input,
                                           String user, boolean unlock, ResultTO result)
             throws ServiceLayerException {
-        if (parentItem == null) {
-            throw new ContentNotFoundException(format("The parent item at '%s' doesn't exist in site '%s'",
-                    parentItem.getUri(), site));
-        }
         String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
         itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
         try {
@@ -205,7 +204,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                contentRepositoryV1.unLockItem(site, itemPath);
+                contentRepository.itemUnlock(site, itemPath);
             } else {
                 contentRepository.lockItem(site, itemPath);
             }
@@ -223,11 +222,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     /**
      * update the file at the given content node
      *
-     * @param input
-     * @param user
-     * @param isPreview
+     * @param input     stream with the content to be written
+     * @param user      user updating the content
+     * @param isPreview is this a preview update?
      * @param unlock    unlock the content upon update?
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException if the content cannot be updated
      */
     protected void updateFile(String site, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
@@ -247,8 +246,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {
                 if (cancelWorkflow(site, path)) {
-                    // TODO: implement for new publishing system
-//                    workflowService.removeFromWorkflow(site, path, true);
+                    workflowService.cancelWorkflow(site, path);
                 }
             }
 
@@ -260,17 +258,17 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
         // unlock the content upon save if the flag is true
         if (unlock) {
-            contentRepositoryV1.unLockItem(site, path);
+            contentRepository.itemUnlock(site, path);
         } else {
             contentRepository.lockItem(site, path);
         }
     }
 
     /**
-     * cancel the pending workflow upon editing the content at the given path?
+     * Cancel the pending workflow upon editing the content at the given path?
      *
-     * @param site
-     * @param path
+     * @param site the site id
+     * @param path the content path
      * @return true if workflow needs to be canceled
      */
     protected boolean cancelWorkflow(String site, String path) {
@@ -301,11 +299,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // cancel if the content is a document
             return ContentUtils.matchesPatterns(path, displayPatterns);
         }
-    }
-
-    protected boolean updateWorkFlow(String site,String path) {
-        List<String> assetPatterns = servicesConfig.getAssetPatterns(site);
-        return  ContentUtils.matchesPatterns(path, assetPatterns);
     }
 
     @Override
@@ -371,12 +364,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.GitContentRepository contentRepositoryV1) {
-        this.contentRepositoryV1 = contentRepositoryV1;
-    }
-
+    @SuppressWarnings("unused")
     public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
     }
 
+    @SuppressWarnings("unused")
+    public void setWorkflowService(final WorkflowService workflowService) {
+        this.workflowService = workflowService;
+    }
 }

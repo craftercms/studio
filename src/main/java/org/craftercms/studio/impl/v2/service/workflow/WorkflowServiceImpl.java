@@ -22,6 +22,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -97,5 +98,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                        List<String> optionalDependencies, String comment)
             throws ServiceLayerException, UserNotFoundException {
         workflowServiceInternal.delete(siteId, paths, optionalDependencies, comment);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CANCEL_PUBLISH)
+    public void cancelWorkflow(@SiteId String siteId, @ContentPath String path) {
+        workflowServiceInternal.cancelWorkflow(siteId, path);
     }
 }

@@ -48,7 +48,6 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -491,7 +490,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
     @Override
     public void unLockItem(String site, String path) {
-        localRepositoryV1.unLockItem(site, path);
+        localRepositoryV2.itemUnlock(site, path);
     }
 
     @Override

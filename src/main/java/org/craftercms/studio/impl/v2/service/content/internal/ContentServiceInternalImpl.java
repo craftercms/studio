@@ -22,7 +22,6 @@ import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -348,12 +347,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException {
+    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
         return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
     }
 
     @Override
-    public List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException {
+    public List<String> getChildItems(String siteId, List<String> paths) {
         List<String> subtreeItems = getSubtreeItems(siteId, paths);
         List<String> childItems = new ArrayList<>();
         childItems.addAll(subtreeItems);
@@ -385,7 +384,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 
             long publishPackageId = 0;
             if (contentRepository.publishedRepositoryExists(siteId)) {
-                // TODO: consider item_target previous path and send to delete the actual published path
                 publishPackageId = publishServiceInternal.publishDelete(siteId, userRequested, dependencies, submissionComment);
             }
 
@@ -425,7 +423,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException {
+    public Document getItemDescriptor(String siteId, String path, boolean flatten) throws ContentNotFoundException {
         try {
             org.craftercms.core.service.Item item = getItem(siteId, path, flatten);
             Document descriptor = item.getDescriptorDom();
@@ -465,7 +463,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+    public void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException {
         logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
         generalLockService.lockContentItem(siteId, path);
         try {
@@ -503,6 +501,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         this.contentRepository = contentRepository;
     }
 
+    @SuppressWarnings("unused")
     public void setItemDao(final ItemDAO itemDao) {
         this.itemDao = itemDao;
     }
@@ -519,6 +518,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         this.studioConfiguration = studioConfiguration;
     }
 
+    @SuppressWarnings("unused")
     public void setSemanticsAvailableActionsResolver(final SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {
         this.semanticsAvailableActionsResolver = semanticsAvailableActionsResolver;
     }
@@ -532,10 +532,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         this.eventPublisher = eventPublisher;
     }
 
+    @SuppressWarnings("unused")
     public void setContentTypeServiceInternal(final ContentTypeServiceInternal contentTypeServiceInternal) {
         this.contentTypeServiceInternal = contentTypeServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
@@ -556,14 +558,17 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         this.generalLockService = generalLockService;
     }
 
+    @SuppressWarnings("unused")
     public void setContentServiceV1(final org.craftercms.studio.api.v1.service.content.ContentService contentService) {
         this.contentServiceV1 = contentService;
     }
 
+    @SuppressWarnings("unused")
     public void setPublishServiceInternal(final PublishService publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
         this.processedCommitsDao = processedCommitsDao;
     }
