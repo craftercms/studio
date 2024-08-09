@@ -23,32 +23,44 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
-import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 
-public class WorkflowServiceInternalImpl implements WorkflowService {
+public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
+
+    private final static Logger logger = LoggerFactory.getLogger(WorkflowServiceInternalImpl.class);
 
     private NotificationService notificationService;
     private ItemServiceInternal itemServiceInternal;
     private ContentServiceInternal contentServiceInternal;
     private DependencyService dependencyService;
     private org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
+    private PublishDAO publishDao;
+    private GeneralLockService generalLockService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -183,13 +195,55 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
 
     @Override
     public void cancelWorkflow(final String siteId, final String path) {
-        /*
-        * Get the list of packages affected
-        * Lock the packages
-        * Cancel all packages
-        * Update item states
-        */
-        // TODO: implement
+        // Try to cancel ready packages
+        Collection<PublishPackage> packages = publishDao.getReadyPackagesForItem(siteId, path);
+        for (PublishPackage publishPackage : packages) {
+            cancelPackage(siteId, publishPackage);
+        }
+
+        // Wait for processing package (if any) to complete
+        PublishPackage processingPackage = publishDao.getPackageForItem(siteId, path, PublishPackage.PackageState.PROCESSING.value);
+        if (processingPackage != null) {
+            logger.debug("Package with id '{}' is in PROCESSING state, waiting for it to finish", processingPackage.getId());
+            String packageLockKey = getPublishPackageLockKey(processingPackage.getId());
+            generalLockService.lock(packageLockKey);
+            try {
+                logger.debug("Package with id '{}' has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
+            } finally {
+                generalLockService.unlock(packageLockKey);
+            }
+        }
+    }
+
+    /**
+     * Cancel a package.
+     * This method will cancel a package if its state is READY.
+     * It will also update the state bits of the items in the package to cancel the workflow.
+     *
+     * @param siteId         the site id
+     * @param publishPackage the package to cancel
+     */
+    private void cancelPackage(final String siteId, final PublishPackage publishPackage) {
+        String packageLockKey = getPublishPackageLockKey(publishPackage.getId());
+        generalLockService.lock(packageLockKey);
+        try {
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
+                return;
+            }
+            publishDao.updatePackageState(publishPackage.getId(), PublishPackage.PackageState.CANCELLED.value, PublishPackage.PackageState.READY.value);
+            Collection<PublishItem> pathsToCancelWorkflow = publishDao.getPublishItems(publishPackage.getId());
+            for (PublishItem publishItem : pathsToCancelWorkflow) {
+                String publishItemPath = publishItem.getPath();
+                Collection<PublishPackage> otherReadyPackages = publishDao.getReadyPackagesForItem(siteId, publishItemPath);
+                if (otherReadyPackages.isEmpty()) {
+                    itemServiceInternal.updateStateBits(siteId, publishItemPath, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
+                    eventPublisher.publishEvent(new ContentEvent(null, siteId, publishItemPath));
+                }
+            }
+        } finally {
+            generalLockService.unlock(packageLockKey);
+        }
     }
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
@@ -218,5 +272,20 @@ public class WorkflowServiceInternalImpl implements WorkflowService {
     @SuppressWarnings("unused")
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
+    }
+
+    @SuppressWarnings("unused")
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPublishDao(final PublishDAO publishDao) {
+        this.publishDao = publishDao;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
     }
 }

@@ -593,6 +593,8 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="publishDao" ref="publishDao" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"
@@ -775,6 +777,7 @@
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="contentRepository" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="workflowService" ref="studio.workflowServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

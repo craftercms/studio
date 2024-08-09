@@ -112,4 +112,14 @@ public abstract class StudioUtils {
     public static String getPublishingLockKey(final String siteId) {
         return SITE_PUBLISHING_LOCK.replaceAll(PATTERN_SITE, siteId);
     }
+
+    /**
+     * Get the key for the lock used to ensure exclusive access to a publish package
+     *
+     * @param packageId the package id
+     * @return the lock key
+     */
+    public static String getPublishPackageLockKey(long packageId) {
+        return PUBLISH_PACKAGE_LOCK.replaceAll(PATTERN_PACKAGE_ID, String.valueOf(packageId));
+    }
 }

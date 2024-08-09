@@ -139,10 +139,25 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
 
         try {
+            lockAndPublish(packageId);
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    private void lockAndPublish(final long packageId) throws ServiceLayerException {
+        String packageIdLockKey = StudioUtils.getPublishPackageLockKey(packageId);
+        logger.debug("Trying to acquire lock for publishing package '{}'", packageId);
+        boolean lockAcquired = generalLockService.tryLock(packageIdLockKey);
+        if (!lockAcquired) {
+            logger.warn("Failed to acquire lock for publishing package '{}'", packageId);
+            return;
+        }
+        try {
             PublishPackage publishPackage = publishDao.getById(packageId);
             doPublish(publishPackage);
         } finally {
-            generalLockService.unlock(lockKey);
+            generalLockService.unlock(packageIdLockKey);
         }
     }
 
@@ -242,6 +257,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                     0, stagingErrorCode, liveErrorCode);
             long onMask = isLiveTarget ? PublishItem.PublishState.LIVE_FAILED.value : PublishItem.PublishState.STAGING_FAILED.value;
             publishDao.updatePublishItemState(publishPackage.getId(), onMask, 0);
+            // TODO: Need to adjust this to check if there are other packages still alive that are scheduled/workflow
             itemServiceInternal.updateForCompletePackage(packageTO.getId(),
                     packageTO.getItemSuccessOnMask(),
                     packageTO.getItemSuccessOffMask(),

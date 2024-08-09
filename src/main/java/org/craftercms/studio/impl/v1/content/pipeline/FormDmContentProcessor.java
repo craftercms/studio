@@ -42,7 +42,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.NonNull;
 
 import java.io.InputStream;
-import java.util.List;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -244,11 +243,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             result.setCommitId(commitId);
 
             // if there is anything pending and this is not a preview update, cancel workflow
-            if (!isPreview) {
-                if (cancelWorkflow(site, path)) {
-                    workflowService.cancelWorkflow(site, path);
-                }
-            }
+            // TODO: we are not cancelling workflow here anymore
+            // Throw exception if the item is in workflow
 
             // Item
             // TODO: get local code with API 2
@@ -261,43 +257,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             contentRepository.itemUnlock(site, path);
         } else {
             contentRepository.lockItem(site, path);
-        }
-    }
-
-    /**
-     * Cancel the pending workflow upon editing the content at the given path?
-     *
-     * @param site the site id
-     * @param path the content path
-     * @return true if workflow needs to be canceled
-     */
-    protected boolean cancelWorkflow(String site, String path) {
-        // don't cancel if the content is a level descriptor
-        if (path.endsWith(servicesConfig.getLevelDescriptorName(site))) {
-            return false;
-        } else {
-            List<String> pagePatterns = servicesConfig.getPagePatterns(site);
-            // cancel if the content is a page
-            if (ContentUtils.matchesPatterns(path, pagePatterns)) {
-                return true;
-            }
-
-            List<String> componentPatterns = servicesConfig.getComponentPatterns(site);
-            if (ContentUtils.matchesPatterns(path, componentPatterns)) {
-                return true;
-            }
-
-            // Checking for document also
-            List<String> documentPatterns = servicesConfig.getDocumentPatterns(site);
-            // cancel if the content is a document
-            if (ContentUtils.matchesPatterns(path, documentPatterns)) {
-                return true;
-            }
-
-            // Checking for display patterns also
-            List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-            // cancel if the content is a document
-            return ContentUtils.matchesPatterns(path, displayPatterns);
         }
     }
 

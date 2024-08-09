@@ -205,6 +205,11 @@
     </sql>
 
     <select id="getPackageForItem" resultMap="PublishPackageMap">
+        <include refid="getPackagesForItem" />
+        ORDER BY pp.schedule ASC LIMIT 1
+    </select>
+
+    <sql id="getPackagesForItem">
         SELECT pp.*
         FROM publish_package pp
             INNER JOIN site s ON pp.site_id = s.id
@@ -216,6 +221,9 @@
             WHERE pi.package_id = pp.id
             AND pi.path = #{path}
         )
-        ORDER BY pp.schedule ASC LIMIT 1
+    </sql>
+
+    <select id="getReadyPackagesForItem">
+        <include refid="getPackagesForItem" />
     </select>
 </mapper>

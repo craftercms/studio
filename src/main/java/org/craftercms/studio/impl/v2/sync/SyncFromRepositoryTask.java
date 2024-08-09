@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
@@ -97,6 +98,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final GitContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
     private final ProcessedCommitsDAO processedCommitsDAO;
+    private final WorkflowService workflowService;
     private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
@@ -105,14 +107,14 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService",
             "contentRepository", "studioConfiguration",
-            "processedCommitsDAO"})
+            "processedCommitsDAO", "workflowService"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
                                   StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
                                   GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
-                                  ProcessedCommitsDAO processedCommitsDAO) {
+                                  ProcessedCommitsDAO processedCommitsDAO, WorkflowService workflowService) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -125,6 +127,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
         this.processedCommitsDAO = processedCommitsDAO;
+        this.workflowService = workflowService;
     }
 
     @Async
@@ -214,6 +217,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      */
     private void ingestChanges(final Site site, final String commitFrom, final String commitTo) throws IOException, GitAPIException, UserNotFoundException, ServiceLayerException {
         List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
+        cancelWorkflow(site, operationsFromDelta);
         syncDatabaseWithRepo(site, operationsFromDelta.stream().sorted(comparing(RepoOperation::getAction)).toList());
         auditChangesFromGit(site, commitFrom, commitTo);
         processedCommitsDAO.insertCommit(site.getId(), commitTo);
@@ -224,6 +228,19 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             eventPublisher.publishEvent(new RepositoryEvent(site.getSiteId()));
         } catch (Exception e) {
             logger.error("Failed to sync preview for site '{}'", site, e);
+        }
+    }
+
+    /**
+     * Cancel workflow for all paths in the given operations list.
+     *
+     * @param site                the site to cancel the workflow for.
+     * @param operationsFromDelta the list of operations being processed
+     */
+    private void cancelWorkflow(final Site site, final List<RepoOperation> operationsFromDelta) {
+        for (RepoOperation repoOperation : operationsFromDelta) {
+            String path = repoOperation.getPath();
+            workflowService.cancelWorkflow(site.getSiteId(), path);
         }
     }
 
