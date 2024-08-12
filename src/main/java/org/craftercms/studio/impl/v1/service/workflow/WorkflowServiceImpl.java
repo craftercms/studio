@@ -15,14 +15,11 @@
  */
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
+import jakarta.validation.Valid;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -49,8 +46,6 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInter
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.slf4j.Logger;
@@ -58,8 +53,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import jakarta.validation.Valid;
-import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -77,21 +70,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         SUBMIT_TO_GO_LIVE,
         REJECT,
     }
-
-    protected String JSON_KEY_SCHEDULED_DATE = "scheduledDate";
-    protected String JSON_KEY_IS_NOW = "now";
-    protected String JSON_KEY_URI = "uri";
-    protected String JSON_KEY_DELETED = "deleted";
-    protected String JSON_KEY_SUBMITTED_FOR_DELETION = "submittedForDeletion";
-    protected String JSON_KEY_SUBMITTED = "submitted";
-    protected String JSON_KEY_IN_PROGRESS = "inProgress";
-    protected String JSON_KEY_IN_REFERENCE = "reference";
-    protected String JSON_KEY_COMPONENTS = "components";
-    protected String JSON_KEY_DOCUMENTS = "documents";
-    protected String JSON_KEY_ASSETS = "assets";
-    protected String JSON_KEY_RENDERING_TEMPLATES = "renderingTemplates";
-    protected String JSON_KEY_DELETED_ITEMS = "deletedItems";
-    protected String JSON_KEY_CHILDREN = "children";
 
     protected ServicesConfig servicesConfig;
     protected DeploymentService deploymentService;
@@ -207,149 +185,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 }
             }
         }
-    }
-
-    /**
-     * get a submitted item from a JSON item
-     *
-     * @param site
-     * @param item
-     * @param format
-     * @return submitted item
-     * @throws net.sf.json.JSONException
-     */
-    protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format,
-                                              String globalSchDate) throws JSONException, ServiceLayerException {
-        DmDependencyTO submittedItem = new DmDependencyTO();
-        String uri = item.getString(JSON_KEY_URI);
-        submittedItem.setUri(uri);
-        boolean deleted = item.containsKey(JSON_KEY_DELETED) && item.getBoolean(JSON_KEY_DELETED);
-        submittedItem.setDeleted(deleted);
-        boolean isNow = item.containsKey(JSON_KEY_IS_NOW) && item.getBoolean(JSON_KEY_IS_NOW);
-        submittedItem.setNow(isNow);
-        boolean submittedForDeletion =
-                item.containsKey(JSON_KEY_SUBMITTED_FOR_DELETION) && item.getBoolean(JSON_KEY_SUBMITTED_FOR_DELETION);
-        boolean submitted = item.containsKey(JSON_KEY_SUBMITTED) && item.getBoolean(JSON_KEY_SUBMITTED);
-        boolean inProgress = item.containsKey(JSON_KEY_IN_PROGRESS) && item.getBoolean(JSON_KEY_IN_PROGRESS);
-        boolean isReference = item.containsKey(JSON_KEY_IN_REFERENCE) && item.getBoolean(JSON_KEY_IN_REFERENCE);
-        submittedItem.setReference(isReference);
-        submittedItem.setSubmittedForDeletion(submittedForDeletion);
-        submittedItem.setSubmitted(submitted);
-        submittedItem.setInProgress(inProgress);
-        // TODO: check scheduled date to make sure it is not null when isNow =
-        // true and also it is not past
-        ZonedDateTime scheduledDate = null;
-        if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
-            scheduledDate = getScheduledDate(site, format, globalSchDate);
-        } else {
-            if (item.containsKey(JSON_KEY_SCHEDULED_DATE)) {
-                String dateStr = item.getString(JSON_KEY_SCHEDULED_DATE);
-                if (!StringUtils.isEmpty(dateStr)) {
-                    scheduledDate = getScheduledDate(site, format, dateStr);
-                }
-            }
-        }
-        if (scheduledDate == null && !isNow) {
-            submittedItem.setNow(true);
-        }
-        submittedItem.setScheduledDate(scheduledDate);
-        JSONArray components =
-                (item.containsKey(JSON_KEY_COMPONENTS) && !item.getJSONObject(JSON_KEY_COMPONENTS).isNullObject()) ?
-                item.getJSONArray(JSON_KEY_COMPONENTS) : null;
-        List<DmDependencyTO> submittedComponents = getSubmittedItems(site, components, format, globalSchDate);
-        submittedItem.setComponents(submittedComponents);
-
-        JSONArray documents =
-                (item.containsKey(JSON_KEY_DOCUMENTS) && !item.getJSONObject(JSON_KEY_DOCUMENTS).isNullObject()) ?
-                        item.getJSONArray(JSON_KEY_DOCUMENTS) : null;
-        List<DmDependencyTO> submittedDocuments = getSubmittedItems(site, documents, format, globalSchDate);
-
-        submittedItem.setDocuments(submittedDocuments);
-        JSONArray assets =
-                (item.containsKey(JSON_KEY_ASSETS) && !item.getJSONObject(JSON_KEY_ASSETS).isNullObject()) ?
-                        item.getJSONArray(JSON_KEY_ASSETS) : null;
-        List<DmDependencyTO> submittedAssets = getSubmittedItems(site, assets, format, globalSchDate);
-        submittedItem.setAssets(submittedAssets);
-
-        JSONArray templates = (item.containsKey(JSON_KEY_RENDERING_TEMPLATES) &&
-                !item.getJSONObject(JSON_KEY_RENDERING_TEMPLATES).isNullObject()) ?
-                item.getJSONArray(JSON_KEY_RENDERING_TEMPLATES) : null;
-        List<DmDependencyTO> submittedTemplates = getSubmittedItems(site, templates, format, globalSchDate);
-        submittedItem.setRenderingTemplates(submittedTemplates);
-
-        JSONArray deletedItems = (item.containsKey(JSON_KEY_DELETED_ITEMS) &&
-                !item.getJSONObject(JSON_KEY_DELETED_ITEMS).isNullObject()) ?
-                item.getJSONArray(JSON_KEY_DELETED_ITEMS) : null;
-        List<DmDependencyTO> deletes = getSubmittedItems(site, deletedItems, format, globalSchDate);
-        submittedItem.setDeletedItems(deletes);
-
-        JSONArray children = (item.containsKey(JSON_KEY_CHILDREN)) ? item.getJSONArray(JSON_KEY_CHILDREN) : null;
-        List<DmDependencyTO> submittedChildren = getSubmittedItems(site, children, format, globalSchDate);
-        submittedItem.setChildren(submittedChildren);
-
-        if (uri.endsWith(DmConstants.XML_PATTERN)) {
-            /**
-             * Get dependent pages
-             */
-            Set<String> dependencies = dependencyService.getItemDependencies(site, uri, 1);
-            List<String> pagePatterns = servicesConfig.getPagePatterns(site);
-            List<String> documentPatterns = servicesConfig.getDocumentPatterns(site);
-            List<DmDependencyTO> dependentPages = new ArrayList<>();
-            List<DmDependencyTO> dependentDocuments = new ArrayList<>();
-            for (String dep : dependencies) {
-                if (ContentUtils.matchesPatterns(dep, pagePatterns)) {
-                    DmDependencyTO dmDependencyTO = new DmDependencyTO();
-                    dmDependencyTO.setUri(dep);
-                    dependentPages.add(dmDependencyTO);
-                } else if (ContentUtils.matchesPatterns(dep, documentPatterns)) {
-                    DmDependencyTO dmDependencyTO = new DmDependencyTO();
-                    dmDependencyTO.setUri(dep);
-                    dependentDocuments.add(dmDependencyTO);
-                }
-            }
-            submittedItem.setPages(dependentPages);
-            submittedItem.setDocuments(dependentDocuments);
-        }
-
-        return submittedItem;
-    }
-
-    /**
-     * get submitted items from JSON request
-     *
-     * @param site
-     * @param items
-     * @param format
-     * @return submitted items
-     * @throws JSONException
-     */
-    protected List<DmDependencyTO> getSubmittedItems(String site, JSONArray items, SimpleDateFormat format,
-                                                     String schDate) throws JSONException, ServiceLayerException {
-        if (items != null) {
-            int length = items.size();
-            if (length > 0) {
-                List<DmDependencyTO> submittedItems = new ArrayList<>();
-                for (int index = 0; index < length; index++) {
-                    JSONObject item = items.getJSONObject(index);
-                    DmDependencyTO submittedItem = getSubmittedItem(site, item, format, schDate);
-                    submittedItems.add(submittedItem);
-                }
-                return submittedItems;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * parse the given date
-     *
-     * @param site
-     * @param format
-     * @param dateStr
-     * @return date
-     */
-    protected ZonedDateTime getScheduledDate(String site, SimpleDateFormat format, String dateStr) {
-        return ContentFormatUtils.parseDate(format, dateStr, servicesConfig.getDefaultTimezone(site));
     }
 
     @Override

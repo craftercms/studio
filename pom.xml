@@ -58,16 +58,6 @@
 			<artifactId>crafter-engine</artifactId>
 			<version>${project.version}</version>
 			<type>war</type>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -126,60 +116,14 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-core</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-aop</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-expression</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-aop</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-core</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-web</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-expression</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-core</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -212,16 +156,6 @@
 			<groupId>net.sf.json-lib</groupId>
 			<artifactId>json-lib</artifactId>
 			<classifier>jdk15</classifier>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-beanutils</artifactId>
-					<groupId>commons-beanutils</groupId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-collections</groupId>
-					<artifactId>commons-collections</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -254,12 +188,6 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk15on</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- testing -->
@@ -366,47 +294,11 @@
 		<dependency>
 			<groupId>org.springframework.ldap</groupId>
 			<artifactId>spring-ldap-core</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-expression</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-core</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-ldap</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-expression</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-core</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -458,28 +350,12 @@
 		<dependency>
 			<groupId>com.box</groupId>
 			<artifactId>box-java-sdk</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk15on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk15on</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- WebDAV Client -->
 		<dependency>
 			<groupId>com.github.lookfirst</groupId>
 			<artifactId>sardine</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-simple</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- Saxon (to support XSLT 2.0) -->
@@ -690,7 +566,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-                    			<forkedProcessExitTimeoutInSeconds>50</forkedProcessExitTimeoutInSeconds>
+					<forkedProcessExitTimeoutInSeconds>50</forkedProcessExitTimeoutInSeconds>
 				</configuration>
 			</plugin>
 		</plugins>
