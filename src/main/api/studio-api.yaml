@@ -2630,64 +2630,6 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
-  /api/1/services/api/1/dependency/calculate-dependencies.json:
-    post:
-      tags:
-        - dependency
-      summary: Calculate and return dependencies for one or more items.
-      description: "Required role: Project/site member"
-      operationId: calculateDependencies
-      parameters:
-        - name: site_id
-          in: query
-          description: Project/Site ID to use
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: Reset staging request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                entities:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      item:
-                        type: string
-                        description: Path to the item(s)
-                  example:
-                    - item: /path/to/item1.xml
-                    - item: /path/to/item2.xml
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/WebDavItem'
-                example:
-                  message: "OK"
-        '400':
-          $ref: '#/components/responses/api1BadRequest'
-        '401':
-          $ref: '#/components/responses/api1Unauthorized'
-        '404':
-          $ref: '#/components/responses/api1NotFound'
-        '500':
-          $ref: '#/components/responses/api1InternalServerError'
-
   /api/1/services/api/1/dependency/get-dependant.json:
     post:
       tags:
