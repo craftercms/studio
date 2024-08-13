@@ -16,23 +16,15 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
-import org.apache.commons.io.IOUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v2.dal.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.User;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
@@ -72,31 +64,6 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
             siteParam = request.getParameter("site");
         }
         String pathParam = request.getParameter("path");
-        if (StringUtils.isEmpty(userParam)
-                && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
-                && !JakartaServletFileUpload.isMultipartContent(request)) {
-            try {
-                InputStream is = request.getInputStream();
-                is.mark(0);
-                String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
-                if (StringUtils.isNoneEmpty(jsonString)) {
-                    JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                    if (jsonObject.has("site")) {
-                        siteParam = jsonObject.getString("site");
-                    }
-                    if (jsonObject.has("site_id")) {
-                        siteParam = jsonObject.getString("site_id");
-                    }
-                    if (jsonObject.has("path")) {
-                        pathParam = jsonObject.getString("path");
-                    }
-                }
-                is.reset();
-            } catch (IOException | JSONException e) {
-                // TODO: SJ: Why isn't this at least INFO if not WARN?
-                logger.debug("Failed to extract the username from the POST request", e);
-            }
-        }
         pathParam = defaultIfEmpty(pathParam, DEFAULT_PERMISSION_VOTER_PATH);
         User currentUser = (User) authentication.getPrincipal();
         if (!siteService.exists(siteParam)) {

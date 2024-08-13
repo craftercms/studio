@@ -21,24 +21,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 
@@ -132,32 +127,16 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
                         && CollectionUtils.containsAny(userPermissions, permissions));
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
