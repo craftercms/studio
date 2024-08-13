@@ -3489,7 +3489,7 @@ paths:
         description: "Write content request body <br> Use \"multipart/form-data\" when uploading a file (WriteContentFileUpload)"
         required: true
         content:
-          application/json:
+          text/plain:
             schema:
               type: string
             examples:
