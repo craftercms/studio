@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.model.rest.Person;
 
 import java.time.Instant;
 
@@ -45,6 +46,8 @@ public class PublishPackage {
     protected String commitId;
     protected String publishedStagingCommitId;
     protected String publishedLiveCommitId;
+
+    protected Person submitter;
 
     public PublishPackage() {
     }
@@ -207,6 +210,14 @@ public class PublishPackage {
 
     public void setPublishedOn(Instant publishedOn) {
         this.publishedOn = publishedOn;
+    }
+
+    public Person getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(Person submitter) {
+        this.submitter = submitter;
     }
 
     /**

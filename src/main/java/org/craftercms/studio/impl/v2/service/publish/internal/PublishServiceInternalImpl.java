@@ -334,8 +334,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public PublishPackage getPackageForItem(final String siteId, final String path) {
-        return publishDao.getPackageForItem(siteId, path);
+    public PublishPackage getReadyPackageForItem(final String siteId, final String path) {
+        return publishDao.getReadyPackageForItem(siteId, path);
+    }
+
+    @Override
+    public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final Collection<String> paths) {
+        return publishDao.getItemPackagesByState(siteId, paths, PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value);
     }
 
     @Override

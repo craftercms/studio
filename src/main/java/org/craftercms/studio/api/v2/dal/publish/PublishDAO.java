@@ -39,6 +39,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageSta
 public interface PublishDAO {
     String SITE_ID = "siteId";
     String PATH = "path";
+    String PATHS = "paths";
     String TARGET = "target";
     String PACKAGE_ID = "packageId";
     String PUBLISH_PACKAGE = "publishPackage";
@@ -266,27 +267,16 @@ public interface PublishDAO {
     void updatePublishItemListState(@Param(ITEMS) Collection<PublishItem> items);
 
     /**
-     * Get the submitted package containing the given item
+     * Get a submitted package with READY state containing the given item
      *
      * @param siteId the site id
      * @param path   the path of the item
      * @return the package containing the item, or null if the item is not submitted to be published
      */
-    default PublishPackage getPackageForItem(String siteId, String path) {
-        return getPackageForItem(siteId, path, READY.value);
+    default PublishPackage getReadyPackageForItem(final String siteId, final String path) {
+        Collection<PublishPackage> packages = getItemPackagesByState(siteId, List.of(path), READY.value);
+        return packages.isEmpty() ? null : packages.iterator().next();
     }
-
-    /**
-     * Get the submitted package containing the given item
-     *
-     * @param siteId       the site id
-     * @param path         the path of the item
-     * @param packageState the mask to apply to filter the package state
-     * @return the package containing the item, or null if the item is not submitted to be published
-     */
-    PublishPackage getPackageForItem(@Param(SITE_ID) String siteId,
-                                     @Param(PATH) String path,
-                                     @Param(PACKAGE_STATE) long packageState);
 
     /**
      * Get the ready packages containing the given item
@@ -296,18 +286,44 @@ public interface PublishDAO {
      * @return collection of ready packages containing the item
      */
     default Collection<PublishPackage> getReadyPackagesForItem(final String siteId, final String path) {
-        return getPackagesForItem(siteId, path, READY.value);
+        return getItemPackagesByState(siteId, List.of(path), READY.value);
     }
+
+    /**
+     * Get the submitted package containing the given item
+     *
+     * @param siteId       the site id
+     * @param path         the path of the item
+     * @param packageState the mask to apply to filter the package state
+     * @return the package containing the item, or null if the item is not submitted to be published
+     */
+    default PublishPackage getPackageForItem(final String siteId,
+                                             final String path,
+                                             final long packageState) {
+        return getPackageForItems(siteId, List.of(path), packageState);
+    }
+
+    /**
+     * Get the submitted package containing the given items
+     *
+     * @param siteId       the site id
+     * @param paths        the paths of the items
+     * @param packageState the mask to apply to filter the package state
+     * @return the package containing the items, or null if the items are not submitted to be published
+     */
+    PublishPackage getPackageForItems(@Param(SITE_ID) String siteId,
+                                      @Param(PATHS) Collection<String> paths,
+                                      @Param(PACKAGE_STATE) long packageState);
 
     /**
      * Get the packages containing the given item that match the given package state
      *
      * @param siteId       the site id
-     * @param path         the path of the item
+     * @param paths        the paths of the items
      * @param packageState the mask to apply to filter the package state
      * @return collection of matching packages containing the item
      */
-    Collection<PublishPackage> getPackagesForItem(@Param(SITE_ID) String siteId,
-                                                       @Param(PATH) String path,
-                                                       @Param(PACKAGE_STATE) long packageState);
+    Collection<PublishPackage> getItemPackagesByState(@Param(SITE_ID) String siteId,
+                                                   @Param(PATHS) Collection<String> paths,
+                                                   @Param(PACKAGE_STATE) long packageState);
 }

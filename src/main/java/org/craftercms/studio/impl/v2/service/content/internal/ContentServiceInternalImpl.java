@@ -28,9 +28,11 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
@@ -361,9 +363,29 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         return childItems;
     }
 
+    /**
+     * Check if the content is part of any ready/processing publish package and fail if it is
+     *
+     * @param siteId the site id
+     * @param paths  the paths to check
+     * @throws ContentInPublishQueueException if the content is part of a publish package
+     */
+    private void assertNotInWorkflow(final String siteId, final List<String> paths) throws ContentInPublishQueueException {
+        Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths);
+        if (isNotEmpty(packagesForItems)) {
+            throw new ContentInPublishQueueException("Unable to write content that is part of an active publishing package", packagesForItems);
+        }
+    }
+
     @Override
     public long deleteContent(String siteId, List<String> paths, String submissionComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        generalLockService.lock(sandboxRepoLockKey);
+        try {
+            // check and fail if the item is part of a publish package
+            assertNotInWorkflow(siteId, paths);
+
             AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
             itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
             Site site = siteService.getSite(siteId);
@@ -400,6 +422,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
                 eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
             }
             return publishPackageId;
+        } finally {
+            generalLockService.unlock(sandboxRepoLockKey);
+        }
     }
 
     private void insertDeleteContentApprovedActivity(Site site, String approver, Collection<String> paths) {

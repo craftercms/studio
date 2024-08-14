@@ -21,8 +21,11 @@
 <mapper namespace="org.craftercms.studio.api.v2.dal.publish.PublishDAO">
     <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage" autoMapping="true">
         <result property="siteId" column="site_id"/>
+        <result property="submitterId" column="submitter_id"/>
         <association property="site" column="site_id"
                      select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
+        <association property="submitter" column="submitter_id"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
 
     <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
@@ -204,12 +207,12 @@
         )
     </sql>
 
-    <select id="getPackageForItem" resultMap="PublishPackageMap">
-        <include refid="getPackagesForItem" />
+    <select id="getPackageForItems" resultMap="PublishPackageMap">
+        <include refid="getAllPackagesForItems" />
         ORDER BY pp.schedule ASC LIMIT 1
     </select>
 
-    <sql id="getPackagesForItem">
+    <sql id="getAllPackagesForItems">
         SELECT pp.*
         FROM publish_package pp
             INNER JOIN site s ON pp.site_id = s.id
@@ -219,11 +222,14 @@
             SELECT 1
             FROM publish_item pi
             WHERE pi.package_id = pp.id
-            AND pi.path = #{path}
+            AND pi.path IN
+                <foreach collection="paths" item="path" open="(" separator="," close=")">
+                    #{path}
+                </foreach>
         )
     </sql>
 
-    <select id="getReadyPackagesForItem">
-        <include refid="getPackagesForItem" />
+    <select id="getItemPackagesByState" resultMap="PublishPackageMap">
+        <include refid="getAllPackagesForItems" />
     </select>
 </mapper>

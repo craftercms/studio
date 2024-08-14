@@ -150,7 +150,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             }
 
             if (isInWorkflow(itemState)) {
-                PublishPackage publishPackage = publishServiceInternal.getPackageForItem(siteId, itemPath);
+                PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(siteId, itemPath);
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user.getId() == publishPackage.getSubmitterId()) {
                     result &= ~PUBLISH_APPROVE;

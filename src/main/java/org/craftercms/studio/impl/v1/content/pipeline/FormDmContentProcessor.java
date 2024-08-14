@@ -25,15 +25,19 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
@@ -42,8 +46,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.NonNull;
 
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -60,7 +67,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected GitContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
-    private WorkflowService workflowService;
+    private GeneralLockService generalLockService;
+    private PublishService publishService;
 
     /**
      * Default constructor
@@ -150,7 +158,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
                 throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
             }
-        } catch (ContentNotFoundException e) {
+        } catch (ServiceLayerException  e) {
             throw e;
         } catch (Exception e) {
             logger.error("Failed to write content site '{}' path '{}'", site, path, e);
@@ -231,32 +239,41 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                               boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
 
-        boolean success;
+        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(site);
+        generalLockService.lock(sandboxRepoLockKey);
         try {
-            success = contentService.writeContent(site, path, input);
+            // Fail to continue write operation if the item is in workflow
+            Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(site, List.of(path));
+            if (isNotEmpty(packagesForItems)) {
+                throw new ContentInPublishQueueException("Unable to write content that is part of an active publishing package", packagesForItems);
+            }
+
+            boolean success;
+            try {
+                success = contentService.writeContent(site, path, input);
+            } finally {
+                ContentUtils.release(input);
+            }
+
+            if (success) {
+                String commitId = contentRepository.getRepoLastCommitId(site);
+                result.setCommitId(commitId);
+
+
+                // Item
+                // TODO: get local code with API 2
+                itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
+                contentService.notifyContentEvent(site, path);
+            }
+
+            // unlock the content upon save if the flag is true
+            if (unlock) {
+                contentRepository.itemUnlock(site, path);
+            } else {
+                contentRepository.lockItem(site, path);
+            }
         } finally {
-            ContentUtils.release(input);
-        }
-
-        if (success) {
-            String commitId = contentRepository.getRepoLastCommitId(site);
-            result.setCommitId(commitId);
-
-            // if there is anything pending and this is not a preview update, cancel workflow
-            // TODO: we are not cancelling workflow here anymore
-            // Throw exception if the item is in workflow
-
-            // Item
-            // TODO: get local code with API 2
-            itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
-            contentService.notifyContentEvent(site, path);
-        }
-
-        // unlock the content upon save if the flag is true
-        if (unlock) {
-            contentRepository.itemUnlock(site, path);
-        } else {
-            contentRepository.lockItem(site, path);
+            generalLockService.unlock(sandboxRepoLockKey);
         }
     }
 
@@ -329,7 +346,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     @SuppressWarnings("unused")
-    public void setWorkflowService(final WorkflowService workflowService) {
-        this.workflowService = workflowService;
+    public void setPublishService(PublishService publishService) {
+        this.publishService = publishService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

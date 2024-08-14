@@ -402,10 +402,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String folderPath = removeEnd(path, FILE_SEPARATOR + fileName);
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
 
+        boolean clearSystemProcessing = false;
         try {
             boolean shouldUpdateChildrenParent = false;
             if (contentExists(site, path)) {
                 trySetSystemProcessing(site, path);
+                clearSystemProcessing = true;
             } else {
                 // Check if creating a new page to an existing folder
                 boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -443,10 +445,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
                         SAVE_AND_NOT_CLOSE_OFF_MASK);
             }
-        }  catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             logger.error("Failed to write content at site '{}' path '{}'", site, path, e);
-            itemServiceInternal.setSystemProcessing(site, path, false);
             throw e;
+        } finally {
+            if (clearSystemProcessing) {
+                itemServiceInternal.setSystemProcessing(site, path, false);
+            }
         }
     }
 
@@ -1991,7 +1996,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item.setPublishedDate(metadata.getLastPublishedOn());
         }
 
-        PublishPackage publishPackage = publishServiceInternal.getPackageForItem(site, path);
+        PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(site, path);
         if (publishPackage != null) {
             if (publishPackage.getSchedule() != null) {
                 item.setScheduledDate(publishPackage.getSchedule().atZone(ZoneOffset.UTC));

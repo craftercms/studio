@@ -1051,7 +1051,8 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="contentServiceV2" ref="contentService"/>
-        <property name="workflowService" ref="studio.workflowServiceInternal"/>
+        <property name="publishService" ref="publishServiceInternal"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

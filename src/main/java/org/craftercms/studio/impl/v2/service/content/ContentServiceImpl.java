@@ -218,6 +218,7 @@ public class ContentServiceImpl implements ContentService {
         return contentServiceInternal.getContentVersionHistory(siteId, path);
     }
 
+    @SuppressWarnings("unused")
     public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
     }

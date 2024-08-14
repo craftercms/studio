@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.model.rest;
 
+import com.google.protobuf.Api;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -101,6 +102,8 @@ public class ApiResponse {
             "Try pasting the content to a different folder", StringUtils.EMPTY);
     public static final ApiResponse BLOB_NOT_FOUND = new ApiResponse(7005, "Content not found in blob store",
             "Check your blob store configurations", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_IN_PUBLISH_QUEUE = new ApiResponse(7006, "Cannot edit content that is part of an active publish package",
+            "Cancel affected publish packages and retry", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
