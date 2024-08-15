@@ -76,7 +76,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="contentServiceV2" ref="contentService"/>
-        <property name="processedCommitsDao" ref="processedCommitsDao" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -903,6 +902,8 @@
         <property name="contextManager" ref="contextManager"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
+        <property name="siteDao" ref="siteDao" />
+        <property name="processedCommitsDao" ref="processedCommitsDao" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>

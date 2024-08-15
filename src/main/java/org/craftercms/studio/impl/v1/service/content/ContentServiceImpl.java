@@ -156,7 +156,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
 
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
-    private ProcessedCommitsDAO processedCommitsDao;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -661,7 +660,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         result = StringUtils.isNotEmpty(commitId);
         if (result && isNotEmpty(siteId)) {
             Site site = siteService.getSite(siteId);
-            processedCommitsDao.insertCommit(site.getId(), commitId);
             applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
         }
         return result;
@@ -735,7 +733,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
         auditLog.setPrimaryTargetValue(folderPath);
         auditServiceInternal.insertAuditLog(auditLog);
-        processedCommitsDao.insertCommit(siteFeed.getId(), commitId);
         applicationContext.publishEvent(new SyncFromRepoEvent(site));
         applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
 
@@ -1087,8 +1084,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
 
-                Site site = siteService.getSite(siteId);
-                processedCommitsDao.insertCommit(site.getId(), commitId);
                 applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
                 if (movedDocument != null) {
                     writeContent(siteId, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
@@ -2702,8 +2697,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             if (isFolder) {
                 updateChildrenOnMove(siteId, path, targetPath);
             }
-            Site site = siteService.getSite(siteId);
-            processedCommitsDao.insertCommit(site.getId(), commitId);
             applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), siteId, path, targetPath));
             toRet = true;
@@ -2842,10 +2835,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
-    }
-
-    public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
-        this.processedCommitsDao = processedCommitsDao;
     }
 
     /**
