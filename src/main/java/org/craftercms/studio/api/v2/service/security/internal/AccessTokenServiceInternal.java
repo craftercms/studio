@@ -112,6 +112,13 @@ public interface AccessTokenServiceInternal {
     // All tokens
 
     /**
+     * Deletes all the tokens for the given users
+     *
+     * @param userIds the user ids list
+     */
+    void deleteUsersTokens(List<Long> userIds);
+
+    /**
      * Returns the username for the given access token
      * @param token the access token
      * @return the username, null if the access token is invalid
