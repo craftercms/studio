@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import jakarta.servlet.ServletContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -38,9 +39,7 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -66,7 +65,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.context.ServletContextAware;
 
-import jakarta.servlet.ServletContext;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.FileVisitOption;
@@ -106,10 +104,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ServicesConfig servicesConfig;
     protected RemoteRepositoryDAO remoteRepositoryDAO;
     protected SecurityService securityService;
-    protected SiteFeedMapper siteFeedMapper;
+    protected SiteDAO siteDao;
     protected ContextManager contextManager;
     protected GeneralLockService generalLockService;
     protected GitRepositoryHelper helper;
+    protected ProcessedCommitsDAO processedCommitsDao;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
@@ -193,29 +192,31 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) {
+    public String writeContent(String siteId, String path, InputStream content) {
         // Write content to git and commit it
         String commitId = null;
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GLOBAL: SANDBOX);
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId)? GLOBAL: SANDBOX);
             if (repo != null) {
-                if (helper.writeFile(repo, site, path, content)) {
+                if (helper.writeFile(repo, siteId, path, content)) {
                     PersonIdent user = helper.getCurrentUserIdent();
                     String username = securityService.getCurrentUser();
                     String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
                             .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
-                    commitId = helper.commitFiles(repo, site, comment, user, path);
+                    commitId = helper.commitFiles(repo, siteId, comment, user, path);
+                    Site site = siteDao.getSite(siteId);
+                    processedCommitsDao.insertCommit(site.getId(), commitId);
                 } else {
-                    logger.error("Failed to write content to site '{}' path '{}'", site, path);
+                    logger.error("Failed to write content to site '{}' path '{}'", siteId, path);
                 }
             } else {
-                logger.error("Missing repository during write for site '{}' path '{}'", site, path);
+                logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
             }
         }  catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
+            logger.error("Failed to write content to site '{}' path '{}'", siteId, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -224,15 +225,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String createFolder(String site, String path, String name) {
+    public String createFolder(String siteId, String path, String name) {
         // SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
         String commitId = null;
         boolean result;
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
             Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
 
             try {
                 // Create basic file
@@ -248,27 +249,29 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // Create the file
                 if (!file.createNewFile()) {
-                    logger.error("Failed to write file to site '{}' path '{}'", site, emptyFilePath);
+                    logger.error("Failed to write file to site '{}' path '{}'", siteId, emptyFilePath);
                     result = false;
                 } else {
                     // Add the file to git
-                    result = helper.addFiles(repo, site, emptyFilePath.toString());
+                    result = helper.addFiles(repo, siteId, emptyFilePath.toString());
                 }
             } catch (Exception e) {
-                logger.error("Failed to add file to git in site '{}' path '{}'", site, emptyFilePath, e);
+                logger.error("Failed to add file to git in site '{}' path '{}'", siteId, emptyFilePath, e);
                 result = false;
             }
 
             if (result) {
                 try {
-                    commitId = helper.commitFiles(repo, site,
+                    commitId = helper.commitFiles(repo, siteId,
                                                     helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
-                                                        .replaceAll(PATTERN_SITE, site)
+                                                        .replaceAll(PATTERN_SITE, siteId)
                                                         .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
                                                     helper.getCurrentUserIdent(),
                                                     emptyFilePath.toString());
+                    Site site = siteDao.getSite(siteId);
+                    processedCommitsDao.insertCommit(site.getId(), commitId);
                 } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.error("Failed to commit file in site '{}' path '{}'", site, emptyFilePath, e);
+                    logger.error("Failed to commit file in site '{}' path '{}'", siteId, emptyFilePath, e);
                 }
             }
         } finally {
@@ -278,13 +281,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) {
+    public String deleteContent(String siteId, String path, String approver) {
         String commitId = null;
         boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
 
             try (Git git = new Git(repo)) {
                 String pathToDelete = helper.getGitPath(path);
@@ -303,9 +306,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     helper.getAuthorIdent(approver);
 
                 // TODO: SJ: we need to define messages in a string table of sorts
-                commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit);
+                commitId = helper.commitFiles(repo, siteId, commitMsg, user, pathToCommit);
+                Site site = siteDao.getSite(siteId);
+                processedCommitsDao.insertCommit(site.getId(), commitId);
             } catch (GitAPIException | UserNotFoundException | IOException | ServiceLayerException e) {
-                logger.error("Failed to delete content at site '{}' path '{}'", site, path, e);
+                logger.error("Failed to delete content at site '{}' path '{}'", siteId, path, e);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -353,12 +358,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath, String newName) {
+    public String moveContent(String siteId, String fromPath, String toPath, String newName) {
         String commitId = null;
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
             String gitToPath;
@@ -386,7 +391,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             // This is not a valid operation
                             logger.error("Failed to move. Trying to rename a directory to a file " +
                                             "in site '{}' from path '{}' to path '{}' with name '{}'",
-                                    site, fromPath, toPath, newName);
+                                    siteId, fromPath, toPath, newName);
                         }
                     } else if (sourceFile.isDirectory()) {
                         // Check if we're moving a single file or whole subtree
@@ -407,7 +412,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
 
                 // The operation is done on disk, now it's time to commit
-                boolean result = helper.addFiles(repo, site, gitToPath);
+                boolean result = helper.addFiles(repo, siteId, gitToPath);
                 if (result) {
                     StatusCommand statusCommand = git.status().addPath(gitToPath);
                     Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
@@ -422,14 +427,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         changeSet.add(pathToCommit);
                         changeSet.add(pathRemoved);
                     }
-                    return helper.commitFiles(repo, site, commitMsg, user, changeSet.toArray(new String[0]));
+                    commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
+                    Site site = siteDao.getSite(siteId);
+                    processedCommitsDao.insertCommit(site.getId(), commitId);
+                    return commitId;
                 } else {
                     logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
-                            site, fromPath, toPath, newName);
+                            siteId, fromPath, toPath, newName);
                 }
             } catch (Exception e) {
                 logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
-                        site, fromPath, toPath, newName, e);
+                        siteId, fromPath, toPath, newName, e);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -438,12 +446,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
+    public String copyContent(String siteId, String fromPath, String toPath) {
         String commitId = null;
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
             Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
             File sourceFile = sourcePath.toFile();
             Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
@@ -453,21 +461,23 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             FileUtils.copyDirectory(sourceFile, targetFile);
 
             // The operation is done on disk, now it's time to commit
-            boolean result = helper.addFiles(repo, site, toPath);
+            boolean result = helper.addFiles(repo, siteId, toPath);
             if (result) {
-                commitId = helper.commitFiles(repo, site,
+                commitId = helper.commitFiles(repo, siteId,
                                                 helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
                                                     .replaceAll(PATTERN_FROM_PATH, fromPath)
                                                     .replaceAll(PATTERN_TO_PATH, toPath),
                                                 helper.getCurrentUserIdent(),
                                                 fromPath, toPath);
+                Site site = siteDao.getSite(siteId);
+                processedCommitsDao.insertCommit(site.getId(), commitId);
             } else {
                 logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
-                        site, fromPath, toPath);
+                        siteId, fromPath, toPath);
             }
         } catch (Exception e) {
             logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
-                    site, fromPath, toPath, e);
+                    siteId, fromPath, toPath, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -1420,36 +1430,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.studioConfiguration = studioConfiguration;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public RemoteRepositoryDAO getRemoteRepositoryDAO() {
-        return remoteRepositoryDAO;
     }
 
     public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
         this.remoteRepositoryDAO = remoteRepositoryDAO;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
-    }
-
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
+    public void setSiteDao(SiteDAO siteDao) {
+        this.siteDao = siteDao;
     }
 
     public void setEncryptor(TextEncryptor encryptor) {
@@ -1460,32 +1454,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.contextManager = contextManager;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
-    }
-
-    public GitRepositoryHelper getHelper() {
-        return helper;
     }
 
     public void setHelper(GitRepositoryHelper helper) {
         this.helper = helper;
     }
 
-    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
-        return retryingRepositoryOperationFacade;
+    public void setProcessedCommitsDao(ProcessedCommitsDAO processedCommitsDao) {
+        this.processedCommitsDao = processedCommitsDao;
     }
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
