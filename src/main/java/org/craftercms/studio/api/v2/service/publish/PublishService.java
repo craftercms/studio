@@ -187,20 +187,22 @@ public interface PublishService {
     /**
      * Get the submitted package containing the given item
      *
-     * @param siteId the site id
-     * @param path the path of the item
+     * @param siteId          the site id
+     * @param path            the path of the item
+     * @param includeChildren whether to include the children of the paths in the search
      * @return the package containing the item, or null if the item is not submitted to be published
      */
-    PublishPackage getReadyPackageForItem(String siteId, String path);
+    PublishPackage getReadyPackageForItem(String siteId, String path, boolean includeChildren);
 
     /**
      * Get the READY or PROCESSING publish packages containing the given items
      *
-     * @param siteId the site id
-     * @param paths  the paths of the items
+     * @param siteId          the site id
+     * @param paths           the paths of the items
+     * @param includeChildren whether to include the children of the paths in the search
      * @return the READY or PROCESSING packages containing the items
      */
-    Collection<PublishPackage> getActivePackagesForItems(String siteId, Collection<String> paths);
+    Collection<PublishPackage> getActivePackagesForItems(String siteId, Collection<String> paths, boolean includeChildren);
 
     /**
      * Publish the deletion of the given paths.

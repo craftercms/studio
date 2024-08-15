@@ -1996,7 +1996,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item.setPublishedDate(metadata.getLastPublishedOn());
         }
 
-        PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(site, path);
+        PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(site, path, false);
         if (publishPackage != null) {
             if (publishPackage.getSchedule() != null) {
                 item.setScheduledDate(publishPackage.getSchedule().atZone(ZoneOffset.UTC));

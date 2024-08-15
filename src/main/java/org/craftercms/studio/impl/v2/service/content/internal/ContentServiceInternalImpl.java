@@ -78,6 +78,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal, ApplicationEventPublisherAware {
 
@@ -370,22 +371,22 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
      * @param paths  the paths to check
      * @throws ContentInPublishQueueException if the content is part of a publish package
      */
-    private void assertNotInWorkflow(final String siteId, final List<String> paths) throws ContentInPublishQueueException {
-        Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths);
+    private void assertNotInWorkflow(final String siteId, final Collection<String> paths) throws ContentInPublishQueueException {
+        // No need to check for children, as the paths collection already includes them
+        Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths, false);
         if (isNotEmpty(packagesForItems)) {
-            throw new ContentInPublishQueueException("Unable to write content that is part of an active publishing package", packagesForItems);
+            throw new ContentInPublishQueueException("Unable to delete content that is part of an active publishing package", packagesForItems);
         }
     }
 
     @Override
     public long deleteContent(String siteId, List<String> paths, String submissionComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        // Lock the sandbox repository to prevent publish packages being submitted (delete operation might conflict with submitted packages)
+        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
         generalLockService.lock(sandboxRepoLockKey);
+        Collection<String> allPaths = null;
         try {
-            // check and fail if the item is part of a publish package
-            assertNotInWorkflow(siteId, paths);
-
             AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
             itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
             Site site = siteService.getSite(siteId);
@@ -399,8 +400,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
             List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
             itemServiceInternal.setSystemProcessingBulk(siteId, dependencies, true);
 
-            Collection<String> allPaths = union(userRequested, dependencies);
+            allPaths = union(userRequested, dependencies);
 
+            // check and fail if any of the items is part of a publish package
+            assertNotInWorkflow(siteId, allPaths);
             String commitId = contentRepository.deleteContent(siteId, allPaths, currentUser.getUsername());
             processedCommitsDao.insertCommit(site.getId(), commitId);
 
@@ -423,6 +426,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
             }
             return publishPackageId;
         } finally {
+            itemServiceInternal.setSystemProcessingBulk(siteId, allPaths, false);
             generalLockService.unlock(sandboxRepoLockKey);
         }
     }

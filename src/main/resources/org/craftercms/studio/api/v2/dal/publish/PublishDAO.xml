@@ -222,10 +222,19 @@
             SELECT 1
             FROM publish_item pi
             WHERE pi.package_id = pp.id
-            AND pi.path IN
+            AND (pi.path IN
                 <foreach collection="paths" item="path" open="(" separator="," close=")">
                     #{path}
                 </foreach>
+                <if test="includeChildren">
+                    <!-- Check there is any child item in the queue -->
+                OR
+                    <foreach collection="paths" item="path" open="(" separator=" OR " close=")">
+                        <bind name="pattern" value="path.replaceAll('/index.xml$', '') + '/%'" />
+                        pi.path like #{pattern}
+                    </foreach>
+                </if>
+            )
         )
     </sql>
 

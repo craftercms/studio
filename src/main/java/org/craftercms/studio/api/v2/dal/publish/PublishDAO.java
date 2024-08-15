@@ -54,10 +54,9 @@ public interface PublishDAO {
     String STAGING_ERROR = "stagingError";
     String ITEM_SUCCESS_STATE = "itemSuccessState";
     String ITEM_PUBLISHED_STATE = "publishState";
-
     String ON_STATES_BIT_MAP = "onStatesBitMap";
-
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
+    String INCLUDE_CHILDREN = "includeChildren";
 
     /**
      * Convenience transactional method to create a package and its items
@@ -77,7 +76,7 @@ public interface PublishDAO {
     }
 
     /**
-     * Update the item state bits for a all items in a package
+     * Update the item state bits for all items in a package
      *
      * @param publishPackage the package
      * @param isLiveTarget   if the target is live
@@ -98,7 +97,7 @@ public interface PublishDAO {
     }
 
     /**
-     * Update the item state bits for a all items in a package
+     * Update the item state bits for all items in a package
      *
      * @param packageId       the package id
      * @param onStatesBitMap  the state bits to set to on
@@ -269,12 +268,13 @@ public interface PublishDAO {
     /**
      * Get a submitted package with READY state containing the given item
      *
-     * @param siteId the site id
-     * @param path   the path of the item
+     * @param siteId          the site id
+     * @param path            the path of the item
+     * @param includeChildren whether to include the children of the paths in the search
      * @return the package containing the item, or null if the item is not submitted to be published
      */
-    default PublishPackage getReadyPackageForItem(final String siteId, final String path) {
-        Collection<PublishPackage> packages = getItemPackagesByState(siteId, List.of(path), READY.value);
+    default PublishPackage getReadyPackageForItem(final String siteId, final String path, final boolean includeChildren) {
+        Collection<PublishPackage> packages = getItemPackagesByState(siteId, List.of(path), READY.value, includeChildren);
         return packages.isEmpty() ? null : packages.iterator().next();
     }
 
@@ -286,7 +286,7 @@ public interface PublishDAO {
      * @return collection of ready packages containing the item
      */
     default Collection<PublishPackage> getReadyPackagesForItem(final String siteId, final String path) {
-        return getItemPackagesByState(siteId, List.of(path), READY.value);
+        return getItemPackagesByState(siteId, List.of(path), READY.value, false);
     }
 
     /**
@@ -318,12 +318,14 @@ public interface PublishDAO {
     /**
      * Get the packages containing the given item that match the given package state
      *
-     * @param siteId       the site id
-     * @param paths        the paths of the items
-     * @param packageState the mask to apply to filter the package state
+     * @param siteId          the site id
+     * @param paths           the paths of the items
+     * @param packageState    the mask to apply to filter the package state
+     * @param includeChildren whether to include the children of the paths in the search
      * @return collection of matching packages containing the item
      */
     Collection<PublishPackage> getItemPackagesByState(@Param(SITE_ID) String siteId,
-                                                   @Param(PATHS) Collection<String> paths,
-                                                   @Param(PACKAGE_STATE) long packageState);
+                                                      @Param(PATHS) Collection<String> paths,
+                                                      @Param(PACKAGE_STATE) long packageState,
+                                                      @Param(INCLUDE_CHILDREN) boolean includeChildren);
 }
