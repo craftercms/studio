@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
@@ -85,6 +86,7 @@ public class UserServiceImpl implements UserService {
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
+    private AccessTokenServiceInternal accessTokenServiceInternal;
     private InstanceService instanceService;
     private TextEncryptor encryptor;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
@@ -226,6 +228,9 @@ public class UserServiceImpl implements UserService {
                     session.expireNow();
                 });
             });
+
+            logger.debug("Remove all tokens for deleted users '{}", toDelete);
+            accessTokenServiceInternal.deleteUsersTokens(toDelete.stream().map(User::getId).toList());
 
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -641,6 +646,10 @@ public class UserServiceImpl implements UserService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setAccessTokenServiceInternal(AccessTokenServiceInternal accessTokenServiceInternal) {
+        this.accessTokenServiceInternal = accessTokenServiceInternal;
     }
 
     public void setInstanceService(InstanceService instanceService) {
