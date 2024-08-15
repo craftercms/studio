@@ -37,11 +37,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_BY_COMMITS;
 
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
+    private static final String PUBLISH_API_ROOT = "/api/1/services/api/1/publish/";
     private static final String COMMITS = "/api/1/services/api/1/publish/commits.json";
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -55,46 +57,51 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
     public int voteInternal(Authentication authentication, Object o, Collection collection) {
         int toRet = ACCESS_ABSTAIN;
         String requestUri = "";
-        if (o instanceof FilterInvocation) {
-            FilterInvocation filterInvocation = (FilterInvocation)o;
-            HttpServletRequest  request = filterInvocation.getRequest();
-            requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            String userParam = request.getParameter("username");
-            String siteParam = request.getParameter("site_id");
-            if (StringUtils.isEmpty(userParam)
-                    && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
-                    && !JakartaServletFileUpload.isMultipartContent(request)) {
-                try (InputStream is = request.getInputStream()) {
-                    String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
-                    if (StringUtils.isNoneEmpty(jsonString)) {
-                        ApiParams apiParams = objectMapper.readValue(jsonString, ApiParams.class);
-                        siteParam = defaultIfEmpty(apiParams.getSite(), siteParam);
-                    }
-                } catch (JsonParseException e) {
-                    logger.info("Failed to parse request as JSON", e);
-                } catch (IOException e) {
-                    logger.info("Failed to extract the fields from the POST request", e);
+        if (!(o instanceof FilterInvocation filterInvocation)) {
+            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+            return toRet;
+        }
+        HttpServletRequest  request = filterInvocation.getRequest();
+        requestUri = request.getRequestURI().replace(request.getContextPath(), "");
+        if (!startsWith(requestUri, PUBLISH_API_ROOT)) {
+            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+            return toRet;
+        }
+        String userParam = request.getParameter("username");
+        String siteParam = request.getParameter("site_id");
+        if (StringUtils.isEmpty(userParam)
+                && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
+                && !JakartaServletFileUpload.isMultipartContent(request)) {
+            try (InputStream is = request.getInputStream()) {
+                String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
+                if (StringUtils.isNoneEmpty(jsonString)) {
+                    ApiParams apiParams = objectMapper.readValue(jsonString, ApiParams.class);
+                    siteParam = defaultIfEmpty(apiParams.getSite(), siteParam);
                 }
+            } catch (JsonParseException e) {
+                logger.info("Failed to parse request as JSON", e);
+            } catch (IOException e) {
+                logger.info("Failed to extract the fields from the POST request", e);
             }
-            User currentUser = (User) authentication.getPrincipal();
-            switch (requestUri) {
-                case COMMITS:
-                    if (siteService.exists(siteParam)) {
-                        if (currentUser != null &&
-                                (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, DEFAULT_PERMISSION_VOTER_PATH,
-                                        currentUser.getUsername(), PERMISSION_PUBLISH_BY_COMMITS))) {
-                            toRet = ACCESS_GRANTED;
-                        } else {
-                            toRet = ACCESS_DENIED;
-                        }
+        }
+        User currentUser = (User) authentication.getPrincipal();
+        switch (requestUri) {
+            case COMMITS:
+                if (siteService.exists(siteParam)) {
+                    if (currentUser != null &&
+                            (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, DEFAULT_PERMISSION_VOTER_PATH,
+                                    currentUser.getUsername(), PERMISSION_PUBLISH_BY_COMMITS))) {
+                        toRet = ACCESS_GRANTED;
                     } else {
-                        toRet = ACCESS_ABSTAIN;
+                        toRet = ACCESS_DENIED;
                     }
-                    break;
-                default:
+                } else {
                     toRet = ACCESS_ABSTAIN;
-                    break;
-            }
+                }
+                break;
+            default:
+                toRet = ACCESS_ABSTAIN;
+                break;
         }
         logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
         return toRet;
