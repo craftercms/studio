@@ -351,6 +351,13 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
         createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_DELETE);
     }
 
+    @Override
+    public void deleteUsersTokens(List<Long> userIds) {
+        userIds.forEach(userId -> userActivity.invalidate(userId));
+        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshTokens(userIds));
+        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteUsersAccessTokens(userIds));
+    }
+
     protected String getActualAudience() {
         return isNotEmpty(audience)? audience : instanceService.getInstanceId();
     }
