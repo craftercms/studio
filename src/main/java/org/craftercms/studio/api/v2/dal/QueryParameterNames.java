@@ -150,8 +150,6 @@ public final class  QueryParameterNames {
 
     public static final String PUBLISHING_TARGET = "publishingTarget";
 
-    public static final String SCHEDULED_STATE  = "scheduledState";
-
     public static final String DAYS = "days";
 
     public static final String ACTIVITY_ACTION = "activityAction";

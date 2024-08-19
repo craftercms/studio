@@ -400,14 +400,14 @@ public interface ItemServiceInternal {
      * Update the state for all items in the given package.
      * It will determine if the item was successful by comparing its PublishItem to successPublishState parameter,
      * then it will turn on/off the state bits accordingly.
+     * It will then recalculate the affected items' states based on remaining publish packages.
      *
      * @param publishPackageId    the package id
      * @param successOnMask       the mask of states to turn on for successful items
      * @param successOffMask      the mask of states to turn off for successful items
-     * @param failureOnMask       the mask of states to turn on for failed items
      * @param failureOffMask      the mask of states to turn off for failed items
      * @param successPublishState the state to set for successful items
      */
     void updateForCompletePackage(long publishPackageId, long successOnMask, long successOffMask,
-                                  long failureOnMask, long failureOffMask, long successPublishState);
+                                  long failureOffMask, long successPublishState);
 }

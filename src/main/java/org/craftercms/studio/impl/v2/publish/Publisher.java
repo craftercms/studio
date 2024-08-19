@@ -257,11 +257,11 @@ public class Publisher implements ApplicationEventPublisherAware {
                     0, stagingErrorCode, liveErrorCode);
             long onMask = isLiveTarget ? PublishItem.PublishState.LIVE_FAILED.value : PublishItem.PublishState.STAGING_FAILED.value;
             publishDao.updatePublishItemState(publishPackage.getId(), onMask, 0);
+        } finally {
             // TODO: Need to adjust this to check if there are other packages still alive that are scheduled/workflow
             itemServiceInternal.updateForCompletePackage(packageTO.getId(),
                     packageTO.getItemSuccessOnMask(),
                     packageTO.getItemSuccessOffMask(),
-                    0,
                     packageTO.getItemFailureOffMask(),
                     packageTO.getItemSuccessState());
         }
@@ -340,12 +340,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         } else {
             publishDao.updatePublishItemListState(union(successfulItems, failedItems));
         }
-        itemServiceInternal.updateForCompletePackage(packageId,
-                packageTO.getItemSuccessOnMask(),
-                packageTO.getItemSuccessOffMask(),
-                0,
-                packageTO.getItemFailureOffMask(),
-                packageTO.getItemSuccessState());
+
         long packageStateOnBits;
         if (publishChangeSet.completed()) {
             itemTargetDAO.updateForCompletePackage(packageId, publishChangeSet.commitId(), target, packageTO.getItemSuccessState());

@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
@@ -35,18 +36,22 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Service for publishing submissions
+ * This service is responsible for creating publishing packages,
+ * calculating dependencies and retrieving information packages and the publishing queue.
+ * For the actual publishing queue processing, see {@link Publisher}
+ */
 public interface PublishService {
 
     /**
      * Get total number of publishing packages for given search parameters
      *
-     * @param siteId site identifier
+     * @param siteId      site identifier
      * @param environment publishing environment
-     * @param path  regular expression for paths
-     * @param states publishing package states
-     *
+     * @param path        regular expression for paths
+     * @param states      publishing package states
      * @return total number of publishing packages
-     *
      * @throws SiteNotFoundException site not found
      */
     int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states)
@@ -55,15 +60,13 @@ public interface PublishService {
     /**
      * Get publishing packages for given search parameters
      *
-     * @param siteId site identifier
+     * @param siteId      site identifier
      * @param environment publishing environment
-     * @param path regular expression for paths
-     * @param states publishing package states
-     * @param offset offset for pagination
-     * @param limit limit for pagination
-     *
+     * @param path        regular expression for paths
+     * @param states      publishing package states
+     * @param offset      offset for pagination
+     * @param limit       limit for pagination
      * @return list of publishing packages
-     *
      * @throws SiteNotFoundException site not found
      */
     List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path, List<String> states,
@@ -72,11 +75,9 @@ public interface PublishService {
     /**
      * Get publishing package details
      *
-     * @param siteId site identifier
+     * @param siteId    site identifier
      * @param packageId package identifier
-     *
      * @return publishing package details
-     *
      * @throws SiteNotFoundException site not found
      */
     PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException;
@@ -84,9 +85,8 @@ public interface PublishService {
     /**
      * Cancel publishing packages
      *
-     * @param siteId site identifier
+     * @param siteId     site identifier
      * @param packageIds list of package identifiers
-     *
      * @throws SiteNotFoundException site not found
      */
     void cancelPublishingPackages(String siteId, List<String> packageIds)
@@ -94,10 +94,11 @@ public interface PublishService {
 
     /**
      * Get deployment history
-     * @param siteId site identifier
+     *
+     * @param siteId        site identifier
      * @param daysFromToday number of days for history
      * @param numberOfItems number of items to display
-     * @param filterType filter results by filter type
+     * @param filterType    filter results by filter type
      * @return
      */
     List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
@@ -105,6 +106,7 @@ public interface PublishService {
 
     /**
      * Get available publishing targets for given site
+     *
      * @param siteId site identifier
      * @return list of available publishing targets
      * @throws SiteNotFoundException Site doesn't exist

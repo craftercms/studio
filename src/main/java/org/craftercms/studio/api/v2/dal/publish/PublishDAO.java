@@ -83,7 +83,7 @@ public interface PublishDAO {
      */
     default void updateItemStateBits(final PublishPackage publishPackage, boolean isLiveTarget) {
         long onMask = 0;
-        long offMask = USER_LOCKED.value + SYSTEM_PROCESSING.value;
+        long offMask = 0;
         if (publishPackage.getSchedule() != null) {
             onMask |= SCHEDULED.value;
         }
