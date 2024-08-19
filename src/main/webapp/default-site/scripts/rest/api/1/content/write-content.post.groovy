@@ -167,7 +167,7 @@ if (JakartaServletFileUpload.isMultipartContent(request)) {
         }
     } catch (Exception e) {
         Exception inQueueException = ExceptionUtils.getThrowableOfType(e, ContentInPublishQueueException.class);
-        if(inQueueException == null) {
+        if (inQueueException == null) {
             throw e;
         }
         response.setStatus(409)

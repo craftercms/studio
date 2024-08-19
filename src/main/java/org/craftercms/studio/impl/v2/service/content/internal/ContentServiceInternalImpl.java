@@ -364,16 +364,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         return childItems;
     }
 
-    /**
-     * Check if the content is part of any ready/processing publish package and fail if it is
-     *
-     * @param siteId the site id
-     * @param paths  the paths to check
-     * @throws ContentInPublishQueueException if the content is part of a publish package
-     */
-    private void assertNotInWorkflow(final String siteId, final Collection<String> paths) throws ContentInPublishQueueException {
+    @Override
+    public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren) throws ContentInPublishQueueException {
         // No need to check for children, as the paths collection already includes them
-        Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths, false);
+        Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
         if (isNotEmpty(packagesForItems)) {
             throw new ContentInPublishQueueException("Unable to delete content that is part of an active publishing package", packagesForItems);
         }
@@ -403,7 +397,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
             allPaths = union(userRequested, dependencies);
 
             // check and fail if any of the items is part of a publish package
-            assertNotInWorkflow(siteId, allPaths);
+            assertNotInWorkflow(siteId, allPaths, false);
             String commitId = contentRepository.deleteContent(siteId, allPaths, currentUser.getUsername());
             processedCommitsDao.insertCommit(site.getId(), commitId);
 

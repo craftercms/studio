@@ -157,7 +157,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
     protected PublishService publishServiceInternal;
 
-    protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+    protected org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal contentServiceV2;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -533,6 +533,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             throw new ServiceLayerException("Content " + path + " can't be renamed because target path " +
                     checkPath + " already exists");
         }
+        contentServiceV2.assertNotInWorkflow(site, List.of(path), true);
         try {
             //TODO: This should be made transactional, write will commit even if move fails
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
@@ -2589,8 +2590,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         if (contentExists(siteId, targetPath)) {
             throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
-                                "because an item with the name '%s' already exists.", path, siteId, name));
+                    "because an item with the name '%s' already exists.", path, siteId, name));
         }
+//        check if there are children in-queue
+        contentServiceV2.assertNotInWorkflow(siteId, List.of(path), true);
 
         ContentItemTO sourceContentItem = getContentItem(siteId, path);
         boolean isFolder = sourceContentItem.isFolder();
@@ -2753,7 +2756,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 
-    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
     }
 
