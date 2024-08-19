@@ -202,8 +202,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
                             .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
                     commitId = helper.commitFiles(repo, siteId, comment, user, path);
-                    Site site = siteDao.getSite(siteId);
-                    processedCommitsDao.insertCommit(site.getId(), commitId);
+                    insertProcessedCommitId(siteId, commitId);
                 } else {
                     logger.error("Failed to write content to site '{}' path '{}'", siteId, path);
                 }
@@ -263,8 +262,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
                                                         .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
                                                     helper.getCurrentUserIdent(),
                                                     emptyFilePath.toString());
-                    Site site = siteDao.getSite(siteId);
-                    processedCommitsDao.insertCommit(site.getId(), commitId);
+                    insertProcessedCommitId(siteId, commitId);
                 } catch (ServiceLayerException | UserNotFoundException e) {
                     logger.error("Failed to commit file in site '{}' path '{}'", siteId, emptyFilePath, e);
                 }
@@ -384,8 +382,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
                         changeSet.add(pathRemoved);
                     }
                     commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
-                    Site site = siteDao.getSite(siteId);
-                    processedCommitsDao.insertCommit(site.getId(), commitId);
+                    insertProcessedCommitId(siteId, commitId);
                     return commitId;
                 } else {
                     logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
@@ -399,6 +396,19 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
             generalLockService.unlock(gitLockKey);
         }
         return commitId;
+    }
+
+    /**
+     * Insert commit id into processed_commits table if the site exists
+     *
+     * @param siteId   site id
+     * @param commitId commit id
+     */
+    private void insertProcessedCommitId(final String siteId, final String commitId) {
+        Site site = siteDao.getSite(siteId);
+        if (site != null) {
+            processedCommitsDao.insertCommit(site.getId(), commitId);
+        }
     }
 
     @Override
