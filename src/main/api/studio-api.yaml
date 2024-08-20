@@ -2949,6 +2949,8 @@ paths:
                   result: "true"
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/api1PublishConflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3691,6 +3693,8 @@ paths:
           $ref: '#/components/responses/api1Unauthorized'
         '404':
           $ref: '#/components/responses/api1NotFound'
+        '409':
+          $ref: '#/components/responses/api1PublishConflict'
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
@@ -5467,6 +5471,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/PublishConflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -5517,7 +5523,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/Conflict'
+          $ref: '#/components/responses/PublishConflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -5934,6 +5940,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/PublishConflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -11815,6 +11823,46 @@ components:
                 type: string
                 description: The commit comment
 
+    PublishPackageStatus:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 123
+        submitedOn:
+          type: string
+          format: date-time
+        submitterComment:
+          type: string
+        target:
+          type: string
+          example: live
+        approvalState:
+          type: string
+          enum:
+            - SUBMITTED
+            - APPROVED
+            - REJECTED
+        packageState:
+          type: number
+          description:  >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: READY, `DESCRIPTION`: The package is ready to be published (this is conditional on package approvalState)
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: PROCESSING, `DESCRIPTION`: The package is currently being processed
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: LIVE_SUCCESS, `DESCRIPTION`: The package has been published to live target
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: LIVE_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to live target due to errors
+              * `BIT ORDER (little-endian)`: 4: `FLAG`: LIVE_FAILED, `DESCRIPTION`: The package failed to be published to live target
+              * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The package has been published to stage
+              * `BIT ORDER (little-endian)`: 6: `FLAG`: STAGING_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to stage target due to errors
+              * `BIT ORDER (little-endian)`: 7: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The package failed to be published to stage target
+              * `BIT ORDER (little-endian)`: 8: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
+          example: 1
+        schedule:
+          type: string
+          format: date-time
+        submitter:
+          $ref: '#/components/schemas/Person'
+
   responses:
     NotFound:
       description: Resource not found
@@ -11873,6 +11921,19 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
+    PublishConflict:
+      description: Resource (or child content) is in publishing queue
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+              publishingPackages:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublishPackageStatus'
     InternalServerError:
       description: Internal system failure
       content:
@@ -11965,6 +12026,21 @@ components:
                 type: string
             example:
               message: "Site already exists"
+
+    api1PublishConflict:
+      description: Resource is in publishing queue
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              publishingPackages:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublishPackageStatus'
+
     api1InternalServerError:
       description: Internal system failure
       content:
