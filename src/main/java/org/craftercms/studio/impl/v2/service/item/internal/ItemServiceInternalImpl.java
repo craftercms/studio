@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -548,15 +547,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public Collection<String> getChildrenPaths(long siteId, String path) {
         return itemDao.getChildrenPaths(siteId, path);
-    }
-
-    @Override
-    @Transactional
-    public void updateForCompletePackage(final long packageId, final long successOnMask, final long successOffMask,
-                                         final long failureOffMask, final long successPublishState) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateForCompletePackage(packageId, successOnMask, successOffMask,
-                failureOffMask, successPublishState));
-        retryingDatabaseOperationFacade.retry(() -> itemDao.recalculateItemStateBits(packageId));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

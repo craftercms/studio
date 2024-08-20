@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
-import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,9 +45,6 @@ public interface ItemDAO {
     String ITEM_IDS = "itemIds";
 
     String ON_STATES_BIT_MAP = "onStatesBitMap";
-    String SUCCESS_ON_BIT_MAP = "successOnStatesBitMap";
-    String SUCCESS_OFF_BIT_MAP = "successOffStatesBitMap";
-    String FAILURE_OFF_BIT_MAP = "failureOffStatesBitMap";
 
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
     String TIMESTAMP = "timestamp";
@@ -58,7 +54,6 @@ public interface ItemDAO {
     String PUBLISH_PACKAGE_APPROVAL_STATES = "approvalStates";
 
 
-    String IS_SCHEDULED_BIT = "isScheduledBit";
 
     String SYSTEM_TYPE_PAGE = "systemTypePage";
 
@@ -703,48 +698,5 @@ public interface ItemDAO {
                               @Param(ON_STATES_BIT_MAP) long onStateBitMap,
                               @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
 
-    /**
-     * Update the corresponding items' states for successful publish items in the package.
-     *
-     * @param packageId        the package id
-     * @param successOnMask    states to flip on for successful items
-     * @param successOffMask   states to flip off for successful items
-     * @param failureOffMask   states to flip off for failed items
-     * @param itemSuccessState the state of the successful items to filter
-     */
-    void updateForCompletePackage(@Param(PACKAGE_ID) long packageId,
-                                  @Param(SUCCESS_ON_BIT_MAP) long successOnMask,
-                                  @Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
-                                  @Param(FAILURE_OFF_BIT_MAP) long failureOffMask,
-                                  @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
-
-    /**
-     * Recalculate the SCHEDULED and IN_WORKFLOW state bits for the items in the given complete package.
-     * It will update the state bits for the items in the package based on remaining submitted/approved packages
-     * This method is meant to preserve workflow and scheduled bits that would otherwise be cleared
-     * by the current complete package
-     *
-     * @param packageId the package id
-     */
-    default void recalculateItemStateBits(final long packageId) {
-        recalculateItemStateBits(packageId, List.of(SUBMITTED), IN_WORKFLOW.value, READY.value, false);
-        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), SCHEDULED.value, READY.value, true);
-    }
-
-    /**
-     * Apply the onStatesBitMap state bitmap mask to items in the completed package if there is another package
-     * matching the approvalStates and packageState that contains the item.
-     *
-     * @param packageId      package id
-     * @param approvalStates package approval states to filter packages
-     * @param onStatesBitMap workflow state bit value
-     * @param packageState   package state bit value to filter packages
-     * @param isScheduled    indicates if this update is for scheduled bit (true) or in_workflow bit (false)
-     */
-    void recalculateItemStateBits(@Param(PACKAGE_ID) long packageId,
-                                  @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-                                  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-                                  @Param(PUBLISH_PACKAGE_STATE) long packageState,
-                                  @Param(IS_SCHEDULED_BIT) boolean isScheduled);
 
 }

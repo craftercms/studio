@@ -7050,7 +7050,7 @@ paths:
                   type: array
                   description: packageIds
                   items:
-                    type: string
+                    type: number
               required:
                 - siteId
                 - packageIds

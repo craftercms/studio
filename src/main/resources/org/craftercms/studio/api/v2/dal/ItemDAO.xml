@@ -773,49 +773,4 @@
             #{itemId}
         </foreach>
     </update>
-
-    <update id="updateForCompletePackage">
-        UPDATE item, (
-            SELECT ipi.item_id, (CASE
-                                    WHEN (pi.publish_state &amp; #{itemSuccessState}) > 0
-                                    THEN #{successOnStatesBitMap}
-                                    ELSE 0
-                                    END
-                                ) AS maskOn,
-                                (CASE
-                                    WHEN (pi.publish_state &amp; #{itemSuccessState}) > 0
-                                    THEN #{successOffStatesBitMap}
-                                    ELSE #{failureOffStatesBitMap}
-                                    END
-                                ) AS maskOff
-            FROM publish_package pp
-            INNER JOIN publish_item pi ON pp.id = pi.package_id
-            INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
-            WHERE pp.id = #{packageId}
-        ) AS updates
-        SET item.state = (item.state | updates.maskOn) &amp; ~updates.maskOff
-        WHERE item.id = updates.item_id
-    </update>
-
-    <update id="recalculateItemStateBits">
-        UPDATE item i
-            INNER JOIN item_publish_item ipi ON i.id = ipi.item_id
-            INNER JOIN publish_item pi ON ipi.publish_item_id = pi.id
-        SET i.state = (i.state | #{onStatesBitMap})
-        WHERE pi.package_id = #{packageId}
-        AND i.id IN (
-            SELECT ipi.item_id
-            FROM item_publish_item ipi
-            INNER JOIN publish_item pi ON ipi.publish_item_id = pi.id
-            INNER JOIN publish_package pp ON pi.package_id = pp.id
-            WHERE pp.package_state = #{packageState}
-            AND pp.approval_state IN
-            <foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
-                #{approvalState}
-            </foreach>
-            <if test="isScheduledBit">
-                AND pp.schedule IS NOT null
-            </if>
-        )
-    </update>
 </mapper>

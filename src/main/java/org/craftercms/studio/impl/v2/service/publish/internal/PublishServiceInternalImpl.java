@@ -36,10 +36,12 @@ import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -75,6 +77,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalSt
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.APPROVE;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -99,6 +102,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private ItemTargetDAO itemTargetDao;
     private SitesService siteService;
     private GeneralLockService generalLockService;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private SecurityService securityService;
+
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -143,9 +149,46 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public void cancelPublishingPackages(String siteId, List<String> packageIds) {
-        // TODO: implement for new publishing system
-//        retryingDatabaseOperationFacade.retry(() -> publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED));
+    public void cancelPublishingPackages(final String siteId, final List<Long> packageIds)
+            throws ServiceLayerException, UserNotFoundException {
+        Site site = siteService.getSite(siteId);
+        String username = securityService.getCurrentUser();
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        for (Long packageId : packageIds) {
+            String packageLockKey = getPublishPackageLockKey(packageId);
+            generalLockService.lock(packageLockKey);
+            try {
+                PublishPackage publishPackage = publishDao.getById(packageId);
+                if (publishPackage.getPackageState() == PublishPackage.PackageState.CANCELLED.value) {
+                    logger.warn("Package '{}' for site '{}' is already cancelled", packageId, siteId);
+                    continue;
+                }
+                publishDao.cancelPackageById(site.getId(), packageId);
+                createCancelPackageAuditLogEntry(site, username);
+
+                activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
+                        OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
+            } finally {
+                generalLockService.unlock(packageLockKey);
+            }
+        }
+    }
+
+    /**
+     * Audit package cancellation
+     *
+     * @param site     the site
+     * @param username the username of the user who cancelled the package
+     */
+    private void createCancelPackageAuditLogEntry(Site site, String username) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
+        auditLog.setActorId(username);
+        auditLog.setSiteId(site.getId());
+        auditLog.setPrimaryTargetId(site.getSiteId());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(site.getSiteId());
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -620,6 +663,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         this.servicesConfig = servicesConfig;
     }
 
+    @SuppressWarnings("unused")
     public void setStudioUtils(final StudioUtils studioUtils) {
         this.studioUtils = studioUtils;
     }
@@ -628,10 +672,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setPublishDao(final PublishDAO publishDao) {
         this.publishDao = publishDao;
     }
 
+    @SuppressWarnings("unused")
     public void setItemTargetDao(final ItemTargetDAO itemTargetDao) {
         this.itemTargetDao = itemTargetDao;
     }
@@ -644,12 +690,23 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         this.generalLockService = generalLockService;
     }
 
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+    public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public void setDependencyServiceInternal(DependencyService dependencyServiceInternal) {
+    @SuppressWarnings("unused")
+    public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
+    }
+
+    @SuppressWarnings("unused")
+    public void setActivityStreamServiceInternal(final ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    @SuppressWarnings("unused")
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 
     /**

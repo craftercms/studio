@@ -259,7 +259,7 @@ public class Publisher implements ApplicationEventPublisherAware {
             publishDao.updatePublishItemState(publishPackage.getId(), onMask, 0);
         } finally {
             // TODO: Need to adjust this to check if there are other packages still alive that are scheduled/workflow
-            itemServiceInternal.updateForCompletePackage(packageTO.getId(),
+            publishDao.updateItemStatesForCompletePackage(packageTO.getId(),
                     packageTO.getItemSuccessOnMask(),
                     packageTO.getItemSuccessOffMask(),
                     packageTO.getItemFailureOffMask(),

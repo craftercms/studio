@@ -532,12 +532,6 @@
 
     <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
         <property name="publishServiceInternal" ref="publishServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="securityService" ref="studio.securityService" />
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="publishServiceInternal"
@@ -554,6 +548,8 @@
         <property name="auditServiceInternal" ref="auditServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
         <property name="itemTargetDao" ref="itemTargetDao"/>
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
+        <property name="securityService" ref="studio.securityService"/>
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"

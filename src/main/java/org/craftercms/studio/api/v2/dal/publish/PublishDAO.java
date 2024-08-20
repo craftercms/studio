@@ -31,7 +31,8 @@ import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 
 /**
  * Provide access to DB publish related tables
@@ -58,6 +59,13 @@ public interface PublishDAO {
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
     String INCLUDE_CHILDREN = "includeChildren";
 
+    String PUBLISH_PACKAGE_STATE = "packageState";
+    String IS_SCHEDULED_BIT = "isScheduledBit";
+    String PUBLISH_PACKAGE_APPROVAL_STATES = "approvalStates";
+    String SUCCESS_ON_BIT_MAP = "successOnStatesBitMap";
+    String SUCCESS_OFF_BIT_MAP = "successOffStatesBitMap";
+    String FAILURE_OFF_BIT_MAP = "failureOffStatesBitMap";
+
     /**
      * Convenience transactional method to create a package and its items
      *
@@ -71,17 +79,17 @@ public interface PublishDAO {
         if (!isEmpty(publishItems)) {
             insertItems(publishPackage.getId(), publishItems, PENDING.value);
             insertItemPublishItems(publishPackage.getId());
-            updateItemStateBits(publishPackage, isLiveTarget);
+            updateItemStateBitsForNewPackage(publishPackage, isLiveTarget);
         }
     }
 
     /**
-     * Update the item state bits for all items in a package
+     * Update the item state bits for all items in a newly created package
      *
      * @param publishPackage the package
      * @param isLiveTarget   if the target is live
      */
-    default void updateItemStateBits(final PublishPackage publishPackage, boolean isLiveTarget) {
+    default void updateItemStateBitsForNewPackage(final PublishPackage publishPackage, boolean isLiveTarget) {
         long onMask = 0;
         long offMask = 0;
         if (publishPackage.getSchedule() != null) {
@@ -217,7 +225,7 @@ public interface PublishDAO {
      * Set packages' state to cancelledState parameter value
      *
      * @param siteId         the site id
-     * @param target         the target to cancel packages for, null for any target
+     * @param target         the target to cancel packages for, null for all targets
      * @param cancelledState the state to set the packages to
      * @param stateToCancel  the package state to match
      * @param approvalStates the approval states to filter by (it will match packages having any of the given flags in their approval_state)
@@ -227,6 +235,94 @@ public interface PublishDAO {
                                    @Param(CANCELLED_STATE) long cancelledState,
                                    @Param(PACKAGE_STATE) long stateToCancel,
                                    @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates);
+
+    /**
+     * Update the corresponding items' states for successful publish items in the package.
+     *
+     * @param packageId        the package id
+     * @param successOnMask    states to flip on for successful items
+     * @param successOffMask   states to flip off for successful items
+     * @param failureOffMask   states to flip off for failed items
+     * @param itemSuccessState the state of the successful items to filter
+     */
+    @Transactional
+    default void updateItemStatesForCompletePackage(final long packageId, final long successOnMask, final long successOffMask,
+                                                    final long failureOffMask, final long itemSuccessState) {
+        updateItemStatesForCompletePackageInternal(packageId, successOnMask, successOffMask,
+                failureOffMask, itemSuccessState);
+        recalculateItemStateBits(packageId);
+    }
+
+    /**
+     * Update the corresponding items' states for the items in the package.
+     *
+     * @param packageId        the package id
+     * @param successOnMask    states to flip on for successful items
+     * @param successOffMask   states to flip off for successful items
+     * @param failureOffMask   states to flip off for failed items
+     * @param itemSuccessState the state of the successful items to filter
+     */
+    void updateItemStatesForCompletePackageInternal(@Param(PACKAGE_ID) long packageId,
+                                                    @Param(SUCCESS_ON_BIT_MAP) long successOnMask,
+                                                    @Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
+                                                    @Param(FAILURE_OFF_BIT_MAP) long failureOffMask,
+                                                    @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
+
+    /**
+     * Cancel a publish package by id.
+     * This will mark the package as CANCELLED, and update the state bits for the items
+     * in the package, considering that the affected items might be part of other submitted packages.
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     */
+    @Transactional
+    default void cancelPackageById(final long siteId, final long packageId) {
+        cancelPackageByIdInternal(siteId, packageId, CANCELLED.value);
+        updateItemStateBits(packageId, 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
+        recalculateItemStateBits(packageId);
+    }
+
+    /**
+     * Cancel a publish package by id.
+     * DO NOT USE THIS METHOD DIRECTLY. USE cancelPackageById INSTEAD.
+     *
+     * @param siteId         the site id
+     * @param packageId      the package id
+     * @param cancelledState the state to set the package to
+     */
+    void cancelPackageByIdInternal(@Param(SITE_ID) long siteId,
+                                   @Param(PACKAGE_ID) long packageId,
+                                   @Param(CANCELLED_STATE) long cancelledState);
+
+    /**
+     * Recalculate the SCHEDULED and IN_WORKFLOW state bits for the items in the given complete package.
+     * It will update the state bits for the items in the package based on remaining submitted/approved packages
+     * This method is meant to preserve workflow and scheduled bits that would otherwise be cleared
+     * by the current complete package
+     *
+     * @param packageId the package id
+     */
+    default void recalculateItemStateBits(final long packageId) {
+        recalculateItemStateBits(packageId, List.of(SUBMITTED), IN_WORKFLOW.value, READY.value, false);
+        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), SCHEDULED.value, READY.value, true);
+    }
+
+    /**
+     * Apply the onStatesBitMap state bitmap mask to items in the completed package if there is another package
+     * matching the approvalStates and packageState that contains the item.
+     *
+     * @param packageId      package id
+     * @param approvalStates package approval states to filter packages
+     * @param onStatesBitMap workflow state bit value
+     * @param packageState   package state bit value to filter packages
+     * @param isScheduled    indicates if this update is for scheduled bit (true) or in_workflow bit (false)
+     */
+    void recalculateItemStateBits(@Param(PACKAGE_ID) long packageId,
+                                  @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+                                  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                                  @Param(PUBLISH_PACKAGE_STATE) long packageState,
+                                  @Param(IS_SCHEDULED_BIT) boolean isScheduled);
 
     /**
      * Update the state of a package
