@@ -263,7 +263,8 @@ public class Publisher implements ApplicationEventPublisherAware {
                     packageTO.getItemSuccessOnMask(),
                     packageTO.getItemSuccessOffMask(),
                     packageTO.getItemFailureOffMask(),
-                    packageTO.getItemSuccessState());
+                    packageTO.getItemSuccessState(),
+                    servicesConfig.getLiveEnvironment(publishPackage.getSite().getSiteId()));
         }
     }
 

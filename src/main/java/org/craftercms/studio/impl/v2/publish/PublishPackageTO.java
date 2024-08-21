@@ -137,7 +137,7 @@ public class PublishPackageTO {
 
         @Override
         public long getItemSuccessOffMask() {
-            return NEW.value + MODIFIED.value + USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
+            return NEW.value + MODIFIED.value + USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value + DESTINATION.value;
         }
 
         @Override

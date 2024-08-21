@@ -195,6 +195,9 @@
                 <if test="isScheduledBit">
                     AND pp.schedule IS NOT null
                 </if>
+                <if test="target != null">
+                    AND pp.target = #{target}
+                </if>
         )
     </update>
 

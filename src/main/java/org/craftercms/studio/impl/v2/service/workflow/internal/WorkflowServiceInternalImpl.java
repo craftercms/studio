@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -61,6 +62,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     private PublishDAO publishDao;
     private GeneralLockService generalLockService;
     private ApplicationEventPublisher eventPublisher;
+    private ServicesConfig servicesConfig;
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -231,7 +233,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
                 logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
                 return;
             }
-            publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId());
+            publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId(), servicesConfig.getLiveEnvironment(siteId));
             eventPublisher.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
         } finally {
             generalLockService.unlock(packageLockKey);
@@ -274,6 +276,10 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     @SuppressWarnings("unused")
     public void setPublishDao(final PublishDAO publishDao) {
         this.publishDao = publishDao;
+    }
+
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 
     @Override

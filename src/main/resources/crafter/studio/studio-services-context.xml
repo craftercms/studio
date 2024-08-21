@@ -590,6 +590,7 @@
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="publishDao" ref="publishDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"

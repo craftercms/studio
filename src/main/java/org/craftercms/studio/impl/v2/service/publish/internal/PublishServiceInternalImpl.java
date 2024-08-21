@@ -163,7 +163,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     logger.warn("Package '{}' for site '{}' is already cancelled", packageId, siteId);
                     continue;
                 }
-                publishDao.cancelPackageById(site.getId(), packageId);
+                publishDao.cancelPackageById(site.getId(), packageId, servicesConfig.getLiveEnvironment(siteId));
                 createCancelPackageAuditLogEntry(site, username);
 
                 activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),

@@ -246,11 +246,12 @@ public interface PublishDAO {
      * @param itemSuccessState the state of the successful items to filter
      */
     @Transactional
-    default void updateItemStatesForCompletePackage(final long packageId, final long successOnMask, final long successOffMask,
-                                                    final long failureOffMask, final long itemSuccessState) {
+    default void updateItemStatesForCompletePackage(final long packageId, final long successOnMask,
+                                                    final long successOffMask, final long failureOffMask,
+                                                    final long itemSuccessState, final String liveTarget) {
         updateItemStatesForCompletePackageInternal(packageId, successOnMask, successOffMask,
                 failureOffMask, itemSuccessState);
-        recalculateItemStateBits(packageId);
+        recalculateItemStateBits(packageId, liveTarget);
     }
 
     /**
@@ -277,10 +278,10 @@ public interface PublishDAO {
      * @param packageId the package id
      */
     @Transactional
-    default void cancelPackageById(final long siteId, final long packageId) {
+    default void cancelPackageById(final long siteId, final long packageId, final String liveTarget) {
         cancelPackageByIdInternal(siteId, packageId, CANCELLED.value);
         updateItemStateBits(packageId, 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
-        recalculateItemStateBits(packageId);
+        recalculateItemStateBits(packageId, liveTarget);
     }
 
     /**
@@ -296,16 +297,18 @@ public interface PublishDAO {
                                    @Param(CANCELLED_STATE) long cancelledState);
 
     /**
-     * Recalculate the SCHEDULED and IN_WORKFLOW state bits for the items in the given complete package.
+     * Recalculate the state bits for the items in the given complete package.
      * It will update the state bits for the items in the package based on remaining submitted/approved packages
-     * This method is meant to preserve workflow and scheduled bits that would otherwise be cleared
-     * by the current complete package
+     * This method is meant to preserve certain bits ( workflow, scheduled, destination) that would otherwise be cleared
+     * by the current complete/cancelled package
      *
-     * @param packageId the package id
+     * @param packageId  the package id
+     * @param liveTarget the live target for this site
      */
-    default void recalculateItemStateBits(final long packageId) {
-        recalculateItemStateBits(packageId, List.of(SUBMITTED), IN_WORKFLOW.value, READY.value, false);
-        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), SCHEDULED.value, READY.value, true);
+    default void recalculateItemStateBits(final long packageId, String liveTarget) {
+        recalculateItemStateBits(packageId, List.of(SUBMITTED), IN_WORKFLOW.value, READY.value, false, null);
+        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), SCHEDULED.value, READY.value, true, null);
+        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), DESTINATION.value, READY.value, false, liveTarget);
     }
 
     /**
@@ -322,7 +325,8 @@ public interface PublishDAO {
                                   @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates,
                                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                                   @Param(PUBLISH_PACKAGE_STATE) long packageState,
-                                  @Param(IS_SCHEDULED_BIT) boolean isScheduled);
+                                  @Param(IS_SCHEDULED_BIT) boolean isScheduled,
+                                  @Param(TARGET) String target);
 
     /**
      * Update the state of a package
