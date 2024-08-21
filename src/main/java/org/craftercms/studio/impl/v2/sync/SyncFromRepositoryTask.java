@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -98,7 +99,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final GitContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
     private final ProcessedCommitsDAO processedCommitsDAO;
-    private final WorkflowService workflowService;
+    private final PublishService publishService;
     private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
@@ -107,14 +108,14 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService",
             "contentRepository", "studioConfiguration",
-            "processedCommitsDAO", "workflowService"})
+            "processedCommitsDAO", "publishService"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
                                   StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
                                   GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
-                                  ProcessedCommitsDAO processedCommitsDAO, WorkflowService workflowService) {
+                                  ProcessedCommitsDAO processedCommitsDAO, PublishService publishService) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -127,7 +128,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
         this.processedCommitsDAO = processedCommitsDAO;
-        this.workflowService = workflowService;
+        this.publishService = publishService;
     }
 
     @Async
@@ -240,7 +241,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private void cancelWorkflow(final Site site, final List<RepoOperation> operationsFromDelta) {
         for (RepoOperation repoOperation : operationsFromDelta) {
             String path = repoOperation.getPath();
-            workflowService.cancelWorkflow(site.getSiteId(), path);
+            publishService.cancelAllPackagesForPath(site.getSiteId(), path);
         }
     }
 

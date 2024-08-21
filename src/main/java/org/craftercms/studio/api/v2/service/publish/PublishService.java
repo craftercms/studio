@@ -217,6 +217,14 @@ public interface PublishService {
     long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException;
 
     /**
+     * Cancel all pending publish packages containing the given path
+     *
+     * @param siteId the site id
+     * @param path   the content path
+     */
+    void cancelAllPackagesForPath(String siteId, String path);
+
+    /**
      * A request to include a path in a publish request.
      *
      * @param path            the path to include

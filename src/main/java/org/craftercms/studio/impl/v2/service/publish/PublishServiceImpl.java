@@ -185,6 +185,11 @@ public class PublishServiceImpl implements PublishService {
         return publishServiceInternal.isSitePublished(siteId);
     }
 
+    @Override
+    public void cancelAllPackagesForPath(final String siteId, final String path) {
+        publishServiceInternal.cancelAllPackagesForPath(siteId, path);
+    }
+
     @SuppressWarnings("unused")
     public void setPublishServiceInternal(final PublishService publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;

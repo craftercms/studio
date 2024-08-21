@@ -879,4 +879,49 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             throws ServiceLayerException, AuthenticationException {
         return buildPublishPackage(site, target, ITEM_LIST, paths, commitIds, requestApproval, schedule, comment, this::getItemListPackageItems);
     }
+
+    /**
+     * Cancel a package.
+     * This method will cancel a package if its state is READY.
+     * It will also update the state bits of the items in the package to cancel the workflow.
+     *
+     * @param siteId         the site id
+     * @param publishPackage the package to cancel
+     */
+    private void cancelPackage(final String siteId, final PublishPackage publishPackage) {
+        String packageLockKey = getPublishPackageLockKey(publishPackage.getId());
+        generalLockService.lock(packageLockKey);
+        try {
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
+                return;
+            }
+            publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId(), servicesConfig.getLiveEnvironment(siteId));
+            applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
+        } finally {
+            generalLockService.unlock(packageLockKey);
+        }
+    }
+
+    @Override
+    public void cancelAllPackagesForPath(final String siteId, final String path) {
+        // Try to cancel ready packages
+        Collection<PublishPackage> packages = publishDao.getReadyPackagesForItem(siteId, path);
+        for (PublishPackage publishPackage : packages) {
+            cancelPackage(siteId, publishPackage);
+        }
+
+        // Wait for processing package (if any) to complete
+        PublishPackage processingPackage = publishDao.getPackageForItem(siteId, path, PublishPackage.PackageState.PROCESSING.value);
+        if (processingPackage != null) {
+            logger.debug("Package with id '{}' is in PROCESSING state, waiting for it to finish", processingPackage.getId());
+            String packageLockKey = getPublishPackageLockKey(processingPackage.getId());
+            generalLockService.lock(packageLockKey);
+            try {
+                logger.debug("Package with id '{}' has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
+            } finally {
+                generalLockService.unlock(packageLockKey);
+            }
+        }
+    }
 }
