@@ -17,13 +17,10 @@
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -39,11 +36,8 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 
@@ -54,7 +48,6 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     private NotificationService notificationService;
     private ItemServiceInternal itemServiceInternal;
     private ContentServiceInternal contentServiceInternal;
-    private DependencyService dependencyService;
     private org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
     private ApplicationEventPublisher eventPublisher;
 
@@ -134,61 +127,6 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
         return descendants;
     }
 
-    @Override
-    public void delete(String siteId, List<String> paths, List<String> optionalDependencies, String comment) throws ServiceLayerException, UserNotFoundException {
-        // create submission package (aad folders and children if pages)
-        List<String> pathsToDelete = calculateDeleteSubmissionPackage(siteId, paths, optionalDependencies);
-//        String deletedBy = securityService.getCurrentUser();
-        try {
-            // set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToDelete, true);
-            // cancel existing workflow
-            // TODO: implement for the new system
-//            cancelExistingWorkflowEntries(siteId, pathsToDelete);
-            // add to publishing queue
-            // TODO: implement for the new system
-//            deploymentService.delete(siteId, pathsToDelete, deletedBy, getCurrentTime(), comment);
-            // send notification email
-            // TODO: We don't have notifications on delete now. Fix this ???
-            // trigger event
-//            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
-        } finally {
-            // clear system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToDelete, false);
-        }
-    }
-
-    private List<String> calculateDeleteSubmissionPackage(String siteId, List<String> paths,
-                                                          List<String> optionalDependencies)
-            throws UserNotFoundException, ServiceLayerException {
-        List<String> deletePackage = new LinkedList<>(paths);
-        if (CollectionUtils.isNotEmpty(optionalDependencies)) {
-            deletePackage.addAll(optionalDependencies);
-        }
-        List<SandboxItem> items = contentServiceInternal.getSandboxItemsByPath(siteId, paths, false);
-        items.forEach(item -> {
-            if (StringUtils.equals(item.getSystemType(), StudioConstants.CONTENT_TYPE_FOLDER)) {
-                deletePackage.addAll(itemServiceInternal.getSubtreeForDelete(siteId, item.getPath()));
-            } else if (StringUtils.equals(item.getSystemType(), StudioConstants.CONTENT_TYPE_PAGE)) {
-                deletePackage.addAll(itemServiceInternal.getSubtreeForDelete(siteId,
-                        item.getPath().replace(FILE_SEPARATOR + INDEX_FILE, "")));
-            }
-        });
-        Set<String> dependencies = dependencyService.getDeleteDependencies(siteId, deletePackage);
-        deletePackage.addAll(dependencies);
-        deletePackage.sort((lhs, rhs) -> {
-            if (StringUtils.startsWith(rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
-                    lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))) {
-                return 1;
-            } else if (StringUtils.startsWith(lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
-                    rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))) {
-                return -1;
-            }
-            return lhs.compareTo(rhs);
-        });
-        return deletePackage;
-    }
-
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
                                  List<String> submitterList) {
         notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy);
@@ -206,10 +144,6 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     @SuppressWarnings("unused")
     public void setDependencyServiceInternal(final org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-    }
-
-    public void setDependencyService(final DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
     }
 
     @SuppressWarnings("unused")

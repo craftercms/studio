@@ -106,14 +106,4 @@ public interface WorkflowService {
 //    void reject(String siteId, List<String> paths, String comment)
 //            throws ServiceLayerException, DeploymentException, UserNotFoundException;
 
-    /**
-     * Delete content items
-     * @param siteId site identifier
-     * @param paths list of paths for content items to be deleted
-     * @param optionalDependencies list of paths soft dependencies
-     * @param comment deletion comment
-     */
-    // TODO: review: is this a "workflow" operation?
-    void delete(String siteId, List<String> paths, List<String> optionalDependencies, String comment)
-            throws ServiceLayerException, UserNotFoundException;
 }

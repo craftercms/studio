@@ -89,13 +89,4 @@ public class WorkflowServiceImpl implements WorkflowService {
         return workflowServiceInternal.getWorkflowAffectedPaths(siteId, path);
     }
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-    public void delete(@SiteId String siteId,
-                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                       List<String> optionalDependencies, String comment)
-            throws ServiceLayerException, UserNotFoundException {
-        workflowServiceInternal.delete(siteId, paths, optionalDependencies, comment);
-    }
 }

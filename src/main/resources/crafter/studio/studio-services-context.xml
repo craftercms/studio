@@ -584,7 +584,6 @@
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
         <property name="notificationService" ref="cstudioNotificationService" />
-        <property name="dependencyService" ref="studioDependencyService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
