@@ -478,7 +478,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getMoveToPath(),
                     updateParentIdScriptPath);
         } else {
-            Files.write(repoOperationsScriptPath, moveItemRow(site.getSiteId(), repoOperation.getPath(),
+            Files.write(repoOperationsScriptPath, moveItemRow(site.getId(), repoOperation.getPath(),
                             repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
