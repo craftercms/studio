@@ -259,6 +259,7 @@
     </sql>
 
     <select id="getPackageForItems" resultMap="PublishPackageMap">
+        <bind name="includeChildren" value="false" />
         <include refid="getAllPackagesForItems" />
         ORDER BY pp.schedule ASC LIMIT 1
     </select>

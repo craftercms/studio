@@ -168,6 +168,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
                 activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
                         OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
+                applicationContext.publishEvent(new WorkflowEvent(siteId, packageId, WorkflowEvent.WorkFlowEventType.CANCEL));
             } finally {
                 generalLockService.unlock(packageLockKey);
             }

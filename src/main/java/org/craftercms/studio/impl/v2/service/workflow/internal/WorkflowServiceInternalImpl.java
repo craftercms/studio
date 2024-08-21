@@ -26,9 +26,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.event.content.ContentEvent;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -46,7 +45,8 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 
 public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
@@ -231,16 +231,8 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
                 logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
                 return;
             }
-            publishDao.updatePackageState(publishPackage.getId(), PublishPackage.PackageState.CANCELLED.value, PublishPackage.PackageState.READY.value);
-            Collection<PublishItem> pathsToCancelWorkflow = publishDao.getPublishItems(publishPackage.getId());
-            for (PublishItem publishItem : pathsToCancelWorkflow) {
-                String publishItemPath = publishItem.getPath();
-                Collection<PublishPackage> otherReadyPackages = publishDao.getReadyPackagesForItem(siteId, publishItemPath);
-                if (otherReadyPackages.isEmpty()) {
-                    itemServiceInternal.updateStateBits(siteId, publishItemPath, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
-                    eventPublisher.publishEvent(new ContentEvent(null, siteId, publishItemPath));
-                }
-            }
+            publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId());
+            eventPublisher.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
         } finally {
             generalLockService.unlock(packageLockKey);
         }
