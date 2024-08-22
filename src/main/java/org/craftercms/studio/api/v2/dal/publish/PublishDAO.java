@@ -43,6 +43,7 @@ public interface PublishDAO {
     String PATHS = "paths";
     String TARGET = "target";
     String PACKAGE_ID = "packageId";
+    String PACKAGE_IDS = "packageIds";
     String PUBLISH_PACKAGE = "publishPackage";
     String PACKAGE_READY_STATE = "readyState";
     String ITEMS = "items";
@@ -165,10 +166,20 @@ public interface PublishDAO {
     /**
      * Get a package by id
      *
+     * @param siteId    the site id
      * @param packageId the package id
      * @return the {@link PublishPackage}
      */
-    PublishPackage getById(@Param(PACKAGE_ID) final long packageId);
+    PublishPackage getById(@Param(SITE_ID) final long siteId, @Param(PACKAGE_ID) final long packageId);
+
+    /**
+     * Get multiple publish packages by ids
+     *
+     * @param siteId     the site id
+     * @param packageIds the package ids
+     * @return the collection of {@link PublishPackage}
+     */
+    Collection<PublishPackage> getByIds(@Param(SITE_ID) final long siteId, @Param(PACKAGE_IDS) final Collection<Long> packageIds);
 
     /**
      * Update a package

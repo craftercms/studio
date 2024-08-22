@@ -89,7 +89,7 @@ public interface PublishService {
      * @param packageIds list of package identifiers
      * @throws SiteNotFoundException site not found
      */
-    void cancelPublishingPackages(String siteId, List<Long> packageIds)
+    void cancelPublishingPackages(String siteId, Collection<Long> packageIds)
             throws ServiceLayerException, UserNotFoundException;
 
     /**

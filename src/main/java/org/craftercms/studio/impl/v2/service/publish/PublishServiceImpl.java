@@ -84,7 +84,7 @@ public class PublishServiceImpl implements PublishService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
     public void cancelPublishingPackages(@SiteId final String siteId,
-                                         final List<Long> packageIds) throws ServiceLayerException, UserNotFoundException {
+                                         final Collection<Long> packageIds) throws ServiceLayerException, UserNotFoundException {
         publishServiceInternal.cancelPublishingPackages(siteId, packageIds);
     }
 

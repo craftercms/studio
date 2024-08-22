@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitiali
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackagesNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
@@ -371,6 +372,20 @@ public class ExceptionHandlers {
                                                                  PublishingPackageNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PublishPackagesNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResultList<Long> handlePublishingPackageNotFoundException(HttpServletRequest request,
+                                                                    PublishPackagesNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PUBLISHING_PACKAGE_NOT_FOUND);
+        handleExceptionInternal(request, e, response);
+
+        ResultList<Long> result = new ResultList<>();
+        result.setResponse(response);
+        result.setEntities(RESULT_KEY_PACKAGES, e.getPackageIds());
+
+        return result;
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

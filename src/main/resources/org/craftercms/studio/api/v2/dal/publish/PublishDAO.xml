@@ -130,6 +130,17 @@
         SELECT *
         FROM publish_package
         WHERE id = #{packageId}
+        and site_id = #{siteId}
+    </select>
+
+    <select id="getByIds" resultMap="PublishPackageMap">
+        SELECT *
+        FROM publish_package
+        WHERE site_id = #{siteId}
+        AND id IN
+                <foreach collection="packageIds" item="packageId" open="(" separator="," close=")">
+                    #{packageId}
+                </foreach>
     </select>
 
     <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">

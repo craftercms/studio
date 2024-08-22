@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackagesNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -149,16 +150,25 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public void cancelPublishingPackages(final String siteId, final List<Long> packageIds)
+    public void cancelPublishingPackages(final String siteId, final Collection<Long> packageIds)
             throws ServiceLayerException, UserNotFoundException {
         Site site = siteService.getSite(siteId);
         String username = securityService.getCurrentUser();
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+
+        Collection<PublishPackage> packages = publishDao.getByIds(site.getId(), packageIds);
+        if (packages.size() != packageIds.size()) {
+            List<Long> missingPackages = packageIds.stream()
+                    .filter(id -> packages.stream().noneMatch(p -> id.equals(p.getId())))
+                    .toList();
+            throw new PublishPackagesNotFoundException(siteId, missingPackages);
+        }
+
         for (Long packageId : packageIds) {
             String packageLockKey = getPublishPackageLockKey(packageId);
             generalLockService.lock(packageLockKey);
             try {
-                PublishPackage publishPackage = publishDao.getById(packageId);
+                PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
                 if (publishPackage.getPackageState() == PublishPackage.PackageState.CANCELLED.value) {
                     logger.warn("Package '{}' for site '{}' is already cancelled", packageId, siteId);
                     continue;

@@ -139,13 +139,13 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
 
         try {
-            lockAndPublish(packageId);
+            lockAndPublish(site.getId(), packageId);
         } finally {
             generalLockService.unlock(lockKey);
         }
     }
 
-    private void lockAndPublish(final long packageId) throws ServiceLayerException {
+    private void lockAndPublish(final long siteId, final long packageId) throws ServiceLayerException {
         String packageIdLockKey = StudioUtils.getPublishPackageLockKey(packageId);
         logger.debug("Trying to acquire lock for publishing package '{}'", packageId);
         boolean lockAcquired = generalLockService.tryLock(packageIdLockKey);
@@ -154,7 +154,7 @@ public class Publisher implements ApplicationEventPublisherAware {
             return;
         }
         try {
-            PublishPackage publishPackage = publishDao.getById(packageId);
+            PublishPackage publishPackage = publishDao.getById(siteId, packageId);
             doPublish(publishPackage);
         } finally {
             generalLockService.unlock(packageIdLockKey);
