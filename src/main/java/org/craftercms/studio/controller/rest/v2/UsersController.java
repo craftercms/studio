@@ -402,13 +402,17 @@ public class UsersController {
 
     @GetMapping(FORGOT_PASSWORD)
     public ResultOne<String> forgotPassword(@NotBlank @RequestParam(value = REQUEST_PARAM_USERNAME) String username) {
+        int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
         try {
+            TimeUnit.SECONDS.sleep(delay);
             ValidationUtils.validateValue(new EsapiValidator(USERNAME), username, REQUEST_PARAM_USERNAME);
             userService.forgotPassword(username);
         } catch (ServiceLayerException e) {
             logger.error("Failed to process forgot password for user '{}'", username, e);
         } catch (ValidationException e) {
             logger.error("Validation error while processing forgot password for user '{}'", username, e);
+        } catch (InterruptedException e) {
+            logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
         }
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
