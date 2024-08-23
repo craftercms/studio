@@ -284,6 +284,10 @@
             INNER JOIN site s ON pp.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND (pp.package_state &amp; #{packageState}) > 0
+        AND pp.approval_state IN
+            <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                #{approvalState}
+            </foreach>
         AND EXISTS (
             SELECT 1
             FROM publish_item pi

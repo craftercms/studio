@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
@@ -100,6 +101,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.lib.Constants.HEAD;
+import static org.eclipse.jgit.lib.Constants.R_REMOTES;
 
 // TODO: AV - Missing Javadoc and shouldn't be in the api root package. Those are only used mainly for interfaces
 // TODO: AV - all methods in this class should throw exceptions instead of returning null or a boolean
@@ -111,6 +113,8 @@ public class GitRepositoryHelper implements DisposableBean {
 
     // firstname lastname
     public static final String USERNAME_FORMAT = "%s %s";
+
+    public static final String REMOTE_BRANCH_REF_NAME_FORMAT = R_REMOTES + "%s/%s";
 
     private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
     private static final String GIT_CONFIG_PROPERTY_EMAIL = "email";
@@ -299,6 +303,22 @@ public class GitRepositoryHelper implements DisposableBean {
         retryingRepositoryOperationFacade.call(lsRemoteCommand);
         Files.deleteIfExists(tempKey);
         return true;
+    }
+
+    /**
+     * Configure a git command with authentication details
+     * @param gitCommand the git command
+     * @param remoteRepository the remote repository information to get the authentication details from
+     * @param tempKey temporary file to store the private key
+     * @param decrypt whether to decrypt the password, token and private key
+     */
+    public void setAuthenticationForCommand(final TransportCommand<?, ?> gitCommand,
+                                            final RemoteRepository remoteRepository,
+                                            final Path tempKey, boolean decrypt)
+            throws ServiceLayerException, IOException, CryptoException {
+        setAuthenticationForCommand(gitCommand, remoteRepository.getAuthenticationType(),
+                remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
+                remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, decrypt);
     }
 
     public void setAuthenticationForCommand(TransportCommand<?,?> gitCommand, String authenticationType,
@@ -1507,5 +1527,16 @@ public class GitRepositoryHelper implements DisposableBean {
     public String writeTree(final Repository repo, final List<String> paths, final List<String> deletedPaths,
                             final String commitId, final ObjectId parentCommitId) throws IOException, InterruptedException {
         return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths, commitId, parentCommitId);
+    }
+
+    /**
+     * Get a string like "refs/remotes/REMOTE/BRANCH_NAME" for a remote branch
+     *
+     * @param remoteName the remote name
+     * @param branchName the branch name
+     * @return the remote branch ref name
+     */
+    public String getRemoteBranchRefName(final String remoteName, final String branchName) {
+        return String.format(REMOTE_BRANCH_REF_NAME_FORMAT, remoteName, branchName);
     }
 }

@@ -30,10 +30,13 @@ import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -46,12 +49,15 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.NoRemoteRepositoryException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -80,7 +86,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal, ApplicationContextAware {
@@ -99,6 +106,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private GeneralLockService generalLockService;
     private GitRepositoryHelper gitRepositoryHelper;
     private GitContentRepository contentRepositoryV2;
+    private PublishService publishService;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private ApplicationContext applicationContext;
@@ -362,58 +370,184 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return res;
     }
 
+    /**
+     * Get a list of changes that would be merged into the sandbox branch of the repository if the given commit is merged.
+     * <p>
+     * This should be equivalent to <code>git diff ...COMMIT_ID --name-status</code>
+     *
+     * @param git         The git instance
+     * @param newCommitId The commit id that is intended to be merged into HEAD
+     * @return The list of changes that would be merged
+     */
+    private List<DiffEntry> getMergeChanges(Git git, ObjectId newCommitId) throws IOException, GitAPIException {
+        Repository repo = git.getRepository();
+        try (RevWalk walk = new RevWalk(repo)) {
+            RevCommit headCommit = walk.parseCommit(repo.resolve(Constants.HEAD));
+            RevCommit newCommit = walk.parseCommit(newCommitId);
+
+            walk.setRevFilter(RevFilter.MERGE_BASE);
+            walk.markStart(headCommit);
+            walk.markStart(newCommit);
+            RevCommit mergeBase = walk.next();
+
+            walk.reset();
+
+            RevTree newCommitTree = walk.parseTree(newCommit.getTree().getId());
+            CanonicalTreeParser newCommitTreeParser = new CanonicalTreeParser();
+            try (ObjectReader reader = repo.newObjectReader()) {
+                newCommitTreeParser.reset(reader, newCommitTree.getId());
+            }
+
+            RevTree mergeBaseTree = walk.parseTree(mergeBase.getTree().getId());
+            CanonicalTreeParser mergeBaseTreeParser = new CanonicalTreeParser();
+            try (ObjectReader reader = repo.newObjectReader()) {
+                mergeBaseTreeParser.reset(reader, mergeBaseTree.getId());
+            }
+
+            DiffCommand diffCommand = git.diff()
+                    .setOldTree(mergeBaseTreeParser)
+                    .setNewTree(newCommitTreeParser);
+            List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+
+            walk.dispose();
+            return diffEntries;
+        }
+    }
+
+    /**
+     * Asserts that the changes in the fetched commit are not part of any active publishing package,
+     * otherwise throws a {@link ContentInPublishQueueException}.
+     *
+     * @param siteId      The site id
+     * @param git         The git instance
+     * @param newCommitId The commit id that is intended to be merged into HEAD
+     * @throws IOException                    if an error occurs while trying to calculate the changes
+     * @throws GitAPIException                if an error occurs while trying to calculate the changes
+     * @throws ContentInPublishQueueException if the changes contains paths included in active (SUBMITTED or APPROVED ready packages) publishing packages
+     */
+    private void assertChangesNotInPublishQueue(final String siteId, final Git git, final ObjectId newCommitId) throws IOException, GitAPIException, ContentInPublishQueueException {
+        logger.debug("Checking if the fetched changes are in the publish queue");
+        List<DiffEntry> diffEntries = getMergeChanges(git, newCommitId);
+        List<String> removedPaths = new LinkedList<>();
+        List<String> updatedPaths = new LinkedList<>();
+        for (DiffEntry diffEntry : diffEntries) {
+            switch (diffEntry.getChangeType()) {
+                case DELETE:
+                    removedPaths.add(FILE_SEPARATOR + gitRepositoryHelper.getGitPath(diffEntry.getOldPath()));
+                    break;
+                case RENAME:
+                    removedPaths.add(FILE_SEPARATOR + diffEntry.getOldPath());
+                    updatedPaths.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                    break;
+                default:
+                    updatedPaths.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                    break;
+            }
+        }
+        Map<Long, PublishPackage> publishPackages = new HashMap<>();
+        if (isNotEmpty(removedPaths)) {
+            // Removed paths would affect children as well
+            publishService.getActivePackagesForItems(siteId, removedPaths, true)
+                    .forEach(p -> publishPackages.put(p.getId(), p));
+        }
+        if (isNotEmpty(updatedPaths)) {
+            publishService.getActivePackagesForItems(siteId, updatedPaths, false)
+                    .forEach(p -> publishPackages.put(p.getId(), p));
+        }
+        if (MapUtils.isNotEmpty(publishPackages)) {
+            throw new ContentInPublishQueueException("Unable to pull changes from remote. Affected items are part of a publishing package.",
+                    publishPackages.values());
+        }
+    }
+
+    /**
+     * Merge the changes from a commit into the HEAD of the sandbox repository.
+     *
+     * @param siteId        The site id
+     * @param git           The git instance
+     * @param commitId      The commit id to try to merge
+     * @param mergeStrategy The merge strategy to use
+     * @return The result of the merge operation
+     */
+    private MergeResult merge(final String siteId, final Git git, final ObjectId commitId, String mergeStrategy)
+            throws GitAPIException, IOException {
+        logger.debug("Merging the changes from commit '{}' in site '{}'", commitId.getName(), siteId);
+        MergeCommand mergeCommand = git.merge()
+                .include(commitId);
+        logger.debug("Set the merge strategy in merge command to '{}'", mergeStrategy);
+        switch (mergeStrategy) {
+            case THEIRS -> mergeCommand.setStrategy(MergeStrategy.THEIRS);
+            case OURS -> mergeCommand.setStrategy(MergeStrategy.OURS);
+            default -> {
+            }
+        }
+        mergeCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
+        org.eclipse.jgit.api.MergeResult mergeResult = retryingRepositoryOperationFacade.call(mergeCommand);
+
+        if (mergeResult.getMergeStatus().isSuccessful()) {
+            applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
+            List<String> newMergedCommits = extractCommitIdsFromPullResult(git.getRepository(), mergeResult);
+            logger.debug("Commits pulled for site '{}': {}", siteId, newMergedCommits);
+            return MergeResult.from(mergeResult, newMergedCommits);
+        }
+        if (conflictNotificationEnabled()) {
+            List<String> conflictFiles = new LinkedList<>(mergeResult.getConflicts().keySet());
+            notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles);
+        }
+        return MergeResult.failed();
+    }
+
+    /**
+     * Fetch a branch from a remote repository.
+     *
+     * @param siteId           The site id
+     * @param git              The git instance
+     * @param remoteRepository The db-stored remote repository information
+     * @param remoteName       The remote name
+     * @param remoteBranch     The remote branch
+     */
+    private void fetchRemoteBranch(final String siteId, final Git git, final RemoteRepository remoteRepository,
+                                   final String remoteName, final String remoteBranch)
+            throws IOException, GitAPIException, CryptoException, ServiceLayerException {
+        logger.trace("Fetch '{}' branch from remote '{}' in site '{}'", remoteBranch, remoteName, siteId);
+        Path tempKey = null;
+        try {
+            FetchCommand fetchCommand = git.fetch()
+                    .setRemote(remoteName)
+                    .setInitialBranch(remoteBranch);
+            tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
+            gitRepositoryHelper.setAuthenticationForCommand(fetchCommand, remoteRepository, tempKey, true);
+            FetchResult fetchResult = retryingRepositoryOperationFacade.call(fetchCommand);
+            if (isNotEmpty(fetchResult.getMessages())) {
+                logger.info("Git fetch from remote '{}' in site '{}' returned: '{}'", remoteName, siteId, fetchResult.getMessages());
+            }
+        } finally {
+            if (tempKey != null) {
+                FileUtils.deleteQuietly(tempKey.toFile());
+            }
+        }
+    }
+
     @Override
     public MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
-                    RemoteRepositoryNotFoundException {
+            RemoteRepositoryNotFoundException {
         logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
                 remoteName, siteId);
-        String gitLockKey = getSandboxRepoLockKey(siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
         if (remoteRepository == null) {
             throw new RemoteRepositoryNotFoundException(format("Remote repository '%s' does not exist in site '%s'", remoteName, siteId));
         }
         logger.trace("Prepare the JGit pull command in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
+        String gitLockKey = getSandboxRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
-        Path tempKey = null;
         try (Git git = new Git(repo)) {
-            PullCommand pullCommand = git.pull();
-            logger.trace("Set the JGit pull command remote to '{}' in site '{}'", remoteName, siteId);
-            pullCommand.setRemote(remoteRepository.getRemoteName());
-            logger.trace("Set the JGit pull command branch to '{}' in site '{}'", remoteBranch, siteId);
-            pullCommand.setRemoteBranchName(remoteBranch);
-            tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
-            gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
-                    remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
-                    remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
-            switch (mergeStrategy) {
-                case THEIRS:
-                    pullCommand.setStrategy(MergeStrategy.THEIRS);
-                    break;
-                case OURS:
-                    pullCommand.setStrategy(MergeStrategy.OURS);
-                    break;
-                default:
-                    break;
-            }
-            pullCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
-            PullResult pullResult = retryingRepositoryOperationFacade.call(pullCommand);
-            String pullResultMessage = pullResult.toString();
-            if (isNotEmpty(pullResultMessage)) {
-                logger.info("Git pull in site '{}' returned '{}'", siteId, pullResultMessage);
-            }
-            if (pullResult.isSuccessful()) {
-                applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
-                List<String> newMergedCommits = extractCommitIdsFromPullResult(repo, pullResult);
-                return MergeResult.from(pullResult, newMergedCommits);
-            } else if (conflictNotificationEnabled()) {
-                List<String> conflictFiles = new LinkedList<>();
-                if (pullResult.getMergeResult() != null) {
-                    conflictFiles.addAll(pullResult.getMergeResult().getConflicts().keySet());
-                }
-                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles);
-            }
+            fetchRemoteBranch(siteId, git, remoteRepository, remoteName, remoteBranch);
+            ObjectId mergeCommitId = repo.resolve(gitRepositoryHelper.getRemoteBranchRefName(remoteName, remoteBranch));
+            assertChangesNotInPublishQueue(siteId, git, mergeCommitId);
+            logger.debug("Merge the changes from remote '{}' branch '{}' in site '{}'", remoteName, remoteBranch, siteId);
+            return merge(siteId, git, mergeCommitId, mergeStrategy);
         } catch (InvalidRemoteException e) {
             logger.error("Failed to pull from the remote '{}' in site '{}' because the remote is invalid",
                     remoteName, siteId, e);
@@ -430,22 +564,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } catch (CryptoException | IOException e) {
             throw new ServiceLayerException(e);
         } finally {
-            try {
-                if (tempKey != null) {
-                    Files.deleteIfExists(tempKey);
-                }
-            } catch (IOException e) {
-                logger.warn("Failed to delete the file '{}'", tempKey, e);
-            }
             generalLockService.unlock(gitLockKey);
         }
-
         return MergeResult.failed();
     }
 
-    private List<String> extractCommitIdsFromPullResult(Repository repo, PullResult pullResult) {
+    private List<String> extractCommitIdsFromPullResult(Repository repo, org.eclipse.jgit.api.MergeResult mergeResult) {
         List<String> commitIds = new LinkedList<>();
-        ObjectId[] mergedCommits = pullResult.getMergeResult().getMergedCommits();
+        ObjectId[] mergedCommits = mergeResult.getMergedCommits();
         for (ObjectId mergedCommit : mergedCommits) {
             try {
                 RevCommit revCommit = repo.parseCommit(mergedCommit);
@@ -587,6 +713,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return true;
     }
 
+    @SuppressWarnings("unused")
     private boolean isRemovableRemote(String siteId, String remoteName) {
         return true;
     }
@@ -638,7 +765,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     retryingRepositoryOperationFacade.call(resetCommand);
                     logger.trace("Checkout the content from remote merge HEAD in site '{}'", siteId);
                     List<ObjectId> mergeHeads = repo.readMergeHeads();
-                    ObjectId mergeCommitId = mergeHeads.get(0);
+                    ObjectId mergeCommitId = mergeHeads.getFirst();
                     checkoutCommand = git.checkout().addPath(gitRepositoryHelper.getGitPath(path))
                             .setStartPoint(mergeCommitId.getName());
                     retryingRepositoryOperationFacade.call(checkoutCommand);
@@ -689,7 +816,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 // No merge head
                 return diffResult;
             }
-            ObjectId mergeCommitId = mergeHeads.get(0);
+            ObjectId mergeCommitId = mergeHeads.getFirst();
             logger.debug("Get the local content of the conflicting file from site '{}' path '{}'", siteId, path);
             InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD)
                                                              .orElseThrow()
@@ -767,7 +894,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
      * @param git the git client
      * @param siteId the site identifier
      * @param files set of files to remove
-     * @throws GitAPIException
+     * @throws GitAPIException if the operation fails while calling the remove command
      */
     protected void gitRemove(Git git, String siteId, Set<String> files) throws GitAPIException {
         if (isEmpty(files)) {
@@ -787,7 +914,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
      * @param git the git client
      * @param siteId the site identifier
      * @param files set of files to add
-     * @throws GitAPIException
+     * @throws GitAPIException if the operation fails while calling the add command
      */
     protected void gitAdd(Git git, String siteId, Set<String> files) throws GitAPIException {
         if (isEmpty(files)) {
@@ -804,12 +931,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     /**
      * Git operation to commit all pending changes
-     * @param git the git client
-     * @param siteId the site identifier
+     *
+     * @param git           the git client
+     * @param siteId        the site identifier
      * @param commitMessage commit message
-     * @throws UserNotFoundException
-     * @throws ServiceLayerException
-     * @throws GitAPIException
+     * @throws UserNotFoundException if the current user is not found
+     * @throws ServiceLayerException if an error occurs while trying to retrieve the current user
+     * @throws GitAPIException       if the operation fails while calling the commit command
      */
     protected void gitCommit(Git git, String siteId, String commitMessage) throws UserNotFoundException, ServiceLayerException, GitAPIException {
         logger.trace("Commit the changes in site '{}'", siteId);
@@ -903,6 +1031,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
     }
 
+    @SuppressWarnings("unused")
     public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
         this.remoteRepositoryDao = remoteRepositoryDao;
     }
@@ -911,6 +1040,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.studioConfiguration = studioConfiguration;
     }
 
+    @SuppressWarnings("unused")
     public void setNotificationService(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
@@ -923,6 +1053,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
     }
@@ -931,12 +1062,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.generalLockService = generalLockService;
     }
 
+    @SuppressWarnings("unused")
     public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
         this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
+    @SuppressWarnings("unused")
     public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPublishService(final PublishService publishService) {
+        this.publishService = publishService;
     }
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {

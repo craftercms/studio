@@ -67,6 +67,8 @@ public interface PublishDAO {
     String SUCCESS_OFF_BIT_MAP = "successOffStatesBitMap";
     String FAILURE_OFF_BIT_MAP = "failureOffStatesBitMap";
 
+    List<ApprovalState> ACTIVE_APPROVAL_STATES = List.of(SUBMITTED, APPROVED);
+
     /**
      * Convenience transactional method to create a package and its items
      *
@@ -218,7 +220,7 @@ public interface PublishDAO {
      * @param target the target
      */
     default void cancelOutstandingPackages(final long siteId, final String target) {
-        cancelOutstandingPackages(siteId, target, PackageState.CANCELLED.value, READY.value, List.of(SUBMITTED, APPROVED));
+        cancelOutstandingPackages(siteId, target, PackageState.CANCELLED.value, READY.value, ACTIVE_APPROVAL_STATES);
     }
 
     /**
@@ -227,7 +229,7 @@ public interface PublishDAO {
      * @param siteId the site id
      */
     default void cancelAllOutstandingPackages(final long siteId) {
-        cancelOutstandingPackages(siteId, null, PackageState.CANCELLED.value, READY.value, List.of(SUBMITTED, APPROVED));
+        cancelOutstandingPackages(siteId, null, PackageState.CANCELLED.value, READY.value, ACTIVE_APPROVAL_STATES);
     }
 
 
@@ -318,8 +320,8 @@ public interface PublishDAO {
      */
     default void recalculateItemStateBits(final long packageId, String liveTarget) {
         recalculateItemStateBits(packageId, List.of(SUBMITTED), IN_WORKFLOW.value, READY.value, false, null);
-        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), SCHEDULED.value, READY.value, true, null);
-        recalculateItemStateBits(packageId, List.of(SUBMITTED, APPROVED), DESTINATION.value, READY.value, false, liveTarget);
+        recalculateItemStateBits(packageId, ACTIVE_APPROVAL_STATES, SCHEDULED.value, READY.value, true, null);
+        recalculateItemStateBits(packageId, ACTIVE_APPROVAL_STATES, DESTINATION.value, READY.value, false, liveTarget);
     }
 
     /**
@@ -385,7 +387,7 @@ public interface PublishDAO {
      * @return the package containing the item, or null if the item is not submitted to be published
      */
     default PublishPackage getReadyPackageForItem(final String siteId, final String path, final boolean includeChildren) {
-        Collection<PublishPackage> packages = getItemPackagesByState(siteId, List.of(path), READY.value, includeChildren);
+        Collection<PublishPackage> packages = getItemPackagesByState(siteId, List.of(path), READY.value, ACTIVE_APPROVAL_STATES, includeChildren);
         return packages.isEmpty() ? null : packages.iterator().next();
     }
 
@@ -397,11 +399,11 @@ public interface PublishDAO {
      * @return collection of ready packages containing the item
      */
     default Collection<PublishPackage> getReadyPackagesForItem(final String siteId, final String path) {
-        return getItemPackagesByState(siteId, List.of(path), READY.value, false);
+        return getItemPackagesByState(siteId, List.of(path), READY.value, ACTIVE_APPROVAL_STATES, false);
     }
 
     /**
-     * Get the submitted package containing the given item
+     * Get the submitted/approved package containing the given item
      *
      * @param siteId       the site id
      * @param path         the path of the item
@@ -411,7 +413,7 @@ public interface PublishDAO {
     default PublishPackage getPackageForItem(final String siteId,
                                              final String path,
                                              final long packageState) {
-        return getPackageForItems(siteId, List.of(path), packageState);
+        return getPackageForItems(siteId, List.of(path), packageState, ACTIVE_APPROVAL_STATES);
     }
 
     /**
@@ -424,7 +426,8 @@ public interface PublishDAO {
      */
     PublishPackage getPackageForItems(@Param(SITE_ID) String siteId,
                                       @Param(PATHS) Collection<String> paths,
-                                      @Param(PACKAGE_STATE) long packageState);
+                                      @Param(PACKAGE_STATE) long packageState,
+                                      @Param(APPROVAL_STATES) List<ApprovalState> approvalStates);
 
     /**
      * Get the packages containing the given item that match the given package state
@@ -438,5 +441,6 @@ public interface PublishDAO {
     Collection<PublishPackage> getItemPackagesByState(@Param(SITE_ID) String siteId,
                                                       @Param(PATHS) Collection<String> paths,
                                                       @Param(PACKAGE_STATE) long packageState,
+                                                      @Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
                                                       @Param(INCLUDE_CHILDREN) boolean includeChildren);
 }

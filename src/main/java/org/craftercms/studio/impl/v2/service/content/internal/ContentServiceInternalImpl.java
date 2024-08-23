@@ -369,7 +369,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         // No need to check for children, as the paths collection already includes them
         Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
         if (isNotEmpty(packagesForItems)) {
-            throw new ContentInPublishQueueException("Unable to delete content that is part of an active publishing package", packagesForItems);
+            throw new ContentInPublishQueueException("Unable to edit content that is part of an active publishing package", packagesForItems);
         }
     }
 

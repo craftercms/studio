@@ -453,6 +453,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
         <property name="contentRepositoryV2" ref="contentRepository" />
+        <property name="publishService" ref="publishServiceInternal"/>
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>

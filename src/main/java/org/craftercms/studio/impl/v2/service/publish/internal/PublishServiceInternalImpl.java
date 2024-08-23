@@ -72,6 +72,7 @@ import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVAL_STATES;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
@@ -395,7 +396,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     @Override
     public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final Collection<String> paths, final boolean includeChildren) {
         return publishDao.getItemPackagesByState(siteId, paths,
-                PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value, includeChildren);
+                PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value,
+                ACTIVE_APPROVAL_STATES, includeChildren);
     }
 
     @Override
