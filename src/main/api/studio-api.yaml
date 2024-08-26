@@ -2555,10 +2555,11 @@ paths:
 
   /api/1/services/api/1/publish/start.json:
     post:
+      deprecated: true
       tags:
         - publishing
       summary: Start Crafter Studio’s publishing for a project/site.
-      description: "Required role: Admin, Site Admin"
+      description: "Required role: Admin, Site Admin. <br /> This operation is deprecated, use /api/2/publish/enable instead."
       operationId: publishStart
       requestBody:
         description: Start project/site publishing request body
@@ -2596,10 +2597,11 @@ paths:
 
   /api/1/services/api/1/publish/stop.json:
     post:
+      deprecated: true
       tags:
         - publishing
       summary: Stop Crafter Studio’s publishing for a project/site.
-      description: "Required role: Admin, Site Admin"
+      description: "Required role: Admin, Site Admin. <br /> This operation is deprecated, use /api/2/publish/enable instead."
       operationId: publishStop
       requestBody:
         description: Stop project/site publishing request body
@@ -7246,6 +7248,46 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/enable:
+    post:
+      tags:
+        - publishing
+      summary: Enable/disable publishing for a site
+      operationId: enablePublishing
+      description: 'Required permission "start_stop_publisher"'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                enabled:
+                  type: boolean
+                  description: true to enable, false to disable
+              required:
+                - siteId
+                - enabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 

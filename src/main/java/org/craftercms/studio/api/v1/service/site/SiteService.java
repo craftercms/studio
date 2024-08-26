@@ -215,16 +215,6 @@ public interface SiteService {
     SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
 
     /**
-     * Enable/Disable publishing for given site
-     *
-     * @param siteId  site id
-     * @param enabled true to enable publishing, false to disable publishing
-     * @return true if operation was successful, otherwise false
-     * @throws SiteNotFoundException site not found
-     */
-    boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException;
-
-    /**
      * Add remote repository for site content repository
      *
      * @param siteId             site identifier

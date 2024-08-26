@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
+import org.craftercms.studio.model.rest.publish.EnablePublisherRequest;
 import org.craftercms.studio.model.rest.publish.GetPublishDependenciesRequest;
 import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 import org.springframework.validation.annotation.Validated;
@@ -209,6 +210,14 @@ public class PublishController {
         ResultOne<PublishDependenciesResult> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PACKAGE, dependenciesPackage);
+        return result;
+    }
+
+    @PostMapping(ENABLE_PUBLISHER)
+    public Result enablePublisher(@Validated @RequestBody EnablePublisherRequest request) {
+        sitesService.enablePublishing(request.getSiteId(), request.isEnable());
+        Result result = new Result();
+        result.setResponse(OK);
         return result;
     }
 

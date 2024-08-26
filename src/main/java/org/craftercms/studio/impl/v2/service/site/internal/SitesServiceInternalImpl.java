@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
@@ -84,7 +83,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final SiteFeedMapper siteFeedMapper;
     private final SiteDAO siteDao;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private final SiteService siteServiceV1;
     private final Deployer deployer;
     private final ConfigurationService configurationService;
     private final SecurityService securityService;
@@ -95,14 +93,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "blobAwareRepository",
             "studioConfiguration", "siteFeedMapper",
             "siteDao",
-            "retryingDatabaseOperationFacade", "siteServiceV1",
+            "retryingDatabaseOperationFacade",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
                                     StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,
-                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
+                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
                                     Deployer deployer, ConfigurationService configurationService,
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal) {
         this.descriptorReader = descriptorReader;
@@ -112,7 +110,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.siteFeedMapper = siteFeedMapper;
         this.siteDao = siteDao;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-        this.siteServiceV1 = siteServiceV1;
         this.deployer = deployer;
         this.configurationService = configurationService;
         this.securityService = securityService;
@@ -504,7 +501,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         try {
             // Lock source site
             if (publishingEnabled) {
-                siteServiceV1.enablePublishing(sourceSiteId, false);
+                enablePublishing(sourceSiteId, false);
             }
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_LOCKED));
             readOnlyBlobStores = readOnlyBlobStores && !studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false);
@@ -536,7 +533,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
             // Set site state to READY
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
-            siteServiceV1.enablePublishing(siteId, true);
+            enablePublishing(siteId, true);
             applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
             logger.info("Site duplicate from '{}' to '{}' - COMPLETE", sourceSiteId, siteId);
         } catch (ServiceLayerException ex) {
@@ -549,7 +546,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             // Unlock source site
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_READY));
             if (publishingEnabled) {
-                siteServiceV1.enablePublishing(sourceSiteId, true);
+                enablePublishing(sourceSiteId, true);
             }
         }
     }

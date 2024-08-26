@@ -917,21 +917,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @Valid
-    public boolean enablePublishing(@ValidateStringParam String siteId, boolean enabled)
-            throws SiteNotFoundException {
-        if (exists(siteId)) {
-            Map<String, Object> params = new HashMap<>();
-            params.put("siteId", siteId);
-            params.put("enabled", enabled ? 1 : 0);
-            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.enablePublishing(params));
-            return true;
-        } else {
-            throw new SiteNotFoundException();
-        }
-    }
-
-    @Override
     public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
