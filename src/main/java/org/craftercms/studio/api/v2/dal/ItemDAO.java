@@ -52,6 +52,7 @@ public interface ItemDAO {
     String LIVE_PUBLISHED_STATE = "livePublishedState";
     String PUBLISH_PACKAGE_STATE = "packageState";
     String PUBLISH_PACKAGE_APPROVAL_STATES = "approvalStates";
+    String ITEM_STATE_MASK = "itemStateMask";
 
 
 
@@ -461,7 +462,7 @@ public interface ItemDAO {
      * @param preferContent indicates if pages should be returned instead of folders when available
      * @return list of items
      */
-    default List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+    default List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) Collection<String> paths,
                                              @Param(PREFER_CONTENT) boolean preferContent) {
         return getSandboxItemsByPath(siteId, paths, CONTENT_TYPE_FOLDER, preferContent,
                 READY.value,
@@ -479,7 +480,7 @@ public interface ItemDAO {
      * @param approvalStates   package approval states to filter
      * @return list of items
      */
-    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) Collection<String> paths,
                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                      @Param(PREFER_CONTENT) boolean preferContent,
                                      @Param(PUBLISH_PACKAGE_STATE) long packageState,
@@ -698,5 +699,16 @@ public interface ItemDAO {
                               @Param(ON_STATES_BIT_MAP) long onStateBitMap,
                               @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
 
+    /**
+     * Check if any of the items in the given paths match the given state mask
+     *
+     * @param siteId        the site id
+     * @param paths         the paths to match states for
+     * @param itemStateMask the state mask to match
+     * @return true if any of the items match the state mask, false otherwise
+     */
+    boolean matchItemState(@Param(SITE_ID) String siteId,
+                           @Param(PATHS) Collection<String> paths,
+                           @Param(ITEM_STATE_MASK) long itemStateMask);
 
 }

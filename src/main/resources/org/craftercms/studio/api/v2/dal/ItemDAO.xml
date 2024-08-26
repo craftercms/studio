@@ -773,4 +773,17 @@
             #{itemId}
         </foreach>
     </update>
+
+    <select id="matchItemState">
+        SELECT COUNT(1)
+        FROM item i
+        INNER JOIN site s ON s.id = i.site_id
+        WHERE (i.state &amp; #{itemStateMask}) = #{itemStateMask}
+        AND s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.path IN
+                <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+                    #{path}
+                </foreach>
+    </select>
 </mapper>

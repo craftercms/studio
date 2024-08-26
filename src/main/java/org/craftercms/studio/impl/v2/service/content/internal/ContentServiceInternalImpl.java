@@ -382,6 +382,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         Collection<String> allPaths = null;
         try {
             AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
+            if (itemServiceInternal.isSystemProcessing(siteId, paths)) {
+                throw new ServiceLayerException(format("Failed to delete content at site '%s' paths '%s' " +
+                                "because some items are being processed  (Object State is system processing)",
+                        siteId, paths));
+            }
             itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
             Site site = siteService.getSite(siteId);
             List<String> children = paths.stream()

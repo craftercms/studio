@@ -607,14 +607,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item = getContentItem(site, path);
 
             if (item != null) {
-                if (itemServiceInternal.isSystemProcessing(site, path)) {
-                    logger.error("Failed to write content because item at site '{}' path '{}' is being processed " +
-                            "(Object State is SYSTEM_PROCESSING)", site, path);
-					// TODO: Review the exception below
-                    throw new RuntimeException(format("Failed to write content because item at site '%s' path '%s' " +
-                            "is being processed (Object State is SYSTEM_PROCESSING)", site, path));
-                }
-                itemServiceInternal.setSystemProcessing(site, path, true);
+                trySetSystemProcessing(site, path);
             }
 
             if (itemServiceInternal.previousPathExists(site, path)) {
@@ -2052,6 +2045,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             throws ServiceLayerException, UserNotFoundException {
         contentServiceV2.lockContent(site, path);
         try {
+            trySetSystemProcessing(site, path);
             String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
             // TODO: The repository should throw an exception instead of returning a boolean

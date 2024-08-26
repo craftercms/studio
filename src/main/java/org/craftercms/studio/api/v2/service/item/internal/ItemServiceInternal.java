@@ -67,7 +67,7 @@ public interface ItemServiceInternal {
      * @param path item paths
      * @return list of items
      */
-    List<Item> getItems(String siteId, List<String> path);
+    List<Item> getItems(String siteId, Collection<String> path);
 
     /**
      * Get items for given site and paths
@@ -76,7 +76,7 @@ public interface ItemServiceInternal {
      * @param preferContent if true return content item if available
      * @return list of items
      */
-    List<Item> getItems(String siteId, List<String> paths, boolean preferContent);
+    List<Item> getItems(String siteId, Collection<String> paths, boolean preferContent);
 
     /**
      * Update item
@@ -99,7 +99,9 @@ public interface ItemServiceInternal {
      * @param path path of the item
      * @param isSystemProcessing true if item is being processed by system, otherwise false
      */
-    void setSystemProcessing(String siteId, String path, boolean isSystemProcessing);
+    default void setSystemProcessing(String siteId, String path, boolean isSystemProcessing) {
+        setSystemProcessingBulk(siteId, List.of(path), isSystemProcessing);
+    }
 
     /**
      * Set system processing for items
@@ -272,12 +274,24 @@ public interface ItemServiceInternal {
     void deleteItemForFolder(long siteId, String folderPath);
 
     /**
+     * Check if any of the items is in system processing
+     *
+     * @param site  the site id
+     * @param paths the paths to check
+     * @return true if any of the given items is in system processing
+     */
+    boolean isSystemProcessing(String site, Collection<String> paths);
+
+    /**
      * Check if item is in system processing
+     *
      * @param site site identifier
      * @param path item path
      * @return true if item is in system processing
      */
-    boolean isSystemProcessing(String site, String path);
+    default boolean isSystemProcessing(String site, String path) {
+        return isSystemProcessing(site, List.of(path));
+    }
 
     /**
      * Check if path exists as previous path

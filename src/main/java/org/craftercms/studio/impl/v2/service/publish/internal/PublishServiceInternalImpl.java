@@ -764,12 +764,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         try {
             // Combine list of paths and list of commit changes
             Collection<PublishItem> publishItems = getPublishItemsFunction.get(site, paths, commitIds);
+            PublishPackage publishPackage = submitPublishPackage(site, target, packageType, requestApproval, schedule, comment, publishItems);
 
-            // Create package
-            PublishPackage publishPackage = createPackage(site, target, packageType, requestApproval, schedule, comment);
-
-            boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
-            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
             applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : APPROVE));
@@ -780,6 +776,34 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         } catch (IOException e) {
             logger.error("Failed to submit publish package: ", e);
             throw new ServiceLayerException("Failed to submit publish package", e);
+        }
+    }
+
+    private PublishPackage submitPublishPackage(Site site, String target, PackageType packageType, boolean requestApproval,
+                                                Instant schedule, String comment,
+                                                Collection<PublishItem> publishItems) throws AuthenticationException, ServiceLayerException {
+        Collection<String> allPaths = null;
+        boolean clearSystemProcessing = false;
+        try {
+            allPaths = publishItems.stream()
+                    .map(PublishItem::getPath)
+                    .collect(toSet());
+
+            if (itemServiceInternal.isSystemProcessing(site.getSiteId(), allPaths)) {
+                throw new ServiceLayerException("Failed to submit publish package: Some items are being processed by the system");
+            }
+            clearSystemProcessing = true;
+            itemServiceInternal.setSystemProcessingBulk(site.getSiteId(), allPaths, true);
+            // Create package
+            PublishPackage publishPackage = createPackage(site, target, packageType, requestApproval, schedule, comment);
+
+            boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
+            retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
+            return publishPackage;
+        } finally {
+            if (clearSystemProcessing) {
+                itemServiceInternal.setSystemProcessingBulk(site.getSiteId(), allPaths, false);
+            }
         }
     }
 

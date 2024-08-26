@@ -104,12 +104,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<Item> getItems(String siteId, List<String> paths) {
+    public List<Item> getItems(String siteId, Collection<String> paths) {
         return getItems(siteId, paths, false);
     }
 
     @Override
-    public List<Item> getItems(String siteId, List<String> paths, boolean preferContent) {
+    public List<Item> getItems(String siteId, Collection<String> paths, boolean preferContent) {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
@@ -124,13 +124,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void updateItem(Item item) {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateItem(item));
-    }
-
-    @Override
-    public void setSystemProcessing(String siteId, String path, boolean isSystemProcessing) {
-        List<String> paths = new ArrayList<>();
-        paths.add(path);
-        setSystemProcessingBulk(siteId, paths, isSystemProcessing);
     }
 
     @Override
@@ -416,13 +409,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public boolean isSystemProcessing(String siteId, String path) {
-        Item item = getItem(siteId, path);
-        if (Objects.nonNull(item)) {
-            return ItemState.isSystemProcessing(item.getState());
-        } else {
+    public boolean isSystemProcessing(String siteId, Collection<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
             return false;
         }
+        return itemDao.matchItemState(siteId, paths, SYSTEM_PROCESSING.value);
     }
 
     @Override

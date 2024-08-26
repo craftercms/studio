@@ -45,8 +45,7 @@ import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.*;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
@@ -113,6 +112,22 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             if (securityServiceV1.isSiteAdmin(username, siteId)) {
                 result |= ITEM_UNLOCK;
             }
+        }
+
+        if (ItemState.isSystemProcessing(itemState)) {
+            result &= ~CONTENT_EDIT;
+            result &= ~CONTENT_CUT;
+            result &= ~CONTENT_COPY;
+            result &= ~CONTENT_DELETE;
+            result &= ~CONTENT_DUPLICATE;
+            result &= ~CONTENT_PASTE;
+            result &= ~CONTENT_REVERT;
+            result &= ~CONTENT_CHANGE_TYPE;
+            result &= ~CONTENT_RENAME;
+            result &= ~PUBLISH_REQUEST;
+            result &= ~BITMAP_PUBLISH;
+            result &= ~CONTENT_CREATE;
+            result &= ~FOLDER_CREATE;
         }
 
         if (RegexUtils.matchesAny(itemPath, TOP_LEVEL_FOLDERS)) {
