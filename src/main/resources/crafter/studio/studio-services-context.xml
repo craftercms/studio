@@ -217,6 +217,7 @@
           class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="publishService" ref="publishServiceInternal"/>
+        <property name="itemServiceInternal" ref="itemServiceInternal"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 

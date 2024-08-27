@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
@@ -66,6 +67,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 
     protected ContentService contentService;
     protected PublishService publishService;
+    protected ItemServiceInternal itemServiceInternal;
     protected GeneralLockService generalLockService;
     protected ApplicationContext applicationContext;
 
@@ -106,6 +108,12 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
             if (isNotEmpty(packagesForItems)) {
                 throw new ContentInPublishQueueException("Unable to CUT content that is part of an active publishing package", packagesForItems);
             }
+        }
+
+        if (itemServiceInternal.isSystemProcessing(siteId, List.of(sourcePath, targetPath))) {
+            throw new ServiceLayerException(format("Failed to paste items at site '%s' paths '%s' " +
+                            "because some items are being processed  (Object State is system processing)",
+                    siteId, List.of(sourcePath, targetPath)));
         }
     }
 
@@ -190,7 +198,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
         this.applicationContext = applicationContext;
     }
 
-    public void setContentService(ContentService contentService) {
+    public void setContentService(final ContentService contentService) {
         this.contentService = contentService;
     }
 
@@ -202,5 +210,9 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     @SuppressWarnings("unused")
     public void setGeneralLockService(final GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }
