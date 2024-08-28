@@ -167,7 +167,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
-        publishDao.updatePackageState(packageId, PROCESSING.value, READY.value);
+        publishDao.updatePackageState(publishPackage.getSiteId(), packageId, PROCESSING.value, READY.value);
         publishDao.updatePublishItemState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
         try {
             Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
@@ -211,7 +211,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         } finally {
             publishPackage.setPublishedOn(now());
             publishDao.updatePackage(publishPackage);
-            publishDao.updatePackageState(packageId, 0, PROCESSING.value);
+            publishDao.updatePackageState(publishPackage.getSiteId(), packageId, 0, PROCESSING.value);
             // Clear system processing bit for all affected items
             publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
             publishDao.updatePublishItemState(packageId, 0, PublishItem.PublishState.PROCESSING.value);
@@ -355,7 +355,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         } else {
             packageStateOnBits = packageTO.getFailedOnBits();
         }
-        publishDao.updatePackageState(packageId, packageStateOnBits, 0);
+        publishDao.updatePackageState(packageTO.getSite().getId(), packageId, packageStateOnBits, 0);
 
         if (publishChangeSet.completed()) {
             contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
@@ -429,7 +429,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                     publishPackage.setPublishedLiveCommitId(commitId);
                     publishPackage.setPublishedStagingCommitId(commitId);
                     publishPackage.setPublishedOn(now);
-                    publishDao.updatePackageState(publishPackage.getId(), PackageState.LIVE_SUCCESS.value + PackageState.STAGING_SUCCESS.value, 0);
+                    publishDao.updatePackageState(publishPackage.getSiteId(), publishPackage.getId(), PackageState.LIVE_SUCCESS.value + PackageState.STAGING_SUCCESS.value, 0);
                     publishDao.updatePackage(publishPackage);
                 });
     }

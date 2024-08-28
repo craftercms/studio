@@ -157,6 +157,7 @@
         UPDATE publish_package
         SET package_state = (package_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
         WHERE id = #{packageId}
+        AND site_id = #{siteId}
     </update>
 
     <update id="updateFailedPackage">
@@ -179,12 +180,6 @@
         <if test="target != null">
             AND target = #{target}
         </if>
-    </update>
-
-    <update id="cancelPackageByIdInternal">
-        UPDATE publish_package
-            SET package_state = #{cancelledState}
-        WHERE id = #{packageId} AND site_id = #{siteId}
     </update>
 
     <update id="recalculateItemStateBits">

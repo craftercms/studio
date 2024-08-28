@@ -292,22 +292,10 @@ public interface PublishDAO {
      */
     @Transactional
     default void cancelPackageById(final long siteId, final long packageId, final String liveTarget) {
-        cancelPackageByIdInternal(siteId, packageId, CANCELLED.value);
+        updatePackageState(siteId, packageId, CANCELLED.value, READY.value);
         updateItemStateBits(packageId, 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
         recalculateItemStateBits(packageId, liveTarget);
     }
-
-    /**
-     * Cancel a publish package by id.
-     * DO NOT USE THIS METHOD DIRECTLY. USE cancelPackageById INSTEAD.
-     *
-     * @param siteId         the site id
-     * @param packageId      the package id
-     * @param cancelledState the state to set the package to
-     */
-    void cancelPackageByIdInternal(@Param(SITE_ID) long siteId,
-                                   @Param(PACKAGE_ID) long packageId,
-                                   @Param(CANCELLED_STATE) long cancelledState);
 
     /**
      * Recalculate the state bits for the items in the given complete package.
@@ -348,7 +336,8 @@ public interface PublishDAO {
      * @param onStatesBitMap  the state bits to set to on
      * @param offStatesBitMap the state bits to set to off
      */
-    void updatePackageState(@Param(PACKAGE_ID) final long packageId,
+    void updatePackageState(@Param(SITE_ID) final long siteId,
+                            @Param(PACKAGE_ID) final long packageId,
                             @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
                             @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap);
 
