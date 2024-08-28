@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
@@ -459,18 +458,12 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void auditPublishOperation(final PublishPackage p, final String operation) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
-        auditLog.setActorId(String.valueOf(p.getSubmitterId()));
+        String actorId = p.getSubmitter() != null ? p.getSubmitter().getUsername() : String.valueOf(p.getSubmitterId());
+        auditLog.setActorId(actorId);
         auditLog.setSiteId(p.getSiteId());
-        auditLog.setPrimaryTargetId(String.valueOf(p.getSiteId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(String.valueOf(p.getSiteId()));
-
-        AuditLogParameter packageParam = new AuditLogParameter();
-        packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
-        packageParam.setTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
-        packageParam.setTargetValue(String.valueOf(p.getId()));
-
-        auditLog.setParameters(List.of(packageParam));
+        auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(p.getId()));
         auditServiceInternal.insertAuditLog(auditLog);
     }
 

@@ -175,7 +175,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     continue;
                 }
                 publishDao.cancelPackageById(site.getId(), packageId, servicesConfig.getLiveEnvironment(siteId));
-                createCancelPackageAuditLogEntry(site, username);
+                createCancelPackageAuditLogEntry(publishPackage, ORIGIN_API, username);
 
                 activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
                         OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
@@ -189,17 +189,19 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     /**
      * Audit package cancellation
      *
-     * @param site     the site
-     * @param username the username of the user who cancelled the package
+     * @param publishPackage the package being cancelled
+     * @param origin         the origin of the action (API vs GIT)
+     * @param username       the username of the user who cancelled the package
      */
-    private void createCancelPackageAuditLogEntry(Site site, String username) {
+    private void createCancelPackageAuditLogEntry(final PublishPackage publishPackage, final String origin, final String username) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOrigin(origin);
         auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
         auditLog.setActorId(username);
-        auditLog.setSiteId(site.getId());
-        auditLog.setPrimaryTargetId(site.getSiteId());
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(site.getSiteId());
+        auditLog.setSiteId(publishPackage.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -488,23 +490,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private void auditPublishSubmission(final PublishPackage p, final String operation) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
-        auditLog.setActorId(String.valueOf(p.getSubmitterId()));
+        auditLog.setActorId(securityService.getCurrentUser());
         auditLog.setSiteId(p.getSiteId());
-        auditLog.setPrimaryTargetId(String.valueOf(p.getSiteId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(String.valueOf(p.getSiteId()));
+        auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(p.getId()));
 
         AuditLogParameter commentParam = new AuditLogParameter();
         commentParam.setTargetId(TARGET_TYPE_SUBMISSION_COMMENT);
         commentParam.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
         commentParam.setTargetValue(defaultIfEmpty(p.getSubmitterComment(), ""));
 
-        AuditLogParameter packageParam = new AuditLogParameter();
-        packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
-        packageParam.setTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
-        packageParam.setTargetValue(String.valueOf(p.getId()));
-
-        auditLog.setParameters(List.of(commentParam, packageParam));
+        auditLog.setParameters(List.of(commentParam));
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -909,6 +906,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 return;
             }
             publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId(), servicesConfig.getLiveEnvironment(siteId));
+            createCancelPackageAuditLogEntry(publishPackage, ORIGIN_GIT, ACTOR_ID_GIT);
             applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
         } finally {
             generalLockService.unlock(packageLockKey);
