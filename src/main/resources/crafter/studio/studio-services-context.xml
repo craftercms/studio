@@ -769,7 +769,8 @@
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="contentRepository" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="publishService" ref="publishServiceInternal"/>
+        <constructor-arg name="publishDAO" ref="publishDao"/>
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

@@ -105,6 +105,8 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.sync.event.delayMillis: 1000
 # Maximum number of resets before triggering a sync
 studio.repo.sync.event.maxResets: 10
+# Reviewer comment for packages cancelled by the sync process
+studio.repo.sync.publishPackage.cancelled.comment: "Cancelled because of conflicts with changes from repository sync process"
 
 ############################################################
 ##                       Blob Store                       ##
