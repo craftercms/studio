@@ -29,8 +29,7 @@ import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 
@@ -52,8 +51,6 @@ public interface PublishDAO {
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
     String ERROR = "error";
-    String LIVE_ERROR = "liveError";
-    String STAGING_ERROR = "stagingError";
     String ITEM_SUCCESS_STATE = "itemSuccessState";
     String ITEM_PUBLISHED_STATE = "publishState";
     String ON_STATES_BIT_MAP = "onStatesBitMap";
@@ -185,33 +182,8 @@ public interface PublishDAO {
 
     /**
      * Update a package
-     *
-     * @param publishPackage the package to update, containing the new values
-     *                       for the updatable fields:
-     *                       <ul>
-     *                           <li>approval_state</li>
-     *                           <li>reviewed_on</li>
-     *                           <li>published_on</li>
-     *                           <li>published_staging_commit_id</li>
-     *                           <li>published_live_commit_id</li>
-     *                       </ul>
      */
     void updatePackage(@Param(PUBLISH_PACKAGE) final PublishPackage publishPackage);
-
-    /**
-     * Update state and error of a failed package
-     *
-     * @param packageId       the package id
-     * @param onStatesBitMap  the state bits to set to on
-     * @param offStatesBitMap the state bits to set to off
-     * @param stagingError    the staging error code (0 if none)
-     * @param liveError       the live error code (0 if none)
-     */
-    void updateFailedPackage(@Param(PACKAGE_ID) final long packageId,
-                             @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
-                             @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap,
-                             @Param(STAGING_ERROR) final int stagingError,
-                             @Param(LIVE_ERROR) final int liveError);
 
     /**
      * Cancel all active (ready non-rejected) packages for a site and a target
@@ -287,14 +259,15 @@ public interface PublishDAO {
      * This will mark the package as CANCELLED, and update the state bits for the items
      * in the package, considering that the affected items might be part of other submitted packages.
      *
-     * @param siteId    the site id
-     * @param packageId the package id
+     * @param publishPackage the package to cancel
+     * @param liveTarget     the live target for this site
      */
     @Transactional
-    default void cancelPackageById(final long siteId, final long packageId, final String liveTarget) {
-        updatePackageState(siteId, packageId, CANCELLED.value, READY.value);
-        updateItemStateBits(packageId, 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
-        recalculateItemStateBits(packageId, liveTarget);
+    default void cancelPackageById(final PublishPackage publishPackage, final String liveTarget) {
+        publishPackage.setPackageState((publishPackage.getPackageState() | CANCELLED.value) & ~READY.value);
+        updatePackage(publishPackage);
+        updateItemStateBits(publishPackage.getId(), 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
+        recalculateItemStateBits(publishPackage.getId(), liveTarget);
     }
 
     /**
@@ -328,18 +301,6 @@ public interface PublishDAO {
                                   @Param(PUBLISH_PACKAGE_STATE) long packageState,
                                   @Param(IS_SCHEDULED_BIT) boolean isScheduled,
                                   @Param(TARGET) String target);
-
-    /**
-     * Update the state of a package
-     *
-     * @param packageId       id of the package to update
-     * @param onStatesBitMap  the state bits to set to on
-     * @param offStatesBitMap the state bits to set to off
-     */
-    void updatePackageState(@Param(SITE_ID) final long siteId,
-                            @Param(PACKAGE_ID) final long packageId,
-                            @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
-                            @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap);
 
     /**
      * Get the publish items for the given package

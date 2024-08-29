@@ -174,7 +174,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     logger.warn("Package '{}' for site '{}' is already cancelled", packageId, siteId);
                     continue;
                 }
-                publishDao.cancelPackageById(site.getId(), packageId, servicesConfig.getLiveEnvironment(siteId));
+                publishDao.cancelPackageById(publishPackage, servicesConfig.getLiveEnvironment(siteId));
                 createCancelPackageAuditLogEntry(publishPackage, ORIGIN_API, username);
 
                 activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
@@ -905,7 +905,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
                 return;
             }
-            publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId(), servicesConfig.getLiveEnvironment(siteId));
+            publishDao.cancelPackageById(publishPackage, servicesConfig.getLiveEnvironment(siteId));
             createCancelPackageAuditLogEntry(publishPackage, ORIGIN_GIT, ACTOR_ID_GIT);
             applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
         } finally {

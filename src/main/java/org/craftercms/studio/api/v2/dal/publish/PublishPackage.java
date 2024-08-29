@@ -38,7 +38,7 @@ public class PublishPackage {
     protected long submitterId;
     protected String submitterComment;
     protected Instant submittedOn;
-    protected long reviewerId;
+    protected Long reviewerId;
     protected String reviewerComment;
     protected Instant reviewedOn;
     protected Instant publishedOn;
@@ -132,6 +132,10 @@ public class PublishPackage {
         this.packageState = packageState;
     }
 
+    public void setPackageState(final long onBits, final long offBits) {
+        this.packageState = (this.packageState | onBits) & ~offBits;
+    }
+
     public PackageType getPackageType() {
         return packageType;
     }
@@ -180,11 +184,11 @@ public class PublishPackage {
         this.submittedOn = submittedOn;
     }
 
-    public long getReviewerId() {
+    public Long getReviewerId() {
         return reviewerId;
     }
 
-    public void setReviewerId(long reviewerId) {
+    public void setReviewerId(Long reviewerId) {
         this.reviewerId = reviewerId;
     }
 
