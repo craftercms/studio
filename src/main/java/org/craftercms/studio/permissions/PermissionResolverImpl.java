@@ -40,9 +40,10 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 
     public static final String SITE_ID_RESOURCE_ID = "siteId";
     public static final String PATH_RESOURCE_ID = "path";
+    public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";
 
-    private SecurityService securityService;
-    private StudioConfiguration studioConfiguration;
+    private final SecurityService securityService;
+    private final StudioConfiguration studioConfiguration;
 
     public PermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
         this.securityService = securityService;
@@ -60,8 +61,8 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 
     @Override
     public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
-        String siteName = "";
-        String path = "/";
+        String siteName = StringUtils.EMPTY;
+        String path = DEFAULT_PATH_RESOURCE_VALUE;
 
         if (MapUtils.isNotEmpty(resourceIds)) {
             if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
