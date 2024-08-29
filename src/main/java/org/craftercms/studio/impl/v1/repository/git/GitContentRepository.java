@@ -207,7 +207,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
                     commitId = helper.commitFiles(repo, siteId, comment, user, path);
-                    insertProcessedCommitId(siteId, commitId);
+                    if (commitId != null) {
+                        insertProcessedCommitId(siteId, commitId);
+                    }
                 } else {
                     logger.error("Failed to write content to site '{}' path '{}'", siteId, path);
                 }
