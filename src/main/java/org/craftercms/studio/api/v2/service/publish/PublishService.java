@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish;
 
+import jakarta.validation.constraints.NotBlank;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -83,13 +84,14 @@ public interface PublishService {
     PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException;
 
     /**
-     * Cancel publishing packages
+     * Cancel publishing package
      *
-     * @param siteId     site identifier
-     * @param packageIds list of package identifiers
+     * @param siteId    site identifier
+     * @param packageId the package identifier
+     * @param comment   the user comment
      * @throws SiteNotFoundException site not found
      */
-    void cancelPublishingPackages(String siteId, Collection<Long> packageIds)
+    void cancelPackage(String siteId, long packageId, String comment)
             throws ServiceLayerException, UserNotFoundException;
 
     /**

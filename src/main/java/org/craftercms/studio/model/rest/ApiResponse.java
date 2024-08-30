@@ -106,6 +106,8 @@ public class ApiResponse {
             "Cancel affected publish packages and retry", StringUtils.EMPTY);
     public static final ApiResponse PUBLISHING_PACKAGE_NOT_FOUND = new ApiResponse(7007, "Publishing package not found",
             "Check if you sent in the right Publishing Package Id", StringUtils.EMPTY);
+    public static final ApiResponse INVALID_PACKAGE_STATE = new ApiResponse(7008, "Requested package is not in the required state for this operation",
+            "Check the current package state", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",

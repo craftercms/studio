@@ -302,7 +302,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             publishPackage.setReviewerComment(studioConfiguration
                     .getProperty(REPO_SYNC_CANCELLED_PACKAGE_COMMENT, String.class, DEFAULT_CANCELLED_PACKAGE_COMMENT));
             publishPackage.setReviewedOn(now());
-            publishDao.cancelPackageById(publishPackage, servicesConfig.getLiveEnvironment(siteId));
+            publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
             createCancelPackageAuditLogEntry(publishPackage);
             eventPublisher.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
         } finally {

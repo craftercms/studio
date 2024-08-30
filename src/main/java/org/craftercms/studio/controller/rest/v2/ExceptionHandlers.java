@@ -42,7 +42,8 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitiali
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
-import org.craftercms.studio.api.v2.exception.publish.PublishPackagesNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
@@ -374,16 +375,16 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(PublishPackagesNotFoundException.class)
+    @ExceptionHandler(PublishPackageNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResultList<Long> handlePublishingPackageNotFoundException(HttpServletRequest request,
-                                                                    PublishPackagesNotFoundException e) {
+    public ResultOne<Long> handlePublishingPackageNotFoundException(HttpServletRequest request,
+                                                                    PublishPackageNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PUBLISHING_PACKAGE_NOT_FOUND);
         handleExceptionInternal(request, e, response);
 
-        ResultList<Long> result = new ResultList<>();
+        ResultOne<Long> result = new ResultOne<>();
         result.setResponse(response);
-        result.setEntities(RESULT_KEY_PACKAGES, e.getPackageIds());
+        result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
 
         return result;
     }
@@ -610,6 +611,17 @@ public class ExceptionHandlers {
         result.setEntities(RESULT_KEY_PUBLISHING_PACKAGES,
                 e.getPublishPackages().stream().map(PublishPackageResponse::new).toList());
 
+        return result;
+    }
+
+    @ExceptionHandler(InvalidPackageStateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Result handleException(HttpServletRequest request, InvalidPackageStateException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PACKAGE_STATE);
+        handleExceptionInternal(request, e, response);
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(response);
+        result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
         return result;
     }
 

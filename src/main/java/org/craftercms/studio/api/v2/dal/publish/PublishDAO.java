@@ -29,8 +29,8 @@ import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.*;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 
 /**
@@ -255,16 +255,16 @@ public interface PublishDAO {
                                                     @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 
     /**
-     * Cancel a publish package by id.
-     * This will mark the package as CANCELLED, and update the state bits for the items
+     * Persist changes to a cancelled or rejected publish package.
+     * This will update the package in the db and update the state bits for the items in the package.
+     * Then imte state bits will be recalculated for affected publish_items
      * in the package, considering that the affected items might be part of other submitted packages.
      *
      * @param publishPackage the package to cancel
      * @param liveTarget     the live target for this site
      */
     @Transactional
-    default void cancelPackageById(final PublishPackage publishPackage, final String liveTarget) {
-        publishPackage.setPackageState((publishPackage.getPackageState() | CANCELLED.value) & ~READY.value);
+    default void cancelPackage(final PublishPackage publishPackage, final String liveTarget) {
         updatePackage(publishPackage);
         updateItemStateBits(publishPackage.getId(), 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
         recalculateItemStateBits(publishPackage.getId(), liveTarget);

@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
+import jakarta.validation.constraints.NotBlank;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,8 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.exception.publish.PublishPackagesNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -64,6 +66,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -76,6 +79,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVA
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.APPROVE;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
@@ -151,38 +155,36 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public void cancelPublishingPackages(final String siteId, final Collection<Long> packageIds)
+    public void cancelPackage(final String siteId, final long packageId, String comment)
             throws ServiceLayerException, UserNotFoundException {
         Site site = siteService.getSite(siteId);
         String username = securityService.getCurrentUser();
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
 
-        Collection<PublishPackage> packages = publishDao.getByIds(site.getId(), packageIds);
-        if (packages.size() != packageIds.size()) {
-            List<Long> missingPackages = packageIds.stream()
-                    .filter(id -> packages.stream().noneMatch(p -> id.equals(p.getId())))
-                    .toList();
-            throw new PublishPackagesNotFoundException(siteId, missingPackages);
+        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+        if (publishPackage == null) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
         }
 
-        for (Long packageId : packageIds) {
-            String packageLockKey = getPublishPackageLockKey(packageId);
-            generalLockService.lock(packageLockKey);
-            try {
-                PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
-                if (publishPackage.getPackageState() == PublishPackage.PackageState.CANCELLED.value) {
-                    logger.warn("Package '{}' for site '{}' is already cancelled", packageId, siteId);
-                    continue;
-                }
-                publishDao.cancelPackageById(publishPackage, servicesConfig.getLiveEnvironment(siteId));
-                createCancelPackageAuditLogEntry(publishPackage, ORIGIN_API, username);
-
-                activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
-                        OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
-                applicationContext.publishEvent(new WorkflowEvent(siteId, packageId, WorkflowEvent.WorkFlowEventType.CANCEL));
-            } finally {
-                generalLockService.unlock(packageLockKey);
+        String packageLockKey = getPublishPackageLockKey(packageId);
+        generalLockService.lock(packageLockKey);
+        try {
+            publishPackage = publishDao.getById(site.getId(), packageId);
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                throw new InvalidPackageStateException("Unable to cancel package because it is not in READY state", siteId, packageId);
             }
+            publishPackage.setPackageState(CANCELLED.value);
+            publishPackage.setReviewerComment(comment);
+            publishPackage.setReviewedOn(now());
+            publishPackage.setReviewerId(user.getId());
+            publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
+            createCancelPackageAuditLogEntry(publishPackage, ORIGIN_API, username);
+
+            activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
+                    OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
+            applicationContext.publishEvent(new WorkflowEvent(siteId, packageId, WorkflowEvent.WorkFlowEventType.CANCEL));
+        } finally {
+            generalLockService.unlock(packageLockKey);
         }
     }
 

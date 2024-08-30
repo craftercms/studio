@@ -7030,32 +7030,28 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/cancel:
+  /api/2/publish/{site}/package/{package}/cancel:
     post:
       tags:
         - publishing
-      summary: Cancel publishing packages
+      summary: Cancel publishing package
       description: 'Required permission "cancel_publish"'
-      operationId: cancelPublishingPackages
-      requestBody:
-        description: cancel publishing packages request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: site ID
-                packageIds:
-                  type: array
-                  description: packageIds
-                  items:
-                    type: number
-              required:
-                - siteId
-                - packageIds
+      operationId: cancelPublishingPackage
+      parameters:
+        - name: site
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
+            example: "site123"
+        - name: package
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: string
+            example: "12345"
       responses:
         '200':
           description: OK
