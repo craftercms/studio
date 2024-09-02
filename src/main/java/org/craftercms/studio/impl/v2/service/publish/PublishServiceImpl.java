@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.publish;
 
-import jakarta.validation.constraints.NotBlank;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -79,14 +78,6 @@ public class PublishServiceImpl implements PublishService {
         }
 
         return publishingPackageDetails;
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
-    public void cancelPackage(@SiteId final String siteId,
-                              final long packageId, String comment) throws ServiceLayerException, UserNotFoundException {
-        publishServiceInternal.cancelPackage(siteId, packageId, comment);
     }
 
     @Override

@@ -18,9 +18,11 @@ package org.craftercms.studio.api.v2.service.workflow;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface WorkflowService {
@@ -82,28 +84,36 @@ public interface WorkflowService {
     List<SandboxItem> getWorkflowAffectedPaths(String siteId, String path)
             throws UserNotFoundException, ServiceLayerException;
 
-
-    // TODO: approve and reject should now work by package
     /**
      * Approve request for publish
-     * @param siteId site identifier
-     * @param paths list of paths for content item that author requested publish
-     * @param optionalDependencies list of paths soft dependencies
-     * @param publishingTarget publishing target
-     * @param schedule schedule when to publish content
-     * @param comment approval comment
+     *
+     * @param siteId    site identifier
+     * @param packageId package identifier
+     * @param schedule  schedule when to publish content
+     * @param comment   approval comment
      */
-//    void approve(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
-//                 ZonedDateTime schedule, String comment)
-//            throws UserNotFoundException, ServiceLayerException, DeploymentException;
+    void approvePackage(String siteId, long packageId, Instant schedule, String comment)
+            throws ServiceLayerException, AuthenticationException;
 
     /**
-     * Reject request for publish
-     * @param siteId site identifier
-     * @param paths list of paths for content items that author requested publish
-     * @param comment rejection comment
+     * Cancel publishing package
+     *
+     * @param siteId    site identifier
+     * @param packageId the package identifier
+     * @param comment   the user comment
+     * @throws SiteNotFoundException site not found
      */
-//    void reject(String siteId, List<String> paths, String comment)
-//            throws ServiceLayerException, DeploymentException, UserNotFoundException;
+    void cancelPackage(String siteId, long packageId, String comment)
+            throws ServiceLayerException, AuthenticationException;
 
+    /**
+     * Reject publishing package
+     *
+     * @param siteId    site identifier
+     * @param packageId the package to reject
+     * @param comment   rejection comment
+     * @throws SiteNotFoundException site not found
+     */
+    void rejectPackage(String siteId, long packageId, String comment)
+            throws ServiceLayerException, AuthenticationException;
 }

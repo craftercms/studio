@@ -545,7 +545,6 @@
         <property name="auditServiceInternal" ref="auditServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
         <property name="itemTargetDao" ref="itemTargetDao"/>
-        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
         <property name="securityService" ref="studio.securityService"/>
     </bean>
 
@@ -583,10 +582,16 @@
 
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
-        <property name="notificationService" ref="cstudioNotificationService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="siteService" ref="sitesServiceInternal"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
+        <property name="auditServiceInternal" ref="auditServiceInternal"/>
+        <property name="publishDao" ref="publishDao"/>
+        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"

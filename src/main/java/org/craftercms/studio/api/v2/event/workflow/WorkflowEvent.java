@@ -59,7 +59,8 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
      */
     public enum WorkFlowEventType {
         SUBMIT, // When an item is submitted requesting for approval
-        APPROVE, // When an item is approved (including when it is directly published/scheduled)
+        DIRECT_PUBLISH, // When an item is directly published/scheduled by an user with the right permissions
+        APPROVE, // When an item is approved
         REJECT, // When an item is rejected
         CANCEL // When an item is canceled
     }

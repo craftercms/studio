@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
@@ -29,6 +30,7 @@ import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
@@ -89,4 +91,25 @@ public class WorkflowServiceImpl implements WorkflowService {
         return workflowServiceInternal.getWorkflowAffectedPaths(siteId, path);
     }
 
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    public void approvePackage(@SiteId String siteId, long packageId, Instant schedule, String comment)
+            throws AuthenticationException, ServiceLayerException {
+        workflowServiceInternal.approvePackage(siteId, packageId, schedule, comment);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
+    public void rejectPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
+        workflowServiceInternal.rejectPackage(siteId, packageId, comment);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
+    public void cancelPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
+        workflowServiceInternal.cancelPackage(siteId, packageId, comment);
+    }
 }

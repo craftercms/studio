@@ -13,15 +13,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model.rest.publish;
+
+package org.craftercms.studio.model.rest.workflow;
 
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Request to cancel a publishing package.
+ * Request body for reviewing a package (reject, cancel, approve)
  */
-public class CancelPackageRequest {
-    private @NotBlank String comment;
+public class ReviewPackageRequestBody {
+
+    @NotBlank
+    private String comment;
 
     public @NotBlank String getComment() {
         return comment;

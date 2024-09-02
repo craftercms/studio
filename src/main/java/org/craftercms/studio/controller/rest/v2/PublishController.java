@@ -114,19 +114,6 @@ public class PublishController {
         return responseBody;
     }
 
-    @PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + CANCEL)
-    public ResponseBody cancelPackage(
-            @Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
-            @Valid @RequestBody CancelPackageRequest cancelPackageRequest)
-            throws ServiceLayerException, UserNotFoundException {
-        publishService.cancelPackage(site, packageId, cancelPackageRequest.getComment());
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
     @GetMapping(STATUS)
     public ResponseBody getPublishingStatus(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {

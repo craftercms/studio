@@ -16,24 +16,13 @@
 
 package org.craftercms.studio.api.v2.exception.publish;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-
-public class InvalidPackageStateException extends ServiceLayerException {
-
-    private final String siteId;
-    private final Long packageId;
+/**
+ * Exception to be thrown when trying to perform an operation on a package that is in an invalid state.
+ * e.g.: trying to cancel a package that is already completed
+ */
+public class InvalidPackageStateException extends PackageException {
 
     public InvalidPackageStateException(final String message, final String siteId, final Long packageId) {
-        super(message);
-        this.siteId = siteId;
-        this.packageId = packageId;
-    }
-
-    public Long getPackageId() {
-        return packageId;
-    }
-
-    public String getSiteId() {
-        return siteId;
+        super(message, siteId, packageId);
     }
 }

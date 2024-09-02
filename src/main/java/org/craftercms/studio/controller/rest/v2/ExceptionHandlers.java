@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachable
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.model.rest.*;
@@ -618,6 +619,18 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public Result handleException(HttpServletRequest request, InvalidPackageStateException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PACKAGE_STATE);
+        response.setMessage(e.getMessage());
+        handleExceptionInternal(request, e, response);
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(response);
+        result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
+        return result;
+    }
+
+    @ExceptionHandler(PackageAlreadyApprovedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Result handleException(HttpServletRequest request, PackageAlreadyApprovedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PACKAGE_ALREADY_APPROVED);
         handleExceptionInternal(request, e, response);
         ResultOne<Long> result = new ResultOne<>();
         result.setResponse(response);
