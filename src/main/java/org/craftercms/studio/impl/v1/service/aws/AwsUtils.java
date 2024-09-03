@@ -63,6 +63,7 @@ public abstract class AwsUtils {
             CreateMultipartUploadRequest initRequest = CreateMultipartUploadRequest.builder()
                     .bucket(inputBucket)
                     .key(inputKey)
+                    .contentType(StudioUtils.getMimeType(filename))
                     .build();
             initResult = s3Client.createMultipartUpload(initRequest);
             byte[] buffer = new byte[partSize];
@@ -154,6 +155,7 @@ public abstract class AwsUtils {
             CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
                     .bucket(destBucket)
                     .key(destKey)
+                    .contentType(StudioUtils.getMimeType(sourceKey))
                     .build();
             CreateMultipartUploadResponse createMultipartUploadResponse = client.createMultipartUpload(createMultipartUploadRequest);
             String uploadId = createMultipartUploadResponse.uploadId();
