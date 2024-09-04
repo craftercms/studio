@@ -24,8 +24,10 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
@@ -205,6 +207,28 @@ public interface PublishService {
      * @param comment            user user comment
      */
     long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException;
+
+    /**
+     * Get a publishing package by site and package id
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return the publishing package
+     * @throws PublishPackageNotFoundException if the package is not found
+     * @throws SiteNotFoundException           if the site is not found
+     */
+    PublishPackage getPackage(String siteId, long packageId) throws PublishPackageNotFoundException, SiteNotFoundException;
+
+    /**
+     * Get the publish items for a package
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @param offset    the offset to start from
+     * @param limit     the max number of items to return
+     * @return the publish items
+     */
+    Collection<PublishItem> getPublishItems(String siteId, long packageId, int offset, int limit);
 
     /**
      * A request to include a path in a publish request.

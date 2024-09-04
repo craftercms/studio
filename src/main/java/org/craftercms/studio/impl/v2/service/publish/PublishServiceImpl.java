@@ -28,8 +28,10 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
@@ -161,6 +163,22 @@ public class PublishServiceImpl implements PublishService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
     public long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
         return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, comment);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+    public PublishPackage getPackage(@SiteId String siteId, long packageId)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
+        return publishServiceInternal.getPackage(siteId, packageId);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+    public Collection<PublishItem> getPublishItems(@SiteId String siteId, final long packageId,
+                                                   final int offset, final int limit) {
+        return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);
     }
 
     @Override

@@ -54,7 +54,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -210,7 +209,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
         PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
         if (publishPackage == null) {
-            throw new PublishPackageNotFoundException(format("Unable to find package with id '%s' for site '%s'", packageId, site), siteId, packageId);
+            throw new PublishPackageNotFoundException(siteId, packageId);
         }
 
         String packageLockKey = getPublishPackageLockKey(packageId);

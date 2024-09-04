@@ -64,6 +64,9 @@ public interface PublishDAO {
     String SUCCESS_OFF_BIT_MAP = "successOffStatesBitMap";
     String FAILURE_OFF_BIT_MAP = "failureOffStatesBitMap";
 
+    String OFFSET = "offset";
+    String LIMIT = "limit";
+
     List<ApprovalState> ACTIVE_APPROVAL_STATES = List.of(SUBMITTED, APPROVED);
 
     /**
@@ -305,10 +308,25 @@ public interface PublishDAO {
     /**
      * Get the publish items for the given package
      *
+     * @param siteId    the site id
      * @param packageId the package id
      * @return PublishItem records for the package
      */
-    Collection<PublishItem> getPublishItems(@Param(PACKAGE_ID) long packageId);
+    default Collection<PublishItem> getPublishItems(final String siteId, final long packageId) {
+        return getPublishItems(siteId, packageId, null, null);
+    }
+
+    /**
+     * Get the publish items for the given package
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @param offset    the offset to start from
+     * @param limit     the max number of items to return
+     * @return PublishItem records for the package
+     */
+    Collection<PublishItem> getPublishItems(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+                                            @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
     /**
      * Update the state for all publish items in the package

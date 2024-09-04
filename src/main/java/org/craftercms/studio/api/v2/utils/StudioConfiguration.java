@@ -166,6 +166,8 @@ public interface StudioConfiguration {
     /** Notification Service */
     String NOTIFICATION_CONFIGURATION_FILE = "studio.notification.configurationFile";
     String NOTIFICATION_TIMEZONE = "studio.notification.timezone";
+    String WORKFLOW_NOTIFICATION_ENABLED = "studio.workflow.notification.enabled";
+    String WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT = "studio.workflow.notification.maxItemCount";
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
 
