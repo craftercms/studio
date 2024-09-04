@@ -54,6 +54,7 @@ import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_
 import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
+import static org.craftercms.studio.impl.v2.utils.DependencyUtils.isValidDependencyPath;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
 
@@ -243,6 +244,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         for (Map.Entry<String, Set<ResolvedDependency>> entry : resolveDependencies.entrySet()) {
             dependencies.addAll(
                     entry.getValue().stream()
+                            .filter(dep -> isValidDependencyPath(dep.path()))
                             .map(dep -> {
                                 Dependency dependency = new Dependency();
                                 dependency.setSite(site);
