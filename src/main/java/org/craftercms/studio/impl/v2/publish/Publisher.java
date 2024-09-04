@@ -170,7 +170,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         publishDao.updatePackage(publishPackage);
         try {
             publishDao.updatePublishItemState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
-            Collection<PublishItem> publishItems = publishDao.getPublishItems(packageId);
+            Collection<PublishItem> publishItems = publishDao.getPublishItems(publishPackage.getSite().getSiteId(), packageId);
             // Set all affected items to system processing
             publishDao.updateItemStateBits(packageId, SYSTEM_PROCESSING.value, 0);
             auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);

@@ -282,6 +282,10 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
+# Maximum number of items to include in the workflow notification messages
+studio.workflow.notification.maxItemCount: 10
+# Enable/disable notification messages on workflow events
+studio.workflow.notification.enabled: true
 # Path where the notification configuration is located
 studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)

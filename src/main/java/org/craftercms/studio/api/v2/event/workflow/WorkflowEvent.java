@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v2.event.workflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 
@@ -42,6 +44,14 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
     @Override
     public String getEventType() {
         return format("WORKFLOW_EVENT_%s", eventType.name());
+    }
+
+    public WorkFlowEventType getWorkflowEventType() {
+        return eventType;
+    }
+
+    public long getPackageId() {
+        return packageId;
     }
 
     @Override

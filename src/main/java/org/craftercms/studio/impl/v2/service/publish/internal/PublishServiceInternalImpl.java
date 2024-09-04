@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -75,7 +76,8 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
-import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.*;
+import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
+import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -368,6 +370,23 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             logger.error(message, e);
             throw new ServiceLayerException(message, e);
         }
+    }
+
+    @Override
+    public PublishPackage getPackage(final String siteId, final long packageId)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
+        Site site = siteService.getSite(siteId);
+        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+        if (publishPackage == null) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
+        }
+        return publishPackage;
+    }
+
+    @Override
+    public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
+                                                   final int offset, final int limit) {
+        return publishDao.getPublishItems(siteId, packageId, offset, limit);
     }
 
     private Collection<PublishItem> createDeletePublishItems(final String siteId, final Collection<String> userRequestedPaths,
@@ -668,6 +687,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                            final String comment) throws AuthenticationException {
         PublishPackage publishPackage = new PublishPackage();
         publishPackage.setPackageType(packageType);
+        publishPackage.setSite(site);
         publishPackage.setSiteId(site.getId());
         publishPackage.setTarget(target);
         publishPackage.setSchedule(schedule);

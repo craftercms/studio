@@ -710,6 +710,10 @@
     <bean id="publisher" class="org.craftercms.studio.impl.v2.publish.Publisher">
     </bean>
 
+    <bean id="workflowEventListener" class="org.craftercms.studio.impl.v2.workflow.WorkflowEventListener">
+        <constructor-arg name="publishService" ref="publishServiceInternal"/>
+    </bean>
+
     <bean id="studio.clockTaskBase" abstract="true" class="org.craftercms.studio.impl.v2.job.StudioClockTask">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="siteService" ref="sitesService"/>

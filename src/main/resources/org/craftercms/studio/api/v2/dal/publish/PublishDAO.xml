@@ -22,9 +22,12 @@
     <resultMap id="PublishPackageMap" type="org.craftercms.studio.api.v2.dal.publish.PublishPackage" autoMapping="true">
         <result property="siteId" column="site_id"/>
         <result property="submitterId" column="submitter_id"/>
+        <result property="reviewerId" column="reviewer_id"/>
         <association property="site" column="site_id"
                      select="org.craftercms.studio.api.v2.dal.SiteDAO.getByNumericId"/>
         <association property="submitter" column="submitter_id"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="reviewer" column="reviewer_id"
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
 
@@ -226,8 +229,14 @@
     <select id="getPublishItems" resultMap="PublishItemMap">
         SELECT pi.*, ipi.item_id
         FROM publish_item pi
-        LEFT OUTER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+            INNER JOIN publish_package pp ON pi.package_id = pp.id
+            INNER JOIN site s ON pp.site_id = s.id
+            LEFT OUTER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
         WHERE pi.package_id = #{packageId}
+        AND s.site_id = #{siteId}
+        <if test="offset != null and limit != null">
+            LIMIT #{offset},#{limit}
+        </if>
     </select>
 
     <update id="updatePublishItemState">

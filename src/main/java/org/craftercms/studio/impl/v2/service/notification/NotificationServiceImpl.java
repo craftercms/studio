@@ -21,18 +21,18 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -43,13 +43,10 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -121,24 +118,66 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Valid
-    public void notifyContentApproval(@ValidateStringParam final String site,
-                                      @ValidateStringParam final String submitter,
-                                      final List<String> itemsSubmitted,
-                                      @ValidateStringParam final String approver,
-                                      final ZonedDateTime scheduleDate) {
+    public void notifyPackageApproval(final PublishPackage publishPackage, final Collection<String> paths) {
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Sending content approval notification for site '{}', package '{}'", siteId, publishPackage.getId());
         try {
-            final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
+            String submitterUsername = publishPackage.getSubmitter().getUsername();
+            String reviewerUsername = publishPackage.getReviewer().getUsername();
+            final Map<String, Object> submitterUser = securityService.getUserProfile(submitterUsername);
             Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, itemsSubmitted));
-            templateModel.put(TEMPLATE_MODEL_SUBMITTER_USER, submitter);
-            templateModel.put(TEMPLATE_MODEL_APPROVER, securityService.getUserProfile(approver));
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, (scheduleDate == null) ?
-                    null : Date.from(scheduleDate.toInstant()));
-            notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
+            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
+            templateModel.put(TEMPLATE_MODEL_SUBMITTER_USER, submitterUsername);
+            templateModel.put(TEMPLATE_MODEL_APPROVER, securityService.getUserProfile(reviewerUsername));
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, publishPackage.getSchedule());
+            notify(siteId, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
+        } catch (UserNotFoundException e) {
+            logger.error("Failed to send content approval notification because user was not found", e);
         } catch (Throwable e) {
-            // TODO: JM: Missing placeholder for e.getMessage()? Review
-            logger.warn("Failed to send content approval notification for site '{}'", site, e.getMessage());
+            logger.error("Failed to send content approval notification for site '{}'", siteId, e);
+        }
+    }
+
+    @Override
+    public void notifyPackageRejection(PublishPackage publishPackage, Collection<String> paths) {
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Sending content rejection notification for site '{}', package '{}'", siteId, publishPackage.getId());
+        try {
+            Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
+            templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, publishPackage.getReviewerComment());
+            templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, securityService.getUserProfile(publishPackage.getReviewer().getUsername()));
+            String email = submitterUser.get(KEY_EMAIL).toString();
+            notify(siteId, List.of(email), NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
+        } catch (UserNotFoundException e) {
+            logger.error("Failed to send content rejection notification because user was not found", e);
+        } catch (Exception e) {
+            logger.error("Failed to send content rejection notification for site '{}'", siteId, e);
+        }
+    }
+
+    @Override
+    public void notifyPackageSubmission(final PublishPackage publishPackage, final Collection<String> paths) {
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Sending content submission notification for site '{}', package '{}'", siteId, publishPackage.getId());
+        try {
+            final NotificationConfigTO notificationConfig = getNotificationConfig(siteId);
+            final Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
+            templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, publishPackage.getSchedule());
+            templateModel.put(TEMPLATE_MODEL_IS_DELETED, false);
+            templateModel.put(TEMPLATE_MODEL_SUBMISSION_COMMENTS, publishPackage.getSubmitterComment());
+
+            notify(siteId, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW,
+                    templateModel);
+        } catch (UserNotFoundException e) {
+            logger.error("Failed to send content submission notification because user was not found", e);
+        } catch (Throwable e) {
+            logger.error("Failed to send content submission notification for site '{}'", siteId, e);
         }
     }
 
@@ -197,34 +236,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @Valid
-    public void notifyApprovesContentSubmission(@ValidateStringParam final String site,
-                                                final List<String> usersToNotify, final List<String> itemsSubmitted,
-                                                @ValidateStringParam final String submitter,
-                                                final ZonedDateTime scheduleDate, final boolean isADelete,
-                                                final @ValidateStringParam String submissionComments) {
-        try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-            final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
-            Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, itemsSubmitted));
-            templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, (scheduleDate == null) ? null : Date.from(scheduleDate.toInstant()));
-            templateModel.put(TEMPLATE_MODEL_IS_DELETED, isADelete);
-            templateModel.put(TEMPLATE_MODEL_SUBMISSION_COMMENTS, submissionComments);
-            if (usersToNotify == null) {
-                notify(site, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW,
-                        templateModel);
-            } else {
-                notify(site, usersToNotify, NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, templateModel);
-            }
-        } catch (Throwable e) {
-            // TODO: JM: Missing placeholder for e.getMessage()? Review
-            logger.warn("Failed to send content submission notification for site '{}'", site, e.getMessage());
-        }
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     @Valid
     public void notify(@ValidateStringParam final String site, final List<String> toUsers,
@@ -263,50 +274,6 @@ public class NotificationServiceImpl implements NotificationService {
             notify(site, toUsers, key, namedParams.toArray(new Pair[params.size()]));
         } catch (Throwable e) {
             logger.error("Failed to send notification with key '{}' for site '{}'", key, site, e);
-        }
-    }
-
-    @Override
-    @Valid
-    public void notifyContentRejection(@ValidateStringParam final String site,
-                                       final List<String> submittedByList,
-                                       final List<String> rejectedItems,
-                                       @ValidateStringParam final String rejectionReason,
-                                       @ValidateStringParam final String userThatRejects) {
-        try {
-            var submitterUsers = new ArrayList<Map<String, Object>>();
-            submittedByList.forEach(submittedBy -> {
-                Map<String, Object> userProfile = null;
-                try {
-                    userProfile = securityService.getUserProfile(submittedBy);
-                } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.debug("Username '{}' was not found while trying to send notification in site '{}'",
-                            submittedBy, site);
-                    try {
-                        userProfile = securityService.getUserProfileByGitName(submittedBy);
-                    } catch (ServiceLayerException | UserNotFoundException e2) {
-                        logger.error("Failed to notify the user '{}' because the user was not found for " +
-                                        "site '{}'", submittedBy, site, e2);
-                    }
-                }
-                if (Objects.nonNull(userProfile)) {
-                    submitterUsers.add(userProfile);
-                }
-            });
-            if (!submitterUsers.isEmpty()) {
-                Map<String, Object> templateModel = new HashMap<>();
-                templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, rejectedItems));
-                templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, rejectionReason);
-                templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, securityService.getUserProfile(userThatRejects));
-                List<String> emails = submitterUsers.stream().map(u -> u.get(KEY_EMAIL).toString())
-                        .collect(Collectors.toList());
-                notify(site, emails, NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
-            } else {
-                logger.info("Failed to send content rejection notification because the user(s) '{}' were not found " +
-                                "for site '{}'", submittedByList, site);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to send content rejection notification for site '{}'", site, e);
         }
     }
 
@@ -463,7 +430,7 @@ public class NotificationServiceImpl implements NotificationService {
         return null;
     }
 
-    protected Set<ContentItemTO> convertPathsToContent(final String site, final List<String> listOfPaths) {
+    protected Set<ContentItemTO> convertPathsToContent(final String site, final Collection<String> listOfPaths) {
         Set<ContentItemTO> files = new HashSet<>(listOfPaths.size());
         for (String path : listOfPaths) {
             files.add(contentService.getContentItem(site, path));
