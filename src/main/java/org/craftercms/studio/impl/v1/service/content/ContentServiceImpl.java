@@ -653,7 +653,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public boolean writeContent(@SiteId String siteId,
+    public String writeContent(@SiteId String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
@@ -663,10 +663,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         result = StringUtils.isNotEmpty(commitId);
         if (result && isNotEmpty(siteId)) {
-            Site site = siteService.getSite(siteId);
             applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
         }
-        return result;
+        return commitId;
     }
 
     @Override
@@ -676,7 +675,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
-        boolean result = writeContent(site, path, content);
+        boolean result = isNotEmpty(writeContent(site, path, content));
         if (result) {
             notifyContentEvent(site, path);
         }
