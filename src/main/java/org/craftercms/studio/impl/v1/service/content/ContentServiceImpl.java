@@ -655,7 +655,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public boolean writeContent(@SiteId String site,
+    public String writeContent(@SiteId String site,
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
@@ -670,8 +670,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
         }
-
-        return result;
+        return commitId;
     }
 
     @Override
@@ -681,7 +680,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
-        boolean result = writeContent(site, path, content);
+        boolean result = isNotEmpty(writeContent(site, path, content));
         if (result) {
             notifyContentEvent(site, path);
         }
