@@ -27,5 +27,5 @@ script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true; fi
 env:
   global:
-    - secure: "N1b58vq6NvEjlb7XfDF/2V/ljaiW50nuJ+LQ0z1AjvVZqp0UcG2y/CtpPgkFBYfecn32aAF9wJFplZdifHbqNm80i6IVjm3wDRifVTuzsR6NZgDZqOv4JrFk1ggUEc9DFbUWM0tC+8yycqRq1nGMtUVqrX8cWKruSjMxM31PKLs="
-    - secure: "QOs9Ux2/bYK4v8y3L7zBhzpa3sCVQqJylNPrNVAU6TQO4X6Ex/PRT/qKpIk/t8obrmh9YKvoNurE95LfX7/ZR9SpKQc0uAb+29FJMCyW3tG8oJ0UikaCzKdg497jVDSCtdb0+P8xnQS9o5/1TSiATU0qnEc17TN1KV2mGd97Ies="
+    - secure: "RPNjkSNJs0bfPqjPO19cpHC4vWyOAnQ0foCvbBXGfxdgI3kXcCfM18ldjHRGFnpri+2qgkS1bK1FnX4/lwC8mFLm18CWjDnQy2/aKSrmjSM64ggFtQIAiZ6MwNlvO7tYUnB+BiRSfiN/j/Yp37P9ItHHlwfN2e5Q0wDySlWy7Po="
+    - secure: "YfLGVNuxsV9tXamZQ313qeV/n2lA1oIlY0x6ZEeQha8VD3UIio+c6gf4oRMwv6deRNq/fgz8PAHbolLvVIU/wZ01NDJMNev0HbIdTfeH0GbdAfsvnyp9ZxF9Gk0LKZRU3cRdDJ/sakAh7r1j0nup/ylRkLK6rSGL81qQCfWcjsg="

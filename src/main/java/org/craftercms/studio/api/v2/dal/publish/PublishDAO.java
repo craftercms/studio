@@ -31,7 +31,6 @@ import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 
 /**
@@ -52,8 +51,6 @@ public interface PublishDAO {
     String CANCELLED_STATE = "cancelledState";
     String SITE_STATES = "siteStates";
     String ERROR = "error";
-    String LIVE_ERROR = "liveError";
-    String STAGING_ERROR = "stagingError";
     String ITEM_SUCCESS_STATE = "itemSuccessState";
     String ITEM_PUBLISHED_STATE = "publishState";
     String ON_STATES_BIT_MAP = "onStatesBitMap";
@@ -66,6 +63,9 @@ public interface PublishDAO {
     String SUCCESS_ON_BIT_MAP = "successOnStatesBitMap";
     String SUCCESS_OFF_BIT_MAP = "successOffStatesBitMap";
     String FAILURE_OFF_BIT_MAP = "failureOffStatesBitMap";
+
+    String OFFSET = "offset";
+    String LIMIT = "limit";
 
     List<ApprovalState> ACTIVE_APPROVAL_STATES = List.of(SUBMITTED, APPROVED);
 
@@ -185,33 +185,8 @@ public interface PublishDAO {
 
     /**
      * Update a package
-     *
-     * @param publishPackage the package to update, containing the new values
-     *                       for the updatable fields:
-     *                       <ul>
-     *                           <li>approval_state</li>
-     *                           <li>reviewed_on</li>
-     *                           <li>published_on</li>
-     *                           <li>published_staging_commit_id</li>
-     *                           <li>published_live_commit_id</li>
-     *                       </ul>
      */
     void updatePackage(@Param(PUBLISH_PACKAGE) final PublishPackage publishPackage);
-
-    /**
-     * Update state and error of a failed package
-     *
-     * @param packageId       the package id
-     * @param onStatesBitMap  the state bits to set to on
-     * @param offStatesBitMap the state bits to set to off
-     * @param stagingError    the staging error code (0 if none)
-     * @param liveError       the live error code (0 if none)
-     */
-    void updateFailedPackage(@Param(PACKAGE_ID) final long packageId,
-                             @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
-                             @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap,
-                             @Param(STAGING_ERROR) final int stagingError,
-                             @Param(LIVE_ERROR) final int liveError);
 
     /**
      * Cancel all active (ready non-rejected) packages for a site and a target
@@ -283,31 +258,20 @@ public interface PublishDAO {
                                                     @Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 
     /**
-     * Cancel a publish package by id.
-     * This will mark the package as CANCELLED, and update the state bits for the items
+     * Persist changes to a cancelled or rejected publish package.
+     * This will update the package in the db and update the state bits for the items in the package.
+     * Then imte state bits will be recalculated for affected publish_items
      * in the package, considering that the affected items might be part of other submitted packages.
      *
-     * @param siteId    the site id
-     * @param packageId the package id
+     * @param publishPackage the package to cancel
+     * @param liveTarget     the live target for this site
      */
     @Transactional
-    default void cancelPackageById(final long siteId, final long packageId, final String liveTarget) {
-        cancelPackageByIdInternal(siteId, packageId, CANCELLED.value);
-        updateItemStateBits(packageId, 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
-        recalculateItemStateBits(packageId, liveTarget);
+    default void cancelPackage(final PublishPackage publishPackage, final String liveTarget) {
+        updatePackage(publishPackage);
+        updateItemStateBits(publishPackage.getId(), 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
+        recalculateItemStateBits(publishPackage.getId(), liveTarget);
     }
-
-    /**
-     * Cancel a publish package by id.
-     * DO NOT USE THIS METHOD DIRECTLY. USE cancelPackageById INSTEAD.
-     *
-     * @param siteId         the site id
-     * @param packageId      the package id
-     * @param cancelledState the state to set the package to
-     */
-    void cancelPackageByIdInternal(@Param(SITE_ID) long siteId,
-                                   @Param(PACKAGE_ID) long packageId,
-                                   @Param(CANCELLED_STATE) long cancelledState);
 
     /**
      * Recalculate the state bits for the items in the given complete package.
@@ -342,23 +306,27 @@ public interface PublishDAO {
                                   @Param(TARGET) String target);
 
     /**
-     * Update the state of a package
+     * Get the publish items for the given package
      *
-     * @param packageId       id of the package to update
-     * @param onStatesBitMap  the state bits to set to on
-     * @param offStatesBitMap the state bits to set to off
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return PublishItem records for the package
      */
-    void updatePackageState(@Param(PACKAGE_ID) final long packageId,
-                            @Param(ON_STATES_BIT_MAP) final long onStatesBitMap,
-                            @Param(OFF_STATES_BIT_MAP) final long offStatesBitMap);
+    default Collection<PublishItem> getPublishItems(final String siteId, final long packageId) {
+        return getPublishItems(siteId, packageId, null, null);
+    }
 
     /**
      * Get the publish items for the given package
      *
+     * @param siteId    the site id
      * @param packageId the package id
+     * @param offset    the offset to start from
+     * @param limit     the max number of items to return
      * @return PublishItem records for the package
      */
-    Collection<PublishItem> getPublishItems(@Param(PACKAGE_ID) long packageId);
+    Collection<PublishItem> getPublishItems(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+                                            @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
     /**
      * Update the state for all publish items in the package

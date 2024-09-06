@@ -546,7 +546,6 @@
         <property name="auditServiceInternal" ref="auditServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
         <property name="itemTargetDao" ref="itemTargetDao"/>
-        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
         <property name="securityService" ref="studio.securityService"/>
     </bean>
 
@@ -584,10 +583,16 @@
 
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
-        <property name="notificationService" ref="cstudioNotificationService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="siteService" ref="sitesServiceInternal"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
+        <property name="auditServiceInternal" ref="auditServiceInternal"/>
+        <property name="publishDao" ref="publishDao"/>
+        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"
@@ -706,6 +711,10 @@
     <bean id="publisher" class="org.craftercms.studio.impl.v2.publish.Publisher">
     </bean>
 
+    <bean id="workflowEventListener" class="org.craftercms.studio.impl.v2.workflow.WorkflowEventListener">
+        <constructor-arg name="publishService" ref="publishServiceInternal"/>
+    </bean>
+
     <bean id="studio.clockTaskBase" abstract="true" class="org.craftercms.studio.impl.v2.job.StudioClockTask">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="siteService" ref="sitesService"/>
@@ -770,7 +779,8 @@
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="contentRepository" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="publishService" ref="publishServiceInternal"/>
+        <constructor-arg name="publishDAO" ref="publishDao"/>
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

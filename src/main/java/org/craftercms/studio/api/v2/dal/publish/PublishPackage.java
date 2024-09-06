@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.model.rest.Person;
 
@@ -38,7 +39,7 @@ public class PublishPackage {
     protected long submitterId;
     protected String submitterComment;
     protected Instant submittedOn;
-    protected long reviewerId;
+    protected Long reviewerId;
     protected String reviewerComment;
     protected Instant reviewedOn;
     protected Instant publishedOn;
@@ -48,6 +49,7 @@ public class PublishPackage {
     protected String publishedLiveCommitId;
 
     protected Person submitter;
+    protected Person reviewer;
 
     public PublishPackage() {
     }
@@ -68,6 +70,7 @@ public class PublishPackage {
         this.siteId = siteId;
     }
 
+    @JsonIgnore
     public Site getSite() {
         return site;
     }
@@ -132,6 +135,10 @@ public class PublishPackage {
         this.packageState = packageState;
     }
 
+    public void setPackageState(final long onBits, final long offBits) {
+        this.packageState = (this.packageState | onBits) & ~offBits;
+    }
+
     public PackageType getPackageType() {
         return packageType;
     }
@@ -180,11 +187,11 @@ public class PublishPackage {
         this.submittedOn = submittedOn;
     }
 
-    public long getReviewerId() {
+    public Long getReviewerId() {
         return reviewerId;
     }
 
-    public void setReviewerId(long reviewerId) {
+    public void setReviewerId(Long reviewerId) {
         this.reviewerId = reviewerId;
     }
 
@@ -216,8 +223,16 @@ public class PublishPackage {
         return submitter;
     }
 
-    public void setSubmitter(Person submitter) {
+    public void setSubmitter(final Person submitter) {
         this.submitter = submitter;
+    }
+
+    public Person getReviewer() {
+        return reviewer;
+    }
+
+    public void setReviewer(final Person reviewer) {
+        this.reviewer = reviewer;
     }
 
     /**

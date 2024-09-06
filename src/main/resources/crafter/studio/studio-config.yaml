@@ -105,6 +105,8 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.sync.event.delayMillis: 1000
 # Maximum number of resets before triggering a sync
 studio.repo.sync.event.maxResets: 10
+# Reviewer comment for packages cancelled by the sync process
+studio.repo.sync.publishPackage.cancelled.comment: "Cancelled because of conflicts with changes from repository sync process"
 
 ############################################################
 ##                       Blob Store                       ##
@@ -280,6 +282,10 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
+# Maximum number of items to include in the workflow notification messages
+studio.workflow.notification.maxItemCount: 10
+# Enable/disable notification messages on workflow events
+studio.workflow.notification.enabled: true
 # Path where the notification configuration is located
 studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)

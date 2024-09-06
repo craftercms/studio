@@ -46,6 +46,7 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_START_PUBLISHER = "START_PUBLISHER";
     public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
     public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
+    public static final String OPERATION_REJECT_PUBLISHING_PACKAGE = "REJECT_PUBLISHING_PACKAGE";
     public static final String OPERATION_PUBLISH = "PUBLISH";
     public static final String OPERATION_INITIAL_PUBLISH = "INITIAL_PUBLISH";
     public static final String OPERATION_PUBLISH_START = "PUBLISH_START";

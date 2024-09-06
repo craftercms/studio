@@ -18,35 +18,30 @@ package org.craftercms.studio.api.v2.exception.publish;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-import java.util.List;
-
 /**
- * Exception thrown when one or more publishing packages cannot be found.
+ * Base class for publishing package related exceptions
  */
-public class PublishPackagesNotFoundException extends ServiceLayerException {
-
+public abstract class PackageException extends ServiceLayerException {
     private final String siteId;
+    private final Long packageId;
 
-    private final List<Long> packageIds;
-
-    public PublishPackagesNotFoundException(final String siteId, final List<Long> packageIds) {
-        this.packageIds = packageIds;
+    public PackageException(final String message, final String siteId, final Long packageId) {
+        super(message);
         this.siteId = siteId;
+        this.packageId = packageId;
     }
 
-    public List<Long> getPackageIds() {
-        return packageIds;
+    public PackageException(final String siteId, final Long packageId) {
+        super();
+        this.siteId = siteId;
+        this.packageId = packageId;
+    }
+
+    public Long getPackageId() {
+        return packageId;
     }
 
     public String getSiteId() {
         return siteId;
-    }
-
-    @Override
-    public String toString() {
-        return "PublishPackagesNotFoundException{" +
-                "packageIds=" + packageIds +
-                ", siteId='" + siteId + '\'' +
-                '}';
     }
 }

@@ -13,23 +13,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.event.publish;
 
-import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+package org.craftercms.studio.api.v2.exception.publish;
 
 /**
- * Event triggered to request the publisher to publish package that is ready to be processed.
+ * Exception to be thrown when trying to perform an operation on a package that is in an invalid state.
+ * e.g.: trying to cancel a package that is already completed
  */
-public class RequestPublishEvent extends SiteAwareEvent {
+public class InvalidPackageStateException extends PackageException {
 
-    private final long packageId;
-
-    public RequestPublishEvent(final String siteId, final long packageId) {
-        super(siteId);
-        this.packageId = packageId;
-    }
-
-    public long getPackageId() {
-        return packageId;
+    public InvalidPackageStateException(final String message, final String siteId, final Long packageId) {
+        super(message, siteId, packageId);
     }
 }

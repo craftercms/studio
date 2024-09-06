@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
@@ -31,17 +32,13 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDependenciesResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
-import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
-import org.craftercms.studio.model.rest.publish.EnablePublisherRequest;
-import org.craftercms.studio.model.rest.publish.GetPublishDependenciesRequest;
-import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
+import org.craftercms.studio.model.rest.publish.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -112,19 +109,6 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne<PublishingPackageDetails> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PACKAGE, publishingPackageDetails);
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping(CANCEL)
-    public ResponseBody cancelPublishingPackages(
-            @Valid @RequestBody CancelPublishingPackagesRequest cancelPublishingPackagesRequest)
-            throws ServiceLayerException, UserNotFoundException {
-        String siteId = cancelPublishingPackagesRequest.getSiteId();
-        publishService.cancelPublishingPackages(siteId, cancelPublishingPackagesRequest.getPackageIds());
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

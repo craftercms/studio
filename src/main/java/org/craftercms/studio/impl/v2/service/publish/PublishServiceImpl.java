@@ -28,8 +28,10 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
@@ -78,14 +80,6 @@ public class PublishServiceImpl implements PublishService {
         }
 
         return publishingPackageDetails;
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
-    public void cancelPublishingPackages(@SiteId final String siteId,
-                                         final Collection<Long> packageIds) throws ServiceLayerException, UserNotFoundException {
-        publishServiceInternal.cancelPublishingPackages(siteId, packageIds);
     }
 
     @Override
@@ -173,6 +167,22 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+    public PublishPackage getPackage(@SiteId String siteId, long packageId)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
+        return publishServiceInternal.getPackage(siteId, packageId);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+    public Collection<PublishItem> getPublishItems(@SiteId String siteId, final long packageId,
+                                                   final int offset, final int limit) {
+        return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);
+    }
+
+    @Override
+    @RequireSiteExists
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
         return publishServiceInternal.getAvailablePublishingTargets(siteId);
@@ -183,11 +193,6 @@ public class PublishServiceImpl implements PublishService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException {
         return publishServiceInternal.isSitePublished(siteId);
-    }
-
-    @Override
-    public void cancelAllPackagesForPath(final String siteId, final String path) {
-        publishServiceInternal.cancelAllPackagesForPath(siteId, path);
     }
 
     @SuppressWarnings("unused")

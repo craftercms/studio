@@ -626,7 +626,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item = getContentItem(site, path);
             item.setSize(assetInfoTO.getSize());
             item.setSizeUnit(assetInfoTO.getSizeUnit());
-            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+            if (Boolean.parseBoolean(unlock)) {
+                itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+            } else {
+                itemServiceInternal.updateStateBits(site, path, SAVE_AND_NOT_CLOSE_ON_MASK, SAVE_AND_NOT_CLOSE_OFF_MASK);
+            }
 
             Map<String, Object> toRet = new HashMap<>();
             toRet.put("success", true);

@@ -13,23 +13,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.event.publish;
 
-import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+package org.craftercms.studio.model.rest.workflow;
+
+import jakarta.validation.constraints.NotBlank;
 
 /**
- * Event triggered to request the publisher to publish package that is ready to be processed.
+ * Request body for reviewing a package (reject, cancel, approve)
  */
-public class RequestPublishEvent extends SiteAwareEvent {
+public class ReviewPackageRequestBody {
 
-    private final long packageId;
+    @NotBlank
+    private String comment;
 
-    public RequestPublishEvent(final String siteId, final long packageId) {
-        super(siteId);
-        this.packageId = packageId;
+    public @NotBlank String getComment() {
+        return comment;
     }
 
-    public long getPackageId() {
-        return packageId;
+    public void setComment(@NotBlank String comment) {
+        this.comment = comment;
     }
 }

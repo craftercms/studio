@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v2.event.workflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 
@@ -44,6 +46,14 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
         return format("WORKFLOW_EVENT_%s", eventType.name());
     }
 
+    public WorkFlowEventType getWorkflowEventType() {
+        return eventType;
+    }
+
+    public long getPackageId() {
+        return packageId;
+    }
+
     @Override
     public String toString() {
         return "WorkflowEvent{" +
@@ -59,7 +69,8 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
      */
     public enum WorkFlowEventType {
         SUBMIT, // When an item is submitted requesting for approval
-        APPROVE, // When an item is approved (including when it is directly published/scheduled)
+        DIRECT_PUBLISH, // When an item is directly published/scheduled by an user with the right permissions
+        APPROVE, // When an item is approved
         REJECT, // When an item is rejected
         CANCEL // When an item is canceled
     }

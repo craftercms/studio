@@ -16,86 +16,20 @@
 
 package org.craftercms.studio.model.rest.workflow;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
+import java.time.Instant;
 
-import jakarta.validation.constraints.NotEmpty;
-import java.time.ZonedDateTime;
-import java.util.List;
+/**
+ * Request body for approving a package
+ */
+public class ApproveRequestBody extends ReviewPackageRequestBody {
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
+    private Instant schedule;
 
-@JsonIgnoreProperties
-public class ApproveRequestBody {
-
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    private List<@ValidExistingContentPath @NotEmpty String> items;
-    private List<@ValidExistingContentPath @NotEmpty String> optionalDependencies;
-    @NotEmpty
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String publishingTarget;
-    private ZonedDateTime schedule;
-    private String comment;
-    private boolean sendEmailNotifications;
-
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
-
-    public List<String> getItems() {
-        return items;
-    }
-
-    public void setItems(List<String> items) {
-        this.items = items;
-    }
-
-    public List<String> getOptionalDependencies() {
-        return optionalDependencies;
-    }
-
-    public void setOptionalDependencies(List<String> optionalDependencies) {
-        this.optionalDependencies = optionalDependencies;
-    }
-
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
-
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
-
-    public ZonedDateTime getSchedule() {
+    public Instant getSchedule() {
         return schedule;
     }
 
-    public void setSchedule(ZonedDateTime schedule) {
+    public void setSchedule(final Instant schedule) {
         this.schedule = schedule;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public boolean isSendEmailNotifications() {
-        return sendEmailNotifications;
-    }
-
-    public void setSendEmailNotifications(boolean sendEmailNotifications) {
-        this.sendEmailNotifications = sendEmailNotifications;
     }
 }

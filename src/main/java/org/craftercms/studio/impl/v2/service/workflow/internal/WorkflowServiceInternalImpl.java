@@ -20,11 +20,27 @@ import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.jetbrains.annotations.NotNull;
@@ -33,22 +49,35 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 
 public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
 
     private final static Logger logger = LoggerFactory.getLogger(WorkflowServiceInternalImpl.class);
 
-    private NotificationService notificationService;
     private ItemServiceInternal itemServiceInternal;
     private ContentServiceInternal contentServiceInternal;
     private org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
+    private SitesService siteService;
+    private GeneralLockService generalLockService;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private AuditServiceInternal auditServiceInternal;
+    private PublishDAO publishDao;
+    private UserServiceInternal userServiceInternal;
+    private ServicesConfig servicesConfig;
     private ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -127,9 +156,104 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
         return descendants;
     }
 
-    private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
-                                 List<String> submitterList) {
-        notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy);
+    @Override
+    public void approvePackage(final String siteId, final long packageId,
+                               final Instant schedule, final String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            if (APPROVED == p.getApprovalState()) {
+                throw new PackageAlreadyApprovedException(siteId, packageId);
+            }
+            p.setSchedule(schedule);
+            p.setApprovalState(APPROVED);
+            p.setReviewerComment(comment);
+        }, OPERATION_APPROVE, WorkflowEvent.WorkFlowEventType.APPROVE);
+    }
+
+    @Override
+    public void cancelPackage(final String siteId, final long packageId, String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            p.setPackageState(CANCELLED.value);
+            p.setReviewerComment(comment);
+        }, OPERATION_CANCEL_PUBLISHING_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
+    }
+
+    @Override
+    public void rejectPackage(final String siteId, final long packageId, final String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            p.setApprovalState(REJECTED);
+            p.setPackageState(CANCELLED.value);
+            p.setReviewerComment(comment);
+        }, OPERATION_REJECT_PUBLISHING_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
+    }
+
+    /**
+     * Update a packageState and/or approvalState of a package
+     *
+     * @param siteId        the site id
+     * @param packageId     the package id
+     * @param packageReview the package review operation
+     * @param operation     the operation being performed (e.g. cancel, reject, approve)
+     * @param eventType     the workflow event type to be triggered if the update is completed
+     * @throws ServiceLayerException   if the package is not found or is not in a valid state
+     * @throws AuthenticationException if there is an error trying to retrieve the current user
+     */
+    private void doReviewPackage(final String siteId, final long packageId,
+                                 final PackageReview packageReview,
+                                 final String operation, final WorkflowEvent.WorkFlowEventType eventType)
+            throws ServiceLayerException, AuthenticationException {
+        Site site = siteService.getSite(siteId);
+        User user = userServiceInternal.getCurrentUser();
+
+        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+        if (publishPackage == null) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
+        }
+
+        String packageLockKey = getPublishPackageLockKey(packageId);
+        generalLockService.lock(packageLockKey);
+        try {
+            publishPackage = publishDao.getById(site.getId(), packageId);
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                throw new InvalidPackageStateException("Unable to cancel package because it is not in READY state", siteId, packageId);
+            }
+
+            packageReview.reviewPackage(publishPackage);
+            publishPackage.setReviewedOn(now());
+            publishPackage.setReviewerId(user.getId());
+            publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
+
+            createUpdateStatePackageAuditLogEntry(publishPackage, user.getUsername(), operation);
+
+            activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
+                    operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
+            eventPublisher.publishEvent(new WorkflowEvent(siteId, packageId, eventType));
+            // TODO: implement notifications
+        } finally {
+            generalLockService.unlock(packageLockKey);
+        }
+    }
+
+    /**
+     * Audit package state update: cancellation/rejection/approval
+     *
+     * @param publishPackage the package being cancelled
+     * @param username       the username of the user who cancelled the package
+     * @param operation      the operation being performed
+     */
+    private void createUpdateStatePackageAuditLogEntry(final PublishPackage publishPackage,
+                                                       final String username, final String operation) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOrigin(ORIGIN_API);
+        auditLog.setOperation(operation);
+        auditLog.setActorId(username);
+        auditLog.setSiteId(publishPackage.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
@@ -147,12 +271,41 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     }
 
     @SuppressWarnings("unused")
-    public void setNotificationService(final NotificationService notificationService) {
-        this.notificationService = notificationService;
+    public void setActivityStreamServiceInternal(final ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPublishDao(final PublishDAO publishDao) {
+        this.publishDao = publishDao;
+    }
+
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public void setSiteService(final SitesService siteService) {
+        this.siteService = siteService;
+    }
+
+    public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     @Override
     public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
         this.eventPublisher = applicationEventPublisher;
+    }
+
+    private interface PackageReview {
+        void reviewPackage(PublishPackage publishPackage) throws ServiceLayerException;
     }
 }

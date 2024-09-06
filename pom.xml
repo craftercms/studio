@@ -577,7 +577,7 @@
 			</activation>
 			<properties>
 				<studio.ui.path>target/ui/</studio.ui.path>
-				<studio.ui.version>feature/5977</studio.ui.version><!-- craftercms ui version flag -->
+				<studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
 			</properties>
 			<build>
 				<plugins>

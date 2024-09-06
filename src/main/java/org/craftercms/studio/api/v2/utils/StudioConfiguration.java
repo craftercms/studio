@@ -66,6 +66,7 @@ public interface StudioConfiguration {
 
     String REPO_SYNC_EVENT_DELAY_MILLIS = "studio.repo.sync.event.delayMillis";
     String REPO_SYNC_EVENT_MAX_RESET_COUNT = "studio.repo.sync.event.maxResets";
+    String REPO_SYNC_CANCELLED_PACKAGE_COMMENT = "studio.repo.sync.publishPackage.cancelled.comment";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -165,6 +166,8 @@ public interface StudioConfiguration {
     /** Notification Service */
     String NOTIFICATION_CONFIGURATION_FILE = "studio.notification.configurationFile";
     String NOTIFICATION_TIMEZONE = "studio.notification.timezone";
+    String WORKFLOW_NOTIFICATION_ENABLED = "studio.workflow.notification.enabled";
+    String WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT = "studio.workflow.notification.maxItemCount";
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
 

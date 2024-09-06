@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -185,20 +186,34 @@ public class WorkflowController {
         return result;
     }
 
-    @PostMapping(value = APPROVE, consumes = APPLICATION_JSON_VALUE)
-    public Result approve(@Valid @RequestBody ApproveRequestBody approveRequestBody)
-            throws UserNotFoundException, ServiceLayerException {
-        // TODO: update to work by package
+    @PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + APPROVE, consumes = APPLICATION_JSON_VALUE)
+    public Result approve(@Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+                          @Valid @RequestBody ApproveRequestBody request)
+            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+        workflowService.approvePackage(site, packageId,
+                request.getSchedule(), request.getComment());
 
         Result result = new Result();
         result.setResponse(OK);
         return result;
     }
 
-    @PostMapping(value = REJECT, consumes = APPLICATION_JSON_VALUE)
-    public Result reject(@Valid @RequestBody RejectRequestBody rejectRequestBody)
-            throws ServiceLayerException, UserNotFoundException {
-        // TODO: update to work by package
+    @PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + REJECT, consumes = APPLICATION_JSON_VALUE)
+    public Result reject(@Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+                         @Valid @RequestBody ReviewPackageRequestBody rejectRequestBody)
+            throws ServiceLayerException, AuthenticationException {
+        workflowService.rejectPackage(site, packageId,
+                rejectRequestBody.getComment());
+        Result result = new Result();
+        result.setResponse(OK);
+        return result;
+    }
+
+    @PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + CANCEL)
+    public Result cancel(@Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+                         @Valid @RequestBody ReviewPackageRequestBody cancelPackageRequest)
+            throws ServiceLayerException, AuthenticationException {
+        workflowService.cancelPackage(site, packageId, cancelPackageRequest.getComment());
         Result result = new Result();
         result.setResponse(OK);
         return result;

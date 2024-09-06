@@ -35,9 +35,8 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.exception.publish.PublishPackagesNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -77,9 +76,8 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
-import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.APPROVE;
+import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -104,7 +102,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private ItemTargetDAO itemTargetDao;
     private SitesService siteService;
     private GeneralLockService generalLockService;
-    private ActivityStreamServiceInternal activityStreamServiceInternal;
     private SecurityService securityService;
 
 
@@ -148,59 +145,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 //        }
 //        publishingPackageDetails.setItems(packageItems);
 //        return publishingPackageDetails;
-    }
-
-    @Override
-    public void cancelPublishingPackages(final String siteId, final Collection<Long> packageIds)
-            throws ServiceLayerException, UserNotFoundException {
-        Site site = siteService.getSite(siteId);
-        String username = securityService.getCurrentUser();
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-
-        Collection<PublishPackage> packages = publishDao.getByIds(site.getId(), packageIds);
-        if (packages.size() != packageIds.size()) {
-            List<Long> missingPackages = packageIds.stream()
-                    .filter(id -> packages.stream().noneMatch(p -> id.equals(p.getId())))
-                    .toList();
-            throw new PublishPackagesNotFoundException(siteId, missingPackages);
-        }
-
-        for (Long packageId : packageIds) {
-            String packageLockKey = getPublishPackageLockKey(packageId);
-            generalLockService.lock(packageLockKey);
-            try {
-                PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
-                if (publishPackage.getPackageState() == PublishPackage.PackageState.CANCELLED.value) {
-                    logger.warn("Package '{}' for site '{}' is already cancelled", packageId, siteId);
-                    continue;
-                }
-                publishDao.cancelPackageById(site.getId(), packageId, servicesConfig.getLiveEnvironment(siteId));
-                createCancelPackageAuditLogEntry(site, username);
-
-                activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
-                        OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
-                applicationContext.publishEvent(new WorkflowEvent(siteId, packageId, WorkflowEvent.WorkFlowEventType.CANCEL));
-            } finally {
-                generalLockService.unlock(packageLockKey);
-            }
-        }
-    }
-
-    /**
-     * Audit package cancellation
-     *
-     * @param site     the site
-     * @param username the username of the user who cancelled the package
-     */
-    private void createCancelPackageAuditLogEntry(Site site, String username) {
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
-        auditLog.setActorId(username);
-        auditLog.setSiteId(site.getId());
-        auditLog.setPrimaryTargetId(site.getSiteId());
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(site.getSiteId());
-        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -418,7 +362,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, true));
             auditPublishSubmission(publishPackage, OPERATION_PUBLISH);
 
-            applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), APPROVE));
+            applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), DIRECT_PUBLISH));
             notifyPublisher(publishPackage, siteService.getSite(siteId));
             return publishPackage.getId();
         } catch (Exception e) {
@@ -426,6 +370,23 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             logger.error(message, e);
             throw new ServiceLayerException(message, e);
         }
+    }
+
+    @Override
+    public PublishPackage getPackage(final String siteId, final long packageId)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
+        Site site = siteService.getSite(siteId);
+        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+        if (publishPackage == null) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
+        }
+        return publishPackage;
+    }
+
+    @Override
+    public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
+                                                   final int offset, final int limit) {
+        return publishDao.getPublishItems(siteId, packageId, offset, limit);
     }
 
     private Collection<PublishItem> createDeletePublishItems(final String siteId, final Collection<String> userRequestedPaths,
@@ -488,23 +449,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private void auditPublishSubmission(final PublishPackage p, final String operation) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
-        auditLog.setActorId(String.valueOf(p.getSubmitterId()));
+        auditLog.setActorId(securityService.getCurrentUser());
         auditLog.setSiteId(p.getSiteId());
-        auditLog.setPrimaryTargetId(String.valueOf(p.getSiteId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(String.valueOf(p.getSiteId()));
+        auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(p.getId()));
 
         AuditLogParameter commentParam = new AuditLogParameter();
         commentParam.setTargetId(TARGET_TYPE_SUBMISSION_COMMENT);
         commentParam.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
         commentParam.setTargetValue(defaultIfEmpty(p.getSubmitterComment(), ""));
 
-        AuditLogParameter packageParam = new AuditLogParameter();
-        packageParam.setTargetId(TARGET_TYPE_PUBLISHING_PACKAGE);
-        packageParam.setTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
-        packageParam.setTargetValue(String.valueOf(p.getId()));
-
-        auditLog.setParameters(List.of(commentParam, packageParam));
+        auditLog.setParameters(List.of(commentParam));
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -713,11 +669,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @SuppressWarnings("unused")
-    public void setActivityStreamServiceInternal(final ActivityStreamServiceInternal activityStreamServiceInternal) {
-        this.activityStreamServiceInternal = activityStreamServiceInternal;
-    }
-
-    @SuppressWarnings("unused")
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
@@ -736,6 +687,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                            final String comment) throws AuthenticationException {
         PublishPackage publishPackage = new PublishPackage();
         publishPackage.setPackageType(packageType);
+        publishPackage.setSite(site);
         publishPackage.setSiteId(site.getId());
         publishPackage.setTarget(target);
         publishPackage.setSchedule(schedule);
@@ -768,7 +720,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
-            applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : APPROVE));
+            applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : DIRECT_PUBLISH));
             if (!requestApproval) {
                 notifyPublisher(publishPackage, site);
             }
@@ -916,48 +868,4 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         return buildPublishPackage(site, target, ITEM_LIST, paths, commitIds, requestApproval, schedule, comment, this::getItemListPackageItems);
     }
 
-    /**
-     * Cancel a package.
-     * This method will cancel a package if its state is READY.
-     * It will also update the state bits of the items in the package to cancel the workflow.
-     *
-     * @param siteId         the site id
-     * @param publishPackage the package to cancel
-     */
-    private void cancelPackage(final String siteId, final PublishPackage publishPackage) {
-        String packageLockKey = getPublishPackageLockKey(publishPackage.getId());
-        generalLockService.lock(packageLockKey);
-        try {
-            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
-                logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
-                return;
-            }
-            publishDao.cancelPackageById(publishPackage.getSiteId(), publishPackage.getId(), servicesConfig.getLiveEnvironment(siteId));
-            applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
-        } finally {
-            generalLockService.unlock(packageLockKey);
-        }
-    }
-
-    @Override
-    public void cancelAllPackagesForPath(final String siteId, final String path) {
-        // Try to cancel ready packages
-        Collection<PublishPackage> packages = publishDao.getReadyPackagesForItem(siteId, path);
-        for (PublishPackage publishPackage : packages) {
-            cancelPackage(siteId, publishPackage);
-        }
-
-        // Wait for processing package (if any) to complete
-        PublishPackage processingPackage = publishDao.getPackageForItem(siteId, path, PublishPackage.PackageState.PROCESSING.value);
-        if (processingPackage != null) {
-            logger.debug("Package with id '{}' is in PROCESSING state, waiting for it to finish", processingPackage.getId());
-            String packageLockKey = getPublishPackageLockKey(processingPackage.getId());
-            generalLockService.lock(packageLockKey);
-            try {
-                logger.debug("Package with id '{}' has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
-            } finally {
-                generalLockService.unlock(packageLockKey);
-            }
-        }
-    }
 }
