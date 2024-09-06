@@ -109,6 +109,8 @@ public final class RequestMappingConstants {
     public static final String HISTORY = "/history";
     public static final String AVAILABLE_TARGETS = "/available_targets";
     public static final String HAS_INITIAL_PUBLISH = "/has_initial_publish";
+    public static final String ENABLE_PUBLISHER = "/enable";
+    public static final String PATH_PARAM_PACKAGE = "/{packageId}";
 
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";

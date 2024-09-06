@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v1.service.content;
 
+import jakarta.validation.Valid;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -26,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -40,7 +42,6 @@ import org.dom4j.DocumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +63,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     protected ServicesConfig servicesConfig;
     protected ContentTypesConfig contentTypesConfig;
     protected SecurityService securityService;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
     protected StudioConfiguration studioConfiguration;
 
     @Override
@@ -320,7 +321,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         return contentRepository;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 

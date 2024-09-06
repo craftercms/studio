@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,26 +25,32 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.lang.NonNull;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -57,24 +63,25 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     public static final String NAME = "WriteContentToDmProcessor";
 
     protected ContentService contentService;
-    protected WorkflowService workflowService;
     protected ServicesConfig servicesConfig;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
-    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+    private GeneralLockService generalLockService;
+    private PublishService publishService;
 
     /**
-     * default constructor
+     * Default constructor
      */
+    @SuppressWarnings("unused")
     public FormDmContentProcessor() {
-        super(NAME); 
+        super(NAME);
     }
  
     /**
      * constructor that sets the process name
      *
-     * @param name
+     * @param name name of this processor
      */
     public FormDmContentProcessor(String name) {
         super(name);
@@ -140,6 +147,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                             unlock(site, path);
                         }
                     } else {
+                        if (parentItem == null) {
+                            throw new ContentNotFoundException(format("The parent of content item at '%s' doesn't exist in site '%s'",
+                                    parentContentPath, site));
+                        }
                         createNewFile(site, parentItem, fileName, input, user, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                     }
@@ -147,7 +158,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
                 throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
             }
-        } catch (ContentNotFoundException | RepositoryLockedException e) {
+        } catch (ServiceLayerException  e) {
             throw e;
         } catch (Exception e) {
             logger.error("Failed to write content site '{}' path '{}'", site, path, e);
@@ -169,28 +180,20 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     /**
-     * create new file to the given path. If the path is a file name, it will
+     * Create new file to the given path. If the path is a file name, it will
      * create a new folder with the same name as the file name (without the
      * prefix) and move the existing file to the folder created. Then it creates
      * new file to the folder
      *
-     * @param site
-     *            Site name
-     * @param fileName
-     *            new file name
-     * @param input
-     *            file content
-     * @param user
-     *            current user
-     * @throws ContentNotFoundException
+     * @param site     Site name
+     * @param fileName new file name
+     * @param input    file content
+     * @param user     current user
+     * @throws ContentNotFoundException if content at the path does not exist
      */
-    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, InputStream input,
+    protected ContentItemTO createNewFile(String site, @NonNull ContentItemTO parentItem, String fileName, InputStream input,
                                           String user, boolean unlock, ResultTO result)
             throws ServiceLayerException {
-        if (parentItem == null) {
-            throw new ContentNotFoundException(format("The parent item at '%s' doesn't exist in site '%s'",
-                    parentItem.getUri(), site));
-        }
         String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
         itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
         try {
@@ -208,7 +211,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                contentRepositoryV1.unLockItem(site, itemPath);
+                contentRepository.itemUnlock(site, itemPath);
             } else {
                 contentRepository.lockItem(site, itemPath);
             }
@@ -226,88 +229,52 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     /**
      * update the file at the given content node
      *
-     * @param input
-     * @param user
-     * @param isPreview
+     * @param input     stream with the content to be written
+     * @param user      user updating the content
+     * @param isPreview is this a preview update?
      * @param unlock    unlock the content upon update?
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException if the content cannot be updated
      */
     protected void updateFile(String site, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
 
-        boolean success;
+        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(site);
+        generalLockService.lock(sandboxRepoLockKey);
         try {
-            success = contentService.writeContent(site, path, input);
+            // Fail to continue write operation if the item is in workflow
+            Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(site, List.of(path), false);
+            if (isNotEmpty(packagesForItems)) {
+                throw new ContentInPublishQueueException("Unable to write content that is part of an active publishing package", packagesForItems);
+            }
+
+            boolean success;
+            try {
+                success = contentService.writeContent(site, path, input);
+            } finally {
+                ContentUtils.release(input);
+            }
+
+            if (success) {
+                String commitId = contentRepository.getRepoLastCommitId(site);
+                result.setCommitId(commitId);
+
+
+                // Item
+                // TODO: get local code with API 2
+                itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
+                contentService.notifyContentEvent(site, path);
+            }
+
+            // unlock the content upon save if the flag is true
+            if (unlock) {
+                contentRepository.itemUnlock(site, path);
+            } else {
+                contentRepository.lockItem(site, path);
+            }
         } finally {
-            ContentUtils.release(input);
+            generalLockService.unlock(sandboxRepoLockKey);
         }
-
-        if (success) {
-            String commitId = contentRepository.getRepoLastCommitId(site);
-            result.setCommitId(commitId);
-
-            // if there is anything pending and this is not a preview update, cancel workflow
-            if (!isPreview) {
-                if (cancelWorkflow(site, path)) {
-                    workflowService.removeFromWorkflow(site, path, true);
-                }
-            }
-
-            // Item
-            // TODO: get local code with API 2
-            itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
-            contentService.notifyContentEvent(site, path);
-        }
-
-        // unlock the content upon save if the flag is true
-        if (unlock) {
-            contentRepositoryV1.unLockItem(site, path);
-        } else {
-            contentRepository.lockItem(site, path);
-        }
-    }
-
-    /**
-     * cancel the pending workflow upon editing the content at the given path?
-     *
-     * @param site
-     * @param path
-     * @return true if workflow needs to be canceled
-     */
-    protected boolean cancelWorkflow(String site, String path) {
-        // don't cancel if the content is a level descriptor
-        if (path.endsWith(servicesConfig.getLevelDescriptorName(site))) {
-            return false;
-        } else {
-            List<String> pagePatterns = servicesConfig.getPagePatterns(site);
-            // cancel if the content is a page
-            if (ContentUtils.matchesPatterns(path, pagePatterns)) {
-                return true;
-            }
-
-            List<String> componentPatterns = servicesConfig.getComponentPatterns(site);
-            if (ContentUtils.matchesPatterns(path, componentPatterns)) {
-                return true;
-            }
-
-            // Checking for document also
-            List<String> documentPatterns = servicesConfig.getDocumentPatterns(site);
-            // cancel if the content is a document
-            if (ContentUtils.matchesPatterns(path, documentPatterns)) {
-                return true;
-            }
-
-            // Checking for display patterns also
-            List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-            // cancel if the content is a document
-            return ContentUtils.matchesPatterns(path, displayPatterns);
-        }
-    }
-
-    protected boolean updateWorkFlow(String site,String path) {
-        List<String> assetPatterns = servicesConfig.getAssetPatterns(site);
-        return  ContentUtils.matchesPatterns(path, assetPatterns);
     }
 
     @Override
@@ -361,15 +328,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         this.contentService = contentService;
     }
 
-    public void setWorkflowService(WorkflowService workflowService) {
-        this.workflowService = workflowService;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
@@ -377,12 +340,17 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
-        this.contentRepositoryV1 = contentRepositoryV1;
-    }
-
+    @SuppressWarnings("unused")
     public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
     }
 
+    @SuppressWarnings("unused")
+    public void setPublishService(PublishService publishService) {
+        this.publishService = publishService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 }

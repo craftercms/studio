@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.site;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -30,7 +31,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
@@ -42,17 +43,18 @@ import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
 
     private final SitesService sitesServiceInternal;
     private final PublishingProgressServiceInternal publishingProgressServiceInternal;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
 
     @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository"})
     public SitesServiceImpl(final SitesService sitesServiceInternal, final PublishingProgressServiceInternal publishingProgressServiceInternal,
-                            final ContentRepository contentRepository) {
+                            final GitContentRepository contentRepository) {
         this.sitesServiceInternal = sitesServiceInternal;
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
         this.contentRepository = contentRepository;
@@ -127,7 +129,7 @@ public class SitesServiceImpl implements SitesService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-    public void enablePublishing(String siteId, boolean enabled) {
+    public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled) {
         sitesServiceInternal.enablePublishing(siteId, enabled);
     }
 
@@ -174,5 +176,17 @@ public class SitesServiceImpl implements SitesService {
     @Override
     public List<Site> getSitesByState(final String state) {
         return sitesServiceInternal.getSitesByState(state);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    public void setPublishedRepoCreated(String siteId) {
+        sitesServiceInternal.setPublishedRepoCreated(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
+    public void updatePublishingStatus(String siteId, String status) {
+        sitesServiceInternal.updatePublishingStatus(siteId, status);
     }
 }

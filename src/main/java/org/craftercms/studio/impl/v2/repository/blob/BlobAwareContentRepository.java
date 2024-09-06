@@ -24,14 +24,12 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.file.blob.Blob;
-import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -39,21 +37,17 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,14 +60,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.PUBLISH_ALL;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 /**
@@ -83,7 +79,9 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
  * @author joseross
  * @since 3.1.6
  */
-public class BlobAwareContentRepository implements ContentRepository, StudioBlobAwareContentRepository {
+public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.repository.GitContentRepository,
+        StudioBlobAwareContentRepository,
+        org.craftercms.studio.api.v2.repository.GitContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(BlobAwareContentRepository.class);
 
@@ -92,9 +90,9 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
      */
     protected String fileExtension;
 
-    protected GitContentRepository localRepositoryV1;
+    protected GitContentRepositoryImpl localRepositoryV1;
 
-    protected org.craftercms.studio.api.v2.repository.ContentRepository localRepositoryV2;
+    protected org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2;
 
     protected StudioBlobStoreResolver blobStoreResolver;
     private ServicesConfig servicesConfig;
@@ -109,14 +107,17 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         this.fileExtension = fileExtension;
     }
 
-    public void setLocalRepositoryV1(GitContentRepository localRepositoryV1) {
+    @SuppressWarnings("unused")
+    public void setLocalRepositoryV1(GitContentRepositoryImpl localRepositoryV1) {
         this.localRepositoryV1 = localRepositoryV1;
     }
 
-    public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository localRepositoryV2) {
+    @SuppressWarnings("unused")
+    public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2) {
         this.localRepositoryV2 = localRepositoryV2;
     }
 
+    @SuppressWarnings("unused")
     public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
         this.blobStoreResolver = blobStoreResolver;
     }
@@ -139,7 +140,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     protected StudioBlobStore getBlobStore(String site, String... paths)
             throws ServiceLayerException {
-        if (isEmpty(site)) {
+        if (StringUtils.isEmpty(site)) {
             return null;
         }
 
@@ -147,7 +148,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             throw new IllegalArgumentException("At least one path needs to be provided");
         }
 
-        return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
+        return blobStoreResolver.getByPaths(site, paths);
     }
 
     protected boolean pointersExist(String siteId, String... paths) {
@@ -172,7 +173,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                     return store.contentExists(site, normalize(path));
                 }
             }
-            return localRepositoryV1.contentExists(site, path);
+            return localRepositoryV2.contentExists(site, path);
         } catch (Exception e) {
             logger.error("Failed to check if content exists in site '{}' path '{}'", site, path, e);
             return false;
@@ -263,7 +264,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             logger.debug("No blob store configuration found for site '{}', " +
                     "will write '{}' to the local repository", site, path);
             return localRepositoryV1.writeContent(site, path, content);
-        } catch (RepositoryLockedException | ServiceLayerException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
             throw e;
         } catch (Exception e) {
@@ -292,46 +293,49 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) throws ServiceLayerException {
-        logger.debug("Delete content in site '{}' path '{}'", site, path);
+    public String deleteContent(final String siteId, final Collection<String> paths,
+                                final String approver) throws ServiceLayerException {
+        logger.debug("Delete content in site '{}' path '{}'", siteId, paths);
         try {
-            StudioBlobStore store = getBlobStore(site, path);
-            if (store != null) {
-                String result = store.deleteContent(site, normalize(path), approver);
-                if (result != null) {
-                    return localRepositoryV1.deleteContent(site, getPointerPath(site, path), approver);
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            List<String> gitRepoPaths = new LinkedList<>();
+            MultiValueMap<StudioBlobStore, String> pathsByBlobStore = new LinkedMultiValueMap<>();
+            for (String path : paths) {
+                blobStores.stream()
+                        .filter(store -> store.isCompatible(path)).findFirst()
+                        .ifPresentOrElse(store -> {
+                                    pathsByBlobStore.add(store, path);
+                                    gitRepoPaths.add(getPointerPath(siteId, path));
+                                },
+                                () -> gitRepoPaths.add(path));
+            }
+            for (Map.Entry<StudioBlobStore, List<String>> entry : pathsByBlobStore.entrySet()) {
+                StudioBlobStore store = entry.getKey();
+                for (String path : entry.getValue()) {
+                    store.deleteContent(siteId, path);
                 }
             }
-            return localRepositoryV1.deleteContent(site, path, approver);
-        } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site '{}', " +
-                    "will delete '{}' in the local repository", site, path);
-            return localRepositoryV1.deleteContent(site, path, approver);
+            return localRepositoryV2.deleteContent(siteId, gitRepoPaths, approver);
         } catch (ServiceLayerException ex) {
             throw ex;
         } catch (Exception e) {
-            logger.error("Failed to delete content in site '{}' path '{}'", site, path, e);
-            throw new ServiceLayerException(format("Failed to delete content in site '%s' path '%s'", site, path), e);
+            logger.error("Failed to delete content in site '{}' path '{}'", siteId, paths, e);
+            throw new ServiceLayerException(format("Failed to delete content in site '%s' path '%s'", siteId, paths), e);
         }
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
         logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
-                Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
+                String result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
                     boolean isFolder = isFolder(site, fromPath);
-                    Map<String, String> diskResult =
+                    String diskResult =
                             localRepositoryV1.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
                                     isFolder ? toPath : getPointerPath(site, toPath), newName);
-                    Set<String> keys = new HashSet<>(diskResult.keySet());
-                    keys.forEach(k -> {
-                        String val = diskResult.get(k);
-                        diskResult.put(getPathFromPointerPath(site, k), val);
-                    });
                     return diskResult;
                 }
             }
@@ -347,34 +351,11 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
-        logger.debug("Copy content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
-        try {
-            StudioBlobStore store = getBlobStore(site, fromPath, toPath);
-            if (store != null) {
-                String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
-                if (result != null) {
-                    return localRepositoryV1.copyContent(site, getPointerPath(site, fromPath),
-                            getPointerPath(site, toPath));
-                }
-            }
-            return localRepositoryV1.copyContent(site, fromPath, toPath);
-        } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site '{}', " +
-                    "will copy from '{}' to '{}' in the local repository", site, fromPath, toPath);
-            return localRepositoryV1.copyContent(site, fromPath, toPath);
-        } catch (Exception e) {
-            logger.error("Failed to copy content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
-            return null;
-        }
-    }
-
-    @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
         RepositoryItem[] children = localRepositoryV1.getContentChildren(site, path);
         return Stream.of(children)
                 .peek(item -> item.name = getOriginalPath(item.name))
-                .collect(toList())
+                .toList()
                 .toArray(new RepositoryItem[children.length]);
     }
 
@@ -509,7 +490,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     public void unLockItem(String site, String path) {
-        localRepositoryV1.unLockItem(site, path);
+        localRepositoryV2.itemUnlock(site, path);
     }
 
     @Override
@@ -519,7 +500,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     public boolean isFolder(String siteId, String path) {
-        return localRepositoryV1.isFolder(siteId, path);
+        return localRepositoryV2.isFolder(siteId, path);
     }
 
     // TODO: Remove when the API is split
@@ -527,23 +508,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     @Override
     public boolean deleteSite(String siteId) {
         return localRepositoryV2.deleteSite(siteId);
-    }
-
-    @Override
-    public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException {
-        localRepositoryV1.initialPublish(site, sandboxBranch, environment, author, comment);
-    }
-
-    protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
-        DeploymentItemTO pointer = new DeploymentItemTO();
-        pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
-        pointer.setSite(item.getSite());
-        pointer.setMove(item.isMove());
-        pointer.setDelete(item.isDelete());
-        pointer.setOldPath(isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
-        pointer.setPackageId(item.getPackageId());
-        return pointer;
     }
 
     @Override
@@ -606,43 +570,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) throws DeploymentException {
-        logger.debug("Publish the items '{}' in site '{}' to target '{}'", deploymentItems, site, environment);
-        Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
-        MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
-        List<DeploymentItemTO> localItems = new LinkedList<>();
-        try {
-            for (DeploymentItemTO item : deploymentItems) {
-                boolean pointerExists = pointersExist(site, item.getPath()) &&
-                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()));
-                if (pointerExists || item.isDelete() || item.isMove()) {
-                    logger.trace("Look for the blob store for the item at site '{}' path '{}'", site, item);
-                    StudioBlobStore store = getBlobStore(site, item.getPath());
-                    if (store != null) {
-                        stores.putIfAbsent(store.getId(), store);
-                        items.add(store.getId(), item);
-                        localItems.add(mapDeploymentItem(item));
-                        continue;
-                    }
-                }
-                localItems.add(item);
-            }
-            for (String storeId : stores.keySet()) {
-                logger.trace("Publish the blobs in site '{}' to target '{}' using the store '{}'",
-                        site, environment, storeId);
-                stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment);
-            }
-            logger.debug("Publish the local files in site '{}' to target '{}'", site, environment);
-            localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
-        } catch (Exception e) {
-            logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);
-            throw new DeploymentException(format("Failed to publish items in site '%s' to target '%s'",
-                    site, environment), e);
-        }
-    }
-
-    @Override
     public boolean commitIdExists(String site, String commitId) {
         return localRepositoryV2.commitIdExists(site, commitId);
     }
@@ -693,20 +620,13 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                            String publisher, ZonedDateTime fromDate,
-                                                            ZonedDateTime toDate, int limit) {
-        return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
-    }
-
-    @Override
     public Item getItem(String siteId, String path, boolean flatten) {
         return localRepositoryV2.getItem(siteId, path, flatten);
     }
 
     @Override
-    public String getLastEditCommitId(String siteId, String path) {
-        return localRepositoryV2.getLastEditCommitId(siteId, path);
+    public boolean isTargetPublished(final String siteId, final String target) throws IOException {
+        return localRepositoryV2.isTargetPublished(siteId, target);
     }
 
     @Override
@@ -725,12 +645,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
-                                                                 String environment, String path) {
-        return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
-    }
-
-    @Override
     public String getPreviousCommitId(String siteId, String commitId) {
         return localRepositoryV2.getPreviousCommitId(siteId, commitId);
     }
@@ -746,63 +660,74 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
-        try {
-            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
-            for (StudioBlobStore blobStore : blobStores) {
-                blobStore.initialPublish(siteId);
-            }
-            localRepositoryV2.initialPublish(siteId);
-        } catch (SiteNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Failed to perform the initial publish for site '{}'", siteId, e);
+    public String initialPublish(final String siteId) throws ServiceLayerException {
+        List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+        for (StudioBlobStore blobStore : blobStores) {
+            blobStore.initialPublish(siteId);
         }
+        return localRepositoryV2.initialPublish(siteId);
     }
 
-    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
-        try {
-            RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
+    @Override
+    public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
+                                                                       final String publishingTarget,
+                                                                       final Collection<T> publishItems) throws ServiceLayerException, IOException {
+        return publishInternal(publishPackage, publishingTarget, publishItems);
+    }
 
-            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
-            for (StudioBlobStore blobStore : blobStores) {
-                if (gitChanges.isInitialPublish()) {
-                    blobStore.initialPublish(siteId);
-                    continue;
-                }
+    @Override
+    public <T extends PublishItemTO> GitPublishChangeSet<T> publish(final PublishPackage publishPackage,
+                                                                 final String publishingTarget,
+                                                                 final Collection<T> publishItems) throws ServiceLayerException, IOException {
+        return publishInternal(publishPackage, publishingTarget, publishItems);
+    }
 
-                // check if any of the changes belongs to the blob store
-                Collection<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
-                Collection<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+    private <T extends PublishItemTO> GitPublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
+                                                                             final String publishingTarget,
+                                                                             final Collection<T> publishItems) throws ServiceLayerException, IOException {
+        List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
+        List<T> failedItems = new LinkedList<>();
 
-                if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
-                    RepositoryChanges blobChanges = new RepositoryChanges(updatedBlobs, deletedBlobs);
-                    blobStore.completePublishAll(siteId, publishingTarget,
-                            blobChanges, comment);
-                    // Translate paths back to xxxx.blob
-                    blobChanges.getFailedPaths().stream()
-                            .map(this::getRepoPath)
-                            .forEach(gitChanges.getFailedPaths()::add);
-                }
-            }
+        List<BlobAwarePublishItemTOWrapper<T>> gitRepoItems = new LinkedList<>();
+        MultiValueMap<StudioBlobStore, BlobAwarePublishItemTOWrapper<T>> itemsByBlobStore = new LinkedMultiValueMap<>();
 
-            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges, comment);
-
-            Collection<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
-            Collection<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
-            Collection<String> failedFiles = translatePaths(gitChanges.getFailedPaths());
-
-            // Return an updated repository changes object with everything changed from git + blob
-            return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles, failedFiles);
-        } catch (Exception e) {
-            localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
-            if (e instanceof ServiceLayerException) {
-                throw e;
-            } else {
-                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
-                        publishingTarget, e);
-            }
+        for (T publishItem : publishItems) {
+            Optional<StudioBlobStore> blobStore = blobStores.stream().filter(store -> store.isCompatible(publishItem.getPath())).findFirst();
+            blobStore.ifPresentOrElse(
+                    store -> itemsByBlobStore.add(store, new BlobAwarePublishItemTOWrapper<>(publishItem, getOriginalPath(publishItem.getPath()))),
+                    () -> gitRepoItems.add(new BlobAwarePublishItemTOWrapper<>(publishItem, publishItem.getPath())));
         }
+
+        for (Map.Entry<StudioBlobStore, List<BlobAwarePublishItemTOWrapper<T>>> entry : itemsByBlobStore.entrySet()) {
+            StudioBlobStore blobStore = entry.getKey();
+            List<BlobAwarePublishItemTOWrapper<T>> blobStoreItems = entry.getValue();
+            StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
+                    publishingTarget, blobStoreItems);
+
+            failedItems.addAll(unwrap(storeChangeset.failedItems()));
+            gitRepoItems.addAll(storeChangeset.successfulItems().stream()
+                    .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
+                    .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
+                    .toList());
+        }
+
+        if (isEmpty(gitRepoItems)) {
+            return new GitPublishChangeSet<>(null, emptyList(), failedItems);
+        }
+
+        GitPublishChangeSet<BlobAwarePublishItemTOWrapper<T>> committedChangeset;
+        if (isEmpty(failedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
+            committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, gitRepoItems);
+        } else {
+            committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
+        }
+
+        return new GitPublishChangeSet<>(committedChangeset.commitId(), unwrap(committedChangeset.successfulItems()),
+                union(failedItems, unwrap(committedChangeset.failedItems())));
+    }
+
+    private <T extends PublishItemTO> Collection<T> unwrap(Collection<BlobAwarePublishItemTOWrapper<T>> items) {
+        return items.stream().map(BlobAwarePublishItemTOWrapper::getWrappedItem).toList();
     }
 
     /**
@@ -820,39 +745,6 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         return removeStart(appendIfMissing(blobPath, "." + fileExtension), File.separator);
     }
 
-    protected Collection<String> translatePaths(Collection<String> paths) {
-        return paths.stream()
-                .map(this::getOriginalPath)
-                .map(path -> prependIfMissing(path, FILE_SEPARATOR))
-                .collect(toList());
-    }
-
-    protected Collection<String> findCompatiblePaths(BlobStore blobStore, Collection<String> paths) {
-        return paths.stream()
-                .map(path -> prependIfMissing(path, File.separator))
-                .filter(blobStore::isCompatible)
-                .map(this::getOriginalPath)
-                .collect(toList());
-    }
-
-    @Override
-    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
-        // this method should not be called directly
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
-        // this method should not be called directly
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void cancelPublishAll(String siteId, String publishingTarget) {
-        // this method should not be called directly
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
         return localRepositoryV2.getCommitIdsBetween(siteId, commitFrom, commitTo);
@@ -861,5 +753,16 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     @Override
     public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
         return localRepositoryV2.getIntroducedCommits(site, baseCommit, commitId);
+    }
+
+    @Override
+    public List<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
+        return localRepositoryV2.validatePublishCommits(siteId, commitIds);
+    }
+
+    @Override
+    public void updateRef(final String siteId, final long packageId,
+                          final String commitId, final String target) throws IOException {
+        localRepositoryV2.updateRef(siteId, packageId, commitId, target);
     }
 }

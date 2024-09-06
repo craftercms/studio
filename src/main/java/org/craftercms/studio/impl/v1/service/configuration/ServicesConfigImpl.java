@@ -16,16 +16,14 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import com.google.common.cache.Cache;
+import jakarta.validation.Valid;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -37,7 +35,6 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -80,14 +77,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * content types configuration
 	 */
 	protected ContentTypesConfig contentTypesConfig;
-
-	/**
-	 * Content service
-	 */
-	protected ContentService contentService;
-
-	protected ContentRepository contentRepository;
-    protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
     protected ConfigurationService configurationService;
     protected Cache<String, SiteConfigTO> configurationCache;
@@ -702,37 +691,10 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-    public void setContentService(ContentService contentService) {
-		this.contentService = contentService;
-	}
-
-    public ContentTypesConfig getContentTypesConfig() {
-		return contentTypesConfig;
-	}
-
+    @SuppressWarnings("unused")
 	public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
 		this.contentTypesConfig = contentTypesConfig;
 	}
-
-	public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-	public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
@@ -746,6 +708,7 @@ public class ServicesConfigImpl implements ServicesConfig {
         this.configurationService = configurationService;
     }
 
+    @SuppressWarnings("unused")
     public void setConfigurationCache(Cache<String, SiteConfigTO> configurationCache) {
         this.configurationCache = configurationCache;
     }

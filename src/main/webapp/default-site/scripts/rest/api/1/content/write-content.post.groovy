@@ -19,9 +19,12 @@ import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.commons.security.exception.PermissionException
+import org.craftercms.core.util.ExceptionUtils
 import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import org.craftercms.studio.api.v2.exception.content.ContentExistException
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException
+import org.craftercms.studio.model.rest.publish.PublishPackageResponse
 import scripts.api.ContentServices
 
 def result = [:]
@@ -144,22 +147,33 @@ if (JakartaServletFileUpload.isMultipartContent(request)) {
         return result
     }
 
-    if (oldPath != null && oldPath != "" && (draft==null || draft!=true)) {
-        fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length())
-        result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true)
-    } else {
-        if (path.startsWith("/site")) {
-            try {
-                result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock)
-            } catch (ContentExistException e) {
-                response.setStatus(409)
-                result.message = e.message
-            }
+    try {
+        if (oldPath != null && oldPath != "" && (draft == null || draft != true)) {
+            fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length())
+            result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true)
         } else {
-            result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
-                isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+            if (path.startsWith("/site")) {
+                try {
+                    result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock)
+                } catch (ContentExistException e) {
+                    response.setStatus(409)
+                    result.message = e.message
+                }
+            } else {
+                result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
+                        isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
 
+            }
         }
+    } catch (Exception e) {
+        Exception inQueueException = ExceptionUtils.getThrowableOfType(e, ContentInPublishQueueException.class);
+        if (inQueueException == null) {
+            throw e;
+        }
+        response.setStatus(409)
+        result.message = inQueueException.message
+        result.publishingPackages = inQueueException.getPublishPackages()
+                .collect { new PublishPackageResponse(it) }
     }
 }
 return result

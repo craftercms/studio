@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,97 +16,296 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v2.dal.WorkflowDAO;
-import org.craftercms.studio.api.v2.dal.WorkflowItem;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 
+import java.time.Instant;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
-import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+import static java.time.Instant.now;
+import static java.util.stream.Collectors.toList;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 
-public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
+public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
 
-    private WorkflowDAO workflowDao;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final static Logger logger = LoggerFactory.getLogger(WorkflowServiceInternalImpl.class);
 
-    @Override
-    public WorkflowItem getWorkflowItem(String siteId, String path, String state) {
-        return workflowDao.getWorkflowEntryOpened(siteId, path, state);
-    }
-
-    @Override
-    public WorkflowItem getWorkflowEntry(String siteId, String path) {
-        return getWorkflowItem(siteId, path, STATE_OPENED);
-    }
-
-    @Override
-    public Workflow getWorkflowEntryForApproval(Long itemId) {
-        return workflowDao.getWorkflowEntryForApproval(itemId, STATE_OPENED);
-    }
-
-    @Override
-    public Workflow getWorkflowEntry(String siteId, String path, String publishingPackageId) {
-        return workflowDao.getWorkflowEntry(siteId, path, publishingPackageId);
-    }
-
-    @Override
-    public void insertWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntry(workflow));
-    }
+    private ItemServiceInternal itemServiceInternal;
+    private ContentServiceInternal contentServiceInternal;
+    private org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
+    private SitesService siteService;
+    private GeneralLockService generalLockService;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private AuditServiceInternal auditServiceInternal;
+    private PublishDAO publishDao;
+    private UserServiceInternal userServiceInternal;
+    private ServicesConfig servicesConfig;
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void insertWorkflowEntries(List<Workflow> workflowEntries) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntries(workflowEntries));
+    public int getItemStatesTotal(String siteId, String path, Long states) {
+        return itemServiceInternal.getItemStatesTotal(siteId, path, states, null);
     }
 
     @Override
-    public void updateWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.updateWorkflowEntry(workflow));
+    public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
+        return itemServiceInternal.getItemStates(siteId, path, states, null, null, offset, limit).stream()
+                .map(SandboxItem::getInstance)
+                .collect(toList());
     }
 
     @Override
-    public List<WorkflowItem> getSubmittedItems(String site) {
-        return workflowDao.getSubmittedItems(site, STATE_OPENED);
+    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+        itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
     }
 
     @Override
-    public void deleteWorkflowEntries(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntries(siteId, paths));
+    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+        itemServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
+                live, staged, isNew, modified);
     }
 
     @Override
-    public void deleteWorkflowEntry(String siteId, String path) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntry(siteId, path));
+    public List<SandboxItem> getWorkflowAffectedPaths(String siteId, String path) throws UserNotFoundException, ServiceLayerException {
+        List<String> affectedPaths = new LinkedList<>();
+        List<SandboxItem> result = new LinkedList<>();
+        List<SandboxItem> sandboxItems = contentServiceInternal.getSandboxItemsByPath(siteId, List.of(path), false);
+        if (CollectionUtils.isEmpty(sandboxItems)) {
+            throw new ContentNotFoundException(path, siteId,
+                    "Content not found for site " + siteId + " and path " + path);
+        }
+        SandboxItem sandboxItem = sandboxItems.getFirst();
+        if (isInWorkflowOrScheduled(sandboxItem.getState())) {
+            affectedPaths.add(path);
+            boolean isNew = isNew(sandboxItem.getState());
+            // TODO: implement for the new publishing system
+            boolean isRenamed = false;
+//            boolean isRenamed = isNotEmpty(sandboxItem.getPreviousPath());
+            if (isNew || isRenamed) {
+                affectedPaths.addAll(getMandatoryDescendants(siteId, path));
+            }
+            List<String> dependencyPaths = new LinkedList<>(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
+            affectedPaths.addAll(dependencyPaths);
+            List<String> candidates = new LinkedList<>();
+            for (String p : affectedPaths) {
+                if (!candidates.contains(p)) {
+                    candidates.add(p);
+                }
+            }
+
+            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(siteId, candidates, true);
+            result = candidateItems.stream().filter(i -> isInWorkflowOrScheduled(i.getState())).collect(toList());
+        }
+        return result;
+    }
+
+    private List<String> getMandatoryDescendants(String site, String path)
+            throws UserNotFoundException, ServiceLayerException {
+        List<String> descendants = new LinkedList<>();
+        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null, null,
+                null, 0, Integer.MAX_VALUE);
+        if (result != null) {
+            if (Objects.nonNull(result.getLevelDescriptor())) {
+                descendants.add(result.getLevelDescriptor().getPath());
+            }
+            if (CollectionUtils.isNotEmpty(result.getChildren())) {
+                for (SandboxItem item : result.getChildren()) {
+                    descendants.add(item.getPath());
+                    descendants.addAll(getMandatoryDescendants(site, item.getPath()));
+                }
+            }
+        }
+        return descendants;
     }
 
     @Override
-    public void deleteWorkflowEntriesForSite(long siteId) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntriesForSite(siteId));
+    public void approvePackage(final String siteId, final long packageId,
+                               final Instant schedule, final String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            if (APPROVED == p.getApprovalState()) {
+                throw new PackageAlreadyApprovedException(siteId, packageId);
+            }
+            p.setSchedule(schedule);
+            p.setApprovalState(APPROVED);
+            p.setReviewerComment(comment);
+        }, OPERATION_APPROVE, WorkflowEvent.WorkFlowEventType.APPROVE);
     }
 
     @Override
-    public int getContentPendingApprovalTotal(String siteId) {
-        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED).orElse(0);
+    public void cancelPackage(final String siteId, final long packageId, String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            p.setPackageState(CANCELLED.value);
+            p.setReviewerComment(comment);
+        }, OPERATION_CANCEL_PUBLISHING_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
     }
 
     @Override
-    public List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit) {
-        return workflowDao.getContentPendingApproval(siteId, STATE_OPENED, offset, limit);
+    public void rejectPackage(final String siteId, final long packageId, final String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            p.setApprovalState(REJECTED);
+            p.setPackageState(CANCELLED.value);
+            p.setReviewerComment(comment);
+        }, OPERATION_REJECT_PUBLISHING_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
+    }
+
+    /**
+     * Update a packageState and/or approvalState of a package
+     *
+     * @param siteId        the site id
+     * @param packageId     the package id
+     * @param packageReview the package review operation
+     * @param operation     the operation being performed (e.g. cancel, reject, approve)
+     * @param eventType     the workflow event type to be triggered if the update is completed
+     * @throws ServiceLayerException   if the package is not found or is not in a valid state
+     * @throws AuthenticationException if there is an error trying to retrieve the current user
+     */
+    private void doReviewPackage(final String siteId, final long packageId,
+                                 final PackageReview packageReview,
+                                 final String operation, final WorkflowEvent.WorkFlowEventType eventType)
+            throws ServiceLayerException, AuthenticationException {
+        Site site = siteService.getSite(siteId);
+        User user = userServiceInternal.getCurrentUser();
+
+        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+        if (publishPackage == null) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
+        }
+
+        String packageLockKey = getPublishPackageLockKey(packageId);
+        generalLockService.lock(packageLockKey);
+        try {
+            publishPackage = publishDao.getById(site.getId(), packageId);
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                throw new InvalidPackageStateException("Unable to cancel package because it is not in READY state", siteId, packageId);
+            }
+
+            packageReview.reviewPackage(publishPackage);
+            publishPackage.setReviewedOn(now());
+            publishPackage.setReviewerId(user.getId());
+            publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
+
+            createUpdateStatePackageAuditLogEntry(publishPackage, user.getUsername(), operation);
+
+            activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
+                    operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
+            eventPublisher.publishEvent(new WorkflowEvent(siteId, packageId, eventType));
+            // TODO: implement notifications
+        } finally {
+            generalLockService.unlock(packageLockKey);
+        }
+    }
+
+    /**
+     * Audit package state update: cancellation/rejection/approval
+     *
+     * @param publishPackage the package being cancelled
+     * @param username       the username of the user who cancelled the package
+     * @param operation      the operation being performed
+     */
+    private void createUpdateStatePackageAuditLogEntry(final PublishPackage publishPackage,
+                                                       final String username, final String operation) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOrigin(ORIGIN_API);
+        auditLog.setOperation(operation);
+        auditLog.setActorId(username);
+        auditLog.setSiteId(publishPackage.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
+
+    @SuppressWarnings("unused")
+    public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
+    }
+
+    @SuppressWarnings("unused")
+    public void setDependencyServiceInternal(final org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
+        this.dependencyServiceInternal = dependencyServiceInternal;
+    }
+
+    @SuppressWarnings("unused")
+    public void setActivityStreamServiceInternal(final ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPublishDao(final PublishDAO publishDao) {
+        this.publishDao = publishDao;
+    }
+
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public void setSiteService(final SitesService siteService) {
+        this.siteService = siteService;
+    }
+
+    public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     @Override
-    public List<Workflow> getContentPendingApprovalDetail(String siteId, String packageId) {
-        return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
+    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
     }
 
-    public void setWorkflowDao(WorkflowDAO workflowDao) {
-        this.workflowDao = workflowDao;
-    }
-
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    private interface PackageReview {
+        void reviewPackage(PublishPackage publishPackage) throws ServiceLayerException;
     }
 }

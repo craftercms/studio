@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -26,11 +28,11 @@ import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.model.rest.dependency.GetSoftDependenciesRequestBody;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -49,10 +51,9 @@ public class DependencyController {
 
     @Valid
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
-            throws ServiceLayerException {
+    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
         Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
-        List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
+        Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
         softDeps.removeAll(hardDeps);
 

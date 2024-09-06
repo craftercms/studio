@@ -68,7 +68,7 @@ studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 # Create folder commit message
 studio.repo.createFolder.commitMessage: "Created folder site: {site} path: {path}"
 # Delete content commit message
-studio.repo.deleteContent.commitMessage: "Delete file {path}"
+studio.repo.deleteContent.commitMessage: "Delete files {path}"
 # Move content commit message
 studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
 # Copy content commit message
@@ -105,6 +105,8 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.sync.event.delayMillis: 1000
 # Maximum number of resets before triggering a sync
 studio.repo.sync.event.maxResets: 10
+# Reviewer comment for packages cancelled by the sync process
+studio.repo.sync.publishPackage.cancelled.comment: "Cancelled because of conflicts with changes from repository sync process"
 
 ############################################################
 ##                       Blob Store                       ##
@@ -280,6 +282,10 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
+# Maximum number of items to include in the workflow notification messages
+studio.workflow.notification.maxItemCount: 10
+# Enable/disable notification messages on workflow events
+studio.workflow.notification.enabled: true
 # Path where the notification configuration is located
 studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
@@ -1007,6 +1013,8 @@ studio.scripting.sandbox.enable: true
 studio.scripting.sandbox.blacklist.enable: true
 # The location of the default blacklist to use (this will have no effect if the sandbox is disabled)
 studio.scripting.sandbox.blacklist.path: classpath:crafter/studio/groovy/blacklist
+# List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
+studio.scripting.sandbox.whitelist.getenvRegex: crafter_.*
 # The extension for the script files
 studio.scripting.script.extension: groovy
 # The format for the name of the script files

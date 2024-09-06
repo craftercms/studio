@@ -16,8 +16,11 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -27,13 +30,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -51,14 +52,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -75,18 +75,15 @@ public class ContentController {
 
     private final ContentService contentService;
     private final DependencyService dependencyService;
-    private final WorkflowService workflowService;
 
     //TODO: Migrate logic to new content service
     private final ClipboardService clipboardService;
 
-    @ConstructorProperties({"contentService", "dependencyService", "clipboardService", "workflowService"})
-    public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService,
-                             WorkflowService workflowService) {
+    @ConstructorProperties({"contentService", "dependencyService", "clipboardService"})
+    public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService) {
         this.contentService = contentService;
         this.dependencyService = dependencyService;
         this.clipboardService = clipboardService;
-        this.workflowService = workflowService;
     }
 
     @GetMapping(value = EXISTS, produces = APPLICATION_JSON_VALUE)
@@ -132,10 +129,15 @@ public class ContentController {
     @Valid
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
-                deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
+            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+        List<String> items = new ArrayList<>(deleteRequestBody.getItems());
+        if (isNotEmpty(deleteRequestBody.getOptionalDependencies())) {
+            items.addAll(deleteRequestBody.getOptionalDependencies());
+        }
 
+        contentService.deleteContent(deleteRequestBody.getSiteId(),
+                items,
+                deleteRequestBody.getComment());
         var responseBody = new ResponseBody();
         var result = new Result();
         result.setResponse(OK);
@@ -242,7 +244,7 @@ public class ContentController {
             List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
             if (preferContent) {
                 found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
-                        FILE_SEPARATOR + INDEX_FILE, "")).collect(Collectors.toList()));
+                        FILE_SEPARATOR + INDEX_FILE, "")).toList());
             }
             missing = CollectionUtils.subtract(paths, found);
         }
@@ -296,7 +298,7 @@ public class ContentController {
 
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
-            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
+            throws AuthenticationException, UserNotFoundException, ServiceLayerException, ValidationException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 
         var responseBody = new ResponseBody();

@@ -43,6 +43,12 @@
         <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
     </bean>
 
+    <bean id="sessionTimeoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditSessionTimeoutListener">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+    </bean>
+
     <!-- Users -->
 
     <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
@@ -239,6 +245,8 @@
         <property name="cookieHttpOnly" value="false"/>
     </bean>
 
+    <bean id="csrfTokenRequestHandler" class="org.craftercms.studio.api.v2.security.StudioCsrfTokenRequestHandler" />
+
     <!--  Available Actions  -->
     <bean id="studio.availableActionsResolver"
           class="org.craftercms.studio.impl.v2.security.AvailableActionsResolverImpl" >
@@ -253,11 +261,11 @@
         <property name="availableActionsResolver" ref="studio.availableActionsResolver" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="securityServiceV1" ref="cstudioSecurityService"/>
+        <property name="publishServiceInternal" ref="publishServiceInternal"/>
     </bean>
 
     <bean id="studio.loginPageFilter"

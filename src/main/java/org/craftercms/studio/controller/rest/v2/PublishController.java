@@ -17,40 +17,43 @@
 package org.craftercms.studio.controller.rest.v2;
 
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDependenciesResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
-import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
+import org.craftercms.studio.model.rest.publish.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
-import static org.craftercms.studio.model.rest.ApiResponse.COMPLETED_WITH_ERRORS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -106,19 +109,6 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne<PublishingPackageDetails> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PACKAGE, publishingPackageDetails);
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping(CANCEL)
-    public ResponseBody cancelPublishingPackages(
-            @Valid @RequestBody CancelPublishingPackagesRequest cancelPublishingPackagesRequest)
-            throws ServiceLayerException, UserNotFoundException {
-        String siteId = cancelPublishingPackagesRequest.getSiteId();
-        publishService.cancelPublishingPackages(siteId, cancelPublishingPackagesRequest.getPackageIds());
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
@@ -183,13 +173,67 @@ public class PublishController {
     }
 
     @PostMapping("/all")
-    public Result publishAll(@Valid @RequestBody PublishAllRequest request)
-            throws ServiceLayerException, UserNotFoundException {
-        RepositoryChanges changes = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
-        ApiResponse response = changes.getFailedPaths().isEmpty() ? OK : COMPLETED_WITH_ERRORS;
-        Result result = new Result();
-        result.setResponse(response);
+    @Deprecated
+    public ResultOne<Long> publishAll(@Validated @RequestBody PublishAllRequest request)
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        long packageId = publishService.publish(request.getSiteId(), request.getPublishingTarget(),
+                null, null, null, request.getSubmissionComment(), true);
+
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         return result;
+    }
+
+    @PostMapping(DEPENDENCIES)
+    public ResultOne<PublishDependenciesResult> getPublishDependencies(@Validated @RequestBody GetPublishDependenciesRequest request)
+            throws ServiceLayerException, IOException {
+        PublishDependenciesResult dependenciesPackage = publishService.getPublishDependencies(request.getSiteId(),
+                request.getPublishingTarget(), request.getPaths(), request.getCommitIds());
+
+        ResultOne<PublishDependenciesResult> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE, dependenciesPackage);
+        return result;
+    }
+
+    @PostMapping(ENABLE_PUBLISHER)
+    public Result enablePublisher(@Validated @RequestBody EnablePublisherRequest request) {
+        sitesService.enablePublishing(request.getSiteId(), request.isEnable());
+        Result result = new Result();
+        result.setResponse(OK);
+        return result;
+    }
+
+    @PostMapping
+    public ResultOne<Long> publish(@Validated @RequestBody PublishPackageRequest request)
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        long packageId = submitPublishPackage(request);
+
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
+        return result;
+    }
+
+    /**
+     * Submit a publish package request
+     *
+     * @param request the request
+     * @return the package id
+     * @throws ServiceLayerException
+     * @throws AuthenticationException
+     */
+    private long submitPublishPackage(PublishPackageRequest request)
+            throws ServiceLayerException, AuthenticationException {
+        if (request.isRequestApproval()) {
+            return publishService.requestPublish(request.getSiteId(), request.getPublishingTarget(),
+                    request.getPaths(), request.getCommitIds(), request.getSchedule(),
+                    request.getComment(), request.isPublishAll());
+        }
+        return publishService.publish(request.getSiteId(), request.getPublishingTarget(), request.getPaths(),
+                request.getCommitIds(), request.getSchedule(),
+                request.getComment(), request.isPublishAll());
     }
 
 }

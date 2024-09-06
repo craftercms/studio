@@ -24,14 +24,18 @@ import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -61,6 +65,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.Instant.now;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -71,6 +76,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PATH_PATTERNS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_CANCELLED_PACKAGE_COMMENT;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -83,19 +90,23 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
     private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
     private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
+    private static final String DEFAULT_CANCELLED_PACKAGE_COMMENT = "Cancelled because of conflicts with changes from repository sync process";
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 
     private final SitesService sitesService;
     private final GeneralLockService generalLockService;
     private final AuditServiceInternal auditServiceInternal;
-    private final DependencyServiceInternal dependencyServiceInternal;
+    private final DependencyService dependencyServiceInternal;
     private final UserServiceInternal userServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
     private final ContentService contentService;
     private final ConfigurationService configurationService;
-    private final ContentRepository contentRepository;
+    private final GitContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
+    private final ProcessedCommitsDAO processedCommitsDAO;
+    private final PublishDAO publishDao;
+    private final ServicesConfig servicesConfig;
     private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
@@ -103,13 +114,17 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "studioDBScriptRunnerFactory", "dependencyServiceInternal",
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService",
-            "contentRepository", "studioConfiguration"})
+            "contentRepository", "studioConfiguration",
+            "processedCommitsDAO", "publishDao",
+            "servicesConfig"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
-                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
+                                  StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
-                                  ContentRepository contentRepository, StudioConfiguration studioConfiguration) {
+                                  GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
+                                  ProcessedCommitsDAO processedCommitsDAO, PublishDAO publishDao,
+                                  ServicesConfig servicesConfig) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -121,6 +136,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         this.configurationService = configurationService;
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
+        this.processedCommitsDAO = processedCommitsDAO;
+        this.publishDao = publishDao;
+        this.servicesConfig = servicesConfig;
     }
 
     @Async
@@ -144,8 +162,11 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     "The site will not be synced with the repository.", siteId);
             return;
         }
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
-        generalLockService.lock(syncFromRepoLockKey);
+        // Locking sandbox repo to avoid additional commits from being added to
+        // the processed_commits table (to avoid unintended deletes at the end of this block)
+        // This will also prevent multiple simultaneous executions of this method for the same site
+        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        generalLockService.lock(sandboxRepoLockKey);
         try {
             // Get the last commit to be used along the sync process (instead of 'HEAD',
             // commits added after this point will be processed in subsequent executions of this method)
@@ -162,7 +183,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             String lastUnprocessedCommit = null;
             // This loop will iterate throw commits and find commit sequences that are not audited yet
             for (String commitId : unprocessedCommits) {
-                if (auditServiceInternal.isAudited(site.getId(), commitId)) {
+                if (processedCommitsDAO.isProcessed(site.getId(), commitId)) {
                     // If commit is already audited, ingest the changes in between, if any
                     if (lastUnprocessedCommit != null) {
                         ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
@@ -180,11 +201,13 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
                 updateLastCommitId(siteId, lastUnprocessedCommit);
             }
+            logger.debug("Removing processed_commits records for site '{}' previous to commit '{}'", siteId, lastCommitInRepo);
+            processedCommitsDAO.deleteBefore(site.getId(), lastCommitInRepo);
             logger.debug("Site '{}' is now synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
         } catch (UserNotFoundException | GitAPIException | IOException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
-            generalLockService.unlock(syncFromRepoLockKey);
+            generalLockService.unlock(sandboxRepoLockKey);
         }
     }
 
@@ -205,8 +228,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      */
     private void ingestChanges(final Site site, final String commitFrom, final String commitTo) throws IOException, GitAPIException, UserNotFoundException, ServiceLayerException {
         List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
+        cancelWorkflow(site, operationsFromDelta);
         syncDatabaseWithRepo(site, operationsFromDelta.stream().sorted(comparing(RepoOperation::getAction)).toList());
         auditChangesFromGit(site, commitFrom, commitTo);
+        processedCommitsDAO.insertCommit(site.getId(), commitTo);
 
         // Sync all preview deployers
         try {
@@ -215,6 +240,86 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         } catch (Exception e) {
             logger.error("Failed to sync preview for site '{}'", site, e);
         }
+    }
+
+    /**
+     * Cancel workflow for all paths in the given operations list.
+     *
+     * @param site                the site to cancel the workflow for.
+     * @param operationsFromDelta the list of operations being processed
+     */
+    private void cancelWorkflow(final Site site, final List<RepoOperation> operationsFromDelta) throws UserNotFoundException, ServiceLayerException {
+        for (RepoOperation repoOperation : operationsFromDelta) {
+            String path = repoOperation.getPath();
+            cancelAllPackagesForPath(site.getSiteId(), path);
+        }
+    }
+
+    /**
+     * Cancel packages containing the given path.
+     */
+    private void cancelAllPackagesForPath(final String siteId, final String path)
+            throws UserNotFoundException, ServiceLayerException {
+        // Try to cancel ready packages
+        Collection<PublishPackage> packages = publishDao.getReadyPackagesForItem(siteId, path);
+        User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+        for (PublishPackage publishPackage : packages) {
+            cancelPackage(siteId, publishPackage, gitRepoUser);
+        }
+
+        // Wait for processing package (if any) to complete
+        PublishPackage processingPackage = publishDao.getPackageForItem(siteId, path, PublishPackage.PackageState.PROCESSING.value);
+        if (processingPackage != null) {
+            logger.debug("Package with id '{}' is in PROCESSING state, waiting for it to finish", processingPackage.getId());
+            String packageLockKey = getPublishPackageLockKey(processingPackage.getId());
+            generalLockService.lock(packageLockKey);
+            try {
+                logger.debug("Package with id '{}' has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
+            } finally {
+                generalLockService.unlock(packageLockKey);
+            }
+        }
+    }
+
+    /**
+     * Cancel a package.
+     * This method will cancel a package if its state is READY.
+     * It will also update the state bits of the items in the package to cancel the workflow.
+     *
+     * @param siteId         the site id
+     * @param publishPackage the package to cancel
+     */
+    private void cancelPackage(final String siteId, final PublishPackage publishPackage, final User gitRepoUser) {
+        String packageLockKey = getPublishPackageLockKey(publishPackage.getId());
+        generalLockService.lock(packageLockKey);
+        try {
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
+                return;
+            }
+            publishPackage.setPackageState(PublishPackage.PackageState.CANCELLED.value);
+            publishPackage.setReviewerId(gitRepoUser.getId());
+            publishPackage.setReviewerComment(studioConfiguration
+                    .getProperty(REPO_SYNC_CANCELLED_PACKAGE_COMMENT, String.class, DEFAULT_CANCELLED_PACKAGE_COMMENT));
+            publishPackage.setReviewedOn(now());
+            publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
+            createCancelPackageAuditLogEntry(publishPackage);
+            eventPublisher.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), WorkflowEvent.WorkFlowEventType.CANCEL));
+        } finally {
+            generalLockService.unlock(packageLockKey);
+        }
+    }
+
+    private void createCancelPackageAuditLogEntry(final PublishPackage publishPackage) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOrigin(ORIGIN_GIT);
+        auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
+        auditLog.setActorId(ACTOR_ID_GIT);
+        auditLog.setSiteId(publishPackage.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     /**
@@ -253,7 +358,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     site.getSiteId(), commitFrom, commitTo, e);
             throw e;
         }
-
         auditServiceInternal.insertAuditLog(auditLogEntry);
     }
 
@@ -412,8 +516,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
                     StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
                     Locale.US.toString(), null,
-                    contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null,
-                    null).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null)
+                    .getBytes(UTF_8), StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             logger.debug("Extract dependencies from site '{}' path '{}'",
                     site.getSiteId(), repoOperation.getPath());
@@ -546,7 +650,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 currentPath = currentPath + FILE_SEPARATOR + ancestor;
                 Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                                 , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                                Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                                Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
                 Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             }

@@ -62,40 +62,106 @@
             </foreach>
     </select>
 
-    <select id="getHardDependenciesForList" parameterType="java.util.Map"
-            resultType="java.util.Map">
-        SELECT cd1.source_path, cd1.target_path
-        FROM (dependency cd1
-        INNER JOIN site s1 ON cd1.site = s1.site_id
-        INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id
+    <!-- Recursively get:
+        - Non-published ancestors
+     -->
+    <sql id="recursiveParentsForHardDeps">
+        SELECT i.id, i.path, i.parent_id, i.system_type, i.state
+        FROM item i
+            INNER JOIN site s on s.id = i.site_id
+        WHERE i.path IN
+            <foreach item="path" index="index" collection="paths"
+                     open="(" separator="," close=")">
+                #{path}
+            </foreach>
+        AND s.site_id = #{siteId}
+    UNION
+        SELECT i.id, i.path, i.parent_id, i.system_type, i.state
+        FROM item i
+            INNER JOIN parents p ON p.parent_id = i.id
+        WHERE ((i.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- New ancestors: "Not published to the given publishing target -->
+                    AND (i.state &amp; #{newInTargetMaskOff}) = 0)
+             OR EXISTS (
+                SELECT 1
+                 FROM item_target it
+                 WHERE it.item_id = i.id
+                 AND it.renamed = 1
+                <if test="!isLiveTarget"> <!-- If live, any record will do -->
+                 AND it.target = #{target}
+                </if>
+             ) <!-- Moved/renamed ancestors -->
+    </sql>
+
+    <!-- Recursively get:
+        - Non-published (not new but not published to current path in target) descendants of renamed parents
+     -->
+    <sql id="recursiveChildrenForHardDeps">
+        SELECT id, path, parent_id, system_type
+        FROM parents p
+        WHERE p.system_type &lt;&gt; #{systemTypeFolder}
+    UNION
+        SELECT i.id, i.path, i.parent_id, i.system_type
+        FROM item i
+        INNER JOIN children c ON c.id = i.parent_id
+        WHERE (i.state &amp; #{newInTargetMaskOn}) &lt;&gt; #{newInTargetMaskOn} <!-- Get previously published descendants of renamed parents -->
+        AND (i.state &amp; #{newInTargetMaskOff}) > 0
+        AND EXISTS (
+                SELECT 1
+                 FROM item_target it
+                 WHERE it.item_id = c.id
+                 AND it.renamed = 1
+                <if test="!isLiveTarget"> <!-- If live, any record will do -->
+                 AND it.target = #{target}
+                </if>
+             ) <!-- Moved/renamed ancestors -->
+    </sql>
+
+    <select id="getHardDependenciesForList">
+        <!--
+        For each path, recursively:
+        - Get non-published ancestors
+        - Get previously-published descendants of moved ancestors
+        - Get dependencies from table where:
+            - source_path is in the list of paths
+            - target_path is new OR target_path is item-specific dependency
+            -->
+        WITH RECURSIVE parents AS (
+            <include refid="recursiveParentsForHardDeps"/>
+        ),
+        children AS (
+            <include refid="recursiveChildrenForHardDeps"/>
+        ),
+        deps AS (
+                SELECT c.path
+                FROM children c
+                WHERE system_type &lt;&gt; #{systemTypeFolder}
+            UNION
+                SELECT d.target_path AS path
+                FROM dependency d
+                INNER JOIN deps ON deps.path = d.source_path
+                INNER JOIN item targetItem ON targetItem.path = d.target_path
+                INNER JOIN site s ON s.id = targetItem.site_id
+                WHERE d.site = #{siteId}
+                    AND s.deleted = 0
+                    AND s.site_id = #{siteId}
+                    AND d.valid = 1
+                    AND (
+                        ((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
+                            AND (targetItem.state &amp; #{newInTargetMaskOff}) = 0)
+                        OR
+                            <foreach item="pattern" index="index" collection="regex"
+                                     open="(" separator=" OR " close=")">
+                                targetItem.path RLIKE #{pattern}  <!-- Item-specific dependency -->
+                            </foreach>
+                        )
         )
-        WHERE s1.site_id = #{site}
-        AND s1.deleted = 0
-        AND cd1.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND cd1.valid = 1
-        AND (ci1.state &amp; #{newMask}) > 0
-        UNION
-        SELECT cd2.source_path, cd2.target_path
-        FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)
-        WHERE s2.site_id = #{site}
-        AND s2.deleted = 0
-        AND cd2.valid = 1
-        AND cd2.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND (ci2.state &amp; #{modifiedMask}) > 0
-        AND (ci2.state &amp; #{newMask}) = 0
-        AND
-        <foreach item="pattern" index="index" collection="regex"
-                 open="(" separator=" OR " close=")">
-            cd2.target_path RLIKE #{pattern}
-        </foreach>
+        SELECT path
+        FROM deps
+        WHERE path NOT IN
+            <foreach item="path" index="index" collection="paths"
+                     open="(" separator="," close=")">
+                #{path}
+            </foreach>
     </select>
 
     <select id="getDependentItems" resultType="String">

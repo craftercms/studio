@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v2.utils;
 import org.apache.commons.collections4.MapUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,7 +46,7 @@ public class DependencyUtils {
      * @param file    the file
      * @throws IOException if an error occurs while updating the script
      */
-    public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file, DependencyServiceInternal dependencyService)
+    public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file, DependencyService dependencyService)
             throws IOException, ServiceLayerException {
         Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
         if (isEmpty(oldPath)) {

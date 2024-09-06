@@ -16,12 +16,12 @@
 
 package org.craftercms.studio.api.v2.service.notification;
 
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 
-import jakarta.validation.Valid;
-import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,14 +45,8 @@ public interface NotificationService {
      * @param filesUnableToPublish List of files that where unable to publish (can be null)
      *
      */
-    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish);
-
-    /**
-     * <p>Sends a email to configure emails when a deployment had fail</p>
-     * @param name Name of the site which the deployment fail.
-     * @param throwable Throwable error which break the deployment. (Can be null)
-     */
-    void notifyDeploymentError(final String name, final Throwable throwable);
+    // TODO: fix for new publishing system
+//    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish);
 
     /**
      * Process and Sends a generic email.
@@ -65,15 +59,26 @@ public interface NotificationService {
     void notify(final String site , final List<String> toUsers ,final String key, final Pair<String,Object>...params);
 
     /**
-     * Sends Notification when content was approve.
-     * @param site Site of the Content.
-     * @param submitterUser User that submit the content to approval.
-     * @param itemsSubmitted List of Item paths that where approve (can be null)
-     * @param approver User that approve the content.
-     * @param scheduleDate scheduled date
+     * Send a notification message to the submitter of a package that has been approved
+     *
+     * @param publishPackage package that was approved
+     * @param itemsSubmitted list of publish items to include in the message
      */
-    void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted,
-                               final String approver, final ZonedDateTime scheduleDate);
+    void notifyPackageApproval(PublishPackage publishPackage, final Collection<String> itemsSubmitted);
+
+    /**
+     * Send a notification message to the submitter of a package that has been rejected
+     * @param publishPackage package that was rejected
+     * @param itemsSubmitted list of publish items to include in the message
+     */
+    void notifyPackageRejection(PublishPackage publishPackage, final Collection<String> itemsSubmitted);
+
+    /**
+     * Send a notification message to the configured approver 
+     * @param publishPackage
+     * @param itemsSubmitted
+     */
+    void notifyPackageSubmission(PublishPackage publishPackage, final Collection<String> itemsSubmitted);
 
     /**
      * Gets and process notification message
@@ -87,32 +92,6 @@ public interface NotificationService {
     @SuppressWarnings("unchecked")
     String getNotificationMessage(final String site , final NotificationMessageType type, final String key,
                                   final Pair<String,Object>...params);
-
-    /**
-     * Send to all given users a notification of content that need to be review.
-     * @param site Site of the Content.
-     * @param usersToNotify List of users (username) to be notified.
-     * @param itemsSubmitted List of Item paths that where approve (can be null)
-     * @param submitter User (username) that is submitting the content.
-     * @param scheduleDate When the content should go live (null if now (or as soon is approved)).
-     * @param isADelete Is this submission a delete one.
-     * @param submissionComments submission comments
-     */
-    void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify,
-                                         final List<String> itemsSubmitted, final String submitter,
-                                         final ZonedDateTime scheduleDate,final boolean isADelete,
-                                         final String submissionComments);
-
-    /**
-     * Notifies to the submitter that the content has been rejected.
-     * @param site Site of the Content.
-     * @param submittedByList List of users that submitted the rejected content.
-     * @param rejectedItems Items that where rejected
-     * @param rejectionReason  why the content was rejected.
-     * @param userThatRejects User that is rejecting the content.
-     */
-    void notifyContentRejection(final String site,final List<String> submittedByList,final List<String> rejectedItems,
-                                final String rejectionReason, final String userThatRejects);
 
     /**
      * Send email to admin that repository has merged conflict
