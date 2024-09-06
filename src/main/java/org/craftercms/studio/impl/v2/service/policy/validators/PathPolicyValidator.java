@@ -43,8 +43,8 @@ public class PathPolicyValidator implements PolicyValidator {
             return;
         }
 
-        if (!action.upsertType()) {
-            logger.debug("Path policy is only applied to an action type with name changed, skip action '{}'", action);
+        if (!action.createOrRenameType()) {
+            logger.debug("Path policy is only applied to an action type CREATE or RENAME, skip action '{}'", action);
             return;
         }
 
