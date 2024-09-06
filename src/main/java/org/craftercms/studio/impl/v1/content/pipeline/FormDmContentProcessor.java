@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -50,6 +51,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.isUserLocked;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -161,6 +163,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     // For backward compatibility ignore the exception
     protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
+        Item item = itemServiceInternal.getItem(siteId, path);
+        // Prevent permission issues when the content is not locked
+        if (!isUserLocked(item.getState()) && item.getLockOwner() == null) {
+            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
+            return;
+        }
         try {
             contentServiceV2.unlockContent(siteId, path);
             logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
