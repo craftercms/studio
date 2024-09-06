@@ -1538,6 +1538,7 @@
 
     <bean id="sitePolicyInterceptor" class="org.craftercms.studio.api.v2.annotation.policy.SitePolicyAspect">
         <constructor-arg name="policyService" ref="policyService"/>
+        <constructor-arg name="contentServiceInternal" ref="contentServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
