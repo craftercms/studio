@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API
-  version: '4.1.6'
+  version: '4.1.7'
   title: Crafter Studio
   termsOfService: ''
   contact:
