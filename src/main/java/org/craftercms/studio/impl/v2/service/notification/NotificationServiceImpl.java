@@ -72,6 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String TEMPLATE_MODEL_APPROVER = "approver";
     private static final String TEMPLATE_MODEL_SCHEDULED_DATE = "scheduleDate";
     private static final String TEMPLATE_MODEL_SUBMITTER = "submitter";
+    private static final String TEMPLATE_MODEL_REVIEWER = "reviewer";
     private static final String TEMPLATE_MODEL_IS_DELETED = "isDeleted";
     private static final String TEMPLATE_MODEL_SUBMISSION_COMMENTS = "submissionComments";
     private static final String TEMPLATE_MODEL_SITE_NAME = "siteName";
@@ -126,11 +127,12 @@ public class NotificationServiceImpl implements NotificationService {
             String submitterUsername = publishPackage.getSubmitter().getUsername();
             String reviewerUsername = publishPackage.getReviewer().getUsername();
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitterUsername);
+            Map<String, Object> reviewerUser = securityService.getUserProfile(reviewerUsername);
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
-            templateModel.put(TEMPLATE_MODEL_SUBMITTER_USER, submitterUsername);
-            templateModel.put(TEMPLATE_MODEL_APPROVER, securityService.getUserProfile(reviewerUsername));
+            templateModel.put(TEMPLATE_MODEL_APPROVER, reviewerUser);
+            templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
             templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, publishPackage.getSchedule());
             notify(siteId, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
@@ -147,10 +149,13 @@ public class NotificationServiceImpl implements NotificationService {
         logger.debug("Sending content rejection notification for site '{}', package '{}'", siteId, publishPackage.getId());
         try {
             Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
+            Map<String, Object> reviewerUser = securityService.getUserProfile(publishPackage.getReviewer().getUsername());
             Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
             templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, publishPackage.getReviewerComment());
-            templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, securityService.getUserProfile(publishPackage.getReviewer().getUsername()));
+            templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, reviewerUser);
+            templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
             String email = submitterUser.get(KEY_EMAIL).toString();
             notify(siteId, List.of(email), NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
         } catch (UserNotFoundException e) {
