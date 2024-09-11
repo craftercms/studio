@@ -88,7 +88,7 @@
         </emailTemplate>
 
         <emailTemplate key="contentApproved">
-            <subject><![CDATA[<#if scheduleDate??>Content Scheduled <#else>Content Approved</#if>]]></subject>
+            <subject><![CDATA[<#if publishPackage.schedule??>Content Scheduled <#else>Content Approved</#if>]]></subject>
             <!-- Timezone can/is being overwritten in the following template -->
             <body><![CDATA[
                     <#setting time_zone='EST'>
@@ -98,8 +98,8 @@
                         </head>
                         <body style=" font-size: 12pt;">
                             <p>
-                                <#if scheduleDate??>
-                                    The following content has been scheduled for publishing on ${scheduleDate?string["MMM dd, yyyy 'at' hh:mm a"]} Eastern Time.
+                                <#if publishPackage.schedule??>
+                                    The following content has been scheduled for publishing on ${publishPackage.schedule?string["MMM dd, yyyy 'at' hh:mm a"]} Eastern Time.
                                 <#else>
                                     The following content has been reviewed and approved by ${approver.firstName!approver.username} ${approver.lastName!""}:
                                 </#if>
@@ -135,25 +135,41 @@
                     </head>
                     <body style=" font-size: 12pt">
                         <p>
-                            ${submitter.first_name!submitter.username} ${submitter.last_name} has submitted items for your review:
-                            <ul>
-                                <#list files as file>
-                                    <li>
-                                        <#if file.page>
-                                            <a href="${authoringUrl}/studio/preview/#/?page=${file.browserUri!""}&site=${siteName}">
-                                        </#if>
-                                        ${file.internalName!file.name}
-                                        <#if file.page>
-                                            </a>
-                                        </#if>
-                                    </li>
-                                </#list>
-                            </ul>
-                            <#if submissionComments?has_content>
+                            <#if publishPackage.packageType == 'PUBLISH_ALL'>
+                                ${submitter.first_name!submitter.username} ${submitter.last_name} has submitted a 'publish all' request for your review.
+                            <#elseif publishPackage.packageType == 'INITIAL_PUBLISH'>
+                                ${submitter.first_name!submitter.username} ${submitter.last_name} has submitted an 'initial publish' request for your review.
+                            <#else>
+                                ${submitter.first_name!submitter.username} ${submitter.last_name} has submitted items for your review:
+                            </#if>
+                            <#if files??>
+                                <ul>
+                                    <#list files as file>
+                                        <li>
+                                            <#if file.page>
+                                                <a href="${authoringUrl}/studio/preview/#/?page=${file.browserUri!""}&site=${siteName}">
+                                            </#if>
+                                            ${file.internalName!file.name}
+                                            <#if file.page>
+                                                </a>
+                                            </#if>
+                                        </li>
+                                    </#list>
+                                </ul>
+                            </#if>
+                            <br />
+                            Site: ${siteName}
+                            <br />
+                            <#if publishPackage.submitterComment?has_content>
                                 Comments:<br/>
-                                ${submissionComments!""}
+                                ${publishPackage.submitterComment!""}
                                 <br/>
                             </#if>
+                            <#if publishPackage.schedule??>
+                                Scheduled date: ${publishPackage.schedule?datetime.iso?string["MMM dd, yyyy 'at' hh:mm a"]} Eastern Time.
+                                <br/>
+                            </#if>
+                            Target: ${publishPackage.target}
                             <br/>
                             <a href="${authoringUrl}/studio/site-dashboard">Click Here to View Content Waiting for Approval</a>
                             <br/><br/>

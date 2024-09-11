@@ -217,7 +217,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
         try {
             publishPackage = publishDao.getById(site.getId(), packageId);
             if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
-                throw new InvalidPackageStateException("Unable to cancel package because it is not in READY state", siteId, packageId);
+                throw new InvalidPackageStateException("Unable to review package because it is not in READY state", siteId, packageId);
             }
 
             packageReview.reviewPackage(publishPackage);

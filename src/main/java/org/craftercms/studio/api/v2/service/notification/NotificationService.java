@@ -74,9 +74,10 @@ public interface NotificationService {
     void notifyPackageRejection(PublishPackage publishPackage, final Collection<String> itemsSubmitted);
 
     /**
-     * Send a notification message to the configured approver 
-     * @param publishPackage
-     * @param itemsSubmitted
+     * Send a notification message to the configured approver
+     *
+     * @param publishPackage package that was submitted
+     * @param itemsSubmitted list of publish items to include in the message
      */
     void notifyPackageSubmission(PublishPackage publishPackage, final Collection<String> itemsSubmitted);
 

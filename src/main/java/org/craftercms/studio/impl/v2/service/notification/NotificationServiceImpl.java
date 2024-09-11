@@ -67,6 +67,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final String TEMPLATE_MODEL_DEPLOYMENT_ERROR = "deploymentError";
     private static final String TEMPLATE_MODEL_FILES = "files";
+    private static final String TEMPLATE_MODEL_PACKAGE = "publishPackage";
     private static final String TEMPLATE_MODEL_SUBMITTER_USER = "submitterUser";
     private static final String TEMPLATE_MODEL_APPROVER = "approver";
     private static final String TEMPLATE_MODEL_SCHEDULED_DATE = "scheduleDate";
@@ -126,6 +127,7 @@ public class NotificationServiceImpl implements NotificationService {
             String reviewerUsername = publishPackage.getReviewer().getUsername();
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitterUsername);
             Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
             templateModel.put(TEMPLATE_MODEL_SUBMITTER_USER, submitterUsername);
             templateModel.put(TEMPLATE_MODEL_APPROVER, securityService.getUserProfile(reviewerUsername));
@@ -166,6 +168,7 @@ public class NotificationServiceImpl implements NotificationService {
             final NotificationConfigTO notificationConfig = getNotificationConfig(siteId);
             final Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
             Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
             templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
             templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, publishPackage.getSchedule());
@@ -300,14 +303,16 @@ public class NotificationServiceImpl implements NotificationService {
                             config.getCompleteMessages());
                     loadEmailTemplates((Element)root.selectSingleNode(DOCUMENT_ELEMENT_EMAIL_TEMPLATES),
                             config.getEmailMessageTemplates());
-                    loadCannedMessages((Element)root.selectSingleNode(DOCUMENT_ELEMENT_CANNED_MESSAGES),
+                    loadCannedMessages((Element) root.selectSingleNode(DOCUMENT_ELEMENT_CANNED_MESSAGES),
                             config.getCannedMessages());
-                    loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION),
-                            config.getDeploymentFailureNotifications());
-                    loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_APPROVER_EMAILS),
-                            config.getApproverEmails());
-                    loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION),
-                            config.getRepositoryMergeConflictNotifications());
+
+                    String adminEmailAddress = getAdminEmailAddress(site);
+                    loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION),
+                            config.getDeploymentFailureNotifications(), adminEmailAddress);
+                    loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_APPROVER_EMAILS),
+                            config.getApproverEmails(), adminEmailAddress);
+                    loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION),
+                            config.getRepositoryMergeConflictNotifications(), adminEmailAddress);
                 } else {
                     logger.info("Failed to execute against non-XML-element '{}' in site '{}'",
                             root.getUniquePath(), site);
@@ -323,23 +328,34 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void loadEmailList(final String site, final Element emailList, final List<String>
-        deploymentFailureNotifications) {
-        if (emailList != null) {
-            List<Element> emails = emailList.elements();
-            if (!emails.isEmpty()) {
-                for (Element emailNode : emails) {
-                    final String email = emailNode.getText();
-                    if (EmailUtils.validateEmail(email)) {
-                        deploymentFailureNotifications.add(email);
-                    }
-                }
-            } else {
-                deploymentFailureNotifications.add(servicesConfig.getAdminEmailAddress(site));
-            }
-        } else {
+    private void loadEmailList(final String site, final Element emailListElement,
+                               final List<String> emailList, final String defaultEmail) {
+        if (emailListElement == null) {
             logger.error("Failed to load email list in site '{}'", site);
+            return;
         }
+        List<Element> emails = emailListElement.elements();
+        if (emails.isEmpty()) {
+            emailList.add(defaultEmail);
+            return;
+        }
+        for (Element emailNode : emails) {
+            final String email = emailNode.getText();
+            if (EmailUtils.validateEmail(email)) {
+                emailList.add(email);
+            } else {
+                logger.error("Invalid email address '{}' in site '{}' in notification config '{}' element", email, site, emailListElement.getName());
+            }
+        }
+    }
+
+    private String getAdminEmailAddress(final String site) {
+        String adminEmail = servicesConfig.getAdminEmailAddress(site);
+        if (EmailUtils.validateEmail(adminEmail)) {
+            return adminEmail;
+        }
+        logger.error("Invalid admin email address '{}' configured for site '{}'", adminEmail, site);
+        return null;
     }
 
     protected void loadGenericMessage(final Element emailTemplates, final Map<String, String> messageContainer) {
@@ -414,6 +430,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     protected void sendEmail(final String message, final String subject, final List<String> sendTo) {
         EmailMessageTO emailMessage = new EmailMessageTO(subject, message, StringUtils.join(sendTo, ','));
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sending email message to '{}'. Subject '{}'. Content: '{}'", sendTo, subject, message);
+        }
         emailMessages.addEmailMessage(emailMessage);
     }
 
