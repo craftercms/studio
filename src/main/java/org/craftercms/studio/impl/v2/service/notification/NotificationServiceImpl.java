@@ -131,9 +131,14 @@ public class NotificationServiceImpl implements NotificationService {
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
-            templateModel.put(TEMPLATE_MODEL_APPROVER, reviewerUser);
             templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, publishPackage.getSchedule());
+
+            // Keeping these for backwards compatibility
+            // Prefer reviewer
+            templateModel.put(TEMPLATE_MODEL_APPROVER, reviewerUser);
+            // Prefer publishPackage.schedule
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, Date.from(publishPackage.getSchedule()));
+
             notify(siteId, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
         } catch (UserNotFoundException e) {
@@ -153,9 +158,14 @@ public class NotificationServiceImpl implements NotificationService {
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
-            templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, publishPackage.getReviewerComment());
-            templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, reviewerUser);
             templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
+
+            // Keeping these for backwards compatibility
+            // Prefer reviewer
+            templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, reviewerUser);
+            // Prefer package.reviewerComment
+            templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, publishPackage.getReviewerComment());
+
             String email = submitterUser.get(KEY_EMAIL).toString();
             notify(siteId, List.of(email), NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
         } catch (UserNotFoundException e) {
@@ -176,9 +186,13 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
             templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
             templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, publishPackage.getSchedule());
-            templateModel.put(TEMPLATE_MODEL_IS_DELETED, false);
             templateModel.put(TEMPLATE_MODEL_SUBMISSION_COMMENTS, publishPackage.getSubmitterComment());
+
+            // Keeping these for backwards compatibility
+            // Prefer publishPackage.schedule
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, Date.from(publishPackage.getSchedule()));
+            // Always false, never used internally
+            templateModel.put(TEMPLATE_MODEL_IS_DELETED, false);
 
             notify(siteId, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW,
                     templateModel);
