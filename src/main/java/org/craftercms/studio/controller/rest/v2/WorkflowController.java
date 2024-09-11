@@ -191,7 +191,7 @@ public class WorkflowController {
                           @Valid @RequestBody ApproveRequestBody request)
             throws UserNotFoundException, ServiceLayerException, AuthenticationException {
         workflowService.approvePackage(site, packageId,
-                request.getSchedule(), request.getComment());
+                request.getSchedule(), request.isUpdateSchedule(), request.getComment());
 
         Result result = new Result();
         result.setResponse(OK);

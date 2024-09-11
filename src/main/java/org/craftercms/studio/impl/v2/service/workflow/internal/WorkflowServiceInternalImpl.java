@@ -158,13 +158,15 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
     @Override
     public void approvePackage(final String siteId, final long packageId,
-                               final Instant schedule, final String comment)
-            throws ServiceLayerException, AuthenticationException {
+                               final Instant schedule, final boolean updateSchedule, final String comment)
+            throws AuthenticationException, ServiceLayerException {
         doReviewPackage(siteId, packageId, p -> {
             if (APPROVED == p.getApprovalState()) {
                 throw new PackageAlreadyApprovedException(siteId, packageId);
             }
-            p.setSchedule(schedule);
+            if (updateSchedule) {
+                p.setSchedule(schedule);
+            }
             p.setApprovalState(APPROVED);
             p.setReviewerComment(comment);
         }, OPERATION_APPROVE, WorkflowEvent.WorkFlowEventType.APPROVE);

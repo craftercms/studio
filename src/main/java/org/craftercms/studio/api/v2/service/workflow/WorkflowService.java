@@ -87,12 +87,13 @@ public interface WorkflowService {
     /**
      * Approve request for publish
      *
-     * @param siteId    site identifier
-     * @param packageId package identifier
-     * @param schedule  schedule when to publish content
-     * @param comment   approval comment
+     * @param siteId         site identifier
+     * @param packageId      package identifier
+     * @param schedule       schedule when to publish content
+     * @param updateSchedule true to update package schedule using the schedule parameter, false to keep the current schedule
+     * @param comment        approval comment
      */
-    void approvePackage(String siteId, long packageId, Instant schedule, String comment)
+    void approvePackage(String siteId, long packageId, Instant schedule, boolean updateSchedule, String comment)
             throws ServiceLayerException, AuthenticationException;
 
     /**

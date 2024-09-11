@@ -94,9 +94,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
-    public void approvePackage(@SiteId String siteId, long packageId, Instant schedule, String comment)
+    public void approvePackage(@SiteId String siteId, long packageId, Instant schedule, boolean updateSchedule, String comment)
             throws AuthenticationException, ServiceLayerException {
-        workflowServiceInternal.approvePackage(siteId, packageId, schedule, comment);
+        workflowServiceInternal.approvePackage(siteId, packageId, schedule, updateSchedule, comment);
     }
 
     @Override

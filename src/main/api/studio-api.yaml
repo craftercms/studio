@@ -9060,6 +9060,9 @@ paths:
                   type: string
                   format: datetime
                   description: schedule when to publish content
+                updateSchedule:
+                    type: boolean
+                    description: if true, update schedule. Otherwise, keep the original schedule
               required:
                 - comment
       responses:
