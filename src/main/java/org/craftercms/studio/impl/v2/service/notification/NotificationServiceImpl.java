@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.Instant;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
@@ -137,7 +138,8 @@ public class NotificationServiceImpl implements NotificationService {
             // Prefer reviewer
             templateModel.put(TEMPLATE_MODEL_APPROVER, reviewerUser);
             // Prefer publishPackage.schedule
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, Date.from(publishPackage.getSchedule()));
+            Instant schedule = publishPackage.getSchedule();
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, schedule != null ? Date.from(schedule) : null);
 
             notify(siteId, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
@@ -190,7 +192,8 @@ public class NotificationServiceImpl implements NotificationService {
 
             // Keeping these for backwards compatibility
             // Prefer publishPackage.schedule
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, Date.from(publishPackage.getSchedule()));
+            Instant schedule = publishPackage.getSchedule();
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, schedule != null ? Date.from(schedule) : null);
             // Always false, never used internally
             templateModel.put(TEMPLATE_MODEL_IS_DELETED, false);
 
