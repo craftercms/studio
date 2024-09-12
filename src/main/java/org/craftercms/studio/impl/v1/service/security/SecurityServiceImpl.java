@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -201,7 +201,7 @@ public class SecurityServiceImpl implements SecurityService {
             if (rolesConfig != null && groups != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
                 for (Group group : groups) {
-                    String groupName = group.getGroupName();
+                    String groupName = group.getGroupName().toLowerCase();
                     List<String> userRoles = rolesMap.get(groupName);
                     if (roles != null && userRoles != null) {
                         roles.addAll(userRoles);
@@ -218,9 +218,10 @@ public class SecurityServiceImpl implements SecurityService {
         if (groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
-                List<String> groupRoles = rolesMap.get(group);
+                String groupName = group.toLowerCase();
+                List<String> groupRoles = rolesMap.get(groupName);
                 if (groupRoles != null) {
-                    logger.debug("Add roles to group'{}':'{}'", group, roles);
+                    logger.debug("Add roles to group'{}':'{}'", groupName, roles);
                     roles.addAll(groupRoles);
                 }
             }
@@ -325,7 +326,7 @@ public class SecurityServiceImpl implements SecurityService {
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
             // TODO: remove this one
             List<Group> groups = userServiceInternal.getUserGroups(-1, user);
-            if (groups != null && groups.size() > 0) {
+            if (groups != null && !groups.isEmpty()) {
                 logger.debug("Get groups for user '{}' in site '{}' groups '{}'", user, site, groups);
 
                 PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
@@ -333,14 +334,12 @@ public class SecurityServiceImpl implements SecurityService {
                 if (rolesConfig != null) {
                     Map<String, List<String>> rolesMap = rolesConfig.getRoles();
                     for (Group group : groups) {
-                        String groupName = group.getGroupName();
                         if (isSystemAdmin(user)) {
                             Collection<List<String>> mapValues = rolesMap.values();
-                            mapValues.forEach(valueList -> {
-                                userRoles.addAll(valueList);
-                            });
+                            mapValues.forEach(userRoles::addAll);
                             break;
                         } else {
+                            String groupName = group.getGroupName().toLowerCase();
                             List<String> roles = rolesMap.get(groupName);
                             if (roles != null) {
                                 userRoles.addAll(roles);
@@ -351,7 +350,9 @@ public class SecurityServiceImpl implements SecurityService {
                 if (includeGlobal) {
                     PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
                     addGlobalUserRoles(user, userRoles, globalRolesConfig);
-                    List<String> groupNames = groups.stream().map(x -> x.getGroupName()).collect(Collectors.toList());
+                    List<String> groupNames = groups.stream()
+                            .map(x -> x.getGroupName().toLowerCase())
+                            .collect(Collectors.toList());
                     addGlobalGroupRoles(userRoles, groupNames, globalRolesConfig);
                 }
                 return userRoles;
@@ -377,9 +378,10 @@ public class SecurityServiceImpl implements SecurityService {
         if (groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
-                List<String> groupRoles = rolesMap.get(group);
+                String groupName = group.toLowerCase();
+                List<String> groupRoles = rolesMap.get(groupName);
                 if (groupRoles != null) {
-                    logger.trace("Add the roles '{}' to group '{}'", roles, group);
+                    logger.trace("Add the roles '{}' to group '{}'", roles, groupName);
                     roles.addAll(groupRoles);
                 }
             }
@@ -486,12 +488,12 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected Map<String, List<String>> getRoles(List<Node> nodes, Map<String, List<String>> rolesMap) {
         for (Node node : nodes) {
-            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
             if (!StringUtils.isEmpty(name)) {
                 List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
                 List<String> roles = new ArrayList<>();
                 for (Node roleNode : roleNodes) {
-                    roles.add(roleNode.getText());
+                    roles.add(roleNode.getText().toLowerCase());
                 }
                 rolesMap.put(name, roles);
             }
@@ -513,7 +515,7 @@ public class SecurityServiceImpl implements SecurityService {
             List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
             Map<String, List<Node>> rules = new HashMap<>();
             for (Node roleNode : roleNodes) {
-                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
                 List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
                 rules.put(roleName, ruleNodes);
             }
@@ -630,7 +632,7 @@ public class SecurityServiceImpl implements SecurityService {
 
                 if (MapUtils.isNotEmpty(roleMappings)) {
                     for (Group group : groups) {
-                        String groupName = group.getGroupName();
+                        String groupName = group.getGroupName().toLowerCase();
                         List<String> roles = roleMappings.get(groupName);
                         if (roles != null && roles.contains(ADMIN_ROLE)) {
                             toRet = true;
@@ -675,7 +677,7 @@ public class SecurityServiceImpl implements SecurityService {
 
         if (MapUtils.isNotEmpty(roleMappings)) {
             for (Group group : groups) {
-                String groupName = group.getGroupName();
+                String groupName = group.getGroupName().toLowerCase();
                 List<String> roles = roleMappings.get(groupName);
                 if (CollectionUtils.isNotEmpty(roles)) {
                     userRoles.addAll(roles);
@@ -707,13 +709,11 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     public int getSessionTimeout() {
-        int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-        return toReturn;
+        return Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
     }
 
     public boolean isAuthenticatedSMTP() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
-        return toReturn;
+        return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
     }
 
     public String getDefaultFromAddress() {

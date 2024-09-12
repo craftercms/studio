@@ -134,13 +134,13 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
                     List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
                     for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
                         if (isNotEmpty(name)) {
                             List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
                             List<String> roles = new ArrayList<>();
 
                             for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText());
+                                roles.add(roleNode.getText().toLowerCase());
                             }
 
                             roleMappings.put(name, roles);
@@ -172,13 +172,13 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
                     List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
                     for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
                         if (isNotEmpty(name)) {
                             List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
                             List<String> roles = new ArrayList<>();
 
                             for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText());
+                                roles.add(roleNode.getText().toLowerCase());
                             }
 
                             roleMappings.put(name, roles);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -41,6 +41,7 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
     public static final String SITE_ID_RESOURCE_ID = "siteId";
     public static final String PATH_RESOURCE_ID = "path";
+    public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";
 
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
@@ -53,8 +54,8 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
     @Override
     public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
-        String siteName = "";
-        String path = "/";
+        String siteName = StringUtils.EMPTY;
+        String path = DEFAULT_PATH_RESOURCE_VALUE;
 
         if (MapUtils.isNotEmpty(resourceIds)) {
             if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
