@@ -16,11 +16,6 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -29,10 +24,18 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmOrderTO;
+import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Content Services that other services may use
@@ -148,11 +151,11 @@ public interface ContentService {
      * @param site    - the project ID
      * @param path    path to content
      * @param content stream of content to write
-     * @return return true if successful
+     * @return return new commit id
      *
      * @throws ServiceLayerException general service error
      */
-    boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+    String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
      * write content from an input stream and notify the subscribers.

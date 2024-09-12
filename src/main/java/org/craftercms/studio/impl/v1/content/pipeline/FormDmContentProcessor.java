@@ -51,10 +51,12 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.isUserLocked;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -171,6 +173,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     // For backward compatibility ignore the exception
     protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
+        Item item = itemServiceInternal.getItem(siteId, path);
+        // Prevent permission issues when the content is not locked
+        if (!isUserLocked(item.getState()) && item.getLockOwner() == null) {
+            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
+            return;
+        }
         try {
             contentServiceV2.unlockContent(siteId, path);
             logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
@@ -197,8 +205,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
         itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
         try {
-            contentService.writeContent(site, itemPath, input);
-            String commitId = contentRepository.getRepoLastCommitId(site);
+            String commitId = contentService.writeContent(site, itemPath, input);
             result.setCommitId(commitId);
 
             // Item
@@ -238,7 +245,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected void updateFile(String site, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
-
         String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(site);
         generalLockService.lock(sandboxRepoLockKey);
         try {
@@ -247,18 +253,15 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (isNotEmpty(packagesForItems)) {
                 throw new ContentInPublishQueueException("Unable to write content that is part of an active publishing package", packagesForItems);
             }
-
-            boolean success;
+            String commitId;
             try {
-                success = contentService.writeContent(site, path, input);
+                commitId = contentService.writeContent(site, path, input);
             } finally {
                 ContentUtils.release(input);
             }
 
-            if (success) {
-                String commitId = contentRepository.getRepoLastCommitId(site);
+            if (isNotEmpty(commitId)) {
                 result.setCommitId(commitId);
-
 
                 // Item
                 // TODO: get local code with API 2

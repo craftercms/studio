@@ -661,7 +661,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public boolean writeContent(@SiteId String siteId,
+    public String writeContent(@SiteId String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
@@ -671,10 +671,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         result = StringUtils.isNotEmpty(commitId);
         if (result && isNotEmpty(siteId)) {
-            Site site = siteService.getSite(siteId);
             applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
         }
-        return result;
+        return commitId;
     }
 
     @Override
@@ -684,7 +683,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                 InputStream content)
             throws ServiceLayerException {
-        boolean result = writeContent(site, path, content);
+        boolean result = isNotEmpty(writeContent(site, path, content));
         if (result) {
             notifyContentEvent(site, path);
         }
@@ -1026,8 +1025,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(siteId, toPath, true);
                 Long parentId = newParent != null ? newParent.getId() : null;
-                updateDatabaseOnMove(siteId, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
-                updateChildrenOnMove(siteId, fromPath, movePath);
+                updateDatabaseOnMove(siteId, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder, commitId);
+                updateChildrenOnMove(siteId, fromPath, movePath, commitId);
             } else {
                 logger.error("Failed to move item in siteId '{}' from '{}' to '{}'", siteId, sourcePath, targetPath);
                 movePath = fromPath;
@@ -1049,12 +1048,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return movePath;
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath)
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, String commitId)
             throws ServiceLayerException, UserNotFoundException {
-        updateDatabaseOnMove(site, fromPath, movePath, null, null, null);
+        updateDatabaseOnMove(site, fromPath, movePath, null, null, null, commitId);
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label, String folderLabel)
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label, String folderLabel, String commitId)
             throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
@@ -1086,6 +1085,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_MOVE);
         auditLog.setSiteId(siteFeed.getId());
+        auditLog.setCommitId(commitId);
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(site + ":" + movePath);
         if (renamedItem.isFolder()) {
@@ -1119,7 +1119,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected void updateChildrenOnMove(String site, String fromPath, String movePath)
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath, String commitId)
             throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateChildrenOnMove for site '{}' from '{}' to '{}'", site, fromPath, movePath);
 
@@ -1141,10 +1141,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     childFromPath, childToPath);
 
             // update database, preview, cache etc
-            updateDatabaseOnMove(site, childFromPath, childToPath);
+            updateDatabaseOnMove(site, childFromPath, childToPath, commitId);
 
             // handle this child's children
-            updateChildrenOnMove(site, childFromPath, childToPath);
+            updateChildrenOnMove(site, childFromPath, childToPath, commitId);
         }
     }
 
@@ -2615,14 +2615,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         if (commitId != null) {
             // Update the database with the commitId for the target item
-            updateDatabaseOnMove(siteId, path, targetPath);
+            updateDatabaseOnMove(siteId, path, targetPath, commitId);
             if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
             itemServiceInternal.persistItemAfterRenameContent(siteId, targetPath, name,
                     securityService.getCurrentUser(), commitId, contentType);
 
             if (isFolder) {
-                updateChildrenOnMove(siteId, path, targetPath);
+                updateChildrenOnMove(siteId, path, targetPath, commitId);
             }
             applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), siteId, path, targetPath));

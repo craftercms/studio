@@ -335,12 +335,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException {
+    public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
         try {
             List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
             for (ItemVersion itemVersion : history) {
                 if (itemVersion.getVersionNumber() != null) {
-                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber()));
+                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber(), path));
                 }
             }
             return history;

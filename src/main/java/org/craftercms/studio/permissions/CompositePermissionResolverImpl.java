@@ -45,8 +45,8 @@ public class CompositePermissionResolverImpl implements PermissionResolver<Strin
     public static final String PATH_RESOURCE_ID = "path";
     public static final String PATH_LIST_RESOURCE_ID = "pathList";
 
-    private SecurityService securityService;
-    private StudioConfiguration studioConfiguration;
+    private final SecurityService securityService;
+    private final StudioConfiguration studioConfiguration;
 
     public CompositePermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
         this.securityService = securityService;

@@ -1133,6 +1133,9 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.0.xslt
               commitDetails: Remove ~DASHBOARD~ permissions
+        # Update version to align with blueprints optimized version
+        - currentVersion: 4.2.0.0
+          nextVersion: 4.2.0.1
 
   role-mappings-config:
     module: studio
