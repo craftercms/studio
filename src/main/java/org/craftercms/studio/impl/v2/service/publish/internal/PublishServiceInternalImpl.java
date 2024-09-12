@@ -71,6 +71,7 @@ import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVAL_STATES;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
@@ -531,14 +532,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             allPaths.addAll(dependencyServiceInternal.getSoftDependencies(site.getSiteId(), softDepsPaths));
         }
 
+        Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);
         publishItemsByPath.putAll(
                 allPaths.stream()
                         .filter(path -> !publishItemsByPath.containsKey(path))
                         .map(path -> {
-                            // TODO: bulk this operation
-                            Item item = itemServiceInternal.getItem(site.getSiteId(), path);
-                            PublishItem.Action action = ItemState.isNew(item.getState()) ? ADD : UPDATE;
-                            return createPublishItem(path, action, true);
+                            long itemState = statesByPath.get(path).getState();
+                            return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
                         })
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
@@ -794,12 +794,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @return the collection of publish items
      */
     @NotNull
-    protected Collection<PublishItem> getPublishAllItems(Site site, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws InvalidParametersException {
+    protected Collection<PublishItem> getPublishAllItems(Site site, Collection<PublishRequestPath> paths, Collection<String> commitIds)
+            throws InvalidParametersException {
+        Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), paths.stream().map(PublishRequestPath::path).collect(toList()));
         List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
                 .map(path -> {
-                    Item item = itemServiceInternal.getItem(site.getSiteId(), path);
-                    PublishItem.Action action = ItemState.isNew(item.getState()) ? ADD : UPDATE;
-                    return createPublishItem(path, action, true);
+                    long itemState = statesByPath.get(path).getState();
+                    return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
                 })
                 .toList();
         if (publishItems.isEmpty()) {

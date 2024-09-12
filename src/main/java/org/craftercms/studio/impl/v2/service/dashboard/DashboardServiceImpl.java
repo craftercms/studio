@@ -136,7 +136,7 @@ public class DashboardServiceImpl implements DashboardService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getContentPendingApprovalTotal(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
-        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes);
+        return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes);
     }
 
     @Override
@@ -170,7 +170,7 @@ public class DashboardServiceImpl implements DashboardService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getContentUnpublishedTotal(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
-        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
+        return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
     }
 
     @Override
@@ -180,7 +180,7 @@ public class DashboardServiceImpl implements DashboardService {
                                                    List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
         var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
+                itemServiceInternal.getItemByStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }

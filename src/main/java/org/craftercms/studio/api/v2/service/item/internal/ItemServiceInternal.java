@@ -21,11 +21,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemPathAndState;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface ItemServiceInternal {
 
@@ -318,7 +320,16 @@ public interface ItemServiceInternal {
      * @param states states mask to filter items by state
      * @return number of records
      */
-    int getItemStatesTotal(String siteId, String path, Long states, List<String> systemTypes);
+    int getItemByStatesTotal(String siteId, String path, Long states, List<String> systemTypes);
+
+    /**
+     * Get item states for given paths
+     *
+     * @param siteId the site id
+     * @param paths  the collection of paths to retrieve the states for
+     * @return Map of path -> {@link ItemPathAndState}
+     */
+    Map<String, ItemPathAndState> getItemStates(String siteId, Collection<String> paths);
 
     /**
      * Get item states for given filters by path regex and states mask
@@ -332,7 +343,7 @@ public interface ItemServiceInternal {
      * @param limit       number of item states records to return
      * @return list of sandbox items
      */
-    List<Item> getItemStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
+    List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
 
     /**
      * Update item state flags for given items

@@ -82,12 +82,12 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
-        return itemServiceInternal.getItemStatesTotal(siteId, path, states, null);
+        return itemServiceInternal.getItemByStatesTotal(siteId, path, states, null);
     }
 
     @Override
     public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
-        return itemServiceInternal.getItemStates(siteId, path, states, null, null, offset, limit).stream()
+        return itemServiceInternal.getItemByStates(siteId, path, states, null, null, offset, limit).stream()
                 .map(SandboxItem::getInstance)
                 .collect(toList());
     }

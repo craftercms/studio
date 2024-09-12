@@ -656,7 +656,7 @@
           AND i.path =  #{path}
     </update>
 
-    <select id="getItemStatesTotal" resultType="Integer">
+    <select id="getItemByStatesTotal" resultType="Integer">
         SELECT count(1)
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
@@ -672,7 +672,7 @@
         <include refid="filterBySystemType"/>
     </select>
 
-    <select id="getItemStates" resultMap="ItemMap">
+    <select id="getItemByStates" resultMap="ItemMap">
         SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
@@ -773,4 +773,14 @@
             #{itemId}
         </foreach>
     </update>
+
+    <select id="getItemStates" resultType="org.craftercms.studio.api.v2.dal.ItemPathAndState">
+        SELECT i.path, i.state
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND i.path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
 </mapper>

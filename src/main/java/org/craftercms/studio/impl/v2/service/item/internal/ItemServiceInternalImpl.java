@@ -452,13 +452,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public int getItemStatesTotal(String siteId, String path, Long states, List<String> systemTypes) {
-        return itemDao.getItemStatesTotal(siteId, path, states, systemTypes);
+    public int getItemByStatesTotal(String siteId, String path, Long states, List<String> systemTypes) {
+        return itemDao.getItemByStatesTotal(siteId, path, states, systemTypes);
     }
 
     @Override
-    public List<Item> getItemStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
-        return itemDao.getItemStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
+    public Map<String, ItemPathAndState> getItemStates(final String siteId, final Collection<String> paths) {
+        return itemDao.getItemStates(siteId, paths);
+    }
+
+    @Override
+    public List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
+        return itemDao.getItemByStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
     }
 
     @Override

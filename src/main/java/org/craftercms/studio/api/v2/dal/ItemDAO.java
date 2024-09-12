@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
@@ -52,7 +53,6 @@ public interface ItemDAO {
     String LIVE_PUBLISHED_STATE = "livePublishedState";
     String PUBLISH_PACKAGE_STATE = "packageState";
     String PUBLISH_PACKAGE_APPROVAL_STATES = "approvalStates";
-
 
 
     String SYSTEM_TYPE_PAGE = "systemTypePage";
@@ -616,8 +616,8 @@ public interface ItemDAO {
      * @param systemTypes system types to filter items
      * @return number of records
      */
-    int getItemStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                           @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes);
+    int getItemByStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                             @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes);
 
     /**
      * Get item states for given filters by path regex and states mask
@@ -631,10 +631,10 @@ public interface ItemDAO {
      * @param limit       number of item states records to return
      * @return list of sandbox items
      */
-    List<Item> getItemStates(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                             @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes,
-                             @Param(SORT_FIELDS) List<SortField> sortFields,
-                             @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+    List<Item> getItemByStates(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                               @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes,
+                               @Param(SORT_FIELDS) List<SortField> sortFields,
+                               @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
      * Update item state by query
@@ -699,4 +699,13 @@ public interface ItemDAO {
                               @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
 
 
+    /**
+     * Get {@link ItemPathAndState} records for the given paths in a map by path
+     *
+     * @param siteId the site id
+     * @param paths  the collection of paths to retrieve states for
+     * @return Map of path -> {@link ItemPathAndState}
+     */
+    @MapKey(PATH)
+    Map<String, ItemPathAndState> getItemStates(@Param(SITE_ID) String siteId, @Param(PATHS) Collection<String> paths);
 }
