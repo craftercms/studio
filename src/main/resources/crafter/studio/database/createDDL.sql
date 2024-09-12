@@ -646,7 +646,7 @@ CREATE TABLE IF NOT EXISTS `publish_item`
     `path`                  VARCHAR(2048)	        NOT NULL,
     `live_previous_path`    VARCHAR(2048),
     `staging_previous_path` VARCHAR(2048),
-    `action`	            ENUM('ADD', 'DELETE')   NOT NULL,
+    `action`	            ENUM('ADD', 'UPDATE', 'DELETE')   NOT NULL,
     `user_requested`    	BOOLEAN	                NOT NULL,
     `publish_state`         BIGINT      	        NOT NULL,
     `live_error`            INT,

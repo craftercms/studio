@@ -72,7 +72,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVAL_STATES;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
@@ -397,17 +397,17 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         Collection<PublishItem> publishItems = new ArrayList<>();
         publishItems.addAll(userRequestedPaths.stream()
-                .map(path -> createPublishItem(path, PublishItem.Action.DELETE, true))
+                .map(path -> createPublishItem(path, DELETE, true))
                 .toList());
 
         publishItems.addAll(dependencies.stream()
-                .map(path -> createPublishItem(path, PublishItem.Action.DELETE, false))
+                .map(path -> createPublishItem(path, DELETE, false))
                 .toList());
 
         publishItems.addAll(union(dependencies, userRequestedPaths).stream()
                 .filter(path -> path.endsWith(DmConstants.SLASH_INDEX_FILE))
                 .map(path -> StringUtils.removeEnd(path, DmConstants.SLASH_INDEX_FILE))
-                .map(path -> createPublishItem(path, PublishItem.Action.DELETE, false))
+                .map(path -> createPublishItem(path, DELETE, false))
                 .toList());
 
         return publishItems.stream()
@@ -484,8 +484,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                         .filter(getCommitRepoOperationsFilter(site))
                         // TODO: review this: what if we are deleting a moved item? We should delete the old path, not the new
                         .map(op -> createPublishItem(op.getPath(),
-                                op.getAction() == RepoOperation.Action.DELETE ? PublishItem.Action.DELETE : ADD, true))
+                                translateRepoAction(op.getAction()), true))
                         .collect(toMap(PublishItem::getPath, item -> item)));
+    }
+
+    private PublishItem.Action translateRepoAction(RepoOperation.Action repoAction) {
+        return switch (repoAction) {
+            case DELETE -> DELETE;
+            case MOVE, UPDATE -> UPDATE;
+            default -> ADD;
+        };
     }
 
     private PublishItem createPublishItem(final String path,
@@ -519,14 +527,19 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 softDepsPaths.addAll(expandedPathList);
             }
         }
-        if(!softDepsPaths.isEmpty()) {
+        if (!softDepsPaths.isEmpty()) {
             allPaths.addAll(dependencyServiceInternal.getSoftDependencies(site.getSiteId(), softDepsPaths));
         }
 
         publishItemsByPath.putAll(
                 allPaths.stream()
                         .filter(path -> !publishItemsByPath.containsKey(path))
-                        .map(path -> createPublishItem(path, ADD, true))
+                        .map(path -> {
+                            // TODO: bulk this operation
+                            Item item = itemServiceInternal.getItem(site.getSiteId(), path);
+                            PublishItem.Action action = ItemState.isNew(item.getState()) ? ADD : UPDATE;
+                            return createPublishItem(path, action, true);
+                        })
                         .collect(toMap(PublishItem::getPath, item -> item)));
     }
 
@@ -554,7 +567,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      */
     private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) {
         Collection<String> paths = publishItemsByPath.keySet().stream()
-                .filter(p -> publishItemsByPath.get(p).getAction() != PublishItem.Action.DELETE)
+                .filter(p -> publishItemsByPath.get(p).getAction() != DELETE)
                 .collect(toList());
         if (isEmpty(paths)) {
             return;
@@ -783,7 +796,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     @NotNull
     protected Collection<PublishItem> getPublishAllItems(Site site, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws InvalidParametersException {
         List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
-                .map(path -> createPublishItem(path, ADD, true))
+                .map(path -> {
+                    Item item = itemServiceInternal.getItem(site.getSiteId(), path);
+                    PublishItem.Action action = ItemState.isNew(item.getState()) ? ADD : UPDATE;
+                    return createPublishItem(path, action, true);
+                })
                 .toList();
         if (publishItems.isEmpty()) {
             throw new InvalidParametersException("Failed to submit publish package: No items to publish");
