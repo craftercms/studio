@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -93,7 +95,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         logger.trace("Item '{}' allows roles '{}', checking against user roles '{}'",
                 item.getName(), allowedRoles, userRoles);
 
-        if (allowedRoles == null || allowedRoles.size() == 0) {
+        if (CollectionUtils.isEmpty(allowedRoles)) {
             logger.trace("User with roles '{}' is allowed access to '{}'", userRoles, item.getName());
             return true;
         }
@@ -147,7 +149,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                                                                    @ValidateSecurePathParam
                                                                    String relativePath) {
         String user = securityService.getCurrentUser();
-        Set<String> userRoles = securityService.getUserRoles(site, user);
+        Set<NormalizedRole> userRoles = securityService.getUserRoles(site, user);
         List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
 
         if (CollectionUtils.isNotEmpty(allContentTypes)) {
@@ -186,9 +188,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         }
     }
 
-    protected void addContentTypes(String site, Set<String> userRoles, ContentTypeConfigTO config,
+    protected void addContentTypes(String site, Set<NormalizedRole> userRoles, ContentTypeConfigTO config,
                                    List<ContentTypeConfigTO> contentTypes) {
-        boolean isAllowed = this.isUserAllowed(userRoles, config);
+        boolean isAllowed = this.isUserAllowed(userRoles
+                        .stream()
+                        .map(NormalizedRole::toString)
+                        .collect(Collectors.toSet()),
+                config);
         if (isAllowed) {
             contentTypes.add(config);
         }

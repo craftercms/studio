@@ -36,6 +36,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
@@ -120,9 +122,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
+    public Map<NormalizedGroup, List<NormalizedRole>> getRoleMappings(String siteId) throws ServiceLayerException {
         // TODO: Refactor this to use Apache's Commons Configuration
-        Map<String, List<String>> roleMappings = new HashMap<>();
+        Map<NormalizedGroup, List<NormalizedRole>> roleMappings = new HashMap<>();
         String roleMappingsConfigPath = getSiteRoleMappingsConfigFileName();
         Document document;
 
@@ -134,16 +136,16 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
                     List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
                     for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
-                        if (isNotEmpty(name)) {
+                        String groupName = node.valueOf(DOCUMENT_ATTR_NAME);
+                        if (isNotEmpty(groupName)) {
                             List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                            List<String> roles = new ArrayList<>();
+                            List<NormalizedRole> roles = new ArrayList<>();
 
                             for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText().toLowerCase());
+                                roles.add(new NormalizedRole(roleNode.getText()));
                             }
 
-                            roleMappings.put(name, roles);
+                            roleMappings.put(new NormalizedGroup(groupName), roles);
                         }
                     }
                 }
@@ -158,9 +160,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     }
 
     @Override
-    public Map<String, List<String>> getGlobalRoleMappings() throws ServiceLayerException {
+    public Map<NormalizedGroup, List<NormalizedRole>> getGlobalRoleMappings() throws ServiceLayerException {
         // TODO: Refactor this to use Apache's Commons Configuration
-        Map<String, List<String>> roleMappings = new HashMap<>();
+        Map<NormalizedGroup, List<NormalizedRole>> roleMappings = new HashMap<>();
         String globalRoleMappingsConfigPath = getGlobalConfigRoot() + FILE_SEPARATOR + getGlobalRoleMappingsFileName();
         Document document;
 
@@ -172,16 +174,16 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
                     List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
                     for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
-                        if (isNotEmpty(name)) {
+                        String groupName = node.valueOf(DOCUMENT_ATTR_NAME);
+                        if (isNotEmpty(groupName)) {
                             List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                            List<String> roles = new ArrayList<>();
+                            List<NormalizedRole> roles = new ArrayList<>();
 
                             for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText().toLowerCase());
+                                roles.add(new NormalizedRole(roleNode.getText()));
                             }
 
-                            roleMappings.put(name, roles);
+                            roleMappings.put(new NormalizedGroup(groupName), roles);
                         }
                     }
                 }

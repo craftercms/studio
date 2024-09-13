@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -49,9 +50,9 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site);
 
-    Set<String> getUserRoles(String site, String user);
+    Set<NormalizedRole> getUserRoles(String site, String user);
 
-    Set<String> getUserRoles(String site, String user, boolean includeGlobal);
+    Set<NormalizedRole> getUserRoles(String site, String user, boolean includeGlobal);
 
     Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
@@ -106,6 +107,6 @@ public interface SecurityService {
      */
     boolean isSystemAdmin(String username);
 
-    List<String> getUserGlobalRoles(long userId, String username)
+    List<NormalizedRole> getUserGlobalRoles(long userId, String username)
             throws ServiceLayerException, UserNotFoundException;
 }

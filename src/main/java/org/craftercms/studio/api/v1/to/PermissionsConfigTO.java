@@ -20,6 +20,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.dom4j.Document;
 import org.dom4j.Node;
 
@@ -40,8 +42,8 @@ public class PermissionsConfigTO implements TimeStamped, Serializable {
     /** configuration time stamp **/
     protected ZonedDateTime lastUpdated = null;
 
-    protected Map<String, List<String>> roles = null;
-    protected Map<String, Map<String, List<Node>>> permissions = null;
+    protected Map<NormalizedGroup, List<NormalizedRole>> roles = null;
+    protected Map<String, Map<NormalizedRole, List<Node>>> permissions = null;
 
     @Override
     public void setLastUpdated(ZonedDateTime lastUpdated) {
@@ -65,7 +67,7 @@ public class PermissionsConfigTO implements TimeStamped, Serializable {
         return mapping;
     }
 
-    public Map<String, List<String>> getRoles() {
+    public Map<NormalizedGroup, List<NormalizedRole>> getRoles() {
         return roles;
     }
 
@@ -73,15 +75,15 @@ public class PermissionsConfigTO implements TimeStamped, Serializable {
         this.mapping = mapping;
     }
 
-    public void setRoles(Map<String, List<String>> roles) {
+    public void setRoles(Map<NormalizedGroup, List<NormalizedRole>> roles) {
         this.roles = roles;
     }
 
-    public Map<String, Map<String, List<Node>>> getPermissions() {
+    public Map<String, Map<NormalizedRole, List<Node>>> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Map<String, Map<String, List<Node>>> permissions) {
+    public void setPermissions(Map<String, Map<NormalizedRole, List<Node>>> permissions) {
         this.permissions = permissions;
     }
 }

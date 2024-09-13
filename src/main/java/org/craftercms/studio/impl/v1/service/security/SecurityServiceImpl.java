@@ -36,6 +36,8 @@ import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -158,7 +160,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (StringUtils.isNotEmpty(site)) {
             PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
             PermissionsConfigTO permissionsConfig = loadConfiguration(site, getPermissionsFileName());
-            Set<String> roles = new HashSet<>();
+            Set<NormalizedRole> roles = new HashSet<>();
             addUserRoles(roles, site, user);
             addGroupRoles(roles, site, groups, rolesConfig);
             // resolve the permission
@@ -170,7 +172,11 @@ public class SecurityServiceImpl implements SecurityService {
             if (path.indexOf("/site") == 0) { // If it's content a file
                 try {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
-                    boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
+                    boolean isAllowed = contentTypeService.isUserAllowed(roles
+                                    .stream()
+                                    .map(NormalizedRole::toString)
+                                    .collect(Collectors.toSet()),
+                            config);
                     if (!isAllowed) {
                         logger.trace("User '{}' is not permitted to access site '{}' path '{}', add " +
                                 "permission '{}'", user, site, path, StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
@@ -188,21 +194,20 @@ public class SecurityServiceImpl implements SecurityService {
 
         PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
         PermissionsConfigTO globalPermissionsConfig = loadGlobalPermissionsConfiguration();
-        Set<String> roles = new HashSet<>();
+        Set<NormalizedRole> roles = new HashSet<>();
         addGlobalUserRoles(user, roles, globalRolesConfig);
         addGlobalGroupRoles(roles, groups, globalRolesConfig);
         permissions.addAll(populateUserGlobalPermissions(path, roles, globalPermissionsConfig));
         return permissions;
     }
 
-    protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
+    protected void addGlobalUserRoles(String user, Set<NormalizedRole> roles, PermissionsConfigTO rolesConfig) {
         try {
             List<Group> groups = userServiceInternal.getUserGroups(-1, user);
             if (rolesConfig != null && groups != null) {
-                Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+                Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
                 for (Group group : groups) {
-                    String groupName = group.getGroupName().toLowerCase();
-                    List<String> userRoles = rolesMap.get(groupName);
+                    List<NormalizedRole> userRoles = rolesMap.get(new NormalizedGroup(group.getGroupName()));
                     if (roles != null && userRoles != null) {
                         roles.addAll(userRoles);
                     }
@@ -214,35 +219,35 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
-    protected void addGlobalGroupRoles(Set<String> roles, List<String> groups, PermissionsConfigTO rolesConfig) {
+    protected void addGlobalGroupRoles(Set<NormalizedRole> roles, List<String> groups, PermissionsConfigTO rolesConfig) {
         if (groups != null) {
-            Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+            Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
-                String groupName = group.toLowerCase();
-                List<String> groupRoles = rolesMap.get(groupName);
+                NormalizedGroup normalizedGroup = new NormalizedGroup(group);
+                List<NormalizedRole> groupRoles = rolesMap.get(normalizedGroup);
                 if (groupRoles != null) {
-                    logger.debug("Add roles to group'{}':'{}'", groupName, roles);
+                    logger.debug("Add roles to group'{}':'{}'", normalizedGroup, roles);
                     roles.addAll(groupRoles);
                 }
             }
         }
     }
 
-    protected Set<String> populateUserGlobalPermissions(String path, Set<String> roles,
+    protected Set<String> populateUserGlobalPermissions(String path, Set<NormalizedRole> roles,
                                                   PermissionsConfigTO permissionsConfig) {
         Set<String> permissions = new HashSet<>();
         if (roles != null && !roles.isEmpty()) {
-            for (String role : roles) {
+            for (NormalizedRole role : roles) {
                 // TODO: SJ: Avoid string literals
-                Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
-                Map<String, List<Node>> siteRoles = permissionsMap.get("###GLOBAL###");
+                Map<String, Map<NormalizedRole, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
+                Map<NormalizedRole, List<Node>> siteRoles = permissionsMap.get("###GLOBAL###");
                 if (siteRoles == null || siteRoles.isEmpty()) {
                     siteRoles = permissionsMap.get("*");
                 }
                 if (siteRoles != null && !siteRoles.isEmpty()) {
                     List<Node> ruleNodes = siteRoles.get(role);
                     if (ruleNodes == null || ruleNodes.isEmpty()) {
-                        ruleNodes = siteRoles.get("*");
+                        ruleNodes = siteRoles.get(new NormalizedRole("*"));
                     }
                     if (ruleNodes != null && !ruleNodes.isEmpty()) {
                         for (Node ruleNode : ruleNodes) {
@@ -295,9 +300,9 @@ public class SecurityServiceImpl implements SecurityService {
      * @param site
      * @param user
      */
-    protected void addUserRoles(Set<String> roles, String site, String user) {
+    protected void addUserRoles(Set<NormalizedRole> roles, String site, String user) {
         if (!StringUtils.isEmpty(user)) {
-            Set<String> userRoles = this.getUserRoles(site, user);
+            Set<NormalizedRole> userRoles = this.getUserRoles(site, user);
             logger.debug("Add the roles '{}' to user '{}' in site '{}'", userRoles, user, site);
             roles.addAll(userRoles);
         }
@@ -306,12 +311,15 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @Valid
     public Set<String> getUserRoles(@ValidateStringParam final String site) {
-        return getUserRoles(site, getCurrentUser());
+        return getUserRoles(site, getCurrentUser())
+                .stream()
+                .map(NormalizedRole::toString)
+                .collect(Collectors.toSet());
     }
 
     @Override
     @Valid
-    public Set<String> getUserRoles(@ValidateStringParam final String site,
+    public Set<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
                                     @ValidateStringParam String user) {
         return getUserRoles(site, user, false);
     }
@@ -319,7 +327,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @Valid
-    public Set<String> getUserRoles(@ValidateStringParam final String site,
+    public Set<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
                                     @ValidateStringParam String user, boolean includeGlobal) {
         try {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
@@ -330,17 +338,16 @@ public class SecurityServiceImpl implements SecurityService {
                 logger.debug("Get groups for user '{}' in site '{}' groups '{}'", user, site, groups);
 
                 PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
-                Set<String> userRoles = new HashSet<>();
+                Set<NormalizedRole> userRoles = new HashSet<>();
                 if (rolesConfig != null) {
-                    Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+                    Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
                     for (Group group : groups) {
                         if (isSystemAdmin(user)) {
-                            Collection<List<String>> mapValues = rolesMap.values();
+                            Collection<List<NormalizedRole>> mapValues = rolesMap.values();
                             mapValues.forEach(userRoles::addAll);
                             break;
                         } else {
-                            String groupName = group.getGroupName().toLowerCase();
-                            List<String> roles = rolesMap.get(groupName);
+                            List<NormalizedRole> roles = rolesMap.get(new NormalizedGroup(group.getGroupName()));
                             if (roles != null) {
                                 userRoles.addAll(roles);
                             }
@@ -350,9 +357,7 @@ public class SecurityServiceImpl implements SecurityService {
                 if (includeGlobal) {
                     PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
                     addGlobalUserRoles(user, userRoles, globalRolesConfig);
-                    List<String> groupNames = groups.stream()
-                            .map(x -> x.getGroupName().toLowerCase())
-                            .collect(Collectors.toList());
+                    List<String> groupNames = groups.stream().map(Group::getGroupName).collect(Collectors.toList());
                     addGlobalGroupRoles(userRoles, groupNames, globalRolesConfig);
                 }
                 return userRoles;
@@ -373,15 +378,15 @@ public class SecurityServiceImpl implements SecurityService {
      * @param groups
      * @param rolesConfig
      */
-    protected void addGroupRoles(Set<String> roles, String site, List<String> groups,
+    protected void addGroupRoles(Set<NormalizedRole> roles, String site, List<String> groups,
                                  PermissionsConfigTO rolesConfig) {
         if (groups != null) {
-            Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+            Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
-                String groupName = group.toLowerCase();
-                List<String> groupRoles = rolesMap.get(groupName);
+                NormalizedGroup normalizedGroup = new NormalizedGroup(group);
+                List<NormalizedRole> groupRoles = rolesMap.get(normalizedGroup);
                 if (groupRoles != null) {
-                    logger.trace("Add the roles '{}' to group '{}'", roles, groupName);
+                    logger.trace("Add the roles '{}' to group '{}'", roles, normalizedGroup);
                     roles.addAll(groupRoles);
                 }
             }
@@ -396,15 +401,15 @@ public class SecurityServiceImpl implements SecurityService {
      * @param roles
      * @param permissionsConfig
      */
-    protected Set<String> populateUserPermissions(String site, String path, Set<String> roles,
+    protected Set<String> populateUserPermissions(String site, String path, Set<NormalizedRole> roles,
                                                   PermissionsConfigTO permissionsConfig) {
         Set<String> permissions = new HashSet<>();
         if (CollectionUtils.isEmpty(roles)) {
             // User has no access to the site
             return permissions;
         }
-        Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
-        Map<String, List<Node>> siteRoles = permissionsMap.getOrDefault(site, permissionsMap.get("*"));
+        Map<String, Map<NormalizedRole, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
+        Map<NormalizedRole, List<Node>> siteRoles = permissionsMap.getOrDefault(site, permissionsMap.get("*"));
         if (MapUtils.isEmpty(siteRoles)) {
             logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
                     site, path, PERMISSION_CONTENT_READ);
@@ -412,8 +417,8 @@ public class SecurityServiceImpl implements SecurityService {
             permissions.add(PERMISSION_CONTENT_READ);
             return permissions;
         }
-        for (String role : roles) {
-            List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get("*"));
+        for (NormalizedRole role : roles) {
+            List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get(new NormalizedRole("*")));
             if (CollectionUtils.isEmpty(ruleNodes)) {
                 logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
                         site, path, PERMISSION_CONTENT_READ);
@@ -474,7 +479,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void loadRoles(Element root, PermissionsConfigTO config) {
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
-            Map<String, List<String>> rolesMap = new HashMap<>();
+            Map<NormalizedGroup, List<NormalizedRole>> rolesMap = new HashMap<>();
 
             List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
             rolesMap = getRoles(userNodes, rolesMap);
@@ -486,16 +491,16 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
-    protected Map<String, List<String>> getRoles(List<Node> nodes, Map<String, List<String>> rolesMap) {
+    protected Map<NormalizedGroup, List<NormalizedRole>> getRoles(List<Node> nodes, Map<NormalizedGroup, List<NormalizedRole>> rolesMap) {
         for (Node node : nodes) {
-            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
-            if (!StringUtils.isEmpty(name)) {
+            String groupName = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+            if (!StringUtils.isEmpty(groupName)) {
                 List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                List<String> roles = new ArrayList<>();
+                List<NormalizedRole> roles = new ArrayList<>();
                 for (Node roleNode : roleNodes) {
-                    roles.add(roleNode.getText().toLowerCase());
+                    roles.add(new NormalizedRole(roleNode.getText()));
                 }
-                rolesMap.put(name, roles);
+                rolesMap.put(new NormalizedGroup(groupName), roles);
             }
         }
         return rolesMap;
@@ -503,7 +508,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void loadPermissions(String siteId, Element root, PermissionsConfigTO config) {
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
-            Map<String, Map<String, List<Node>>> permissionsMap = new HashMap<>();
+            Map<String, Map<NormalizedRole, List<Node>>> permissionsMap = new HashMap<>();
 
             //backwards compatibility for nested <site>
             Element permissionsRoot = root;
@@ -513,11 +518,11 @@ public class SecurityServiceImpl implements SecurityService {
             }
 
             List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-            Map<String, List<Node>> rules = new HashMap<>();
+            Map<NormalizedRole, List<Node>> rules = new HashMap<>();
             for (Node roleNode : roleNodes) {
-                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME).toLowerCase();
+                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
                 List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
-                rules.put(roleName, ruleNodes);
+                rules.put(new NormalizedRole(roleName), ruleNodes);
             }
             permissionsMap.put(siteId, rules);
 
@@ -592,7 +597,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @Valid
     public boolean isSystemAdmin(@ValidateStringParam String username) {
-        List<String> roles;
+        List<NormalizedRole> roles;
         try {
             roles = getUserGlobalRoles(-1, username);
         } catch (UserNotFoundException e) {
@@ -605,8 +610,8 @@ public class SecurityServiceImpl implements SecurityService {
 
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(roles)) {
-            for (String role : roles) {
-                if (StringUtils.equalsIgnoreCase(role, SYSTEM_ADMIN_ROLE)) {
+            for (NormalizedRole role : roles) {
+                if (role.equals(new NormalizedRole(SYSTEM_ADMIN_ROLE))) {
                     toRet = true;
                     break;
                 }
@@ -628,13 +633,12 @@ public class SecurityServiceImpl implements SecurityService {
             List<Group> groups = userServiceInternal.getUserGroups(-1, username);
 
             if (CollectionUtils.isNotEmpty(groups)) {
-                Map<String, List<String>> roleMappings = configurationService.getRoleMappings(site);
+                Map<NormalizedGroup, List<NormalizedRole>> roleMappings = configurationService.getRoleMappings(site);
 
                 if (MapUtils.isNotEmpty(roleMappings)) {
                     for (Group group : groups) {
-                        String groupName = group.getGroupName().toLowerCase();
-                        List<String> roles = roleMappings.get(groupName);
-                        if (roles != null && roles.contains(ADMIN_ROLE)) {
+                        List<NormalizedRole> roles = roleMappings.get(new NormalizedGroup(group.getGroupName()));
+                        if (roles != null && roles.contains(new NormalizedRole(ADMIN_ROLE))) {
                             toRet = true;
                         }
                     }
@@ -664,7 +668,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @Valid
-    public List<String> getUserGlobalRoles(long userId, @ValidateStringParam String username)
+    public List<NormalizedRole> getUserGlobalRoles(long userId, @ValidateStringParam String username)
             throws ServiceLayerException, UserNotFoundException {
         List<Group> groups = userServiceInternal.getUserGroups(userId, username);
 
@@ -672,13 +676,12 @@ public class SecurityServiceImpl implements SecurityService {
             return Collections.emptyList();
         }
 
-        Map<String, List<String>> roleMappings = configurationService.getGlobalRoleMappings();
-        Set<String> userRoles = new LinkedHashSet<>();
+        Map<NormalizedGroup, List<NormalizedRole>> roleMappings = configurationService.getGlobalRoleMappings();
+        Set<NormalizedRole> userRoles = new LinkedHashSet<>();
 
         if (MapUtils.isNotEmpty(roleMappings)) {
             for (Group group : groups) {
-                String groupName = group.getGroupName().toLowerCase();
-                List<String> roles = roleMappings.get(groupName);
+                List<NormalizedRole> roles = roleMappings.get(new NormalizedGroup(group.getGroupName()));
                 if (CollectionUtils.isNotEmpty(roles)) {
                     userRoles.addAll(roles);
                 }

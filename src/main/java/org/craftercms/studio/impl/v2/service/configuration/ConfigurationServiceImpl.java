@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.model.config.TranslationConfiguration;
@@ -50,12 +52,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
+    public Map<NormalizedGroup, List<NormalizedRole>> getRoleMappings(String siteId) throws ServiceLayerException {
         return configurationServiceInternal.getRoleMappings(siteId);
     }
 
     @Override
-    public Map<String, List<String>> getGlobalRoleMappings() throws ServiceLayerException {
+    public Map<NormalizedGroup, List<NormalizedRole>> getGlobalRoleMappings() throws ServiceLayerException {
         return configurationServiceInternal.getGlobalRoleMappings();
     }
 
