@@ -126,6 +126,7 @@ public class PublishController {
         return responseBody;
     }
 
+    @Deprecated
     @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
     public ResultList<DeploymentHistoryGroup> getPublishingHistory(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                                    @PositiveOrZero @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,

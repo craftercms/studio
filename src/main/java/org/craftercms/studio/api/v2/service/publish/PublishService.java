@@ -94,6 +94,7 @@ public interface PublishService {
      * @param filterType    filter results by filter type
      * @return
      */
+    @Deprecated
     List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
                                                       String filterType) throws ServiceLayerException, UserNotFoundException;
 
