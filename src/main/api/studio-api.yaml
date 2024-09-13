@@ -6783,10 +6783,11 @@ paths:
 
   /api/2/publish/history:
     get:
+      deprecated: true
       tags:
         - publishing
       summary: Get publishing history for site
-      description: 'Required permission "publish"'
+      description: 'Required permission "publish". This operation is deprecated, use /api/2/dashboard/publishing/history instead.'
       operationId: getPublishingHistory
       parameters:
         - name: siteId
