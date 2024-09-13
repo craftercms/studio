@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
@@ -30,7 +29,6 @@ import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.io.IOException;
@@ -84,19 +82,6 @@ public interface PublishService {
      * @throws SiteNotFoundException site not found
      */
     PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException;
-
-    /**
-     * Get deployment history
-     *
-     * @param siteId        site identifier
-     * @param daysFromToday number of days for history
-     * @param numberOfItems number of items to display
-     * @param filterType    filter results by filter type
-     * @return
-     */
-    @Deprecated
-    List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
-                                                      String filterType) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get available publishing targets for given site

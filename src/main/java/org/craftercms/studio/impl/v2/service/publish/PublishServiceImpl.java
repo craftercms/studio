@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
@@ -35,7 +34,6 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.permissions.CompositePermission;
 
@@ -81,14 +79,6 @@ public class PublishServiceImpl implements PublishService {
         }
 
         return publishingPackageDetails;
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DeploymentHistoryGroup> getDeploymentHistory(@SiteId String siteId, int daysFromToday, int numberOfItems,
-                                                             String filterType) throws ServiceLayerException, UserNotFoundException {
-        return publishServiceInternal.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
     }
 
     @Override

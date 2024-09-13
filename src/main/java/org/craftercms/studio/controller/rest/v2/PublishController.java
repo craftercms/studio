@@ -18,7 +18,6 @@ package org.craftercms.studio.controller.rest.v2;
 
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
@@ -28,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
@@ -38,7 +36,10 @@ import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDepend
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
-import org.craftercms.studio.model.rest.publish.*;
+import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
+import org.craftercms.studio.model.rest.publish.EnablePublisherRequest;
+import org.craftercms.studio.model.rest.publish.GetPublishDependenciesRequest;
+import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -124,25 +125,6 @@ public class PublishController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    @Deprecated
-    @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
-    public ResultList<DeploymentHistoryGroup> getPublishingHistory(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-                                                                   @PositiveOrZero @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,
-                                                                   @PositiveOrZero @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
-                                                                   @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = REQUEST_PARAM_FILTER_TYPE, required = false,
-                                                                           defaultValue = "page") String filterType)
-            throws ServiceLayerException, UserNotFoundException {
-        List<DeploymentHistoryGroup> history =
-                publishService.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
-        PaginatedResultList<DeploymentHistoryGroup> result = new PaginatedResultList<>();
-        result.setResponse(OK);
-        result.setEntities(RESULT_KEY_PUBLISH_HISTORY, history);
-        result.setOffset(0);
-        result.setLimit(history.size());
-        result.setTotal(history.size());
-        return result;
     }
 
     @GetMapping(value = AVAILABLE_TARGETS, produces = APPLICATION_JSON_VALUE)

@@ -537,7 +537,6 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
         <property name="itemServiceInternal" ref="itemServiceInternal"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="studioUtils" ref="studio.utils"/>
         <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="publishDao" ref="publishDao"/>
         <property name="siteService" ref="sitesServiceInternal"/>

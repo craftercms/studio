@@ -24,10 +24,8 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.*;
@@ -44,8 +42,6 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +59,6 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
-import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -81,7 +76,6 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageTyp
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
-import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -91,7 +85,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     private GitContentRepository contentRepository;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private StudioUtils studioUtils;
 
     protected ItemServiceInternal itemServiceInternal;
 
@@ -156,87 +149,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 //        return publishRequestDao.getPublishingHistoryDetailTotalItems(siteId, packageId);
     }
 
-    // TODO: implement for new publishing system
-//    public List<PublishRequest> getPublishingHistoryDetail(String siteId, String packageId, int offset, int limit) {
-//        return publishRequestDao.getPublishingHistoryDetail(siteId, packageId, offset, limit);
-//    }
-
-    public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments,
-                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                            String filterType, int numberOfItems) {
-        // TODO: implement for new publishing system
-        return emptyList();
-    }
-
     @Override
-    public Collection<PublishItem> getPublishingHistoryDetail(final String siteId, final long packageId, final int offset, final int limit) throws UserNotFoundException, ServiceLayerException {
+    public Collection<PublishItem> getPublishingHistoryDetail(final String siteId, final long packageId, final int offset, final int limit) {
         return publishDao.getPublishItems(siteId, packageId, offset, limit);
-    }
-
-    @Override
-    public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
-                                                             String filterType) throws ServiceLayerException, UserNotFoundException {
-        ZonedDateTime toDate = DateUtils.getCurrentTime();
-        ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        List<String> environments = studioUtils.getEnvironmentNames(siteId);
-        List<DeploymentHistoryItem> deploymentHistoryItems = getDeploymentHistory(siteId,
-                environments, fromDate, toDate, filterType, numberOfItems);
-        List<DeploymentHistoryGroup> groups = new ArrayList<>();
-
-        if (deploymentHistoryItems == null) {
-            return groups;
-        }
-        int count = 0;
-        Map<String, Set<String>> processedItems = new HashMap<>();
-        for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
-            DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
-            String env = entry.getEnvironment();
-            if (!processedItems.containsKey(env)) {
-                processedItems.put(env, new HashSet<>());
-            }
-            if (!processedItems.get(env).contains(entry.getPath())) {
-                ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
-                if (deployedItem != null) {
-                    deployedItem.eventDate = entry.getDeploymentDate();
-                    deployedItem.endpoint = entry.getTarget();
-                    User user = userServiceInternal.getUserByIdOrUsername(-1, entry.getUser());
-                    deployedItem.setUser(user.getUsername());
-                    deployedItem.setUserFirstName(user.getFirstName());
-                    deployedItem.setUserLastName(user.getLastName());
-                    deployedItem.setEndpoint(entry.getEnvironment());
-                    String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
-                    if (groups.size() > 0) {
-                        DeploymentHistoryGroup group = groups.get(groups.size() - 1);
-                        String lastDeployedLabel = group.getInternalName();
-                        if (lastDeployedLabel.equals(deployedLabel)) {
-                            // add to the last task if it is deployed on the same day
-                            group.setNumOfChildren(group.getNumOfChildren() + 1);
-                            group.getChildren().add(deployedItem);
-                        } else {
-                            groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
-                        }
-                    } else {
-                        groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
-                    }
-                    processedItems.get(env).add(entry.getPath());
-                }
-            }
-        }
-        return groups;
-    }
-
-    private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
-        // otherwise just add as the last task
-        DeploymentHistoryGroup group = new DeploymentHistoryGroup();
-        group.setInternalName(deployedLabel);
-        List<ContentItemTO> taskItems = group.getChildren();
-        if (taskItems == null) {
-            taskItems = new ArrayList<>();
-            group.setChildren(taskItems);
-        }
-        taskItems.add(item);
-        group.setNumOfChildren(taskItems.size());
-        return group;
     }
 
     @Override
@@ -644,11 +559,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     public void setServicesConfig(final ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    @SuppressWarnings("unused")
-    public void setStudioUtils(final StudioUtils studioUtils) {
-        this.studioUtils = studioUtils;
     }
 
     public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {

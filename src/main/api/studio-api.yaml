@@ -7068,62 +7068,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/history:
-    get:
-      deprecated: true
-      tags:
-        - publishing
-      summary: Get publishing history for site
-      description: 'Required permission "publish". This operation is deprecated, use /api/2/dashboard/publishing/history instead.'
-      operationId: getPublishingHistory
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: days
-          in: query
-          description: number of days to display history for
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: num
-          in: query
-          description: number of items to fetch
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: filterType
-          in: query
-          description: filter items by type (all, page, component, asset)
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  publishingStatus:
-                    $ref: '#/components/schemas/DeploymentHistoryGroup'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /api/2/publish/available_targets:
     get:
       tags:
