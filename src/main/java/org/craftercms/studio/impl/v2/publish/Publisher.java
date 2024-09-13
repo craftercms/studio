@@ -201,6 +201,8 @@ public class Publisher implements ApplicationEventPublisherAware {
             activityService.insertActivity(publishPackage.getSiteId(), publishPackage.getSubmitterId(), activityOperation, DateUtils.getCurrentTime(),
                     null, Long.toString(packageId));
             eventPublisher.publishEvent(new PublishEvent(siteId));
+            publishPackage.setPackageState(COMPLETED.value, 0);
+            publishDao.updatePackage(publishPackage);
             // TODO: Complete package progress
         } catch (Exception e) {
             logger.error("Failed to publish package '{}' for site '{}'", packageId, siteId, e);

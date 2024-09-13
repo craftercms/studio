@@ -11300,12 +11300,14 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: UUID
+          type: int
           description: package id
-        label:
+        packageType:
           type: string
-          description: user friendly name of the package
+          enum:
+            - INITIAL_PUBLISH
+            - PUBLISH_ALL
+            - ITEM_LIST
         comment:
           type: string
           description: submission comment by publisher
@@ -11317,14 +11319,13 @@ components:
           description: number of items in the package
         publishingTarget:
           type: string
-          description: publishing target where package will be published
+          description: publishing target
         schedule:
           type: string
           format: date-time
-          description: date and time when package will be published
+          description: date and time when package was published
       required:
         - id
-        - label
         - submitter
         - size
         - publishingTarget

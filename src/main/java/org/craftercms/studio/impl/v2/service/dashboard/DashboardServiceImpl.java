@@ -28,7 +28,9 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
@@ -46,9 +48,11 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 import java.beans.ConstructorProperties;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -56,6 +60,8 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.UPDATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.parseDateIso;
@@ -296,28 +302,8 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingHistoryTotal(@SiteId String siteId,
-                                         String publishingTarget, String approver, ZonedDateTime dateFrom,
-                                         ZonedDateTime dateTo) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, dateFrom,
-                dateTo);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DashboardPublishingPackage> getPublishingHistory(
-            @SiteId String siteId, String publishingTarget, String approver,
-            ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackagesHistory(siteId, publishingTarget, approver, dateFrom,
-                dateTo, offset, limit);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingHistoryDetailTotalItems(@SiteId String siteId,
-                                                    String publishingPackageId) throws SiteNotFoundException {
+                                                    long publishingPackageId) throws SiteNotFoundException {
         return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
     }
 
@@ -325,19 +311,18 @@ public class DashboardServiceImpl implements DashboardService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingHistoryDetail(@SiteId String siteId,
-                                                        String publishingPackageId, int offset, int limit)
+                                                        long publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
-        // TODO: fix for new publishing system
-        return emptyList();
-//        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
-//        if (isEmpty(packageDetails)) {
-//            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
-//        }
-//
-//        var paths = packageDetails.stream()
-//                .map(PublishRequest::getPath)
-//                .collect(toList());
-//        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
+        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId,
+                offset, limit);
+        if (isEmpty(packageDetails)) {
+            throw new PublishPackageNotFoundException(siteId, publishingPackageId);
+        }
+
+        var paths = packageDetails.stream()
+                .map(PublishItem::getPath)
+                .collect(toList());
+        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
     @Override
@@ -346,11 +331,10 @@ public class DashboardServiceImpl implements DashboardService {
     public PublishingStats getPublishingStats(@SiteId String siteId, int days) throws SiteNotFoundException {
         var publishingStats = new PublishingStats();
         publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
-        // TODO: fix for new publishing system
-//        publishingStats.setNumberOfNewAndPublishedItems(
-//                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_CREATE, COMPLETED, NEW));
-//        publishingStats.setNumberOfEditedAndPublishedItems(
-//                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_UPDATE, COMPLETED, UPDATE));
+        publishingStats.setNumberOfNewAndPublishedItems(
+                publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, ADD));
+        publishingStats.setNumberOfEditedAndPublishedItems(
+                publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, UPDATE));
         return publishingStats;
     }
 

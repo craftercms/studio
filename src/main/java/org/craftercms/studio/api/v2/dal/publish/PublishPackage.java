@@ -256,7 +256,8 @@ public class PublishPackage {
         STAGING_SUCCESS(5),
         STAGING_COMPLETED_WITH_ERRORS(6),
         STAGING_FAILED(7),
-        CANCELLED(8);
+        COMPLETED(8),
+        CANCELLED(9);
 
         public final long value;
 

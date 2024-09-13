@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.io.IOException;
@@ -149,14 +150,62 @@ public interface PublishService {
     int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
                                          ZonedDateTime dateTo, List<String> systemTypes);
 
-    int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
-                                          ZonedDateTime dateTo);
+    /**
+     * Get the total number of publishing packages in the history matching the given parameters
+     *
+     * @param siteId   the site id
+     * @param target   the publishing target
+     * @param approver the approver username
+     * @param dateFrom to filter packages published after this date
+     * @param dateTo   to filter packages published before this date
+     * @return the number of packages matching the given parameters
+     */
+    int getPublishingHistoryTotal(String siteId, String target, String approver, Instant dateFrom,
+                                  Instant dateTo);
 
-    int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId);
+    /**
+     * Get the publishing packages in the history matching the given parameters
+     *
+     * @param siteId   the site id
+     * @param target   the publishing target
+     * @param approver the approver username
+     * @param dateFrom to filter packages published after this date
+     * @param dateTo   to filter packages published before this date
+     * @param offset   the offset to start from
+     * @param limit    the max number of packages to return
+     * @return the packages matching the given parameters
+     */
+    Collection<DashboardPublishingPackage> getPublishingHistory(String siteId, String target, String approver,
+                                                                Instant dateFrom, Instant dateTo, int offset, int limit);
 
-    List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver,
-                                                                  ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+    /**
+     * Get publishing package details
+     *
+     * @param siteId    site identifier
+     * @param packageId publishing package identifier
+     * @param offset    offset of the first result item
+     * @param limit     number of results to return
+     * @return list of publish items included in given package
+     */
+    Collection<PublishItem> getPublishingHistoryDetail(String siteId, long packageId, int offset, int limit)
+            throws UserNotFoundException, ServiceLayerException;
 
+
+    /**
+     * Get publishing package details total item count
+     *
+     * @param siteId    site identifier
+     * @param packageId publishing package identifier
+     * @return number of items in the package
+     */
+    int getPublishingHistoryDetailTotalItems(String siteId, long packageId);
+
+    /**
+     * Get the number of publishes for the given site in the last days
+     * @param siteId the site id
+     * @param days the number of days to look back
+     * @return the number of publishes
+     */
     int getNumberOfPublishes(String siteId, int days);
 
     /**
@@ -229,6 +278,16 @@ public interface PublishService {
      * @return the publish items
      */
     Collection<PublishItem> getPublishItems(String siteId, long packageId, int offset, int limit);
+
+    /**
+     * Get the total number of published items in the last <code>days</code>number of days matching the action
+     *
+     * @param siteId the site id
+     * @param days   the number of days to look back
+     * @param action the action to filter publish items by
+     * @return the number of published items matching the filters
+     */
+    int getNumberOfPublishedItemsByAction(String siteId, int days, PublishItem.Action action);
 
     /**
      * A request to include a path in a publish request.

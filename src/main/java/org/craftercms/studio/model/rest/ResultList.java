@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.model.rest;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,14 +36,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class ResultList<T> extends Result {
 
     @JsonIgnore
-    private Map<String, List<T>> entities;
+    private Map<String, Collection<T>> entities;
 
 
     /**
      * Returns the result entities.
      */
     @JsonAnyGetter
-    public Map<String, List<T>> getEntities() {
+    public Map<String, Collection<T>> getEntities() {
         return entities;
     }
 
@@ -50,7 +51,7 @@ public class ResultList<T> extends Result {
      * Sets the result entities.
      */
     @JsonAnySetter
-    public void setEntities(String name, List<T> entities) {
+    public void setEntities(String name, Collection<T> entities) {
         this.entities = Collections.singletonMap(name, entities);
     }
 

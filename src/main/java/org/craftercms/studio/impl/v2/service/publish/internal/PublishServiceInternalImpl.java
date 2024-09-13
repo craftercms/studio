@@ -76,6 +76,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVA
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
@@ -149,7 +150,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public int getPublishingHistoryDetailTotalItems(String siteId, String packageId) {
+    public int getPublishingHistoryDetailTotalItems(final String siteId, final long packageId) {
         // TODO: implement for new publishing system
         return 0;
 //        return publishRequestDao.getPublishingHistoryDetailTotalItems(siteId, packageId);
@@ -165,6 +166,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                                             String filterType, int numberOfItems) {
         // TODO: implement for new publishing system
         return emptyList();
+    }
+
+    @Override
+    public Collection<PublishItem> getPublishingHistoryDetail(final String siteId, final long packageId, final int offset, final int limit) throws UserNotFoundException, ServiceLayerException {
+        return publishDao.getPublishItems(siteId, packageId, offset, limit);
     }
 
     @Override
@@ -273,31 +279,21 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 //    }
 
     @Override
-    public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
-                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo) {
-        // TODO: implement for new publishing system
-        return 0;
-        // Need to check if null because of COUNT + GROUP BY
-//        return publishRequestDao
-//                .getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, COMPLETED, dateFrom, dateTo)
-//                .orElse(0);
+    public int getPublishingHistoryTotal(String siteId, String publishingTarget, String approver,
+                                         Instant dateFrom, Instant dateTo) {
+        return publishDao.getPublishPackageHistoryTotal(siteId, publishingTarget, approver, COMPLETED.value, dateFrom, dateTo);
     }
 
     @Override
-    public List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget,
-                                                                         String approver, ZonedDateTime dateFrom,
-                                                                         ZonedDateTime dateTo, int offset, int limit) {
-        // TODO: implement for new publishing system
-        return emptyList();
-//        return publishRequestDao.getPublishingPackagesHistory(siteId, publishingTarget, approver, COMPLETED, dateFrom,
-//                dateTo, offset, limit);
+    public Collection<DashboardPublishingPackage> getPublishingHistory(String siteId, String publishingTarget,
+                                                                       String approver, Instant dateFrom,
+                                                                       Instant dateTo, int offset, int limit) {
+        return publishDao.getPublishPackageHistory(siteId, publishingTarget, approver, COMPLETED.value, dateFrom, dateTo, offset, limit);
     }
 
     @Override
     public int getNumberOfPublishes(String siteId, int days) {
-        // TODO: implement for new publishing system
-        return 0;
-//        return publishRequestDao.getNumberOfPublishes(siteId, days);
+        return publishDao.getNumberOfPublishes(siteId, days);
     }
 
     @Override
@@ -388,6 +384,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
                                                    final int offset, final int limit) {
         return publishDao.getPublishItems(siteId, packageId, offset, limit);
+    }
+
+    @Override
+    public int getNumberOfPublishedItemsByAction(final String siteId, final int days, final PublishItem.Action action) {
+        return publishDao.getNumberOfPublishedItemsByAction(siteId, days, action);
     }
 
     private Collection<PublishItem> createDeletePublishItems(final String siteId, final Collection<String> userRequestedPaths,

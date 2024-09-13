@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.permissions.CompositePermission;
 
@@ -84,6 +85,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<DeploymentHistoryGroup> getDeploymentHistory(@SiteId String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) throws ServiceLayerException, UserNotFoundException {
         return publishServiceInternal.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
@@ -108,30 +110,55 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public int getPublishingItemsScheduledTotal(@SiteId String siteId, String publishingTarget, String approver,
                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
         return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
     }
 
     @Override
-    public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
-                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo) {
-        return publishServiceInternal.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public int getPublishingHistoryTotal(@SiteId String siteId, String publishingTarget, String approver,
+                                         Instant dateFrom, Instant dateTo) {
+        return publishServiceInternal.getPublishingHistoryTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
     }
 
     @Override
-    public int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId) {
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public Collection<PublishItem> getPublishingHistoryDetail(@SiteId String siteId, long packageId, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+        return publishServiceInternal.getPublishingHistoryDetail(siteId, packageId, offset, limit);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public int getPublishingHistoryDetailTotalItems(@SiteId String siteId, long publishingPackageId) {
         return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
     }
 
     @Override
-    public List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) {
-        return publishServiceInternal.getPublishingPackagesHistory(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public Collection<DashboardPublishingPackage> getPublishingHistory(@SiteId String siteId, String publishingTarget, String approver,
+                                                                       Instant dateFrom, Instant dateTo, int offset, int limit) {
+        return publishServiceInternal.getPublishingHistory(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
     }
 
     @Override
-    public int getNumberOfPublishes(String siteId, int days) {
+    @RequireSiteExists
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public int getNumberOfPublishes(@SiteId String siteId, int days) {
         return publishServiceInternal.getNumberOfPublishes(siteId, days);
+    }
+
+    @Override
+    @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public int getNumberOfPublishedItemsByAction(@SiteId String siteId, int days, PublishItem.Action action) {
+        return publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, action);
     }
 
     @Override
@@ -146,14 +173,14 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishPackage getReadyPackageForItem(final String site, final String path, final boolean includeChildren) {
+    public PublishPackage getReadyPackageForItem(@SiteId final String site, final String path, final boolean includeChildren) {
         return publishServiceInternal.getReadyPackageForItem(site, path, includeChildren);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final Collection<String> paths,
+    public Collection<PublishPackage> getActivePackagesForItems(@SiteId final String siteId, final Collection<String> paths,
                                                                 final boolean includeChildren) {
         return publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
     }
@@ -161,7 +188,7 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
+    public long publishDelete(@SiteId String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
         return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, comment);
     }
 

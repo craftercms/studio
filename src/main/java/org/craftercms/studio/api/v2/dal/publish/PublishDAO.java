@@ -18,19 +18,25 @@ package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DAYS;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 
 /**
@@ -66,6 +72,7 @@ public interface PublishDAO {
 
     String OFFSET = "offset";
     String LIMIT = "limit";
+    String ACTION = "action";
 
     List<ApprovalState> ACTIVE_APPROVAL_STATES = List.of(SUBMITTED, APPROVED);
 
@@ -411,4 +418,79 @@ public interface PublishDAO {
                                                       @Param(PACKAGE_STATE) long packageState,
                                                       @Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
                                                       @Param(INCLUDE_CHILDREN) boolean includeChildren);
+
+    /**
+     * Get the publish packages in the history matching the given filters
+     *
+     * @param siteId       the site id
+     * @param target       the publishing target
+     * @param approver     the approver username. This corresponds to the reviewer, if it exists. Otherwise, it corresponds to the submitter (direct publish without workflow)
+     * @param packageState the package state
+     * @param dateFrom     the start date to filter packages
+     * @param dateTo       the end date to filter packages
+     * @param offset       the offset to start from
+     * @param limit        the max number of items to return
+     * @return the publish packages in the history matching the filters
+     */
+    Collection<DashboardPublishingPackage> getPublishPackageHistory(@Param(SITE_ID) String siteId,
+                                                                    @Param(TARGET) String target,
+                                                                    @Param(QueryParameterNames.APPROVER) String approver,
+                                                                    @Param(PACKAGE_STATE) long packageState,
+                                                                    @Param(QueryParameterNames.DATE_FROM) Instant dateFrom,
+                                                                    @Param(QueryParameterNames.DATE_TO) Instant dateTo,
+                                                                    @Param(OFFSET) Integer offset,
+                                                                    @Param(LIMIT) Integer limit);
+
+    /**
+     * Get the total number of publish packages in the history matching the given filters
+     *
+     * @param siteId       the site id
+     * @param target       the publishing target
+     * @param approver     the approver username. This corresponds to the reviewer, if it exists. Otherwise, it corresponds to the submitter (direct publish without workflow)
+     * @param packageState the package state
+     * @param dateFrom     the start date to filter packages
+     * @param dateTo       the end date to filter packages
+     * @return the total number of packages in the history matching the filters
+     */
+    int getPublishPackageHistoryTotal(@Param(SITE_ID) String siteId,
+                                      @Param(TARGET) String target,
+                                      @Param(QueryParameterNames.APPROVER) String approver,
+                                      @Param(PACKAGE_STATE) long packageState,
+                                      @Param(QueryParameterNames.DATE_FROM) Instant dateFrom,
+                                      @Param(QueryParameterNames.DATE_TO) Instant dateTo);
+
+    /**
+     * Get the number of publishes for a site in the last n days
+     *
+     * @param siteId the site id
+     * @param days   the number of days to look back
+     * @return the number of publishes
+     */
+    int getNumberOfPublishes(@Param(SITE_ID) String siteId, @Param(DAYS) int days);
+
+    /**
+     * Get the number of published items for a site in the last n days
+     *
+     * @param siteId the site id
+     * @param days   the number of days to look back
+     * @param action the action to filter by
+     * @return the number of published items
+     */
+    default int getNumberOfPublishedItemsByAction(String siteId, int days, PublishItem.Action action) {
+        return getNumberOfPublishedItemsByActionInternal(siteId, days, action, COMPLETED.value);
+    }
+
+    /**
+     * Get the number of published items for a site in the last n days
+     *
+     * @param siteId         the site id
+     * @param days           the number of days to look back
+     * @param action         the action to filter by
+     * @param completedState the state to filter by
+     * @return the number of published items
+     */
+    int getNumberOfPublishedItemsByActionInternal(@Param(SITE_ID) String siteId,
+                                                  @Param(DAYS) int days,
+                                                  @Param(ACTION) PublishItem.Action action,
+                                                  @Param(COMPLETED_STATE) long completedState);
 }

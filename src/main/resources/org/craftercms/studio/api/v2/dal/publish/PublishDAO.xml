@@ -32,7 +32,17 @@
     </resultMap>
 
     <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
-        <association property="itemTargets" column="item_id" select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
+        <association property="itemTargets" column="item_id"
+                     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
+    </resultMap>
+
+    <resultMap id="DashboardPackageMap" autoMapping="true"
+               type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
+        <result property="comment" column="submitter_comment"/>
+        <result property="publishingTarget" column="target"/>
+        <result property="schedule" column="published_on"/>
+        <association property="submitter" column="submitter_id"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
 
     <insert id="insertPackage"
@@ -307,5 +317,65 @@
 
     <select id="getItemPackagesByState" resultMap="PublishPackageMap">
         <include refid="getAllPackagesForItems" />
+    </select>
+
+    <select id="getPublishPackageHistory" resultMap="DashboardPackageMap">
+        SELECT pp.*, (select count(1) from publish_item where package_id = pp.id) as size
+        FROM publish_package pp
+        INNER JOIN site s ON pp.site_id = s.id
+        INNER JOIN user sub ON pp.submitter_id = sub.id
+        LEFT OUTER JOIN user rev ON pp.reviewer_id = rev.id
+        <include refid="publishingPackagesHistoryFilters"/>
+        ORDER BY pp.published_on DESC
+        LIMIT #{offset},#{limit}
+    </select>
+
+    <select id="getPublishPackageHistoryTotal">
+        SELECT count(1)
+        FROM publish_package pp
+        INNER JOIN site s ON pp.site_id = s.id
+        INNER JOIN user sub ON pp.submitter_id = sub.id
+        LEFT OUTER JOIN user rev ON pp.reviewer_id = rev.id
+        <include refid="publishingPackagesHistoryFilters"/>
+        ORDER BY pp.published_on DESC
+    </select>
+
+    <sql id="publishingPackagesHistoryFilters">
+        <where>
+            s.site_id = #{siteId}
+            AND (pp.package_state &amp; #{packageState}) > 0
+            <if test="approver != null">
+                AND IFNULL(rev.username, sub.username) = #{approver}
+            </if>
+            <if test="dateFrom != null">
+                AND pp.published_on &gt;= #{dateFrom}
+            </if>
+            <if test="dateTo != null">
+                AND pp.published_on &lt;= #{dateTo}
+            </if>
+            <if test="target != null">
+                AND pp.target = #{target}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getNumberOfPublishes">
+        SELECT COUNT(DISTINCT path)
+        FROM publish_item pi
+        INNER JOIN publish_package pp ON pi.package_id = pp.id
+            INNER JOIN site s ON pp.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND pp.published_on &gt;= DATE(NOW() - INTERVAL #{days} DAY)
+    </select>
+
+    <select id="getNumberOfPublishedItemsByActionInternal">
+        SELECT COUNT(1)
+        FROM publish_item pi
+        INNER JOIN publish_package pp ON pi.package_id = pp.id
+        INNER JOIN site s ON pp.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND pp.published_on &gt;= DATE(NOW() - INTERVAL #{days} DAY)
+        AND pi.action = #{action}
+        AND (pp.package_state &amp; #{completedState}) > 0
     </select>
 </mapper>
