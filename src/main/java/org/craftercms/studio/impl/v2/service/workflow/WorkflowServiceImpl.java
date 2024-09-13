@@ -22,7 +22,6 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -60,7 +59,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     public List<SandboxItem> getItemStates(@SiteId String siteId,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
                                            int offset, int limit) throws SiteNotFoundException {
-       return workflowServiceInternal.getItemStates(siteId, path, states, offset, limit);
+        return workflowServiceInternal.getItemStates(siteId, path, states, offset, limit);
     }
 
     @Override
@@ -80,15 +79,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                                         boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
         workflowServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
                 live, staged, isNew, modified);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getWorkflowAffectedPaths(@SiteId String siteId,
-                                                      @ProtectedResourceId(PATH_RESOURCE_ID)
-                                                      String path) throws UserNotFoundException, ServiceLayerException {
-        return workflowServiceInternal.getWorkflowAffectedPaths(siteId, path);
     }
 
     @Override

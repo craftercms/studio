@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,7 +19,6 @@ package org.craftercms.studio.api.v2.service.workflow;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.time.Instant;
@@ -74,15 +73,6 @@ public interface WorkflowService {
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
                                  boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException;
-
-    /**
-     * Get workflow affected paths if content is edited
-     * @param siteId site identifier
-     * @param path path of the content to be edited
-     * @return List of sandbox items that will be taken out of workflow after edit
-     */
-    List<SandboxItem> getWorkflowAffectedPaths(String siteId, String path)
-            throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Approve request for publish

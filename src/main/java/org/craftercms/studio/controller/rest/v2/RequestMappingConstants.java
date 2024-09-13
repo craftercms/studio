@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -122,6 +122,7 @@ public final class RequestMappingConstants {
     public static final String ITEM_STATES = "/item_states";
     public static final String UPDATE_ITEM_STATES_BY_QUERY = "/update_item_states_by_query";
     public static final String AFFECTED_PATHS = "/affected_paths";
+    public static final String AFFECTED_PACKAGES = "/affected_packages";
     public static final String REQUEST_PUBLISH = "/request_publish";
     public static final String REJECT = "/reject";
     public static final String APPROVE = "/approve";

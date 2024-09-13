@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
 import org.craftercms.studio.model.rest.workflow.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -41,13 +42,16 @@ import org.springframework.web.bind.annotation.*;
 import java.beans.ConstructorProperties;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -131,13 +135,26 @@ public class WorkflowController {
         return result;
     }
 
+    @Deprecated
     @GetMapping(value = AFFECTED_PATHS, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getWorkflowAffectedPaths(@ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
-                                                            @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path)
-            throws ServiceLayerException, UserNotFoundException {
-        List<SandboxItem> sandboxItems = workflowService.getWorkflowAffectedPaths(siteId, path);
+                                                            @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path) {
+        // TODO: remove this once the UI switches to the new endpoint getWorkflowAffectedPackages
         ResultList<SandboxItem> result = new ResultList<>();
-        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+        result.setEntities(RESULT_KEY_ITEMS, emptyList());
+        result.setResponse(OK);
+        return result;
+    }
+
+    @GetMapping(value = AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
+    public ResultList<PublishPackageResponse> getWorkflowAffectedPackages(@ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+                                                                          @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+                                                                          @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
+        Collection<PublishPackageResponse> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(siteId, List.of(path), includeChildren))
+                .stream()
+                .map(PublishPackageResponse::new).toList();
+        ResultList<PublishPackageResponse> result = new ResultList<>();
+        result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);
         result.setResponse(OK);
         return result;
     }

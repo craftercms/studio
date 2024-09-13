@@ -8786,13 +8786,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/workflow/affected_paths:
+  /api/2/workflow/affected_packages:
     get:
       tags:
         - workflow
-      summary: Get workflow affected paths
-      description: 'Required permission "content_read"'
-      operationId: getWorkflowAffectedPaths
+      summary: Get workflow affected packages
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getWorkflowAffectedPackages
       parameters:
         - name: siteId
           in: query
@@ -8806,6 +8806,13 @@ paths:
           required: true
           schema:
             type: string
+        - name: includeChildren
+          in: query
+          description: true to include packages including children of the path, otherwise false
+          default: false
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -8816,10 +8823,10 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  items:
+                  publishingPackages:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SandboxItem'
+                      $ref: '#/components/schemas/PublishPackageStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

@@ -582,8 +582,6 @@
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="contentServiceInternal" ref="contentServiceInternal" />
-        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="siteService" ref="sitesServiceInternal"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
