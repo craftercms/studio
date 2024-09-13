@@ -144,9 +144,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public int getPublishingHistoryDetailTotalItems(final String siteId, final long packageId) {
-        // TODO: implement for new publishing system
-        return 0;
-//        return publishRequestDao.getPublishingHistoryDetailTotalItems(siteId, packageId);
+        return publishDao.getPublishItemsCount(siteId, packageId);
     }
 
     @Override

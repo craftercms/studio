@@ -336,6 +336,15 @@ public interface PublishDAO {
                                             @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
     /**
+     * Get the total number of items in a package
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return the total number of items in the package
+     */
+    int getPublishItemsCount(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId);
+
+    /**
      * Update the state for all publish items in the package
      *
      * @param id              the package id

@@ -249,6 +249,15 @@
         </if>
     </select>
 
+    <select id="getPublishItemsCount">
+        SELECT COUNT(1)
+        FROM publish_item pi
+        INNER JOIN publish_package pp ON pi.package_id = pp.id
+        INNER JOIN site s ON pp.site_id = s.id
+        WHERE pi.package_id = #{packageId}
+        AND s.site_id = #{siteId}
+    </select>
+
     <update id="updatePublishItemState">
         UPDATE publish_item
         SET publish_state = (publish_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
