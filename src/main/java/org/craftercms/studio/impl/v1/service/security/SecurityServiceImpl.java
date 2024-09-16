@@ -607,7 +607,7 @@ public class SecurityServiceImpl implements SecurityService {
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(roles)) {
             for (NormalizedRole role : roles) {
-                if (role.equals(new NormalizedRole(SYSTEM_ADMIN_ROLE))) {
+                if (role.equals(SYSTEM_ADMIN_NORMALIZED_ROLE)) {
                     toRet = true;
                     break;
                 }
@@ -634,7 +634,7 @@ public class SecurityServiceImpl implements SecurityService {
                 if (MapUtils.isNotEmpty(roleMappings)) {
                     for (Group group : groups) {
                         List<NormalizedRole> roles = roleMappings.get(new NormalizedGroup(group.getGroupName()));
-                        if (roles != null && roles.contains(new NormalizedRole(ADMIN_ROLE))) {
+                        if (roles != null && roles.contains(ADMIN_NORMALIZED_ROLE)) {
                             toRet = true;
                         }
                     }
