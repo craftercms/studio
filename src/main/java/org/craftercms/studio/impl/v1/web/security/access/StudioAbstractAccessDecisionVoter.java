@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -115,13 +115,13 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     }
 
     protected boolean hasPermission(String siteId, String path, String user, String permission) {
-        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user, null);
+        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
         return StringUtils.isEmpty(permission) ||
                 (CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(permission));
     }
 
     protected boolean hasAnyPermission(String siteId, String path, String user, Set<String> permissions) {
-        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user, null);
+        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
         return CollectionUtils.isEmpty(permissions) ||
                 (CollectionUtils.isNotEmpty(userPermissions)
                         && CollectionUtils.containsAny(userPermissions, permissions));

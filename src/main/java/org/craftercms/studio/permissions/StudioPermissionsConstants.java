@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -89,6 +89,10 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_MANAGE_ACCESS_TOKEN = "manage_access_token";
 
     public static final String PERMISSION_SET_ITEM_STATES = "set_item_states";
+
+    public static final String SITE_ID_RESOURCE_ID = "siteId";
+    public static final String PATH_RESOURCE_ID = "path";
+    public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";
 
 
     private StudioPermissionsConstants() {

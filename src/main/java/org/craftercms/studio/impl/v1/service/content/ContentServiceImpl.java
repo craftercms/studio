@@ -117,7 +117,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 /**
