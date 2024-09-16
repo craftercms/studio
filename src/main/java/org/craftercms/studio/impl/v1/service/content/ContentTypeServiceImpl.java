@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -84,14 +83,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    public boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item) {
+    public boolean isUserAllowed(Set<NormalizedRole> userRoles, ContentTypeConfigTO item) {
         if (item == null) {
             logger.debug("No content type config provided for null item to limit user access, " +
                     "defaulting to permit the user");
             return true;
         }
 
-        Set<String> allowedRoles = item.getAllowedRoles();
+        Set<NormalizedRole> allowedRoles = item.getAllowedRoles();
         logger.trace("Item '{}' allows roles '{}', checking against user roles '{}'",
                 item.getName(), allowedRoles, userRoles);
 
@@ -190,11 +189,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     protected void addContentTypes(String site, Set<NormalizedRole> userRoles, ContentTypeConfigTO config,
                                    List<ContentTypeConfigTO> contentTypes) {
-        boolean isAllowed = this.isUserAllowed(userRoles
-                        .stream()
-                        .map(NormalizedRole::toString)
-                        .collect(Collectors.toSet()),
-                config);
+        boolean isAllowed = this.isUserAllowed(userRoles, config);
         if (isAllowed) {
             contentTypes.add(config);
         }

@@ -172,11 +172,7 @@ public class SecurityServiceImpl implements SecurityService {
             if (path.indexOf("/site") == 0) { // If it's content a file
                 try {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
-                    boolean isAllowed = contentTypeService.isUserAllowed(roles
-                                    .stream()
-                                    .map(NormalizedRole::toString)
-                                    .collect(Collectors.toSet()),
-                            config);
+                    boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
                     if (!isAllowed) {
                         logger.trace("User '{}' is not permitted to access site '{}' path '{}', add " +
                                 "permission '{}'", user, site, path, StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
