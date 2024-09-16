@@ -68,9 +68,7 @@ public interface SecurityService {
     Map<String, Object> getUserProfileByGitName(String gitName)
             throws ServiceLayerException, UserNotFoundException;
 
-    Set<String> getUserPermissions(String site, String path, List<String> groups);
-
-    Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
+    Set<String> getUserPermissions(String site, String path, String user);
 
     /**
      * Check if user exists

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
@@ -40,9 +41,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  * @author avasquez
  */
 public class CompositePermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
-
-    public static final String SITE_ID_RESOURCE_ID = "siteId";
-    public static final String PATH_RESOURCE_ID = "path";
     public static final String PATH_LIST_RESOURCE_ID = "pathList";
 
     private final SecurityService securityService;
@@ -85,13 +83,13 @@ public class CompositePermissionResolverImpl implements PermissionResolver<Strin
         }
 
         if (CollectionUtils.isEmpty(paths)) {
-            paths.add("/");
+            paths.add(DEFAULT_PATH_RESOURCE_VALUE);
         }
 
         String finalSiteName = siteName;
         CompositePermission permission = paths.stream().map(x -> {
            DefaultPermission dp = new DefaultPermission();
-            Set<String> allowedActions = securityService.getUserPermissions(finalSiteName, x, username, null);
+            Set<String> allowedActions = securityService.getUserPermissions(finalSiteName, x, username);
             dp.setAllowedActions(allowedActions);
             return dp;
         }).collect(CompositePermission::new, CompositePermission::addPermission, CompositePermission::addPermission);

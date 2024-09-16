@@ -145,28 +145,16 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @Valid
-    public Set<String> getUserPermissions(@ValidateStringParam final String site,
-                                          @ValidateSecurePathParam String path,
-                                          List<String> groups) {
-        return this.getUserPermissions(site, path, getCurrentUser(), groups);
-    }
-
-    @Override
-    @Valid
-    public Set<String> getUserPermissions(@ValidateStringParam final String site,
-                                          @ValidateSecurePathParam String path,
-                                          @ValidateStringParam String user, List<String> groups) {
+    public Set<String> getUserPermissions(@ValidateStringParam final String site, @ValidateSecurePathParam String path,
+                                          @ValidateStringParam String user) {
         Set<String> permissions = new HashSet<>();
         if (StringUtils.isNotEmpty(site)) {
-            PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
             PermissionsConfigTO permissionsConfig = loadConfiguration(site, getPermissionsFileName());
             Set<NormalizedRole> roles = new HashSet<>();
             addUserRoles(roles, site, user);
-            addGroupRoles(roles, site, groups, rolesConfig);
             // resolve the permission
             permissions = populateUserPermissions(site, path, roles, permissionsConfig);
-            logger.trace("Check if the user is allowed to edit the content in site '{}' path '{}' user '{}' " +
-                            "groups '{}'", site, path, user, groups);
+            logger.trace("Check if the user is allowed to edit the content in site '{}' path '{}' user '{}' ", site, path, user);
 
             // TODO: SJ: refactor the code below if it's still in use, otherwise remove
             if (path.indexOf("/site") == 0) { // If it's content a file
@@ -192,7 +180,6 @@ public class SecurityServiceImpl implements SecurityService {
         PermissionsConfigTO globalPermissionsConfig = loadGlobalPermissionsConfiguration();
         Set<NormalizedRole> roles = new HashSet<>();
         addGlobalUserRoles(user, roles, globalRolesConfig);
-        addGlobalGroupRoles(roles, groups, globalRolesConfig);
         permissions.addAll(populateUserGlobalPermissions(path, roles, globalPermissionsConfig));
         return permissions;
     }
@@ -365,28 +352,6 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         return new HashSet<>(0);
-    }
-
-    /**
-     * get roles by groups
-     *
-     * @param site
-     * @param groups
-     * @param rolesConfig
-     */
-    protected void addGroupRoles(Set<NormalizedRole> roles, String site, List<String> groups,
-                                 PermissionsConfigTO rolesConfig) {
-        if (groups != null) {
-            Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
-            for (String group : groups) {
-                NormalizedGroup normalizedGroup = new NormalizedGroup(group);
-                List<NormalizedRole> groupRoles = rolesMap.get(normalizedGroup);
-                if (groupRoles != null) {
-                    logger.trace("Add the roles '{}' to group '{}'", roles, normalizedGroup);
-                    roles.addAll(groupRoles);
-                }
-            }
-        }
     }
 
     /**
