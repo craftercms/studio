@@ -16,14 +16,13 @@
 
 package org.craftercms.studio.model.rest;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A {@link Result} where the actual result is a list of entities.
@@ -43,6 +42,7 @@ public class ResultList<T> extends Result {
      * Returns the result entities.
      */
     @JsonAnyGetter
+    @SuppressWarnings("unused")
     public Map<String, Collection<T>> getEntities() {
         return entities;
     }

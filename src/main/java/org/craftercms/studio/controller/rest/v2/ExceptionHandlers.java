@@ -368,14 +368,6 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(PublishingPackageNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handlePublishingPackageNotFoundException(HttpServletRequest request,
-                                                                 PublishingPackageNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
-    }
-
     @ExceptionHandler(PublishPackageNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResultOne<Long> handlePublishingPackageNotFoundException(HttpServletRequest request,

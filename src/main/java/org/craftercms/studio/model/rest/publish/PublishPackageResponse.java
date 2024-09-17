@@ -22,7 +22,7 @@ import org.craftercms.studio.model.rest.Person;
 import java.time.Instant;
 
 /**
- * Contains {@link PublishPackage} information to be returned by rest APIs
+ * Contains {@link PublishPackage} general information to be returned by rest APIs
  */
 public class PublishPackageResponse {
     private final long id;

@@ -43,6 +43,7 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_TYPE = "type";
     public static final String REQUEST_PARAM_ENVIRONMENT = "environment";
     public static final String REQUEST_PARAM_STATES = "states";
+    public static final String REQUEST_PARAM_APPROVAL_STATES = "approvalStates";
     public static final String REQUEST_PARAM_PACKAGE_ID = "packageId";
     public static final String REQUEST_PARAM_TOKEN = "token";
     public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";

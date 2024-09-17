@@ -27,9 +27,7 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
-import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -43,16 +41,17 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.model.rest.dashboard.*;
+import org.craftercms.studio.model.rest.dashboard.Activity;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
+import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 import java.beans.ConstructorProperties;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -286,15 +285,15 @@ public class DashboardServiceImpl implements DashboardService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingScheduledDetail(@SiteId String siteId,
-                                                        String publishingPackageId)
+                                                        long publishingPackageId)
             throws UserNotFoundException, ServiceLayerException {
         var publishingPackageDetails =
                 publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
         if (isEmpty(publishingPackageDetails.getItems())) {
-            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
+            throw new PublishPackageNotFoundException(siteId, publishingPackageId);
         }
         var paths = publishingPackageDetails.getItems().stream()
-                .map(PublishingPackageDetails.PublishingPackageItem::getPath)
+                .map(PublishItem::getPath)
                 .collect(toList());
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }

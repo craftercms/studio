@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -99,47 +101,27 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private GeneralLockService generalLockService;
     private SecurityService securityService;
 
-
     @Override
-    public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
-        // TODO: implement for new publishing system
-        return 0;
-//        return publishRequestDao.getPublishingPackagesTotal(siteId, environment, path, states);
+    public int getPublishingPackagesTotal(final String siteId, final String target, String path,
+                                          final Long states, final Collection<PublishPackage.ApprovalState> approvalStates) {
+        return publishDao.getItemPackagesCount(siteId, target, List.of(defaultIfEmpty(path, EMPTY)), states, approvalStates, true);
     }
 
     @Override
-    public List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path,
-                                                         List<String> states, int offset, int limit) {
-        // TODO: implement for new publishing system
-        return emptyList();
-//        return publishRequestDao.getPublishingPackages(siteId, environment, path, states, offset, limit);
+    public Collection<PublishPackage> getPublishingPackages(final String siteId, final String target,
+                                                            final String path, final Long states,
+                                                            final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                            final int offset, final int limit) {
+        return publishDao.getItemPackages(siteId, target, List.of(defaultIfEmpty(path, EMPTY)),
+                states, approvalStates, true, offset, limit);
     }
 
     @Override
-    public PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) {
-        // TODO: implement for new publishing system
-        return null;
-//        List<PublishRequest> publishingRequests = publishRequestDao.getPublishingPackageDetails(siteId, packageId);
-//        PublishingPackageDetails publishingPackageDetails = new PublishingPackageDetails();
-//        List<PublishingPackageDetails.PublishingPackageItem> packageItems = new ArrayList<>();
-//        if (CollectionUtils.isNotEmpty(publishingRequests)) {
-//            PublishRequest pr = publishingRequests.get(0);
-//            publishingPackageDetails.setSiteId(pr.getSite());
-//            publishingPackageDetails.setPackageId(pr.getPackageId());
-//            publishingPackageDetails.setEnvironment(pr.getEnvironment());
-//            publishingPackageDetails.setState(pr.getState());
-//            publishingPackageDetails.setScheduledDate(pr.getScheduledDate());
-//            publishingPackageDetails.setUser(pr.getUser());
-//            publishingPackageDetails.setComment(pr.getSubmissionComment());
-//        }
-//        for (PublishRequest publishRequest : publishingRequests) {
-//            PublishingPackageDetails.PublishingPackageItem item = new PublishingPackageDetails.PublishingPackageItem();
-//            item.setPath(publishRequest.getPath());
-//            item.setContentTypeClass(publishRequest.getContentTypeClass());
-//            packageItems.add(item);
-//        }
-//        publishingPackageDetails.setItems(packageItems);
-//        return publishingPackageDetails;
+    public PublishPackageDetails getPublishingPackageDetails(String siteId, long packageId)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
+        PublishPackage publishPackage = getPackage(siteId, packageId);
+        Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId);
+        return new PublishPackageDetails(publishPackage, publishItems);
     }
 
     @Override
@@ -249,7 +231,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final Collection<String> paths, final boolean includeChildren) {
-        return publishDao.getItemPackagesByState(siteId, paths,
+        return publishDao.getItemPackages(siteId, null, paths,
                 PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value,
                 ACTIVE_APPROVAL_STATES, includeChildren);
     }

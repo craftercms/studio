@@ -25,16 +25,14 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.io.IOException;
@@ -55,30 +53,32 @@ public class PublishServiceImpl implements PublishService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public int getPublishingPackagesTotal(@SiteId String siteId, String environment,
-                                          String path, List<String> states) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states);
+                                          String path, Long states,
+                                          final Collection<PublishPackage.ApprovalState> approvalStates) throws SiteNotFoundException {
+        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states, approvalStates);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public List<PublishingPackage> getPublishingPackages(@SiteId String siteId,
-                                                         String environment, String path, List<String> states,
-                                                         int offset, int limit) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, offset, limit);
+    public Collection<PublishPackage> getPublishingPackages(@SiteId String siteId,
+                                                                    String environment, String path, Long states,
+                                                                    final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                                    int offset, int limit) throws SiteNotFoundException {
+        return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, approvalStates, offset, limit);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishingPackageDetails getPublishingPackageDetails(@SiteId String siteId,
-                                                                String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException {
-        PublishingPackageDetails publishingPackageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
-        if (isEmpty(publishingPackageDetails.getItems())) {
-            throw new PublishingPackageNotFoundException(siteId, packageId);
+    public PublishPackageDetails getPublishingPackageDetails(@SiteId String siteId,
+                                                             long packageId) throws SiteNotFoundException, PublishPackageNotFoundException {
+        PublishPackageDetails packageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
+        if (packageDetails == null || isEmpty(packageDetails.getItems())) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
         }
 
-        return publishingPackageDetails;
+        return packageDetails;
     }
 
     @Override

@@ -6769,7 +6769,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: publishingTarget
+        - name: target
           in: query
           description: filter by publishing target
           required: false
@@ -6786,28 +6786,34 @@ paths:
           description: filter by package state(s)
           required: false
           schema:
+            type: integer
+            format: int64
+        - name: approvalStates
+          in: query
+          description: filter by package approval states
+          required: false
+          schema:
             type: array
             items:
               type: string
-        - name: submitter
-          in: query
-          description: filter by package submitter
-          schema:
-            type: string
+              enum:
+                - SUBMITTED
+                - APPROVED
+                - REJECTED
         - name: offset
           in: query
           description: Offset for pagination
           required: false
           schema:
             type: integer
-            format: int64
+            format: int32
         - name: limit
           in: query
           description: Limit for pagination
           required: false
           schema:
             type: integer
-            format: int64
+            format: int32
       responses:
         '200':
           description: OK
@@ -6845,10 +6851,11 @@ paths:
 
   /api/2/publish/package:
     get:
+      deprecated: true
       tags:
         - publishing
       summary: Get package details
-      description: 'Required permission "get_publishing_queue"'
+      description: 'Required permission "get_publishing_queue". <br /> This operation is deprecated, use /api/2/publish/{siteId}/package/{packageId} instead'
       operationId: getPublishingPackageDetails
       parameters:
         - name: siteId
@@ -6862,7 +6869,8 @@ paths:
           description: package ID
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -6886,8 +6894,51 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/publish/{siteId}/package/{packageId}:
+    get:
+      tags:
+        - publishing
+      summary: Get package details
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getPublishingPackage
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/PublishingPackageDetails'
+                  progress:
+                    $ref: '#/components/schemas/PublishingProgress'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/package/{packageId}/status:
+  /api/2/publish/{siteId}/package/{packageId}/status:
     get:
       tags:
         - publishing
@@ -6896,7 +6947,7 @@ paths:
       operationId: getPublishingPackageStatus
       parameters:
         - name: siteId
-          in: query
+          in: path
           description: site ID
           required: true
           schema:
@@ -6918,7 +6969,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
-                    $ref: '#/components/schemas/PublishingPackageStatus'
+                    $ref: '#/components/schemas/PublishingPackage'
                   progress:
                     $ref: '#/components/schemas/PublishingProgress'
         '400':
@@ -8809,10 +8860,10 @@ paths:
         - name: includeChildren
           in: query
           description: true to include packages including children of the path, otherwise false
-          default: false
           required: false
           schema:
             type: boolean
+            default: false
       responses:
         '200':
           description: OK
@@ -9053,7 +9104,7 @@ paths:
           schema:
             type: string
             example: "site123"
-        - name: package
+        - name: packageId
           in: path
           description: package ID
           required: true
@@ -10261,64 +10312,100 @@ components:
       description: API v1 object
 
     PublishingPackage:
-      type: object
-      properties:
-        id:
-          type: string
-          description: package ID
-        siteId:
-          type: string
-          description: site ID
-        schedule:
-          type: string
-          format: datetime
-          description: scheduled date and time
-        approver:
-          type: string
-          description: user that approved publishing package
-        state:
-          type: string
-          description: package state
-        publishingTarget:
-          type: string
-          description: publishing target where package will be published
-        comment:
-          type: string
-          description: submission comment
-      required:
-        - id
-        - siteId
-        - schedule
-        - approver
-        - state
-        - publishingTarget
-
-    PublishingPackageDetails:
       allOf:
-        - $ref: '#/components/schemas/PublishingPackageStatus'
+        - $ref: '#/components/schemas/PublishPackageStatus'
         - type: object
           properties:
-            items:
-              type: array
-              items:
-                type: object
-                properties:
-                  path:
-                    type: string
-                    description: content item path
-                  contentTypeClass:
-                    type: string
-                    description: content type class
-                  mimeType:
-                    type: string
-                    description: mime-type
+            siteId:
+              type: string
+              description: site ID
+            liveError:
+              type: integer
+              description: ApiResponse code
+            stagingError:
+              type: integer
+              description: ApiResponse code
+            publishedOn:
+              type: string
+              format: date-time
+              description: date and time when package was published
+            packageType:
+              type: string
+              description: package type
+              enum:
+                - INITIAL_PUBLISH
+                - ITEM_LIST
+                - PUBLISH_ALL
+            commitId:
+              type: string
+              description: commit ID to be published
+            publishedStagingCommitId:
+              type: string
+              description: commit ID published to staging
+            publishedLiveCommitId:
+              type: string
+              description: commit ID published to live
           required:
             - id
+            - siteId
             - schedule
             - approver
             - state
             - publishingTarget
-            - items
+
+    PublishingPackageDetails:
+      allOf:
+        - $ref: '#/components/schemas/PublishingPackage'
+        - type: object
+          properties:
+            items:
+              type: array
+              description: list of items to be published
+              items:
+                $ref: '#/components/schemas/PublishItem'
+
+    PublishItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        path:
+          type: string
+          description: path of the content item
+        livePreviousPath:
+          type: string
+          description: previous path of the content item in live target
+        stagingPreviousPath:
+            type: string
+            description: previous path of the content item in staging target
+        action:
+            type: string
+            description: action to be performed on the content item
+            enum:
+                - ADD
+                - UPDATE
+                - DELETE
+        userRequested:
+            type: boolean
+            description: true if user directly requested to include this item, otherwise false (if included as a calculated dependency)
+        publishedState:
+          type: integer
+          description: >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: PENDING, `DESCRIPTION`: The item is pending to be processed
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: PROCESSING, `DESCRIPTION`: The item is currently being processed
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: LIVE_SUCCESS, `DESCRIPTION`: The item has been published to live target
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: LIVE_FAILED, `DESCRIPTION`: The item failed to be published to live target
+              * `BIT ORDER (little-endian)`: 4: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The item has been published to stage
+              * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The item failed to be published to stage target
+          example: 1
+        liveError:
+          type: integer
+          description: ApiResponse code
+        stagingError:
+          type: integer
+          description: ApiResponse code
 
     PublishingProgress:
       type: object
@@ -10399,7 +10486,7 @@ components:
           type: string
           description: package state
           enum: ["READY", "PROCESSING", "COMPLETED", "FAILED"]
-        publishingTarget:
+        target:
           type: string
           description: publishing target where package will be published
           enum: [staging, live]
@@ -11252,7 +11339,8 @@ components:
       type: object
       properties:
         id:
-          type: int
+          type: integer
+          format: int32
           description: package id
         packageType:
           type: string
@@ -11845,6 +11933,11 @@ components:
           format: date-time
         submitterComment:
           type: string
+        reviwerComment:
+          type: string
+        reviewedOn:
+          type: string
+          format: date-time
         target:
           type: string
           example: live
@@ -11866,12 +11959,15 @@ components:
               * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The package has been published to stage
               * `BIT ORDER (little-endian)`: 6: `FLAG`: STAGING_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to stage target due to errors
               * `BIT ORDER (little-endian)`: 7: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The package failed to be published to stage target
-              * `BIT ORDER (little-endian)`: 8: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
+              * `BIT ORDER (little-endian)`: 8: `FLAG`: COMPLETED, `DESCRIPTION`: The package has been completed in at least one target
+              * `BIT ORDER (little-endian)`: 9: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
           example: 1
         schedule:
           type: string
           format: date-time
         submitter:
+          $ref: '#/components/schemas/Person'
+        reviewer:
           $ref: '#/components/schemas/Person'
 
   responses:

@@ -22,17 +22,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -208,7 +204,7 @@ public interface DashboardService {
      * @param publishingPackageId publishing package identifier
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getPublishingScheduledDetail(String siteId, String publishingPackageId)
+    List<SandboxItem> getPublishingScheduledDetail(String siteId, long publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
 
     /**

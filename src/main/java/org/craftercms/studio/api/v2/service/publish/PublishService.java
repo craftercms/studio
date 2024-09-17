@@ -21,15 +21,14 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -48,30 +47,33 @@ public interface PublishService {
     /**
      * Get total number of publishing packages for given search parameters
      *
-     * @param siteId      site identifier
-     * @param environment publishing environment
-     * @param path        regular expression for paths
-     * @param states      publishing package states
+     * @param siteId         site identifier
+     * @param target    publishing target
+     * @param path           regular expression for paths
+     * @param states         publishing package states bits
+     * @param approvalStates approval states to filter packages
      * @return total number of publishing packages
      * @throws SiteNotFoundException site not found
      */
-    int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states)
+    int getPublishingPackagesTotal(String siteId, String target, String path, Long states, final Collection<ApprovalState> approvalStates)
             throws SiteNotFoundException;
 
     /**
      * Get publishing packages for given search parameters
      *
-     * @param siteId      site identifier
-     * @param environment publishing environment
-     * @param path        regular expression for paths
-     * @param states      publishing package states
-     * @param offset      offset for pagination
-     * @param limit       limit for pagination
+     * @param siteId         site identifier
+     * @param target         publishing target
+     * @param path           regular expression for paths
+     * @param states         publishing package state bits
+     * @param approvalStates approval states to filter packages
+     * @param offset         offset for pagination
+     * @param limit          limit for pagination
      * @return list of publishing packages
      * @throws SiteNotFoundException site not found
      */
-    List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path, List<String> states,
-                                                  int offset, int limit) throws SiteNotFoundException;
+    Collection<PublishPackage> getPublishingPackages(String siteId, String target, String path, Long states,
+                                                             final Collection<ApprovalState> approvalStates,
+                                                             int offset, int limit) throws SiteNotFoundException;
 
     /**
      * Get publishing package details
@@ -81,7 +83,7 @@ public interface PublishService {
      * @return publishing package details
      * @throws SiteNotFoundException site not found
      */
-    PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException;
+    PublishPackageDetails getPublishingPackageDetails(String siteId, long packageId) throws SiteNotFoundException, PublishPackageNotFoundException;
 
     /**
      * Get available publishing targets for given site

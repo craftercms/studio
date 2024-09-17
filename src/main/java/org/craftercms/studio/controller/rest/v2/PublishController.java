@@ -18,36 +18,33 @@ package org.craftercms.studio.controller.rest.v2;
 
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDependenciesResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
-import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
-import org.craftercms.studio.model.rest.publish.EnablePublisherRequest;
-import org.craftercms.studio.model.rest.publish.GetPublishDependenciesRequest;
-import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
+import org.craftercms.studio.model.rest.publish.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
@@ -73,26 +70,27 @@ public class PublishController {
     }
 
     @GetMapping(PACKAGES)
-    public PaginatedResultList<PublishingPackage> getPublishingPackages(@ValidSiteId
-                                                                        @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-                                                                        @EsapiValidatedParam(type = ALPHANUMERIC)
-                                                                        @RequestParam(name = REQUEST_PARAM_ENVIRONMENT, required = false)
-                                                                        String environment,
-                                                                        @ValidExistingContentPath
-                                                                        @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
-                                                                        @RequestParam(name = REQUEST_PARAM_STATES, required = false)
-                                                                        List<@ValidateNoTagsParam String> states,
-                                                                        @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
-                                                                                defaultValue = "0") @PositiveOrZero int offset,
-                                                                        @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
-                                                                                defaultValue = "10") @PositiveOrZero int limit) throws SiteNotFoundException {
-        int total = publishService.getPublishingPackagesTotal(siteId, environment, path, states);
-        List<PublishingPackage> packages = new ArrayList<>();
+    public PaginatedResultList<PublishPackage> getPublishingPackages(@ValidSiteId
+                                                                     @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+                                                                     @EsapiValidatedParam(type = ALPHANUMERIC) @Size(max = 20)
+                                                                     @RequestParam(name = REQUEST_PARAM_TARGET, required = false)
+                                                                     String target,
+                                                                     @ValidExistingContentPath
+                                                                     @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
+                                                                     @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
+                                                                     @RequestParam(name = REQUEST_PARAM_APPROVAL_STATES, required = false)
+                                                                     List<PublishPackage.ApprovalState> approvalStates,
+                                                                     @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
+                                                                             defaultValue = "0") @PositiveOrZero int offset,
+                                                                     @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
+                                                                             defaultValue = "10") @PositiveOrZero int limit) throws SiteNotFoundException {
+        int total = publishService.getPublishingPackagesTotal(siteId, target, path, states, approvalStates);
+        Collection<PublishPackage> packages = new ArrayList<>();
         if (total > 0) {
-            packages = publishService.getPublishingPackages(siteId, environment, path, states, offset, limit);
+            packages = publishService.getPublishingPackages(siteId, target, path, states, approvalStates, offset, limit);
         }
 
-        PaginatedResultList<PublishingPackage> result = new PaginatedResultList<>();
+        PaginatedResultList<PublishPackage> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(isEmpty(packages) ? 0 : packages.size());
@@ -101,18 +99,34 @@ public class PublishController {
         return result;
     }
 
+    @Deprecated
     @GetMapping(PACKAGE)
-    public ResponseBody getPublishingPackageDetails(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-                                                    @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) UUID packageId)
-            throws SiteNotFoundException, PublishingPackageNotFoundException {
-        PublishingPackageDetails publishingPackageDetails =
-                publishService.getPublishingPackageDetails(siteId, packageId.toString());
-        ResponseBody responseBody = new ResponseBody();
-        ResultOne<PublishingPackageDetails> result = new ResultOne<>();
+    public ResultOne<PublishPackageDetails> getPublishingPackageDetails(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+                                                                        @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) @Positive long packageId)
+            throws SiteNotFoundException, PublishPackageNotFoundException {
+        return getPublishingPackage(siteId, packageId);
+    }
+
+    @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
+    public ResultOne<PublishPackageDetails> getPublishingPackage(@PathVariable @ValidSiteId String site,
+                                                                 @PathVariable @Positive long packageId)
+            throws SiteNotFoundException, PublishPackageNotFoundException {
+        PublishPackageDetails publishingPackageDetails =
+                publishService.getPublishingPackageDetails(site, packageId);
+        ResultOne<PublishPackageDetails> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PACKAGE, publishingPackageDetails);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
+    }
+
+    @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + STATUS)
+    public ResultOne<PublishPackage> getPublishPackageStatus(@PathVariable @ValidSiteId String site, @PathVariable @Positive long packageId)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
+        PublishPackage publishPackage = publishService.getPackage(site, packageId);
+        ResultOne<PublishPackage> result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_PACKAGE, publishPackage);
+        result.setResponse(OK);
+        return result;
     }
 
     @GetMapping(STATUS)
@@ -204,8 +218,6 @@ public class PublishController {
      *
      * @param request the request
      * @return the package id
-     * @throws ServiceLayerException
-     * @throws AuthenticationException
      */
     private long submitPublishPackage(PublishPackageRequest request)
             throws ServiceLayerException, AuthenticationException {

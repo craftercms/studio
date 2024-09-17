@@ -253,9 +253,9 @@ public class DashboardController {
     @GetMapping(value = PUBLISHING + SCHEDULED + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getPublishingScheduledDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @PathVariable(REQUEST_PARAM_ID) UUID packageId)
+            @PathVariable(REQUEST_PARAM_ID) long packageId)
             throws UserNotFoundException, ServiceLayerException {
-        var items = dashboardService.getPublishingScheduledDetail(siteId, packageId.toString());
+        var items = dashboardService.getPublishingScheduledDetail(siteId, packageId);
         var result = new ResultList<SandboxItem>();
         result.setEntities(RESULT_KEY_PUBLISHING_PACKAGE_ITEMS, items);
         result.setResponse(OK);
@@ -273,7 +273,7 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false) Instant dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false) Instant dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
         int total = publishService.getPublishingHistoryTotal(siteId, publishingTarget, approver, dateFrom,
                 dateTo);
         var packages = publishService.getPublishingHistory(siteId, publishingTarget, approver, dateFrom, dateTo,

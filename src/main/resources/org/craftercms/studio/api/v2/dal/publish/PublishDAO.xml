@@ -299,11 +299,19 @@
         FROM publish_package pp
             INNER JOIN site s ON pp.site_id = s.id
         WHERE s.site_id = #{siteId}
-        AND (pp.package_state &amp; #{packageState}) > 0
-        AND pp.approval_state IN
-            <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
-                #{approvalState}
-            </foreach>
+        <if test="packageState != null">
+            AND (pp.package_state &amp; #{packageState}) > 0
+        </if>
+        <if test="target != null">
+            AND pp.target = #{target}
+        </if>
+        <if test="approvalStates != null &amp;&amp; !approvalStates.isEmpty()">
+            AND pp.approval_state IN
+                <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                    #{approvalState}
+                </foreach>
+        </if>
+        <if test="paths != null &amp;&amp; !paths.isEmpty()">
         AND EXISTS (
             SELECT 1
             FROM publish_item pi
@@ -316,16 +324,27 @@
                     <!-- Check there is any child item in the queue -->
                 OR
                     <foreach collection="paths" item="path" open="(" separator=" OR " close=")">
-                        <bind name="pattern" value="path.replaceAll('/index.xml$', '') + '/%'" />
+                        <bind name="pattern" value="path.replaceAll('/index.xml$', '').replaceAll('/$', '') + '/%'" />
                         pi.path like #{pattern}
                     </foreach>
                 </if>
             )
         )
+        </if>
     </sql>
 
-    <select id="getItemPackagesByState" resultMap="PublishPackageMap">
+    <select id="getItemPackages" resultMap="PublishPackageMap">
         <include refid="getAllPackagesForItems" />
+        <if test="offset != null and limit != null">
+            LIMIT #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getItemPackagesCount">
+        SELECT COUNT(1)
+        FROM (
+            <include refid="getAllPackagesForItems" />
+        ) AS tbl
     </select>
 
     <select id="getPublishPackageHistory" resultMap="DashboardPackageMap">

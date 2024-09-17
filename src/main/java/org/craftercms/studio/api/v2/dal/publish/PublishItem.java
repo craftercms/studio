@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -38,6 +40,7 @@ public class PublishItem {
 
     protected long itemId;
 
+    @JsonIgnore
     public long getItemId() {
         return itemId;
     }
@@ -55,6 +58,7 @@ public class PublishItem {
         this.id = id;
     }
 
+    @JsonIgnore
     public long getPackageId() {
         return packageId;
     }
@@ -98,6 +102,7 @@ public class PublishItem {
                 .orElse(null);
     }
 
+    @JsonIgnore
     public List<ItemTarget> getItemTargets() {
         return itemTargets;
     }
@@ -110,6 +115,7 @@ public class PublishItem {
         this.action = action;
     }
 
+    @SuppressWarnings("unused")
     public boolean isUserRequested() {
         return userRequested;
     }

@@ -371,7 +371,7 @@ public interface PublishDAO {
      * @return the package containing the item, or null if the item is not submitted to be published
      */
     default PublishPackage getReadyPackageForItem(final String siteId, final String path, final boolean includeChildren) {
-        Collection<PublishPackage> packages = getItemPackagesByState(siteId, List.of(path), READY.value, ACTIVE_APPROVAL_STATES, includeChildren);
+        Collection<PublishPackage> packages = getItemPackages(siteId, null, List.of(path), READY.value, ACTIVE_APPROVAL_STATES, includeChildren);
         return packages.isEmpty() ? null : packages.iterator().next();
     }
 
@@ -383,7 +383,7 @@ public interface PublishDAO {
      * @return collection of ready packages containing the item
      */
     default Collection<PublishPackage> getReadyPackagesForItem(final String siteId, final String path) {
-        return getItemPackagesByState(siteId, List.of(path), READY.value, ACTIVE_APPROVAL_STATES, false);
+        return getItemPackages(siteId, null, List.of(path), READY.value, ACTIVE_APPROVAL_STATES, false);
     }
 
     /**
@@ -414,19 +414,61 @@ public interface PublishDAO {
                                       @Param(APPROVAL_STATES) List<ApprovalState> approvalStates);
 
     /**
-     * Get the packages containing the given item that match the given package state
+     * Get the packages containing the given item that match the given filters
      *
      * @param siteId          the site id
      * @param paths           the paths of the items
      * @param packageState    the mask to apply to filter the package state
      * @param includeChildren whether to include the children of the paths in the search
-     * @return collection of matching packages containing the item
+     * @return collection of matching packages
      */
-    Collection<PublishPackage> getItemPackagesByState(@Param(SITE_ID) String siteId,
-                                                      @Param(PATHS) Collection<String> paths,
-                                                      @Param(PACKAGE_STATE) long packageState,
-                                                      @Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
-                                                      @Param(INCLUDE_CHILDREN) boolean includeChildren);
+    default Collection<PublishPackage> getItemPackages(@Param(SITE_ID) String siteId,
+                                                       @Param(TARGET) String target,
+                                                       @Param(PATHS) Collection<String> paths,
+                                                       @Param(PACKAGE_STATE) long packageState,
+                                                       @Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
+                                                       @Param(INCLUDE_CHILDREN) boolean includeChildren) {
+        return getItemPackages(siteId, target, paths, packageState, approvalStates, includeChildren, null, null);
+    }
+
+
+    /**
+     * Get the packages containing the given item that match the given filters
+     *
+     * @param siteId          the site id
+     * @param paths           the paths of the items
+     * @param packageState    the mask to apply to filter the package state
+     * @param includeChildren whether to include the children of the paths in the search
+     * @param offset          the offset to start from
+     * @param limit           the max number of items to return
+     * @return collection of matching packages
+     */
+    Collection<PublishPackage> getItemPackages(@Param(SITE_ID) String siteId,
+                                               @Param(TARGET) String target,
+                                               @Param(PATHS) Collection<String> paths,
+                                               @Param(PACKAGE_STATE) Long packageState,
+                                               @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+                                               @Param(INCLUDE_CHILDREN) boolean includeChildren,
+                                               @Param(OFFSET) Integer offset,
+                                               @Param(LIMIT) Integer limit);
+
+    /**
+     * Get the total number of packages containing matching the given filters
+     *
+     * @param siteId          the site id
+     * @param target          the target
+     * @param paths           the paths of the items
+     * @param packageState    the mask to apply to filter the package state
+     * @param approvalStates  the approval states to filter by
+     * @param includeChildren whether to include the children of the paths in the search
+     * @return the total number of packages matching the filters
+     */
+    int getItemPackagesCount(@Param(SITE_ID) String siteId,
+                             @Param(TARGET) String target,
+                             @Param(PATHS) Collection<String> paths,
+                             @Param(PACKAGE_STATE) Long packageState,
+                             @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+                             @Param(INCLUDE_CHILDREN) boolean includeChildren);
 
     /**
      * Get the publish packages in the history matching the given filters
@@ -444,7 +486,7 @@ public interface PublishDAO {
     Collection<DashboardPublishingPackage> getPublishPackageHistory(@Param(SITE_ID) String siteId,
                                                                     @Param(TARGET) String target,
                                                                     @Param(QueryParameterNames.APPROVER) String approver,
-                                                                    @Param(PACKAGE_STATE) long packageState,
+                                                                    @Param(PACKAGE_STATE) Long packageState,
                                                                     @Param(QueryParameterNames.DATE_FROM) Instant dateFrom,
                                                                     @Param(QueryParameterNames.DATE_TO) Instant dateTo,
                                                                     @Param(OFFSET) Integer offset,
