@@ -31,24 +31,12 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  * Request for publishing dependencies
  */
 public class GetPublishDependenciesRequest {
-
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
     @NotEmpty
     @Size(max = 20)
     @EsapiValidatedParam(type = ALPHANUMERIC)
     private String publishingTarget;
     private List<@Valid PublishRequestPath> paths;
     private List<@NotEmpty String> commitIds;
-
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
 
     public String getPublishingTarget() {
         return publishingTarget;

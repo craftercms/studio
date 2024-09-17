@@ -6593,13 +6593,20 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/dependencies:
+  /api/2/publish/{siteId}/dependencies:
     post:
       tags:
         - publishing
       summary: Calculate the dependencies of a publishing item set
       description: 'Required permission "content_read"'
       operationId: calculatePublishDependencies
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+              type: string
       requestBody:
         description: publish request body
         required: true
@@ -6652,13 +6659,20 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish:
+  /api/2/publish/{siteId}:
     post:
       tags:
         - publishing
       summary: Publishes the given content to the target (staging or live)
       description: 'Required permission "publish" when requestApproval is false, "content_read" when requestApproval is true. <br />'
       operationId: publish
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
       requestBody:
         description: publish request body
         required: true
@@ -6757,10 +6771,11 @@ paths:
 
   /api/2/publish/packages:
     get:
+      deprecated: true
       tags:
         - publishing
       summary: Get the list of packages in the publishing queue
-      description: 'Required permission "get_publishing_queue"'
+      description: 'Required permission "get_publishing_queue". <br /> This operation is deprecated, use /api/2/publish/{siteId}/packages instead.'
       operationId: PublishingPackages
       parameters:
         - name: siteId
@@ -6820,26 +6835,100 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  packages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PublishingPackage'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      packages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PublishingPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/{siteId}/packages:
+    get:
+      tags:
+        - publishing
+      summary: Get the list of packages in the publishing queue
+      description: 'Required permission "get_publishing_queue"'
+      operationId: GetPublishingPackages
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: target
+          in: query
+          description: filter by publishing target
+          required: false
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: regular expression to filter by path
+          required: false
+          schema:
+            type: string
+        - name: states
+          in: query
+          description: filter by package state(s)
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: approvalStates
+          in: query
+          description: filter by package approval states
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - SUBMITTED
+                - APPROVED
+                - REJECTED
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      packages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PublishingPackage'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7014,7 +7103,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/package/{packageId}/clone:
+  /api/2/publish/{siteId}/package/{packageId}/clone:
     post:
       tags:
         - publishing
@@ -7023,7 +7112,7 @@ paths:
       operationId: clonePublishingPackage
       parameters:
         - name: siteId
-          in: query
+          in: path
           description: site ID
           required: true
           schema:
@@ -8837,7 +8926,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/workflow/affected_packages:
+  /api/2/workflow/{site}/affected_packages:
     get:
       tags:
         - workflow
@@ -8845,8 +8934,8 @@ paths:
       description: 'Required permission "get_publishing_queue"'
       operationId: getWorkflowAffectedPackages
       parameters:
-        - name: siteId
-          in: query
+        - name: site
+          in: path
           description: site ID
           required: true
           schema:
@@ -9089,7 +9178,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/{site}/package/{packageId}/workflow/reject:
+  /api/2/workflow/{site}/package/{package}/reject:
     post:
       tags:
         - workflow
@@ -9104,7 +9193,7 @@ paths:
           schema:
             type: string
             example: "site123"
-        - name: packageId
+        - name: package
           in: path
           description: package ID
           required: true
@@ -10466,46 +10555,9 @@ components:
                 type: boolean
                 description: true if stage has errors, otherwise false
 
-    PublishingPackageStatus:
-      type: object
-      properties:
-        id:
-          type: string
-          description: package ID
-        siteId:
-          type: string
-          description: site ID
-        schedule:
-          type: string
-          format: date-time
-          description: scheduled date and time
-        approver:
-          type: string
-          description: user that approved publishing package
-        state:
-          type: string
-          description: package state
-          enum: ["READY", "PROCESSING", "COMPLETED", "FAILED"]
-        target:
-          type: string
-          description: publishing target where package will be published
-          enum: [staging, live]
-        comment:
-          type: string
-          description: submission comment
-      required:
-        - id
-        - schedule
-        - approver
-        - state
-        - publishingTarget
-
     PublishPackageRequest:
       type: object
       properties:
-        siteId:
-          type: string
-          description: site ID
         publishingTarget:
           type: string
           description: the publishing target (staging or live)
@@ -11969,6 +12021,23 @@ components:
           $ref: '#/components/schemas/Person'
         reviewer:
           $ref: '#/components/schemas/Person'
+
+    PaginatedResponse:
+      type: object
+      description: asdf
+      properties:
+        total:
+          type: integer
+          format: int32
+          description: Total records in the system
+        offset:
+          type: integer
+          format: int32
+          description: Offset of first record in this response
+        limit:
+          type: integer
+          format: int32
+          description: Number of records returned in this response
 
   responses:
     NotFound:

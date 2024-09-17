@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
@@ -146,11 +147,11 @@ public class WorkflowController {
         return result;
     }
 
-    @GetMapping(value = AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
-    public ResultList<PublishPackageResponse> getWorkflowAffectedPackages(@ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+    @GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
+    public ResultList<PublishPackageResponse> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
                                                                           @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
                                                                           @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
-        Collection<PublishPackageResponse> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(siteId, List.of(path), includeChildren))
+        Collection<PublishPackageResponse> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren))
                 .stream()
                 .map(PublishPackageResponse::new).toList();
         ResultList<PublishPackageResponse> result = new ResultList<>();
@@ -159,6 +160,7 @@ public class WorkflowController {
         return result;
     }
 
+    @Deprecated
     @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public Result requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
             throws ServiceLayerException, AuthenticationException {
@@ -180,6 +182,7 @@ public class WorkflowController {
         return result;
     }
 
+    @Deprecated
     @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public Result publish(@Valid @RequestBody PublishRequestBody publishRequestBody)
             throws UserNotFoundException, ServiceLayerException, AuthenticationException {
@@ -204,7 +207,7 @@ public class WorkflowController {
     }
 
     @PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + APPROVE, consumes = APPLICATION_JSON_VALUE)
-    public Result approve(@Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+    public Result approve(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
                           @Valid @RequestBody ApproveRequestBody request)
             throws UserNotFoundException, ServiceLayerException, AuthenticationException {
         workflowService.approvePackage(site, packageId,
@@ -216,7 +219,7 @@ public class WorkflowController {
     }
 
     @PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + REJECT, consumes = APPLICATION_JSON_VALUE)
-    public Result reject(@Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+    public Result reject(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
                          @Valid @RequestBody ReviewPackageRequestBody rejectRequestBody)
             throws ServiceLayerException, AuthenticationException {
         workflowService.rejectPackage(site, packageId,
@@ -227,7 +230,7 @@ public class WorkflowController {
     }
 
     @PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + CANCEL)
-    public Result cancel(@Valid @PathVariable @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+    public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
                          @Valid @RequestBody ReviewPackageRequestBody cancelPackageRequest)
             throws ServiceLayerException, AuthenticationException {
         workflowService.cancelPackage(site, packageId, cancelPackageRequest.getComment());

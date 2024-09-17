@@ -33,9 +33,6 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 public class PublishPackageRequest {
     @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
     @Size(max = 20)
     @EsapiValidatedParam(type = ALPHANUMERIC)
     private String publishingTarget;
@@ -45,14 +42,6 @@ public class PublishPackageRequest {
     private boolean requestApproval;
     private boolean publishAll;
     private String comment;
-
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
 
     public String getPublishingTarget() {
         return publishingTarget;
