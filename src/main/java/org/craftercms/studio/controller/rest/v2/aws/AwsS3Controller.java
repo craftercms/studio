@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2.aws;
 
+import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.fileupload2.core.FileUploadException;
 import org.apache.commons.fileupload2.core.FileItemInput;
 import org.apache.commons.fileupload2.core.FileItemInputIterator;
@@ -74,6 +75,7 @@ public class AwsS3Controller {
      * @param profileId the profile id
      * @param path      the path to list
      * @param type      the type of file to list
+     * @param maxKeys   the maximum number of keys
      * @return the list of items
      * @throws AwsException                          if there is any error connecting to S3
      * @throws SiteNotFoundException                 if the site is not found
@@ -84,11 +86,12 @@ public class AwsS3Controller {
             @ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
             @ValidateNoTagsParam @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
             @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
-            @ValidateNoTagsParam @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type)
+            @ValidateNoTagsParam @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_S3_MAX_KEYS, required = false, defaultValue = "100") int maxKeys)
             throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException {
 
         ResultList<S3Item> result = new ResultList<>();
-        result.setEntities(RESULT_KEY_ITEMS, s3Service.listItems(siteId, profileId, path, type));
+        result.setEntities(RESULT_KEY_ITEMS, s3Service.listItems(siteId, profileId, path, type, maxKeys));
         result.setResponse(ApiResponse.OK);
 
         return result;

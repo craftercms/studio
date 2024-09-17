@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -52,12 +52,13 @@ public interface AwsS3Service {
      * @param profileId the profile id
      * @param path the path to list
      * @param type the type of items to list
+     * @param maxKeys the maximum number of keys
      * @return the list of items
      * @throws AwsException if there is any error connection to S3
      * @throws SiteNotFoundException if the site is not found
      * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
-    List<S3Item> listItems(String siteId, String profileId, String path, String type)
+    List<S3Item> listItems(String siteId, String profileId, String path, String type, int maxKeys)
             throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException;
 
 }
