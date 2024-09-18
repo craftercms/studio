@@ -96,7 +96,7 @@ public interface DashboardService {
      * @param systemTypes list of system types to filter
      * @return number of results to return
      */
-    int getContentPendingApprovalTotal(String siteId, List<String> systemTypes) throws SiteNotFoundException;
+    int getContentPendingApprovalCount(String siteId, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get pending content for approval
@@ -127,7 +127,7 @@ public interface DashboardService {
      * @param systemTypes list of system types to filter
      * @return number of results to return
      */
-    int getContentUnpublishedTotal(String siteId, List<String> systemTypes) throws SiteNotFoundException;
+    int getContentUnpublishedCount(String siteId, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get unpublished content items
@@ -175,7 +175,7 @@ public interface DashboardService {
      * @param systemTypes     list of system types to filter
      * @return number of results
      */
-    int getPublishingScheduledTotal(String siteId, String publishingTarget, String approver,
+    int getPublishingScheduledCount(String siteId, String publishingTarget, String approver,
                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
@@ -186,9 +186,8 @@ public interface DashboardService {
      * @param approver         approver user to filter by
      * @param dateFrom         lower boundary to filter by date-time range
      * @param dateTo           upper boundary to filter by date-time range
-     * @param sortFields      list of sort fields
      * @param systemTypes    list of system types to filter
-     * @param sortFields       list of sort fields
+     * @param sortFields      list of sort fields
      * @param offset           offset of the first result item
      * @param limit            number of results to return
      * @return list of DetailedItem scheduled for publishing
@@ -206,15 +205,6 @@ public interface DashboardService {
      */
     List<SandboxItem> getPublishingScheduledDetail(String siteId, long publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
-
-    /**
-     * Get publishing package detail total items
-     *
-     * @param siteId              site identifier
-     * @param publishingPackageId publishing package identifier
-     * @return number of package items
-     */
-    int getPublishingHistoryDetailTotalItems(String siteId, long publishingPackageId) throws SiteNotFoundException;
 
     /**
      * Get publishing package details

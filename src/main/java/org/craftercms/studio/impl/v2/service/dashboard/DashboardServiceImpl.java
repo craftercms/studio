@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -140,7 +141,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getContentPendingApprovalTotal(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
+    public int getContentPendingApprovalCount(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
         return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes);
     }
 
@@ -174,7 +175,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getContentUnpublishedTotal(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
+    public int getContentUnpublishedCount(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
         return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
     }
 
@@ -250,10 +251,10 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingScheduledTotal(@SiteId String siteId,
+    public int getPublishingScheduledCount(@SiteId String siteId,
                                            String publishingTarget, String approver,
                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
+        return publishServiceInternal.getPublishingItemsScheduledCount(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
     }
 
     @Override
@@ -301,21 +302,13 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingHistoryDetailTotalItems(@SiteId String siteId,
-                                                    long publishingPackageId) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingHistoryDetail(@SiteId String siteId,
                                                         long publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
-        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId,
+        var packageDetails = publishServiceInternal.getPublishItems(siteId, publishingPackageId,
                 offset, limit);
         if (isEmpty(packageDetails)) {
-            throw new PublishPackageNotFoundException(siteId, publishingPackageId);
+            return emptyList();
         }
 
         var paths = packageDetails.stream()

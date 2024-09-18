@@ -503,7 +503,7 @@ public interface PublishDAO {
      * @param dateTo       the end date to filter packages
      * @return the total number of packages in the history matching the filters
      */
-    int getPublishPackageHistoryTotal(@Param(SITE_ID) String siteId,
+    int getPublishPackageHistoryCount(@Param(SITE_ID) String siteId,
                                       @Param(TARGET) String target,
                                       @Param(QueryParameterNames.APPROVER) String approver,
                                       @Param(PACKAGE_STATE) long packageState,

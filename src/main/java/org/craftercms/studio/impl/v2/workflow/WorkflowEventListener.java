@@ -17,10 +17,12 @@
 package org.craftercms.studio.impl.v2.workflow;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -94,7 +96,7 @@ public class WorkflowEventListener {
      * @param publishPackage the package
      * @return list of paths of the first {@link #getMaxPublishItems()} items in the package
      */
-    private Collection<String> getPackagePaths(final PublishPackage publishPackage) {
+    private Collection<String> getPackagePaths(final PublishPackage publishPackage) throws PublishPackageNotFoundException, SiteNotFoundException {
         Collection<PublishItem> publishItems = publishService.getPublishItems(publishPackage.getSite().getSiteId(),
                 publishPackage.getId(), 0, getMaxPublishItems());
         return publishItems.stream().map(PublishItem::getPath).toList();

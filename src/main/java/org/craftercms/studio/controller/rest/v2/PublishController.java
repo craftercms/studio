@@ -104,7 +104,7 @@ public class PublishController {
                                                                      @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
                                                                              defaultValue = "10") @PositiveOrZero int limit)
             throws SiteNotFoundException {
-        int total = publishService.getPublishingPackagesTotal(site, target, path, states, approvalStates);
+        int total = publishService.getPublishingPackagesCount(site, target, path, states, approvalStates);
         Collection<PublishPackage> packages = new ArrayList<>();
         if (total > 0) {
             packages = publishService.getPublishingPackages(site, target, path, states, approvalStates, offset, limit);

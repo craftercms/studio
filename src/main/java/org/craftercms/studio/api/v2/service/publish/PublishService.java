@@ -20,7 +20,6 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
@@ -55,7 +54,7 @@ public interface PublishService {
      * @return total number of publishing packages
      * @throws SiteNotFoundException site not found
      */
-    int getPublishingPackagesTotal(String siteId, String target, String path, Long states, final Collection<ApprovalState> approvalStates)
+    int getPublishingPackagesCount(String siteId, String target, String path, Long states, final Collection<ApprovalState> approvalStates)
             throws SiteNotFoundException;
 
     /**
@@ -135,7 +134,7 @@ public interface PublishService {
                         List<String> commitIds, Instant schedule, String comment, boolean publishAll)
             throws AuthenticationException, ServiceLayerException;
 
-    int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
+    int getPublishingItemsScheduledCount(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
                                          ZonedDateTime dateTo, List<String> systemTypes);
 
     /**
@@ -148,7 +147,7 @@ public interface PublishService {
      * @param dateTo   to filter packages published before this date
      * @return the number of packages matching the given parameters
      */
-    int getPublishingHistoryTotal(String siteId, String target, String approver, Instant dateFrom,
+    int getPublishingHistoryCount(String siteId, String target, String approver, Instant dateFrom,
                                   Instant dateTo);
 
     /**
@@ -167,26 +166,13 @@ public interface PublishService {
                                                                 Instant dateFrom, Instant dateTo, int offset, int limit);
 
     /**
-     * Get publishing package details
-     *
-     * @param siteId    site identifier
-     * @param packageId publishing package identifier
-     * @param offset    offset of the first result item
-     * @param limit     number of results to return
-     * @return list of publish items included in given package
-     */
-    Collection<PublishItem> getPublishingHistoryDetail(String siteId, long packageId, int offset, int limit)
-            throws UserNotFoundException, ServiceLayerException;
-
-
-    /**
      * Get publishing package details total item count
      *
      * @param siteId    site identifier
      * @param packageId publishing package identifier
      * @return number of items in the package
      */
-    int getPublishingHistoryDetailTotalItems(String siteId, long packageId);
+    int getPublishItemsCount(String siteId, long packageId);
 
     /**
      * Get the number of publishes for the given site in the last days
@@ -265,7 +251,7 @@ public interface PublishService {
      * @param limit     the max number of items to return
      * @return the publish items
      */
-    Collection<PublishItem> getPublishItems(String siteId, long packageId, int offset, int limit);
+    Collection<PublishItem> getPublishItems(String siteId, long packageId, int offset, int limit) throws PublishPackageNotFoundException, SiteNotFoundException;
 
     /**
      * Get the total number of published items in the last <code>days</code>number of days matching the action

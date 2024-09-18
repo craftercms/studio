@@ -21,7 +21,6 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -52,10 +51,10 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public int getPublishingPackagesTotal(@SiteId String siteId, String environment,
+    public int getPublishingPackagesCount(@SiteId String siteId, String environment,
                                           String path, Long states,
                                           final Collection<PublishPackage.ApprovalState> approvalStates) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states, approvalStates);
+        return publishServiceInternal.getPublishingPackagesCount(siteId, environment, path, states, approvalStates);
     }
 
     @Override
@@ -102,31 +101,24 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingItemsScheduledTotal(@SiteId String siteId, String publishingTarget, String approver,
+    public int getPublishingItemsScheduledCount(@SiteId String siteId, String publishingTarget, String approver,
                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
-        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
+        return publishServiceInternal.getPublishingItemsScheduledCount(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingHistoryTotal(@SiteId String siteId, String publishingTarget, String approver,
+    public int getPublishingHistoryCount(@SiteId String siteId, String publishingTarget, String approver,
                                          Instant dateFrom, Instant dateTo) {
-        return publishServiceInternal.getPublishingHistoryTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
+        return publishServiceInternal.getPublishingHistoryCount(siteId, publishingTarget, approver, dateFrom, dateTo);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public Collection<PublishItem> getPublishingHistoryDetail(@SiteId String siteId, long packageId, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
-        return publishServiceInternal.getPublishingHistoryDetail(siteId, packageId, offset, limit);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingHistoryDetailTotalItems(@SiteId String siteId, long publishingPackageId) {
-        return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
+    public int getPublishItemsCount(@SiteId String siteId, long publishingPackageId) {
+        return publishServiceInternal.getPublishItemsCount(siteId, publishingPackageId);
     }
 
     @Override
@@ -194,7 +186,8 @@ public class PublishServiceImpl implements PublishService {
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public Collection<PublishItem> getPublishItems(@SiteId String siteId, final long packageId,
-                                                   final int offset, final int limit) {
+                                                   final int offset, final int limit)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
         return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);
     }
 

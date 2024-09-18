@@ -64,7 +64,6 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.ArrayUtils.contains;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -102,9 +101,10 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private SecurityService securityService;
 
     @Override
-    public int getPublishingPackagesTotal(final String siteId, final String target, String path,
+    public int getPublishingPackagesCount(final String siteId, final String target, String path,
                                           final Long states, final Collection<PublishPackage.ApprovalState> approvalStates) {
-        return publishDao.getItemPackagesCount(siteId, target, List.of(defaultIfEmpty(path, EMPTY)), states, approvalStates, true);
+        Collection<String> paths = StringUtils.isEmpty(path) ? emptyList() : List.of(path);
+        return publishDao.getItemPackagesCount(siteId, target, paths, states, approvalStates, true);
     }
 
     @Override
@@ -112,7 +112,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                                             final String path, final Long states,
                                                             final Collection<PublishPackage.ApprovalState> approvalStates,
                                                             final int offset, final int limit) {
-        return publishDao.getItemPackages(siteId, target, List.of(defaultIfEmpty(path, EMPTY)),
+        Collection<String> paths = StringUtils.isEmpty(path) ? emptyList() : List.of(path);
+        return publishDao.getItemPackages(siteId, target, paths,
                 states, approvalStates, true, offset, limit);
     }
 
@@ -125,13 +126,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public int getPublishingHistoryDetailTotalItems(final String siteId, final long packageId) {
+    public int getPublishItemsCount(final String siteId, final long packageId) {
         return publishDao.getPublishItemsCount(siteId, packageId);
-    }
-
-    @Override
-    public Collection<PublishItem> getPublishingHistoryDetail(final String siteId, final long packageId, final int offset, final int limit) {
-        return publishDao.getPublishItems(siteId, packageId, offset, limit);
     }
 
     @Override
@@ -155,7 +151,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
+    public int getPublishingItemsScheduledCount(String siteId, String publishingTarget, String approver,
                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
         // TODO: implement for new publishing system
         return 0;
@@ -174,9 +170,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 //    }
 
     @Override
-    public int getPublishingHistoryTotal(String siteId, String publishingTarget, String approver,
+    public int getPublishingHistoryCount(String siteId, String publishingTarget, String approver,
                                          Instant dateFrom, Instant dateTo) {
-        return publishDao.getPublishPackageHistoryTotal(siteId, publishingTarget, approver, COMPLETED.value, dateFrom, dateTo);
+        return publishDao.getPublishPackageHistoryCount(siteId, publishingTarget, approver, COMPLETED.value, dateFrom, dateTo);
     }
 
     @Override
@@ -277,8 +273,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
-                                                   final int offset, final int limit) {
-        return publishDao.getPublishItems(siteId, packageId, offset, limit);
+                                                   final int offset, final int limit) throws PublishPackageNotFoundException, SiteNotFoundException {
+
+        Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId, offset, limit);
+        if (isEmpty(publishItems)) {
+            if (getPackage(siteId, packageId) == null) {
+                throw new PublishPackageNotFoundException(siteId, packageId);
+            }
+            return emptyList();
+        }
+        return publishItems;
     }
 
     @Override

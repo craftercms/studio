@@ -358,7 +358,7 @@
         LIMIT #{offset},#{limit}
     </select>
 
-    <select id="getPublishPackageHistoryTotal">
+    <select id="getPublishPackageHistoryCount">
         SELECT count(1)
         FROM publish_package pp
         INNER JOIN site s ON pp.site_id = s.id
