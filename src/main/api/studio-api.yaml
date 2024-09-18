@@ -7046,7 +7046,8 @@ paths:
           description: package ID
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -7122,7 +7123,8 @@ paths:
           description: the ID of the existing package
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
             example: "12345"
       requestBody:
         content:
@@ -8154,7 +8156,8 @@ paths:
           description: package ID
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -9135,7 +9138,8 @@ paths:
           description: package ID
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
             example: "12345"
       requestBody:
         description: parameters for publish package approval
@@ -9198,7 +9202,8 @@ paths:
           description: package ID
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
             example: "12345"
       requestBody:
         description: parameters for publish package rejection
@@ -9254,7 +9259,8 @@ paths:
           description: package ID
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
             example: "12345"
       requestBody:
         description: parameters for publish package cancellation
