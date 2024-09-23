@@ -1355,7 +1355,10 @@
     </bean>
 
     <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor" >
-        <property name="scriptsClassPath" value="#{'${crafter-studio}/default-site'.split(',')}"/>
+        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+        <constructor-arg name="scriptsClassPath" value="#{'${crafter-studio}/default-site'.split(',')}"/>
+        <constructor-arg name="pluginClassPath"
+                         value="#{studioConfiguration.getProperty('studio.scripting.classes.path')}"/>
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
