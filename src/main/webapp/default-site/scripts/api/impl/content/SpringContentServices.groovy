@@ -49,7 +49,7 @@ class SpringContentServices {
      */
     def createFolder(site, path, name){
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.createFolder(site, path, name)
+        return springBackedService.validateAndCreateFolder(site, path, name)
     }
 
     /**

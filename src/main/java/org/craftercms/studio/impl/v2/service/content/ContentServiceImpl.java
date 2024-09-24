@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.exception.PathNotFoundException;
@@ -37,6 +38,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
@@ -73,7 +75,6 @@ import java.util.*;
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
@@ -129,7 +130,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
@@ -288,16 +289,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         siteId, path));
             }
             var username = securityService.getCurrentUser();
-            if (Objects.isNull(item.getLockOwner())) {
-                contentServiceInternal.itemLockByPath(siteId, path);
-                itemServiceInternal.lockItemByPath(siteId, path, username);
-                applicationContext.publishEvent(
-                        new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
-            } else {
-                if (!StringUtils.equals(item.getLockOwner().getUsername(), username)) {
-                    throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
-                }
+            boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
+                    Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
+            if (lockedByAnotherUser) {
+                throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
             }
+
+            contentServiceInternal.itemLockByPath(siteId, path);
+            itemServiceInternal.lockItemByPath(siteId, path, username);
+            applicationContext.publishEvent(
+                    new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
         } finally {
             generalLockService.unlockContentItem(siteId, path);
         }
@@ -317,7 +318,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 logger.debug("Item not found in site '{}' path '{}'", siteId, path);
                 throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
             }
-            if (Objects.isNull(item.getLockOwner())) {
+            if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
                 logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
                 throw new ContentAlreadyUnlockedException();
             }
@@ -345,7 +346,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
     public boolean renameContent(@SiteId String site,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
-     throws ServiceLayerException, UserNotFoundException{
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
         logger.debug("rename path {} to new name {} for site {}", path, name, site);
         return contentServiceV1.renameContent(site, path, name);
     }

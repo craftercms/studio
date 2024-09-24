@@ -16,9 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.aws.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
@@ -39,6 +36,10 @@ import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfile
 import org.craftercms.studio.model.aws.s3.S3Item;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -92,7 +93,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         this.partSize = partSize;
     }
 
-    protected AmazonS3 getS3Client(S3Profile profile) {
+    protected S3Client getS3Client(S3Profile profile) {
         return clientFactory.getClient(profile);
     }
 
@@ -109,7 +110,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                              InputStream content) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(siteId, profileId);
-        AmazonS3 s3Client = getS3Client(profile);
+        S3Client s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
         String relativeKey = UrlUtils.concat(path, filename);
         String fullKey = UrlUtils.concat(profile.getPrefix(), relativeKey);
@@ -131,7 +132,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                                   @ValidateStringParam String type) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(siteId, profileId);
-        AmazonS3 client = getS3Client(profile);
+        S3Client client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();
 
         MimeType filerType =
@@ -139,33 +140,30 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
         String fullPrefix = normalizePrefix(UrlUtils.concat(profile.getPrefix(), path));
 
-        ListObjectsV2Request request = new ListObjectsV2Request()
-                                            .withBucketName(profile.getBucketName())
-                                            .withPrefix(fullPrefix)
-                                            .withDelimiter(delimiter);
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(profile.getBucketName())
+                .prefix(fullPrefix)
+                .delimiter(delimiter)
+                .build();
 
-        ListObjectsV2Result result;
+        ListObjectsV2Iterable response = client.listObjectsV2Paginator(request);
+        for (ListObjectsV2Response page : response) {
+            page.commonPrefixes().stream()
+                    .map(p -> {
+                        String relativeKey = StringUtils.removeStart(p.prefix(), profile.getPrefix());
+                        return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
+                    })
+                    .forEach(items::add);
 
-        do {
-            result = client.listObjectsV2(request);
-            result.getCommonPrefixes().stream()
-                .map(p -> {
-                    String relativeKey = StringUtils.removeStart(p, profile.getPrefix());
-                    return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
-                })
-                .forEach(items::add);
-
-            result.getObjectSummaries().stream()
-                .filter(o -> !StringUtils.equals(o.getKey(), fullPrefix) &&
-                                MimeType.valueOf(StudioUtils.getMimeType(o.getKey())).isCompatibleWith(filerType))
-                .map(o -> {
-                    String relativeKey = StringUtils.removeStart(o.getKey(), profile.getPrefix());
-                    return new S3Item(relativeKey, createUrl(profileId, relativeKey), false, profile.getBucketName(), profile.getPrefix());
-                })
-                .forEach(items::add);
-
-            request.setContinuationToken(result.getNextContinuationToken());
-        } while (result.isTruncated());
+            page.contents().stream()
+                    .filter(o -> !StringUtils.equals(o.key(), fullPrefix) &&
+                            MimeType.valueOf(StudioUtils.getMimeType(o.key())).isCompatibleWith(filerType))
+                    .map(o -> {
+                        String relativeKey = StringUtils.removeStart(o.key(), profile.getPrefix());
+                        return new S3Item(relativeKey, createUrl(profileId, relativeKey), false, profile.getBucketName(), profile.getPrefix());
+                    })
+                    .forEach(items::add);
+        }
 
         return items;
     }

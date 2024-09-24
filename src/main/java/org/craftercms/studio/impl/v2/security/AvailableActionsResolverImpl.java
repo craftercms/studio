@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -106,7 +108,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     private SitePermissionMappings loadRoles(Document document, SitePermissionMappings sitePermissionMappings) {
         Element root = document.getRootElement();
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
-            Map<String, List<String>> rolesMap = new HashMap<>();
+            Map<NormalizedGroup, List<NormalizedRole>> rolesMap = new HashMap<>();
 
             List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
             rolesMap = getRoles(userNodes, rolesMap);
@@ -119,16 +121,17 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         return sitePermissionMappings;
     }
 
-    private Map<String, List<String>> getRoles(List<Node> nodes, Map<String, List<String>> rolesMap) {
+    private Map<NormalizedGroup, List<NormalizedRole>> getRoles(List<Node> nodes, Map<NormalizedGroup,
+            List<NormalizedRole>> rolesMap) {
         for (Node node : nodes) {
-            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-            if (!StringUtils.isEmpty(name)) {
+            String groupName = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+            if (!StringUtils.isEmpty(groupName)) {
                 List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                List<String> roles = new ArrayList<>();
+                List<NormalizedRole> roles = new ArrayList<>();
                 for (Node roleNode : roleNodes) {
-                    roles.add(roleNode.getText());
+                    roles.add(new NormalizedRole(roleNode.getText()));
                 }
-                rolesMap.put(name, roles);
+                rolesMap.put(new NormalizedGroup(groupName), roles);
             }
         }
         return rolesMap;
@@ -144,7 +147,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
             List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
             for (Node roleNode : roleNodes) {
-                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
                 RolePermissionMappings rolePermissionMappings = new RolePermissionMappings();
                 rolePermissionMappings.setRole(roleName);
                 List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);

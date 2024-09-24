@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.validation.Valid;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -58,6 +60,20 @@ public class GeneralLockServiceImpl implements GeneralLockService {
         if (logger.isTraceEnabled()) {
             logger.trace("Thread '{}' has locked object '{}' using nodeLock '{}' with holdCount '{}'",
                     Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+        }
+    }
+
+    @Override
+    public void lock(final String... lockKeys) {
+        logger.debug("Thread '{}' will attempt to lock multiple objects '{}'", Thread.currentThread().getName(), lockKeys);
+        Arrays.stream(lockKeys).sorted().forEach(this::lock);
+    }
+
+    @Override
+    public void unlock(final String... lockKeys) {
+        logger.debug("Thread '{}' will attempt to unlock multiple objects '{}'", Thread.currentThread().getName(), lockKeys);
+        for (String lockKey : lockKeys) {
+            unlock(lockKey);
         }
     }
 

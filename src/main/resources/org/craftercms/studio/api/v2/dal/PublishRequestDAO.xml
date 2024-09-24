@@ -158,18 +158,6 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <select id="getScheduledItems" resultMap="PublishRequestMap" parameterType="java.util.Map">
-        SELECT *
-        FROM publish_request
-        WHERE site = #{siteId}
-        AND state = #{state}
-        <if test="contentTypeClass != null" >
-            AND contenttypeclass = #{contentTypeClass}
-        </if>
-        AND scheduleddate &gt; #{now}
-        ORDER BY scheduleddate ASC
-    </select>
-
     <update id="cancelScheduledQueueItems" >
         UPDATE publish_request
         SET state = #{cancelledState}

@@ -21,8 +21,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.model.policy.Action;
+import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
 
 import java.beans.ConstructorProperties;
@@ -55,10 +57,12 @@ import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 public class SitePolicyAspect {
 
     protected PolicyService policyService;
+    protected ContentServiceInternal contentServiceInternal;
 
-    @ConstructorProperties({"policyService"})
-    public SitePolicyAspect(PolicyService policyService) {
+    @ConstructorProperties({"policyService", "contentServiceInternal"})
+    public SitePolicyAspect(PolicyService policyService, ContentServiceInternal contentServiceInternal) {
         this.policyService = policyService;
+        this.contentServiceInternal = contentServiceInternal;
     }
 
     @Around("@annotation(actionParams)")
@@ -97,10 +101,15 @@ public class SitePolicyAspect {
             throw new IllegalArgumentException("Missing required annotations to validate content actions");
         }
 
+        String targetFullPath = getFullPath(targetPath, targetFilename);
         var action = new Action();
-        action.setType(actionParams.type());
+        if (actionParams.type() == Type.CREATE && contentServiceInternal.contentExists(siteId, targetFullPath)) {
+            action.setType(Type.EDIT);
+        } else {
+            action.setType(actionParams.type());
+        }
         action.setRecursive(actionParams.recursive());
-        action.setTarget(getFullPath(targetPath, targetFilename));
+        action.setTarget(targetFullPath);
         var metadata = new HashMap<String, Object>();
         action.setContentMetadata(metadata);
 

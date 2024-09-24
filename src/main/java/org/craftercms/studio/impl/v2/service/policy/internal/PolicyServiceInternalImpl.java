@@ -146,7 +146,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         ValidationResult result = ValidationResult.allowed(action);
 
         for (HierarchicalConfiguration<?> statement : statements) {
-            if (action.upsertType()) {
+            if (action.createOrRenameType()) {
                 String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
                 action.setNewPath(getNewPath(siteId, target));
             }

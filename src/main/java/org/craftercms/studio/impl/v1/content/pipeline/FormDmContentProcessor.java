@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -45,10 +46,12 @@ import java.io.InputStream;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.isUserLocked;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -160,6 +163,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     // For backward compatibility ignore the exception
     protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
+        Item item = itemServiceInternal.getItem(siteId, path);
+        // Prevent permission issues when the content is not locked
+        if (!isUserLocked(item.getState()) && item.getLockOwner() == null) {
+            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
+            return;
+        }
         try {
             contentServiceV2.unlockContent(siteId, path);
             logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
@@ -194,8 +203,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
         itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
         try {
-            contentService.writeContent(site, itemPath, input);
-            String commitId = contentRepository.getRepoLastCommitId(site);
+            String commitId = contentService.writeContent(site, itemPath, input);
             result.setCommitId(commitId);
 
             // Item
@@ -235,16 +243,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected void updateFile(String site, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
-
-        boolean success;
+        String commitId;
         try {
-            success = contentService.writeContent(site, path, input);
+            commitId = contentService.writeContent(site, path, input);
         } finally {
             ContentUtils.release(input);
         }
 
-        if (success) {
-            String commitId = contentRepository.getRepoLastCommitId(site);
+        if (isNotEmpty(commitId)) {
             result.setCommitId(commitId);
 
             // if there is anything pending and this is not a preview update, cancel workflow

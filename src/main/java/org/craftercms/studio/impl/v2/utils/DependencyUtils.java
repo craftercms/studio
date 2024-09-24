@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -36,6 +37,11 @@ import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
  * Utility class for Dependency related helper methods
  */
 public class DependencyUtils {
+
+    /* A dependency path is invalid if contains line feeds or exceeds 4000 characters*/
+    public static final String INVALID_DEPENDENCY_PATH_REGEX = "\\n";
+    public static final Pattern INVALID_DEPENDENCY_PATH_PATTERN = Pattern.compile(INVALID_DEPENDENCY_PATH_REGEX);
+    public static final Integer MAX_DEPENDENCY_PATH_LENGTH = 4000;
 
     /**
      * Add the script snippets to update the dependencies for the given path
@@ -70,10 +76,23 @@ public class DependencyUtils {
         }
         for (Map.Entry<String, Set<ResolvedDependency>> entry : dependencies.entrySet()) {
             for (ResolvedDependency dependency : entry.getValue()) {
-                Files.write(file, insertDependencyRow(siteId, path, dependency.path(), entry.getKey(), dependency.valid())
-                        .getBytes(UTF_8), StandardOpenOption.APPEND);
-                Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+                if (isValidDependencyPath(dependency.path())) {
+                    Files.write(file, insertDependencyRow(siteId, path, dependency.path(), entry.getKey(), dependency.valid())
+                            .getBytes(UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+                }
             }
         }
+    }
+
+    /**
+     * A dependency path is valid if the length is less than 4000 characters and does not contain line feeds
+     *
+     * @param path the dependency target path
+     * @return true if the path is valid, false otherwise
+     */
+    public static boolean isValidDependencyPath(final String path) {
+        return path.length() <= MAX_DEPENDENCY_PATH_LENGTH &&
+                !INVALID_DEPENDENCY_PATH_PATTERN.matcher(path).matches();
     }
 }

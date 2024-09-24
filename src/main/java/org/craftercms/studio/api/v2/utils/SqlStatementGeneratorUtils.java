@@ -117,11 +117,11 @@ public final class SqlStatementGeneratorUtils {
             ignoredAsInt = 1;
         }
         String sql = StringUtils.replace(ITEM_INSERT, "#{siteId}", Long.toString(siteId));
-        sql = StringUtils.replace(sql,"#{path}", StringUtils.replace(path, "'", "''"));
+        sql = StringUtils.replace(sql,"#{path}", escapeSingleQuote(path));
         if (StringUtils.isEmpty(previewUrl)) {
             sql = StringUtils.replace(sql, "'#{previewUrl}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql, "#{previewUrl}", StringUtils.replace(previewUrl, "'", "''"));
+            sql = StringUtils.replace(sql, "#{previewUrl}", escapeSingleQuote(previewUrl));
         }
         sql = StringUtils.replace(sql,"#{state}", Long.toString(state));
         sql = StringUtils.replace(sql,"#{lockedBy}", Objects.isNull(lockedBy) ? "NULL" : Long.toString(lockedBy));
@@ -135,19 +135,19 @@ public final class SqlStatementGeneratorUtils {
         } else {
             sql = StringUtils.replace(sql, "#{lastPublishedOn}", sqlTsLastPublished.toString());
         }
-        sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
+        sql = StringUtils.replace(sql,"#{label}", escapeSingleQuote(label));
         if (StringUtils.isEmpty(contentTypeId)) {
             sql = StringUtils.replace(sql,"'#{contentTypeId}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql,"#{contentTypeId}", StringUtils.replace(contentTypeId, "'", "''"));
+            sql = StringUtils.replace(sql,"#{contentTypeId}", escapeSingleQuote(contentTypeId));
         }
-        sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
+        sql = StringUtils.replace(sql,"#{systemType}", escapeSingleQuote(systemType));
         if (StringUtils.isEmpty(mimeType)) {
             sql = StringUtils.replace(sql, "'#{mimeType}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql, "#{mimeType}", StringUtils.replace(mimeType, "'", "''"));
+            sql = StringUtils.replace(sql, "#{mimeType}", escapeSingleQuote(mimeType));
         }
-        sql = StringUtils.replace(sql,"#{localeCode}", StringUtils.replace(localeCode, "'", "''"));
+        sql = StringUtils.replace(sql,"#{localeCode}", escapeSingleQuote(localeCode));
         sql = StringUtils.replace(sql,"#{translationSourceId}", Objects.isNull(translationSourceId) ? "NULL" :
                 Long.toString(translationSourceId));
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
@@ -156,7 +156,7 @@ public final class SqlStatementGeneratorUtils {
         if (StringUtils.isEmpty(previousPath)) {
             sql = StringUtils.replace(sql, "'#{previousPath}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql,"#{previousPath}", StringUtils.replace(previousPath, "'", "''"));
+            sql = StringUtils.replace(sql,"#{previousPath}", escapeSingleQuote(previousPath));
         }
         sql = StringUtils.replace(sql,"#{ignoredAsInt}", Integer.toString(ignoredAsInt));
         return sql;
@@ -173,28 +173,28 @@ public final class SqlStatementGeneratorUtils {
             ignoredAsInt = 1;
         }
         String sql = StringUtils.replace(ITEM_UPDATE, "#{siteId}", Long.toString(siteId));
-        sql = StringUtils.replace(sql,"#{path}", StringUtils.replace(path, "'", "''"));
+        sql = StringUtils.replace(sql,"#{path}", escapeSingleQuote(path));
         if (StringUtils.isEmpty(previewUrl)) {
             sql = StringUtils.replace(sql, "'#{previewUrl}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql, "#{previewUrl}", StringUtils.replace(previewUrl, "'", "''"));
+            sql = StringUtils.replace(sql, "#{previewUrl}", escapeSingleQuote(previewUrl));
         }
         sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(onStatesBitMap));
         sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(offStatesBitMap));
         sql = StringUtils.replace(sql,"#{lastModifiedBy}", Objects.isNull(lastModifiedBy) ? "NULL" :
                 Long.toString(lastModifiedBy));
         sql = StringUtils.replace(sql, "#{lastModifiedOn}", sqlTsLastModified.toString());
-        sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
+        sql = StringUtils.replace(sql,"#{label}", escapeSingleQuote(label));
         if (StringUtils.isEmpty(contentTypeId)) {
             sql = StringUtils.replace(sql,"'#{contentTypeId}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql,"#{contentTypeId}", StringUtils.replace(contentTypeId, "'", "''"));
+            sql = StringUtils.replace(sql,"#{contentTypeId}", escapeSingleQuote(contentTypeId));
         }
-        sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
+        sql = StringUtils.replace(sql,"#{systemType}", escapeSingleQuote(systemType));
         if (StringUtils.isEmpty(mimeType)) {
             sql = StringUtils.replace(sql, "'#{mimeType}'", "NULL");
         } else {
-            sql = StringUtils.replace(sql, "#{mimeType}", StringUtils.replace(mimeType, "'", "''"));
+            sql = StringUtils.replace(sql, "#{mimeType}", escapeSingleQuote(mimeType));
         }
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
         sql = StringUtils.replace(sql,"#{ignoredAsInt}", Integer.toString(ignoredAsInt));
@@ -203,15 +203,15 @@ public final class SqlStatementGeneratorUtils {
 
     public static String deleteItemRow(Long siteId, String path) {
         String sql =  StringUtils.replace(ITEM_DELETE,"#{siteId}", Long.toString(siteId));
-        sql = StringUtils.replace(sql,"#{path}", StringUtils.replace(path, "'", "''"));
+        sql = StringUtils.replace(sql,"#{path}", escapeSingleQuote(path));
         return sql;
     }
 
     public static String moveItemRow(String site, String oldPath, String newPath, long onStatesBitMap,
                                      long offStatesBitMap) {
         String sql =  StringUtils.replace(ITEM_MOVE,"#{site}", StringUtils.replace(site,"'", "''"));
-        sql = StringUtils.replace(sql,"#{oldPath}", StringUtils.replace(oldPath, "'", "''"));
-        sql = StringUtils.replace(sql,"#{newPath}", StringUtils.replace(newPath, "'", "''"));
+        sql = StringUtils.replace(sql,"#{oldPath}", escapeSingleQuote(oldPath));
+        sql = StringUtils.replace(sql,"#{newPath}", escapeSingleQuote(newPath));
         sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(onStatesBitMap));
         sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(offStatesBitMap));
         return sql;
@@ -219,8 +219,8 @@ public final class SqlStatementGeneratorUtils {
 
     public static String updateParentId(long siteId, String itemPath, String parentPath) {
         String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID, "#{siteId}", Long.toString(siteId));
-        sql = StringUtils.replace(sql,"#{itemPath}", StringUtils.replace(itemPath, "'", "''"));
-        sql = StringUtils.replace(sql,"#{parentPath}", StringUtils.replace(parentPath, "'", "''"));
+        sql = StringUtils.replace(sql,"#{itemPath}", escapeSingleQuote(itemPath));
+        sql = StringUtils.replace(sql,"#{parentPath}", escapeSingleQuote(parentPath));
         return sql;
     }
 
@@ -254,23 +254,23 @@ public final class SqlStatementGeneratorUtils {
     }
 
     public static String insertDependencyRow(String siteId, String sourcePath, String targetPath, String type, boolean valid) {
-        String sql = StringUtils.replace(DEPENDENCIES_INSERT, "#{site}", StringUtils.replace(siteId, "'", "''"));
-        sql = StringUtils.replace(sql, "#{sourcePath}", StringUtils.replace(sourcePath, "'", "''"));
+        String sql = StringUtils.replace(DEPENDENCIES_INSERT, "#{site}", escapeSingleQuote(siteId));
+        sql = StringUtils.replace(sql, "#{sourcePath}", escapeSingleQuote(sourcePath));
         sql = StringUtils.replace(sql, "#{targetPath}", StringUtils.replace(targetPath,"'", "''"));
-        sql = StringUtils.replace(sql, "#{type}", StringUtils.replace(type, "'", "''"));
+        sql = StringUtils.replace(sql, "#{type}", escapeSingleQuote(type));
         sql = StringUtils.replace(sql, "#{valid}", valid ? "1" : "0");
         return sql;
     }
 
     public static String deleteDependencySourcePathRows(String siteId, String sourcePath) {
-        String sql = StringUtils.replace(DEPENDENCIES_DELETE_SOURCE, "#{site}", StringUtils.replace(siteId, "'", "''"));
-        sql = StringUtils.replace(sql, "#{path}", StringUtils.replace(sourcePath, "'", "''"));
+        String sql = StringUtils.replace(DEPENDENCIES_DELETE_SOURCE, "#{site}", escapeSingleQuote(siteId));
+        sql = StringUtils.replace(sql, "#{path}", escapeSingleQuote(sourcePath));
         return sql;
     }
 
     public static String deleteDependencyRows(String siteId, String sourcePath) {
-        String sql = StringUtils.replace(DEPENDENCIES_DELETE, "#{site}", StringUtils.replace(siteId, "'", "''"));
-        sql = StringUtils.replace(sql, "#{path}", StringUtils.replace(sourcePath, "'", "''"));
+        String sql = StringUtils.replace(DEPENDENCIES_DELETE, "#{site}", escapeSingleQuote(siteId));
+        sql = StringUtils.replace(sql, "#{path}", escapeSingleQuote(sourcePath));
         return sql;
     }
 
@@ -283,7 +283,7 @@ public final class SqlStatementGeneratorUtils {
      */
     public static String invalidateDependencies(String siteId, String targetPath) {
         String sql = StringUtils.replace(DEPENDENCIES_INVALIDATE, "#{site}", siteId)
-                .replace("#{path}", targetPath);
+                .replace("#{path}", escapeSingleQuote(targetPath));
         return sql;
     }
 
@@ -296,8 +296,12 @@ public final class SqlStatementGeneratorUtils {
      */
     public static String validateDependencies(String siteId, String targetPath) {
         String sql = StringUtils.replace(DEPENDENCIES_VALIDATE, "#{site}", siteId)
-                .replace("#{path}", targetPath);
+                .replace("#{path}", escapeSingleQuote(targetPath));
         return sql;
+    }
+
+    private static String escapeSingleQuote(final String value) {
+        return StringUtils.replace(value, "'", "''");
     }
 
     private SqlStatementGeneratorUtils() {}

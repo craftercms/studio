@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -111,20 +111,20 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         int total = itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword, systemTypes,
-                excludes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR));
+                List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), parentFolderPath,
                 CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
-        toRet.setLevelDescriptor(getLevelDescriptor(siteFeed, path, locale));
+        toRet.setLevelDescriptor(getLevelDescriptor(siteFeed, path, locale, keyword));
         toRet.setOffset(offset);
         toRet.setLimit(limit);
         toRet.setTotal(total);
         return toRet;
     }
 
-    private SandboxItem getLevelDescriptor(SiteFeed siteFeed, String path, String locale) throws UserNotFoundException, ServiceLayerException {
+    private SandboxItem getLevelDescriptor(final SiteFeed siteFeed, final String path, final String locale, final String keyword) throws UserNotFoundException, ServiceLayerException {
         List<Item> sandboxItemsByPath = itemDao.getChildrenByPath(siteFeed.getId(), path,
-                CONTENT_TYPE_FOLDER, locale, null, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
+                CONTENT_TYPE_FOLDER, locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
         if (isEmpty(sandboxItemsByPath)) {
             return null;
         }
@@ -318,12 +318,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException {
+    public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
         try {
             List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
             for (ItemVersion itemVersion : history) {
                 if (itemVersion.getVersionNumber() != null) {
-                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber()));
+                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber(), path));
                 }
             }
             return history;

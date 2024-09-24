@@ -30,13 +30,14 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
@@ -48,7 +49,6 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
@@ -120,12 +120,11 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     private List<CacheInvalidator<String, Object>> cacheInvalidators;
     private ContextManager contextManager;
     private ApplicationEventPublisher applicationEventPublisher;
-    private GeneralLockService generalLockService;
 
     @Override
-    public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
+    public Map<NormalizedGroup, List<NormalizedRole>> getRoleMappings(String siteId) throws ServiceLayerException {
         // TODO: Refactor this to use Apache's Commons Configuration
-        Map<String, List<String>> roleMappings = new HashMap<>();
+        Map<NormalizedGroup, List<NormalizedRole>> roleMappings = new HashMap<>();
         String roleMappingsConfigPath = getSiteRoleMappingsConfigFileName();
         Document document;
 
@@ -137,16 +136,16 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
                     List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
                     for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
-                        if (isNotEmpty(name)) {
+                        String groupName = node.valueOf(DOCUMENT_ATTR_NAME);
+                        if (isNotEmpty(groupName)) {
                             List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                            List<String> roles = new ArrayList<>();
+                            List<NormalizedRole> roles = new ArrayList<>();
 
                             for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText());
+                                roles.add(new NormalizedRole(roleNode.getText()));
                             }
 
-                            roleMappings.put(name, roles);
+                            roleMappings.put(new NormalizedGroup(groupName), roles);
                         }
                     }
                 }
@@ -161,9 +160,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
     }
 
     @Override
-    public Map<String, List<String>> getGlobalRoleMappings() throws ServiceLayerException {
+    public Map<NormalizedGroup, List<NormalizedRole>> getGlobalRoleMappings() throws ServiceLayerException {
         // TODO: Refactor this to use Apache's Commons Configuration
-        Map<String, List<String>> roleMappings = new HashMap<>();
+        Map<NormalizedGroup, List<NormalizedRole>> roleMappings = new HashMap<>();
         String globalRoleMappingsConfigPath = getGlobalConfigRoot() + FILE_SEPARATOR + getGlobalRoleMappingsFileName();
         Document document;
 
@@ -175,16 +174,16 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
                     List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
                     for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
-                        if (isNotEmpty(name)) {
+                        String groupName = node.valueOf(DOCUMENT_ATTR_NAME);
+                        if (isNotEmpty(groupName)) {
                             List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                            List<String> roles = new ArrayList<>();
+                            List<NormalizedRole> roles = new ArrayList<>();
 
                             for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText());
+                                roles.add(new NormalizedRole(roleNode.getText()));
                             }
 
-                            roleMappings.put(name, roles);
+                            roleMappings.put(new NormalizedGroup(groupName), roles);
                         }
                     }
                 }
@@ -395,17 +394,11 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
                                    String environment,
                                    InputStream content)
             throws ServiceLayerException, UserNotFoundException {
-        String syncFromRepoLockKey = StudioUtils.getSyncFromRepoLockKey(siteId);
-        generalLockService.lock(syncFromRepoLockKey);
-        try {
-            writeEnvironmentConfiguration(siteId, module, path, environment, content);
-            invalidateConfiguration(siteId, module, path, environment);
-            applicationEventPublisher.publishEvent(
-                    new ConfigurationEvent(securityService.getAuthentication(), siteId,
-                            getConfigurationPath(siteId, module, path, environment)));
-        } finally {
-            generalLockService.unlock(syncFromRepoLockKey);
-        }
+        writeEnvironmentConfiguration(siteId, module, path, environment, content);
+        invalidateConfiguration(siteId, module, path, environment);
+        applicationEventPublisher.publishEvent(
+                new ConfigurationEvent(securityService.getAuthentication(), siteId,
+                        getConfigurationPath(siteId, module, path, environment)));
     }
 
     public String getCacheKey(String siteId, String module, String path, String environment, String suffix) {
@@ -893,9 +886,5 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
     public void setContextManager(ContextManager contextManager) {
         this.contextManager = contextManager;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
     }
 }

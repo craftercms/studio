@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -37,10 +37,13 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
@@ -85,6 +88,7 @@ public class UserServiceImpl implements UserService {
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
+    private AccessTokenServiceInternal accessTokenServiceInternal;
     private InstanceService instanceService;
     private TextEncryptor encryptor;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
@@ -227,6 +231,9 @@ public class UserServiceImpl implements UserService {
                 });
             });
 
+            logger.debug("Remove all tokens for deleted users '{}", toDelete);
+            accessTokenServiceInternal.deleteUsersTokens(toDelete.stream().map(User::getId).toList());
+
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
@@ -324,7 +331,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-    public List<String> getUserSiteRoles(long userId, String username, String site)
+    public List<NormalizedRole> getUserSiteRoles(long userId, String username, String site)
             throws ServiceLayerException, UserNotFoundException {
         List<Group> groups = userServiceInternal.getUserGroups(userId, username);
 
@@ -332,8 +339,8 @@ public class UserServiceImpl implements UserService {
             return Collections.emptyList();
         }
 
-        Map<String, List<String>> roleMappings = configurationService.getRoleMappings(site);
-        Set<String> userRoles = new LinkedHashSet<>();
+        Map<NormalizedGroup, List<NormalizedRole>> roleMappings = configurationService.getRoleMappings(site);
+        Set<NormalizedRole> userRoles = new LinkedHashSet<>();
 
         if (MapUtils.isEmpty(roleMappings)) {
             return Collections.emptyList();
@@ -341,14 +348,13 @@ public class UserServiceImpl implements UserService {
 
         if (securityService.isSystemAdmin(username)) {
             // If system_admin, return all roles
-            Collection<List<String>> roleSets = roleMappings.values();
-            for (List<String> roleSet : roleSets) {
+            Collection<List<NormalizedRole>> roleSets = roleMappings.values();
+            for (List<NormalizedRole> roleSet : roleSets) {
                 userRoles.addAll(roleSet);
             }
         } else {
             for (Group group : groups) {
-                String groupName = group.getGroupName();
-                List<String> roles = roleMappings.get(groupName);
+                List<NormalizedRole> roles = roleMappings.get(new NormalizedGroup(group.getGroupName()));
                 if (CollectionUtils.isNotEmpty(roles)) {
                     userRoles.addAll(roles);
                 }
@@ -383,7 +389,10 @@ public class UserServiceImpl implements UserService {
         var authentication = securityService.getAuthentication();
         if (authentication != null) {
             try {
-                return getUserSiteRoles(-1, authentication.getName(), site);
+                return getUserSiteRoles(-1, authentication.getName(), site)
+                        .stream()
+                        .map(NormalizedRole::toString)
+                        .toList();
             } catch (UserNotFoundException e) {
                 // Shouldn't happen
                 throw new IllegalStateException(e);
@@ -564,7 +573,7 @@ public class UserServiceImpl implements UserService {
     public List<String> getCurrentUserSitePermissions(String site)
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         String currentUser = securityService.getCurrentUser();
-        List<String> roles = getUserSiteRoles(-1, currentUser, site);
+        List<NormalizedRole> roles = getUserSiteRoles(-1, currentUser, site);
         return securityServiceV2.getUserPermission(site, currentUser, roles);
     }
 
@@ -580,7 +589,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
         String currentUser = securityService.getCurrentUser();
-        List<String> roles = securityService.getUserGlobalRoles(-1, currentUser);
+        List<NormalizedRole> roles = securityService.getUserGlobalRoles(-1, currentUser);
         return securityServiceV2.getUserPermission(StringUtils.EMPTY, currentUser, roles);
     }
 
@@ -641,6 +650,10 @@ public class UserServiceImpl implements UserService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setAccessTokenServiceInternal(AccessTokenServiceInternal accessTokenServiceInternal) {
+        this.accessTokenServiceInternal = accessTokenServiceInternal;
     }
 
     public void setInstanceService(InstanceService instanceService) {
