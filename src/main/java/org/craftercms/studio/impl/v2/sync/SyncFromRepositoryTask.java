@@ -97,6 +97,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final ContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
     private final ProcessedCommitsDAO processedCommitsDAO;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
@@ -105,14 +106,14 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService",
             "contentRepository", "studioConfiguration",
-            "processedCommitsDAO"})
+            "processedCommitsDAO", "retryingDatabaseOperationFacade"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
                                   StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
                                   ContentRepository contentRepository, StudioConfiguration studioConfiguration,
-                                  ProcessedCommitsDAO processedCommitsDAO) {
+                                  ProcessedCommitsDAO processedCommitsDAO, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -125,6 +126,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
         this.processedCommitsDAO = processedCommitsDAO;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
     @Async
@@ -188,7 +190,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 updateLastCommitId(siteId, lastUnprocessedCommit);
             }
             logger.debug("Removing processed_commits records for site '{}' previous to commit '{}'", siteId, lastCommitInRepo);
-            processedCommitsDAO.deleteBefore(site.getId(), lastCommitInRepo);
+            retryingDatabaseOperationFacade.retry(() -> processedCommitsDAO.deleteBefore(site.getId(), lastCommitInRepo));
             logger.debug("Site '{}' is now synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
         } catch (UserNotFoundException | GitAPIException | IOException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
@@ -216,7 +218,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
         syncDatabaseWithRepo(site, operationsFromDelta.stream().sorted(comparing(RepoOperation::getAction)).toList());
         auditChangesFromGit(site, commitFrom, commitTo);
-        processedCommitsDAO.insertCommit(site.getId(), commitTo);
+        retryingDatabaseOperationFacade.retry(() -> processedCommitsDAO.insertCommit(site.getId(), commitTo));
 
         // Sync all preview deployers
         try {
