@@ -607,6 +607,8 @@ pipelines:
         nextVersion: 4.2-t
       - currentVersion: 4.1.13
         nextVersion: 4.2-t
+      - currentVersion: 4.1.14
+        nextVersion: 4.2-t
       - currentVersion: 4.2-t
         nextVersion: 4.2.0
         operations:
