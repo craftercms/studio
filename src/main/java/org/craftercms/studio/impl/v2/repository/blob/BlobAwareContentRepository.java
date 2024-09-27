@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -706,17 +707,10 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     @LogExecutionTime
-    public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        Map<String, String> changeSet = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
-        Map<String, String> newChangeSet = new TreeMap<>();
-
-        changeSet.forEach((key, value) -> {
-            String newKey = getOriginalPath(key);
-            String newValue = getOriginalPath(value);
-            newChangeSet.put(newKey, newValue);
-        });
-
-        return newChangeSet;
+    public void forAllSitePaths(String siteId,
+                                ThrowingConsumer<String> directoryProcessor,
+                                ThrowingConsumer<String> fileProcessor) throws Exception {
+        localRepositoryV2.forAllSitePaths(siteId, directoryProcessor, f -> fileProcessor.acceptWithException(getOriginalPath(f)));
     }
 
     @Override

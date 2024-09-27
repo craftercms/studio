@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -304,6 +304,11 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             throw new ServiceLayerException(format("Failed to validate dependencies for site '%s' path '%s'",
                     siteId, targetPath), e);
         }
+    }
+
+    @Override
+    public void validateDependencies(final String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForSite(siteId));
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
