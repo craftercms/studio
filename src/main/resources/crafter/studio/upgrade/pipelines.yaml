@@ -689,6 +689,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file content write path validator
+      - currentVersion: 4.2.0.12
+        nextVersion: 4.2.0.13
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.12-to-4.2.0.13.sql
 
   # Pipeline to upgrade site repositories
   site:
