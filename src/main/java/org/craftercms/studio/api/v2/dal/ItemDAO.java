@@ -98,24 +98,6 @@ public interface ItemDAO {
     void upsertEntry(Item item);
 
     /**
-     * Get item by id
-     *
-     * @param id item id
-     * @param siteId site identifier
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
-     * @param stagingEnvironment staging environment
-     * @return item identified by given id
-     */
-    DetailedItem getItemById(@Param(ID) long id,
-                             @Param(SITE_ID) String siteId,
-                             @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                             @Param(COMPLETED_STATE) String completedState,
-                             @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                             @Param(LIVE_ENVIRONMENT) String liveEnvironment);
-
-    /**
      * Get item for given site and path
      * @param siteId site identifier
      * @param path path of the item
