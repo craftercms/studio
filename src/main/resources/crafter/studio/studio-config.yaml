@@ -500,6 +500,8 @@ studio.preview.templateName: local
 studio.preview.replace: false
 # Disable deploy cron job for preview target
 studio.preview.disableDeployCron: true
+# Response timeout in seconds for deployer http requests
+studio.deployer.request.timeoutSeconds: 300
 
 # Replace existing configuration if one exists?
 studio.authoring.replace: false

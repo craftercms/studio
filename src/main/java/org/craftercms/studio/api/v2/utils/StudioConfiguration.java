@@ -224,6 +224,9 @@ public interface StudioConfiguration {
     String AUTHORING_DISABLE_DEPLOY_CRON = "studio.authoring.disableDeployCron";
     String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
 
+    /** Deployer HTTP requests **/
+    String DEPLOYER_RESPONSE_TIMEOUT = "studio.deployer.request.timeoutSeconds";
+
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
 

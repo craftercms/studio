@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.deployment;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.web.client.RestClientException;
 
@@ -34,8 +35,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
  */
 public class ServerlessDeliveryDeployer extends AbstractDeployer {
 
-    public ServerlessDeliveryDeployer(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
+    public ServerlessDeliveryDeployer(final StudioConfiguration studioConfiguration, final RestTemplate restTemplate) {
+        super(studioConfiguration, restTemplate);
     }
 
     @Override
