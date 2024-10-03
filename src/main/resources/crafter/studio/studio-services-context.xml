@@ -471,6 +471,7 @@
         <constructor-arg name="deployer" ref="allDeployers" />
         <constructor-arg name="configurationService" ref="configurationService" />
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
