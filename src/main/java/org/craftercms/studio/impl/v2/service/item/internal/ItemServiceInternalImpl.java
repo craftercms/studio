@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,8 +22,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -39,12 +37,14 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
@@ -56,7 +56,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public final static String LOCALE_CODE = "/*[1]/locale-code";
 
     private UserServiceInternal userServiceInternal;
-    private SiteFeedMapper siteFeedMapper;
+    private SiteDAO siteDao;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private ContentServiceInternal contentServiceInternal;
@@ -84,20 +84,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Item getItem(String siteId, String path, boolean preferContent) {
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        if (Objects.isNull(siteFeed)) {
+        Site site = siteDao.getSite(siteId);
+        if (Objects.isNull(site)) {
             return null;
         }
         DetailedItem item;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER,
+            item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, CONTENT_TYPE_FOLDER,
                     COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+            item = itemDao.getItemBySiteIdAndPath(site.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
                     stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
@@ -113,18 +111,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public List<Item> getItems(String siteId, List<String> paths, boolean preferContent) {
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER, preferContent);
+        Site site = siteDao.getSite(siteId);
+        return itemDao.getSandboxItemsByPath(site.getId(), paths, CONTENT_TYPE_FOLDER, preferContent);
     }
 
     @Override
     public void deleteItem(String siteId, String path) {
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteFeed.getId(), path));
+        Site site = siteDao.getSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(site.getId(), path));
     }
 
     @Override
@@ -150,19 +144,15 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     private void setStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            Map<String, String> params = new HashMap<>();
-            params.put(SITE_ID, siteId);
-            SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.retry(() -> itemDao.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap));
+            Site site = siteDao.getSite(siteId);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.setStatesBySiteAndPathBulk(site.getId(), paths, statesBitMap));
         }
     }
 
     private void resetStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            Map<String, String> params = new HashMap<>();
-            params.put(SITE_ID, siteId);
-            SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.retry(() -> itemDao.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap));
+            Site site = siteDao.getSite(siteId);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.resetStatesBySiteAndPathBulk(site.getId(), paths, statesBitMap));
         }
     }
 
@@ -181,10 +171,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
                                                long offStateBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            Map<String, String> params = new HashMap<>();
-            params.put(SITE_ID, siteId);
-            SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths,
+            Site site = siteDao.getSite(siteId);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(site.getId(), paths,
                     onStateBitMap, offStateBitMap));
         }
     }
@@ -194,10 +182,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Item item = getItem(siteName, path);
         if (Objects.isNull(item)) {
             item = new Item();
-            Map<String, String> params = new HashMap<>();
-            params.put(SITE_ID, siteName);
-            SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            item.setSiteId(siteFeed.getId());
+            Site site = siteDao.getSite(siteName);
+            item.setSiteId(site.getId());
             item.setSiteName(siteName);
             item.setPath(path);
             item.setState(NEW.value);
@@ -482,8 +468,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
             long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 
-            SiteFeed siteFeed = siteFeedMapper.getSite(Collections.singletonMap(SITE_ID, siteId));
-            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, setStatesMask,
+            Site site = siteDao.getSite(siteId);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(site.getId(), paths, setStatesMask,
                     resetStatesMask));
         }
     }
@@ -547,10 +533,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap) {
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesForSite(siteFeed.getId(), onStateBitMap, offStateBitMap));
+        Site site = siteDao.getSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesForSite(site.getId(), onStateBitMap, offStateBitMap));
     }
 
     @Override
@@ -558,12 +542,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateNewPageChildren(siteId, folderPath));
     }
 
+    @Override
+    public void updateParentId(final String siteId) {
+        Site site = siteDao.getSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(site.getId()));
+    }
+
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
+    public void setSiteDao(final SiteDAO siteDao) {
+        this.siteDao = siteDao;
     }
 
     public void setItemDao(ItemDAO itemDao) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -489,4 +489,11 @@ public interface ItemDAO {
      * @param folderPath path of the folder
      */
     void updateNewPageChildren(@Param(SITE_ID) String siteId, @Param(PATH) String folderPath);
+
+    /**
+     * Recalculate the parent id for all the items in the site
+     *
+     * @param siteId the site id
+     */
+    void updateParentId(@Param(SITE_ID) long siteId);
 }

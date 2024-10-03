@@ -148,7 +148,7 @@ public abstract class AbstractDeployer implements Deployer {
      * @param localRepoPath     the local path to clone the repository. // TODO: this is used for serverless only, should this be a deployer config instead?)
      * @param repoUrl           the repository URL
      * @param additionalParams  additional parameters to pass to the deployer to be consumed by the target template
-     * @return a {@link Map} containing the parameters, preserving the hieraarchical structure of the configuration parameters
+     * @return a {@link Map} containing the parameters, preserving the hierarchical structure of the configuration parameters
      */
     protected Map<String, Object> getDuplicateTargetRequestBody(String sourceSite, String site, String environment,
                                                                 String template, boolean replace, boolean disableDeployCron,

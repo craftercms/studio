@@ -618,7 +618,7 @@
 
     <bean id="itemServiceInternal"
           class="org.craftercms.studio.impl.v2.service.item.internal.ItemServiceInternalImpl">
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="siteDao" ref="siteDao" />
         <property name="itemDao" ref="itemDao" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />

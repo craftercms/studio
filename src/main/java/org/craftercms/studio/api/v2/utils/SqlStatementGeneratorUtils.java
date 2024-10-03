@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -62,13 +62,6 @@ public final class SqlStatementGeneratorUtils {
             "UPDATE item SET path = REPLACE(path, '#{oldPath}', '#{newPath}'), locked_by = null," +
                     " state = (state | #{onStatesBitMap}) & ~#{offStatesBitMap}" +
                     " WHERE site_id = #{siteId} AND (path = '#{oldPath}' OR path LIKE '#{oldPath}/%') ;";
-
-    public static final String ITEM_UPDATE_PARENT_ID =
-            "SELECT id, @itemId := id, path FROM item WHERE site_id = #{siteId} AND path = '#{itemPath}' ;\n\n" +
-                    "SELECT id , @parentId := id, path FROM item WHERE site_id = #{siteId} AND (path = " +
-                    "'#{parentPath}/index.xml' or path = '#{parentPath}') ORDER BY PATH desc LIMIT 1 ;\n\n" +
-                    "UPDATE item SET parent_id = @parentId WHERE id = @itemId ;\n\nSET @itemId = NULL ;\n\n" +
-                    "SET @parentId = NULL ;" ;
 
     public static final String UPDATE_NEW_PAGE_CHILDREN = "UPDATE item, " +
             "(SELECT child.id AS childId, " +
@@ -214,13 +207,6 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{newPath}", escapeSingleQuote(newPath));
         sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(onStatesBitMap));
         sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(offStatesBitMap));
-        return sql;
-    }
-
-    public static String updateParentId(long siteId, String itemPath, String parentPath) {
-        String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID, "#{siteId}", Long.toString(siteId));
-        sql = StringUtils.replace(sql,"#{itemPath}", escapeSingleQuote(itemPath));
-        sql = StringUtils.replace(sql,"#{parentPath}", escapeSingleQuote(parentPath));
         return sql;
     }
 
