@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
+import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
@@ -393,6 +394,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             logger.debug("Mark the site '{}' as DELETING", siteId);
             insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
             retryingDatabaseOperationFacade.retry(() -> siteDao.startSiteDelete(siteId));
+            applicationContext.publishEvent(new SiteDeletingEvent(siteId, site.getSiteUuid()));
         }, "Failed to start the site '%s' deletion", siteId, exceptions);
 
         try {

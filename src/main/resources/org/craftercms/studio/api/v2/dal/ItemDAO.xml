@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -1276,5 +1276,9 @@
             ) AS updates
         SET item.parent_id = updates.newParentId
         WHERE item.id = updates.childId
+    </update>
+
+    <update id="updateParentId" statementType="CALLABLE">
+        {CALL populateItemParentId(#{siteId, mode=IN, jdbcType=BIGINT})}
     </update>
 </mapper>

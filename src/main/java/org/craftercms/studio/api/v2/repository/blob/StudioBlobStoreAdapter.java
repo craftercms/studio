@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General default License version 3 as published by
@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.core.io.Resource;
+import org.springframework.util.function.ThrowingConsumer;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -269,8 +270,9 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        // This should be handled by the local repository
+    default void forAllSitePaths(String siteId,
+                                 ThrowingConsumer<String> directoryProcessor,
+                                 ThrowingConsumer<String> fileProcessor) {
         throw new UnsupportedOperationException();
     }
 

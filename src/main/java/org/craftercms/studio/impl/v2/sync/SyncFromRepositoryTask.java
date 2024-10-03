@@ -56,6 +56,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -82,7 +83,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
     private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
     private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
-    private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 
@@ -97,6 +97,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private final ContentRepository contentRepository;
     private final StudioConfiguration studioConfiguration;
     private final ProcessedCommitsDAO processedCommitsDAO;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private ApplicationEventPublisher eventPublisher;
 
     @ConstructorProperties({"sitesService", "generalLockService",
@@ -105,14 +106,14 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService",
             "contentRepository", "studioConfiguration",
-            "processedCommitsDAO"})
+            "processedCommitsDAO", "retryingDatabaseOperationFacade"})
     public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
                                   AuditServiceInternal auditServiceInternal,
                                   StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
                                   UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
                                   ContentService contentService, ConfigurationService configurationService,
                                   ContentRepository contentRepository, StudioConfiguration studioConfiguration,
-                                  ProcessedCommitsDAO processedCommitsDAO) {
+                                  ProcessedCommitsDAO processedCommitsDAO, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
@@ -125,6 +126,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
         this.processedCommitsDAO = processedCommitsDAO;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
     @Async
@@ -188,9 +190,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 updateLastCommitId(siteId, lastUnprocessedCommit);
             }
             logger.debug("Removing processed_commits records for site '{}' previous to commit '{}'", siteId, lastCommitInRepo);
-            processedCommitsDAO.deleteBefore(site.getId(), lastCommitInRepo);
+            retryingDatabaseOperationFacade.retry(() -> processedCommitsDAO.deleteBefore(site.getId(), lastCommitInRepo));
             logger.debug("Site '{}' is now synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
-        } catch (UserNotFoundException | GitAPIException | IOException e) {
+        } catch (UserNotFoundException | GitAPIException | IOException | SQLException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
             generalLockService.unlock(syncFromRepoLockKey, sandboxRepoLockKey);
@@ -212,11 +214,12 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      * @throws UserNotFoundException if a user cannot be found for any of the operations.
      * @throws ServiceLayerException if an error occurs while updating the database.
      */
-    private void ingestChanges(final Site site, final String commitFrom, final String commitTo) throws IOException, GitAPIException, UserNotFoundException, ServiceLayerException {
+    private void ingestChanges(final Site site, final String commitFrom, final String commitTo)
+            throws IOException, GitAPIException, UserNotFoundException, ServiceLayerException, SQLException {
         List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
         syncDatabaseWithRepo(site, operationsFromDelta.stream().sorted(comparing(RepoOperation::getAction)).toList());
         auditChangesFromGit(site, commitFrom, commitTo);
-        processedCommitsDAO.insertCommit(site.getId(), commitTo);
+        retryingDatabaseOperationFacade.retry(() -> processedCommitsDAO.insertCommit(site.getId(), commitTo));
 
         // Sync all preview deployers
         try {
@@ -272,31 +275,24 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      * @param site                The site being synced
      * @param repoOperationsDelta The repo operations to apply
      */
-    private void syncDatabaseWithRepo(Site site, List<RepoOperation> repoOperationsDelta) throws IOException, UserNotFoundException, ServiceLayerException {
+    private void syncDatabaseWithRepo(Site site, List<RepoOperation> repoOperationsDelta)
+            throws IOException, UserNotFoundException, ServiceLayerException, SQLException {
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         Path repoOperationsScriptPath = null;
-        Path updateParentIdScriptPath = null;
         try {
             Path studioTempDir = getStudioTemporaryFilesRoot();
             String repoOperationsScriptFilename = REPO_OPERATIONS_SCRIPT_PREFIX + UUID.randomUUID();
             repoOperationsScriptPath = Files.createTempFile(studioTempDir, repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
-            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
-            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
-            processRepoOperations(site, repoOperationsDelta, repoOperationsScriptPath,
-                    updateParentIdScriptPath);
-            studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
-            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-        } catch (IOException e) {
+            processRepoOperations(site, repoOperationsDelta, repoOperationsScriptPath);
+            studioDBScriptRunner.execute(repoOperationsScriptPath);
+            itemServiceInternal.updateParentId(site.getSiteId());
+        } catch (SQLException | IOException e) {
             logger.error("Failed to create the database script for processing the created files in site '{}'", site);
             throw e;
         } finally {
             if (repoOperationsScriptPath != null) {
                 logger.debug("Deleting temporary file '{}'", repoOperationsScriptPath);
                 FileUtils.deleteQuietly(repoOperationsScriptPath.toFile());
-            }
-            if (updateParentIdScriptPath != null) {
-                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
-                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
             }
         }
     }
@@ -342,20 +338,19 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      * @param site                     The site being synced
      * @param repoOperations           The repo operations to apply
      * @param repoOperationsScriptPath The path to the generated database script
-     * @param updateParentIdScriptPath The path to the generated database script
      * @throws IOException if an error occurs while generating the database script
      */
     private void processRepoOperations(Site site, List<RepoOperation> repoOperations,
-                                       Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException, UserNotFoundException, ServiceLayerException {
+                                       Path repoOperationsScriptPath) throws IOException, UserNotFoundException, ServiceLayerException {
         Map<String, User> cachedUsers = new HashMap<>();
         for (RepoOperation repoOperation : repoOperations) {
             User user = getRepoOperationUser(repoOperation.getAuthor(), cachedUsers);
             switch (repoOperation.getAction()) {
                 case CREATE, COPY ->
-                        processCreate(site, repoOperation, user, repoOperationsScriptPath, updateParentIdScriptPath);
+                        processCreate(site, repoOperation, user, repoOperationsScriptPath);
                 case UPDATE -> processUpdate(site, repoOperation, user, repoOperationsScriptPath);
                 case DELETE -> processDelete(site, repoOperation, repoOperationsScriptPath);
-                case MOVE -> processMove(site, repoOperation, user, repoOperationsScriptPath, updateParentIdScriptPath);
+                case MOVE -> processMove(site, repoOperation, user, repoOperationsScriptPath);
                 default -> logger.error("Failed to process unknown repo operation '{}' in site '{}'",
                         site.getSiteId(), repoOperation.getAction());
             }
@@ -400,7 +395,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     }
 
     private void processCreate(Site site, RepoOperation repoOperation, User user,
-                               Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException, ServiceLayerException {
+                               Path repoOperationsScriptPath) throws IOException, ServiceLayerException {
 
         ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
         processAncestors(site.getId(), repoOperation.getPath(), user.getId(),
@@ -410,10 +405,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             state = state | DISABLED.value;
         }
 
-        if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
-            addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getPath(),
-                    updateParentIdScriptPath);
-        } else {
+        if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
             Files.write(repoOperationsScriptPath, insertItemRow(site.getId(),
                     repoOperation.getPath(), metadata.previewUrl, state, null, user.getId(),
                     repoOperation.getDateTime(), user.getId(), repoOperation.getDateTime(),
@@ -426,8 +418,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             logger.debug("Extract dependencies from site '{}' path '{}'",
                     site.getSiteId(), repoOperation.getPath());
-            addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getPath(),
-                    updateParentIdScriptPath);
             DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
                     repoOperationsScriptPath, dependencyServiceInternal);
         }
@@ -461,7 +451,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     }
 
     private void processMove(Site site, RepoOperation repoOperation, User user,
-                             Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException, ServiceLayerException {
+                             Path repoOperationsScriptPath) throws IOException, ServiceLayerException {
 
         ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
         processAncestors(site.getId(), repoOperation.getMoveToPath(), user.getId(),
@@ -473,11 +463,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         } else {
             offStateBitmap = offStateBitmap | DISABLED.value;
         }
-        if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) ||
-                ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
-            addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getMoveToPath(),
-                    updateParentIdScriptPath);
-        } else {
+        if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) &&
+                !ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
             Files.write(repoOperationsScriptPath, moveItemRow(site.getSiteId(), repoOperation.getPath(),
                             repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
@@ -490,7 +477,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()))
                     .getBytes(UTF_8), StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-            addUpdateParentIdScriptSnippets(site.getId(), repoOperation.getMoveToPath(), updateParentIdScriptPath);
             DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getMoveToPath(),
                     repoOperation.getPath(), repoOperationsScriptPath, dependencyServiceInternal);
         }
@@ -560,36 +546,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             }
         }
-    }
-
-    /**
-     * Adds a path to the 'update parent id' script.
-     * It will also add the parent paths recursively.
-     * TODO: JM: try to remove recursion
-     *
-     * @param siteId                   the site id
-     * @param path                     the path
-     * @param updateParentIdScriptPath the update parent id script path
-     * @throws IOException if an error occurs while updating the script
-     */
-    private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
-        String parentPath = FilenameUtils.getPrefix(path) +
-                FilenameUtils.getPathNoEndSeparator(replace(path, SLASH_INDEX_FILE, ""));
-        if (isEmpty(parentPath) || StringUtils.equals(parentPath, path)) {
-            return;
-        }
-        addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-        if (endsWith(path, SLASH_INDEX_FILE)) {
-            addUpdateParentIdScriptSnippets(siteId, replace(path,
-                    "/index.xml", ""), updateParentIdScriptPath);
-            if (startsWith(path, ROOT_PATTERN_PAGES)) {
-                Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
-                        StandardOpenOption.APPEND);
-            }
-        }
-        Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
-                StandardOpenOption.APPEND);
-        Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
     }
 
     @Override
