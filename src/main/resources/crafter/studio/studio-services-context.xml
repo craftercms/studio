@@ -34,6 +34,9 @@
     <aop:aspectj-autoproxy proxy-target-class="true"/>
     <task:annotation-driven executor="studioTaskExecutor" />
 
+    <!-- Deployer configurations -->
+    <bean class="org.craftercms.studio.config.DeployerConfig"/>
+
     <bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
@@ -1164,12 +1167,17 @@
     <!-- ////////////////////////////////////// -->
     <!--          Crafter Deployers             -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+    <bean id="abstractDeployer" class="org.craftercms.studio.impl.v2.deployment.AbstractDeployer" abstract="true">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="restTemplate" ref="deployerRestTemplate"/>
     </bean>
 
-    <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer"
+          parent="abstractDeployer">
+    </bean>
+
+    <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer"
+          parent="abstractDeployer">
     </bean>
 
     <bean id="allDeployers" class="org.craftercms.studio.impl.v2.deployment.CompositeDeployer">

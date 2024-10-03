@@ -58,13 +58,11 @@ public abstract class AbstractDeployer implements Deployer {
 
     private final static Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
-
-    protected RestTemplate restTemplate;
+    protected final RestTemplate restTemplate;
     protected final StudioConfiguration studioConfiguration;
 
-    public AbstractDeployer(final StudioConfiguration studioConfiguration) {
-        restTemplate = new RestTemplate(Map.class);
-        restTemplate.afterPropertiesSet();
+    public AbstractDeployer(final StudioConfiguration studioConfiguration, final RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
         this.studioConfiguration = studioConfiguration;
     }
 
