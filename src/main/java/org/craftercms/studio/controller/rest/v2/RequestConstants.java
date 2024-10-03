@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -55,6 +55,7 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
     public static final String REQUEST_PARAM_ITEM_TYPE = "itemType";
+    public static final String REQUEST_PARAM_S3_MAX_KEYS= "maxKeys";
 
     public static final String GROUP_SORT_COLUMNS = "id record_last_updated group_name externally_managed";
 
