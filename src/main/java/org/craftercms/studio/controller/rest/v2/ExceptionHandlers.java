@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
@@ -563,13 +562,6 @@ public class ExceptionHandlers {
         var responseBody = new ResponseBody();
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    @ExceptionHandler(ContentAlreadyUnlockedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleException(HttpServletRequest request, ContentAlreadyUnlockedException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_UNLOCKED);
-        return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(ContentExistException.class)
