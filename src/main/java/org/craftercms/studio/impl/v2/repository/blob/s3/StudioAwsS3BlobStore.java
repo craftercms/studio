@@ -501,14 +501,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
         logger.debug("Perform initial publish for site '{}' to target 'live'", siteId);
         copyFolder(previewMapping.target, previewMapping.prefix, liveMapping.target, liveMapping.prefix,
-                MIN_PART_SIZE, getClient());
+                MIN_PART_SIZE, this::getClient);
 
         if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             Mapping statingMapping = getMapping(servicesConfig.getStagingEnvironment(siteId));
 
             logger.debug("Perform initial publish for site '{}' to target 'staging'", siteId);
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
-                    MIN_PART_SIZE, getClient());
+                    MIN_PART_SIZE, this::getClient);
         }
     }
 

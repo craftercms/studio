@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.removeStart;
@@ -125,17 +126,17 @@ public abstract class AwsUtils {
     }
 
     public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
-                                  int partSize, S3Client client) {
+                                  int partSize, Supplier<S3Client> clientSupplier) {
         logger.debug("Copy all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
         ListObjectsV2Request request = ListObjectsV2Request.builder()
                 .bucket(sourceBucket)
                 .prefix(sourcePrefix)
                 .build();
-        ListObjectsV2Iterable response = client.listObjectsV2Paginator(request);
+        ListObjectsV2Iterable response = clientSupplier.get().listObjectsV2Paginator(request);
         for (S3Object object : response.contents()) {
             String relativePrefix = removeStart(object.key(), sourcePrefix);
             String newKey = removeStart(UrlUtils.concat(destPrefix, relativePrefix), "/");
-            copyFile(sourceBucket, object.key(), destBucket, newKey, partSize, client);
+            copyFile(sourceBucket, object.key(), destBucket, newKey, partSize, clientSupplier.get());
         }
         logger.debug("Completed copy from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
     }
