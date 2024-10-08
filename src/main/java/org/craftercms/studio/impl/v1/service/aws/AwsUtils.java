@@ -136,19 +136,19 @@ public abstract class AwsUtils {
         for (S3Object object : response.contents()) {
             String relativePrefix = removeStart(object.key(), sourcePrefix);
             String newKey = removeStart(UrlUtils.concat(destPrefix, relativePrefix), "/");
-            copyFile(sourceBucket, object.key(), destBucket, newKey, partSize, clientSupplier.get());
+            copyFile(sourceBucket, object.key(), destBucket, newKey, partSize, clientSupplier);
         }
         logger.debug("Completed copy from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
     }
 
     public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
-                                int partSize, S3Client client) {
+                                int partSize, Supplier<S3Client> clientSupplier) {
         logger.debug("Copy file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
         HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
                 .bucket(sourceBucket)
                 .key(sourceKey)
                 .build();
-        HeadObjectResponse headObjectResponse = client.headObject(headObjectRequest);
+        HeadObjectResponse headObjectResponse = clientSupplier.get().headObject(headObjectRequest);
         long objectSize = headObjectResponse.contentLength();
 
         if (objectSize >= MAX_COPY_FILE_SIZE) {
@@ -158,7 +158,7 @@ public abstract class AwsUtils {
                     .key(destKey)
                     .contentType(StudioUtils.getMimeType(sourceKey))
                     .build();
-            CreateMultipartUploadResponse createMultipartUploadResponse = client.createMultipartUpload(createMultipartUploadRequest);
+            CreateMultipartUploadResponse createMultipartUploadResponse = clientSupplier.get().createMultipartUpload(createMultipartUploadRequest);
             String uploadId = createMultipartUploadResponse.uploadId();
 
             long bytePosition = 0;
@@ -180,7 +180,7 @@ public abstract class AwsUtils {
                             .partNumber(partNum)
                             .build();
 
-                    UploadPartCopyResponse copyResponse = client.uploadPartCopy(copyRequest);
+                    UploadPartCopyResponse copyResponse = clientSupplier.get().uploadPartCopy(copyRequest);
                     completedParts.add(CompletedPart.builder()
                             .partNumber(partNum)
                             .eTag(copyResponse.copyPartResult().eTag())
@@ -199,10 +199,10 @@ public abstract class AwsUtils {
                                 .uploadId(uploadId)
                                 .multipartUpload(completedMultipartUpload)
                                 .build();
-                client.completeMultipartUpload(completeRequest);
+                clientSupplier.get().completeMultipartUpload(completeRequest);
                 logger.debug("Completed multipart copy for '{}/{}'", sourceBucket, sourceKey);
             } catch (Exception e) {
-                client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
+                clientSupplier.get().abortMultipartUpload(AbortMultipartUploadRequest.builder()
                         .bucket(destBucket)
                         .key(destKey)
                         .uploadId(uploadId)
@@ -217,7 +217,7 @@ public abstract class AwsUtils {
                     .destinationBucket(destBucket)
                     .destinationKey(destKey)
                     .build();
-            client.copyObject(copyObjectRequest);
+            clientSupplier.get().copyObject(copyObjectRequest);
             logger.debug("Completed copy for '{}/{}'", sourceBucket, sourceKey);
         }
     }
