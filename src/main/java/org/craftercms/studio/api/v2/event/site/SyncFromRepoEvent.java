@@ -24,7 +24,23 @@ import org.craftercms.studio.api.v2.event.SiteAwareEvent;
  * @since 4.2.0
  */
 public class SyncFromRepoEvent extends SiteAwareEvent {
+    /**
+     * A flag to determine if the sync from repository task should be non-blocking
+     * and only being executed if the locks are acquired
+     */
+    private final boolean nonBlocking;
+
     public SyncFromRepoEvent(final String siteId) {
         super(siteId);
+        this.nonBlocking = false;
+    }
+
+    public SyncFromRepoEvent(final String siteId, boolean nonBlocking) {
+        super(siteId);
+        this.nonBlocking = nonBlocking;
+    }
+
+    public boolean isNonBlocking() {
+        return nonBlocking;
     }
 }

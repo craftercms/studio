@@ -150,7 +150,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
             resetCount++;
         }
         queuedEvents.remove(queuedEvent.siteId());
-        eventPublisher.publishEvent(new SyncFromRepoEvent(queuedEvent.siteId()));
+        eventPublisher.publishEvent(new SyncFromRepoEvent(queuedEvent.siteId(), true));
     }
 
     private int getEventTimerMaxResetCount() {

@@ -132,16 +132,17 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     @Async
     @EventListener
     public void syncRepoListener(SyncFromRepoEvent event) throws ServiceLayerException {
-        syncRepository(event.getSiteId());
+        syncRepository(event.getSiteId(), event.isNonBlocking());
     }
 
     /**
      * Sync the database with the repository in the given site.
      *
      * @param siteId The site ID.
+     * @param nonBlocking Flag to determine if the sync operation should be non-blocking while acquiring the lock
      * @throws ServiceLayerException If an error occurs while syncing the database with the repository.
      */
-    private void syncRepository(final String siteId) throws ServiceLayerException {
+    private void syncRepository(final String siteId, boolean nonBlocking) throws ServiceLayerException {
         logger.debug("Sync the database with the repository in site '{}'", siteId);
 
         Site site = sitesService.getSite(siteId);
@@ -154,7 +155,59 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         // Locking sandbox repo to avoid additional commits from being added to
         // the processed_commits table (to avoid unintended deletes at the end of this block)
         String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        if (nonBlocking) {
+            executeSyncOperationWithTryLock(site, syncFromRepoLockKey, sandboxRepoLockKey);
+        } else {
+            executeSyncOperationWithLock(site, syncFromRepoLockKey, sandboxRepoLockKey);
+        }
+    }
+
+    /**
+     * Executing sync operation with ReentrantLock tryLock for non-blocking
+     * @param site instance of {@link Site}
+     * @param syncFromRepoLockKey sync from repository lock key
+     * @param sandboxRepoLockKey sandbox repository lock key
+     * @throws ServiceLayerException If an error occurs while syncing the database with the repository.
+     */
+    private void executeSyncOperationWithTryLock(Site site, String syncFromRepoLockKey, String sandboxRepoLockKey) throws ServiceLayerException {
+        boolean isSyncFromRepoLockAcquired = generalLockService.tryLock(syncFromRepoLockKey);
+        boolean isSandboxRepoLockAcquired = generalLockService.tryLock(sandboxRepoLockKey);
+        try {
+            if (isSyncFromRepoLockAcquired && isSandboxRepoLockAcquired) {
+                executeSyncOperation(site);
+            }
+        } finally {
+            if (isSyncFromRepoLockAcquired) {
+                generalLockService.unlock(syncFromRepoLockKey);
+            }
+            if (isSandboxRepoLockAcquired) {
+                generalLockService.unlock(sandboxRepoLockKey);
+            }
+        }
+    }
+
+    /**
+     * Executing sync operation with ReentrantLock lock
+     * @param site instance of {@link Site}
+     * @param syncFromRepoLockKey sync from repository lock key
+     * @param sandboxRepoLockKey sandbox repository lock key
+     * @throws ServiceLayerException If an error occurs while syncing the database with the repository.
+     */
+    private void executeSyncOperationWithLock(Site site, String syncFromRepoLockKey, String sandboxRepoLockKey) throws ServiceLayerException {
         generalLockService.lock(syncFromRepoLockKey, sandboxRepoLockKey);
+        try {
+            executeSyncOperation(site);
+        } finally {
+            generalLockService.unlock(syncFromRepoLockKey, sandboxRepoLockKey);
+        }
+    }
+
+    /**
+     * Execute sync from repository operation
+     * @param site instance of {@link Site}
+     */
+    private void executeSyncOperation(Site site) throws ServiceLayerException {
+        String siteId = site.getSiteId();
         try {
             // Get the last commit to be used along the sync process (instead of 'HEAD',
             // commits added after this point will be processed in subsequent executions of this method)
@@ -194,8 +247,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             logger.debug("Site '{}' is now synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
         } catch (UserNotFoundException | GitAPIException | IOException | SQLException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
-        } finally {
-            generalLockService.unlock(syncFromRepoLockKey, sandboxRepoLockKey);
         }
     }
 
