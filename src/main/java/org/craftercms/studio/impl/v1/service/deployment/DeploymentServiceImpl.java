@@ -112,8 +112,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                        @ValidateStringParam String submissionComment,
                        final boolean scheduleDateNow)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        String repoSyncKey = StudioUtils.getSyncFromRepoLockKey(site);
-        generalLockService.lock(repoSyncKey);
+        StudioUtils.lockSandboxSync(generalLockService, site);
         try {
             if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
                 itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
@@ -186,7 +185,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             }
             applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
         } finally {
-            generalLockService.unlock(repoSyncKey);
+            StudioUtils.unlockSandboxSync(generalLockService, site);
         }
     }
 
@@ -297,8 +296,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                        @ValidateStringParam String approver, ZonedDateTime scheduledDate,
                        String submissionComment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        String repoSyncKey = StudioUtils.getSyncFromRepoLockKey(site);
-        generalLockService.lock(repoSyncKey);
+        StudioUtils.lockSandboxSync(generalLockService, site);
         try {
             if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
                 itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
@@ -318,7 +316,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                 logger.error("Failed to update the publishing status for site '{}'", site, e);
             }
         } finally{
-            generalLockService.unlock(repoSyncKey);
+            StudioUtils.unlockSandboxSync(generalLockService, site);
         }
     }
 
@@ -504,8 +502,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             throw new SiteNotFoundException();
         }
 
-        String repoSyncKey = StudioUtils.getSyncFromRepoLockKey(site);
-        generalLockService.lock(repoSyncKey);
+        StudioUtils.lockSandboxSync(generalLockService, site);
         try {
             Set<String> environments = getAllPublishedEnvironments(site);
             if (!environments.contains(environment)) {
@@ -523,7 +520,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             }
             logger.debug("Done adding publish requests for site '{}' target '{}'", site, environment);
         } finally {
-            generalLockService.unlock(repoSyncKey);
+            StudioUtils.unlockSandboxSync(generalLockService, site);
         }
     }
 

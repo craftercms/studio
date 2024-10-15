@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.utils;
 
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -109,7 +110,29 @@ public abstract class StudioUtils {
      * @param siteId the site id
      * @return the lock key
      */
-    public static String getSyncFromRepoLockKey(final String siteId) {
+    private static String getSyncFromRepoLockKey(final String siteId) {
         return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+    }
+
+    /**
+     * Lock sandbox sync by locking both the sandbox repository lock key and sync from repository lock key
+     * @param generalLockService instance of {@link GeneralLockService}
+     * @param siteId site identifier
+     */
+    public static void lockSandboxSync(final GeneralLockService generalLockService, final String siteId) {
+        String syncFromRepoLockKey = getSyncFromRepoLockKey(siteId);
+        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+        generalLockService.lock(syncFromRepoLockKey, sandboxRepoLockKey);
+    }
+
+    /**
+     * Unlock sandbox sync by unlocking both the sandbox repository lock key and sync from repository lock key
+     * @param generalLockService instance of {@link GeneralLockService}
+     * @param siteId site identifier
+     */
+    public static void unlockSandboxSync(final GeneralLockService generalLockService, final String siteId) {
+        String syncFromRepoLockKey = getSyncFromRepoLockKey(siteId);
+        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+        generalLockService.unlock(syncFromRepoLockKey, sandboxRepoLockKey);
     }
 }
