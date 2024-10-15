@@ -66,9 +66,7 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     @Override
     public void lock(final String... lockKeys) {
         logger.debug("Thread '{}' will attempt to lock multiple objects '{}'", Thread.currentThread().getName(), lockKeys);
-        for (String lockKey : lockKeys) {
-            lock(lockKey);
-        }
+        Arrays.stream(lockKeys).sorted().forEach(this::lock);
     }
 
     @Override
