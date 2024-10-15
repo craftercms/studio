@@ -586,7 +586,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         }
         AwsUtils.copyObjects(getAsyncClient(), taskExecutor.getThreadPoolExecutor(),
                 sourceMapping.target, sourceMapping.prefix,
-                targetMapping.target, targetMapping.prefix, items);
+                targetMapping.target, targetMapping.prefix, items,
+                AwsUtils.ignoreMissingObject());
     }
 
     /**

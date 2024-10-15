@@ -469,6 +469,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                 targetBlobStore.copyBlobs(sourceBlobStore, environment, paths);
             } catch (Exception e) {
                 logger.error("Failed to copy blob from source site '{}' to target site '{}'", sourceSiteId, siteId, e);
+                throw e;
             }
         }
     }
