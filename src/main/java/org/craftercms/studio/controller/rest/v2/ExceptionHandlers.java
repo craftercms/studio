@@ -135,7 +135,7 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleNoSuchElementException(HttpServletRequest request, NoSuchElementException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
+        return handleExceptionInternal(request, e, response, Level.DEBUG);
     }
 
     @ExceptionHandler(LoggerNotFoundException.class)
