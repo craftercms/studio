@@ -20,20 +20,6 @@ public interface GeneralLockService {
 
     void lock(String objectId);
 
-    /**
-     * Convenience method to lock multiple keys at once.
-     * This method will lock all the keys one by one
-     * @param lockKeys keys to lock
-     */
-    void lock(String... lockKeys);
-
-    /**
-     * Convenience method to unlock multiple keys at once.
-     *
-     * @param lockKeys keys to unlock
-     */
-    void unlock(String... lockKeys);
-
     void unlock(String objectId);
 
     boolean tryLock(String objectId);

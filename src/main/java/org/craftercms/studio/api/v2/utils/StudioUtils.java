@@ -103,36 +103,4 @@ public abstract class StudioUtils {
     public static String getSandboxRepoLockKey(final String siteId) {
         return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
     }
-
-    /**
-     * Get the key for sync-from-repo task lock
-     *
-     * @param siteId the site id
-     * @return the lock key
-     */
-    private static String getSyncFromRepoLockKey(final String siteId) {
-        return SITE_SYNC_FROM_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
-    }
-
-    /**
-     * Lock sandbox sync by locking both the sandbox repository lock key and sync from repository lock key
-     * @param generalLockService instance of {@link GeneralLockService}
-     * @param siteId site identifier
-     */
-    public static void lockSandboxSync(final GeneralLockService generalLockService, final String siteId) {
-        String syncFromRepoLockKey = getSyncFromRepoLockKey(siteId);
-        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
-        generalLockService.lock(syncFromRepoLockKey, sandboxRepoLockKey);
-    }
-
-    /**
-     * Unlock sandbox sync by unlocking both the sandbox repository lock key and sync from repository lock key
-     * @param generalLockService instance of {@link GeneralLockService}
-     * @param siteId site identifier
-     */
-    public static void unlockSandboxSync(final GeneralLockService generalLockService, final String siteId) {
-        String syncFromRepoLockKey = getSyncFromRepoLockKey(siteId);
-        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
-        generalLockService.unlock(syncFromRepoLockKey, sandboxRepoLockKey);
-    }
 }
