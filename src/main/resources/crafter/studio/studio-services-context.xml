@@ -165,7 +165,6 @@
          <property name="publishingManager" ref="cstudioPublishingManager" />
          <property name="publishRequestDAO" ref="publishRequestDao" />
          <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-         <property name="generalLockService" ref="cstudioGeneralLockService"/>
      </bean>
 
     <bean id="cstudioNotificationService"

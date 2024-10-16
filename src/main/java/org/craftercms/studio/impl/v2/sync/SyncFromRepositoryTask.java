@@ -152,7 +152,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         }
         // Locking sandbox repo to avoid additional commits from being added to
         // the processed_commits table (to avoid unintended deletes at the end of this block)
-        StudioUtils.lockSandboxSync(generalLockService, siteId);
+        String sandboxLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        generalLockService.lock(sandboxLockKey);
         try {
             // Get the last commit to be used along the sync process (instead of 'HEAD',
             // commits added after this point will be processed in subsequent executions of this method)
@@ -193,7 +194,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         } catch (UserNotFoundException | GitAPIException | IOException | SQLException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
-            StudioUtils.unlockSandboxSync(generalLockService, siteId);
+            generalLockService.unlock(sandboxLockKey);
         }
     }
 

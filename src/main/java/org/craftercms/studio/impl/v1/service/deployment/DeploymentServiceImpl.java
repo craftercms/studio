@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
@@ -51,7 +50,6 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.slf4j.Logger;
@@ -63,7 +61,8 @@ import org.springframework.lang.NonNull;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
@@ -102,7 +101,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     protected PublishRequestDAO publishRequestDAO;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     protected ApplicationContext applicationContext;
-    protected GeneralLockService generalLockService;
 
     @Override
     @Valid
@@ -112,81 +110,76 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                        @ValidateStringParam String submissionComment,
                        final boolean scheduleDateNow)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        StudioUtils.lockSandboxSync(generalLockService, site);
-        try {
-            if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
-                itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
-            }
-            itemServiceInternal.updateStateBitsBulk(site, paths, 0, IN_WORKFLOW.value);
-            String liveEnvironment = StringUtils.EMPTY;
-            if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-                liveEnvironment = servicesConfig.getLiveEnvironment(site);
-            }
-            boolean isLive = false;
-            if (StringUtils.isEmpty(liveEnvironment)) {
-                liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
-            }
-            if (liveEnvironment.equals(environment)) {
-                isLive = true;
-            }
-            if (isLive) {
-                itemServiceInternal.updateStateBitsBulk(site, paths, DESTINATION.value, 0);
-            } else {
-                itemServiceInternal.updateStateBitsBulk(site, paths, 0, DESTINATION.value);
-            }
-
-            List<String> newPaths = new ArrayList<>();
-            List<String> updatedPaths = new ArrayList<>();
-            List<String> movedPaths = new ArrayList<>();
-
-            Map<String, List<String>> groupedPaths = new HashMap<>();
-
-            for (String p : paths) {
-                Item item = itemServiceInternal.getItem(site, p);
-                if (item == null) {
-                    throw new ContentNotFoundException(p, site, "Failed to retrieve content item");
-                }
-                boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
-                if (isFolder) {
-                    logger.trace("The content item in site '{}' path '{}' is a folder and will not be added " +
-                            "to the publishing queue", site, p);
-                } else {
-                    if (isNew(item.getState())) {
-                        newPaths.add(p);
-                    } else if (StringUtils.isNotEmpty(item.getPreviousPath())) {
-                        movedPaths.add(p);
-                    } else {
-                        updatedPaths.add(p);
-                    }
-                }
-            }
-
-            groupedPaths.put(PublishRequest.Action.NEW, newPaths);
-            groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
-            groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
-
-            List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
-                    submissionComment);
-            for (PublishRequest item : items) {
-                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
-            }
-            itemServiceInternal.setSystemProcessingBulk(site, paths, false);
-
-            // We need to pick up this on Inserting , not on execution!
-            try {
-                sendContentApprovalEmail(items, scheduleDateNow);
-            } catch (Exception e) {
-                logger.error("Failed to send approval email notification for site '{}'", site, e);
-            }
-            try {
-                siteService.updatePublishingStatus(site, QUEUED);
-            } catch (SiteNotFoundException e) {
-                logger.error("Failed to update publishing status for site '{}'", site, e);
-            }
-            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
-        } finally {
-            StudioUtils.unlockSandboxSync(generalLockService, site);
+        if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
+            itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
+        itemServiceInternal.updateStateBitsBulk(site, paths, 0, IN_WORKFLOW.value);
+        String liveEnvironment = StringUtils.EMPTY;
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            liveEnvironment = servicesConfig.getLiveEnvironment(site);
+        }
+        boolean isLive = false;
+        if (StringUtils.isEmpty(liveEnvironment)) {
+            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        }
+        if (liveEnvironment.equals(environment)) {
+            isLive = true;
+        }
+        if (isLive) {
+            itemServiceInternal.updateStateBitsBulk(site, paths, DESTINATION.value, 0);
+        } else {
+            itemServiceInternal.updateStateBitsBulk(site, paths, 0, DESTINATION.value);
+        }
+
+        List<String> newPaths = new ArrayList<>();
+        List<String> updatedPaths = new ArrayList<>();
+        List<String> movedPaths = new ArrayList<>();
+
+        Map<String, List<String>> groupedPaths = new HashMap<>();
+
+        for (String p : paths) {
+            Item item = itemServiceInternal.getItem(site, p);
+            if (item == null) {
+                throw new ContentNotFoundException(p, site, "Failed to retrieve content item");
+            }
+            boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
+            if (isFolder) {
+                logger.trace("The content item in site '{}' path '{}' is a folder and will not be added " +
+                        "to the publishing queue", site, p);
+            } else {
+                if (isNew(item.getState())) {
+                    newPaths.add(p);
+                } else if (StringUtils.isNotEmpty(item.getPreviousPath())) {
+                    movedPaths.add(p);
+                } else {
+                    updatedPaths.add(p);
+                }
+            }
+        }
+
+        groupedPaths.put(PublishRequest.Action.NEW, newPaths);
+        groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
+        groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
+
+        List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
+                submissionComment);
+        for (PublishRequest item : items) {
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
+        }
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
+
+        // We need to pick up this on Inserting , not on execution!
+        try {
+            sendContentApprovalEmail(items, scheduleDateNow);
+        } catch (Exception e) {
+            logger.error("Failed to send approval email notification for site '{}'", site, e);
+        }
+        try {
+            siteService.updatePublishingStatus(site, QUEUED);
+        } catch (SiteNotFoundException e) {
+            logger.error("Failed to update publishing status for site '{}'", site, e);
+        }
+        applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
     }
 
     protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow)
@@ -296,27 +289,22 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                        @ValidateStringParam String approver, ZonedDateTime scheduledDate,
                        String submissionComment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        StudioUtils.lockSandboxSync(generalLockService, site);
+        if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
+            itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
+        }
+        Set<String> environments = getAllPublishedEnvironments(site);
+        for (String environment : environments) {
+            List<PublishRequest> items =
+                    createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
+            for (PublishRequest item : items) {
+                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
+            }
+        }
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
         try {
-            if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
-                itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
-            }
-            Set<String> environments = getAllPublishedEnvironments(site);
-            for (String environment : environments) {
-                List<PublishRequest> items =
-                        createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
-                for (PublishRequest item : items) {
-                    retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
-                }
-            }
-            itemServiceInternal.setSystemProcessingBulk(site, paths, false);
-            try {
-                siteService.updatePublishingStatus(site, QUEUED);
-            } catch (SiteNotFoundException e) {
-                logger.error("Failed to update the publishing status for site '{}'", site, e);
-            }
-        } finally{
-            StudioUtils.unlockSandboxSync(generalLockService, site);
+            siteService.updatePublishingStatus(site, QUEUED);
+        } catch (SiteNotFoundException e) {
+            logger.error("Failed to update the publishing status for site '{}'", site, e);
         }
     }
 
@@ -501,27 +489,21 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-
-        StudioUtils.lockSandboxSync(generalLockService, site);
-        try {
-            Set<String> environments = getAllPublishedEnvironments(site);
-            if (!environments.contains(environment)) {
-                throw new EnvironmentNotFoundException();
-            }
-            if (!checkCommitIds(site, commitIds)) {
-                throw new CommitNotFoundException();
-            }
-            logger.debug("Create publish requests for site '{}' target '{}'", site, environment);
-            List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
-                    DateUtils.getCurrentTime(), securityService.getCurrentUser(), comment);
-            // Insert publish requests in the queue
-            for (PublishRequest request : publishRequests) {
-                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(request));
-            }
-            logger.debug("Done adding publish requests for site '{}' target '{}'", site, environment);
-        } finally {
-            StudioUtils.unlockSandboxSync(generalLockService, site);
+        Set<String> environments = getAllPublishedEnvironments(site);
+        if (!environments.contains(environment)) {
+            throw new EnvironmentNotFoundException();
         }
+        if (!checkCommitIds(site, commitIds)) {
+            throw new CommitNotFoundException();
+        }
+        logger.debug("Create publish requests for site '{}' target '{}'", site, environment);
+        List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
+                DateUtils.getCurrentTime(), securityService.getCurrentUser(), comment);
+        // Insert publish requests in the queue
+        for (PublishRequest request : publishRequests) {
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(request));
+        }
+        logger.debug("Done adding publish requests for site '{}' target '{}'", site, environment);
     }
 
     private boolean checkCommitIds(String site, List<String> commitIds) {
@@ -695,9 +677,5 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-    }
-
-    public void setGeneralLockService(final GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
     }
 }
