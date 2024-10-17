@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -60,7 +61,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getUserPermission(String siteId, String username, List<String> roles) {
+    public List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) {
         String key = siteId + ":" + CACHE_KEY + username;
         List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
         if (isEmpty(permissions)) {
@@ -71,7 +72,7 @@ public class SecurityServiceImpl implements SecurityService {
         return permissions;
     }
 
-    private List<String> loadUserPermission(String siteId, List<String> roles) {
+    private List<String> loadUserPermission(String siteId, List<NormalizedRole> roles) {
         Set<String> permissions;
         String configPath;
         List<String> toRet = new ArrayList<>();
@@ -91,7 +92,7 @@ public class SecurityServiceImpl implements SecurityService {
         return toRet;
     }
 
-    private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<String> roles) {
+    private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<NormalizedRole> roles) {
         Document document = null;
         Set<String> permissions = new HashSet<>();
         try {
@@ -116,8 +117,8 @@ public class SecurityServiceImpl implements SecurityService {
 
                 List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
                 for (Node roleNode : roleNodes) {
-                    String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (roles.contains(roleName)) {
+                    String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+                    if (roles.contains(new NormalizedRole(roleName))) {
                         List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
 
                         for (Node ruleNode : ruleNodes) {
@@ -197,6 +198,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.studioConfiguration = studioConfiguration;
     }
 
+    @SuppressWarnings("unused")
     public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
     }
@@ -205,6 +207,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
     }

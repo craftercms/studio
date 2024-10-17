@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,13 +21,13 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 
@@ -45,17 +45,19 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     public static final String NAME = "WriteAssetToDmProcessor";
 
     /**
-     * default constructor
+     * Default constructor
      */
+    @SuppressWarnings("unused")
     public AssetDmContentProcessor() {
         super(NAME);
     }
 
     /**
-     * constructor that sets the process name
+     * Constructor that sets the process name
      *
-     * @param name
+     * @param name this processor name
      */
+    @SuppressWarnings("unused")
     public AssetDmContentProcessor(String name) {
         super(name);
     }
@@ -65,21 +67,16 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         String user = content.getProperty(DmConstants.KEY_USER);
         String path = content.getProperty(DmConstants.KEY_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String widthStr = content.getProperty(DmConstants.KEY_WIDTH);
-        String heightStr = content.getProperty(DmConstants.KEY_HEIGHT);
-        int width = (widthStr != null) ? Integer.parseInt(widthStr) : -1;
-        int height = (heightStr != null) ? Integer.parseInt(heightStr) : -1;
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
         // default is true for unlocking on save
         boolean unlock = StringUtils.isEmpty(unlockValue) ||
                 !unlockValue.equalsIgnoreCase("false");
         boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
-        boolean isSystemAsset = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
         try {
             ContentAssetInfoTO oldAssetInfo = (ContentAssetInfoTO) result.getItem();
             ContentAssetInfoTO assetInfo = writeContentAsset(content, site, user, path, fileName,
-                    content.getContentStream(), width, height, createFolders, isPreview, unlock, isSystemAsset,
+                    content.getContentStream(), createFolders, isPreview, unlock,
                     result);
             if (oldAssetInfo != null) {
                 oldAssetInfo.setFileExtension(assetInfo.getFileExtension());
@@ -100,25 +97,20 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     /**
      * upload content asset to the given path
      *
-     * @param site
-     * @param path
-     * @param assetName
-     * @param in
-     *            input stream to read the asset from
-     * @param width
-     * @param height
-     * @param createFolders
-     * 				create missing folders?
-     * @param isPreview
-     * @param unlock
-     * 			unlock the content upon update?
+     * @param site          the site id
+     * @param path          the content path
+     * @param assetName     the asset name
+     * @param in            input stream to read the asset from
+     * @param createFolders create missing folders?
+     * @param isPreview     is this a preview?
+     * @param unlock        unlock the content upon update?
      * @return asset information
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException if the asset cannot be written
      */
     protected ContentAssetInfoTO writeContentAsset(PipelineContent content, String site, String user, String path,
-                                                   String assetName, InputStream in, int width, int height,
+                                                   String assetName, InputStream in,
                                                    boolean createFolders, boolean isPreview, boolean unlock,
-                                                   boolean isSystemAsset, ResultTO result)
+                                                   ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
         logger.debug("Writing content asset in site '{}' path '{}' assetName '{}' createFolders '{}'",
                 site, path, assetName, createFolders);
@@ -178,48 +170,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
         } finally {
             ContentUtils.release(in);
-        }
-    }
-
-    /**
-     * update the file at the given content node
-     *
-     * @param input
-     * @param user
-     * @param isPreview
-     * @param unlock    unlock the content upon update?
-     * @throws ServiceLayerException
-     */
-    protected void updateFile(String site, String relativePath, InputStream input,
-                              String user, boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceLayerException, UserNotFoundException {
-        boolean success;
-        try {
-            success = contentService.writeContent(site, relativePath, input);
-        } finally {
-            ContentUtils.release(input);
-        }
-
-        if (success) {
-            String commitId = contentRepository.getRepoLastCommitId(site);
-            result.setCommitId(commitId);
-
-            // if there is anything pending and this is not a preview update, cancel workflow
-            if (!isPreview) {
-                if (cancelWorkflow(site, relativePath)) {
-                    workflowService.removeFromWorkflow(site, relativePath, true);
-                }
-            }
-
-            // Item
-            itemServiceInternal.persistItemAfterWrite(site, relativePath, user, commitId, unlock);
-            contentService.notifyContentEvent(site, relativePath);
-        }
-
-        if (unlock) {
-            contentRepositoryV1.unLockItem(site, relativePath);
-        } else {
-            contentRepository.lockItem(site, relativePath);
         }
     }
 

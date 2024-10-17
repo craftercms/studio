@@ -16,12 +16,12 @@
 
 package org.craftercms.studio.impl.v2.job;
 
+import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.job.SiteJob;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
@@ -37,7 +37,7 @@ public abstract class StudioClockTask implements SiteJob, ApplicationContextAwar
     protected Map<String, Integer> counters = new HashMap<>();
     protected int offset;
     protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
+    protected SitesService siteService;
     protected ContentRepository contentRepository;
     protected ApplicationContext applicationContext;
 
@@ -86,7 +86,7 @@ public abstract class StudioClockTask implements SiteJob, ApplicationContextAwar
         this.studioConfiguration = studioConfiguration;
     }
 
-    public void setSiteService(SiteService siteService) {
+    public void setSiteService(SitesService siteService) {
         this.siteService = siteService;
     }
 

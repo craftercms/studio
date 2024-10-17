@@ -66,6 +66,7 @@ public interface StudioConfiguration {
 
     String REPO_SYNC_EVENT_DELAY_MILLIS = "studio.repo.sync.event.delayMillis";
     String REPO_SYNC_EVENT_MAX_RESET_COUNT = "studio.repo.sync.event.maxResets";
+    String REPO_SYNC_CANCELLED_PACKAGE_COMMENT = "studio.repo.sync.publishPackage.cancelled.comment";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -73,6 +74,7 @@ public interface StudioConfiguration {
     String DB_USER = "studio.db.user";
     String DB_PASSWORD = "studio.db.password";
     String DB_URL = "studio.db.url";
+    String SCRIPT_RUNNER_DB_URL = "studio.db.scriptRunnerUrl";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
     String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
     String DB_POOL_MAX_IDLE_CONNECTIONS = "studio.db.pool.maxIdleConnections";
@@ -165,6 +167,8 @@ public interface StudioConfiguration {
     /** Notification Service */
     String NOTIFICATION_CONFIGURATION_FILE = "studio.notification.configurationFile";
     String NOTIFICATION_TIMEZONE = "studio.notification.timezone";
+    String WORKFLOW_NOTIFICATION_ENABLED = "studio.workflow.notification.enabled";
+    String WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT = "studio.workflow.notification.maxItemCount";
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
 
@@ -222,6 +226,9 @@ public interface StudioConfiguration {
     String AUTHORING_REPLACE = "studio.authoring.replace";
     String AUTHORING_DISABLE_DEPLOY_CRON = "studio.authoring.disableDeployCron";
     String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
+
+    /** Deployer HTTP requests **/
+    String DEPLOYER_RESPONSE_TIMEOUT = "studio.deployer.request.timeoutSeconds";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";

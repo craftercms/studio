@@ -598,6 +598,18 @@ pipelines:
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file
       - currentVersion: 4.1.9
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.10
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.11
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.12
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.13
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.14
+        nextVersion: 4.2-t
+      - currentVersion: 4.2-t
         nextVersion: 4.2.0
         operations:
           - type: dbScriptUpgrader
@@ -651,6 +663,37 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade/4.2.x/4.2.0.7-to-4.2.0.8.sql
+      - currentVersion: 4.2.0.8
+        nextVersion: 4.2.0.9
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.8-to-4.2.0.9.sql
+      - currentVersion: 4.2.0.9
+        nextVersion: 4.2.0.10
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.9-to-4.2.0.10.sql
+      - currentVersion: 4.2.0.10
+        nextVersion: 4.2.0.11
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file to add aws.cloudformation.stackCapabilities
+      - currentVersion: 4.2.0.11
+        nextVersion: 4.2.0.12
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file content write path validator
+      - currentVersion: 4.2.0.12
+        nextVersion: 4.2.0.13
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.2.x/4.2.0.12-to-4.2.0.13.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -1091,6 +1134,15 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.2.xslt
               commitDetails: Change 'Change Content Type' permission to 'change_content_type'
+        - currentVersion: 4.1.2
+          nextVersion: 4.2.0.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.0.xslt
+              commitDetails: Remove ~DASHBOARD~ permissions
+        # Update version to align with blueprints optimized version
+        - currentVersion: 4.2.0.0
+          nextVersion: 4.2.0.1
 
   role-mappings-config:
     module: studio
@@ -1395,6 +1447,12 @@ configurations:
             template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.1.xslt
             commitDetails:
       - currentVersion: 4.1.1
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.3.0
+        nextVersion: 4.2-t
+      - currentVersion: 4.1.3.1
+        nextVersion: 4.2-t
+      - currentVersion: 4.2-t
         nextVersion: 4.2.0
         operations:
           - type: xsltFileUpgrader
@@ -1406,3 +1464,18 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.1.xslt
             commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
+      - currentVersion: 4.2.1
+        nextVersion: 4.2.2
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.2.xslt
+            commitDetails: Update 'Add Components' widget
+      - currentVersion: 4.2.2
+        nextVersion: 4.2.3
+        operations:
+          - type: findAndReplaceUpgrader
+            includedPaths:
+              - config/studio/ui.xml
+            pattern: "formatselect"
+            replacement: "blocks"
+            commitDetails: Update the RTE configuration to work with TinyMCE 7

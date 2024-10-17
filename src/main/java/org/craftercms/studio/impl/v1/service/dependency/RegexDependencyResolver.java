@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,12 +44,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang.StringEscapeUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.springframework.web.util.HtmlUtils.htmlUnescape;
 
 public class RegexDependencyResolver implements DependencyResolver {
 
@@ -251,7 +255,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                 logger.debug("Match content in site '{}' against the regular expression '{}'",
                         site, extractionPattern.getFindRegex());
                 while (matcher.find()) {
-                    String matchedValue = matcher.group();
+                    String matchedValue = htmlUnescape(unescapeXml(matcher.group()));
                     List<String> matchedPaths = new LinkedList<>();
                     logger.debug("Matched site '{}' path '{}'", site, matchedValue);
                     if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
@@ -306,11 +310,11 @@ public class RegexDependencyResolver implements DependencyResolver {
     }
 
 
-    public String getConfigFileName() {
+    private String getConfigFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);
     }
 
-    public String getDefaultConfigPath() {
+    private String getDefaultConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH);
     }
 
@@ -318,24 +322,12 @@ public class RegexDependencyResolver implements DependencyResolver {
         return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);
     }
 
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
     }
 
     public void setConfigurationService(ConfigurationService configurationService) {

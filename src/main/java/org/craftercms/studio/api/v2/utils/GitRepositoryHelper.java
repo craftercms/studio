@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,17 +40,17 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.impl.v2.utils.git.GitCli;
 import org.eclipse.jgit.api.*;
@@ -85,8 +85,10 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -99,6 +101,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.lib.Constants.HEAD;
+import static org.eclipse.jgit.lib.Constants.R_REMOTES;
 
 // TODO: AV - Missing Javadoc and shouldn't be in the api root package. Those are only used mainly for interfaces
 // TODO: AV - all methods in this class should throw exceptions instead of returning null or a boolean
@@ -108,7 +111,15 @@ public class GitRepositoryHelper implements DisposableBean {
     public static final String CONFIG_KEY_RESOURCE = "resource";
     public static final String CONFIG_KEY_FOLDER = "folder";
 
+    // firstname lastname
+    public static final String USERNAME_FORMAT = "%s %s";
+
+    public static final String REMOTE_BRANCH_REF_NAME_FORMAT = R_REMOTES + "%s/%s";
+
     private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
+    private static final String GIT_CONFIG_PROPERTY_EMAIL = "email";
+    private static final String GIT_CONFIG_PROPERTY_NAME = "name";
+    private static final String GIT_CONFIG_SECTION_USER = "user";
 
     private StudioConfiguration studioConfiguration;
     private TextEncryptor encryptor;
@@ -185,7 +196,7 @@ public class GitRepositoryHelper implements DisposableBean {
         Repository publishedRepo;
 
         Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
-        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId).resolve(GIT_ROOT);
+        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);//.resolve(GIT_ROOT);
 
         try {
             if (Files.exists(siteSandboxRepoPath)) {
@@ -294,6 +305,22 @@ public class GitRepositoryHelper implements DisposableBean {
         return true;
     }
 
+    /**
+     * Configure a git command with authentication details
+     * @param gitCommand the git command
+     * @param remoteRepository the remote repository information to get the authentication details from
+     * @param tempKey temporary file to store the private key
+     * @param decrypt whether to decrypt the password, token and private key
+     */
+    public void setAuthenticationForCommand(final TransportCommand<?, ?> gitCommand,
+                                            final RemoteRepository remoteRepository,
+                                            final Path tempKey, boolean decrypt)
+            throws ServiceLayerException, IOException, CryptoException {
+        setAuthenticationForCommand(gitCommand, remoteRepository.getAuthenticationType(),
+                remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
+                remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, decrypt);
+    }
+
     public void setAuthenticationForCommand(TransportCommand<?,?> gitCommand, String authenticationType,
                                             String username, String password, String token, String privateKey,
                                             Path tempKey, boolean decrypt)
@@ -373,7 +400,7 @@ public class GitRepositoryHelper implements DisposableBean {
      */
     public PersonIdent getAuthorIdent(User user) {
         PersonIdent currentUserIdent =
-                new PersonIdent(format("%s %s", user.getFirstName(), user.getLastName()), user.getEmail());
+                new PersonIdent(format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()), user.getEmail());
 
         return currentUserIdent;
     }
@@ -558,12 +585,9 @@ public class GitRepositoryHelper implements DisposableBean {
     /**
      * Create a site published git repository from scratch
      * @param siteId site to create
-     * @param sandboxBranch sandbox branch name
-     * @return true if successful, false otherwise
      */
-    public boolean createPublishedRepository(String siteId, String sandboxBranch) {
+    public void createPublishedRepository(String siteId) throws GitAPIException, IOException {
         // Create Published by cloning Sandbox
-        boolean toRet = false;
         // Build a path for the site/sandbox
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
         // Built a path for the site/published
@@ -571,22 +595,20 @@ public class GitRepositoryHelper implements DisposableBean {
         String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git publishedGit = Git.cloneRepository()
+                .setBare(true)
                 .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                 .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                 .call()) {
             Repository publishedRepo = publishedGit.getRepository();
             optimizeRepository(publishedRepo);
-            checkoutSandboxBranch(siteId, publishedRepo, sandboxBranch);
             removePublishBlackList(publishedRepo);
             publishedRepo.close();
-            publishedGit.close();
-            toRet = true;
         } catch (GitAPIException | IOException e) {
             logger.error("Failed to add origin (sandbox) to the published repository in site '{}'", siteId, e);
+            throw e;
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-        return toRet;
     }
 
     public Repository createGitRepository(Path path) {
@@ -628,12 +650,6 @@ public class GitRepositoryHelper implements DisposableBean {
                 CONFIG_PARAMETER_FILE_MODE_DEFAULT);
         // Save configuration changes
         config.save();
-
-        if (gitCliEnabled) {
-            // The first git commit of a new repository takes a long time with Git CLI. A git status first seems
-            // to fix the issue
-            gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
-        }
     }
 
     public String getCommitMessage(String commitMessageKey) {
@@ -697,25 +713,8 @@ public class GitRepositoryHelper implements DisposableBean {
 
         List<String> patterns = Arrays.asList(StringUtils.split(blacklistConfig, STRING_SEPARATOR));
         try (Git git = new Git(publishedRepo)) {
-            String rootPath = publishedRepo.getWorkTree().getPath();
-            RmCommand rmCommand = git.rm();
-            Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    String sitePath = file.toAbsolutePath().toString().replaceFirst(rootPath, FILE_SEPARATOR);
-                    boolean isMatched = ContentUtils.matchesPatterns(sitePath, patterns);
-                    if (isMatched) {
-                        String gitPath = getGitPath(sitePath);
-                        rmCommand.addFilepattern(gitPath);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            retryingRepositoryOperationFacade.call(rmCommand);
+            // TODO: implement this for the new publishing system with published repo being bare
             return true;
-        } catch (GitAPIException | IOException e) {
-            logger.error("Failed to remove the publishing blacklist pattern", e);
-            return false;
         }
     }
 
@@ -1373,7 +1372,7 @@ public class GitRepositoryHelper implements DisposableBean {
     public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
-                new PersonIdent(format("%s %s", user.getFirstName(),user.getLastName()), user.getEmail());
+                new PersonIdent(format(USERNAME_FORMAT, user.getFirstName(),user.getLastName()), user.getEmail());
 
         return currentUserIdent;
     }
@@ -1487,5 +1486,57 @@ public class GitRepositoryHelper implements DisposableBean {
                     .setStartPoint(sourceBranch);
             retryingRepositoryOperationFacade.call(checkoutCommand);
         }
+    }
+
+    /**
+     * Commit a tree to the repository.
+     * Since git-commit-tree does not accept an author parameter,
+     * this method will configure the user and email in the repository local configuration
+     * before committing the tree.
+     *
+     * @param repo           the git repository
+     * @param treeId           the id of the tree to commit
+     * @param parentCommitId the parent commit id
+     * @param user           the user to be configured as commit author
+     * @param comment        the commit message
+     * @return the commit id
+     * @throws IOException if an error occurs while commiting the tree or saving the configuration
+     */
+    public String commitTree(final Repository repo, final String treeId,
+                             final ObjectId parentCommitId, User user, final String comment) throws IOException {
+        // Git commit-tree does not have an author param
+        repo.getConfig().setString(GIT_CONFIG_SECTION_USER, null, GIT_CONFIG_PROPERTY_NAME,
+                format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()));
+        repo.getConfig().setString(GIT_CONFIG_SECTION_USER, null, GIT_CONFIG_PROPERTY_EMAIL, user.getEmail());
+        repo.getConfig().save();
+        return gitCli.commitTree(repo.getDirectory(), treeId, parentCommitId, comment);
+    }
+
+    /**
+     * Write a tree to the repository
+     *
+     * @param repo           the repository
+     * @param paths          the paths to update
+     * @param deletedPaths   the paths to delete from the tree
+     * @param commitId       the commit id to get the new file versions from
+     * @param parentCommitId the commit to read the initial tree from
+     * @return the new tree id
+     * @throws IOException          if an error occurs while writing the tree
+     * @throws InterruptedException if the operation is interrupted while waiting for the git process to finish
+     */
+    public String writeTree(final Repository repo, final List<String> paths, final List<String> deletedPaths,
+                            final String commitId, final ObjectId parentCommitId) throws IOException, InterruptedException {
+        return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths, commitId, parentCommitId);
+    }
+
+    /**
+     * Get a string like "refs/remotes/REMOTE/BRANCH_NAME" for a remote branch
+     *
+     * @param remoteName the remote name
+     * @param branchName the branch name
+     * @return the remote branch ref name
+     */
+    public String getRemoteBranchRefName(final String remoteName, final String branchName) {
+        return String.format(REMOTE_BRANCH_REF_NAME_FORMAT, remoteName, branchName);
     }
 }

@@ -81,6 +81,8 @@ public interface SecurityDAO {
 
     void deleteRefreshToken(@Param("userId") long userId);
 
+    void deleteRefreshTokens(@Param("userIds") List<Long> userIds);
+
     PersistentAccessToken getAccessTokenById(@Param("tokenId") long tokenId);
 
     PersistentAccessToken getAccessTokenByUserIdAndTokenId(@Param("userId") long userId,
@@ -94,6 +96,8 @@ public interface SecurityDAO {
                            @Param("enabled") boolean enabled);
 
     void deleteAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId);
+
+    void deleteUsersAccessTokens(@Param("userIds") List<Long> userIds);
 
     int deleteExpiredTokens(@Param("sessionTimeout") int sessionTimeout,
                             @Param("inactiveUsers") List<Long> inactiveUsers);

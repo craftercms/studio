@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,33 +16,33 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
-import org.apache.ibatis.jdbc.ScriptRunner;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
+import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 
 import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Objects;
 
 public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioDBScriptRunnerImpl.class);
 
-    protected String delimiter;
     protected DataSource dataSource;
     protected int scriptLinesBufferSize;
     protected Connection connection = null;
-	protected boolean autoCommit;
+    protected boolean autoCommit;
 
-    protected StudioDBScriptRunnerImpl(String delimiter, DataSource dataSource, int scriptLinesBufferSize) {
-        this.delimiter = delimiter;
+    protected StudioDBScriptRunnerImpl(DataSource dataSource, int scriptLinesBufferSize) {
         this.dataSource = dataSource;
         this.scriptLinesBufferSize = scriptLinesBufferSize;
     }
@@ -51,8 +51,8 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
         if (Objects.isNull(connection)) {
             try {
                 connection = dataSource.getConnection();
-				autoCommit = connection.getAutoCommit();
-				connection.setAutoCommit(false);
+                autoCommit = connection.getAutoCommit();
+                connection.setAutoCommit(false);
             } catch (SQLException e) {
                 logger.error("Failed to open a connection to the DB", e);
             }
@@ -62,7 +62,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     protected void closeConnection() {
         if (!Objects.isNull(connection)) {
             try {
-				connection.setAutoCommit(autoCommit);
+                connection.setAutoCommit(autoCommit);
                 connection.close();
             } catch (SQLException e) {
                 logger.error("Failed to close the connection to the DB", e);
@@ -72,46 +72,60 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     }
 
     @Override
-    public void execute(File sqlScriptFile) {
+    @LogExecutionTime
+    public void execute(final Path sqlScriptPath, final boolean sendFullFile) throws SQLException, IOException {
+        File sqlScriptFile = sqlScriptPath.toFile();
+        try {
+            openConnection();
+            if (sendFullFile) {
+                logger.debug("Executing full SQL script '{}'", sqlScriptPath);
+                runSql(Files.readString(sqlScriptPath));
+            } else {
+                logger.debug("Executing partitioned SQL script '{}'", sqlScriptPath);
+                executePartitioned(sqlScriptFile);
+            }
+            logger.debug("Committing the DB transaction after executing the script '{}'", sqlScriptPath);
+            connection.commit();
+        } catch (SQLException | IOException e) {
+            logger.error("Failed to execute the DB script '{}'", sqlScriptFile.getAbsolutePath(), e);
+            try {
+                connection.rollback();
+            } catch (SQLException e2) {
+                logger.error("Failed to rollback the DB transaction", e2);
+            }
+            throw e;
+        } finally {
+            closeConnection();
+        }
+    }
+
+    private void executePartitioned(final File sqlScriptFile) throws IOException, SQLException {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
-			openConnection();
-
-            ScriptRunner scriptRunner = new ScriptRunner(connection);
-            scriptRunner.setAutoCommit(false);
-            scriptRunner.setDelimiter(delimiter);
-            scriptRunner.setStopOnError(true);
-            scriptRunner.setLogWriter(null);
-
             StringBuilder sb = new StringBuilder();
-            String line = null;
+            String line;
             boolean moreWork = true;
             while (moreWork) {
                 for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
                     line = bufferedReader.readLine();
                     if (Objects.nonNull(line)) {
-                        sb.append(line).append("\n");
+                        sb.append(line).append(System.lineSeparator());
                     } else {
                         moreWork = false;
                     }
                 }
-
-                if (sb.length() > 0) {
-                    scriptRunner.runScript(new StringReader(sb.toString()));
+                if (!sb.isEmpty()) {
+                    logger.debug("Executing chunk of SQL script file '{}'", sqlScriptFile);
+                    runSql(sb.toString());
                     sb.setLength(0);
                 }
             }
-
-            connection.commit();
-        } catch (SQLException | IOException e) {
-			logger.error("Failed to execute the DB script '{}'", sqlScriptFile.getAbsolutePath(), e);
-			try {
-				connection.rollback();
-			} catch (SQLException e2) {
-				logger.error("Failed to rollback the DB transaction", e2);
-			}
-		} finally {
-			closeConnection();
-		}
+        }
     }
 
+    private void runSql(final String command) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.setEscapeProcessing(false);
+            statement.execute(command);
+        }
+    }
 }

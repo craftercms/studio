@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,6 +30,8 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -226,16 +228,17 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
     @Override
     public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
-        Map<String, List<String>> groupRoleMapping;
+        Map<NormalizedGroup, List<NormalizedRole>> groupRoleMapping;
         try {
             groupRoleMapping = configurationService.getRoleMappings(siteId);
         } catch (ConfigurationException e) {
             throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
         }
 
-        List<String> groups = new ArrayList<>(groupRoleMapping.keySet());
-
-        return groups;
+        return new ArrayList<>(groupRoleMapping.keySet()
+                .stream()
+                .map(NormalizedGroup::toString)
+                .toList());
     }
 
     public GroupDAO getGroupDao() {

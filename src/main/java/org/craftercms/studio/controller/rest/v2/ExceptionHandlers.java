@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,8 @@ package org.craftercms.studio.controller.rest.v2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
@@ -34,8 +36,8 @@ import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
@@ -43,8 +45,12 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitiali
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
+import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.model.rest.*;
+import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
 import org.owasp.esapi.ESAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +68,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -136,7 +140,7 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleNoSuchElementException(HttpServletRequest request, NoSuchElementException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
+        return handleExceptionInternal(request, e, response, Level.DEBUG);
     }
 
     @ExceptionHandler(LoggerNotFoundException.class)
@@ -367,12 +371,18 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(PublishingPackageNotFoundException.class)
+    @ExceptionHandler(PublishPackageNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handlePublishingPackageNotFoundException(HttpServletRequest request,
-                                                                 PublishingPackageNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
+    public ResultOne<Long> handlePublishingPackageNotFoundException(HttpServletRequest request,
+                                                                    PublishPackageNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PUBLISHING_PACKAGE_NOT_FOUND);
+        handleExceptionInternal(request, e, response);
+
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(response);
+        result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
+
+        return result;
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -565,13 +575,6 @@ public class ExceptionHandlers {
         return responseBody;
     }
 
-    @ExceptionHandler(ContentAlreadyUnlockedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleException(HttpServletRequest request, ContentAlreadyUnlockedException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_UNLOCKED);
-        return handleExceptionInternal(request, e, response);
-    }
-
     @ExceptionHandler(ContentExistException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleException(HttpServletRequest request, ContentExistException e) {
@@ -584,6 +587,43 @@ public class ExceptionHandlers {
     public ResponseBody handleException(HttpServletRequest request, ContentMoveInvalidLocation e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_MOVE_INVALID_LOCATION);
         return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ContentInPublishQueueException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResultList<PublishPackageResponse> handleException(HttpServletRequest request, ContentInPublishQueueException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_IN_PUBLISH_QUEUE);
+        response.setMessage(e.getMessage());
+        handleExceptionInternal(request, e, response);
+        ResultList<PublishPackageResponse> result = new ResultList<>();
+        result.setResponse(response);
+        result.setEntities(RESULT_KEY_PUBLISHING_PACKAGES,
+                e.getPublishPackages().stream().map(PublishPackageResponse::new).toList());
+
+        return result;
+    }
+
+    @ExceptionHandler(InvalidPackageStateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Result handleException(HttpServletRequest request, InvalidPackageStateException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PACKAGE_STATE);
+        response.setMessage(e.getMessage());
+        handleExceptionInternal(request, e, response);
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(response);
+        result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
+        return result;
+    }
+
+    @ExceptionHandler(PackageAlreadyApprovedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Result handleException(HttpServletRequest request, PackageAlreadyApprovedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PACKAGE_ALREADY_APPROVED);
+        handleExceptionInternal(request, e, response);
+        ResultOne<Long> result = new ResultOne<>();
+        result.setResponse(response);
+        result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
+        return result;
     }
 
     @ExceptionHandler(Exception.class)

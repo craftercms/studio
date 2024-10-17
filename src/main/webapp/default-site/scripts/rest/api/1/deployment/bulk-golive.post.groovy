@@ -46,7 +46,7 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = DeploymentServices.createContext(applicationContext, request)
-    DeploymentServices.bulkGoLive(context, site, environment, path, comment)
-    result = ["success": true]
+    long packageId = DeploymentServices.bulkGoLive(context, site, environment, path, comment)
+    result = ["success": true, "packageId": packageId]
 }
 return result

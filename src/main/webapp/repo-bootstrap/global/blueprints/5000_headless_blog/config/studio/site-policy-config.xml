@@ -16,10 +16,19 @@
   -->
 <site-policy>
     <statement>
+        <target-path-pattern>/(scripts|templates|static-assets/app)/.*</target-path-pattern>
+        <permitted>
+            <path>
+                <source-regex>(\.{2\,})|[^\w\-\./\s]</source-regex>
+                <target-regex>-</target-regex>
+            </path>
+        </permitted>
+    </statement>
+    <statement>
         <target-path-pattern>/(?!scripts/.*|templates/.*|static-assets/app/.*).*</target-path-pattern>
         <permitted>
             <path>
-                <source-regex>[\(\)\s]</source-regex>
+                <source-regex>(\.{2\,})|[^\w\-\./]</source-regex>
                 <target-regex caseTransform="lowercase">-</target-regex>
             </path>
         </permitted>

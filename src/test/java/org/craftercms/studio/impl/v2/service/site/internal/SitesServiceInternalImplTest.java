@@ -20,7 +20,6 @@ package org.craftercms.studio.impl.v2.service.site.internal;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
@@ -29,6 +28,7 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
@@ -66,8 +66,6 @@ public class SitesServiceInternalImplTest {
     @Mock
     SiteFeedMapper siteFeedMapper;
     @Mock
-    SiteService siteServiceV1;
-    @Mock
     Deployer deployer;
     @Spy
     RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
@@ -81,6 +79,8 @@ public class SitesServiceInternalImplTest {
     SecurityService securityService;
     @Mock
     ApplicationContext applicationContext;
+    @Mock
+    ItemServiceInternal itemServiceInternal;
     @Spy
     @InjectMocks
     SitesServiceInternalImpl sitesServiceInternal;
@@ -142,7 +142,7 @@ public class SitesServiceInternalImplTest {
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(2)).insertAuditLog(any());
+        verify(auditServiceInternal, times(3)).insertAuditLog(any());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class SitesServiceInternalImplTest {
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(1)).insertAuditLog(any());
+        verify(auditServiceInternal, times(2)).insertAuditLog(any());
     }
 
     @Test
@@ -180,7 +180,7 @@ public class SitesServiceInternalImplTest {
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(1)).insertAuditLog(any());
+        verify(auditServiceInternal, times(2)).insertAuditLog(any());
     }
 
     @Test
@@ -200,10 +200,6 @@ public class SitesServiceInternalImplTest {
         verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
         verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
         verify(auditServiceInternal, times(2)).insertAuditLog(any());
-
-        Site sourceSite = new Site();
-        sourceSite.setPublishingEnabled(true);
-        sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
     }
 
     @Test
@@ -236,10 +232,10 @@ public class SitesServiceInternalImplTest {
         verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq(DUPLICATE_SANDBOX_BRANCH), any());
 
         verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
-        verify(siteServiceV1).enablePublishing(NEW_SITE_ID, true);
+        verify(sitesServiceInternal).enablePublishing(NEW_SITE_ID, true);
 
-        verify(siteServiceV1).enablePublishing(SOURCE_SITE_ID, false);
-        verify(siteServiceV1).enablePublishing(SOURCE_SITE_ID, true);
+        verify(sitesServiceInternal).enablePublishing(SOURCE_SITE_ID, false);
+        verify(sitesServiceInternal).enablePublishing(SOURCE_SITE_ID, true);
     }
 
     @Test

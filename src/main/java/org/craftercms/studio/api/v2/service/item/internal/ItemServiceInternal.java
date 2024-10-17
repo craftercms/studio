@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,12 +21,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemPathAndState;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface ItemServiceInternal {
 
@@ -86,11 +87,13 @@ public interface ItemServiceInternal {
     void updateItem(Item item);
 
     /**
-     * Delete item
+     * Delete item with the given path.
+     * Notice that the parent folder will be deleted if path corresponds to a page.
+     *
      * @param siteId siteIdentifier
-     * @param path path of item to be deleted
+     * @param path   path of item to be deleted
      */
-    void deleteItem(String siteId, String path);
+    void deleteItem(long siteId, String path);
 
     /**
      * Set system processing for item
@@ -106,7 +109,7 @@ public interface ItemServiceInternal {
      * @param paths paths of items
      * @param isSystemProcessing true if item is being processed by system, otherwise false
      */
-    void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing);
+    void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing);
 
     /**
      * Update states to flip on list off states and flip off another list of states for item
@@ -127,6 +130,15 @@ public interface ItemServiceInternal {
      * @param offStateBitMap stats bitmap to flip off
      */
     void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Update states for items with given ids.
+     *
+     * @param ids            ids of items
+     * @param onStateBitMap  states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBitsByIds(Collection<Long> ids, long onStateBitMap, long offStateBitMap);
 
     Item.Builder instantiateItem(String siteName, String path);
 
@@ -225,13 +237,6 @@ public interface ItemServiceInternal {
     int countAllContentItems();
 
     /**
-     * Clear previous path of the content
-     * @param siteId site identifier
-     * @param path path of the content;
-     */
-    void clearPreviousPath(String siteId, String path);
-
-    /**
      * Convert Publishing History Item to Publishing Dashboard Item
      * @param historyItem publishing history item
      * @return publishing dashboard item
@@ -244,6 +249,14 @@ public interface ItemServiceInternal {
      * @return list of items
      */
     List<Item> getInProgressItems(String siteId);
+
+    /**
+     * Get the paths for items that are not published
+     *
+     * @param siteId the site id
+     * @return list of paths for non-folder unpublished items
+     */
+    Collection<String> getUnpublishedPaths(long siteId);
 
     /**
      * Check if item is update or new
@@ -277,36 +290,12 @@ public interface ItemServiceInternal {
     boolean previousPathExists(String siteId, String path);
 
     /**
-     * Get mandatory parents for publishing for given site and list of paths
-     * @param siteId site identifier
-     * @param paths list of paths
-     * @return list of mandatory parents paths
-     */
-    List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths);
-
-    /**
-     * Get existing renamed children of mandatory parents for publishing
-     * @param siteId site identifier
-     * @param parents list of parents paths
-     * @return list of children paths
-     */
-    List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(String siteId, List<String> parents);
-
-    /**
      * Get change set for subtree
      * @param siteId site identifier
      * @param path root path of the subtree
      * @return list of items
      */
     List<String> getChangeSetForSubtree(String siteId, String path);
-
-    /**
-     * Update last published date for item
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param lastPublishedOn published date
-     */
-    void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn);
 
     /**
      * Lock item for given lock owner
@@ -331,7 +320,16 @@ public interface ItemServiceInternal {
      * @param states states mask to filter items by state
      * @return number of records
      */
-    int getItemStatesTotal(String siteId, String path, Long states, List<String> systemTypes);
+    int getItemByStatesTotal(String siteId, String path, Long states, List<String> systemTypes);
+
+    /**
+     * Get item states for given paths
+     *
+     * @param siteId the site id
+     * @param paths  the collection of paths to retrieve the states for
+     * @return Map of path -> {@link ItemPathAndState}
+     */
+    Map<String, ItemPathAndState> getItemStates(String siteId, Collection<String> paths);
 
     /**
      * Get item states for given filters by path regex and states mask
@@ -345,7 +343,7 @@ public interface ItemServiceInternal {
      * @param limit       number of item states records to return
      * @return list of sandbox items
      */
-    List<Item> getItemStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
+    List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
 
     /**
      * Update item state flags for given items
@@ -399,4 +397,19 @@ public interface ItemServiceInternal {
      * @param path path of the folder where the new index.xml has been added
      */
     void updateNewPageChildren(String site, String path);
+
+    /**
+     * Get the non-folder paths of the children of the item at the given path, recursively.
+     *
+     * @param siteId the site id
+     * @param path   the path to get children for
+     * @return list of children paths
+     */
+    Collection<String> getChildrenPaths(long siteId, String path);
+
+    /*
+     * Recalculate the parent id for all the items in the site
+     * @param siteId the site id
+     */
+    void updateParentId(String siteId);
 }

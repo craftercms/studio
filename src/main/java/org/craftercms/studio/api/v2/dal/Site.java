@@ -26,13 +26,13 @@ public class Site {
     protected String siteId;
     protected String name;
     protected String description;
-    protected int deleted;
+    protected boolean deleted;
     protected String liveUrl;
     protected String lastCommitId;
     protected boolean publishingEnabled;
     protected String publishingStatus;
     protected String sandboxBranch;
-    protected int publishedRepoCreated;
+    protected boolean publishedRepoCreated;
     protected String state;
 
     public long getId() {
@@ -115,28 +115,28 @@ public class Site {
         this.sandboxBranch = sandboxBranch;
     }
 
-    public int getDeleted() {
+    public boolean getDeleted() {
         return deleted;
     }
 
-    public void setDeleted(int deleted) {
+    public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
 
     public boolean isSiteDeleted() {
-        return deleted != 0;
+        return deleted;
     }
 
-    public int getPublishedRepoCreated() {
+    public boolean getPublishedRepoCreated() {
         return publishedRepoCreated;
     }
 
-    public void setPublishedRepoCreated(int publishedRepoCreated) {
+    public void setPublishedRepoCreated(boolean publishedRepoCreated) {
         this.publishedRepoCreated = publishedRepoCreated;
     }
 
     public boolean isSitePublishedRepoCreated() {
-        return publishedRepoCreated > 0;
+        return publishedRepoCreated;
     }
 
     public String getState() {

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
@@ -68,6 +69,11 @@ public class SandboxRepositoryListener implements ApplicationEventPublisherAware
         siteService.getSitesByState(READY).forEach(site -> {
             logger.debug("Registering site '{}' for repository events", site);
             Repository repo = repositoryHelper.getRepository(site.getSiteId(), GitRepositories.SANDBOX);
+            if (repo == null) {
+                // This can happen in clusters when a site is created while the replica is down
+                logger.warn("Repository not found for site '{}'", site);
+                return;
+            }
             Path sandboxRepoPath = repo.getDirectory().toPath();
             try {
                 repositoryWatcher.registerSite(site.getSiteId(), sandboxRepoPath);
@@ -84,6 +90,7 @@ public class SandboxRepositoryListener implements ApplicationEventPublisherAware
     }
 
     @Async
+    @Order(20)
     @EventListener
     public void onSiteReady(SiteReadyEvent event) throws SiteNotFoundException, IOException {
         logger.debug("Site ready event received for site '{}'", event.getSiteId());

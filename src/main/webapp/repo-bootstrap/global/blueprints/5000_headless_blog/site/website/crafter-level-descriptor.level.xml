@@ -16,6 +16,6 @@
   -->
 
 <levelDescriptor>
-  <descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+  <merge-strategy>inherit-levels</merge-strategy>
   <content-type>/component/level-descriptor</content-type>
  </levelDescriptor>

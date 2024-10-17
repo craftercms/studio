@@ -1,6 +1,6 @@
 
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,11 +29,6 @@ class DependencyServices {
         return ServiceFactory.createContext(applicationContext, request)
     }
 
-    def static getDependencies(context, site, requestBody, deleteDependencies) {
-        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
-        return dependencyServiceImpl.getDependencies(site, requestBody, deleteDependencies);
-    }
-
     @Deprecated
     static getDependantItems(context,site,path){
         def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
@@ -44,10 +39,5 @@ class DependencyServices {
     static getDependenciesItems(context,site,path){
         def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
         return dependencyServiceImpl.getDependenciesItems(site, path);
-    }
-
-    static calculateDependencies(context, site, paths) {
-        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
-        return dependencyServiceImpl.calculateDependencies(site, paths);
     }
 }

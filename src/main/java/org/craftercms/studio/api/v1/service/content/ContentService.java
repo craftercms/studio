@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,22 +16,26 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmOrderTO;
+import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Content Services that other services may use
@@ -147,11 +151,23 @@ public interface ContentService {
      * @param site    - the project ID
      * @param path    path to content
      * @param content stream of content to write
+     * @return return new commit id
+     *
+     * @throws ServiceLayerException general service error
+     */
+    String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+
+    /**
+     * write content from an input stream and notify the subscribers.
+     *
+     * @param site    - the project ID
+     * @param path    path to content
+     * @param content stream of content to write
      * @return return true if successful
      *
      * @throws ServiceLayerException general service error
      */
-    boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+    boolean writeContentAndNotify(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
      * Notify when there is a content update
@@ -159,6 +175,19 @@ public interface ContentService {
      * @param path path name
      */
     void notifyContentEvent(String site, String path);
+
+    /**
+     * Validate the input and create a folder
+     * @param site - the project ID
+     * @param path path to create a folder in
+     * @param name a folder name to create
+     * @return return the reference to the folder created
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     * @throws ValidationException
+     */
+    boolean validateAndCreateFolder(String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * create a folder
@@ -171,20 +200,6 @@ public interface ContentService {
      * @throws SiteNotFoundException site not found
      */
     boolean createFolder(String site, String path, String name)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * delete content at the path
-     *
-     * @param site - the project ID
-     * @param path path to content
-     * @return return true if successful
-     *
-     * @throws SiteNotFoundException site not found
-     */
-    boolean deleteContent(String site, String path, String approver) throws ServiceLayerException, UserNotFoundException;
-
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -315,7 +330,7 @@ public interface ContentService {
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock)
-            throws ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * write content
@@ -340,7 +355,7 @@ public interface ContentService {
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
                                final String contentType, final InputStream input, final String createFolders,
                                final String edit, final String unlock, final boolean createFolder)
-                                throws ServiceLayerException;
+            throws ServiceLayerException, ValidationException;
 
     Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
                                           String isImage, String allowedWidth, String allowedHeight,
@@ -373,16 +388,19 @@ public interface ContentService {
         throws ServiceLayerException;
 
     /**
-    * rename a content item
-    *
-    * @param site - the project ID
-    * @param path path to a folder to rename
-    * @param name a new folder name
-    * @return return the reference to the folder renamed
-    *
-    * @throws ServiceLayerException general service error
+     * rename a content item
+     *
+     * @param site - the project ID
+     * @param path path to a folder to rename
+     * @param name a new folder name
+     * @return return the reference to the folder renamed
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     * @throws ValidationException validation exception
     */
-    boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+    boolean renameContent(String site, String path, String name)
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * Push content to remote repository

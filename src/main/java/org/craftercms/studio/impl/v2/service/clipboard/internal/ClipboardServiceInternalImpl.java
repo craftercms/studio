@@ -18,23 +18,28 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +49,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.model.clipboard.Operation.CUT;
 
 /**
@@ -59,7 +65,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     private static final Logger logger = LoggerFactory.getLogger(ClipboardServiceInternalImpl.class);
 
     protected ContentService contentService;
-    protected WorkflowService workflowService;
+    protected PublishService publishService;
+    protected GeneralLockService generalLockService;
     protected ApplicationContext applicationContext;
 
     protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
@@ -94,17 +101,30 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                 throw new ContentMoveInvalidLocation(format("Cannot perform cut-paste operation from '%s' to the same location '%s' for site '%s'",
                         sourcePath, targetPath, siteId));
             }
+
+            Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, List.of(sourcePath), true);
+            if (isNotEmpty(packagesForItems)) {
+                throw new ContentInPublishQueueException("Unable to CUT content that is part of an active publishing package", packagesForItems);
+            }
         }
     }
 
+    @Override
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
-        validatePasteItemsAction(siteId, operation, item.getPath(), targetPath);
-        var pastedItems = new LinkedList<String>();
-        pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
-        logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
-                pastedItems.size(), siteId, item.getPath(), targetPath);
-        return pastedItems;
+        // Lock the sandbox repository to prevent publish packages being submitted (cut-paste operations might conflict with submitted packages)
+        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+        generalLockService.lock(sandboxRepoLockKey);
+        try {
+            validatePasteItemsAction(siteId, operation, item.getPath(), targetPath);
+            var pastedItems = new LinkedList<String>();
+            pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
+            logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
+                    pastedItems.size(), siteId, item.getPath(), targetPath);
+            return pastedItems;
+        } finally {
+            generalLockService.unlock(sandboxRepoLockKey);
+        }
     }
 
     // Code based on the original clipboard service v1
@@ -117,7 +137,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                     case CUT:
                         // RDTMP_COPYPASTE
                         // CopyContent interface is able to send status and new path yet
-                        workflowService.cleanWorkflow(item.getPath(), siteId);
                         newPath = contentService.moveContent(siteId, item.getPath(), targetPath);
                         break;
                     case COPY:
@@ -167,7 +186,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext(@NotNull final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
@@ -175,8 +194,13 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
         this.contentService = contentService;
     }
 
-    public void setWorkflowService(WorkflowService workflowService) {
-        this.workflowService = workflowService;
+    @SuppressWarnings("unused")
+    public void setPublishService(final PublishService publishService) {
+        this.publishService = publishService;
     }
 
+    @SuppressWarnings("unused")
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 }

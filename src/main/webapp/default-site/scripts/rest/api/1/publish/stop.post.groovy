@@ -50,14 +50,9 @@ try {
     } else {
         def context = DeploymentServices.createContext(applicationContext, request)
         try {
-            def success = DeploymentServices.enablePublishing(context, siteId, false)
-            if (success) {
-                response.setStatus(200)
-                result.message = "OK"
-            } else {
-                response.setStatus(500)
-                result.message = "Internal server error"
-            }
+            DeploymentServices.enablePublishing(context, siteId, false)
+            response.setStatus(200)
+            result.message = "OK"
         } catch (AuthenticationException e) {
             response.setStatus(401)
             result.message = "Unauthorized"

@@ -16,32 +16,37 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v2.dal.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+
+import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.startsWith;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_BY_COMMITS;
+
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
-    private final static String STATUS = "/api/1/services/api/1/publish/status.json";
-    private final static String COMMITS = "/api/1/services/api/1/publish/commits.json";
-    private final static String PUBLISH_ITEMS = "/api/1/services/api/1/publish/publish-items.json";
-    private final static String RESET_STAGING = "/api/1/services/api/1/publish/reset-staging.json";
+    private static final String PUBLISH_API_ROOT = "/api/1/services/api/1/publish/";
+    private static final String COMMITS = "/api/1/services/api/1/publish/commits.json";
+
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public boolean supports(ConfigAttribute configAttribute) {
@@ -52,64 +57,51 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
     public int voteInternal(Authentication authentication, Object o, Collection collection) {
         int toRet = ACCESS_ABSTAIN;
         String requestUri = "";
-        if (o instanceof FilterInvocation) {
-            FilterInvocation filterInvocation = (FilterInvocation)o;
-            HttpServletRequest  request = filterInvocation.getRequest();
-            requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            String userParam = request.getParameter("username");
-            String siteParam = request.getParameter("site_id");
-            if (StringUtils.isEmpty(userParam)
+        if (!(o instanceof FilterInvocation filterInvocation)) {
+            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+            return toRet;
+        }
+        HttpServletRequest  request = filterInvocation.getRequest();
+        requestUri = request.getRequestURI().replace(request.getContextPath(), "");
+        if (!startsWith(requestUri, PUBLISH_API_ROOT)) {
+            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+            return toRet;
+        }
+        String userParam = request.getParameter("username");
+        String siteParam = request.getParameter("site_id");
+        if (StringUtils.isEmpty(userParam)
                 && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
-                && !JakartaServletFileUpload.isMultipartContent(request)
-                ) {
-                try {
-                    InputStream is = request.getInputStream();
-                    is.mark(0);
-                    String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
-                    if (StringUtils.isNoneEmpty(jsonString)) {
-                        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                        if (jsonObject.has("site_id")) {
-                            siteParam = jsonObject.getString("site_id");
-                        }
-                    }
-                    is.reset();
-                } catch (IOException | JSONException e) {
-                    // TODO: SJ: Why isn't this at least INFO if not WARN?
-                    logger.debug("Failed to extract the username from the POST request", e);
+                && !JakartaServletFileUpload.isMultipartContent(request)) {
+            try (InputStream is = request.getInputStream()) {
+                String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
+                if (StringUtils.isNoneEmpty(jsonString)) {
+                    ApiParams apiParams = objectMapper.readValue(jsonString, ApiParams.class);
+                    siteParam = defaultIfEmpty(apiParams.getSite(), siteParam);
                 }
+            } catch (JsonParseException e) {
+                logger.info("Failed to parse request as JSON", e);
+            } catch (IOException e) {
+                logger.info("Failed to extract the fields from the POST request", e);
             }
-            User currentUser = (User) authentication.getPrincipal();
-            switch (requestUri) {
-                case STATUS:
-                    if (siteService.exists(siteParam)) {
-                        if (isSiteMember(siteParam, currentUser)) {
-                            toRet = ACCESS_GRANTED;
-                        } else {
-                            toRet = ACCESS_DENIED;
-                        }
+        }
+        User currentUser = (User) authentication.getPrincipal();
+        switch (requestUri) {
+            case COMMITS:
+                if (siteService.exists(siteParam)) {
+                    if (currentUser != null &&
+                            (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, DEFAULT_PERMISSION_VOTER_PATH,
+                                    currentUser.getUsername(), PERMISSION_PUBLISH_BY_COMMITS))) {
+                        toRet = ACCESS_GRANTED;
                     } else {
-                        toRet = ACCESS_ABSTAIN;
+                        toRet = ACCESS_DENIED;
                     }
-                    break;
-                case COMMITS:
-                case PUBLISH_ITEMS:
-                case RESET_STAGING:
-                    if (siteService.exists(siteParam)) {
-                        if (currentUser != null &&
-                                (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, "~DASHBOARD~",
-                                        currentUser.getUsername(), "publish"))) {
-                            toRet = ACCESS_GRANTED;
-                        } else {
-                            toRet = ACCESS_DENIED;
-                        }
-                    } else {
-                        toRet = ACCESS_ABSTAIN;
-                    }
-                    break;
-                default:
+                } else {
                     toRet = ACCESS_ABSTAIN;
-                    break;
-            }
+                }
+                break;
+            default:
+                toRet = ACCESS_ABSTAIN;
+                break;
         }
         logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
         return toRet;
@@ -121,4 +113,23 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
         return true;
     }
 
+    /**
+     * Simple POJO to read JSON parameters
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ApiParams {
+        private String site;
+
+        public String getSite() {
+            return site;
+        }
+
+        public void setSite(String site) {
+            this.site = site;
+        }
+
+        public void setSite_id(String site_id) {
+            this.site = site_id;
+        }
+    }
 }

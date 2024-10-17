@@ -16,7 +16,6 @@
 package org.craftercms.studio.api.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.security.AccessToken;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 import org.springframework.security.core.Authentication;
@@ -107,6 +106,13 @@ public interface AccessTokenServiceInternal {
     void deleteAccessToken(long id);
 
     // All tokens
+
+    /**
+     * Deletes all the tokens for the given users
+     *
+     * @param userIds the user ids list
+     */
+    void deleteUsersTokens(List<Long> userIds);
 
     /**
      * Returns the username for the given access token

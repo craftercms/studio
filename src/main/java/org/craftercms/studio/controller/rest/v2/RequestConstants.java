@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -38,10 +38,12 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_CLUSTER_NODE_ID = "clusterNodeId";
     public static final String REQUEST_PARAM_ORDER = "order";
     public static final String REQUEST_PARAM_PATH = "path";
+    public static final String REQUEST_PARAM_NAME = "name";
     public static final String REQUEST_PARAM_PROFILE_ID = "profileId";
     public static final String REQUEST_PARAM_TYPE = "type";
     public static final String REQUEST_PARAM_ENVIRONMENT = "environment";
     public static final String REQUEST_PARAM_STATES = "states";
+    public static final String REQUEST_PARAM_APPROVAL_STATES = "approvalStates";
     public static final String REQUEST_PARAM_PACKAGE_ID = "packageId";
     public static final String REQUEST_PARAM_TOKEN = "token";
     public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
@@ -54,6 +56,7 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
     public static final String REQUEST_PARAM_ITEM_TYPE = "itemType";
+    public static final String REQUEST_PARAM_INCLUDE_CHILDREN = "includeChildren";
 
     public static final String GROUP_SORT_COLUMNS = "id record_last_updated group_name externally_managed";
 
@@ -64,6 +67,9 @@ public final class RequestConstants {
 
     public static final String PUBLISH_REQUEST_SORT_FIELDS = "id dateScheduled label";
     public static final String ITEM_TYPE_VALUES = "asset|component|content type|document|file|folder|levelDescriptor|page|renderingTemplate|script|taxonomy";
+    public static final String RESULT_KEY_PACKAGE_ID = "packageId";
+    public static final String RESULT_KEY_PACKAGE = "package";
+
     private RequestConstants() {
     }
 }

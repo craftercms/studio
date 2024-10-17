@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.aws.mediaconvert;
 
 import java.io.InputStream;
+import java.net.URI;
 
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.file.stores.S3Utils;
@@ -25,18 +26,10 @@ import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertJob;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.mediaconvert.AWSMediaConvert;
-import com.amazonaws.services.mediaconvert.AWSMediaConvertClientBuilder;
-import com.amazonaws.services.mediaconvert.model.CreateJobRequest;
-import com.amazonaws.services.mediaconvert.model.CreateJobResult;
-import com.amazonaws.services.mediaconvert.model.GetJobTemplateRequest;
-import com.amazonaws.services.mediaconvert.model.Input;
-import com.amazonaws.services.mediaconvert.model.JobSettings;
-import com.amazonaws.services.mediaconvert.model.JobTemplate;
-import com.amazonaws.services.mediaconvert.model.OutputGroup;
-import com.amazonaws.services.mediaconvert.model.OutputGroupType;
-import com.amazonaws.services.s3.AmazonS3;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.mediaconvert.MediaConvertClient;
+import software.amazon.awssdk.services.mediaconvert.model.*;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Default implementation of {@link MediaConvert}.
@@ -52,38 +45,38 @@ public class MediaConvertImpl implements MediaConvert {
     }
 
     /**
-     * Creates an instance of {@link AmazonS3} to upload the files.
+     * Creates an instance of {@link S3Client} to upload the files.
      * @param profile AWS profile
      * @return an S3 client
      */
-    protected AmazonS3 getS3Client(MediaConvertProfile profile) {
+    protected S3Client getS3Client(MediaConvertProfile profile) {
         return S3Utils.createClient(profile);
     }
 
     /**
-     * Creates an instance of {@link AWSMediaConvert} to start the transcoding jobs.
+     * Creates an instance of {@link MediaConvertClient} to start the transcoding jobs.
      * @param profile AWS profile
      * @return a MediaConvert client
      */
-    protected AWSMediaConvert getMediaConvertClient(MediaConvertProfile profile) {
-        return AWSMediaConvertClientBuilder.standard()
-                .withCredentials(profile.getCredentialsProvider())
-                .withEndpointConfiguration(
-                    new AwsClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()))
+    protected MediaConvertClient getMediaConvertClient(MediaConvertProfile profile) {
+        return MediaConvertClient.builder()
+                .credentialsProvider(profile.getCredentialsProvider())
+                .region(Region.of(profile.getRegion()))
+                .endpointOverride(URI.create(profile.getEndpoint()))
                 .build();
     }
 
     /**
      * Creates an instance of {@link MediaConvertJob} with the result of the transcoding job creation.
-     * @param createJobResult result from the MediaConvert client
+     * @param createJobResponse result from the MediaConvert client
      * @param destination output destination of the job
      * @param key base filename for the output
      * @return result of the transcoding job
      */
-    protected MediaConvertJob createMediaConverJob(CreateJobResult createJobResult, String destination, String key) {
+    protected MediaConvertJob createMediaConverJob(CreateJobResponse createJobResponse, String destination, String key) {
         MediaConvertJob job = new MediaConvertJob();
-        job.setArn(createJobResult.getJob().getArn());
-        job.setId(createJobResult.getJob().getId());
+        job.setArn(createJobResponse.job().arn());
+        job.setId(createJobResponse.job().id());
         job.setDestination(destination);
         job.setBaseKey(key);
         return job;
@@ -95,27 +88,32 @@ public class MediaConvertImpl implements MediaConvert {
     @Override
     public MediaConvertJob startJob(final String filename, final InputStream content, final MediaConvertProfile profile)
         throws AwsException {
-        AmazonS3 s3Client = getS3Client(profile);
-        AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);
+        S3Client s3Client = getS3Client(profile);
+        MediaConvertClient mediaConvertClient = getMediaConvertClient(profile);
 
         AwsUtils.uploadStream(profile.getInputPath(), filename, s3Client, partSize, filename, content);
 
         String key = FilenameUtils.getBaseName(filename);
 
-        JobTemplate jobTemplate = mediaConvertClient.getJobTemplate(new GetJobTemplateRequest()
-            .withName(profile.getTemplate())).getJobTemplate();
+        JobTemplate jobTemplate = mediaConvertClient.getJobTemplate(
+                GetJobTemplateRequest.builder()
+                        .name(profile.getTemplate())
+                        .build()).jobTemplate();
 
-        JobSettings jobSettings = new JobSettings()
-                                    .withInputs(new Input().withFileInput(
-                                        AwsUtils.getS3Url(profile.getInputPath(), filename)));
+        JobSettings jobSettings = JobSettings.builder()
+                .inputs(Input.builder()
+                        .fileInput(AwsUtils.getS3Url(profile.getInputPath(), filename))
+                        .build())
+                .build();
 
-        CreateJobRequest createJobRequest = new CreateJobRequest()
-                                                    .withJobTemplate(profile.getTemplate())
-                                                    .withSettings(jobSettings)
-                                                    .withRole(profile.getRole())
-                                                    .withQueue(profile.getQueue());
+        CreateJobRequest createJobRequest = CreateJobRequest.builder()
+                .jobTemplate(profile.getTemplate())
+                .settings(jobSettings)
+                .role(profile.getRole())
+                .queue(profile.getQueue())
+                .build();
 
-        CreateJobResult createJobResult = mediaConvertClient.createJob(createJobRequest);
+        CreateJobResponse createJobResult = mediaConvertClient.createJob(createJobRequest);
 
         return createMediaConverJob(createJobResult, getJobDestination(jobTemplate), key);
     }
@@ -126,19 +124,19 @@ public class MediaConvertImpl implements MediaConvert {
      * @return the output destination
      */
     protected String getJobDestination(final JobTemplate jobTemplate) {
-        OutputGroup outputGroup = jobTemplate.getSettings().getOutputGroups().get(0);
-        OutputGroupType type = OutputGroupType.valueOf(outputGroup.getOutputGroupSettings().getType());
+        OutputGroup outputGroup = jobTemplate.settings().outputGroups().get(0);
+        OutputGroupType type = outputGroup.outputGroupSettings().type();
         switch (type) {
             case FILE_GROUP_SETTINGS:
-               return outputGroup.getOutputGroupSettings().getFileGroupSettings().getDestination();
+               return outputGroup.outputGroupSettings().fileGroupSettings().destination();
             case HLS_GROUP_SETTINGS:
-                return outputGroup.getOutputGroupSettings().getHlsGroupSettings().getDestination();
+                return outputGroup.outputGroupSettings().hlsGroupSettings().destination();
             case CMAF_GROUP_SETTINGS:
-                return outputGroup.getOutputGroupSettings().getCmafGroupSettings().getDestination();
+                return outputGroup.outputGroupSettings().cmafGroupSettings().destination();
             case DASH_ISO_GROUP_SETTINGS:
-                return outputGroup.getOutputGroupSettings().getDashIsoGroupSettings().getDestination();
+                return outputGroup.outputGroupSettings().dashIsoGroupSettings().destination();
             case MS_SMOOTH_GROUP_SETTINGS:
-                return outputGroup.getOutputGroupSettings().getMsSmoothGroupSettings().getDestination();
+                return outputGroup.outputGroupSettings().msSmoothGroupSettings().destination();
             default:
                 return null;
         }

@@ -46,7 +46,6 @@ public class SandboxItem {
     private long sizeInBytes;
     private long availableActions;
     private int childrenCount = 0;
-    private String previousPath;
 
     public long getId() {
         return id;
@@ -224,15 +223,6 @@ public class SandboxItem {
         this.childrenCount = childrenCount;
     }
 
-    @JsonIgnore
-    public String getPreviousPath() {
-        return previousPath;
-    }
-
-    public void setPreviousPath(String previousPath) {
-        this.previousPath = previousPath;
-    }
-
     public static SandboxItem getInstance(Item item) {
         SandboxItem instance = new SandboxItem();
 
@@ -257,7 +247,6 @@ public class SandboxItem {
         instance.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
         instance.childrenCount = item.getChildrenCount();
-        instance.previousPath = item.getPreviousPath();
 
         return instance;
     }

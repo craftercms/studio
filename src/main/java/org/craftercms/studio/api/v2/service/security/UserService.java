@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.rest.UserResponse;
@@ -86,7 +87,7 @@ public interface UserService {
 
     List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
-    List<String> getUserSiteRoles(long userId, String username, String site)
+    List<NormalizedRole> getUserSiteRoles(long userId, String username, String site)
             throws ServiceLayerException, UserNotFoundException;
 
     AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException;

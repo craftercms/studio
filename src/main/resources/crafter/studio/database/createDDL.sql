@@ -57,15 +57,28 @@ BEGIN
     INSERT INTO dependency (id, site, source_path, target_path, type)
         SELECT null, siteId, d.source_path, d.target_path, d.type FROM dependency d WHERE d.site = sourceSiteId;
 
-    INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, previous_path, ignored)
-        SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.previous_path, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
+    INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored)
+        SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
-    /* parent_id points to original item parent */
     SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
-    CALL populateItemParentId(@siteNumericId);
 
     INSERT INTO navigation_order_sequence (folder_id, site, path, max_count)
         SELECT UUID(), siteId, nos.path, nos.max_count FROM navigation_order_sequence nos WHERE nos.site = sourceSiteId;
+
+    SELECT id FROM site WHERE site_id = sourceSiteId AND deleted = 0 INTO @sourceSiteNumericId;
+
+    INSERT INTO item_target(item_id, target, previous_path, last_published_on, published_commit_id)
+    SELECT newItem.id, target, previous_path, last_published_on, published_commit_id
+    FROM item_target it
+        INNER JOIN item sourceItem ON sourceItem.id = it.item_id
+        INNER JOIN item newItem ON sourceItem.path = newItem.path
+    WHERE sourceItem.site_id = @sourceSiteNumericId
+    AND newItem.site_id = @siteNumericId;
+
+    INSERT INTO processed_commits (id, site_id, commit_id)
+        SELECT null, @siteNumericId, pc.commit_id
+        FROM processed_commits pc
+        WHERE site_id = @sourceSiteNumericId;
 END ;
 
 CREATE PROCEDURE addColumnIfNotExists(
@@ -186,9 +199,6 @@ BEGIN
         -- dependencies
         DELETE FROM dependency WHERE site = siteId;
 
-        -- deployment data
-        DELETE FROM publish_request WHERE site = siteId;
-
         -- sequences
         DELETE FROM navigation_order_sequence WHERE site = siteId;
 
@@ -197,6 +207,12 @@ BEGIN
 
         -- audit log
         DELETE FROM audit WHERE site_id = id;
+
+        -- publish queue
+        DELETE FROM publish_package WHERE site_id = id;
+
+        -- processed_commits
+        DELETE FROM processed_commits WHERE site_id = id;
     END IF;
 END ;
 
@@ -207,7 +223,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.8', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.12', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -277,33 +293,6 @@ CREATE TABLE IF NOT EXISTS `navigation_order_sequence` (
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS `publish_request` (
-  `id`                BIGINT       NOT NULL AUTO_INCREMENT,
-  `site`              VARCHAR(50)  NOT NULL,
-  `environment`       VARCHAR(20)  NOT NULL,
-  `path`              TEXT         NOT NULL,
-  `oldpath`           TEXT         NULL,
-  `username`          VARCHAR(255) NULL,
-  `scheduleddate`     TIMESTAMP     NOT NULL,
-  `state`             VARCHAR(50)  NOT NULL,
-  `action`            VARCHAR(20)  NOT NULL,
-  `contenttypeclass`  VARCHAR(20)  NULL,
-  `submission_type`   VARCHAR(32)  NULL,
-  `submissioncomment` TEXT         NULL,
-  `package_id`         VARCHAR(50)  NULL,
-  `label`             VARCHAR(256) NULL,
-  `published_on`      TIMESTAMP     NULL,
-  PRIMARY KEY (`id`),
-  INDEX `publish_request_site_idx` (`site` ASC),
-  INDEX `publish_request_environment_idx` (`environment` ASC),
-  INDEX `publish_request_path_idx` (`path`(1000) ASC),
-  INDEX `publish_request_sitepath_idx` (`site` ASC, `path`(900) ASC),
-  INDEX `publish_request_state_idx` (`state` ASC)
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
-
 CREATE TABLE IF NOT EXISTS `site` (
   `id`                              BIGINT(20)    NOT NULL AUTO_INCREMENT,
   `site_uuid`                       VARCHAR(50)   NOT NULL,
@@ -324,6 +313,19 @@ CREATE TABLE IF NOT EXISTS `site` (
   INDEX `site_id_idx` (`site_id` ASC)
 )
 
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `processed_commits`
+(
+    `id`        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `site_id`   BIGINT(20)      NOT NULL,
+    `commit_id` CHAR(40)        NOT NULL,
+    PRIMARY KEY(`id`),
+    UNIQUE INDEX `ingested_commits_commit_id_site_id` (`commit_id`, `site_id`),
+    FOREIGN KEY `ingested_commits_site_id` (`site_id`) REFERENCES `site` (`id`)
+)
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
@@ -496,7 +498,6 @@ CREATE TABLE IF NOT EXISTS `item` (
   `created_on`              TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
   `last_modified_by`        BIGINT          NULL,
   `last_modified_on`        TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
-  `last_published_on`       TIMESTAMP       NULL,
   `label`                   VARCHAR(256)    NULL,
   `content_type_id`         VARCHAR(256)    NULL,
   `system_type`             VARCHAR(64)     NULL,
@@ -505,7 +506,6 @@ CREATE TABLE IF NOT EXISTS `item` (
   `translation_source_id`   BIGINT          NULL,
   `size`                    BIGINT          NULL,
   `parent_id`               BIGINT          NULL,
-  `previous_path`           VARCHAR(2048)   NULL,
   `ignored`                 INT             NOT NULL    DEFAULT 0,
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
@@ -534,32 +534,6 @@ CREATE TABLE IF NOT EXISTS `item_translation` (
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS workflow
-(
-    `id`                    BIGINT(20)      NOT NULL AUTO_INCREMENT,
-    `item_id`               BIGINT(20)      NOT NULL,
-    `target_environment`    VARCHAR(20)     NOT NULL,
-    `state`                 VARCHAR(16)     NOT NULL,
-    `submitter_id`          BIGINT(20)      NULL,
-    `submitter_comment`     TEXT            NULL,
-    `submitted_on`          TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
-    `reviewer_id`           BIGINT(20)      NULL,
-    `reviewer_comment`      TEXT            NULL,
-    `schedule`              TIMESTAMP       NULL,
-    `publishing_package_id` VARCHAR(50)     NULL,
-    `submission_type`       VARCHAR(32)     NULL,
-    `notify_submitter`      INT             NOT NULL DEFAULT 0,
-    `label`                 VARCHAR(256)    NULL,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY `workflow_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
-    FOREIGN KEY `workflow_ix_submitter`(`submitter_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-    FOREIGN KEY `workflow_ix_reviewer`(`reviewer_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-)
-    ENGINE = InnoDB
-    DEFAULT CHARSET = utf8
-    ROW_FORMAT = DYNAMIC ;
-
 
 CREATE TABLE IF NOT EXISTS remote_repository
 (
@@ -626,6 +600,93 @@ CREATE TABLE IF NOT EXISTS `access_token`
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
+
+/*
+    Package level data for a publish request
+*/
+CREATE TABLE IF NOT EXISTS `publish_package`
+(
+    `id`	                        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `site_id`	                    BIGINT(20)	    NOT NULL,
+    `target`	                    VARCHAR(20)	    NOT NULL,
+    `schedule`	                    TIMESTAMP,
+    `approval_state`	            ENUM ('SUBMITTED', 'APPROVED', 'REJECTED')	NOT NULL,
+    `package_state`	                BIGINT          NOT NULL,
+    `live_error`	                INT,
+    `staging_error`	                INT,
+    `submitter_id`	                BIGINT(20),
+    `submitter_comment`	            TEXT,
+    `submitted_on`	                TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `reviewer_id`	                BIGINT(20),
+    `reviewer_comment`          	TEXT,
+    `reviewed_on`	                TIMESTAMP,
+    `published_on`	                TIMESTAMP,
+    `package_type`	                ENUM ('INITIAL_PUBLISH', 'PUBLISH_ALL', 'ITEM_LIST')    NOT NULL,
+    `commit_id`	                    CHAR(40)	    NOT NULL,
+    `published_staging_commit_id`	CHAR(40),
+    `published_live_commit_id`	    CHAR(40),
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `publish_package_site_id`(`site_id`) REFERENCES `site` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `publish_package_submitter_id`(`submitter_id`) REFERENCES `user` (`id`),
+    FOREIGN KEY `publish_package_reviewer_id`(`reviewer_id`) REFERENCES `user` (`id`)
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+/*
+    An item to be published as part of a package
+*/
+CREATE TABLE IF NOT EXISTS `publish_item`
+(
+    `id`                    BIGINT(20)              NOT NULL AUTO_INCREMENT,
+    `package_id`            BIGINT(20)	            NOT NULL,
+    `path`                  VARCHAR(2048)	        NOT NULL,
+    `live_previous_path`    VARCHAR(2048),
+    `staging_previous_path` VARCHAR(2048),
+    `action`	            ENUM('ADD', 'UPDATE', 'DELETE')   NOT NULL,
+    `user_requested`    	BOOLEAN	                NOT NULL,
+    `publish_state`         BIGINT      	        NOT NULL,
+    `live_error`            INT,
+    `staging_error`         INT,
+    PRIMARY KEY(`id`),
+    FOREIGN KEY `publish_item_package_id`(`package_id`) REFERENCES `publish_package` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+/*
+    Allows to link a publish_item to an item if it exists (items can be deleted afterwards)
+*/
+CREATE TABLE IF NOT EXISTS `item_publish_item`
+(
+    `publish_item_id`	BIGINT  NOT NULL,
+    `item_id`	        BIGINT  NOT NULL,
+    FOREIGN KEY `item_publish_item_publish_item_id`(`publish_item_id`) REFERENCES `publish_item` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `item_publish_item_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+/*
+    Keep track of old paths for published and then renamed content items
+*/
+CREATE TABLE IF NOT EXISTS `item_target`
+(
+    `item_id`       	    BIGINT	        NOT NULL,
+    `target`	            VARCHAR(20)	    NOT NULL,
+    `previous_path`         VARCHAR(2048)   NULL,
+    `last_published_on`     TIMESTAMP       NOT NULL,
+    `published_commit_id`   VARCHAR(40)     NOT NULL,
+    `renamed`               BOOLEAN         NOT NULL DEFAULT 0,
+    PRIMARY KEY(`item_id`, `target`),
+    FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO site (site_id, name, description, system, state)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'READY') ;

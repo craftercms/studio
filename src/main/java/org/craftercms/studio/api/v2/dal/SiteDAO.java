@@ -20,9 +20,13 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-
 public interface SiteDAO {
+
+    String PUBLISHING_STATUS = "publishingStatus";
+    String SITE_ID = "siteId";
+    String ENABLED = "enabled";
+    String COMMIT_ID = "commitId";
+    String STATE = "state";
 
     /**
      * Delete site
@@ -87,8 +91,24 @@ public interface SiteDAO {
 
     /**
      * Get the sites matching the given state
+     *
      * @param state the state
      * @return the list of sites
      */
     List<Site> getSitesByState(@Param(STATE) String state);
+
+    /**
+     * Set published repo created flag
+     *
+     * @param siteId the site id
+     */
+    void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
+
+    /**
+     * Update publishing status
+     *
+     * @param siteId the site id
+     * @param status publisher status
+     */
+    void updatePublishingStatus(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status);
 }

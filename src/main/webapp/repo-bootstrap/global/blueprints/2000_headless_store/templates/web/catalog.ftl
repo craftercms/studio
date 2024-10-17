@@ -20,7 +20,7 @@
 <html lang="en" data-craftercms-preview="${modePreview?c}">
 <head>
   <meta charset="utf-8">
-  <title>${model.title_t}</title>
+  <title>${contentModel.title_t}</title>
   <link rel="stylesheet" href="/static-assets/css/vendor/bootstrap-3.3.7.min.css">
   <style>
     [v-cloak] { display:none; }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -54,6 +54,12 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_TIME_BETWEEN_EVICTION_RUNS_MILLIS)}"/>
     </bean>
 
+    <bean id="scriptRunnerDataSource" parent="dataSource">
+        <property name="url"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SCRIPT_RUNNER_DB_URL)}" />
+        <property name="jmxName" value="org.apache.dbcp:DataSource=studio.scriptRunnerDataSource"/>
+    </bean>
+
     <tx:annotation-driven/>
     <bean id="transactionManager"
           class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
@@ -83,8 +89,7 @@
     </bean -->
 
     <bean id="studio.dbScriptRunner" class="org.craftercms.studio.impl.v2.dal.StudioDBScriptRunnerFactoryImpl">
-        <property name="delimiter" value=" ;"/>
-        <property name="dataSource" ref="dataSource" />
+        <property name="dataSource" ref="scriptRunnerDataSource" />
         <property name="scriptLinesBufferSize"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SCRIPT_RUNNER_BUFFER_SIZE)}" />
     </bean>
@@ -121,11 +126,6 @@
 
     <bean id="navigationOrderSequenceMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
-
-    <bean id="publishRequestMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.PublishRequestMapper" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
@@ -169,23 +169,29 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="publishRequestDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.PublishRequestDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
 
     <bean id="itemDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ItemDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="workflowDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.WorkflowDAO" />
+    <bean id="activityStreamDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ActivityStreamDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="activityStreamDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ActivityStreamDAO" />
+    <bean id="publishDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.publish.PublishDAO"/>
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="itemTargetDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO"/>
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="processedCommitsDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ProcessedCommitsDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 

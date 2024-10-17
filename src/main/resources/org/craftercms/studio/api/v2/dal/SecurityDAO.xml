@@ -310,6 +310,14 @@
         DELETE FROM refresh_token WHERE user_id = #{userId}
     </delete>
 
+    <delete id="deleteRefreshTokens">
+        DELETE FROM refresh_token
+        WHERE user_id IN
+        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
     <delete id="deleteExpiredTokens">
         DELETE FROM refresh_token
         WHERE
@@ -345,6 +353,14 @@
 
     <delete id="deleteAccessToken">
         DELETE FROM access_token WHERE user_id = #{userId} AND id = #{tokenId}
+    </delete>
+
+    <delete id="deleteUsersAccessTokens">
+        DELETE FROM access_token
+        WHERE user_id IN
+        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
     </delete>
 
 </mapper>

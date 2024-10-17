@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,24 +30,24 @@ import java.util.regex.Pattern;
 public class SitePermissionMappings {
 
     private String siteId;
-    private Map<String, RolePermissionMappings> rolePermissions = new HashMap<>();
-    private final Map<String, List<String>> groupToRolesMapping = new HashMap<>();
+    private Map<NormalizedRole, RolePermissionMappings> rolePermissions = new HashMap<>();
+    private final Map<NormalizedGroup, List<NormalizedRole>> groupToRolesMapping = new HashMap<>();
 
     public long getAvailableActions(String username, List<Group> groups, String path) {
-        List<String> rolesList = new ArrayList<>();
-        List<String> userRoles = groupToRolesMapping.get(username);
+        List<NormalizedRole> rolesList = new ArrayList<>();
+        List<NormalizedRole> userRoles = groupToRolesMapping.get(new NormalizedGroup(username));
         if (CollectionUtils.isNotEmpty(userRoles)) {
             CollectionUtils.addAll(rolesList, userRoles);
         }
         groups.forEach(g -> {
-            List<String> groupRoles = groupToRolesMapping.get(g.getGroupName());
+            List<NormalizedRole> groupRoles = groupToRolesMapping.get(new NormalizedGroup(g.getGroupName()));
             if (CollectionUtils.isNotEmpty(groupRoles)) {
                 CollectionUtils.addAll(rolesList, groupRoles);
             }
         });
 
         long availableActions = 0L;
-        for (String role : rolesList) {
+        for (NormalizedRole role : rolesList) {
             RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
             Map<String, Long> rulePermissions = rolePermissionMappings.getRuleContentItemPermissions();
             for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {
@@ -61,25 +61,26 @@ public class SitePermissionMappings {
         return availableActions;
     }
 
-    public void addGroupToRolesMapping(String group, List<String> roles) {
+    public void addGroupToRolesMapping(NormalizedGroup group, List<NormalizedRole> roles) {
         groupToRolesMapping.put(group, roles);
     }
 
     public void addRoleToGroupMapping(String group, String role) {
-        List<String> roles = groupToRolesMapping.get(group);
+        NormalizedGroup normalizedGroup = new NormalizedGroup(group);
+        List<NormalizedRole> roles = groupToRolesMapping.get(normalizedGroup);
         if (Objects.isNull(roles)) {
             roles = new ArrayList<>();
-            groupToRolesMapping.put(group, roles);
+            groupToRolesMapping.put(normalizedGroup, roles);
         }
-        roles.add(role);
+        roles.add(new NormalizedRole(role));
     }
 
-    public List<String> getRolesForGroup(String group) {
-        return this.groupToRolesMapping.get(group);
+    public List<NormalizedRole> getRolesForGroup(String group) {
+        return this.groupToRolesMapping.get(new NormalizedGroup(group));
     }
 
     public void addRolePermissionMapping(String role, RolePermissionMappings rolePermissionMappings) {
-        rolePermissions.put(role, rolePermissionMappings);
+        rolePermissions.put(new NormalizedRole(role), rolePermissionMappings);
     }
 
     public String getSiteId() {
@@ -90,11 +91,11 @@ public class SitePermissionMappings {
         this.siteId = siteId;
     }
 
-    public Map<String, RolePermissionMappings> getRolePermissions() {
+    public Map<NormalizedRole, RolePermissionMappings> getRolePermissions() {
         return rolePermissions;
     }
 
-    public void setRolePermissions(Map<String, RolePermissionMappings> rolePermissions) {
+    public void setRolePermissions(Map<NormalizedRole, RolePermissionMappings> rolePermissions) {
         this.rolePermissions = rolePermissions;
     }
 }

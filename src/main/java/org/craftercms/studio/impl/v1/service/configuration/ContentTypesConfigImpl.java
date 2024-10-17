@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import com.google.common.cache.Cache;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -27,6 +28,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -219,13 +221,13 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
      * @param nodes
      */
     protected void loadRoles(ContentTypeConfigTO config, List<Node> nodes) {
-        Set<String> roles = null;
-        if (nodes != null && nodes.size() > 0) {
+        Set<NormalizedRole> roles;
+        if (!CollectionUtils.isEmpty(nodes)) {
             roles = new HashSet<>(nodes.size());
             for (Node node : nodes) {
                 String role = node.getText();
                 if (!StringUtils.isEmpty(role)) {
-                    roles.add(role);
+                    roles.add(new NormalizedRole(role));
                 }
             }
         } else {
