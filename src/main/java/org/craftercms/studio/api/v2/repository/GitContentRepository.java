@@ -28,6 +28,7 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -151,14 +152,15 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     String getRepoLastCommitId(String site);
 
     /**
-     * Get a list of paths that changed since the commit ID provided to commit ID provided
+     * Execute consumers for all site paths for the given site
      *
-     * @param site         site to use
-     * @param commitIdFrom commit ID to start at
-     * @param commitIdTo   commit ID to end at
-     * @return map of paths (to operation, e.g.: C for created, D for deleted) of files that changed between two commits
+     * @param siteId             the site id
+     * @param directoryProcessor the consumer to process the directory paths
+     * @param fileProcessor      the consumer to process the file paths
      */
-    Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo);
+    void forAllSitePaths(String siteId,
+                         ThrowingConsumer<String> directoryProcessor,
+                         ThrowingConsumer<String> fileProcessor) throws Exception;
 
     /**
      * Get the previous commit id from repository for given a site id and a commit id

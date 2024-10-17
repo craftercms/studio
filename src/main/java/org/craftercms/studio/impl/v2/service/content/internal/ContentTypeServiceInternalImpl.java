@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -122,8 +122,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         return contentTypeService.getAllContentTypes(siteId, true).stream()
                 .filter(ContentTypeConfigTO::isQuickCreate)
                 .filter(contentType ->
-                    securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(),
-                                    securityService.getCurrentUser(), null)
+                    securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), securityService.getCurrentUser())
                             .contains(PERMISSION_CONTENT_CREATE))
                 .map(contentType -> {
                     QuickCreateItem item = new QuickCreateItem();

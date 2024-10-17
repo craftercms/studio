@@ -783,4 +783,8 @@
             #{path}
         </foreach>
     </select>
+
+    <update id="updateParentId" statementType="CALLABLE">
+        {CALL populateItemParentId(#{siteId, mode=IN, jdbcType=BIGINT})}
+    </update>
 </mapper>

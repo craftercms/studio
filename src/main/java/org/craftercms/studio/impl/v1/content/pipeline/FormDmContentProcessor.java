@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -171,7 +170,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     }
 
-    // For backward compatibility ignore the exception
     protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
         Item item = itemServiceInternal.getItem(siteId, path);
         // Prevent permission issues when the content is not locked
@@ -179,12 +177,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
             return;
         }
-        try {
-            contentServiceV2.unlockContent(siteId, path);
-            logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
-        } catch (ContentAlreadyUnlockedException e) {
-            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
-        }
+        contentServiceV2.unlockContent(siteId, path);
+        logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
     }
 
     /**

@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -87,6 +88,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final ConfigurationService configurationService;
     private final SecurityService securityService;
     private final AuditServiceInternal auditServiceInternal;
+    private final ItemServiceInternal itemServiceInternal;
     private ApplicationContext applicationContext;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
@@ -95,14 +97,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "siteDao",
             "retryingDatabaseOperationFacade",
             "deployer", "configurationService",
-            "securityService", "auditServiceInternal"})
+            "securityService", "auditServiceInternal",
+            "itemServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
                                     StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
                                     Deployer deployer, ConfigurationService configurationService,
-                                    SecurityService securityService, AuditServiceInternal auditServiceInternal) {
+                                    SecurityService securityService, AuditServiceInternal auditServiceInternal,
+                                    ItemServiceInternal itemServiceInternal) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
         this.blobAwareRepository = blobAwareRepository;
@@ -114,6 +118,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.configurationService = configurationService;
         this.securityService = securityService;
         this.auditServiceInternal = auditServiceInternal;
+        this.itemServiceInternal = itemServiceInternal;
     }
 
     @Override
@@ -515,6 +520,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             // Create site in db (site state is INITIALIZING) and copy all db data
             logger.debug("Duplicate site DB data from '{}' to '{}'", sourceSiteId, siteId);
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
+            logger.debug("Update item parent ids for new site '{}'", siteId);
+            itemServiceInternal.updateParentId(siteId);
 
             // Duplicate site in deployer
             logger.debug("Duplicate site deployer targets from '{}' to '{}'", sourceSiteId, siteId);

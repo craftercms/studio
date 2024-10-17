@@ -30,8 +30,8 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_START_STOP_PUBLISHER;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 
 /**
  *

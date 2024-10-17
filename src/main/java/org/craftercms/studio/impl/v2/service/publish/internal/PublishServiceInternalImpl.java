@@ -77,8 +77,9 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageTyp
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
+
 
 public class PublishServiceInternalImpl implements PublishService, ApplicationContextAware {
 

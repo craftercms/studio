@@ -137,4 +137,11 @@ public interface DependencyService {
      * @param targetPath the target path of the dependencies to validate
      */
     void validateDependencies(String siteId, String targetPath) throws ServiceLayerException;
+
+    /**
+     * Mark as valid all site dependencies if the target_path exists in the site
+     *
+     * @param siteId the site id
+     */
+    void validateDependencies(String siteId);
 }

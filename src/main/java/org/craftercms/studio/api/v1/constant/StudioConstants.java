@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v1.constant;
 
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
+
 import java.util.List;
 
 /**
@@ -153,6 +155,8 @@ public final class StudioConstants {
     public static final String SYSTEM_ADMIN_ROLE = "system_admin";
     public static final String ADMIN_ROLE = "admin";
     public static final String STRING_SEPARATOR = ",";
+    public static final NormalizedRole SYSTEM_ADMIN_NORMALIZED_ROLE = new NormalizedRole(SYSTEM_ADMIN_ROLE);
+    public static final NormalizedRole ADMIN_NORMALIZED_ROLE = new NormalizedRole(ADMIN_ROLE);
 
     /**
      * Remote repository create option

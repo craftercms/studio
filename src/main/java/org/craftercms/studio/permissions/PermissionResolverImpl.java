@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
@@ -37,10 +38,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  * @author avasquez
  */
 public class PermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
-
-    public static final String SITE_ID_RESOURCE_ID = "siteId";
-    public static final String PATH_RESOURCE_ID = "path";
-    public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";
 
     private final SecurityService securityService;
     private final StudioConfiguration studioConfiguration;
@@ -76,7 +73,7 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
             }
         }
 
-        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username, null);
+        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
 
         DefaultPermission permission = new DefaultPermission();
         permission.setAllowedActions(allowedActions);

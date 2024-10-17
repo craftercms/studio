@@ -218,6 +218,11 @@ public class DependencyServiceInternalImpl implements DependencyService {
         }
     }
 
+    @Override
+    public void validateDependencies(final String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForSite(siteId));
+    }
+
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }

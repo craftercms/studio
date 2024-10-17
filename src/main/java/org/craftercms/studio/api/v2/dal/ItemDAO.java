@@ -708,4 +708,11 @@ public interface ItemDAO {
      */
     @MapKey(PATH)
     Map<String, ItemPathAndState> getItemStates(@Param(SITE_ID) String siteId, @Param(PATHS) Collection<String> paths);
+
+    /*
+     * Recalculate the parent id for all the items in the site
+     *
+     * @param siteId the site id
+     */
+    void updateParentId(@Param(SITE_ID) long siteId);
 }

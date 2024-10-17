@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public class DependencyServiceImpl implements DependencyService {
@@ -105,6 +104,12 @@ public class DependencyServiceImpl implements DependencyService {
     @RequireSiteExists
     public void validateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
         dependencyServiceInternal.validateDependencies(siteId, targetPath);
+    }
+
+    @Override
+    @RequireSiteExists
+    public void validateDependencies(String siteId) {
+        dependencyServiceInternal.validateDependencies(siteId);
     }
 
     @Override

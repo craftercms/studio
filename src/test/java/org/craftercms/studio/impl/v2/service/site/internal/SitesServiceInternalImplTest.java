@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
@@ -78,6 +79,8 @@ public class SitesServiceInternalImplTest {
     SecurityService securityService;
     @Mock
     ApplicationContext applicationContext;
+    @Mock
+    ItemServiceInternal itemServiceInternal;
     @Spy
     @InjectMocks
     SitesServiceInternalImpl sitesServiceInternal;

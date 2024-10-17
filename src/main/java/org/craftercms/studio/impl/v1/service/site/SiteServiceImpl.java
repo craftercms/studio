@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.mutable.MutableLong;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
@@ -68,6 +69,7 @@ import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
@@ -85,6 +87,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -97,9 +100,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Objects.nonNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.commons.file.blob.BlobStore.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
@@ -111,7 +113,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -129,8 +131,9 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-    private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
     private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
+    // Max items to insert in a single batch
+    private final static int GENERATED_SQL_BATCH_SIZE = 10000;
 
     protected Deployer deployer;
     protected ContentService contentService;
@@ -230,7 +233,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             deployer.createTargets(siteId);
         } catch (Exception e) {
-            success = false;
             logger.error("Failed to create site '{}' ID '{}' based on blueprint '{}'. The deployer targets " +
                     "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId, e);
             throw new DeployerTargetException(format("Failed to create site '%s' ID '%s' based on blueprint '%s'. " +
@@ -238,83 +240,75 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     siteName, siteId, blueprintId), e);
         }
 
-        if (success) {
-            try {
-                logger.info("Initialize site '{}' with blueprint '{}'", siteName, blueprintId);
-                success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params, creator);
-                ZonedDateTime now = DateUtils.getCurrentTime();
+        try {
+            logger.info("Initialize site '{}' with blueprint '{}'", siteName, blueprintId);
+            success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params, creator);
+            ZonedDateTime now = DateUtils.getCurrentTime();
 
-                logger.debug("Add the site UUID to site '{}'", siteName);
-                addSiteUuidFile(siteId, siteUuid);
+            logger.debug("Add the site UUID to site '{}'", siteName);
+            addSiteUuidFile(siteId, siteUuid);
 
-                logger.debug("Add the site record to the database for site '{}' ID '{}'", siteName, siteId);
-                // insert database records
-                SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteName);
-                siteFeed.setSiteId(siteId);
-                siteFeed.setSiteUuid(siteUuid);
-                siteFeed.setDescription(desc);
-                siteFeed.setPublishingStatus(READY);
-                siteFeed.setSandboxBranch(sandboxBranch);
-                retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.createSite(siteFeed));
+            logger.debug("Add the site record to the database for site '{}' ID '{}'", siteName, siteId);
+            // insert database records
+            SiteFeed siteFeed = new SiteFeed();
+            siteFeed.setName(siteName);
+            siteFeed.setSiteId(siteId);
+            siteFeed.setSiteUuid(siteUuid);
+            siteFeed.setDescription(desc);
+            siteFeed.setPublishingStatus(READY);
+            siteFeed.setSandboxBranch(sandboxBranch);
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.createSite(siteFeed));
 
-                logger.info("Upgrade the site '{}'", siteName);
-                upgradeManager.upgrade(siteId);
+            logger.info("Upgrade the site '{}'", siteName);
+            upgradeManager.upgrade(siteId);
 
-                // Add default groups
-                logger.debug("Add the default groups to site '{}'", siteName);
-                addDefaultGroupsForNewSite();
+            // Add default groups
+            logger.debug("Add the default groups to site '{}'", siteName);
+            addDefaultGroupsForNewSite();
 
-                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+            logger.debug("Add audit log to site '{}'", siteName);
+            insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
 
-                Map<String, String> createdFiles =
-                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+            TimeUtils.logExecutionTimeThrowing(() ->
+                            processCreatedFiles(siteId, creator, now),
+                    logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, creator, now)));
 
-                logger.debug("Add audit log to site '{}'", siteName);
-                insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
+            String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+            updateLastCommitId(siteId, lastCommitId);
 
-                TimeUtils.logExecutionTime(() -> {
-                    processCreatedFiles(siteId, createdFiles, creator, now);
-                    return null;
-                }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, createdFiles, creator, now)));
+            logger.info("Reload the site configuration for site '{}'", siteName);
+        } catch (Exception e) {
+            logger.error("Failed to create site '{}' ID '{}' based on blueprint '{}'. Rolling back site creation.",
+                    siteName, siteId, blueprintId, e);
 
-                updateLastCommitId(siteId, lastCommitId);
+            deleteSite(siteId);
 
-                logger.info("Reload the site configuration for site '{}'", siteName);
-            } catch (Exception e) {
-                success = false;
-                logger.error("Failed to create site '{}' ID '{}' based on blueprint '{}'. Rolling back site creation.",
-                        siteName, siteId, blueprintId, e);
-
-                deleteSite(siteId);
-
-                throw new SiteCreationException(format("Failed to create site '%s' ID '%s' based on " +
-                        "blueprint '%s'. Rolling back site creation.",
-                        siteName, siteId, blueprintId), e);
-            }
+            throw new SiteCreationException(format("Failed to create site '%s' ID '%s' based on " +
+                            "blueprint '%s'. Rolling back site creation.",
+                    siteName, siteId, blueprintId), e);
         }
 
-        if (success) {
-            logger.info("Sync created site content to preview for site '{}'", siteName);
-            setSiteState(siteId, STATE_READY);
-            configureBlobStores(siteId);
-            // Now that everything is created, we can sync the preview deployer with the new content
-            try {
-                applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
-            } catch (Exception e) {
-                setSiteState(siteId, STATE_INITIALIZING);
-                logger.warn("Failed to sync site content to preview for site '{}' ID '{}'. While site creation was " +
-                            "successful, the site won't be preview-able until the Preview Deployer is reachable " +
-                            "and has successfully synced.",
-                            siteName, siteId, e);
-                throw new SiteCreationException(format("Failed to sync site content to preview for site '%s' " +
-                                "ID '%s'. While site creation was successful, the site won't be preview-able until " +
-                                "the Preview Deployer is reachable and has successfully synced.",
-                                siteName, siteId), e);
-            }
-        } else {
+        if (!success) {
             throw new SiteCreationException(format("Site creation failed site '%s' ID '%s' based on " +
                     "blueprint '%s'", siteName, siteId, blueprintId));
+        }
+        logger.info("Sync created site content to preview for site '{}'", siteName);
+        setSiteState(siteId, STATE_READY);
+        configureBlobStores(siteId);
+
+        // Now that everything is created, we can sync the preview deployer with the new content
+        try {
+            applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
+        } catch (Exception e) {
+            setSiteState(siteId, STATE_INITIALIZING);
+            logger.warn("Failed to sync site content to preview for site '{}' ID '{}'. While site creation was " +
+                        "successful, the site won't be preview-able until the Preview Deployer is reachable " +
+                        "and has successfully synced.",
+                        siteName, siteId, e);
+            throw new SiteCreationException(format("Failed to sync site content to preview for site '%s' " +
+                            "ID '%s'. While site creation was successful, the site won't be preview-able until " +
+                            "the Preview Deployer is reachable and has successfully synced.",
+                            siteName, siteId), e);
         }
         logger.info("Site '{}' ID '{}' created successfully", siteName, siteId);
     }
@@ -366,149 +360,134 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
-                                     ZonedDateTime now) {
-        SiteFeed siteFeed;
-        try {
-            siteFeed = getSite(siteId);
-        } catch (SiteNotFoundException e) {
-            logger.error("Failed to process created files, site ID '{}' not found", siteId, e);
-            return;
+    private void processCreatedDirectory(Path createdFileScriptPath, long siteId, String directory,
+                                         long userId, ZonedDateTime now) throws IOException {
+        String label = new File(directory).getName();
+        Files.write(createdFileScriptPath, insertItemRow(siteId, directory, null, NEW.value, null, userId,
+                        now, userId, now, null, label, null, CONTENT_TYPE_FOLDER, null,
+                        Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
+                StandardOpenOption.APPEND);
+        Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+    }
+
+    private void processCreatedFile(Path createdFileScriptPath, Site site, String path,
+                                    long userId, ZonedDateTime now) throws IOException {
+        // Item
+        String label = FilenameUtils.getName(path);
+        String contentTypeId = EMPTY;
+        boolean disabled = false;
+        if (StringUtils.endsWith(path, XML_PATTERN)) {
+            try {
+                Document contentDoc = contentService.getContentAsDocument(site.getSiteId(), path);
+                if (contentDoc != null) {
+                    Element rootElement = contentDoc.getRootElement();
+                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                    if (isNotEmpty(internalName)) {
+                        label = internalName;
+                    }
+                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                    disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+                }
+            } catch (DocumentException e) {
+                logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
+                        site.getSiteId(), path, e);
+            }
         }
-        User userObj;
-        try {
-            userObj = userServiceInternal.getUserByGitName(creator);
-        } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to process created files in site ID '{}', user '{}' not found",
-                    siteId, creator, e);
-            return;
+        String previewUrl = null;
+        if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+            previewUrl = itemServiceInternal.getBrowserUrl(site.getSiteId(), path);
         }
+        long state = NEW.value;
+        if (disabled) {
+            state = state | DISABLED.value;
+        }
+
+        if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
+            Files.write(createdFileScriptPath, insertItemRow(site.getId(), path, previewUrl, state,
+                            null, userId, now, userId, now, null, label, contentTypeId,
+                            contentService.getContentTypeClass(site.getSiteId(), path),
+                            StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
+                            contentRepositoryV2.getContentSize(site.getSiteId(), path), null).getBytes(UTF_8),
+                    StandardOpenOption.APPEND);
+            Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+
+            DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), path, null,
+                    createdFileScriptPath, dependencyServiceInternal, false, false);
+        }
+    }
+
+    /**
+     * Return a Runnable that will check if the counter has exceeded the batch size and if so, execute the script and truncate the file
+     *
+     * @param counter      The counter to check
+     * @param scriptRunner The script runner
+     * @param scriptPath   The path to the script file
+     * @return runnable
+     */
+    private ThrowingRunnable getCheckCounterFunction(final MutableLong counter, final String siteId,
+                                                     final StudioDBScriptRunner scriptRunner, final Path scriptPath) {
+        return () -> {
+            counter.increment();
+            if (counter.longValue() >= GENERATED_SQL_BATCH_SIZE) {
+                logger.debug("Executing batch of items for site '{}' in the script file '{}'", siteId, scriptPath);
+                scriptRunner.execute(scriptPath, true);
+                logger.debug("Executed batch of items for site '{}' in the script file '{}'", siteId, scriptPath);
+                // Truncate the file so it can be reused
+                Files.writeString(scriptPath, EMPTY, UTF_8, TRUNCATE_EXISTING);
+                counter.setValue(0);
+            }
+        };
+    }
+
+    private void processCreatedFiles(String siteId, String creator,
+                                     ZonedDateTime now) throws Exception {
+        logger.debug("Processing created files for site '{}'", siteId);
+        Site site = sitesServiceInternal.getSite(siteId);
+        User userObj = userServiceInternal.getUserByGitName(creator);
 
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
 
         Path createdFileScriptPath = null;
-        Path updateParentIdScriptPath = null;
         // TODO: SJ: Refactor to avoid string literals
         try {
             Path studioTempDir = getStudioTemporaryFilesRoot();
             String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
             createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
-            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
-            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
-            for (String key : createdFiles.keySet()) {
-                String path = key;
-                if (StringUtils.equals("D", createdFiles.get(path))) {
-                    continue;
-                }
-                if (createdFiles.get(path).length() > 1) {
-                    path = createdFiles.get(path);
-                }
 
-                // Item
-                String label = FilenameUtils.getName(path);
-                String contentTypeId = StringUtils.EMPTY;
-                boolean disabled = false;
-                if (StringUtils.endsWith(path, XML_PATTERN)) {
-                    try {
-                        Document contentDoc = contentService.getContentAsDocument(siteId, path);
-                        if (contentDoc != null) {
-                            Element rootElement = contentDoc.getRootElement();
-                            String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                            if (isNotEmpty(internalName)) {
-                                label = internalName;
-                            }
-                            contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
-                        }
-                    } catch (DocumentException e) {
-                        logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
-                                siteId, path, e);
+            // Variable in lambda needs to be final
+            final Path scriptPath = createdFileScriptPath;
+
+            MutableLong itemCount = new MutableLong(0);
+            ThrowingRunnable checkCounter = getCheckCounterFunction(itemCount, siteId, studioDBScriptRunner, scriptPath);
+            contentRepositoryV2.forAllSitePaths(siteId,
+                    directory -> {
+                        processCreatedDirectory(scriptPath, site.getId(), directory, userObj.getId(), now);
+                        checkCounter.run();
+                    },
+                    file -> {
+                        processCreatedFile(scriptPath, site, file, userObj.getId(), now);
+                        checkCounter.run();
                     }
-                }
-                String previewUrl = null;
-                if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                        StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-                    previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
-                }
-                processAncestors(siteFeed.getId(), path, userObj.getId(), now, createdFileScriptPath);
-                long state = NEW.value;
-                if (disabled) {
-                    state = state | DISABLED.value;
-                }
-
-                if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
-                    addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
-                } else {
-                    Files.write(createdFileScriptPath, insertItemRow(siteFeed.getId(), path, previewUrl, state,
-                                    null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
-                                    contentService.getContentTypeClass(siteId, path),
-                                    StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-                                    contentRepositoryV2.getContentSize(siteId, path), null).getBytes(UTF_8),
-                            StandardOpenOption.APPEND);
-                    Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-
-                    addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
-
-                    DependencyUtils.addDependenciesScriptSnippets(siteId, path, null, createdFileScriptPath, dependencyServiceInternal);
-                }
+            );
+            if (itemCount.longValue() > 0) {
+                logger.debug("Executing the last batch of items for site '{}' in the script file '{}'", siteId, createdFileScriptPath);
+                studioDBScriptRunner.execute(createdFileScriptPath, true);
             }
-
-            studioDBScriptRunner.execute(createdFileScriptPath.toFile());
-            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-        } catch (IOException | ServiceLayerException e) {
+            logger.debug("Update parent ID for created items for site '{}'", siteId);
+            itemServiceInternal.updateParentId(siteId);
+            logger.debug("Validate dependencies for site '{}'", siteId);
+            dependencyServiceInternal.validateDependencies(siteId);
+        } catch (Exception e) {
             logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
+            throw e;
         } finally {
             if (createdFileScriptPath != null) {
                 logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
                 FileUtils.deleteQuietly(createdFileScriptPath.toFile());
             }
-            if (updateParentIdScriptPath != null) {
-                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
-                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
-            }
         }
-    }
-
-    private void processAncestors(long siteId, String path, long userId, ZonedDateTime now,
-                                  Path createFileScriptPath) throws IOException {
-        Path p = Paths.get(path);
-        List<Path> parts = new LinkedList<>();
-        if (nonNull(p.getParent())) {
-            p.getParent().iterator().forEachRemaining(parts::add);
-        }
-        String currentPath = StringUtils.EMPTY;
-        if (isNotEmpty(parts)) {
-            for (Path ancestor : parts) {
-                if (isNotEmpty(ancestor.toString())) {
-                    currentPath = currentPath + FILE_SEPARATOR + ancestor;
-                    Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
-                            , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                            Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
-                            StandardOpenOption.APPEND);
-                    Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                }
-            }
-        }
-    }
-
-    private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
-        String parentPath = FilenameUtils.getPrefix(path) +
-                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, SLASH_INDEX_FILE, ""));
-        if (isEmpty(parentPath) || StringUtils.equals(parentPath, path)) {
-            return;
-        }
-        addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-        if (StringUtils.endsWith(path, SLASH_INDEX_FILE)) {
-            addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
-                    "/index.xml", ""), updateParentIdScriptPath);
-            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES)) {
-                Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
-                        StandardOpenOption.APPEND);
-            }
-        }
-        Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
-                StandardOpenOption.APPEND);
-        Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+        logger.debug("Finished processing created files for site '{}'", siteId);
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
@@ -574,7 +553,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             @ValidateStringParam String createOption,
             Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
+            RemoteRepositoryNotFoundException {
         if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
@@ -608,7 +587,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                        String remoteToken, String remotePrivateKey, Map<String, String> params,
                                        boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
+            RemoteRepositoryNotFoundException {
         boolean success;
 
         // We must fail site creation if any of the site creations steps fail and rollback
@@ -690,18 +669,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             logger.info("Add default groups to site '{}'", siteId);
             addDefaultGroupsForNewSite();
 
-            String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-
-            Map<String, String> createdFiles =
-                    contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
 
             insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
 
-            TimeUtils.logExecutionTime(() -> {
-                processCreatedFiles(siteId, createdFiles, creator, now);
-                return null;
-            }, logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, createdFiles, creator, now)));
+            TimeUtils.logExecutionTimeThrowing(() ->
+                            processCreatedFiles(siteId, creator, now),
+                    logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, creator, now)));
 
+            String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
             updateLastCommitId(siteId, lastCommitId);
 
             logger.info("Load the configuration for site '{}'", siteId);
@@ -1028,6 +1003,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.securityService = securityService;
     }
 
+    @SuppressWarnings("unused")
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
     }
@@ -1040,10 +1016,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.deployer = deployer;
     }
 
+    @SuppressWarnings("unused")
     public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
         this.entitlementValidator = entitlementValidator;
     }
 
+    @SuppressWarnings("unused")
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
     }
@@ -1052,10 +1030,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setUpgradeManager(final StudioUpgradeManager upgradeManager) {
         this.upgradeManager = upgradeManager;
     }
 
+    @SuppressWarnings("unused")
     public void setSitesServiceInternal(SitesService sitesServiceInternal) {
         this.sitesServiceInternal = sitesServiceInternal;
     }
@@ -1068,10 +1048,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.configurationService = configurationService;
     }
 
+    @SuppressWarnings("unused")
     public void setConfigurationServiceInternal(final ConfigurationService configurationServiceInternal) {
         this.configurationServiceInternal = configurationServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
@@ -1080,14 +1062,17 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.itemServiceInternal = itemServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setStudioDBScriptRunner(StudioDBScriptRunnerFactory studioDBScriptRunner) {
         this.studioDBScriptRunnerFactory = studioDBScriptRunner;
     }
 
+    @SuppressWarnings("unused")
     public void setDependencyServiceInternal(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
@@ -1096,6 +1081,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
+    @SuppressWarnings("unused")
     public void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
     }

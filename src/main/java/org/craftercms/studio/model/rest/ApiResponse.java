@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -94,8 +94,6 @@ public class ApiResponse {
             "Edit the existing item or delete it before creating it again", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_ALREADY_LOCKED = new ApiResponse(7002, "Content already locked",
             "The user that locked the item or the administrator must unlock the item first", StringUtils.EMPTY);
-    public static final ApiResponse CONTENT_ALREADY_UNLOCKED = new ApiResponse(7003, "Content already unlocked",
-            "The item is already unlocked", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_MOVE_INVALID_LOCATION = new ApiResponse(7004,
             "Paste destination folder is invalid (did you paste the item onto itself?)",
             "Try pasting the content to a different folder", StringUtils.EMPTY);

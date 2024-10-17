@@ -306,7 +306,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                                     getFullKey(previewMapping,toPath + "/" + filePath));
                             try {
                                 copyFile(previewMapping.target, key, previewMapping.target,
-                                        getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, getClient());
+                                        getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, this::getClient);
                             } catch (Exception e) {
                                 logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
                                         site,
@@ -339,7 +339,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             } else {
                 try {
                     copyFile(previewMapping.target, getKey(previewMapping, fromPath),
-                            previewMapping.target, getKey(previewMapping, toPath), COPY_PART_SIZE, getClient());
+                            previewMapping.target, getKey(previewMapping, toPath), COPY_PART_SIZE, this::getClient);
                     deleteS3Object(getClient(), previewMapping.target, getKey(previewMapping, fromPath));
                 } catch (Exception e) {
                     logger.error("Failed to move content in site '{}' from '{}' to '{}'",
@@ -374,14 +374,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
         logger.debug("Perform initial publish for site '{}' to target 'live'", siteId);
         copyFolder(previewMapping.target, previewMapping.prefix, liveMapping.target, liveMapping.prefix,
-                MIN_PART_SIZE, getClient());
+                MIN_PART_SIZE, this::getClient);
 
         if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             Mapping statingMapping = getMapping(servicesConfig.getStagingEnvironment(siteId));
 
             logger.debug("Perform initial publish for site '{}' to target 'staging'", siteId);
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
-                    MIN_PART_SIZE, getClient());
+                    MIN_PART_SIZE, this::getClient);
         }
         return null; // TODO: refactor these interfaces so we don't need to return anything
     }
@@ -463,7 +463,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         }
         AwsUtils.copyObjects(getAsyncClient(), taskExecutor.getThreadPoolExecutor(),
                 sourceMapping.target, sourceMapping.prefix,
-                targetMapping.target, targetMapping.prefix, items);
+                targetMapping.target, targetMapping.prefix, items,
+                AwsUtils.ignoreMissingObject());
     }
 
     /**

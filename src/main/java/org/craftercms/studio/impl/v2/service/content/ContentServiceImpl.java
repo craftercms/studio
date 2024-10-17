@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -54,7 +53,6 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService {
@@ -180,7 +178,7 @@ public class ContentServiceImpl implements ContentService {
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
     public void unlockContent(@SiteId String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-            throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+            throws ContentNotFoundException, SiteNotFoundException {
         contentServiceInternal.unlockContent(siteId, path);
     }
 

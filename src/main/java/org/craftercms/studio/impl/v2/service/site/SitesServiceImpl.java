@@ -43,7 +43,6 @@ import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {

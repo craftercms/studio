@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
@@ -486,7 +485,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException {
+    public void unlockContent(String siteId, String path) throws ContentNotFoundException {
         logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
         generalLockService.lockContentItem(siteId, path);
         try {
@@ -496,8 +495,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
                 throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
             }
             if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
-                logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
-                throw new ContentAlreadyUnlockedException();
+                logger.warn("Skipping unlock operation for item in site '{}' at path '{}': Item is already unlocked.", siteId, path);
+                return;
             }
             itemUnlockByPath(siteId, path);
             itemServiceInternal.unlockItemByPath(siteId, path);

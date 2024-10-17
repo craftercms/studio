@@ -42,8 +42,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.function.Consumer;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -147,10 +146,12 @@ public class BlobAwareContentRepositoryTest {
         when(localV1.getContent(SITE, POINTER_PATH_2)).thenReturn(POINTER);
         when(localRepositoryV2.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
-        Map<String, String> delta = new TreeMap<>();
-        delta.put(POINTER_PATH, "D");
-        delta.put(NEW_POINTER_PATH, POINTER_PATH);
-        when(localRepositoryV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2)).thenReturn(delta);
+        doAnswer(invocation -> {
+            Consumer<String> consumer = (Consumer<String>) invocation.getArgument(2);
+            consumer.accept(POINTER_PATH);
+            consumer.accept(NEW_POINTER_PATH);
+            return null;
+        }).when(localRepositoryV2).forAllSitePaths(eq(SITE), any(), any());
 
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
@@ -498,12 +499,11 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void getChangeSetPathsFromDeltaTest() {
-        Map<String, String> map = proxy.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2);
-
-        assertEquals(map.size(), 2);
-        map.forEach((key, value) -> assertFalse(key.endsWith(BLOB_EXT) || value.endsWith(BLOB_EXT),
-                "The changeSet should not contain pointer paths"));
+    public void getChangeSetPathsFromDeltaTest() throws Exception {
+        proxy.forAllSitePaths(SITE, d -> {
+                },
+                value -> assertFalse(value.endsWith(BLOB_EXT),
+                        "The changeSet should not contain pointer paths"));
     }
 
     @Test

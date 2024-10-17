@@ -67,6 +67,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.File;
 import java.io.IOException;
@@ -938,111 +939,24 @@ public class GitContentRepositoryImpl implements GitContentRepository {
 
     @Override
     @LogExecutionTime
-    public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        Map<String, String> changeSet = new TreeMap<>();
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+    public void forAllSitePaths(String site,
+                                ThrowingConsumer<String> directoryProcessor,
+                                ThrowingConsumer<String> fileProcessor)
+            throws Exception {
         Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
-        if (repository != null) {
-            generalLockService.lock(gitLockKey);
-            try {
-                // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-                boolean fromEmptyRepo = isEmpty(commitIdFrom);
-                String firstCommitId = getRepoFirstCommitId(site);
-                if (fromEmptyRepo) {
-                    commitIdFrom = firstCommitId;
+        try (TreeWalk treeWalk = new TreeWalk(repository)) {
+            RevCommit commit = repository.parseCommit(repository.resolve(HEAD));
+            treeWalk.addTree(commit.getTree());
+            treeWalk.setRecursive(false);
+            while (treeWalk.next()) {
+                if (treeWalk.isSubtree()) {
+                    directoryProcessor.acceptWithException(prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
+                    treeWalk.enterSubtree();
+                } else {
+                    fileProcessor.acceptWithException(prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
                 }
-                Repository repo = helper.getRepository(site, SANDBOX);
-                ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-                ObjectId objCommitIdTo = repo.resolve(commitIdTo);
-
-                try (Git git = new Git(repo)) {
-
-                    if (fromEmptyRepo) {
-                        CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                        firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                        // Diff the two commit Ids
-                        DiffCommand diffCommand = git.diff()
-                                .setOldTree(firstCommitTreeParser)
-                                .setNewTree(null);
-                        List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-
-                        // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                        // and add them to the list of RepoOperations to return to the caller
-                        // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                        // convert to java date before sending over
-                        changeSet.putAll(getChangeSetFromDiff(diffEntries));
-                    }
-
-                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                    // let's do it
-                    if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                        // Compare HEAD with commitId we're given
-                        // Get list of commits between commitId and HEAD in chronological order
-
-                        RevTree fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
-                        RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
-                        if (fromTree != null && toTree != null) {
-                            try (ObjectReader reader = repo.newObjectReader()) {
-                                CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
-                                CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
-                                fromCommitTreeParser.reset(reader, fromTree.getId());
-                                toCommitTreeParser.reset(reader, toTree.getId());
-
-                                // Diff the two commit Ids
-                                DiffCommand diffCommand = git.diff()
-                                        .setOldTree(fromCommitTreeParser)
-                                        .setNewTree(toCommitTreeParser);
-                                List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-
-                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                // and add them to the list of RepoOperations to return to the caller
-                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                // convert to java date before sending over
-                                changeSet.putAll(getChangeSetFromDiff(diffEntries));
-                            }
-                        }
-                    }
-                }
-            } catch (GitAPIException | IOException e) {
-                logger.error("Failed to get the git operations in site '{}' from commit ID '{}' to commit ID '{}'",
-                        site, commitIdFrom, commitIdTo, e);
-            } finally {
-                generalLockService.unlock(gitLockKey);
             }
         }
-
-        return changeSet;
-    }
-
-    private Map<String, String> getChangeSetFromDiff(List<DiffEntry> diffEntries) {
-        Map<String, String> toReturn = new TreeMap<>();
-
-        for (DiffEntry diffEntry : diffEntries) {
-
-            // Update the paths to have a preceding separator
-            String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
-            String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
-
-            switch (diffEntry.getChangeType()) {
-                case ADD:
-                case COPY:
-                    toReturn.put(pathNew, "C");
-                    break;
-                case MODIFY:
-                    toReturn.put(pathNew, "U");
-                    break;
-                case DELETE:
-                    toReturn.put(pathOld, "D");
-                    break;
-                case RENAME:
-                    toReturn.put(pathOld, pathNew);
-                    break;
-                default:
-                    logger.error("Unknown git operation '{}'", diffEntry.getChangeType());
-                    break;
-            }
-        }
-        return toReturn;
     }
 
     private RevTree getTree(Repository repository, String branch) throws IOException {

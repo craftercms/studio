@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -141,4 +141,11 @@ public interface DependencyDAO {
      * @param targetPath the target path of the dependencies to validate
      */
     void validateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
+
+    /**
+     * Mark as valid all site dependencies if the target_path exists in the site
+     *
+     * @param siteId the site id
+     */
+    void validateDependenciesForSite(@Param(SITE_ID) String siteId);
 }
