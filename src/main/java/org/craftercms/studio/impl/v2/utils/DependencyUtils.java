@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.collections4.MapUtils;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 
@@ -51,30 +50,17 @@ public class DependencyUtils {
      * @param oldPath           the content item old path
      * @param file              the file
      * @param dependencyService the dependency service
-     * @throws IOException if an error occurs while updating the script
-     */
-    public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
-                                                     Path file, DependencyServiceInternal dependencyService)
-            throws IOException, ServiceLayerException {
-        addDependenciesScriptSnippets(siteId, path, oldPath, file, dependencyService, true, true);
-    }
-
-    /**
-     * Add the script snippets to update the dependencies for the given path
-     *
-     * @param siteId            the site id
-     * @param path              the content item path
-     * @param oldPath           the content item old path
-     * @param file              the file
-     * @param dependencyService the dependency service
      * @param cleanExisting     if true, the existing dependencies for the path will be deleted
-     * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
      * @throws IOException if an error occurs while updating the script
      */
     public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
                                                      Path file, DependencyServiceInternal dependencyService,
-                                                     boolean cleanExisting, boolean revalidate)
+                                                     boolean cleanExisting)
             throws IOException {
+        if (!dependencyService.isValidDependencySource(siteId, path)) {
+            // Path is not a valid dependency source. e.g.: an image or a txt
+            return;
+        }
         Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
         if (cleanExisting) {
             if (isEmpty(oldPath)) {
@@ -88,12 +74,6 @@ public class DependencyUtils {
                 Files.write(file, invalidateDependencies(siteId, oldPath).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
             }
-        }
-
-        if (revalidate) {
-            // Validate existing broken dependencies pointing to the item path
-            Files.write(file, validateDependencies(siteId, path).getBytes(UTF_8),
-                    StandardOpenOption.APPEND);
         }
 
         if (MapUtils.isEmpty(dependencies)) {
