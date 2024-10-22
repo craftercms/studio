@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -129,7 +129,8 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     public List<S3Item> listItems(@SiteId String siteId,
                                   @ValidateStringParam String profileId,
                                   @ValidateStringParam String path,
-                                  @ValidateStringParam String type) throws AwsException,
+                                  @ValidateStringParam String type,
+                                  int maxKeys) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(siteId, profileId);
         S3Client client = getS3Client(profile);
@@ -147,6 +148,8 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                 .build();
 
         ListObjectsV2Iterable response = client.listObjectsV2Paginator(request);
+        int commonPrefixesCount = 0;
+        // fetch all prefixes and fetch content key up to maxKeys
         for (ListObjectsV2Response page : response) {
             page.commonPrefixes().stream()
                     .map(p -> {
@@ -154,15 +157,28 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                         return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
                     })
                     .forEach(items::add);
+            commonPrefixesCount += page.commonPrefixes().size();
 
-            page.contents().stream()
+            // Do not fetch content key if it exceeded the maxKeys but continue to fetch prefixes
+            if (items.size() >= maxKeys + commonPrefixesCount) {
+                continue;
+            }
+
+            List<S3Item> contents = page.contents().stream()
                     .filter(o -> !StringUtils.equals(o.key(), fullPrefix) &&
                             MimeType.valueOf(StudioUtils.getMimeType(o.key())).isCompatibleWith(filerType))
                     .map(o -> {
                         String relativeKey = StringUtils.removeStart(o.key(), profile.getPrefix());
                         return new S3Item(relativeKey, createUrl(profileId, relativeKey), false, profile.getBucketName(), profile.getPrefix());
-                    })
-                    .forEach(items::add);
+                    }).toList();
+
+            for (S3Item content: contents) {
+                // Do not add more content key if the total exceeded the maxKeys
+                if (items.size() >= maxKeys + commonPrefixesCount) {
+                    break;
+                }
+                items.add(content);
+            }
         }
 
         return items;

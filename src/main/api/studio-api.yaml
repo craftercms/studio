@@ -1561,6 +1561,12 @@ paths:
           required: false
           schema:
             type: string
+        - name: maxKeys
+          in: query
+          description: The maximum number of keys to retrieve (default value is 100)
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
