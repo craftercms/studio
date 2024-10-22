@@ -215,7 +215,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.12', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.14', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -267,7 +267,8 @@ CREATE TABLE IF NOT EXISTS `dependency` (
   `valid`       BIT         NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `dependency_site_idx` (`site`),
-  KEY `dependency_sourcepath_idx` (`source_path`(1000))
+  KEY `dependency_sourcepath_idx` (`source_path`(1000)),
+  KEY `dependency_targetpath_idx` (`target_path`(1000))
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

@@ -114,7 +114,7 @@ public interface DependencyDAO {
     void validateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
 
     /**
-     * Mark as valid all site dependencies if the target_path exists in the site
+     * Mark as valid/invalid all site dependencies depending on the existence of the target_path in the site
      *
      * @param siteId the site id
      */

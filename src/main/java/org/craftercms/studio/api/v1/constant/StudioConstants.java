@@ -237,6 +237,7 @@ public final class StudioConstants {
     // General Lock Service
     public static final String GLOBAL_REPOSITORY_GIT_LOCK = "GLOBAL_REPOSITORY_GIT_LOCK";
     public static final String SITE_SANDBOX_REPOSITORY_GIT_LOCK = "{site}_SANDBOX_REPOSITORY_GIT_LOCK";
+    public static final String SITE_SYNC_FROM_REPOSITORY_GIT_LOCK = "{site}_SYNC_FROM_REPO_LOCK";
     public static final String SITE_PUBLISHED_REPOSITORY_GIT_LOCK = "{site}_PUBLISHED_REPOSITORY_GIT_LOCK";
     public static final String STUDIO_CLOCK_EXECUTOR_SITE_LOCK = "{site}_STUDIO_CLOCK_EXECUTOR_SITE_LOCK";
 

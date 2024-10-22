@@ -87,8 +87,7 @@ public final class SqlStatementGeneratorUtils {
             "DELETE FROM dependency WHERE source_path = '#{path}' AND site = '#{site}' ;\n\n";
 
     public static final String DEPENDENCIES_DELETE =
-            "DELETE FROM dependency WHERE site = '#{site}' AND source_path = '#{path}' ;\n\n" +
-            "UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;\n\n";
+            "DELETE FROM dependency WHERE site = '#{site}' AND source_path = '#{path}' ;\n\n";
     private static final String DEPENDENCIES_INVALIDATE =
             "UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;\n\n";
     private static final String DEPENDENCIES_VALIDATE =

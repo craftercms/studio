@@ -423,7 +423,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 
             DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), path, null,
-                    createdFileScriptPath, dependencyServiceInternal, false, false);
+                    createdFileScriptPath, dependencyServiceInternal, false);
         }
     }
 
