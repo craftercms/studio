@@ -41,7 +41,7 @@ public class TimeUtils {
         }
         T result = supplier.getWithException();
         if (methodLogger.isEnabledForLevel(level)) {
-            LoggingEventBuilder loggingEventBuilder = methodLogger.makeLoggingEventBuilder(level);
+            LoggingEventBuilder loggingEventBuilder = methodLogger.atLevel(level);
             loggingEventBuilder.log("{} executed in '{}' milliseconds", message, System.currentTimeMillis() - startTime);
         }
         return result;
