@@ -22,7 +22,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.providers.AbstractVersionProvider;
 import org.craftercms.core.util.XmlUtils;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -36,7 +36,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.beans.ConstructorProperties;
-import java.io.*;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -72,11 +73,11 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
      */
     protected boolean skipIfMissing = true;
 
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
 
     @ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository"})
     public XmlFileVersionProvider(String path, String xpath, String defaultVersion,
-                                  ContentRepository contentRepository) {
+                                  GitContentRepository contentRepository) {
         this.path = path;
         this.xpath = xpath;
         this.defaultVersion = defaultVersion;

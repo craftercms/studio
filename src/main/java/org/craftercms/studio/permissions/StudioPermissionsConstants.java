@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -45,6 +45,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_LIST_REMOTES = "list_remotes";
     public static final String PERMISSION_PUBLISH = "publish";
     public static final String PERMISSION_PUBLISH_STATUS = "publish_status";
+    public static final String PERMISSION_PUBLISH_BY_COMMITS = "publish_by_commits";
     public static final String PERMISSION_PUBLISH_CLEAR_LOCK = "publish_clear_lock";
     public static final String PERMISSION_PULL_FROM_REMOTE = "pull_from_remote";
     public static final String PERMISSION_PUSH_TO_REMOTE = "push_to_remote";
@@ -88,6 +89,10 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_MANAGE_ACCESS_TOKEN = "manage_access_token";
 
     public static final String PERMISSION_SET_ITEM_STATES = "set_item_states";
+
+    public static final String SITE_ID_RESOURCE_ID = "siteId";
+    public static final String PATH_RESOURCE_ID = "path";
+    public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";
 
 
     private StudioPermissionsConstants() {

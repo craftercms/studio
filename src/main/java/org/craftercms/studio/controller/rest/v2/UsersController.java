@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,6 +25,7 @@ import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.controller.rest.ValidationUtils;
@@ -319,7 +320,10 @@ public class UsersController {
             username = userId;
         }
 
-        List<String> roles = userService.getUserSiteRoles(uId, username, site);
+        List<String> roles = userService.getUserSiteRoles(uId, username, site)
+                .stream()
+                .map(NormalizedRole::toString)
+                .toList();
         ResultList<String> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ROLES, roles);
@@ -402,13 +406,17 @@ public class UsersController {
 
     @GetMapping(FORGOT_PASSWORD)
     public ResultOne<String> forgotPassword(@NotBlank @RequestParam(value = REQUEST_PARAM_USERNAME) String username) {
+        int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
         try {
+            TimeUnit.SECONDS.sleep(delay);
             ValidationUtils.validateValue(new EsapiValidator(USERNAME), username, REQUEST_PARAM_USERNAME);
             userService.forgotPassword(username);
         } catch (ServiceLayerException e) {
             logger.error("Failed to process forgot password for user '{}'", username, e);
         } catch (ValidationException e) {
             logger.error("Validation error while processing forgot password for user '{}'", username, e);
+        } catch (InterruptedException e) {
+            logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
         }
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
@@ -420,6 +428,12 @@ public class UsersController {
     public ResultOne<UserResponse> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest)
             throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
             AuthenticationException, UserNotFoundException {
+        int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
+        try {
+            TimeUnit.SECONDS.sleep(delay);
+        } catch (InterruptedException e) {
+            logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
+        }
         UserResponse user = userService.changePassword(changePasswordRequest.getUsername(),
                 changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
 

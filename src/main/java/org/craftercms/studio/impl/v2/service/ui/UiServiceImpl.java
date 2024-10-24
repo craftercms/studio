@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.DEFAULT_PATH_RESOURCE_VALUE;
 
 /**
  * Default implementation of {@link UiService}. Delegates to the {@link UiServiceInternal} for the actual work.
@@ -59,7 +60,7 @@ public class UiServiceImpl implements UiService {
     public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
         String user = securityService.getCurrentUser();
         if (StringUtils.isNotEmpty(user)) {
-            Set<String> permissions = securityService.getUserPermissions("", "/", user, null);
+            Set<String> permissions = securityService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
 
             return uiServiceInternal.getGlobalMenu(permissions);
         } else {

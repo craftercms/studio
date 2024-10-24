@@ -189,4 +189,19 @@ public interface SitesService {
      * @return the list of sites matching the given state
      */
     List<Site> getSitesByState(String state);
+
+    /**
+     * Set the published repo created flag for the given site
+     *
+     * @param siteId the site id
+     */
+    void setPublishedRepoCreated(String siteId);
+
+    /**
+     * Update publishing status for the given site
+     *
+     * @param siteId the site id
+     * @param status publisher status
+     */
+    void updatePublishingStatus(String siteId, String status);
 }

@@ -21,7 +21,7 @@ import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -86,7 +86,7 @@ public class PolicyServiceInternalImplTest {
     public static final String CONTENT_TYPE_FOOTER_ONLY_FOLDER = "/site/components/footers";
 
     @Mock
-    private ContentRepository contentRepository;
+    private GitContentRepository contentRepository;
 
     @Mock
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;

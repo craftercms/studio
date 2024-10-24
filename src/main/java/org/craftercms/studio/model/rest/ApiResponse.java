@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -94,17 +94,35 @@ public class ApiResponse {
             "Edit the existing item or delete it before creating it again", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_ALREADY_LOCKED = new ApiResponse(7002, "Content already locked",
             "The user that locked the item or the administrator must unlock the item first", StringUtils.EMPTY);
-    public static final ApiResponse CONTENT_ALREADY_UNLOCKED = new ApiResponse(7003, "Content already unlocked",
-            "The item is already unlocked", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_MOVE_INVALID_LOCATION = new ApiResponse(7004,
             "Paste destination folder is invalid (did you paste the item onto itself?)",
             "Try pasting the content to a different folder", StringUtils.EMPTY);
     public static final ApiResponse BLOB_NOT_FOUND = new ApiResponse(7005, "Content not found in blob store",
             "Check your blob store configurations", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_IN_PUBLISH_QUEUE = new ApiResponse(7006, "Cannot edit content that is part of an active publish package",
+            "Cancel affected publish packages and retry", StringUtils.EMPTY);
+    public static final ApiResponse PUBLISHING_PACKAGE_NOT_FOUND = new ApiResponse(7007, "Publishing package not found",
+            "Check if you sent in the right Publishing Package Id", StringUtils.EMPTY);
+    public static final ApiResponse INVALID_PACKAGE_STATE = new ApiResponse(7008, "Requested package is not in the required state for this operation",
+            "Check the current package state", StringUtils.EMPTY);
+    public static final ApiResponse PACKAGE_ALREADY_APPROVED = new ApiResponse(7009, "Requested package is already APPROVED",
+            "Check the current package state", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
             "Advise the user to enable publishing", StringUtils.EMPTY);
+
+    public static final ApiResponse S3_UNREACHABLE = new ApiResponse(8001, "S3 is unreachable",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+    public static final ApiResponse S3_BUCKET_NOT_FOUND = new ApiResponse(8002, "S3 bucket not found",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+    public static final ApiResponse S3_UNAUTHORIZED = new ApiResponse(8003, "S3 unauthorized access",
+            "Check your AWS credentials", StringUtils.EMPTY);
+    public static final ApiResponse S3_FORBIDDEN = new ApiResponse(8004, "S3 FORBIDDEN",
+            "Check your AWS credentials", StringUtils.EMPTY);
+
+    public static final ApiResponse S3_KEY_NOT_FOUND = new ApiResponse(8005, "S3 key not found",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
 
     // 9000 - 10000
     public static final ApiResponse SEARCH_UNREACHABLE = new ApiResponse(9000, "Search is unreachable",

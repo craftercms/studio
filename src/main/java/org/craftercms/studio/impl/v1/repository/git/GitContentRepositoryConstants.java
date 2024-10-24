@@ -44,6 +44,7 @@ public final class  GitContentRepositoryConstants {
 
     public static final String GIT_REPO_USER_USERNAME = "git_repo_user";
     public static final String LOCK_FILE = "index.lock";
+    public static final String ALL_DOT_KEEP_PATTERN = "*/.keep";
 
     private GitContentRepositoryConstants() {
     }

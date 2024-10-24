@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.annotations.param.*;
@@ -24,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -37,10 +41,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -59,10 +61,12 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final PublishService publishService;
 
-    @ConstructorProperties({"dashboardService"})
-    public DashboardController(final DashboardService dashboardService) {
+    @ConstructorProperties({"dashboardService", "publishService"})
+    public DashboardController(final DashboardService dashboardService, final PublishService publishService) {
         this.dashboardService = dashboardService;
+        this.publishService = publishService;
     }
 
     @Valid
@@ -125,7 +129,7 @@ public class DashboardController {
             List<@SqlSort(columns = SCHEDULED_ITEM_SORT_FIELDS) SortField> sortFields,
             @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
             List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes) throws ServiceLayerException, UserNotFoundException {
-        var total = dashboardService.getContentPendingApprovalTotal(siteId, systemTypes);
+        var total = dashboardService.getContentPendingApprovalCount(siteId, systemTypes);
         var publishingContent = dashboardService.getContentPendingApproval(siteId, systemTypes, sortFields, offset, limit);
 
         var result = new PaginatedResultList<DetailedItem>();
@@ -161,7 +165,7 @@ public class DashboardController {
             List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields,
             @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
             List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes) throws UserNotFoundException, ServiceLayerException {
-        var total = dashboardService.getContentUnpublishedTotal(siteId, systemTypes);
+        var total = dashboardService.getContentUnpublishedCount(siteId, systemTypes);
         var unpublishedContent = dashboardService.getContentUnpublished(siteId, systemTypes, sortFields, offset, limit);
 
         var result = new PaginatedResultList<SandboxItem>();
@@ -233,7 +237,7 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
             List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes)
             throws ServiceLayerException, UserNotFoundException {
-        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
+        var total = dashboardService.getPublishingScheduledCount(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
         var scheduledItems = dashboardService.getPublishingScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
 
         var result = new PaginatedResultList<DetailedItem>();
@@ -249,9 +253,9 @@ public class DashboardController {
     @GetMapping(value = PUBLISHING + SCHEDULED + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getPublishingScheduledDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @PathVariable(REQUEST_PARAM_ID) UUID packageId)
+            @PathVariable(REQUEST_PARAM_ID) long packageId)
             throws UserNotFoundException, ServiceLayerException {
-        var items = dashboardService.getPublishingScheduledDetail(siteId, packageId.toString());
+        var items = dashboardService.getPublishingScheduledDetail(siteId, packageId);
         var result = new ResultList<SandboxItem>();
         result.setEntities(RESULT_KEY_PUBLISHING_PACKAGE_ITEMS, items);
         result.setResponse(OK);
@@ -266,15 +270,13 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
             @EsapiValidatedParam(type = USERNAME)
             @RequestParam(value = REQUEST_PARAM_APPROVER, required = false) String approver,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false) Instant dateFrom,
+            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false) Instant dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
-        int total = dashboardService.getPublishingHistoryTotal(siteId, publishingTarget, approver, dateFrom,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
+        int total = publishService.getPublishingHistoryCount(siteId, publishingTarget, approver, dateFrom,
                 dateTo);
-        var packages = dashboardService.getPublishingHistory(siteId, publishingTarget, approver, dateFrom, dateTo,
+        var packages = publishService.getPublishingHistory(siteId, publishingTarget, approver, dateFrom, dateTo,
                 offset, limit);
 
         var result = new PaginatedResultList<DashboardPublishingPackage>();
@@ -290,12 +292,12 @@ public class DashboardController {
     @GetMapping(value = PUBLISHING + HISTORY + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<SandboxItem> getPublishingHistoryDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @PathVariable(REQUEST_PARAM_ID) UUID packageId,
+            @PathVariable(REQUEST_PARAM_ID) long packageId,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
-        throws UserNotFoundException, ServiceLayerException {
-        int total = dashboardService.getPublishingHistoryDetailTotalItems(siteId, packageId.toString());
-        var items = dashboardService.getPublishingHistoryDetail(siteId, packageId.toString(), offset, limit);
+            throws UserNotFoundException, ServiceLayerException {
+        int total = publishService.getPublishItemsCount(siteId, packageId);
+        var items = dashboardService.getPublishingHistoryDetail(siteId, packageId, offset, limit);
 
         var result = new PaginatedResultList<SandboxItem>();
         result.setTotal(total);

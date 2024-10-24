@@ -116,7 +116,6 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
     /**
      * Creates a {@link QueuedEvent} for the given site and adds it to the queue.
      *
-     * @param siteId
      */
     private void queueRepoEvent(String siteId) {
         QueuedEvent event = queuedEvents.get(siteId);
@@ -147,6 +146,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
             if (!queuedEvent.additionalEvents().get()) {
                 break;
             }
+            queuedEvent.additionalEvents().set(false);
             resetCount++;
         }
         queuedEvents.remove(queuedEvent.siteId());

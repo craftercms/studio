@@ -16,7 +16,12 @@
 
 
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.core.util.ExceptionUtils
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException
+import org.craftercms.studio.model.rest.publish.PublishPackageResponse
 import scripts.api.ContentServices
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException
+import org.craftercms.commons.validation.ValidationException
 
 def site = request.getParameter("site_id")
 def path = request.getParameter("path")
@@ -45,13 +50,28 @@ def result = [:]
 if (invalidParams) {
     response.setStatus(400)
     result.message = "Invalid parameter(s): " + paramsList
-} else {
-    try {
-        def context = ContentServices.createContext(applicationContext, request)
-        result.result = ContentServices.renameFolder(site, path, name, context)
-    } catch (Exception e) {
+    return result
+}
+
+try {
+    def context = ContentServices.createContext(applicationContext, request)
+    result.result = ContentServices.renameFolder(site, path, name, context)
+} catch (ContentNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Content does not exist at path '${path}' for site '${site}'".toString()
+} catch (ValidationException e) {
+    response.setStatus(400)
+    result.message = "Invalid parameters"
+} catch (Exception e) {
+    Exception inQueueException = ExceptionUtils.getThrowableOfType(e, ContentInPublishQueueException.class);
+    if (inQueueException == null) {
         response.setStatus(500)
         result.message = "Internal server error"
+    } else {
+        response.setStatus(409)
+        result.message = inQueueException.message
+        result.publishingPackages = inQueueException.getPublishPackages()
+                .collect { new PublishPackageResponse(it) }
     }
 }
 return result

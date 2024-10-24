@@ -21,19 +21,18 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -44,13 +43,11 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -71,10 +68,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final String TEMPLATE_MODEL_DEPLOYMENT_ERROR = "deploymentError";
     private static final String TEMPLATE_MODEL_FILES = "files";
+    private static final String TEMPLATE_MODEL_PACKAGE = "publishPackage";
     private static final String TEMPLATE_MODEL_SUBMITTER_USER = "submitterUser";
     private static final String TEMPLATE_MODEL_APPROVER = "approver";
     private static final String TEMPLATE_MODEL_SCHEDULED_DATE = "scheduleDate";
     private static final String TEMPLATE_MODEL_SUBMITTER = "submitter";
+    private static final String TEMPLATE_MODEL_REVIEWER = "reviewer";
     private static final String TEMPLATE_MODEL_IS_DELETED = "isDeleted";
     private static final String TEMPLATE_MODEL_SUBMISSION_COMMENTS = "submissionComments";
     private static final String TEMPLATE_MODEL_SITE_NAME = "siteName";
@@ -104,49 +103,106 @@ public class NotificationServiceImpl implements NotificationService {
         configuration.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23).build());
     }
 
+//    @Override
+//    @Valid
+//    public void notifyDeploymentError(@ValidateStringParam final String site, final Throwable throwable,
+//                                      final List<PublishRequest> filesUnableToPublish) {
+//        try {
+//            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
+//            final Map<String, Object> templateModel = new HashMap<>();
+//            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
+//            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
+//            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
+//                    templateModel);
+//        } catch (Throwable e) {
+//            logger.error("Failed to send publishing error notification for site '{}'", site, e);
+//        }
+//    }
+
     @Override
     @Valid
-    public void notifyDeploymentError(@ValidateStringParam final String site, final Throwable throwable,
-                                      final List<PublishRequest> filesUnableToPublish) {
+    public void notifyPackageApproval(final PublishPackage publishPackage, final Collection<String> paths) {
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Sending content approval notification for site '{}', package '{}'", siteId, publishPackage.getId());
         try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-            final Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
-            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
-            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
+            String submitterUsername = publishPackage.getSubmitter().getUsername();
+            String reviewerUsername = publishPackage.getReviewer().getUsername();
+            final Map<String, Object> submitterUser = securityService.getUserProfile(submitterUsername);
+            Map<String, Object> reviewerUser = securityService.getUserProfile(reviewerUsername);
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
+            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
+            templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
+
+            // Keeping these for backwards compatibility
+            // Prefer reviewer
+            templateModel.put(TEMPLATE_MODEL_APPROVER, reviewerUser);
+            // Prefer publishPackage.schedule
+            Instant schedule = publishPackage.getSchedule();
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, schedule != null ? Date.from(schedule) : null);
+
+            notify(siteId, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
+        } catch (UserNotFoundException e) {
+            logger.error("Failed to send content approval notification because user was not found", e);
         } catch (Throwable e) {
-            logger.error("Failed to send publishing error notification for site '{}'", site, e);
+            logger.error("Failed to send content approval notification for site '{}'", siteId, e);
         }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    @Valid
-    public void notifyDeploymentError(@ValidateStringParam final String name, final Throwable throwable) {
-        notifyDeploymentError(name, throwable, Collections.EMPTY_LIST);
+    public void notifyPackageRejection(PublishPackage publishPackage, Collection<String> paths) {
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Sending content rejection notification for site '{}', package '{}'", siteId, publishPackage.getId());
+        try {
+            Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
+            Map<String, Object> reviewerUser = securityService.getUserProfile(publishPackage.getReviewer().getUsername());
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
+            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
+            templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
+
+            // Keeping these for backwards compatibility
+            // Prefer reviewer
+            templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, reviewerUser);
+            // Prefer package.reviewerComment
+            templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, publishPackage.getReviewerComment());
+
+            String email = submitterUser.get(KEY_EMAIL).toString();
+            notify(siteId, List.of(email), NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
+        } catch (UserNotFoundException e) {
+            logger.error("Failed to send content rejection notification because user was not found", e);
+        } catch (Exception e) {
+            logger.error("Failed to send content rejection notification for site '{}'", siteId, e);
+        }
     }
 
     @Override
-    @Valid
-    public void notifyContentApproval(@ValidateStringParam final String site,
-                                      @ValidateStringParam final String submitter,
-                                      final List<String> itemsSubmitted,
-                                      @ValidateStringParam final String approver,
-                                      final ZonedDateTime scheduleDate) {
+    public void notifyPackageSubmission(final PublishPackage publishPackage, final Collection<String> paths) {
+        String siteId = publishPackage.getSite().getSiteId();
+        logger.debug("Sending content submission notification for site '{}', package '{}'", siteId, publishPackage.getId());
         try {
-            final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
+            final NotificationConfigTO notificationConfig = getNotificationConfig(siteId);
+            final Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
             Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, itemsSubmitted));
-            templateModel.put(TEMPLATE_MODEL_SUBMITTER_USER, submitter);
-            templateModel.put(TEMPLATE_MODEL_APPROVER, securityService.getUserProfile(approver));
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, (scheduleDate == null) ?
-                    null : Date.from(scheduleDate.toInstant()));
-            notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
+            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
+            templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
+            templateModel.put(TEMPLATE_MODEL_SUBMISSION_COMMENTS, publishPackage.getSubmitterComment());
+
+            // Keeping these for backwards compatibility
+            // Prefer publishPackage.schedule
+            Instant schedule = publishPackage.getSchedule();
+            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, schedule != null ? Date.from(schedule) : null);
+            // Always false, never used internally
+            templateModel.put(TEMPLATE_MODEL_IS_DELETED, false);
+
+            notify(siteId, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW,
                     templateModel);
+        } catch (UserNotFoundException e) {
+            logger.error("Failed to send content submission notification because user was not found", e);
         } catch (Throwable e) {
-            // TODO: JM: Missing placeholder for e.getMessage()? Review
-            logger.warn("Failed to send content approval notification for site '{}'", site, e.getMessage());
+            logger.error("Failed to send content submission notification for site '{}'", siteId, e);
         }
     }
 
@@ -205,34 +261,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @Valid
-    public void notifyApprovesContentSubmission(@ValidateStringParam final String site,
-                                                final List<String> usersToNotify, final List<String> itemsSubmitted,
-                                                @ValidateStringParam final String submitter,
-                                                final ZonedDateTime scheduleDate, final boolean isADelete,
-                                                final @ValidateStringParam String submissionComments) {
-        try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-            final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
-            Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, itemsSubmitted));
-            templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
-            templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, (scheduleDate == null) ? null : Date.from(scheduleDate.toInstant()));
-            templateModel.put(TEMPLATE_MODEL_IS_DELETED, isADelete);
-            templateModel.put(TEMPLATE_MODEL_SUBMISSION_COMMENTS, submissionComments);
-            if (usersToNotify == null) {
-                notify(site, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW,
-                        templateModel);
-            } else {
-                notify(site, usersToNotify, NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, templateModel);
-            }
-        } catch (Throwable e) {
-            // TODO: JM: Missing placeholder for e.getMessage()? Review
-            logger.warn("Failed to send content submission notification for site '{}'", site, e.getMessage());
-        }
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     @Valid
     public void notify(@ValidateStringParam final String site, final List<String> toUsers,
@@ -274,50 +302,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @Override
-    @Valid
-    public void notifyContentRejection(@ValidateStringParam final String site,
-                                       final List<String> submittedByList,
-                                       final List<String> rejectedItems,
-                                       @ValidateStringParam final String rejectionReason,
-                                       @ValidateStringParam final String userThatRejects) {
-        try {
-            var submitterUsers = new ArrayList<Map<String, Object>>();
-            submittedByList.forEach(submittedBy -> {
-                Map<String, Object> userProfile = null;
-                try {
-                    userProfile = securityService.getUserProfile(submittedBy);
-                } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.debug("Username '{}' was not found while trying to send notification in site '{}'",
-                            submittedBy, site);
-                    try {
-                        userProfile = securityService.getUserProfileByGitName(submittedBy);
-                    } catch (ServiceLayerException | UserNotFoundException e2) {
-                        logger.error("Failed to notify the user '{}' because the user was not found for " +
-                                        "site '{}'", submittedBy, site, e2);
-                    }
-                }
-                if (Objects.nonNull(userProfile)) {
-                    submitterUsers.add(userProfile);
-                }
-            });
-            if (!submitterUsers.isEmpty()) {
-                Map<String, Object> templateModel = new HashMap<>();
-                templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, rejectedItems));
-                templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, rejectionReason);
-                templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, securityService.getUserProfile(userThatRejects));
-                List<String> emails = submitterUsers.stream().map(u -> u.get(KEY_EMAIL).toString())
-                        .collect(Collectors.toList());
-                notify(site, emails, NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
-            } else {
-                logger.info("Failed to send content rejection notification because the user(s) '{}' were not found " +
-                                "for site '{}'", submittedByList, site);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to send content rejection notification for site '{}'", site, e);
-        }
-    }
-
     protected NotificationConfigTO loadConfig(final String site) {
         var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
         var configPath = getConfigPath();
@@ -341,14 +325,16 @@ public class NotificationServiceImpl implements NotificationService {
                             config.getCompleteMessages());
                     loadEmailTemplates((Element)root.selectSingleNode(DOCUMENT_ELEMENT_EMAIL_TEMPLATES),
                             config.getEmailMessageTemplates());
-                    loadCannedMessages((Element)root.selectSingleNode(DOCUMENT_ELEMENT_CANNED_MESSAGES),
+                    loadCannedMessages((Element) root.selectSingleNode(DOCUMENT_ELEMENT_CANNED_MESSAGES),
                             config.getCannedMessages());
-                    loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION),
-                            config.getDeploymentFailureNotifications());
-                    loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_APPROVER_EMAILS),
-                            config.getApproverEmails());
-                    loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION),
-                            config.getRepositoryMergeConflictNotifications());
+
+                    String adminEmailAddress = getAdminEmailAddress(site);
+                    loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION),
+                            config.getDeploymentFailureNotifications(), adminEmailAddress);
+                    loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_APPROVER_EMAILS),
+                            config.getApproverEmails(), adminEmailAddress);
+                    loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION),
+                            config.getRepositoryMergeConflictNotifications(), adminEmailAddress);
                 } else {
                     logger.info("Failed to execute against non-XML-element '{}' in site '{}'",
                             root.getUniquePath(), site);
@@ -364,23 +350,34 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void loadEmailList(final String site, final Element emailList, final List<String>
-        deploymentFailureNotifications) {
-        if (emailList != null) {
-            List<Element> emails = emailList.elements();
-            if (!emails.isEmpty()) {
-                for (Element emailNode : emails) {
-                    final String email = emailNode.getText();
-                    if (EmailUtils.validateEmail(email)) {
-                        deploymentFailureNotifications.add(email);
-                    }
-                }
-            } else {
-                deploymentFailureNotifications.add(servicesConfig.getAdminEmailAddress(site));
-            }
-        } else {
+    private void loadEmailList(final String site, final Element emailListElement,
+                               final List<String> emailList, final String defaultEmail) {
+        if (emailListElement == null) {
             logger.error("Failed to load email list in site '{}'", site);
+            return;
         }
+        List<Element> emails = emailListElement.elements();
+        if (emails.isEmpty()) {
+            emailList.add(defaultEmail);
+            return;
+        }
+        for (Element emailNode : emails) {
+            final String email = emailNode.getText();
+            if (EmailUtils.validateEmail(email)) {
+                emailList.add(email);
+            } else {
+                logger.error("Invalid email address '{}' in site '{}' in notification config '{}' element", email, site, emailListElement.getName());
+            }
+        }
+    }
+
+    private String getAdminEmailAddress(final String site) {
+        String adminEmail = servicesConfig.getAdminEmailAddress(site);
+        if (EmailUtils.validateEmail(adminEmail)) {
+            return adminEmail;
+        }
+        logger.error("Invalid admin email address '{}' configured for site '{}'", adminEmail, site);
+        return null;
     }
 
     protected void loadGenericMessage(final Element emailTemplates, final Map<String, String> messageContainer) {
@@ -455,6 +452,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     protected void sendEmail(final String message, final String subject, final List<String> sendTo) {
         EmailMessageTO emailMessage = new EmailMessageTO(subject, message, StringUtils.join(sendTo, ','));
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sending email message to '{}'. Subject '{}'. Content: '{}'", sendTo, subject, message);
+        }
         emailMessages.addEmailMessage(emailMessage);
     }
 
@@ -471,7 +471,7 @@ public class NotificationServiceImpl implements NotificationService {
         return null;
     }
 
-    protected Set<ContentItemTO> convertPathsToContent(final String site, final List<String> listOfPaths) {
+    protected Set<ContentItemTO> convertPathsToContent(final String site, final Collection<String> listOfPaths) {
         Set<ContentItemTO> files = new HashSet<>(listOfPaths.size());
         for (String path : listOfPaths) {
             files.add(contentService.getContentItem(site, path));

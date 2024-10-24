@@ -1,27 +1,22 @@
 version: "~> 1.0"
-dist: jammy
-language: java
 git:
   depth: 1
   quiet: true
+dist: jammy
+language: java
 jdk:
   - openjdk21
-cache:
-  directories:
-  - "$HOME/.m2"
-  - "$HOME/downloads"
 branches:
   only:
-  - develop
-  - support/4.1.x
-  - support/4.0.x
-  - master
+    - develop
+    - support/4.1.x
+    - support/4.0.x
+    - master
+cache:
+  directories:
+    - "$HOME/.m2"
+    - "$HOME/downloads"
 notifications:
-  irc:
-    channels:
-    - chat.freenode.net#craftercms
-    use_notice: true
-    skip_join: true
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 before_install:
   - mkdir -p $HOME/.m2
@@ -32,5 +27,5 @@ script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true; fi
 env:
   global:
-    - secure: UrqsAwhqy/hg3bJh6zDDg51+a60bnvdFaNZx/9KsgGxrz174mMU0aJCAl1uUcY1tte8v5cylWvdSzPfBQhgH4p8zu2naFmIgtX+NUBLOqR5CX8w60+kNuSPBRj7TY+PRr1Vak8WztRxQE/T+VjAGH2ZdL0Ww9Soq2RFvMKgtvKk=
-    - secure: XHFhJ16qGXSgzokWsFa7DuTNcdHs3x7w2iSOSnChO1x8vIejHZPnGXitDe2773TsgRMDUEOuD4m4ejlklWg4Wv0C5AiGu9bGjk/XJEiUgNrb7eizwGcYJHnFVWgJ0MInJ5xJH45CQQENk0+ns08hEFqPQ8yhbYYxo3g5PHfuKLI=
+    - secure: "RPNjkSNJs0bfPqjPO19cpHC4vWyOAnQ0foCvbBXGfxdgI3kXcCfM18ldjHRGFnpri+2qgkS1bK1FnX4/lwC8mFLm18CWjDnQy2/aKSrmjSM64ggFtQIAiZ6MwNlvO7tYUnB+BiRSfiN/j/Yp37P9ItHHlwfN2e5Q0wDySlWy7Po="
+    - secure: "YfLGVNuxsV9tXamZQ313qeV/n2lA1oIlY0x6ZEeQha8VD3UIio+c6gf4oRMwv6deRNq/fgz8PAHbolLvVIU/wZ01NDJMNev0HbIdTfeH0GbdAfsvnyp9ZxF9Gk0LKZRU3cRdDJ/sakAh7r1j0nup/ylRkLK6rSGL81qQCfWcjsg="

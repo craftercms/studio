@@ -41,7 +41,7 @@
                                      expired-session-strategy-ref="sessionExpiredStrategy"/>
         </sec:session-management>
 
-        <sec:csrf token-repository-ref="csrfTokenRepository"/>
+        <sec:csrf token-repository-ref="csrfTokenRepository" request-handler-ref="csrfTokenRequestHandler"/>
         <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
         <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
 

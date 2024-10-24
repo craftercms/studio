@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import java.util.List;
-
 public abstract class AuditLogConstants {
 
     /** Operation **/
@@ -31,8 +29,8 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_REMOVE_MEMBERS = "REMOVE_MEMBERS";
     public static final String OPERATION_LOGIN = "LOGIN";
     public static final String OPERATION_LOGIN_FAILED = "LOGIN_FAILED";
+    public static final String OPERATION_SESSION_TIMEOUT = "SESSION_TIMEOUT";
     public static final String OPERATION_LOGOUT = "LOGOUT";
-    public static final String OPERATION_PRE_AUTH = "PRE_AUTH";
     public static final String OPERATION_ADD_REMOTE = "ADD_REMOTE";
     public static final String OPERATION_REMOVE_REMOTE = "REMOVE_REMOTE";
     public static final String OPERATION_PUSH_TO_REMOTE = "PUSH_TO_REMOTE";
@@ -48,9 +46,10 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_START_PUBLISHER = "START_PUBLISHER";
     public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
     public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
+    public static final String OPERATION_REJECT_PUBLISHING_PACKAGE = "REJECT_PUBLISHING_PACKAGE";
     public static final String OPERATION_PUBLISH = "PUBLISH";
     public static final String OPERATION_INITIAL_PUBLISH = "INITIAL_PUBLISH";
-
+    public static final String OPERATION_PUBLISH_START = "PUBLISH_START";
     public static final String OPERATION_PUBLISH_ALL = "PUBLISH_ALL";
     public static final String OPERATION_GIT_CHANGES = "GIT_SYNC";
     public static final String OPERATION_UNKNOWN = "UNKNOWN";
@@ -77,10 +76,5 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
     public static final String TARGET_TYPE_SYNCED_COMMIT = "Synced Commit";
     public static final String TARGET_TYPE_UNKNOWN = "unknown";
-
-    public static final List<String> ACTIVITY_STREAM_OPERATIONS = List.of(
-            OPERATION_CREATE, OPERATION_UPDATE, OPERATION_DELETE, OPERATION_MOVE, OPERATION_REQUEST_PUBLISH,
-            OPERATION_APPROVE, OPERATION_APPROVE_SCHEDULED, OPERATION_REJECT, OPERATION_REVERT, OPERATION_PUBLISH,
-            OPERATION_INITIAL_PUBLISH, OPERATION_UNKNOWN);
 
 }

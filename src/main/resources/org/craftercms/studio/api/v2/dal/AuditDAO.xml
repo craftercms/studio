@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -276,6 +276,7 @@
         FROM audit a
         INNER JOIN user u on u.username = a.actor_id
         WHERE a.commit_id = #{commitId}
+        AND a.primary_target_value = #{path}
         AND origin = 'API'
     </select>
 
@@ -284,9 +285,4 @@
         FROM audit a
         WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </select>
-
-    <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">
-        DELETE FROM audit
-        WHERE site_id = #{siteId}
-    </delete>
 </mapper>

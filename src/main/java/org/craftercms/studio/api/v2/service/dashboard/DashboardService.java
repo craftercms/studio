@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 
@@ -97,7 +96,7 @@ public interface DashboardService {
      * @param systemTypes list of system types to filter
      * @return number of results to return
      */
-    int getContentPendingApprovalTotal(String siteId, List<String> systemTypes) throws SiteNotFoundException;
+    int getContentPendingApprovalCount(String siteId, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get pending content for approval
@@ -128,7 +127,7 @@ public interface DashboardService {
      * @param systemTypes list of system types to filter
      * @return number of results to return
      */
-    int getContentUnpublishedTotal(String siteId, List<String> systemTypes) throws SiteNotFoundException;
+    int getContentUnpublishedCount(String siteId, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get unpublished content items
@@ -176,7 +175,7 @@ public interface DashboardService {
      * @param systemTypes     list of system types to filter
      * @return number of results
      */
-    int getPublishingScheduledTotal(String siteId, String publishingTarget, String approver,
+    int getPublishingScheduledCount(String siteId, String publishingTarget, String approver,
                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
@@ -187,9 +186,8 @@ public interface DashboardService {
      * @param approver         approver user to filter by
      * @param dateFrom         lower boundary to filter by date-time range
      * @param dateTo           upper boundary to filter by date-time range
-     * @param sortFields      list of sort fields
      * @param systemTypes    list of system types to filter
-     * @param sortFields       list of sort fields
+     * @param sortFields      list of sort fields
      * @param offset           offset of the first result item
      * @param limit            number of results to return
      * @return list of DetailedItem scheduled for publishing
@@ -205,58 +203,19 @@ public interface DashboardService {
      * @param publishingPackageId publishing package identifier
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getPublishingScheduledDetail(String siteId, String publishingPackageId)
+    List<SandboxItem> getPublishingScheduledDetail(String siteId, long publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
-
-    /**
-     * Get total number of result for publishing history with given filters
-     *
-     * @param siteId site identifier
-     * @param publishingTarget publishing target to filter by
-     * @param approver approver user to filter by
-     * @param dateFrom lower boundary to filter by date-time range
-     * @param dateTo upper boundary to filter by date-time range
-     * @return number of results
-     */
-    int getPublishingHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
-                                  ZonedDateTime dateTo) throws SiteNotFoundException;
-
-    /**
-     * Get publishing history
-     *
-     * @param siteId site identifier
-     * @param publishingTarget publishing target to filter by
-     * @param approver approver user to filter by
-     * @param dateFrom lower boundary to filter by date-time range
-     * @param dateTo upper boundary to filter by date-time range
-     * @param offset offset of the first result item
-     * @param limit number of results to return
-     * @return
-     */
-    List<DashboardPublishingPackage> getPublishingHistory(String siteId, String publishingTarget, String approver,
-                                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                                          int limit) throws SiteNotFoundException;
-
-    /**
-     * Get publishing package detail total items
-     *
-     * @param siteId site identifier
-     * @param publishingPackageId publishing package identifier
-     *
-     * @return number of package items
-     */
-    int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId) throws SiteNotFoundException;
 
     /**
      * Get publishing package details
      *
-     * @param siteId site identifier
+     * @param siteId              site identifier
      * @param publishingPackageId publishing package identifier
-     * @param offset offset of the first result item
-     * @param limit number of results to return
+     * @param offset              offset of the first result item
+     * @param limit               number of results to return
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getPublishingHistoryDetail(String siteId, String publishingPackageId, int offset, int limit)
+    List<SandboxItem> getPublishingHistoryDetail(String siteId, long publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException;
 
     /**

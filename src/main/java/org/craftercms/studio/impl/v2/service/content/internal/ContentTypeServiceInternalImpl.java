@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
@@ -123,8 +122,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         return contentTypeService.getAllContentTypes(siteId, true).stream()
                 .filter(ContentTypeConfigTO::isQuickCreate)
                 .filter(contentType ->
-                    securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(),
-                                    securityService.getCurrentUser(), null)
+                    securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), securityService.getCurrentUser())
                             .contains(PERMISSION_CONTENT_CREATE))
                 .map(contentType -> {
                     QuickCreateItem item = new QuickCreateItem();
@@ -180,7 +178,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
         var files = new LinkedList<String>();
@@ -198,10 +196,11 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         files.addAll(usage.getScripts());
         files.add(getContentTypePath(contentType));
 
-        if (!contentService.deleteContent(siteId, files, "Delete content-type " + contentType)) {
-            throw new ServiceLayerException("Error deleting content-type " + contentType + " in site "+ siteId);
+        try {
+            contentService.deleteContent(siteId, files, "Delete content-type " + contentType);
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Error deleting content-type '%s' in site '%s'", contentType, siteId), e);
         }
-
     }
 
     @Override

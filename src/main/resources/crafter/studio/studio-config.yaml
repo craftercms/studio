@@ -68,7 +68,7 @@ studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 # Create folder commit message
 studio.repo.createFolder.commitMessage: "Created folder site: {site} path: {path}"
 # Delete content commit message
-studio.repo.deleteContent.commitMessage: "Delete file {path}"
+studio.repo.deleteContent.commitMessage: "Delete files {path}"
 # Move content commit message
 studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
 # Copy content commit message
@@ -105,6 +105,8 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.sync.event.delayMillis: 1000
 # Maximum number of resets before triggering a sync
 studio.repo.sync.event.maxResets: 10
+# Reviewer comment for packages cancelled by the sync process
+studio.repo.sync.publishPackage.cancelled.comment: "Cancelled because of conflicts with changes from repository sync process"
 
 ############################################################
 ##                       Blob Store                       ##
@@ -280,6 +282,10 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
+# Maximum number of items to include in the workflow notification messages
+studio.workflow.notification.maxItemCount: 10
+# Enable/disable notification messages on workflow events
+studio.workflow.notification.enabled: true
 # Path where the notification configuration is located
 studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
@@ -500,6 +506,8 @@ studio.preview.templateName: local
 studio.preview.replace: false
 # Disable deploy cron job for preview target
 studio.preview.disableDeployCron: true
+# Response timeout in seconds for deployer http requests
+studio.deployer.request.timeoutSeconds: 300
 
 # Replace existing configuration if one exists?
 studio.authoring.replace: false
@@ -531,6 +539,7 @@ studio.db.password: ${env:MARIADB_PASSWD}
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
 # Note that a relative path is not suitable for a production deployment
 studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter&socketTimeout=60000
+studio.db.scriptRunnerUrl: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter&socketTimeout=60000&allowMultiQueries=true
 # Defines initial number of database connections in database connection pool
 studio.db.pool.initialConnections: 10
 # Defines maximum number of active database connections in database connection pool
@@ -1007,6 +1016,8 @@ studio.scripting.sandbox.enable: true
 studio.scripting.sandbox.blacklist.enable: true
 # The location of the default blacklist to use (this will have no effect if the sandbox is disabled)
 studio.scripting.sandbox.blacklist.path: classpath:crafter/studio/groovy/blacklist
+# List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
+studio.scripting.sandbox.whitelist.getenvRegex: crafter_.*
 # The extension for the script files
 studio.scripting.script.extension: groovy
 # The format for the name of the script files

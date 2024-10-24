@@ -53,7 +53,6 @@ public class DetailedItem {
     private long size;
     private Long parentId = null;
     private long availableActions;
-    private String previousPath;
     private int ignoredAsInt;
     private boolean ignored;
     private int childrenCount = 0;
@@ -94,7 +93,6 @@ public class DetailedItem {
         size = builder.size;
         parentId = builder.parentId;
         availableActions = builder.availableActions;
-        previousPath = builder.previousPath;
         ignoredAsInt = builder.ignoredAsInt;
         ignored = builder.ignored;
         childrenCount = builder.childrenCount;
@@ -308,14 +306,6 @@ public class DetailedItem {
         this.availableActions = availableActions;
     }
 
-    public String getPreviousPath() {
-        return previousPath;
-    }
-
-    public void setPreviousPath(String previousPath) {
-        this.previousPath = previousPath;
-    }
-
     public int getIgnoredAsInt() {
         return ignoredAsInt;
     }
@@ -419,7 +409,6 @@ public class DetailedItem {
         instance.size = item.getSize();
         instance.parentId = item.getParentId();
         instance.availableActions = item.getAvailableActions();
-        instance.previousPath = item.getPreviousPath();
         instance.ignoredAsInt = item.getIgnoredAsInt();
         instance.ignored = item.isIgnored();
         instance.childrenCount = item.getChildrenCount();
@@ -493,7 +482,6 @@ public class DetailedItem {
             clone.size = item.size;
             clone.parentId = item.parentId;
             clone.availableActions = item.availableActions;
-            clone.previousPath = item.previousPath;
             clone.ignoredAsInt = item.ignoredAsInt;
             clone.ignored = item.ignored;
             clone.childrenCount = item.childrenCount;
