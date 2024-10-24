@@ -1462,22 +1462,22 @@ configurations:
         nextVersion: 4.2.0
         operations:
           - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.xslt
+            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.0.xslt
             commitDetails: Update the UI to remove 'xbDetectionTimeoutMs'
       - currentVersion: 4.2.0
-        nextVersion: 4.2.1
+        nextVersion: 4.2.0.1
         operations:
           - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.1.xslt
+            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.1.xslt
             commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
-      - currentVersion: 4.2.1
-        nextVersion: 4.2.2
+      - currentVersion: 4.2.0.1
+        nextVersion: 4.2.0.2
         operations:
           - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.2.xslt
+            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.2.xslt
             commitDetails: Update 'Add Components' widget
-      - currentVersion: 4.2.2
-        nextVersion: 4.2.3
+      - currentVersion: 4.2.0.2
+        nextVersion: 4.2.0.3
         operations:
           - type: findAndReplaceUpgrader
             includedPaths:
