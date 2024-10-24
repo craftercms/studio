@@ -6790,12 +6790,6 @@ paths:
           required: false
           schema:
             type: string
-        - name: path
-          in: query
-          description: regular expression to filter by path
-          required: false
-          schema:
-            type: string
         - name: states
           in: query
           description: filter by package state(s)
@@ -6874,12 +6868,6 @@ paths:
           required: false
           schema:
             type: string
-        - name: path
-          in: query
-          description: regular expression to filter by path
-          required: false
-          schema:
-            type: string
         - name: states
           in: query
           description: filter by package state(s)
@@ -6899,6 +6887,49 @@ paths:
                 - SUBMITTED
                 - APPROVED
                 - REJECTED
+        - name: submitter
+          in: query
+          description: filter by package submitter
+          required: false
+          schema:
+            type: string
+        - name: submittedDate
+          in: query
+          description: filter by package submitted date
+          required: false
+          schema:
+              type: string
+              format: date-time
+        - name: reviewer
+          in: query
+          description: filter by package reviewer
+          required: false
+          schema:
+            type: string
+        - name: reviewedDate
+          in: query
+          description: filter by package reviewed date
+          required: false
+          schema:
+              type: string
+              format: date-time
+        - name: isScheduled
+          in: query
+          description: flag to filter by scheduled packages (null to include them all)
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: |-
+            The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+            Multiple fields are separated by commas. Example: `field1 ASC, field2 DESC`. <br/>
+            Accepted fields:<ul>
+                  <li>scheduledDate</li>
+                  <li>publishedDate</li>
+                  <li>approvalDate</li>
+            </ul>
+          schema:
+              type: string
         - name: offset
           in: query
           description: Offset for pagination
@@ -6973,7 +7004,7 @@ paths:
                   package:
                     $ref: '#/components/schemas/PublishingPackageDetails'
                   progress:
-                    $ref: '#/components/schemas/PublishingProgress'
+                    $ref: '#/components/schemas/TaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7004,20 +7035,56 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: path
+          in: query
+          description: regular expression to filter package items by path
+          required: false
+          schema:
+            type: string
+        - name: systemType
+          in: query
+          description: system types to filter package items by
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - asset
+                - page
+                - component
+                - levelDescriptor
+                - document
+                - renderingTemplate
+                - content type
+                - file
+                - folder
+                - script
+                - taxonomy
+        - name: internalName
+          in: query
+          description: internal names to filter items by
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  package:
-                    $ref: '#/components/schemas/PublishingPackageDetails'
-                  progress:
-                    $ref: '#/components/schemas/PublishingProgress'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      package:
+                        $ref: '#/components/schemas/PublishingPackage'
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7061,7 +7128,7 @@ paths:
                   package:
                     $ref: '#/components/schemas/PublishingPackage'
                   progress:
-                    $ref: '#/components/schemas/PublishingProgress'
+                    $ref: '#/components/schemas/TaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7200,7 +7267,7 @@ paths:
                   publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
                   progress:
-                    $ref: '#/components/schemas/PublishingProgress'
+                    $ref: '#/components/schemas/TaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7715,10 +7782,11 @@ paths:
 
   /api/2/dashboard/content/pending_approval:
     get:
+      deprecated: true
       tags:
         - dashboard
       summary: Get publishing packages that are pending for approval
-      description: 'Required permission "site_member"'
+      description: 'Required permission "site_member". <br /> This operation is deprecated, use /api/2/publish/{siteId}/packages instead'
       operationId: getDashboardContentPendingApproval
       parameters:
         - name: siteId
@@ -7788,10 +7856,11 @@ paths:
 
   /api/2/dashboard/content/pending_approval/{id}:
     get:
+      deprecated: true
       tags:
         - dashboard
       summary: Get content items of the package that is pending for approval
-      description: 'Required permission "site_member"'
+      description: 'Required permission "site_member". <br /> This operation is deprecated, use /api/2/publish/{siteId}/package/{packageId} instead'
       operationId: getDashboardContentPendingApprovalDetail
       parameters:
         - name: siteId
@@ -7906,10 +7975,11 @@ paths:
 
   /api/2/dashboard/publishing/scheduled:
     get:
+      deprecated: true
       tags:
         - dashboard
       summary: Get scheduled publishing items
-      description: 'Required permission "content_read"'
+      description: 'Required permission "content_read". <br /> This operation is deprecated, use /api/2/publish/{siteId}/packages instead'
       operationId: getPublishingScheduled
       parameters:
         - name: siteId
@@ -8005,10 +8075,11 @@ paths:
 
   /api/2/dashboard/publishing/scheduled/{id}:
     get:
+      deprecated: true
       tags:
         - dashboard
       summary: Get content items of the package that is scheduled
-      description: 'Required permission "content_read"'
+      description: 'Required permission "content_read". <br /> This operation is deprecated, use /api/2/publish/{siteId}/package/{packageId} instead'
       operationId: getDashboardPublishingScheduledDetail
       parameters:
         - name: siteId
@@ -8050,10 +8121,11 @@ paths:
 
   /api/2/dashboard/publishing/history:
     get:
+      deprecated: true
       tags:
         - dashboard
       summary: Get history of published packages
-      description: 'Required permission "content_read"'
+      description: 'Required permission "content_read". <br /> This operation is deprecated, use /api/2/publish/{siteId}/packages instead'
       operationId: getDashboardPublishingHistory
       parameters:
         - name: siteId
@@ -8139,10 +8211,11 @@ paths:
 
   /api/2/dashboard/publishing/history/{id}:
     get:
+      deprecated: true
       tags:
         - dashboard
       summary: Get content items of the package that was published
-      description: 'Required permission "content_read"'
+      description: 'Required permission "content_read". <br /> This operation is deprecated, use /api/2/publish/{siteId}/package/{packageId} instead'
       operationId: getDashboardPublishingHistoryDetail
       parameters:
         - name: siteId
@@ -10502,7 +10575,7 @@ components:
           type: integer
           description: ApiResponse code
 
-    PublishingProgress:
+    TaskProgress:
       type: object
       properties:
         startTime:
@@ -12030,7 +12103,7 @@ components:
 
     PaginatedResponse:
       type: object
-      description: asdf
+      description: pagination response information
       properties:
         total:
           type: integer
