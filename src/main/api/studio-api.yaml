@@ -7003,8 +7003,6 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
                     $ref: '#/components/schemas/PublishingPackageDetails'
-                  progress:
-                    $ref: '#/components/schemas/TaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7128,7 +7126,7 @@ paths:
                   package:
                     $ref: '#/components/schemas/PublishingPackage'
                   progress:
-                    $ref: '#/components/schemas/TaskProgress'
+                    $ref: '#/components/schemas/PublishTaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7267,7 +7265,7 @@ paths:
                   publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
                   progress:
-                    $ref: '#/components/schemas/TaskProgress'
+                    $ref: '#/components/schemas/PublishTaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -10575,13 +10573,60 @@ components:
           type: integer
           description: ApiResponse code
 
+    PublishTaskProgress:
+      type: object
+      description: publishing task progress report object
+      allOf:
+        - type: object
+          properties:
+            packageId:
+              type: integer
+              format: int64
+              description: package identifier
+              example: 123
+        - $ref: '#/components/schemas/TaskProgress'
+
     TaskProgress:
       type: object
+      description: general task progress object
       properties:
+        taskId:
+          type: string
+          description: task identifier
+          example: site123_PUBLISH
+        siteId:
+          type: string
+          description: site identifier
+          example: site123
+        taskType:
+          type: string
+          description: task type
+          example: publish
         startTime:
-            type: string
-            format: date-time
-            description: start time of the package processing
+          type: string
+          format: date-time
+          description: start time of the task execution
+        endTime:
+          type: string
+          format: date-time
+          description: end time of the task execution
+        status:
+          type: string
+          description: status of the task execution
+          enum:
+            - READY
+            - IN_PROGRESS
+            - COMPLETED
+        result:
+          description: result of the task execution
+          type: object
+          properties:
+            success:
+              type: boolean
+              description: true if task was successful, otherwise false
+            message:
+              type: string
+              description: message of the task execution
         stages:
           example:
             - name: "Repo sync"
@@ -10595,7 +10640,7 @@ components:
               total: 100
               errors: false
             - name: "Live publish"
-              state: "IN PROGRESS"
+              state: "IN_PROGRESS"
               processed: 54
               total: 100
               errors: false
@@ -10620,7 +10665,7 @@ components:
               state:
                 type: string
                 description: stage state
-                enum: ["PENDING", "IN PROGRESS", "COMPLETED"]
+                enum: ["READY", "IN_PROGRESS", "COMPLETED"]
               total:
                 type: integer
                 format: int32
