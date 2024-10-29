@@ -495,5 +495,13 @@ public interface ItemDAO {
      *
      * @param siteId the site id
      */
-    void updateParentId(@Param(SITE_ID) long siteId);
+    void updateParentIdForSite(@Param(SITE_ID) long siteId);
+
+    /**
+     * Recalculate the parent id for the given paths
+     *
+     * @param siteId the site id
+     * @param paths  the paths to update
+     */
+    void updateParentId(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
 }

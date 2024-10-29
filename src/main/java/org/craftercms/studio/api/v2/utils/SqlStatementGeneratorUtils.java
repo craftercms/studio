@@ -33,17 +33,17 @@ public final class SqlStatementGeneratorUtils {
     public static final String ITEM_INSERT =
             "INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by," +
                     " last_modified_on, last_published_on, label, content_type_id, system_type, mime_type," +
-                    " locale_code, translation_source_id, size, parent_id, previous_path, ignored)" +
+                    " locale_code, translation_source_id, size, previous_path, ignored)" +
                     " VALUES (#{siteId}, '#{path}', '#{previewUrl}', #{state}, #{lockedBy}, #{createdBy}," +
                     " '#{createdOn}', #{lastModifiedBy}, '#{lastModifiedOn}', '#{lastPublishedOn}', '#{label}'," +
                     " '#{contentTypeId}', '#{systemType}', '#{mimeType}', '#{localeCode}'," +
-                    " #{translationSourceId}, #{size}, #{parentId}, '#{previousPath}', #{ignoredAsInt})" +
+                    " #{translationSourceId}, #{size}, '#{previousPath}', #{ignoredAsInt})" +
                     " ON DUPLICATE KEY UPDATE site_id = #{siteId}, path = '#{path}', preview_url = '#{previewUrl}'," +
                     " state = #{state}, locked_by = #{lockedBy}, last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', last_published_on = '#{lastPublishedOn}'," +
                     " label = '#{label}', content_type_id = '#{contentTypeId}', system_type = '#{systemType}'," +
                     " mime_type = '#{mimeType}', locale_code = '#{localeCode}'," +
-                    " translation_source_id = #{translationSourceId}, size = #{size}, parent_id = #{parentId}," +
+                    " translation_source_id = #{translationSourceId}, size = #{size}," +
                     " previous_path = '#{previousPath}', ignored = #{ignoredAsInt} ;";
 
     public static final String ITEM_UPDATE =
@@ -86,8 +86,12 @@ public final class SqlStatementGeneratorUtils {
     public static final String DEPENDENCIES_DELETE_SOURCE =
             "DELETE FROM dependency WHERE source_path = '#{path}' AND site = '#{site}' ;\n\n";
 
-    public static final String DEPENDENCIES_DELETE =
-            "DELETE FROM dependency WHERE site = '#{site}' AND source_path = '#{path}' ;\n\n";
+    public static final String DEPENDENCIES_DELETE = """
+           DELETE FROM dependency WHERE site = '#{site}' AND source_path = '#{path}' ;
+           
+           UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;
+           
+           """;
     private static final String DEPENDENCIES_INVALIDATE =
             "UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;\n\n";
     private static final String DEPENDENCIES_VALIDATE =
@@ -97,7 +101,7 @@ public final class SqlStatementGeneratorUtils {
                                        Long createdBy, ZonedDateTime createdOn, Long lastModifiedBy,
                                        ZonedDateTime lastModifiedOn, ZonedDateTime lastPublishedOn, String label,
                                        String contentTypeId, String systemType, String mimeType, String localeCode,
-                                       Long translationSourceId, Long size, Long parentId,
+                                       Long translationSourceId, Long size,
                                        String previousPath) {
         Timestamp sqlTsCreated = new Timestamp(createdOn.toInstant().toEpochMilli());
         Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
@@ -143,8 +147,6 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{translationSourceId}", Objects.isNull(translationSourceId) ? "NULL" :
                 Long.toString(translationSourceId));
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
-        sql = StringUtils.replace(sql,"#{parentId}", Objects.isNull(parentId) ? "NULL" :
-                Long.toString(parentId));
         if (StringUtils.isEmpty(previousPath)) {
             sql = StringUtils.replace(sql, "'#{previousPath}'", "NULL");
         } else {

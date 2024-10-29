@@ -51,17 +51,13 @@ public class DependencyUtils {
      * @param file              the file
      * @param dependencyService the dependency service
      * @param cleanExisting     if true, the existing dependencies for the path will be deleted
+     * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
      * @throws IOException if an error occurs while updating the script
      */
     public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
                                                      Path file, DependencyServiceInternal dependencyService,
-                                                     boolean cleanExisting)
+                                                     boolean cleanExisting, boolean revalidate)
             throws IOException {
-        if (!dependencyService.isValidDependencySource(siteId, path)) {
-            // Path is not a valid dependency source. e.g.: an image or a txt
-            return;
-        }
-        Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
         if (cleanExisting) {
             if (isEmpty(oldPath)) {
                 Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
@@ -75,7 +71,17 @@ public class DependencyUtils {
                         StandardOpenOption.APPEND);
             }
         }
+        if (revalidate) {
+            // Validate existing broken dependencies pointing to the item path
+            Files.write(file, validateDependencies(siteId, path).getBytes(UTF_8),
+                    StandardOpenOption.APPEND);
+        }
 
+        if (!dependencyService.isValidDependencySource(siteId, path)) {
+            // Path is not a valid dependency source. e.g.: an image or a txt
+            return;
+        }
+        Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
         if (MapUtils.isEmpty(dependencies)) {
             return;
         }

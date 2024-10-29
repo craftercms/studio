@@ -77,8 +77,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PATH_PATTERNS;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 /**
  * Listens to {@link SyncFromRepoEvent} events and performs the sync from repository.
@@ -88,6 +87,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
     private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
     private final static int GENERATED_SQL_BATCH_SIZE = 10000;
+    private final static int MY_BATIS_QUERY_BATCH_SIZE = 1000;
+
+    private static final Set<RepoOperation.Action> CREATED_PATH_ACTIONS = Set.of(RepoOperation.Action.CREATE, RepoOperation.Action.COPY, RepoOperation.Action.MOVE);;
+    private static final String EMPTY_FILE_END = FILE_SEPARATOR + EMPTY_FILE;
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 
@@ -206,8 +209,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
     // Wrap the sync from repo operation up to lastCommitInRepo
     private void completeSyncFromRepo(final Site site, final String lastCommitInRepo) {
-        itemServiceInternal.updateParentId(site.getSiteId());
-        dependencyServiceInternal.validateDependencies(site.getSiteId());
         // Sync all preview deployers
         try {
             logger.debug("Sync preview for site '{}'", site.getSiteId());
@@ -301,7 +302,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 Files.writeString(finalOperationsScript, EMPTY, UTF_8, TRUNCATE_EXISTING);
                 TimeUtils.logExecutionTime(() -> processRepoOperations(site, chunk, finalOperationsScript, allAncestors), logger, "Process repo operations", Level.DEBUG);
                 TimeUtils.logExecutionTimeThrowing(() -> studioDBScriptRunner.execute(finalOperationsScript, true), logger, "Executing SQL script", Level.DEBUG);
+                TimeUtils.logExecutionTime(() -> updateParentId(site, getCreatedPaths(chunk)), logger, "Update parent id", Level.DEBUG);
             }
+            TimeUtils.logExecutionTime(() -> updateParentId(site, allAncestors.stream().toList()), logger, "Update parent id for created paths' ancestors", Level.DEBUG);
         } catch (SQLException | IOException e) {
             logger.error("Failed to create the database script for processing the created files in site '{}'", site);
             throw e;
@@ -310,6 +313,27 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 logger.debug("Deleting temporary file '{}'", repoOperationsScriptPath);
                 FileUtils.deleteQuietly(repoOperationsScriptPath.toFile());
             }
+        }
+    }
+
+    /**
+     * Get the paths for the actions that created paths in the repo, i.e.: create, copy, move
+     * Update or delete will not affect parent id updates
+     */
+    private List<String> getCreatedPaths(List<RepoOperation> chunk) {
+        return chunk.stream()
+                .filter(repoOperation -> CREATED_PATH_ACTIONS.contains(repoOperation.getAction()))
+                .map(RepoOperation::getPath)
+                .filter(p -> !p.endsWith(EMPTY_FILE_END))
+                .toList();
+    }
+
+    /**
+     * Update the parent id for the given paths
+     */
+    private void updateParentId(Site site, List<String> paths) {
+        for (List<String> pathsBatch : ListUtils.partition(paths, MY_BATIS_QUERY_BATCH_SIZE)) {
+            itemServiceInternal.updateParentId(site.getId(), pathsBatch);
         }
     }
 
@@ -429,13 +453,13 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
                 StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
                 Locale.US.toString(), null,
-                contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()), null,
+                contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()),
                 null).getBytes(UTF_8), StandardOpenOption.APPEND);
         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
         logger.trace("Extract dependencies from site '{}' path '{}'",
                 site.getSiteId(), repoOperation.getPath());
         DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
-                repoOperationsScriptPath, dependencyServiceInternal, true);
+                repoOperationsScriptPath, dependencyServiceInternal, false, true);
     }
 
     private void processUpdate(Site site, RepoOperation repoOperation, User user,
@@ -462,7 +486,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         logger.trace("Extract dependencies from site '{}' path '{}'",
                 site.getSiteId(), repoOperation.getPath());
         DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
-                repoOperationsScriptPath, dependencyServiceInternal, true);
+                repoOperationsScriptPath, dependencyServiceInternal, true, false);
     }
 
     private void processMove(Site site, RepoOperation repoOperation, User user,
@@ -493,7 +517,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                     .getBytes(UTF_8), StandardOpenOption.APPEND);
             Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
             DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getMoveToPath(),
-                    repoOperation.getPath(), repoOperationsScriptPath, dependencyServiceInternal, true);
+                    repoOperation.getPath(), repoOperationsScriptPath, dependencyServiceInternal, true, true);
         }
         invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
     }
@@ -559,7 +583,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 }
                 Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                                 , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                                Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                                Locale.US.toString(), null, 0L, null).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
                 Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                 allAncestors.add(currentPath);
