@@ -375,7 +375,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String label = new File(directory).getName();
         Files.write(createdFileScriptPath, insertItemRow(siteId, directory, null, NEW.value, null, userId,
                         now, userId, now, null, label, null, CONTENT_TYPE_FOLDER, null,
-                        Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
+                        Locale.US.toString(), null, 0L,null).getBytes(UTF_8),
                 StandardOpenOption.APPEND);
         Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
     }
@@ -418,12 +418,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             null, userId, now, userId, now, null, label, contentTypeId,
                             contentService.getContentTypeClass(site.getSiteId(), path),
                             StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-                            contentRepositoryV2.getContentSize(site.getSiteId(), path), null, null).getBytes(UTF_8),
+                            contentRepositoryV2.getContentSize(site.getSiteId(), path), null).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
             Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 
             DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), path, null,
-                    createdFileScriptPath, dependencyServiceInternal, false);
+                    createdFileScriptPath, dependencyServiceInternal, false, false);
         }
     }
 
