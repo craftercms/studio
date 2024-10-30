@@ -538,11 +538,8 @@
                       AND pr2.state = #{completedState}
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i1.path = live1.path
-                ,item i2
-            WHERE i2.site_id = #{siteId}
-              AND i2.path = #{path}
-              AND i1.site_id = i2.site_id
-              AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
+            WHERE i1.site_id = #{siteId}
+              AND i1.path = CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')
               AND (i5.ignored = 0 OR i5.ignored IS NULL)
               AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                     (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
