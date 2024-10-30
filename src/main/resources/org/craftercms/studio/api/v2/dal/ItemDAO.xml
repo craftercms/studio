@@ -355,9 +355,14 @@
                     ) AS live_scheduleddate,
                     live1.published_on AS live_published_on,
                     live1.username AS live_username,
-                    COUNT(DISTINCT i3.id) AS children_count
+                    (SELECT COUNT(1)
+                    FROM item child_i
+                    WHERE child_i.parent_id = i.id
+                    AND (child_i.ignored = 0 OR child_i.ignored IS NULL)
+                    AND (child_i.system_type &lt;&gt; 'folder' OR NOT EXISTS
+                        (SELECT * FROM item i10 WHERE i10.site_id = child_i.site_id
+                            AND i10.path = CONCAT(child_i.path, '/index.xml')))) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
-                LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -375,13 +380,9 @@
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i.path = live1.path
             WHERE i.site_id = #{siteId}
-                AND (i3.ignored = 0 OR i3.ignored IS NULL)
-                AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-                    (SELECT * FROM item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
                 AND (i.state &amp; #{statesBitMap}) > 0
-                AND i.system_type != #{systemTypeFolder}
+                AND i.system_type &lt;&gt; #{systemTypeFolder}
             <include refid="filterBySystemType"/>
-            GROUP BY i.id
             <include refid="orderBySortFields"/>
             LIMIT #{offset}, #{limit}
     </select>
@@ -637,17 +638,18 @@
                     WHERE w.item_id = i.id
                     ORDER BY w.id DESC LIMIT 0, 1
                 ) AS submitter,
-               COUNT(DISTINCT i3.id) AS children_count
+                    (SELECT COUNT(1)
+                    FROM item child_i
+                    WHERE child_i.parent_id = i.id
+                    AND (child_i.ignored = 0 OR child_i.ignored IS NULL)
+                    AND (child_i.system_type &lt;&gt; 'folder' OR NOT EXISTS
+                        (SELECT * FROM item i10 WHERE i10.site_id = child_i.site_id
+                            AND i10.path = CONCAT(child_i.path, '/index.xml')))) AS children_count
         FROM item i
-            LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
         WHERE i.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
-        AND (i3.ignored = 0 OR i3.ignored IS NULL)
-        AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-            (SELECT * from item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
-        GROUP BY i.id
         <include refid="orderBySortFields"/>
     </select>
 
@@ -885,12 +887,9 @@
                       AND pr2.state = #{completedState}
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i1.path = live1.path
-            , item i2
-            WHERE i2.site_id = #{siteId}
-              AND i2.path = #{path}
+            WHERE i1.site_id = #{siteId}
+              AND i1.path = CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')
               AND i1.ignored = 0
-              AND i1.site_id = i2.site_id
-              AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 OR i5.ignored IS NULL)
               AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
