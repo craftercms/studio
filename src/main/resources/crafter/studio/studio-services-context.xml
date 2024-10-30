@@ -1356,9 +1356,12 @@
     <!-- Utilities -->
 
     <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
-        <property name="corePoolSize" value="5"/>
-        <property name="maxPoolSize" value="10"/>
-        <property name="queueCapacity" value="25"/>
+        <property name="corePoolSize"
+                  value="#{studioConfiguration.getProperty('studio.taskExecutor.corePoolSize')}"/>
+        <property name="maxPoolSize"
+                  value="#{studioConfiguration.getProperty('studio.taskExecutor.maxPoolSize')}"/>
+        <property name="queueCapacity"
+                  value="#{studioConfiguration.getProperty('studio.taskExecutor.queueCapacity')}"/>
         <property name="waitForTasksToCompleteOnShutdown" value="false" />
     </bean>
 
