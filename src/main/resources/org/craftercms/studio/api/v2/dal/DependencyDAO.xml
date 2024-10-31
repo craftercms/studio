@@ -165,6 +165,6 @@
                         INNER JOIN site s ON s.id = i.site_id
                         WHERE s.site_id = #{siteId}
                         ) THEN 1 ELSE 0 END)
-        AND site = #{siteId}
+        WHERE site = #{siteId}
     </update>
 </mapper>
