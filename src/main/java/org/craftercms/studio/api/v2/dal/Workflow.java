@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,8 +22,6 @@ public class Workflow {
 
     public static final String STATE_OPENED = "OPENED";
     public static final String STATE_APPROVED = "APPROVED";
-    public static final String STATE_REJECTED = "REJECTED";
-    public static final String STATE_CLOSED = "CLOSED";
 
     private long id;
     private long itemId;

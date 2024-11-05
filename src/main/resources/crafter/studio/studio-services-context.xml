@@ -651,8 +651,9 @@
 
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
-        <property name="workflowDao" ref="workflowDao" />
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="workflowDao" ref="workflowDao" />
+        <constructor-arg name="dependencyService" ref="dependencyServiceInternal"/>
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"

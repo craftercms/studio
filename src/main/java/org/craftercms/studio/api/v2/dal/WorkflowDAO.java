@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -145,4 +146,48 @@ public interface WorkflowDAO {
      * @return List of workflow entries
      */
     List<Workflow> getContentPendingApprovalDetail(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) String packageId);
+
+    /**
+     * Get the paths sharing publishing package with the given path
+     *
+     * @param siteId the site id
+     * @param path   the path to test
+     * @return a list of paths sharing the publishing package
+     */
+    default Collection<String> getSamePackagePaths(@Param(SITE_ID) final String siteId, @Param(PATH) final String path) {
+        return getSamePackagePaths(siteId, path, PublishRequest.State.READY_FOR_LIVE);
+    }
+
+    /**
+     * Get the paths sharing publishing package with the given path
+     * matching the state
+     *
+     * @param siteId the site id
+     * @param path   the path to test
+     * @param state  the state to match
+     * @return a list of paths sharing the publishing package
+     */
+    Collection<String> getSamePackagePaths(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(STATE) String state);
+
+    /**
+     * From the given list of paths, return the ones in workflow
+     *
+     * @param siteId the site id
+     * @param paths  the paths to search for in workflow
+     * @return list of paths in workflow
+     */
+    default Collection<String> getPathsInWorkflow(@Param(SITE_ID) final String siteId, @Param(PATHS) final Collection<String> paths) {
+        return getPathsInWorkflow(siteId, paths, Workflow.STATE_OPENED);
+    }
+
+    /**
+     * From the given list of paths, return the ones in workflow matching the given state
+     *
+     * @param siteId the site id
+     * @param paths  the paths to search for in workflow
+     * @param state  the state to match
+     * @return list of paths in workflow
+     */
+    Collection<String> getPathsInWorkflow(@Param(SITE_ID) final String siteId, @Param(PATHS) Collection<String> paths,
+                                          @Param(STATE) String state);
 }

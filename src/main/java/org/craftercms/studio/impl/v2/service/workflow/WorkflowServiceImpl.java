@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
@@ -46,6 +45,7 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
@@ -62,6 +62,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -141,8 +142,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public List<SandboxItem> getWorkflowAffectedPaths(@SiteId String siteId,
                                                       @ProtectedResourceId(PATH_RESOURCE_ID)
                                                       String path) throws UserNotFoundException, ServiceLayerException {
-        List<String> affectedPaths = new LinkedList<>();
-        List<SandboxItem> result = new LinkedList<>();
         List<SandboxItem> sandboxItems = contentServiceInternal.getSandboxItemsByPath(siteId, List.of(path), false);
         if (CollectionUtils.isEmpty(sandboxItems)) {
             throw new ContentNotFoundException(path, siteId,
@@ -150,25 +149,10 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
         SandboxItem sandboxItem = sandboxItems.get(0);
         if (isInWorkflowOrScheduled(sandboxItem.getState())) {
-            affectedPaths.add(path);
-            boolean isNew = isNew(sandboxItem.getState());
-            boolean isRenamed = isNotEmpty(sandboxItem.getPreviousPath());
-            if (isNew || isRenamed) {
-                affectedPaths.addAll(getMandatoryDescendants(siteId, path));
-            }
-            List<String> dependencyPaths = new LinkedList<>(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
-            affectedPaths.addAll(dependencyPaths);
-            List<String> candidates = new LinkedList<>();
-            for (String p : affectedPaths) {
-                if (!candidates.contains(p)) {
-                    candidates.add(p);
-                }
-            }
-
-            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(siteId, candidates, true);
-            result = candidateItems.stream().filter(i -> isInWorkflowOrScheduled(i.getState())).collect(toList());
+            Collection<String> affectedPaths = workflowServiceInternal.getWorkflowAffectedPaths(siteId, path);
+            return contentServiceInternal.getSandboxItemsByPath(siteId, affectedPaths, true);
         }
-        return result;
+        return emptyList();
     }
 
     private List<String> getMandatoryDescendants(String site, String path)
