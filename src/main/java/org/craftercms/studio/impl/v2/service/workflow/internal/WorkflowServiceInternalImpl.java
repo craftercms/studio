@@ -22,9 +22,9 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
-import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.beans.ConstructorProperties;
@@ -125,7 +125,7 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         affectedPaths.add(path);
         affectedPaths.addAll(workflowDao.getSamePackagePaths(siteId, path));
         List<String> hardDependencies = dependencyService.getHardDependencies(siteId, List.of(path));
-        for (List<String> hardDepsBatch : ListUtils.partition(hardDependencies, 1000)) {
+        for (List<String> hardDepsBatch : ListUtils.partition(hardDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
             affectedPaths.addAll(workflowDao.getPathsInWorkflow(siteId, hardDepsBatch));
         }
 
