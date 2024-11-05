@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,21 +16,38 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
+import org.apache.commons.collections4.ListUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
+import java.beans.ConstructorProperties;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 
 public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
-    private WorkflowDAO workflowDao;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final WorkflowDAO workflowDao;
+    private final DependencyServiceInternal dependencyService;
+    private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+
+    @ConstructorProperties({"dependencyService", "retryingDatabaseOperationFacade", "workflowDao"})
+    public WorkflowServiceInternalImpl(final DependencyServiceInternal dependencyService, final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+                                       final WorkflowDAO workflowDao) {
+        this.dependencyService = dependencyService;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+        this.workflowDao = workflowDao;
+    }
 
     @Override
     public WorkflowItem getWorkflowItem(String siteId, String path, String state) {
@@ -102,11 +119,16 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
     }
 
-    public void setWorkflowDao(WorkflowDAO workflowDao) {
-        this.workflowDao = workflowDao;
-    }
+    @Override
+    public Collection<String> getWorkflowAffectedPaths(final String siteId, final String path) throws ServiceLayerException {
+        Set<String> affectedPaths = new HashSet<>();
+        affectedPaths.add(path);
+        affectedPaths.addAll(workflowDao.getSamePackagePaths(siteId, path));
+        List<String> hardDependencies = dependencyService.getHardDependencies(siteId, List.of(path));
+        for (List<String> hardDepsBatch : ListUtils.partition(hardDependencies, 1000)) {
+            affectedPaths.addAll(workflowDao.getPathsInWorkflow(siteId, hardDepsBatch));
+        }
 
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+        return affectedPaths;
     }
 }

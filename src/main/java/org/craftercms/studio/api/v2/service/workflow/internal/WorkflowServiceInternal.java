@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,10 +16,13 @@
 
 package org.craftercms.studio.api.v2.service.workflow.internal;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface WorkflowServiceInternal {
@@ -118,4 +121,12 @@ public interface WorkflowServiceInternal {
      * @return list of workflow entries
      */
     List<Workflow> getContentPendingApprovalDetail(String siteId, String packageId);
+
+    /**
+     * Get workflow affected paths if content is edited
+     * @param siteId site identifier
+     * @param path path of the content to be edited
+     * @return List of sandbox items that will be taken out of workflow after edit
+     */
+    Collection<String> getWorkflowAffectedPaths(String siteId, String path) throws ServiceLayerException;
 }

@@ -300,7 +300,7 @@ public interface ItemDAO {
      * @param preferContent indicates if pages should be returned instead of folders when available
      * @return list of items
      */
-    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) Collection<String> paths,
                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                      @Param(PREFER_CONTENT) boolean preferContent);
 

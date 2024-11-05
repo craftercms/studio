@@ -245,7 +245,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+    public List<SandboxItem> getSandboxItemsByPath(String siteId, Collection<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);

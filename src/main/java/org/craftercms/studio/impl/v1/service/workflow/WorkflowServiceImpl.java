@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -121,7 +121,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     protected void _cancelWorkflow(String site, String path) throws ServiceLayerException, UserNotFoundException {
-        List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
+        Collection<String> allItemsToCancel = workflowServiceInternal.getWorkflowAffectedPaths(site, path);
         List<String> paths = new ArrayList<>();
         for (String affectedItem : allItemsToCancel) {
             try {
