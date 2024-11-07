@@ -90,8 +90,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     }
 
     @Override
-    public void deleteWorkflowEntries(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntries(siteId, paths));
+    public void deleteWorkflowEntries(String siteId, Collection<String> paths) {
+        deleteWorkflowEntries(siteId, paths, null);
+    }
+
+    @Override
+    public void deleteWorkflowEntries(final String siteId, final Collection<String> paths, final String workflowState) {
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntries(siteId, paths, workflowState));
     }
 
     @Override
@@ -124,11 +129,22 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         Set<String> affectedPaths = new HashSet<>();
         affectedPaths.add(path);
         affectedPaths.addAll(workflowDao.getSamePackagePaths(siteId, path));
-        List<String> hardDependencies = dependencyService.getHardDependencies(siteId, List.of(path));
-        for (List<String> hardDepsBatch : ListUtils.partition(hardDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
-            affectedPaths.addAll(workflowDao.getPathsInWorkflow(siteId, hardDepsBatch));
-        }
+        affectedPaths.addAll(getWorkflowHardDeps(siteId, path));
 
         return affectedPaths;
+    }
+
+    @Override
+    public Collection<String> getWorkflowHardDeps(final String siteId, final String path) throws ServiceLayerException {
+        List<String> hardDependencies = dependencyService.getHardDependencies(siteId, List.of(path));
+        return ListUtils.partition(hardDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE).stream()
+                .map(batch -> workflowDao.getPathsInWorkflow(siteId, batch))
+                .flatMap(Collection::stream)
+                .toList();
+    }
+
+    @Override
+    public void deleteWorkflowPackages(String siteId, Collection<String> affectedPackages) {
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowPackages(siteId, affectedPackages));
     }
 }

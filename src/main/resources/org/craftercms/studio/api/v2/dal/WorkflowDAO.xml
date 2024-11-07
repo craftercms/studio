@@ -211,6 +211,9 @@
             <foreach collection="paths" item="path" index="index" separator="," open="(" close=")">
                 #{path}
             </foreach>
+            <if test="state != null">
+                AND w.state = #{state}
+            </if>
             )
     </delete>
 
@@ -318,4 +321,13 @@
             </foreach>
     </select>
 
+    <delete id="deleteWorkflowPackages">
+        DELETE FROM workflow WHERE id IN
+        (SELECT w.id FROM  workflow w INNER JOIN item i ON w.item_id = i.id INNER JOIN site s ON i.site_id = s.id
+            WHERE s.site_id = #{siteId} AND w.publishing_package_id IN
+            <foreach collection="packageIds" item="packageId" index="index" separator="," open="(" close=")">
+                #{packageId}
+            </foreach>
+            )
+    </delete>
 </mapper>

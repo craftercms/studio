@@ -23,19 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_PACKAGE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE_OPENED;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.WORKFLOW_ENTRIES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface WorkflowDAO {
 
@@ -101,10 +89,14 @@ public interface WorkflowDAO {
 
     /**
      * Delete workflow entries
-     * @param siteId site identifier
-     * @param paths list of paths
+     *
+     * @param siteId        site identifier
+     * @param paths         list of paths
+     * @param workflowState state to filter workflow entries, null to match all states
      */
-    void deleteWorkflowEntries(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
+    void deleteWorkflowEntries(@Param(SITE_ID) String siteId,
+                               @Param(PATHS) Collection<String> paths,
+                               @Param(STATE) String workflowState);
 
     /**
      * Delete workflow entry
@@ -190,4 +182,6 @@ public interface WorkflowDAO {
      */
     Collection<String> getPathsInWorkflow(@Param(SITE_ID) final String siteId, @Param(PATHS) Collection<String> paths,
                                           @Param(STATE) String state);
+
+    void deleteWorkflowPackages(@Param(SITE_ID) String siteId, @Param(PACKAGE_IDS) Collection<String> affectedPackages);
 }

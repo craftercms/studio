@@ -413,4 +413,13 @@ public interface ItemServiceInternal {
      * @param paths  the paths to update
      */
     void updateParentId(long siteId, Collection<String> paths);
+
+    /**
+     * Recalculate the item states for the given paths based
+     * on the publish_request and workflow tables
+     *
+     * @param siteId the site id
+     * @param paths  the item paths to update
+     */
+    void recalculateItemStates(String siteId, List<String> paths);
 }

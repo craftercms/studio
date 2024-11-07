@@ -228,40 +228,30 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     params.put("environment", environment);
                     params.put("state", PublishRequest.State.READY_FOR_LIVE);
                     params.put("path", path);
-                    if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info("The publishRequest in site '{}' path '{}' has already been " +
-                                "queued for publishing to the target '{}'. Will not add again.",
-                                site, path, environment);
-                    } else {
-                        publishRequest.setId(++CTED_AUTOINCREMENT);
-                        publishRequest.setSite(site);
-                        publishRequest.setEnvironment(environment);
-                        publishRequest.setPath(path);
-                        publishRequest.setScheduledDate(scheduledDate);
-                        publishRequest.setState(PublishRequest.State.READY_FOR_LIVE);
-                        publishRequest.setAction(action);
-                        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
-                            String oldPath = it.getPreviousPath();
-                            publishRequest.setOldPath(oldPath);
-                        }
 
-                        String contentTypeClass = contentService.getContentTypeClass(site, path);
-                        publishRequest.setContentTypeClass(contentTypeClass);
-                        publishRequest.setUser(approver);
-                        publishRequest.setSubmissionComment(submissionComment);
-                        publishRequest.setPackageId(packageId);
-                        newItems.add(publishRequest);
+                    publishRequest.setId(++CTED_AUTOINCREMENT);
+                    publishRequest.setSite(site);
+                    publishRequest.setEnvironment(environment);
+                    publishRequest.setPath(path);
+                    publishRequest.setScheduledDate(scheduledDate);
+                    publishRequest.setState(PublishRequest.State.READY_FOR_LIVE);
+                    publishRequest.setAction(action);
+                    if (StringUtils.isNotEmpty(it.getPreviousPath())) {
+                        String oldPath = it.getPreviousPath();
+                        publishRequest.setOldPath(oldPath);
                     }
+
+                    String contentTypeClass = contentService.getContentTypeClass(site, path);
+                    publishRequest.setContentTypeClass(contentTypeClass);
+                    publishRequest.setUser(approver);
+                    publishRequest.setSubmissionComment(submissionComment);
+                    publishRequest.setPackageId(packageId);
+                    newItems.add(publishRequest);
 
 
                     User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                    Workflow workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
-                    boolean insert = false;
-                    if (Objects.isNull(workflow)) {
-                        workflow = new Workflow();
-                        workflow.setItemId(it.getId());
-                        insert = true;
-                    }
+                    Workflow workflow = new Workflow();
+                    workflow.setItemId(it.getId());
                     workflow.setState(STATE_APPROVED);
                     workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
@@ -270,13 +260,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     workflow.setReviewerComment(submissionComment);
                     workflow.setReviewerId(reviewer.getId());
                     workflow.setPublishingPackageId(packageId);
-                    if (insert) {
-                        // If new, the submitter is the current user as well
-                        workflow.setSubmitterId(reviewer.getId());
-                        workflowServiceInternal.insertWorkflow(workflow);
-                    } else {
-                        workflowServiceInternal.updateWorkflow(workflow);
-                    }
+
+                    // The submitter is the current user as well
+                    workflow.setSubmitterId(reviewer.getId());
+                    workflowServiceInternal.insertWorkflow(workflow);
                 }
             }
         }
