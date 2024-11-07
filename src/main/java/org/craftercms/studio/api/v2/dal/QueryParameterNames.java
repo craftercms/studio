@@ -151,6 +151,8 @@ public final class  QueryParameterNames {
     public static final String PUBLISHING_TARGET = "publishingTarget";
 
     public static final String SCHEDULED_STATE  = "scheduledState";
+    public static final String DESTINATION_STATE  = "destinationState";
+    public static final String IN_WORKFLOW_STATE  = "inWorkflowState";
 
     public static final String DAYS = "days";
 

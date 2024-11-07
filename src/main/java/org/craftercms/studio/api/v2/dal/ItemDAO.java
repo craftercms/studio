@@ -504,4 +504,30 @@ public interface ItemDAO {
      * @param paths  the paths to update
      */
     void updateParentId(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
+
+    /**
+     * Recalculate the item states for the given paths based
+     * on the publish_request and workflow tables
+     *
+     * @param siteId the site id
+     * @param paths  the item paths to update
+     */
+    default void recalculateItemStates(final String siteId, final List<String> paths) {
+        recalculateItemStates(siteId, paths, ItemState.SCHEDULED.value, ItemState.DESTINATION.value, ItemState.IN_WORKFLOW.value);
+    }
+
+    /**
+     * Recalculate the item states for the given paths based
+     * on the publish_request and workflow tables
+     *
+     * @param siteId           the site id
+     * @param paths            the item paths to update
+     * @param scheduledState   the scheduled flag bit
+     * @param destinationState the destination flag bit
+     */
+    void recalculateItemStates(@Param(SITE_ID) String siteId,
+                               @Param(PATHS) List<String> paths,
+                               @Param(SCHEDULED_STATE) long scheduledState,
+                               @Param(DESTINATION_STATE) long destinationState,
+                               @Param(IN_WORKFLOW_STATE) long inWorkflowState);
 }

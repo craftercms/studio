@@ -553,6 +553,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(siteId, paths));
     }
 
+    @Override
+    public void recalculateItemStates(final String siteId, final List<String> paths) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.recalculateItemStates(siteId, paths));
+    }
+
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }

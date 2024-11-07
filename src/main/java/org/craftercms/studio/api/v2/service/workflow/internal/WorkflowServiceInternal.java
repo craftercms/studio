@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.service.workflow.internal;
 
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
@@ -83,7 +82,16 @@ public interface WorkflowServiceInternal {
      * @param site site identifier
      * @param paths list of paths to delete workflow
      */
-    void deleteWorkflowEntries(String site, List<String> paths);
+    void deleteWorkflowEntries(String site, Collection<String> paths);
+
+    /**
+     * Delete workflow entries for given site and paths matching the workflow state
+     *
+     * @param site          site identifier
+     * @param paths         list of paths to delete workflow
+     * @param workflowState workflow state to match
+     */
+    void deleteWorkflowEntries(String site, Collection<String> paths, String workflowState);
 
     /**
      * Delete workflow entry for given site and path
@@ -129,4 +137,22 @@ public interface WorkflowServiceInternal {
      * @return List of sandbox items that will be taken out of workflow after edit
      */
     Collection<String> getWorkflowAffectedPaths(String siteId, String path) throws ServiceLayerException;
+
+    /**
+     * Get the path hard dependencies that are currently in workflow
+     *
+     * @param siteId the site identifier
+     * @param path   the path to get hard dependencies for
+     * @return collection of paths that are hard dependencies of path and are in workflow
+     * @throws ServiceLayerException if an error occurs while getting the hard dependencies
+     */
+    Collection<String> getWorkflowHardDeps(String siteId, String path) throws ServiceLayerException;
+
+    /**
+     * Delete workflow packages matching the affected package ids
+     *
+     * @param siteId           the site identifier
+     * @param affectedPackages the affected package ids to delete
+     */
+    void deleteWorkflowPackages(String siteId, Collection<String> affectedPackages);
 }

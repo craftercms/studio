@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface PublishServiceInternal {
@@ -70,7 +71,7 @@ public interface PublishServiceInternal {
      * @param siteId site identifier
      * @param packageIds list of package identifiers
      */
-    void cancelPublishingPackages(String siteId, List<String> packageIds);
+    void cancelPublishingPackages(String siteId, Collection<String> packageIds);
     /**
      * Get total number of publishing history items for given search parameters
      *
@@ -257,4 +258,21 @@ public interface PublishServiceInternal {
      */
     RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
+    /**
+     * Get workflow affected packages if content is edited
+     *
+     * @param siteId site identifier
+     * @param path   path of the content to be edited
+     * @return List of sandbox items that will be taken out of workflow after edit
+     */
+    Collection<String> getWorkflowAffectedPackages(String siteId, String path) throws ServiceLayerException;
+
+    /**
+     * Get a list of content paths that are in the given packages
+     *
+     * @param site             the site id
+     * @param affectedPackages the packages to retrieve paths for
+     * @return a list of content paths that are in the given packages
+     */
+    Collection<String> getPackagePaths(String site, Collection<String> affectedPackages);
 }
