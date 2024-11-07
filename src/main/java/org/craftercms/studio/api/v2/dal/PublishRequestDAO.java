@@ -259,7 +259,7 @@ public interface PublishRequestDAO {
     int getNumberOfPublishedItemsByState(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
                                         @Param(ACTIVITY_ACTION) String activityAction,
                                         @Param(PUBLISH_STATE) String publishState,
-                                         @Param(PUBLISH_ACTION) String publishAction);
+                                        @Param(PUBLISH_ACTION) String publishAction);
 
     /**
      * Get the READY_FOR_LIVE packages containing the given path
