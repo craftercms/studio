@@ -63,6 +63,22 @@ public interface AuditDAO {
     Person getCommitAuthor(@Param(COMMIT_ID) String commitId, @Param(PATH) String path);
 
     /**
+     * Gets commit authors from a list of commit ids.
+     * This will retrieve a {@link CommitAuthor} object from the database when
+     * the commit was created by Studio, meaning the following conditions are met:
+     * <ul>
+     *     <li>There is an audit entry for the given commit id</li>
+     *     <li>AND the audit entry origin is API</li>
+     *     <li>AND the audit entry primary_target_value is the given path</li>
+     * </ul>
+     *
+     * @param commitIds the commit ids
+     * @param path the path (to match primary_target_value)
+     * @return the List of {@link CommitAuthor} if found
+     */
+    List<CommitAuthor> getCommitAuthors(@Param(COMMIT_IDS) List<String> commitIds, @Param(PATH) String path);
+
+    /**
      * Checks if a commit has been audited.
      *
      * @param siteId   site id
