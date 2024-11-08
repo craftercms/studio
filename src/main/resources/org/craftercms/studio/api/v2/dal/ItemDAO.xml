@@ -1313,5 +1313,38 @@
         </foreach>
     </sql>
 
+    <update id="recalculateItemStates">
+        UPDATE item i, (
+            WITH CTE AS (
+                SELECT pr.path, pr.environment
+                FROM publish_request pr
+                WHERE pr.path IN
+                    <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+                        #{path}
+                    </foreach>
+                AND pr.site = #{siteId}
+                AND pr.state = 'READY_FOR_LIVE'
+                AND pr.scheduleddate IS NOT NULL
+                AND pr.scheduleddate > NOW())
+
+                SELECT flags.id, (CASE WHEN flags.scheduled = 1 THEN #{scheduledState} ELSE 0 END + CASE WHEN flags.forLive = 1 THEN #{destinationState} ELSE 0 END
+                                    ) AS maskOn,
+                                 (CASE WHEN flags.scheduled = 0 THEN #{scheduledState} ELSE 0 END + CASE WHEN flags.forLive = 0 THEN #{destinationState} ELSE 0 END
+                                    ) + #{inWorkflowState} AS maskOff
+                FROM (
+                    SELECT i.id,
+                        (EXISTS (SELECT 1 FROM CTE cte WHERE cte.path = i.path)) AS scheduled,
+                        (EXISTS (SELECT 1 FROM CTE cte WHERE cte.path = i.path AND cte.environment = 'live')) AS forLive
+                    FROM item i INNER JOIN site s ON s.id = i.site_id
+                    WHERE s.site_id = #{siteId}
+                    AND i.path IN
+                        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+                            #{path}
+                        </foreach>
+                ) AS flags
+            ) AS updates
+        SET i.state = (i.state | updates.maskOn) &amp; ~updates.maskOff
+        WHERE i.id = updates.id
+    </update>
 
 </mapper>

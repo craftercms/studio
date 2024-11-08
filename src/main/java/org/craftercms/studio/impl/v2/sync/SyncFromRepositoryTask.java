@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
@@ -87,7 +88,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
     private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
     private final static int GENERATED_SQL_BATCH_SIZE = 10000;
-    private final static int MY_BATIS_QUERY_BATCH_SIZE = 1000;
 
     private static final Set<RepoOperation.Action> CREATED_PATH_ACTIONS = Set.of(RepoOperation.Action.CREATE, RepoOperation.Action.COPY, RepoOperation.Action.MOVE);;
     private static final String EMPTY_FILE_END = FILE_SEPARATOR + EMPTY_FILE;
@@ -332,7 +332,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
      * Update the parent id for the given paths
      */
     private void updateParentId(Site site, List<String> paths) {
-        for (List<String> pathsBatch : ListUtils.partition(paths, MY_BATIS_QUERY_BATCH_SIZE)) {
+        for (List<String> pathsBatch : ListUtils.partition(paths, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
             itemServiceInternal.updateParentId(site.getId(), pathsBatch);
         }
     }

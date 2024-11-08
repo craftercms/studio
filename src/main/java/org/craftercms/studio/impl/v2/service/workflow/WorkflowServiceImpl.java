@@ -50,7 +50,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.slf4j.Logger;
@@ -155,25 +154,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         return emptyList();
     }
 
-    private List<String> getMandatoryDescendants(String site, String path)
-            throws UserNotFoundException, ServiceLayerException {
-        List<String> descendants = new LinkedList<>();
-        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null, null,
-                null, 0, Integer.MAX_VALUE);
-        if (result != null) {
-            if (Objects.nonNull(result.getLevelDescriptor())) {
-                descendants.add(result.getLevelDescriptor().getPath());
-            }
-            if (CollectionUtils.isNotEmpty(result.getChildren())) {
-                for (SandboxItem item : result.getChildren()) {
-                    descendants.add(item.getPath());
-                    descendants.addAll(getMandatoryDescendants(site, item.getPath()));
-                }
-            }
-        }
-        return descendants;
-    }
-
     @Override
     @RequireSiteExists
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
@@ -188,8 +168,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             String submittedBy = securityService.getCurrentUser();
             // set system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, true);
-            // cancel existing workflow
-            cancelExistingWorkflowEntries(siteId, pathsToAddToWorkflow);
             // create new workflow entries
             createWorkflowEntries(siteId, pathsToAddToWorkflow, submittedBy, publishingTarget, schedule, comment,
                     sendEmailNotifications);
@@ -338,8 +316,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             try {
                 // Set system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-                // Cancel scheduled items from publishing queue
-                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
                 // Add to publishing queue
                 String publishedBy = securityService.getCurrentUser();
                 boolean scheduledDateIsNow = false;
@@ -440,8 +416,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             try {
                 // Set system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-                // Cancel scheduled items from publishing queue
-                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
                 // Add to publishing queue
                 String publishedBy = securityService.getCurrentUser();
                 boolean scheduledDateIsNow = false;
