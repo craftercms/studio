@@ -186,7 +186,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public List<CommitAuthor> getCommitAuthors(long siteId, final List<String> commitIds, final String path) {
+    public List<CommitAuthor> getCommitAuthors(final long siteId, final List<String> commitIds, final String path) {
         return auditDao.getCommitAuthors(siteId, commitIds, path);
     }
 
