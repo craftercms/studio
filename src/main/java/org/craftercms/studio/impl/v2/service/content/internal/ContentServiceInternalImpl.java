@@ -326,13 +326,18 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
         try {
+            Map<String, Object> params = new HashMap<>();
+            params.put(SITE_ID, siteId);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+
             List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
+
             for (List<ItemVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
                 List<String> commitIds = batch.stream()
                         .map(ItemVersion::getVersionNumber)
                         .filter(Objects::nonNull)
                         .collect(toList());
-                List<CommitAuthor> commitAuthors = auditServiceInternal.getCommitAuthors(commitIds, path);
+                List<CommitAuthor> commitAuthors = auditServiceInternal.getCommitAuthors(siteFeed.getId(), commitIds, path);
                 Map<String, Person> authorsMap = commitAuthors.stream()
                         .collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
                 for (ItemVersion itemVersion : batch) {

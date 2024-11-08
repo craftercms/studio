@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.service.audit.internal;
 
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.CommitAuthor;
-import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -102,21 +101,6 @@ public interface AuditServiceInternal {
     void deleteAuditLogForSite(long siteId);
 
     /**
-     * Get author of the commit.
-     * This will look in the audit data and retrieve a Person when:
-     * <ul>
-     *     <li>There is an audit entry for the given commit id</li>
-     *     <li>AND the audit entry origin is API</li>
-     *     <li>AND the audit entry primary_target_value correspond to the given path</li>
-     * </ul>
-     *
-     * @param commitId commit id
-     * @param path     path of the file
-     * @return author of the commit, if found, otherwise null
-     */
-    Person getAuthor(String commitId, String path);
-
-    /**
      * Get commit authors from a list of commit ids
      * This will look in the audit data and retrieve a CommitAuthor when:
      * <ul>
@@ -125,11 +109,12 @@ public interface AuditServiceInternal {
      *     <li>AND the audit entry primary_target_value correspond to the given path</li>
      * </ul>
      *
+     * @param siteId site id
      * @param commitIds commit ids
      * @param path path of the file
      * @return list {@link CommitAuthor} of the commit
      */
-    List<CommitAuthor> getCommitAuthors(List<String> commitIds, String path);
+    List<CommitAuthor> getCommitAuthors(long siteId, List<String> commitIds, String path);
 
     /**
      * Check if a commit has been audited.

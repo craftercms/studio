@@ -275,21 +275,12 @@
         order by act.operation_timestamp desc limit #{offset},#{limit}
     </select>
 
-    <select id="getCommitAuthor" parameterType="java.util.Map"
-            resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap">
-        SELECT u.*
-        FROM audit a
-        INNER JOIN user u on u.username = a.actor_id
-        WHERE a.commit_id = #{commitId}
-        AND a.primary_target_value = #{path}
-        AND origin = 'API'
-    </select>
-
     <select id="getCommitAuthors" parameterType="java.util.Map" resultMap="CommitAuthorMap">
         SELECT a.commit_id, u.*
         FROM audit a
         INNER JOIN user u on u.username = a.actor_id
-        WHERE a.commit_id IN
+        WHERE site_id = #{siteId}
+        AND a.commit_id IN
         <foreach item="commitId" collection="commitIds" open="(" separator="," close=")">
             #{commitId}
         </foreach>
