@@ -215,7 +215,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.15', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.16', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -236,7 +236,8 @@ CREATE TABLE IF NOT EXISTS `audit` (
   KEY `audit_actor_idx` (`actor_id`),
   KEY `audit_site_idx` (`site_id`),
   KEY `audit_operation_idx` (`operation`),
-  KEY `audit_origin_idx` (`origin`)
+  KEY `audit_origin_idx` (`origin`),
+  KEY `audit_primary_target_value_idx` (`primary_target_value`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
