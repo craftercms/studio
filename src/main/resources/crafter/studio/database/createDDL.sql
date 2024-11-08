@@ -215,7 +215,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.16', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.17', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -537,7 +537,8 @@ CREATE TABLE IF NOT EXISTS `item` (
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
   FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
   UNIQUE uq_i_site_path (`site_id`, `path`(900)),
-  INDEX item_i_path (`path` ASC)
+  INDEX item_i_path (`path` ASC),
+  INDEX item_i_previous_path (`previous_path`)
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
