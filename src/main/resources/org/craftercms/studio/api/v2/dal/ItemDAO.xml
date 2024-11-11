@@ -434,7 +434,7 @@
                             AND pr.state = 'READY_FOR_LIVE'
                             AND i.id = w.item_id
                         )
-                    ORDER BY schedule DESC
+                    ORDER BY schedule DESC LIMIT 0, 1
                     ) AS live_scheduleddate,
                     live1.published_on AS live_published_on,
                     live1.username AS live_username,
