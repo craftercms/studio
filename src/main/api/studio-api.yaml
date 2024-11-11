@@ -10584,9 +10584,9 @@ components:
               format: int64
               description: package identifier
               example: 123
-        - $ref: '#/components/schemas/TaskProgress'
+        - $ref: '#/components/schemas/AbstractTaskProgress'
 
-    TaskProgress:
+    AbstractTaskProgress:
       type: object
       description: general task progress object
       properties:
@@ -10598,7 +10598,7 @@ components:
           type: string
           description: site identifier
           example: site123
-        taskType:
+        type:
           type: string
           description: task type
           example: publish
@@ -10639,12 +10639,22 @@ components:
               processed: 100
               total: 100
               errors: false
+            - name: "Staging publish"
+              state: "IN_PROGRESS"
+              processed: 54
+              total: 100
+              errors: false
+            - name: "Staging Commit"
+              state: "READY"
+              processed: 0
+              total: 1
+              errors: false
             - name: "Live publish"
               state: "IN_PROGRESS"
               processed: 54
               total: 100
               errors: false
-            - name: "Commit"
+            - name: "Live Commit"
               state: "READY"
               processed: 0
               total: 1
