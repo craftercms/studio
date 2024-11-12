@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -120,6 +120,7 @@ public class DashboardController {
     }
 
     @Valid
+    @Deprecated
     @GetMapping(value = CONTENT + PENDING_APPROVAL, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DetailedItem> getContentPendingApproval(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -142,6 +143,7 @@ public class DashboardController {
     }
 
     @Valid
+    @Deprecated
     @GetMapping(value = CONTENT + PENDING_APPROVAL + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getContentPendingApprovalDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -219,6 +221,7 @@ public class DashboardController {
     }
 
     @Valid
+    @Deprecated
     @GetMapping(value = PUBLISHING + SCHEDULED, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DetailedItem> getPublishingScheduled(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -250,6 +253,7 @@ public class DashboardController {
     }
 
     @Valid
+    @Deprecated
     @GetMapping(value = PUBLISHING + SCHEDULED + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getPublishingScheduledDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -263,6 +267,7 @@ public class DashboardController {
     }
 
     @Valid
+    @Deprecated
     @GetMapping(value = PUBLISHING + HISTORY, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DashboardPublishingPackage> getPublishingHistory(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -289,6 +294,7 @@ public class DashboardController {
     }
 
     @Valid
+    @Deprecated
     @GetMapping(value = PUBLISHING + HISTORY + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<SandboxItem> getPublishingHistoryDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
