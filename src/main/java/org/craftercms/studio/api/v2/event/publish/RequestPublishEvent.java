@@ -17,19 +17,26 @@ package org.craftercms.studio.api.v2.event.publish;
 
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Event triggered to request the publisher to publish package that is ready to be processed.
  */
 public class RequestPublishEvent extends SiteAwareEvent {
 
-    private final long packageId;
+    private final Collection<Long> packageIds;
 
-    public RequestPublishEvent(final String siteId, final long packageId) {
-        super(siteId);
-        this.packageId = packageId;
+    public RequestPublishEvent(final String siteId, final Long packageId) {
+        this(siteId, List.of(packageId));
     }
 
-    public long getPackageId() {
-        return packageId;
+    public RequestPublishEvent(final String siteId, final Collection<Long> packageIds) {
+        super(siteId);
+        this.packageIds = packageIds;
+    }
+
+    public Collection<Long> getPackageIds() {
+        return packageIds;
     }
 }

@@ -18,12 +18,14 @@ package org.craftercms.studio.impl.v2.publish;
 
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackageId;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.beans.ConstructorProperties;
+import java.util.List;
 
 /**
  * Task to probe the publishing queue and trigger events for each site.
@@ -39,8 +41,11 @@ public class PublishingQueueProbeTask implements Job, ApplicationEventPublisherA
 
     @Override
     public void execute() {
-        publishDAO.getNextPublishPackages().forEach(publishPackage->
-                eventPublisher.publishEvent(new RequestPublishEvent(publishPackage.getSite().getSiteId(), publishPackage.getId())));
+        publishDAO.getNextPublishPackages().forEach((siteId, packages) -> {
+            List<Long> packageIds = packages.stream()
+                    .map(PublishPackageId::packageId).toList();
+            eventPublisher.publishEvent(new RequestPublishEvent(siteId, packageIds));
+        });
     }
 
     @Override

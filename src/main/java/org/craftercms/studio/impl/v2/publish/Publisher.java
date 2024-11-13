@@ -118,27 +118,29 @@ public class Publisher implements ApplicationEventPublisherAware {
     @EventListener
     @LogExecutionTime
     public void handleRequestPublishEvent(final RequestPublishEvent event) throws ServiceLayerException {
-        long packageId = event.getPackageId();
+        Collection<Long> packageIds = event.getPackageIds();
         String siteId = event.getSiteId();
-        logger.debug("Received request to publish package '{}' for site: '{}'", packageId, siteId);
+        logger.debug("Received request to publish packages '{}' for site: '{}'", packageIds, siteId);
         Site site = siteDao.getSite(siteId);
         if (!site.getPublishingEnabled()) {
-            logger.warn("Site '{}' is not enabled for publishing. Ignoring request to publish package '{}'", siteId, packageId);
+            logger.warn("Site '{}' is not enabled for publishing. Ignoring request to publish packages '{}'", siteId, packageIds);
             return;
         }
         if (!Site.State.READY.equals(site.getState())) {
-            logger.warn("Site '{}' is not in a ready state. Ignoring request to publish package '{}'", siteId, packageId);
+            logger.warn("Site '{}' is not in a ready state. Ignoring request to publish packages '{}'", siteId, packageIds);
             return;
         }
         String lockKey = StudioUtils.getPublishingLockKey(siteId);
         boolean lockAcquired = generalLockService.tryLock(lockKey);
         if (!lockAcquired) {
-            logger.warn("Failed to acquire lock for publishing package '{}' for site '{}'", packageId, siteId);
+            logger.warn("Failed to acquire publishing lock for site '{}'", siteId);
             return;
         }
 
         try {
-            lockAndPublish(site.getId(), packageId);
+            for (Long packageId : packageIds) {
+                lockAndPublish(site.getId(), packageId);
+            }
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -149,7 +151,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         logger.debug("Trying to acquire lock for publishing package '{}'", packageId);
         boolean lockAcquired = generalLockService.tryLock(packageIdLockKey);
         if (!lockAcquired) {
-            logger.warn("Failed to acquire lock for publishing package '{}'", packageId);
+            logger.warn("Failed to acquire lock for publishing package '{}' for site '{}'", packageId, siteId);
             return;
         }
         try {

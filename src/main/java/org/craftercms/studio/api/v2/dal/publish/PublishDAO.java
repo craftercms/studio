@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -28,9 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
@@ -165,21 +169,28 @@ public interface PublishDAO {
      *
      * @return the next publish packages to process
      */
-    default List<PublishPackage> getNextPublishPackages() {
-        return getNextPublishPackages(List.of(APPROVED), READY.value, List.of(Site.State.READY));
+    default Map<String, List<PublishPackageId>> getNextPublishPackages() {
+        Collection<PublishPackageId> packageIds = getNextPublishPackages(List.of(APPROVED), READY.value, List.of(Site.State.READY));
+        if (CollectionUtils.isEmpty(packageIds)) {
+            return emptyMap();
+        }
+        return packageIds.stream()
+                .collect(Collectors.groupingBy(PublishPackageId::siteId,
+                        LinkedHashMap::new,
+                        Collectors.toList()));
     }
 
     /**
      * Get the next publish packages to process for every site matching the given states
      *
      * @param approvalStates the package approval states to match
-     * @param packageState   the package state to match
+     * @param readyState     the package ready state to match
      * @param siteStates     the site states to match
      * @return the next publish packages to process
      */
-    List<PublishPackage> getNextPublishPackages(@Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
-                                                @Param(PACKAGE_STATE) long packageState,
-                                                @Param(SITE_STATES) List<String> siteStates);
+    Collection<PublishPackageId> getNextPublishPackages(@Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
+                                                               @Param(READY_STATE) long readyState,
+                                                               @Param(SITE_STATES) List<String> siteStates);
 
     /**
      * Get a package by id

@@ -628,7 +628,8 @@ CREATE TABLE IF NOT EXISTS `publish_package`
     PRIMARY KEY (`id`),
     FOREIGN KEY `publish_package_site_id`(`site_id`) REFERENCES `site` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `publish_package_submitter_id`(`submitter_id`) REFERENCES `user` (`id`),
-    FOREIGN KEY `publish_package_reviewer_id`(`reviewer_id`) REFERENCES `user` (`id`)
+    FOREIGN KEY `publish_package_reviewer_id`(`reviewer_id`) REFERENCES `user` (`id`),
+    INDEX `publish_package_package_state` (`package_state`)
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8

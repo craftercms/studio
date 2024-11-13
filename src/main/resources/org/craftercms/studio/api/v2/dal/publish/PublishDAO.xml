@@ -112,31 +112,23 @@
         WHERE item.id = updates.id
     </update>
 
-    <select id="getNextPublishPackages" resultMap="PublishPackageMap">
-        SELECT *
-        FROM (
-            SELECT s.id as site_id,
-                (
-                    SELECT pp.id AS id
-                    FROM publish_package pp
-                    WHERE pp.approval_state IN
-                            <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
-                                #{approvalState}
-                            </foreach>
-                    AND (pp.package_state &amp; #{packageState}) = #{packageState}
-                    AND (pp.schedule IS NULL OR pp.schedule &lt; NOW())
-                    AND pp.site_id = s.id
-                    ORDER BY pp.schedule, pp.submitted_on LIMIT 1
-                ) AS id
-            FROM site s
-            WHERE s.deleted = 0
-            AND s.system = 0
-            AND s.state IN
-                    <foreach collection="siteStates" item="siteState" open="(" separator="," close=")">
-                        #{siteState}
-                    </foreach>
-        ) AS tbl
-        WHERE id IS NOT NULL
+    <select id="getNextPublishPackages">
+        SELECT s.site_id as siteId, pp.id as packageId
+        FROM site s INNER JOIN publish_package pp ON s.id = pp.site_id
+        WHERE s.deleted = 0
+        AND s.system = 0
+        AND s.state IN
+            <foreach collection="siteStates" item="siteState" open="(" separator="," close=")">
+                #{siteState}
+            </foreach>
+        AND pp.approval_state IN
+            <foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
+                #{approvalState}
+            </foreach>
+        AND pp.package_state = #{readyState}
+        AND (pp.schedule IS NULL OR pp.schedule &lt; NOW())
+        <!-- NULL is the lowest value in MariaDB -->
+        ORDER BY IFNULL(pp.schedule, pp.submitted_on), pp.submitted_on
     </select>
 
     <select id="getById" resultMap="PublishPackageMap">
