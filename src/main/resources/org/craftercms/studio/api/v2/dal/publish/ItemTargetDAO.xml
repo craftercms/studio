@@ -35,7 +35,7 @@
         INSERT INTO item_target
         (item_id, target, previous_path, last_published_on, published_commit_id)
         SELECT itemIds.item_id, #{target}, null, #{timestamp}, #{commitId}
-        FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemsForPackage"/> AS itemIds
+        FROM <include refid="getSuccessfulItemsForPackage"/> AS itemIds
         ON DUPLICATE KEY UPDATE
         previous_path = null,
         renamed = 0,
@@ -50,7 +50,7 @@
         WHERE it.target = #{target}
         AND EXISTS (
             SELECT (1)
-            FROM <include refid="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getSuccessfulItemsForPackage"/> AS successfulItems
+            FROM <include refid="getSuccessfulItemsForPackage"/> AS successfulItems
             WHERE successfulItems.site_id = i.site_id
             AND it.previous_path = successfulItems.path
         )
@@ -87,5 +87,16 @@
             #{path}
         </foreach>
     </select>
+
+    <sql id="getSuccessfulItemsForPackage">
+        (
+        SELECT pp.site_id, ipi.item_id, pi.path
+        FROM publish_package pp
+        INNER JOIN publish_item pi ON pp.id = pi.package_id
+        INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+        WHERE pp.id = #{packageId}
+        AND (pi.publish_state &amp; #{itemSuccessState}) > 0
+        )
+    </sql>
 
 </mapper>

@@ -15,21 +15,14 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import jakarta.validation.Valid;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 
-import java.util.List;
-
-import static java.util.Collections.emptyList;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_START_STOP_PUBLISHER;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 
@@ -38,41 +31,14 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_
  */
 public class DeploymentServiceImpl implements DeploymentService {
 
-    private PublishService publishService;
     private SitesService siteService;
 
-    // TODO: once publisher is refactored, make this class call new methods in PublishService for backwards compatibility
-    @Override
-    @Valid
-    @Deprecated
-    public long bulkGoLive(String site,
-                           String environment,
-                           @ValidateSecurePathParam String path,
-                           String comment) throws ServiceLayerException, AuthenticationException {
-        return publishService.publish(site, environment,
-                List.of(new PublishService.PublishRequestPath(path, true, false)),
-                emptyList(), null, comment, false);
-    }
-
+    // TODO: remove. Replace with V2
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
     public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         siteService.enablePublishing(siteId, enabled);
-    }
-
-    @Override
-    @Valid
-    @Deprecated
-    public long publishCommits(String site,
-                               String environment,
-                               List<String> commitIds, String comment)
-            throws ServiceLayerException, AuthenticationException {
-        return publishService.publish(site, environment, emptyList(), commitIds, null, comment, false);
-    }
-
-    public void setPublishService(final PublishService publishService) {
-        this.publishService = publishService;
     }
 
     public void setSiteService(final SitesService siteService) {

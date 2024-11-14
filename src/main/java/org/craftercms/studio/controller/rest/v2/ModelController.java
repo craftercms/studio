@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.model.contentType.ModelDefinitions;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -49,11 +48,9 @@ public class ModelController {
 
     @PostMapping("/{siteId}/definitions")
     @LogExecutionTime
-    public ResponseBody getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
+    public ModelDefinitions getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
         ModelDefinitions result = new ModelDefinitions(contentTypeService.getAllModelDefinitions(siteId));
-        ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 }

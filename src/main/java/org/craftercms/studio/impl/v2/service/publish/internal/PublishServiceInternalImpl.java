@@ -44,7 +44,6 @@ import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -56,7 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -73,7 +71,6 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVA
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
@@ -132,11 +129,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public int getPublishItemsCount(final String siteId, final long packageId) {
-        return publishDao.getPublishItemsCount(siteId, packageId);
-    }
-
-    @Override
     public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) {
         var availablePublishingTargets = new ArrayList<PublishingTarget>();
         var liveTarget = new PublishingTarget();
@@ -154,38 +146,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         // Site is published if PUBLISHED repo exists
         return contentRepository.publishedRepositoryExists(siteId);
-    }
-
-    @Override
-    public int getPublishingItemsScheduledCount(String siteId, String publishingTarget, String approver,
-                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
-        // TODO: implement for new publishing system
-        return 0;
-//        return publishRequestDao
-//                .getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, READY_FOR_LIVE, dateFrom, dateTo, systemTypes)
-//                .orElse(0);
-    }
-
-    // TODO: implement for new publishing system
-//    @Override
-//    public List<PublishRequest> getPublishingItemsScheduled(String siteId, String publishingTarget, String approver,
-//                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo,
-//                                                            List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
-//        return publishRequestDao.getPublishingItemsScheduled(siteId, publishingTarget, approver, READY_FOR_LIVE,
-//                dateFrom, dateTo, systemTypes, DalUtils.mapSortFields(sortFields,PublishRequestDAO.SORT_FIELD_MAP), offset, limit);
-//    }
-
-    @Override
-    public int getPublishingHistoryCount(String siteId, String publishingTarget, String approver,
-                                         Instant dateFrom, Instant dateTo) {
-        return publishDao.getPublishPackageHistoryCount(siteId, publishingTarget, approver, COMPLETED.value, dateFrom, dateTo);
-    }
-
-    @Override
-    public Collection<DashboardPublishingPackage> getPublishingHistory(String siteId, String publishingTarget,
-                                                                       String approver, Instant dateFrom,
-                                                                       Instant dateTo, int offset, int limit) {
-        return publishDao.getPublishPackageHistory(siteId, publishingTarget, approver, COMPLETED.value, dateFrom, dateTo, offset, limit);
     }
 
     @Override

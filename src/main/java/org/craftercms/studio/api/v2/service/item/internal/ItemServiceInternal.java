@@ -22,8 +22,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemPathAndState;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -121,32 +119,7 @@ public interface ItemServiceInternal {
      */
     void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap);
 
-    /**
-     * Update states to flip on list off states and flip off another list of states for items
-     *
-     * @param siteId site identifier
-     * @param paths list of paths of items
-     * @param onStateBitMap states bitmap to flip on
-     * @param offStateBitMap stats bitmap to flip off
-     */
-    void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
-
-    /**
-     * Update states for items with given ids.
-     *
-     * @param ids            ids of items
-     * @param onStateBitMap  states bitmap to flip on
-     * @param offStateBitMap stats bitmap to flip off
-     */
-    void updateStateBitsByIds(Collection<Long> ids, long onStateBitMap, long offStateBitMap);
-
     Item.Builder instantiateItem(String siteName, String path);
-
-    /**
-     * Delete all items for site
-     * @param siteId site id
-     */
-    void deleteItemsForSite(long siteId);
 
     /**
      * Get browser url for given repository item
@@ -237,41 +210,12 @@ public interface ItemServiceInternal {
     int countAllContentItems();
 
     /**
-     * Convert Publishing History Item to Publishing Dashboard Item
-     * @param historyItem publishing history item
-     * @return publishing dashboard item
-     */
-    PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem);
-
-    /**
-     * Get in progress items for given site
-     * @param siteId site identifier
-     * @return list of items
-     */
-    List<Item> getInProgressItems(String siteId);
-
-    /**
      * Get the paths for items that are not published
      *
      * @param siteId the site id
      * @return list of paths for non-folder unpublished items
      */
     Collection<String> getUnpublishedPaths(long siteId);
-
-    /**
-     * Check if item is update or new
-     * @param site site identifier
-     * @param path item path
-     * @return true if item is new or modified
-     */
-    boolean isUpdatedOrNew(String site, String path);
-
-    /**
-     * Delete items for site and paths
-     * @param siteId site id
-     * @param folderPath folder path to delete
-     */
-    void deleteItemForFolder(long siteId, String folderPath);
 
     /**
      * Check if item is in system processing
@@ -288,14 +232,6 @@ public interface ItemServiceInternal {
      * @return true if item exists with previous path as given path
      */
     boolean previousPathExists(String siteId, String path);
-
-    /**
-     * Get change set for subtree
-     * @param siteId site identifier
-     * @param path root path of the subtree
-     * @return list of items
-     */
-    List<String> getChangeSetForSubtree(String siteId, String path);
 
     /**
      * Lock item for given lock owner
@@ -372,14 +308,6 @@ public interface ItemServiceInternal {
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
                                  boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified);
-
-    /**
-     * Get subtree for delete
-     * @param siteId site identifier
-     * @param path root path of the subtree
-     * @return list of items
-     */
-    List<String> getSubtreeForDelete(String siteId, String path);
 
     /**
      * Update states for all content in the given site

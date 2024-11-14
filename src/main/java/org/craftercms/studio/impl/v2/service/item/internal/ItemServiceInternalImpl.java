@@ -34,11 +34,9 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.util.*;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
@@ -156,18 +154,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
     }
 
-    @Override
-    public void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap) {
-        updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
-    }
-
-    @Override
-    public void updateStateBitsByIds(final Collection<Long> ids, final long onStateBitMap, final long offStateBitMap) {
-        if (!isEmpty(ids)) {
-            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStateBitsByIds(ids, onStateBitMap, offStateBitMap));
-        }
-    }
-
     private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
                                                long offStateBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
@@ -189,11 +175,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             item.setState(NEW.value);
         }
         return Item.Builder.buildFromClone(item).withId(item.getId());
-    }
-
-    @Override
-    public void deleteItemsForSite(long siteId) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteItemsForSite(siteId));
     }
 
     @Override
@@ -367,37 +348,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem) {
-        PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
-        Item item = getItem(historyItem.getSiteId(), historyItem.getPath());
-        dashboardItem.setSiteId(historyItem.getSiteId());
-        dashboardItem.setPath(historyItem.getPath());
-        dashboardItem.setLabel(item.getLabel());
-        dashboardItem.setEnvironment(historyItem.getEnvironment());
-        dashboardItem.setDatePublished(historyItem.getPublishedDate());
-        dashboardItem.setPublisher(historyItem.getPublisher());
-        return dashboardItem;
-    }
-
-    @Override
-    public List<Item> getInProgressItems(String siteId) {
-        return itemDao.getInProgressItems(siteId, IN_PROGRESS_MASK);
-    }
-
-    @Override
     public Collection<String> getUnpublishedPaths(long siteId) {
         return itemDao.getUnpublishedPaths(siteId);
-    }
-
-    @Override
-    public boolean isUpdatedOrNew(String siteId, String path) {
-        Item item = getItem(siteId, path);
-        return ItemState.isNew(item.getState()) || ItemState.isModified(item.getState());
-    }
-
-    @Override
-    public void deleteItemForFolder(long siteId, String folderPath) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPathForFolder(siteId, folderPath));
     }
 
     @Override
@@ -415,13 +367,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         // TODO: implement using new item_target table
 //        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
         return false;
-    }
-
-    @Override
-    public List<String> getChangeSetForSubtree(String siteId, String path) {
-        String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
-        return itemDao.getChangeSetForSubtree(siteId, path, likePath,
-                List.of(CONTENT_TYPE_FOLDER, CONTENT_TYPE_UNKNOWN), IN_PROGRESS_MASK);
     }
 
     @Override
@@ -513,12 +458,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask));
-    }
-
-    @Override
-    public List<String> getSubtreeForDelete(String siteId, String path) {
-        String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
-        return itemDao.getSubtreeForDelete(siteId, likePath);
     }
 
     @Override

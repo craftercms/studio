@@ -138,16 +138,6 @@
         and site_id = #{siteId}
     </select>
 
-    <select id="getByIds" resultMap="PublishPackageMap">
-        SELECT *
-        FROM publish_package
-        WHERE site_id = #{siteId}
-        AND id IN
-                <foreach collection="packageIds" item="packageId" open="(" separator="," close=")">
-                    #{packageId}
-                </foreach>
-    </select>
-
     <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
         UPDATE publish_package
         SET
@@ -269,17 +259,6 @@
             pi.staging_error = updates.stagingError
     </update>
 
-    <sql id="getSuccessfulItemsForPackage">
-        (
-            SELECT pp.site_id, ipi.item_id, pi.path
-            FROM publish_package pp
-                INNER JOIN publish_item pi ON pp.id = pi.package_id
-                INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
-            WHERE pp.id = #{packageId}
-            AND (pi.publish_state &amp; #{itemSuccessState}) > 0
-        )
-    </sql>
-
     <select id="getPackageForItems" resultMap="PublishPackageMap">
         <bind name="includeChildren" value="false" />
         <include refid="getAllPackagesForFilters" />
@@ -344,46 +323,6 @@
             <include refid="packagePathsFilter" />
         ) AS tbl
     </select>
-
-    <select id="getPublishPackageHistory" resultMap="DashboardPackageMap">
-        SELECT pp.*, (select count(1) from publish_item where package_id = pp.id) as size
-        FROM publish_package pp
-        INNER JOIN site s ON pp.site_id = s.id
-        INNER JOIN user sub ON pp.submitter_id = sub.id
-        LEFT OUTER JOIN user rev ON pp.reviewer_id = rev.id
-        <include refid="publishingPackagesHistoryFilters"/>
-        ORDER BY pp.published_on DESC
-        LIMIT #{offset},#{limit}
-    </select>
-
-    <select id="getPublishPackageHistoryCount">
-        SELECT count(1)
-        FROM publish_package pp
-        INNER JOIN site s ON pp.site_id = s.id
-        INNER JOIN user sub ON pp.submitter_id = sub.id
-        LEFT OUTER JOIN user rev ON pp.reviewer_id = rev.id
-        <include refid="publishingPackagesHistoryFilters"/>
-        ORDER BY pp.published_on DESC
-    </select>
-
-    <sql id="publishingPackagesHistoryFilters">
-        <where>
-            s.site_id = #{siteId}
-            AND (pp.package_state &amp; #{packageState}) > 0
-            <if test="approver != null">
-                AND IFNULL(rev.username, sub.username) = #{approver}
-            </if>
-            <if test="dateFrom != null">
-                AND pp.published_on &gt;= #{dateFrom}
-            </if>
-            <if test="dateTo != null">
-                AND pp.published_on &lt;= #{dateTo}
-            </if>
-            <if test="target != null">
-                AND pp.target = #{target}
-            </if>
-        </where>
-    </sql>
 
     <select id="getNumberOfPublishes">
         SELECT COUNT(DISTINCT path)

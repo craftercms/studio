@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -141,40 +141,6 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getContentPendingApprovalCount(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
-        return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DetailedItem> getContentPendingApproval(
-            @SiteId String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getItemsByStates(siteId, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getContentPendingApprovalDetail(@SiteId String siteId,
-                                                             String publishingPackageId,
-                                                             List<SortField> sortFields)
-            throws UserNotFoundException, ServiceLayerException {
-        // TODO: implement for new publishing system
-//        var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(siteId, publishingPackageId);
-//        if (isEmpty(workflowEntries)) {
-//            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
-//        }
-//        var ids = workflowEntries.stream()
-//                .map(Workflow::getItemId)
-//                .collect(toList());
-//        return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, true);
-        return emptyList();
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getContentUnpublishedCount(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
         return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
     }
@@ -246,75 +212,6 @@ public class DashboardServiceImpl implements DashboardService {
             items.add(contentItem);
         }
         return new ExpiringContentResult(items, results.getTotal());
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingScheduledCount(@SiteId String siteId,
-                                           String publishingTarget, String approver,
-                                           ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingItemsScheduledCount(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DetailedItem> getPublishingScheduled(
-            @SiteId String siteId, String publishingTarget,
-            String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-            List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
-        // TODO: fix for new publishing system
-        return emptyList();
-//        var items =
-//                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
-//        if (items.isEmpty()) {
-//            return emptyList();
-//        }
-//
-//        var paths = items.stream().map(PublishRequest::getPath).collect(toList());
-//        List<DetailedItem> result = new ArrayList<>();
-//        for (String path : paths) {
-//            var item = contentServiceInternal.getItemByPath(siteId, path, false);
-//            result.add(item);
-//        }
-//
-//        return result;
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getPublishingScheduledDetail(@SiteId String siteId,
-                                                        long publishingPackageId)
-            throws UserNotFoundException, ServiceLayerException {
-        var publishingPackageDetails =
-                publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
-        if (isEmpty(publishingPackageDetails.getItems())) {
-            throw new PublishPackageNotFoundException(siteId, publishingPackageId);
-        }
-        var paths = publishingPackageDetails.getItems().stream()
-                .map(PublishItem::getPath)
-                .collect(toList());
-        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getPublishingHistoryDetail(@SiteId String siteId,
-                                                        long publishingPackageId, int offset, int limit)
-            throws UserNotFoundException, ServiceLayerException {
-        var packageDetails = publishServiceInternal.getPublishItems(siteId, publishingPackageId,
-                offset, limit);
-        if (isEmpty(packageDetails)) {
-            return emptyList();
-        }
-
-        var paths = packageDetails.stream()
-                .map(PublishItem::getPath)
-                .collect(toList());
-        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
     @Override

@@ -35,8 +35,10 @@ import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
-import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.*;
+import org.craftercms.studio.model.rest.ConfigurationHistory;
+import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.WriteConfigurationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -84,10 +86,10 @@ public class ConfigurationController {
 
     @GetMapping("/get_configuration")
     @LogExecutionTime
-    public ResponseBody getConfiguration(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
-                                         @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
-                                         @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
-                                         @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
+    public ResultOne<String> getConfiguration(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
+                                              @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
+                                              @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
+                                              @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws ContentNotFoundException {
         final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
@@ -96,17 +98,14 @@ public class ConfigurationController {
             content = configurationService.getConfigurationAsString(siteId, module, path, environment);
         }
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<>();
         result.setEntity("content", content);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @Valid
     @PostMapping("/write_configuration")
-    public ResponseBody writeConfiguration(@Validated @RequestBody WriteConfigurationRequest wcRequest)
+    public Result writeConfiguration(@Validated @RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException, UserNotFoundException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();
@@ -116,11 +115,9 @@ public class ConfigurationController {
             configurationService.writeConfiguration(siteId, wcRequest.getModule(), wcRequest.getPath(),
                     wcRequest.getEnvironment(), is);
         }
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping("/get_configuration_history")
@@ -138,29 +135,22 @@ public class ConfigurationController {
     }
 
     @GetMapping("translation")
-    public ResponseBody getTranslationConfiguration(@ValidSiteId @RequestParam String siteId) throws ServiceLayerException {
+    public ResultOne<TranslationConfiguration> getTranslationConfiguration(@ValidSiteId @RequestParam String siteId) throws ServiceLayerException {
         ResultOne<TranslationConfiguration> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_CONFIG, configurationService.getTranslationConfiguration(siteId));
         result.setResponse(OK);
-
-        ResponseBody body = new ResponseBody();
-        body.setResult(result);
-
-        return body;
+        return result;
     }
 
     @GetMapping("content-type/usage")
-    public ResponseBody getContentTypeUsage(@ValidSiteId @RequestParam String siteId,
-                                            @ValidConfigurationPath @RequestParam String contentType)
+    public ResultOne<Object> getContentTypeUsage(@ValidSiteId @RequestParam String siteId,
+                                                 @ValidConfigurationPath @RequestParam String contentType)
             throws Exception {
         var result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_USAGE, contentTypeService.getContentTypeUsage(siteId, contentType));
 
-        var body = new ResponseBody();
-        body.setResult(result);
-
-        return body;
+        return result;
     }
 
     @GetMapping("content-type/preview_image")
@@ -177,17 +167,14 @@ public class ConfigurationController {
     }
 
     @PostMapping("content-type/delete")
-    public ResponseBody deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
+    public Result deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
                 request.isDeleteDependencies());
         var result = new Result();
         result.setResponse(DELETED);
 
-        var body = new ResponseBody();
-        body.setResult(result);
-
-        return body;
+        return result;
     }
 
     @JsonIgnoreProperties

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -36,8 +36,9 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDependenciesResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.*;
+import org.craftercms.studio.model.rest.PaginatedResultList;
+import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.publish.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -108,14 +109,6 @@ public class PublishController {
         return result;
     }
 
-    @Deprecated
-    @GetMapping(PACKAGE)
-    public ResultOne<PublishPackageDetails> getPublishingPackageDetails(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-                                                                        @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) @Positive long packageId)
-            throws SiteNotFoundException, PublishPackageNotFoundException {
-        return getPublishingPackage(siteId, packageId);
-    }
-
     @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
     public ResultOne<PublishPackageDetails> getPublishingPackage(@PathVariable @ValidSiteId String site,
                                                                  @PathVariable @Positive long packageId)
@@ -131,6 +124,7 @@ public class PublishController {
     @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + STATUS)
     public ResultOne<PublishPackage> getPublishPackageStatus(@PathVariable @ValidSiteId String site, @PathVariable @Positive long packageId)
             throws PublishPackageNotFoundException, SiteNotFoundException {
+        // TODO: add the package status (progress) to the response
         PublishPackage publishPackage = publishService.getPackage(site, packageId);
         ResultOne<PublishPackage> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PACKAGE, publishPackage);
@@ -139,55 +133,35 @@ public class PublishController {
     }
 
     @GetMapping(STATUS)
-    public ResponseBody getPublishingStatus(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    public ResultOne<PublishStatus> getPublishingStatus(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
         PublishStatus status = sitesService.getPublishingStatus(siteId);
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<PublishStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PUBLISH_STATUS, status);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(value = AVAILABLE_TARGETS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getAvailablePublishingTargets(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    public AvailablePublishingTargets getAvailablePublishingTargets(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
         var availableTargets = publishService.getAvailablePublishingTargets(siteId);
         var published = publishService.isSitePublished(siteId);
         AvailablePublishingTargets availablePublishingTargets = new AvailablePublishingTargets();
         availablePublishingTargets.setPublishingTargets(availableTargets);
         availablePublishingTargets.setPublished(published);
-
-        ResponseBody responseBody = new ResponseBody();
         availablePublishingTargets.setResponse(OK);
-        responseBody.setResult(availablePublishingTargets);
-        return responseBody;
+        return availablePublishingTargets;
     }
 
     @Valid
     @GetMapping(value = HAS_INITIAL_PUBLISH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody hasInitialPublish(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    public ResultOne<Boolean> hasInitialPublish(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
         var published = publishService.isSitePublished(siteId);
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<Boolean> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_HAS_INITIAL_PUBLISH, published);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping("/all")
-    @Deprecated
-    public ResultOne<Long> publishAll(@Validated @RequestBody PublishAllRequest request)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-        long packageId = publishService.publish(request.getSiteId(), request.getPublishingTarget(),
-                null, null, null, request.getSubmissionComment(), true);
-
-        ResultOne<Long> result = new ResultOne<>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         return result;
     }
 

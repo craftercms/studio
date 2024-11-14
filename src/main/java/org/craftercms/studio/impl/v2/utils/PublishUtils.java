@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.utils;
 
 import org.craftercms.core.util.ExceptionUtils;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.springframework.lang.NonNull;

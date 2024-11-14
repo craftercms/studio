@@ -20,14 +20,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,7 +51,6 @@ public interface PublishDAO {
     String PATHS = "paths";
     String TARGET = "target";
     String PACKAGE_ID = "packageId";
-    String PACKAGE_IDS = "packageIds";
     String PUBLISH_PACKAGE = "publishPackage";
     String PACKAGE_READY_STATE = "readyState";
     String ITEMS = "items";
@@ -200,15 +196,6 @@ public interface PublishDAO {
      * @return the {@link PublishPackage}
      */
     PublishPackage getById(@Param(SITE_ID) final long siteId, @Param(PACKAGE_ID) final long packageId);
-
-    /**
-     * Get multiple publish packages by ids
-     *
-     * @param siteId     the site id
-     * @param packageIds the package ids
-     * @return the collection of {@link PublishPackage}
-     */
-    Collection<PublishPackage> getByIds(@Param(SITE_ID) final long siteId, @Param(PACKAGE_IDS) final Collection<Long> packageIds);
 
     /**
      * Update a package
@@ -529,47 +516,6 @@ public interface PublishDAO {
                                                              @Param(SORT_FIELDS) Collection<SortField> sortFields,
                                                              @Param(OFFSET) Integer offset,
                                                              @Param(LIMIT) Integer limit);
-
-
-    /**
-     * Get the publish packages in the history matching the given filters
-     *
-     * @param siteId       the site id
-     * @param target       the publishing target
-     * @param approver     the approver username. This corresponds to the reviewer, if it exists. Otherwise, it corresponds to the submitter (direct publish without workflow)
-     * @param packageState the package state
-     * @param dateFrom     the start date to filter packages
-     * @param dateTo       the end date to filter packages
-     * @param offset       the offset to start from
-     * @param limit        the max number of items to return
-     * @return the publish packages in the history matching the filters
-     */
-    Collection<DashboardPublishingPackage> getPublishPackageHistory(@Param(SITE_ID) String siteId,
-                                                                    @Param(TARGET) String target,
-                                                                    @Param(QueryParameterNames.APPROVER) String approver,
-                                                                    @Param(PACKAGE_STATE) Long packageState,
-                                                                    @Param(QueryParameterNames.DATE_FROM) Instant dateFrom,
-                                                                    @Param(QueryParameterNames.DATE_TO) Instant dateTo,
-                                                                    @Param(OFFSET) Integer offset,
-                                                                    @Param(LIMIT) Integer limit);
-
-    /**
-     * Get the total number of publish packages in the history matching the given filters
-     *
-     * @param siteId       the site id
-     * @param target       the publishing target
-     * @param approver     the approver username. This corresponds to the reviewer, if it exists. Otherwise, it corresponds to the submitter (direct publish without workflow)
-     * @param packageState the package state
-     * @param dateFrom     the start date to filter packages
-     * @param dateTo       the end date to filter packages
-     * @return the total number of packages in the history matching the filters
-     */
-    int getPublishPackageHistoryCount(@Param(SITE_ID) String siteId,
-                                      @Param(TARGET) String target,
-                                      @Param(QueryParameterNames.APPROVER) String approver,
-                                      @Param(PACKAGE_STATE) long packageState,
-                                      @Param(QueryParameterNames.DATE_FROM) Instant dateFrom,
-                                      @Param(QueryParameterNames.DATE_TO) Instant dateTo);
 
     /**
      * Get the number of publishes for a site in the last n days

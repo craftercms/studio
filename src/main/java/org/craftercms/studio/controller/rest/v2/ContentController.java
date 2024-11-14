@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -95,39 +94,31 @@ public class ContentController {
         return result;
     }
 
-    @Valid
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
-    public ResponseBody listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
+    public ResultList<QuickCreateItem> listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
             throws SiteNotFoundException {
         List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
-
-        ResponseBody responseBody = new ResponseBody();
         ResultList<QuickCreateItem> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS, items);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @Valid
     @PostMapping(GET_DELETE_PACKAGE)
-    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
+    public ResultOne<Map<String, List<String>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
         List<String> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<>();
         result.setResponse(OK);
         Map<String, List<String>> items = new HashMap<>();
         items.put(RESULT_KEY_CHILD_ITEMS, childItems);
         items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentItems);
         result.setEntity(RESULT_KEY_ITEMS, items);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @Valid
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
+    public Result delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
             throws UserNotFoundException, ServiceLayerException, AuthenticationException {
         List<String> items = new ArrayList<>(deleteRequestBody.getItems());
         if (isNotEmpty(deleteRequestBody.getOptionalDependencies())) {
@@ -137,11 +128,9 @@ public class ContentController {
         contentService.deleteContent(deleteRequestBody.getSiteId(),
                 items,
                 deleteRequestBody.getComment());
-        var responseBody = new ResponseBody();
         var result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = GET_CHILDREN_BY_PATHS, produces = APPLICATION_JSON_VALUE)
@@ -151,20 +140,6 @@ public class ContentController {
                 .collect(toMap(PathParams::getPath, identity()));
         GetChildrenByPathsBulkResult children = contentService.getChildrenByPaths(siteId,
                 new ArrayList<>(paramsMap.keySet()), paramsMap);
-        Result result = UnwrappedResult.of(children);
-        result.setResponse(OK);
-        return result;
-    }
-
-    @Valid
-    @Deprecated
-    @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public Result getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequestBody request)
-            throws ServiceLayerException, UserNotFoundException {
-        GetChildrenResult children = contentService.getChildrenByPath(
-                request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
-                request.getSystemTypes(), request.getExcludes(), request.getSortStrategy(), request.getOrder(),
-                request.getOffset(), request.getLimit());
         Result result = UnwrappedResult.of(children);
         result.setResponse(OK);
         return result;
@@ -182,62 +157,50 @@ public class ContentController {
         return result;
     }
 
-    @Valid
     @PostMapping(value = PASTE_ITEMS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody pasteItems(@Valid @RequestBody PasteRequest request) throws Exception {
+    public ResultList<String> pasteItems(@Valid @RequestBody PasteRequest request) throws Exception {
         var result = new ResultList<String>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS,
                 clipboardService.pasteItems(request.getSiteId(), request.getOperation(),
                         request.getTargetPath(), request.getItem()));
 
-        var response = new ResponseBody();
-        response.setResult(result);
-
-        return response;
+        return result;
     }
 
-    @Valid
     @PostMapping(value = DUPLICATE_ITEM, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody duplicateItem(@Valid @RequestBody DuplicateRequest request) throws Exception {
+    public ResultOne<String> duplicateItem(@Valid @RequestBody DuplicateRequest request) throws Exception {
         var result = new ResultOne<String>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_ITEM,
                 clipboardService.duplicateItem(request.getSiteId(), request.getPath()));
 
-        var response = new ResponseBody();
-        response.setResult(result);
-
-        return response;
+        return result;
     }
 
-    @Valid
     @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemByPath(@ValidSiteId
+    public ResultOne<DetailedItem> getItemByPath(@ValidSiteId
                                       @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                      @ValidExistingContentPath
+                                                 @ValidExistingContentPath
                                       @RequestParam(value = REQUEST_PARAM_PATH) String path,
-                                      @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
+                                                 @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                               defaultValue = "false") boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_ITEM, detailedItem);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
+    public GetSandboxItemsByPathResult getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         String siteId = request.getSiteId();
         Collection<String> missing = Collections.emptyList();
         List<String> paths = request.getPaths();
         boolean preferContent = request.isPreferContent();
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
-        ResponseBody responseBody = new ResponseBody();
 
         if (CollectionUtils.isEmpty(sandboxItems) || paths.size() != sandboxItems.size()) {
             List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
@@ -252,32 +215,25 @@ public class ContentController {
         result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
         result.setMissingItems(missing);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @Valid
     @PostMapping(ITEM_LOCK_BY_PATH)
-    public ResponseBody itemLockByPath(@RequestBody @Valid LockItemByPathRequest request)
+    public Result itemLockByPath(@RequestBody @Valid LockItemByPathRequest request)
             throws UserNotFoundException, ServiceLayerException {
         contentService.lockContent(request.getSiteId(), request.getPath());
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @Valid
     @PostMapping(ITEM_UNLOCK_BY_PATH)
-    public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
+    public Result itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
             throws ContentNotFoundException, SiteNotFoundException {
         contentService.unlockContent(request.getSiteId(), request.getPath());
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @Valid
@@ -296,15 +252,12 @@ public class ContentController {
     }
 
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
+    public Result rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
             throws AuthenticationException, UserNotFoundException, ServiceLayerException, ValidationException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
-
-        var responseBody = new ResponseBody();
         var result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(value = ITEM_HISTORY)

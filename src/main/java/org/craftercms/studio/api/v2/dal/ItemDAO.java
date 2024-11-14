@@ -42,7 +42,6 @@ public interface ItemDAO {
 
     String SITE_ID = "siteId";
     String NON_CONTENT_ITEM_TYPES = "nonContentItemTypes";
-    String IN_PROGRESS_MASK = "inProgressMask";
     String ITEM_IDS = "itemIds";
 
     String ON_STATES_BIT_MAP = "onStatesBitMap";
@@ -338,21 +337,6 @@ public interface ItemDAO {
                              @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
-     * Delete all items for site
-     *
-     * @param siteId site id
-     */
-    void deleteItemsForSite(@Param(SITE_ID) long siteId);
-
-    /**
-     * Delete items for site and folder path
-     *
-     * @param siteId site id
-     * @param path   path of the folder
-     */
-    void deleteBySiteAndPathForFolder(@Param(SITE_ID) long siteId, @Param(FOLDER_PATH) String path);
-
-    /**
      * Move item. Update item and item_target table to reflect an item moved from previousPath to newPath.
      *
      * @param siteId        the site id
@@ -550,31 +534,6 @@ public interface ItemDAO {
     int countAllContentItems(@Param(NON_CONTENT_ITEM_TYPES) List<String> nonContentItemTypes);
 
     /**
-     * Get in progress items from DB
-     *
-     * @param siteId         site identifier
-     * @param inProgressMask in progress states mask
-     * @return list of items
-     */
-    List<Item> getInProgressItems(@Param(SITE_ID) String siteId, @Param(IN_PROGRESS_MASK) long inProgressMask);
-
-    /**
-     * Get change set for subtree
-     *
-     * @param siteId              site identifier
-     * @param path                path of subtree root
-     * @param likePath            like path for query
-     * @param nonContentItemTypes non content item types
-     * @param inProgressMask      in progress state mask
-     * @return list of items
-     */
-    List<String> getChangeSetForSubtree(@Param(SITE_ID) String siteId,
-                                        @Param(PATH) String path,
-                                        @Param(LIKE_PATH) String likePath,
-                                        @Param(NON_CONTENT_ITEM_TYPES) List<String> nonContentItemTypes,
-                                        @Param(IN_PROGRESS_MASK) long inProgressMask);
-
-    /**
      * Finds all items related to a given content-type
      *
      * @param siteId      the id of the site
@@ -651,16 +610,6 @@ public interface ItemDAO {
                              @Param(OFF_STATES_BIT_MAP) long resetStatesMask);
 
     /**
-     * Get subtree for delete
-     *
-     * @param siteId   site identifier
-     * @param likePath like path for query
-     * @return list of items
-     */
-    List<String> getSubtreeForDelete(@Param(SITE_ID) String siteId,
-                                     @Param(LIKE_PATH) String likePath);
-
-    /**
      * When creating a new page in an already existing folder, we need to update the children of the folder
      * to become the children of the page.
      * This method will find the direct children of the given folder, and update
@@ -686,18 +635,6 @@ public interface ItemDAO {
 
     Collection<String> getUnpublishedPaths(@Param(SITE_ID) long siteId,
                                            @Param(STATES) long states);
-
-    /**
-     * Update states for items with given ids.
-     *
-     * @param ids            ids of items
-     * @param onStateBitMap  states bitmap to flip on
-     * @param offStateBitMap stats bitmap to flip off
-     */
-    void updateStateBitsByIds(@Param(ITEM_IDS) Collection<Long> ids,
-                              @Param(ON_STATES_BIT_MAP) long onStateBitMap,
-                              @Param(OFF_STATES_BIT_MAP) long offStateBitMap);
-
 
     /**
      * Get {@link ItemPathAndState} records for the given paths in a map by path

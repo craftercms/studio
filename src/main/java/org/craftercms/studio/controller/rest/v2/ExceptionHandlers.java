@@ -49,7 +49,10 @@ import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateExcepti
 import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
-import org.craftercms.studio.model.rest.*;
+import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
 import org.owasp.esapi.ESAPI;
 import org.slf4j.Logger;
@@ -92,81 +95,81 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseBody handleAuthenticationException(HttpServletRequest request, AuthenticationException e) {
+    public Result handleAuthenticationException(HttpServletRequest request, AuthenticationException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHENTICATED);
     }
 
     @ExceptionHandler(ActionDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseBody handleActionDeniedException(HttpServletRequest request, ActionDeniedException e) {
+    public Result handleActionDeniedException(HttpServletRequest request, ActionDeniedException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ActionsDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseBody handleActionsDeniedException(HttpServletRequest request, ActionsDeniedException e) {
+    public Result handleActionsDeniedException(HttpServletRequest request, ActionsDeniedException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHORIZED);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleUserAlreadyExistsException(HttpServletRequest request, UserAlreadyExistsException e) {
+    public Result handleUserAlreadyExistsException(HttpServletRequest request, UserAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleUserNotFoundException(HttpServletRequest request, UserNotFoundException e) {
+    public Result handleUserNotFoundException(HttpServletRequest request, UserNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(UserExternallyManagedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseBody handleUserExternallyManagedException(HttpServletRequest request, UserExternallyManagedException e) {
+    public Result handleUserExternallyManagedException(HttpServletRequest request, UserExternallyManagedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_EXTERNALLY_MANAGED);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(GroupExternallyManagedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseBody handleGroupExternallyManagedException(HttpServletRequest request, GroupExternallyManagedException e) {
+    public Result handleGroupExternallyManagedException(HttpServletRequest request, GroupExternallyManagedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_EXTERNALLY_MANAGED);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleNoSuchElementException(HttpServletRequest request, NoSuchElementException e) {
+    public Result handleNoSuchElementException(HttpServletRequest request, NoSuchElementException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response, Level.DEBUG);
     }
 
     @ExceptionHandler(LoggerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleLoggerNotFoundException(HttpServletRequest request, LoggerNotFoundException e) {
+    public Result handleLoggerNotFoundException(HttpServletRequest request, LoggerNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.LOGGER_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(ConfigurationProfileNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleConfigurationProfileNotFoundException(HttpServletRequest request, ConfigurationProfileNotFoundException e) {
+    public Result handleConfigurationProfileNotFoundException(HttpServletRequest request, ConfigurationProfileNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONFIGURATION_PROFILE_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(GroupAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleGroupAlreadyExistsException(HttpServletRequest request, GroupAlreadyExistsException e) {
+    public Result handleGroupAlreadyExistsException(HttpServletRequest request, GroupAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(InvalidParametersException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleInvalidParametersException(HttpServletRequest request, InvalidParametersException e) {
+    public Result handleInvalidParametersException(HttpServletRequest request, InvalidParametersException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(response.getMessage() + " : " + e.getMessage());
         return handleExceptionInternal(request, e, response);
@@ -174,14 +177,14 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(InvalidSiteStateException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleInvalidSiteStateException(HttpServletRequest request, InvalidSiteStateException e) {
+    public Result handleInvalidSiteStateException(HttpServletRequest request, InvalidSiteStateException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_SITE_STATE);
         return handleExceptionInternal(request, e, response, DEBUG);
     }
 
     @ExceptionHandler(MarketplaceNotInitializedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handleMarketplaceNotInitializedException(HttpServletRequest request,
+    public Result handleMarketplaceNotInitializedException(HttpServletRequest request,
                                                                  MarketplaceNotInitializedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_NOT_INITIALIZED);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
@@ -191,7 +194,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(MarketplaceUnreachableException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handleMarketplaceUnreachableException(HttpServletRequest request,
+    public Result handleMarketplaceUnreachableException(HttpServletRequest request,
                                                               MarketplaceUnreachableException e) {
         ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_UNREACHABLE);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
@@ -201,7 +204,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PluginAlreadyInstalledException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handlePluginAlreadyInstalledException(HttpServletRequest request,
+    public Result handlePluginAlreadyInstalledException(HttpServletRequest request,
                                                               PluginAlreadyInstalledException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_ALREADY_INSTALLED);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
@@ -211,7 +214,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(MissingPluginParameterException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleMissingPluginParameterException(HttpServletRequest request,
+    public Result handleMissingPluginParameterException(HttpServletRequest request,
                                                               MissingPluginParameterException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
@@ -221,7 +224,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PluginInstallationException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handlePluginInstallationException(HttpServletRequest request,
+    public Result handlePluginInstallationException(HttpServletRequest request,
                                                           PluginInstallationException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
@@ -231,7 +234,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PublishedRepositoryNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handlePublishedRepositoryNotFoundException(HttpServletRequest request,
+    public Result handlePublishedRepositoryNotFoundException(HttpServletRequest request,
                                                                    PublishedRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
@@ -240,7 +243,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(ServiceLayerException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handleServiceException(HttpServletRequest request, ServiceLayerException e) {
+    public Result handleServiceException(HttpServletRequest request, ServiceLayerException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
 
@@ -249,7 +252,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(CompositeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handleCompositeException(HttpServletRequest request, CompositeException compositeException) {
+    public Result handleCompositeException(HttpServletRequest request, CompositeException compositeException) {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
         String message = response.getMessage() + ": " + compositeException.getMessage() +
                 ". Caused by: [" +
@@ -263,7 +266,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(OrganizationNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleOrganizationNotFoundException(HttpServletRequest request,
+    public Result handleOrganizationNotFoundException(HttpServletRequest request,
                                                             OrganizationNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.ORG_NOT_FOUND);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
@@ -272,7 +275,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(GroupNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleGroupNotFoundException(HttpServletRequest request, GroupNotFoundException e) {
+    public Result handleGroupNotFoundException(HttpServletRequest request, GroupNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
@@ -280,14 +283,14 @@ public class ExceptionHandlers {
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(JsonProcessingException.class)
-    public ResponseBody handleJsonProcessingException(HttpServletRequest request, JsonProcessingException e) {
+    public Result handleJsonProcessingException(HttpServletRequest request, JsonProcessingException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(UnrecognizedPropertyException.class)
-    public ResponseBody handleUnrecognizedPropertyException(HttpServletRequest request, UnrecognizedPropertyException e) {
+    public Result handleUnrecognizedPropertyException(HttpServletRequest request, UnrecognizedPropertyException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(format("Unrecognized '%s' property found in request", e.getPropertyName()));
         return handleExceptionInternal(request, e, response);
@@ -295,35 +298,35 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(SiteAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleSiteAlreadyExistsException(HttpServletRequest request, SiteAlreadyExistsException e) {
+    public Result handleSiteAlreadyExistsException(HttpServletRequest request, SiteAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.SITE_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(SiteNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleSiteNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
+    public Result handleSiteNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.SITE_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(RemoteAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleRemoteAlreadyExistsException(HttpServletRequest request, RemoteAlreadyExistsException e) {
+    public Result handleRemoteAlreadyExistsException(HttpServletRequest request, RemoteAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(InvalidRemoteUrlException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleInvalidRemoteUrlException(HttpServletRequest request, InvalidRemoteUrlException e) {
+    public Result handleInvalidRemoteUrlException(HttpServletRequest request, InvalidRemoteUrlException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(PasswordRequirementsFailedException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
+    public Result handlePasswordRequirementsFailedException(HttpServletRequest request,
                                                                   PasswordRequirementsFailedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
         return handleExceptionInternal(request, e, response, DEBUG);
@@ -331,7 +334,7 @@ public class ExceptionHandlers {
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(RequestRejectedException.class)
-    public ResponseBody handleRequestRejectedException(HttpServletRequest request, RequestRejectedException e) {
+    public Result handleRequestRejectedException(HttpServletRequest request, RequestRejectedException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(e.getMessage());
         return handleExceptionInternal(request, e, response);
@@ -339,7 +342,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PasswordDoesNotMatchException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseBody handlePasswordDoesNotMatchException(HttpServletRequest request,
+    public Result handlePasswordDoesNotMatchException(HttpServletRequest request,
                                                             PasswordDoesNotMatchException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_DOES_NOT_MATCH);
         return handleExceptionInternal(request, e, response);
@@ -347,7 +350,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PullFromRemoteConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request,
+    public Result handlePullFromRemoteConflictException(HttpServletRequest request,
                                                               PullFromRemoteConflictException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PULL_FROM_REMOTE_REPOSITORY_CONFLICT);
         return handleExceptionInternal(request, e, response);
@@ -355,7 +358,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(ContentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
+    public Result handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
                 format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
@@ -364,7 +367,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(BlobNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleBlobNotFoundException(HttpServletRequest request, BlobNotFoundException e) {
+    public Result handleBlobNotFoundException(HttpServletRequest request, BlobNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.BLOB_NOT_FOUND);
         response.setRemedialAction(
                 format("Check your blob store configuration and that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
@@ -387,7 +390,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleMissingServletRequestParameterException(HttpServletRequest request,
+    public Result handleMissingServletRequestParameterException(HttpServletRequest request,
                                                                       MissingServletRequestParameterException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setRemedialAction(
@@ -428,7 +431,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleHttpMessageNotReadableException(HttpServletRequest request,
+    public Result handleHttpMessageNotReadableException(HttpServletRequest request,
                                                               HttpMessageNotReadableException e) {
         UnrecognizedPropertyException unrecognizedPropertyException = ExceptionUtils.getThrowableOfType(e, UnrecognizedPropertyException.class);
         if (unrecognizedPropertyException != null) {
@@ -439,22 +442,19 @@ public class ExceptionHandlers {
         if (mismatchedInputException != null) {
             return handleMismatchInputException(request, mismatchedInputException);
         }
-        ResponseBody responseBody = new ResponseBody();
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         handleExceptionInternal(request, e, response);
         ResultOne<String> result = new ResultOne<>();
         result.setResponse(response);
 
         result.setEntity(RESULT_KEY_MESSAGE, e.getMessage());
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(MismatchedInputException.class)
-    public ResponseBody handleMismatchInputException(HttpServletRequest request,
+    public Result handleMismatchInputException(HttpServletRequest request,
                                                      MismatchedInputException e) {
-        ResponseBody responseBody = new ResponseBody();
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         handleExceptionInternal(request, e, response);
         ResultList<ValidationFieldError> result = new ResultList<>();
@@ -463,8 +463,7 @@ public class ExceptionHandlers {
 
         result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
                 List.of(new ValidationFieldError(fieldName, ESAPI.encoder().encodeForJSON(e.getMessage()))));
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -482,7 +481,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(InvalidManagementTokenException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseBody handleInvalidManagementTokenException(HttpServletRequest request,
+    public Result handleInvalidManagementTokenException(HttpServletRequest request,
                                                               InvalidManagementTokenException e) {
         ApiResponse response = new ApiResponse(ApiResponse.UNAUTHORIZED);
         return handleExceptionInternal(request, e, response);
@@ -490,28 +489,28 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(BindException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleBeanPropertyBindingResult(HttpServletRequest request, BindException e) {
+    public Result handleBeanPropertyBindingResult(HttpServletRequest request, BindException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(RemoteNotRemovableException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleRemoteNotRemovableException(HttpServletRequest request, RemoteNotRemovableException e) {
+    public Result handleRemoteNotRemovableException(HttpServletRequest request, RemoteNotRemovableException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_REMOVABLE);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(PathNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleException(HttpServletRequest request, PathNotFoundException e) {
+    public Result handleException(HttpServletRequest request, PathNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(InvalidConfigurationException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleInvalidConfigurationException(HttpServletRequest request,
+    public Result handleInvalidConfigurationException(HttpServletRequest request,
                                                             InvalidConfigurationException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
@@ -520,7 +519,7 @@ public class ExceptionHandlers {
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler
-    public ResponseBody handleSitePolicyValidationException(HttpServletRequest request,
+    public Result handleSitePolicyValidationException(HttpServletRequest request,
                                                             org.craftercms.studio.api.v2.exception.validation.ValidationException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
@@ -546,7 +545,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(InvalidRemoteRepositoryCredentialsException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleInvalidRemoteRepositoryCredentialsException(HttpServletRequest request,
+    public Result handleInvalidRemoteRepositoryCredentialsException(HttpServletRequest request,
                                                                           InvalidRemoteRepositoryCredentialsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_AUTHENTICATION_FAILED);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
@@ -555,7 +554,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(RemoteRepositoryNotFoundException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleRemoteRepositoryNotFoundException(HttpServletRequest request,
+    public Result handleRemoteRepositoryNotFoundException(HttpServletRequest request,
                                                                 RemoteRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_FOUND);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
@@ -564,27 +563,25 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(ContentLockedByAnotherUserException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleException(HttpServletRequest request, ContentLockedByAnotherUserException e) {
+    public ResultOne<String> handleException(HttpServletRequest request, ContentLockedByAnotherUserException e) {
         var response = new ApiResponse(ApiResponse.CONTENT_ALREADY_LOCKED);
         handleExceptionInternal(request, e, response);
         var result = new ResultOne<String>();
         result.setResponse(response);
         result.setEntity(RESULT_KEY_PERSON, e.getLockOwner());
-        var responseBody = new ResponseBody();
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @ExceptionHandler(ContentExistException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleException(HttpServletRequest request, ContentExistException e) {
+    public Result handleException(HttpServletRequest request, ContentExistException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(ContentMoveInvalidLocation.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleException(HttpServletRequest request, ContentMoveInvalidLocation e) {
+    public Result handleException(HttpServletRequest request, ContentMoveInvalidLocation e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_MOVE_INVALID_LOCATION);
         return handleExceptionInternal(request, e, response);
     }
@@ -628,16 +625,16 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handleException(HttpServletRequest request, Exception e) {
+    public Result handleException(HttpServletRequest request, Exception e) {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
         return handleExceptionInternal(request, e, response);
     }
 
-    protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
+    protected Result handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
         return handleExceptionInternal(request, e, response, ERROR);
     }
 
-    protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response,
+    protected Result handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response,
                                                    Level logLevel) {
         switch (logLevel) {
             case DEBUG:
@@ -663,9 +660,6 @@ public class ExceptionHandlers {
         Result result = new Result();
         result.setResponse(response);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 }

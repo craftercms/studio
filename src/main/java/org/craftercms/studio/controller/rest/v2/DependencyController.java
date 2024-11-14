@@ -22,7 +22,6 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.model.rest.dependency.GetSoftDependenciesRequestBody;
@@ -49,23 +48,20 @@ public class DependencyController {
         this.dependencyService = dependencyService;
     }
 
-    @Valid
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
+    public ResultOne<Map<String, Collection<String>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
         Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
         softDeps.removeAll(hardDeps);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, Collection<String>>> result = new ResultOne<>();
         result.setResponse(OK);
         Map<String, Collection<String>> items = new HashMap<>();
         items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
         items.put(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
         result.setEntity(RESULT_KEY_ITEMS, items);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(DEPENDENT_ITEMS)

@@ -27,12 +27,10 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -143,46 +141,6 @@ public interface PublishService {
     long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
                         List<String> commitIds, Instant schedule, String comment, boolean publishAll)
             throws AuthenticationException, ServiceLayerException;
-
-    int getPublishingItemsScheduledCount(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
-                                         ZonedDateTime dateTo, List<String> systemTypes);
-
-    /**
-     * Get the total number of publishing packages in the history matching the given parameters
-     *
-     * @param siteId   the site id
-     * @param target   the publishing target
-     * @param approver the approver username
-     * @param dateFrom to filter packages published after this date
-     * @param dateTo   to filter packages published before this date
-     * @return the number of packages matching the given parameters
-     */
-    int getPublishingHistoryCount(String siteId, String target, String approver, Instant dateFrom,
-                                  Instant dateTo);
-
-    /**
-     * Get the publishing packages in the history matching the given parameters
-     *
-     * @param siteId   the site id
-     * @param target   the publishing target
-     * @param approver the approver username
-     * @param dateFrom to filter packages published after this date
-     * @param dateTo   to filter packages published before this date
-     * @param offset   the offset to start from
-     * @param limit    the max number of packages to return
-     * @return the packages matching the given parameters
-     */
-    Collection<DashboardPublishingPackage> getPublishingHistory(String siteId, String target, String approver,
-                                                                Instant dateFrom, Instant dateTo, int offset, int limit);
-
-    /**
-     * Get publishing package details total item count
-     *
-     * @param siteId    site identifier
-     * @param packageId publishing package identifier
-     * @return number of items in the package
-     */
-    int getPublishItemsCount(String siteId, long packageId);
 
     /**
      * Get the number of publishes for the given site in the last days

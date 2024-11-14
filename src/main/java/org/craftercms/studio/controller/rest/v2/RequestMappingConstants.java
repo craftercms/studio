@@ -29,10 +29,8 @@ public final class RequestMappingConstants {
     /** Dashboard Controller */
     public static final String DASHBOARD = "/dashboard";
     public static final String ACTIVITY = "/activity";
-    public static final String PENDING_APPROVAL = "/pending_approval";
     public static final String UNPUBLISHED = "/unpublished";
     public static final String PUBLISHING = "/publishing";
-    public static final String SCHEDULED = "/scheduled";
     public static final String STATS = "/stats";
     public static final String EXPIRING = "/expiring";
     public static final String EXPIRED = "/expired";
@@ -106,7 +104,6 @@ public final class RequestMappingConstants {
     public static final String PACKAGES = "/packages";
     public static final String PACKAGE = "/package";
     public static final String CANCEL = "/cancel";
-    public static final String HISTORY = "/history";
     public static final String AVAILABLE_TARGETS = "/available_targets";
     public static final String HAS_INITIAL_PUBLISH = "/has_initial_publish";
     public static final String ENABLE_PUBLISHER = "/enable";

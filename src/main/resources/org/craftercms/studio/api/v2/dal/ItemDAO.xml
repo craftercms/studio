@@ -547,15 +547,6 @@
         WHERE site_id = #{siteId}
     </update>
 
-    <delete id="deleteItemsForSite">
-        DELETE FROM item WHERE site_id = #{siteId}
-    </delete>
-
-    <delete id="deleteBySiteAndPathForFolder">
-        <bind name="pattern" value="folderPath + '/%'" />
-        DELETE FROM item WHERE site_id = #{siteId} AND (path = #{folderPath} OR path LIKE #{pattern})
-    </delete>
-
     <update id="moveItemInternal">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET path = #{newPath},
@@ -589,35 +580,12 @@
         </foreach>
     </select>
 
-    <select id="getInProgressItems" resultMap="ItemMap">
-        SELECT i.*
-        FROM item i INNER JOIN site s ON i.site_id = s.id
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-        AND i.ignored = 0
-        AND (i.state &amp; #{inProgressMask}) &gt; 0
-    </select>
-
     <select id="getUnpublishedPaths">
         SELECT i.path
         FROM item i
         WHERE i.site_id = #{siteId}
         AND i.ignored = 0
         AND (i.state &amp; #{states}) &gt; 0
-    </select>
-
-    <select id="getChangeSetForSubtree" resultType="java.lang.String">
-        SELECT i.path
-        FROM item i INNER JOIN site s ON i.site_id = s.id
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-        AND i.ignored = 0
-        AND i.system_type NOT IN
-        <foreach collection="nonContentItemTypes" separator="," index="index" item="type" open="(" close=")">
-            #{type}
-        </foreach>
-        AND (i.path = #{path} or i.path like #{likePath})
-        AND (i.state &amp; #{inProgressMask}) &gt; 0
     </select>
 
     <select id="getContentTypeUsages" resultType="org.craftercms.studio.api.v2.dal.Item">
@@ -722,14 +690,6 @@
         </if>
     </update>
 
-    <select id="getSubtreeForDelete" resultType="java.lang.String">
-        SELECT i.path
-        FROM item i INNER JOIN site s ON i.site_id = s.id
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-        AND i.path LIKE #{likePath}
-    </select>
-
     <update id="updateNewPageChildren">
         UPDATE item,
             (SELECT child.id AS childId,
@@ -764,15 +724,6 @@
         FROM cte
         WHERE cte.system_type &lt;&gt; 'folder'
     </select>
-
-    <update id="updateStateBitsByIds">
-        UPDATE item
-        SET state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
-        WHERE id IN
-        <foreach collection="itemIds" item="itemId" index="index" open="(" separator="," close=")">
-            #{itemId}
-        </foreach>
-    </update>
 
     <select id="getItemStates" resultType="org.craftercms.studio.api.v2.dal.ItemPathAndState">
         SELECT i.path, i.state

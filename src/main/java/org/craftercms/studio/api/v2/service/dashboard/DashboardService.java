@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
@@ -90,37 +89,6 @@ public interface DashboardService {
                                    int offset, int limit) throws SiteNotFoundException;
 
     /**
-     * Get total number of content packages pending approval
-     *
-     * @param siteId      site identifier
-     * @param systemTypes list of system types to filter
-     * @return number of results to return
-     */
-    int getContentPendingApprovalCount(String siteId, List<String> systemTypes) throws SiteNotFoundException;
-
-    /**
-     * Get pending content for approval
-     *
-     * @param siteId      site identifier
-     * @param systemTypes list of system types to filter
-     * @param sortFields  list of sort fields
-     * @param offset      offset of the first result item
-     * @param limit       number of results to return
-     * @return list of DetailedItem waiting for approval
-     */
-    List<DetailedItem> getContentPendingApproval(String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get content pending approval package details
-     *
-     * @param siteId site identifier
-     * @param publishingPackageId publishing package identifier
-     * @return list of sandbox items included in given package
-     */
-    List<SandboxItem> getContentPendingApprovalDetail(String siteId, String publishingPackageId, List<SortField> sortFields)
-            throws UserNotFoundException, ServiceLayerException;
-
-    /**
      * Get total number of unpublished content
      *
      * @param siteId      site identifier
@@ -163,60 +131,6 @@ public interface DashboardService {
      */
     ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get total number of result for publishing scheduled with given filters
-     *
-     * @param siteId           site identifier
-     * @param publishingTarget publishing target to filter by
-     * @param approver         approver user to filter by
-     * @param dateFrom         lower boundary to filter by date-time range
-     * @param dateTo           upper boundary to filter by date-time range
-     * @param systemTypes     list of system types to filter
-     * @return number of results
-     */
-    int getPublishingScheduledCount(String siteId, String publishingTarget, String approver,
-                                    ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException;
-
-    /**
-     * Get publishing scheduled
-     *
-     * @param siteId           site identifier
-     * @param publishingTarget publishing target to filter by
-     * @param approver         approver user to filter by
-     * @param dateFrom         lower boundary to filter by date-time range
-     * @param dateTo           upper boundary to filter by date-time range
-     * @param systemTypes    list of system types to filter
-     * @param sortFields      list of sort fields
-     * @param offset           offset of the first result item
-     * @param limit            number of results to return
-     * @return list of DetailedItem scheduled for publishing
-     */
-    List<DetailedItem> getPublishingScheduled(String siteId, String publishingTarget, String approver,
-                                              ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                              List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get publishing package details
-     *
-     * @param siteId site identifier
-     * @param publishingPackageId publishing package identifier
-     * @return list of sandbox items included in given package
-     */
-    List<SandboxItem> getPublishingScheduledDetail(String siteId, long publishingPackageId)
-            throws UserNotFoundException, ServiceLayerException;
-
-    /**
-     * Get publishing package details
-     *
-     * @param siteId              site identifier
-     * @param publishingPackageId publishing package identifier
-     * @param offset              offset of the first result item
-     * @param limit               number of results to return
-     * @return list of sandbox items included in given package
-     */
-    List<SandboxItem> getPublishingHistoryDetail(String siteId, long publishingPackageId, int offset, int limit)
-            throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Get publishing stats for site for given time period

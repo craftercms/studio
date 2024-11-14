@@ -20,7 +20,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
 
 import java.time.Instant;

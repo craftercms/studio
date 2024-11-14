@@ -36,18 +36,8 @@ class SpringDeploymentServices {
         return springBackedService.syncAllContentToPreview(site, false)
     }
 
-    def bulkGoLive(site, environment, path, comment) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.bulkGoLive(site, environment, path, comment)
-    }
-
     def enablePublishing(siteId, enabled) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.enablePublishing(siteId, enabled)
-    }
-
-    def publishCommits(siteId, environment, commitIds, comment) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.publishCommits(siteId, environment, commitIds, comment)
     }
 }

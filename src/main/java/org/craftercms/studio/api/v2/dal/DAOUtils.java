@@ -16,5 +16,9 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+/**
+ * This is here to tell mybatis to load DAOUtils.xml for util shared functions to be
+ * available in other mappers
+ */
 public interface DAOUtils {
 }

@@ -15,8 +15,6 @@
  */
 package org.craftercms.studio.api.v2.event.workflow;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 

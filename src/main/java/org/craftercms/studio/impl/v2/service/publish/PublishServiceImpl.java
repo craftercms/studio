@@ -31,13 +31,11 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -101,37 +99,6 @@ public class PublishServiceImpl implements PublishService {
                                List<String> commitIds, Instant schedule, String comment, boolean submitAll)
             throws AuthenticationException, ServiceLayerException {
         return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, submitAll);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingItemsScheduledCount(@SiteId String siteId, String publishingTarget, String approver,
-                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
-        return publishServiceInternal.getPublishingItemsScheduledCount(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingHistoryCount(@SiteId String siteId, String publishingTarget, String approver,
-                                         Instant dateFrom, Instant dateTo) {
-        return publishServiceInternal.getPublishingHistoryCount(siteId, publishingTarget, approver, dateFrom, dateTo);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishItemsCount(@SiteId String siteId, long publishingPackageId) {
-        return publishServiceInternal.getPublishItemsCount(siteId, publishingPackageId);
-    }
-
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public Collection<DashboardPublishingPackage> getPublishingHistory(@SiteId String siteId, String publishingTarget, String approver,
-                                                                       Instant dateFrom, Instant dateTo, int offset, int limit) {
-        return publishServiceInternal.getPublishingHistory(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
     }
 
     @Override

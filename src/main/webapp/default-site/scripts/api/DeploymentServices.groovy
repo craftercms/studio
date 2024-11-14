@@ -32,18 +32,8 @@ class DeploymentServices {
         return ServiceFactory.createContext(applicationContext, request)
     }
 
-    static long bulkGoLive(context, site, environment, path, comment) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.bulkGoLive(site, environment, path, comment)
-    }
-
     static enablePublishing(context, siteId, enabled) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.enablePublishing(siteId, enabled)
-    }
-
-    static long publishCommits(context, siteId, environment, commitIds, comment) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.publishCommits(siteId, environment, commitIds, comment)
     }
 }
