@@ -6893,26 +6893,12 @@ paths:
           required: false
           schema:
             type: string
-        - name: submittedDate
-          in: query
-          description: filter by package submitted date
-          required: false
-          schema:
-              type: string
-              format: date-time
         - name: reviewer
           in: query
           description: filter by package reviewer
           required: false
           schema:
             type: string
-        - name: reviewedDate
-          in: query
-          description: filter by package reviewed date
-          required: false
-          schema:
-              type: string
-              format: date-time
         - name: isScheduled
           in: query
           description: flag to filter by scheduled packages (null to include them all)
@@ -6924,9 +6910,9 @@ paths:
             The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
             Multiple fields are separated by commas. Example: `field1 ASC, field2 DESC`. <br/>
             Accepted fields:<ul>
-                  <li>scheduledDate</li>
-                  <li>publishedDate</li>
-                  <li>approvalDate</li>
+                  <li>schedule</li>
+                  <li>publishedOn</li>
+                  <li>reviewedOn</li>
             </ul>
           schema:
               type: string

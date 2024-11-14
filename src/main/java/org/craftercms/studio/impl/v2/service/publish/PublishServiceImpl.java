@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.publish;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -51,20 +52,24 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public int getPublishingPackagesCount(@SiteId String siteId, String environment,
-                                          String path, Long states,
-                                          final Collection<PublishPackage.ApprovalState> approvalStates) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackagesCount(siteId, environment, path, states, approvalStates);
+    public long getPublishingPackagesCount(@SiteId final String siteId, final String target,
+                                          final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+                                          final String submitter, final String reviewer, final Boolean isScheduled) throws SiteNotFoundException {
+        return publishServiceInternal.getPublishingPackagesCount(siteId, target, states, approvalStates, submitter, reviewer, isScheduled);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishPackage> getPublishingPackages(@SiteId String siteId,
-                                                                    String environment, String path, Long states,
-                                                                    final Collection<PublishPackage.ApprovalState> approvalStates,
-                                                                    int offset, int limit) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, approvalStates, offset, limit);
+    public Collection<PublishPackage> getPublishingPackages(@SiteId final String siteId,
+                                                            final String target, final Long states,
+                                                            final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                            final String submitter, final String reviewer,
+                                                            final Boolean isScheduled, final Collection<SortField> sort,
+                                                            final int offset, final int limit) throws SiteNotFoundException {
+        return publishServiceInternal.getPublishingPackages(siteId, target, states,
+                approvalStates, submitter, reviewer,
+                isScheduled, sort, offset, limit);
     }
 
     @Override

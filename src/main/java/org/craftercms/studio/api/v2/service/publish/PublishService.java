@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -47,14 +48,18 @@ public interface PublishService {
      * Get total number of publishing packages for given search parameters
      *
      * @param siteId         site identifier
-     * @param target    publishing target
-     * @param path           regular expression for paths
+     * @param target         publishing target
      * @param states         publishing package states bits
      * @param approvalStates approval states to filter packages
+     * @param submitter      submitter username
+     * @param reviewer       reviewer username
+     * @param isScheduled    if the package is scheduled
      * @return total number of publishing packages
      * @throws SiteNotFoundException site not found
      */
-    int getPublishingPackagesCount(String siteId, String target, String path, Long states, final Collection<ApprovalState> approvalStates)
+    long getPublishingPackagesCount(String siteId, String target, Long states,
+                                    final Collection<ApprovalState> approvalStates, String submitter,
+                                    String reviewer, Boolean isScheduled)
             throws SiteNotFoundException;
 
     /**
@@ -62,17 +67,22 @@ public interface PublishService {
      *
      * @param siteId         site identifier
      * @param target         publishing target
-     * @param path           regular expression for paths
      * @param states         publishing package state bits
      * @param approvalStates approval states to filter packages
+     * @param submitter      submitter username
+     * @param reviewer       reviewer username
+     * @param isScheduled    if the package is scheduled
+     * @param sort           sort fields
      * @param offset         offset for pagination
      * @param limit          limit for pagination
      * @return list of publishing packages
      * @throws SiteNotFoundException site not found
      */
-    Collection<PublishPackage> getPublishingPackages(String siteId, String target, String path, Long states,
-                                                             final Collection<ApprovalState> approvalStates,
-                                                             int offset, int limit) throws SiteNotFoundException;
+    Collection<PublishPackage> getPublishingPackages(String siteId, String target, Long states,
+                                                     Collection<ApprovalState> approvalStates,
+                                                     String submitter, String reviewer,
+                                                     Boolean isScheduled, Collection<SortField> sort,
+                                                     int offset, int limit) throws SiteNotFoundException;
 
     /**
      * Get publishing package details

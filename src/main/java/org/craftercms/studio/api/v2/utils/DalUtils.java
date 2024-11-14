@@ -19,9 +19,7 @@ package org.craftercms.studio.api.v2.utils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +34,7 @@ public class DalUtils {
      * @param fieldsMap  API to database field name mapping
      * @return list of SortField objects with mapped field names
      */
-    public static List<SortField> mapSortFields(List<SortField> sortFields, Map<String, String> fieldsMap) {
+    public static List<SortField> mapSortFields(Collection<SortField> sortFields, Map<String, String> fieldsMap) {
         if (CollectionUtils.isEmpty(sortFields) || CollectionUtils.isEmpty(fieldsMap)) {
             return Collections.emptyList();
         }

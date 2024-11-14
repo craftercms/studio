@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.Site;
@@ -28,16 +29,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DAYS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
+import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
 /**
  * Provide access to DB publish related tables
@@ -62,6 +64,8 @@ public interface PublishDAO {
     String ON_STATES_BIT_MAP = "onStatesBitMap";
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
     String INCLUDE_CHILDREN = "includeChildren";
+    String SUBMITTER  = "submitter";
+    String REVIEWER  = "reviewer";
 
     String PUBLISH_PACKAGE_STATE = "packageState";
     String IS_SCHEDULED_BIT = "isScheduledBit";
@@ -73,6 +77,11 @@ public interface PublishDAO {
     String OFFSET = "offset";
     String LIMIT = "limit";
     String ACTION = "action";
+
+    Map<String, String> SORT_FIELD_MAP = Map.of(
+            "schedule", "schedule",
+            "publishedOn", "published_on",
+            "reviewedOn", "IFNULL(reviewed_on, submitted_on)");
 
     List<ApprovalState> ACTIVE_APPROVAL_STATES = List.of(SUBMITTED, APPROVED);
 
@@ -422,12 +431,12 @@ public interface PublishDAO {
      * @param includeChildren whether to include the children of the paths in the search
      * @return collection of matching packages
      */
-    default Collection<PublishPackage> getItemPackages(@Param(SITE_ID) String siteId,
-                                                       @Param(TARGET) String target,
-                                                       @Param(PATHS) Collection<String> paths,
-                                                       @Param(PACKAGE_STATE) long packageState,
-                                                       @Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
-                                                       @Param(INCLUDE_CHILDREN) boolean includeChildren) {
+    default Collection<PublishPackage> getItemPackages(final String siteId,
+                                                       final String target,
+                                                       final Collection<String> paths,
+                                                       final long packageState,
+                                                       final List<ApprovalState> approvalStates,
+                                                       final boolean includeChildren) {
         return getItemPackages(siteId, target, paths, packageState, approvalStates, includeChildren, null, null);
     }
 
@@ -453,22 +462,63 @@ public interface PublishDAO {
                                                @Param(LIMIT) Integer limit);
 
     /**
-     * Get the total number of packages containing matching the given filters
+     * Get the total number of packages matching the given filters
      *
      * @param siteId          the site id
      * @param target          the target
-     * @param paths           the paths of the items
      * @param packageState    the mask to apply to filter the package state
      * @param approvalStates  the approval states to filter by
-     * @param includeChildren whether to include the children of the paths in the search
      * @return the total number of packages matching the filters
      */
-    int getItemPackagesCount(@Param(SITE_ID) String siteId,
-                             @Param(TARGET) String target,
-                             @Param(PATHS) Collection<String> paths,
-                             @Param(PACKAGE_STATE) Long packageState,
-                             @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-                             @Param(INCLUDE_CHILDREN) boolean includeChildren);
+    long getPublishingPackagesCount(@Param(SITE_ID) String siteId,
+                                    @Param(TARGET) String target,
+                                    @Param(PACKAGE_STATE) Long packageState,
+                                    @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+                                    @Param(SUBMITTER) String submitter,
+                                    @Param(REVIEWER) String reviewer,
+                                    @Param(IS_SCHEDULED) Boolean isScheduled);
+
+    /**
+     * Get the publish packages matching the given filters
+     * @param siteId the site id
+     * @param target the publishing target
+     * @param packageState package states
+     * @param approvalStates package approval states
+     * @param submitter submitter username
+     * @param reviewer reviewer username
+     * @param sortFields sort fields
+     * @param offset offset
+     * @param limit limit
+     * @return the publish packages matching the filters
+     */
+    default Collection<PublishPackage> getPublishingPackages(@Param(SITE_ID) String siteId,
+                                                             @Param(TARGET) String target,
+                                                             @Param(PACKAGE_STATE) Long packageState,
+                                                             @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+                                                             @Param(SUBMITTER) String submitter,
+                                                             @Param(REVIEWER) String reviewer,
+                                                             @Param(IS_SCHEDULED) Boolean isScheduled,
+                                                             @Param(SORT_FIELDS) Collection<SortField> sortFields,
+                                                             @Param(OFFSET) Integer offset,
+                                                             @Param(LIMIT) Integer limit) {
+        return getPublishingPackagesInternal(siteId, target, packageState,
+                approvalStates, submitter, reviewer,
+                isScheduled, mapSortFields(sortFields, SORT_FIELD_MAP), offset, limit);
+    }
+    /**
+     * Internal method so we can map the sort fields to the actual columns for getPublishingPackages
+     */
+    Collection<PublishPackage> getPublishingPackagesInternal(@Param(SITE_ID) String siteId,
+                                                             @Param(TARGET) String target,
+                                                             @Param(PACKAGE_STATE) Long packageState,
+                                                             @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+                                                             @Param(SUBMITTER) String submitter,
+                                                             @Param(REVIEWER) String reviewer,
+                                                             @Param(IS_SCHEDULED) Boolean isScheduled,
+                                                             @Param(SORT_FIELDS) Collection<SortField> sortFields,
+                                                             @Param(OFFSET) Integer offset,
+                                                             @Param(LIMIT) Integer limit);
+
 
     /**
      * Get the publish packages in the history matching the given filters

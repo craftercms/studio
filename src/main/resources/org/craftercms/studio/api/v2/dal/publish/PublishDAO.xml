@@ -290,17 +290,17 @@
 
     <select id="getPackageForItems" resultMap="PublishPackageMap">
         <bind name="includeChildren" value="false" />
-        <include refid="getAllPackagesForItems" />
+        <include refid="getAllPackagesForFilters" />
         ORDER BY pp.schedule ASC LIMIT 1
     </select>
 
-    <sql id="getAllPackagesForItems">
+    <sql id="getAllPackagesForFilters">
         SELECT pp.*
         FROM publish_package pp
             INNER JOIN site s ON pp.site_id = s.id
         WHERE s.site_id = #{siteId}
         <if test="packageState != null">
-            AND (pp.package_state &amp; #{packageState}) > 0
+            AND (pp.package_state &amp; #{packageState}) = #{packageState}
         </if>
         <if test="target != null">
             AND pp.target = #{target}
@@ -334,7 +334,7 @@
     </sql>
 
     <select id="getItemPackages" resultMap="PublishPackageMap">
-        <include refid="getAllPackagesForItems" />
+        <include refid="getAllPackagesForFilters" />
         <if test="offset != null and limit != null">
             LIMIT #{offset},#{limit}
         </if>
@@ -343,7 +343,7 @@
     <select id="getItemPackagesCount">
         SELECT COUNT(1)
         FROM (
-            <include refid="getAllPackagesForItems" />
+            <include refid="getAllPackagesForFilters" />
         ) AS tbl
     </select>
 
@@ -405,5 +405,28 @@
         AND pp.published_on &gt;= DATE(NOW() - INTERVAL #{days} DAY)
         AND pi.action = #{action}
         AND (pp.package_state &amp; #{completedState}) > 0
+    </select>
+
+    <select id="getPublishingPackagesCount">
+        <bind name="paths" value="null" />
+        SELECT COUNT(1)
+        FROM (
+            <include refid="getAllPackagesForFilters" />
+            <if test="isScheduled != null">
+                AND pp.schedule IS <if test="isScheduled">NOT</if> NULL
+            </if>
+        ) AS tbl
+    </select>
+
+    <select id="getPublishingPackagesInternal">
+        <bind name="paths" value="null" />
+        <include refid="getAllPackagesForFilters" />
+        <if test="isScheduled != null">
+            AND pp.schedule IS <if test="isScheduled">NOT</if> NULL
+        </if>
+        <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.orderBySortFields"/>
+        <if test="offset != null and limit != null">
+            LIMIT #{offset},#{limit}
+        </if>
     </select>
 </mapper>

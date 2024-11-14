@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -102,20 +103,24 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private SecurityService securityService;
 
     @Override
-    public int getPublishingPackagesCount(final String siteId, final String target, String path,
-                                          final Long states, final Collection<PublishPackage.ApprovalState> approvalStates) {
-        Collection<String> paths = StringUtils.isEmpty(path) ? emptyList() : List.of(path);
-        return publishDao.getItemPackagesCount(siteId, target, paths, states, approvalStates, true);
+    public long getPublishingPackagesCount(final String siteId, final String target,
+                                          final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+                                          final String submitter, final String reviewer,
+                                           final Boolean isScheduled) {
+        return publishDao.getPublishingPackagesCount(siteId, target, states,
+                approvalStates, submitter, reviewer, isScheduled);
     }
 
     @Override
     public Collection<PublishPackage> getPublishingPackages(final String siteId, final String target,
-                                                            final String path, final Long states,
-                                                            final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                            final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                            final String submitter, final String reviewer,
+                                                            final Boolean isScheduled, final Collection<SortField> sort,
                                                             final int offset, final int limit) {
-        Collection<String> paths = StringUtils.isEmpty(path) ? emptyList() : List.of(path);
-        return publishDao.getItemPackages(siteId, target, paths,
-                states, approvalStates, true, offset, limit);
+        return publishDao.getPublishingPackages(siteId, target,
+                states, approvalStates,
+                submitter, reviewer, isScheduled,
+                sort, offset, limit);
     }
 
     @Override

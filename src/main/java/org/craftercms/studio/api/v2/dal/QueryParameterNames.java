@@ -50,6 +50,7 @@ public final class  QueryParameterNames {
     public static final String COMMIT_ID = "commitId";
     // state
     public static final String STATE = "state";
+    public static final String IS_SCHEDULED = "isScheduled";
 
     /* Organizations */
 

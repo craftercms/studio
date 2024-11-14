@@ -45,6 +45,10 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_STATES = "states";
     public static final String REQUEST_PARAM_APPROVAL_STATES = "approvalStates";
     public static final String REQUEST_PARAM_PACKAGE_ID = "packageId";
+    public static final String REQUEST_PARAM_SUBMITTER = "submitter";
+    public static final String REQUEST_PARAM_REVIEWER = "reviewer";
+    public static final String PUBLISH_PACKAGES_SORT_FIELDS = "schedule publishedOn reviewedOn";
+    public static final String REQUEST_PARAM_IS_SCHEDULED = "isScheduled";
     public static final String REQUEST_PARAM_TOKEN = "token";
     public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
     public static final String REQUEST_PARAM_DAYS = "days";
