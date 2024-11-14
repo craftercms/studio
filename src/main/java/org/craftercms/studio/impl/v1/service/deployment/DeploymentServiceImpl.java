@@ -283,8 +283,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         for (String environment : environments) {
             List<PublishRequest> items =
                     createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
-            for (PublishRequest item : items) {
-                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
+
+            if (contentRepositoryV2.publishedRepositoryExists(site)) {
+                for (PublishRequest item : items) {
+                    retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
+                }
             }
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
