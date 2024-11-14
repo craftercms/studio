@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,13 +17,11 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.craftercms.studio.model.rest.Person;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface AuditDAO {
 
@@ -48,18 +46,21 @@ public interface AuditDAO {
     void deleteAuditLogForSite(@Param(SITE_ID) long siteId);
 
     /**
-     * Gets the author of a commit.
-     * This will retrieve a {@link Person} object from the database when
+     * Gets commit authors from a list of commit ids.
+     * This will retrieve a {@link CommitAuthor} object from the database when
      * the commit was created by Studio, meaning the following conditions are met:
      * <ul>
      *     <li>There is an audit entry for the given commit id</li>
      *     <li>AND the audit entry origin is API</li>
+     *     <li>AND the audit entry primary_target_value is the given path</li>
      * </ul>
      *
-     * @param commitId
-     * @return the {@link Person} author or the commit, if found, null otherwise.
+     * @param siteId site id
+     * @param commitIds the commit ids
+     * @param path the path (to match primary_target_value)
+     * @return the List of {@link CommitAuthor} if found
      */
-    Person getCommitAuthor(@Param(COMMIT_ID) String commitId);
+    List<CommitAuthor> getCommitAuthors(@Param(SITE_ID) long siteId, @Param(COMMIT_IDS) List<String> commitIds, @Param(PATH) String path);
 
     /**
      * Checks if a commit has been audited.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
@@ -38,9 +39,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 
  */
 public class PermissionOrOwnershipResolverImpl implements PermissionResolver<String, Map<String, Object>> {
-
-    public static final String SITE_ID_RESOURCE_ID = "siteId";
-    public static final String PATH_RESOURCE_ID = "path";
 
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
@@ -53,8 +51,8 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
     @Override
     public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
-        String siteName = "";
-        String path = "/";
+        String siteName = StringUtils.EMPTY;
+        String path = DEFAULT_PATH_RESOURCE_VALUE;
 
         if (MapUtils.isNotEmpty(resourceIds)) {
             if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
@@ -68,7 +66,7 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
             }
         }
 
-        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username, null);
+        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
         Item item = itemServiceInternal.getItem(siteName, path);
 
         PermissionOrOwnership permission = new PermissionOrOwnership();

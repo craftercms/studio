@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -43,7 +45,7 @@ public interface ConfigurationService {
      * @return role mappings configuration
      * @throws ConfigurationException configuration error
      */
-    Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException;
+    Map<NormalizedGroup, List<NormalizedRole>> getRoleMappings(String siteId) throws ServiceLayerException;
 
     /**
      * Get global role mappings configuration
@@ -51,7 +53,7 @@ public interface ConfigurationService {
      * @return role mappings configuration
      * @throws ConfigurationException configuration error
      */
-    Map<String, List<String>> getGlobalRoleMappings() throws ServiceLayerException;
+    Map<NormalizedGroup, List<NormalizedRole>> getGlobalRoleMappings() throws ServiceLayerException;
 
     /**
      * Get configuration as string for given parameters

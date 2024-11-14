@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -355,9 +355,14 @@
                     ) AS live_scheduleddate,
                     live1.published_on AS live_published_on,
                     live1.username AS live_username,
-                    COUNT(DISTINCT i3.id) AS children_count
+                    (SELECT COUNT(1)
+                    FROM item child_i
+                    WHERE child_i.parent_id = i.id
+                    AND (child_i.ignored = 0 OR child_i.ignored IS NULL)
+                    AND (child_i.system_type &lt;&gt; 'folder' OR NOT EXISTS
+                        (SELECT * FROM item i10 WHERE i10.site_id = child_i.site_id
+                            AND i10.path = CONCAT(child_i.path, '/index.xml')))) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
-                LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -375,13 +380,9 @@
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i.path = live1.path
             WHERE i.site_id = #{siteId}
-                AND (i3.ignored = 0 OR i3.ignored IS NULL)
-                AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-                    (SELECT * FROM item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
                 AND (i.state &amp; #{statesBitMap}) > 0
-                AND i.system_type != #{systemTypeFolder}
+                AND i.system_type &lt;&gt; #{systemTypeFolder}
             <include refid="filterBySystemType"/>
-            GROUP BY i.id
             <include refid="orderBySortFields"/>
             LIMIT #{offset}, #{limit}
     </select>
@@ -433,7 +434,7 @@
                             AND pr.state = 'READY_FOR_LIVE'
                             AND i.id = w.item_id
                         )
-                    ORDER BY schedule DESC
+                    ORDER BY schedule DESC LIMIT 0, 1
                     ) AS live_scheduleddate,
                     live1.published_on AS live_published_on,
                     live1.username AS live_username,
@@ -538,11 +539,8 @@
                       AND pr2.state = #{completedState}
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i1.path = live1.path
-                ,item i2
-            WHERE i2.site_id = #{siteId}
-              AND i2.path = #{path}
-              AND i1.site_id = i2.site_id
-              AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
+            WHERE i1.site_id = #{siteId}
+              AND i1.path = CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')
               AND (i5.ignored = 0 OR i5.ignored IS NULL)
               AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                     (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
@@ -640,17 +638,18 @@
                     WHERE w.item_id = i.id
                     ORDER BY w.id DESC LIMIT 0, 1
                 ) AS submitter,
-               COUNT(DISTINCT i3.id) AS children_count
+                    (SELECT COUNT(1)
+                    FROM item child_i
+                    WHERE child_i.parent_id = i.id
+                    AND (child_i.ignored = 0 OR child_i.ignored IS NULL)
+                    AND (child_i.system_type &lt;&gt; 'folder' OR NOT EXISTS
+                        (SELECT * FROM item i10 WHERE i10.site_id = child_i.site_id
+                            AND i10.path = CONCAT(child_i.path, '/index.xml')))) AS children_count
         FROM item i
-            LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
         WHERE i.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
-        AND (i3.ignored = 0 OR i3.ignored IS NULL)
-        AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-            (SELECT * from item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
-        GROUP BY i.id
         <include refid="orderBySortFields"/>
     </select>
 
@@ -888,12 +887,9 @@
                       AND pr2.state = #{completedState}
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i1.path = live1.path
-            , item i2
-            WHERE i2.site_id = #{siteId}
-              AND i2.path = #{path}
+            WHERE i1.site_id = #{siteId}
+              AND i1.path = CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')
               AND i1.ignored = 0
-              AND i1.site_id = i2.site_id
-              AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 OR i5.ignored IS NULL)
               AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
@@ -1277,4 +1273,78 @@
         SET item.parent_id = updates.newParentId
         WHERE item.id = updates.childId
     </update>
+
+    <update id="updateParentIdForSite" statementType="CALLABLE">
+        {CALL populateItemParentId(#{siteId, mode=IN, jdbcType=BIGINT})}
+    </update>
+
+    <update id="updateParentId">
+        UPDATE item,
+            (SELECT id, max(potential_parent_path) as calculated_parent_path,
+                            (SELECT p.id FROM item p WHERE (p.path = max(potential_parent_path)) and p.site_id = #{siteId}) AS calculated_parent_id
+            FROM
+                (SELECT candidates.id, candidates.path, candidates.parent_id,
+                        (SELECT p.id FROM item p WHERE (p.path = candidates.parent_path) AND p.site_id = #{siteId}) AS potential_parent_id,
+                        candidates.parent_path as potential_parent_path
+                FROM (
+                        SELECT id, parent_id, path,
+                                reverse(substr(reverse(trim('/index.xml' from path)), locate('/', reverse(trim('/index.xml' from path)))+1)) AS parent_path
+                        FROM item
+                        WHERE site_id = #{siteId}
+                        AND item.path IN <include refid="pathsQuery"/>
+                    UNION
+                        SELECT id, parent_id, path,
+                                concat(reverse(substr(reverse(trim('/index.xml' from path)), locate('/', reverse(trim('/index.xml' from path)))+1)), '/index.xml') AS parent_path
+                        FROM item
+                        WHERE site_id = #{siteId}
+                        AND item.path IN <include refid="pathsQuery"/>
+                    ) AS candidates
+                ) AS mapped
+            WHERE potential_parent_id IS NOT NULL
+            GROUP BY id
+            ) AS updates
+        SET item.parent_id = updates.calculated_parent_id
+        WHERE item.id = updates.id
+    </update>
+
+    <sql id="pathsQuery">
+        <foreach item="path" index="index" collection="paths" open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </sql>
+
+    <update id="recalculateItemStates">
+        UPDATE item i, (
+            WITH CTE AS (
+                SELECT pr.path, pr.environment
+                FROM publish_request pr
+                WHERE pr.path IN
+                    <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+                        #{path}
+                    </foreach>
+                AND pr.site = #{siteId}
+                AND pr.state = 'READY_FOR_LIVE'
+                AND pr.scheduleddate IS NOT NULL
+                AND pr.scheduleddate > NOW())
+
+                SELECT flags.id, (CASE WHEN flags.scheduled = 1 THEN #{scheduledState} ELSE 0 END + CASE WHEN flags.forLive = 1 THEN #{destinationState} ELSE 0 END
+                                    ) AS maskOn,
+                                 (CASE WHEN flags.scheduled = 0 THEN #{scheduledState} ELSE 0 END + CASE WHEN flags.forLive = 0 THEN #{destinationState} ELSE 0 END
+                                    ) + #{inWorkflowState} AS maskOff
+                FROM (
+                    SELECT i.id,
+                        (EXISTS (SELECT 1 FROM CTE cte WHERE cte.path = i.path)) AS scheduled,
+                        (EXISTS (SELECT 1 FROM CTE cte WHERE cte.path = i.path AND cte.environment = 'live')) AS forLive
+                    FROM item i INNER JOIN site s ON s.id = i.site_id
+                    WHERE s.site_id = #{siteId}
+                    AND i.path IN
+                        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+                            #{path}
+                        </foreach>
+                ) AS flags
+            ) AS updates
+        SET i.state = (i.state | updates.maskOn) &amp; ~updates.maskOff
+        WHERE i.id = updates.id
+    </update>
+
 </mapper>

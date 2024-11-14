@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -29,7 +30,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -270,7 +270,7 @@ public class ContentController {
     @Valid
     @PostMapping(ITEM_UNLOCK_BY_PATH)
     public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
-            throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+            throws ContentNotFoundException, SiteNotFoundException {
         contentService.unlockContent(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
@@ -296,7 +296,7 @@ public class ContentController {
 
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
-            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
+            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException, ValidationException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 
         var responseBody = new ResponseBody();

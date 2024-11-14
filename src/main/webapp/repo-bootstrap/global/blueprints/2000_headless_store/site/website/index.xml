@@ -18,7 +18,7 @@
 <page>
 	<content-type>/page/catalog</content-type>	<placeInNav>true</placeInNav>
 	<display-template>/templates/web/catalog.ftl</display-template>
-	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+  	<merge-strategy>inherit-levels</merge-strategy>
 	<placeInNav>false</placeInNav>
 	<file-name>index.xml</file-name>
 	<internal-name>Catalog</internal-name>

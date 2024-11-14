@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -24,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
@@ -192,7 +192,7 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path item path
      */
-    void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException;
+    void unlockContent(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException;
 
     /**
      * Get content for commit id
@@ -205,17 +205,18 @@ public interface ContentService {
             throws ContentNotFoundException;
 
     /**
-    * Rename content for given path
-    * @param site  site identifier
-    * @param path path of the content
-    * @param name new name of the content
-    * @return true if success, otherwise false
-    *
-    * @throws ServiceLayerException general service error
-    * @throws UserNotFoundException user not found error
+     * Rename content for given path
+     * @param site  site identifier
+     * @param path path of the content
+     * @param name new name of the content
+     * @return true if success, otherwise false
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
+     * @throws ValidationException validation exception
     */
     boolean renameContent( String site, String path, String name)
-         throws ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException, ValidationException;
 
     /**
      * Returns content wrapped as a {@link Resource} instance

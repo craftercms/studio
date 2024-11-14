@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,30 +21,30 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioAbstractAccessDecisionVoter.class);
+
+    /**
+     * The default path to use if there is no path parameter
+     */
+    public static final String DEFAULT_PERMISSION_VOTER_PATH = "";
 
     protected SecurityService securityService;
     protected StudioConfiguration studioConfiguration;
@@ -115,44 +115,28 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     }
 
     protected boolean hasPermission(String siteId, String path, String user, String permission) {
-        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user, null);
+        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
         return StringUtils.isEmpty(permission) ||
                 (CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(permission));
     }
 
     protected boolean hasAnyPermission(String siteId, String path, String user, Set<String> permissions) {
-        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user, null);
+        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
         return CollectionUtils.isEmpty(permissions) ||
                 (CollectionUtils.isNotEmpty(userPermissions)
                         && CollectionUtils.containsAny(userPermissions, permissions));
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

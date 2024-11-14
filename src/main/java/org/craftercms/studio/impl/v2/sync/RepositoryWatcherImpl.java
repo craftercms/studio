@@ -99,13 +99,14 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
                 }
                 if (!key.reset()) {
                     // This can happen if the watched directory is deleted
-                    logger.warn("Failed to reset the WatchKey for site '{}'", siteId);
+                    logger.warn("Failed to reset the WatchKey for site '{}', will try to setup a new one", siteId);
                     siteKeys.remove(key);
                     key.cancel();
+                    registerDir(siteRegistrations.get(siteId));
                 }
             } catch (InterruptedException e) {
                 // TODO: we may want to consider a mechanism to restart the thread
-                logger.warn("Failed to monitor site repositories, thread has been interrupted");
+                logger.error("Failed to monitor site repositories, thread has been interrupted");
                 return;
             } catch (Exception e) {
                 logger.error("Failed to process a WatchKey to monitor site repositories", e);
@@ -115,8 +116,6 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
 
     /**
      * Creates a {@link QueuedEvent} for the given site and adds it to the queue.
-     *
-     * @param siteId
      */
     private void queueRepoEvent(String siteId) {
         QueuedEvent event = queuedEvents.get(siteId);
@@ -147,6 +146,7 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
             if (!queuedEvent.additionalEvents().get()) {
                 break;
             }
+            queuedEvent.additionalEvents().set(false);
             resetCount++;
         }
         queuedEvents.remove(queuedEvent.siteId());
@@ -186,22 +186,40 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
             Site site = sitesService.getSite(siteId);
             String sandboxBranch = site.getSandboxBranch();
             logger.debug("Using sandbox branch: '{}' for site '{}'", sandboxBranch, siteId);
-
             Path sandboxBranchPath = sitePath.resolve(REFS_HEADS).resolve(sandboxBranch);
-            SiteRegistration siteRegistration = new SiteRegistration(siteId, sitePath, sandboxBranchPath.getFileName());
-
-            // Monitor the parent directory of the sandbox branch file (we cannot only monitor directories, not files)
-            WatchKey key = sandboxBranchPath
-                    .getParent()
-                    .register(watcher,
-                            ENTRY_CREATE,
-                            ENTRY_MODIFY);
-            siteKeys.put(key, siteId);
+            Path branchFileDir = sandboxBranchPath.getParent();
+            SiteRegistration siteRegistration = new SiteRegistration(siteId, branchFileDir, sandboxBranchPath.getFileName());
+            registerDir(siteRegistration);
             siteRegistrations.put(siteId, siteRegistration);
             logger.debug("Site '{}' registered", siteId);
         } catch (IOException e) {
             logger.error("Failed to register site '{}'", siteId, e);
             throw e;
+        }
+    }
+
+    // Register for file events the directory containing the branch file
+    private void registerDir(final SiteRegistration registration) throws IOException {
+        ensureDirExists(registration.siteId, registration.branchFileDir);
+        // Monitor the parent directory of the sandbox branch file (we cannot only monitor directories, not files)
+        logger.debug("Registering site '{}' for events on directory '{}'", registration.siteId, registration.branchFileDir);
+        WatchKey key = registration.branchFileDir
+                .register(watcher,
+                        ENTRY_CREATE,
+                        ENTRY_MODIFY);
+        siteKeys.put(key, registration.siteId);
+    }
+
+    // Create the directory in .git/refs/heads if it does not exist
+    private void ensureDirExists(final String siteId, final Path branchFileDir) throws IOException {
+        boolean exists = branchFileDir.toFile().exists();
+        if (exists) {
+            logger.debug("Branch file directory '{}' exists for site '{}'", branchFileDir, siteId);
+        } else {
+            logger.warn("Branch file directory '{}' does not exist for site '{}'. Empty dir will be created", branchFileDir, siteId);
+            if (!branchFileDir.toFile().mkdirs()) {
+                throw new IOException(String.format("Failed to create branch file directory %s", branchFileDir));
+            }
         }
     }
 
@@ -225,11 +243,12 @@ public class RepositoryWatcherImpl implements RepositoryWatcher, ApplicationEven
      * Convenience record to hold site registration information.
      *
      * @param siteId         the site id
-     * @param sitePath       the site path
+     * @param branchFileDir  the directory containing the branch ref file. e.g.: if sandbox branch name is 'crafter/feature/123',
+     *                       branchFileDir will be the 'SANDBOX_REPO_PATH/.git/refs/heads/crafter/feature/'
      * @param branchFilename the filename portion of the branch file. e.g.: if sandbox branch name is 'crafter/feature/123',
      *                       the filename for the events will be '123'
      */
-    private record SiteRegistration(String siteId, Path sitePath, Path branchFilename) {
+    private record SiteRegistration(String siteId, Path branchFileDir, Path branchFilename) {
     }
 
     /**

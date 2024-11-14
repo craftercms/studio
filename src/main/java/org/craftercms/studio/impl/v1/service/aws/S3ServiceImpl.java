@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v1.service.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
 import org.craftercms.commons.file.stores.S3Utils;
@@ -26,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.S3Service;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.InputStream;
 
@@ -49,7 +49,7 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
         this.partSize = partSize;
     }
 
-    protected AmazonS3 getS3Client(S3Profile profile) {
+    protected S3Client getS3Client(S3Profile profile) {
         return S3Utils.createClient(profile);
     }
 
@@ -59,7 +59,7 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
                                @ValidateStringParam String filename,
                                InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(site, profileId);
-        AmazonS3 s3Client = getS3Client(profile);
+        S3Client s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
         String inputKey = filename;
 

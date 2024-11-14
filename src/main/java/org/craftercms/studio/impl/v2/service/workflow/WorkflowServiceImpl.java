@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
@@ -46,11 +45,11 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.slf4j.Logger;
@@ -62,6 +61,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -73,7 +73,6 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 @RequireSiteReady
@@ -142,8 +141,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public List<SandboxItem> getWorkflowAffectedPaths(@SiteId String siteId,
                                                       @ProtectedResourceId(PATH_RESOURCE_ID)
                                                       String path) throws UserNotFoundException, ServiceLayerException {
-        List<String> affectedPaths = new LinkedList<>();
-        List<SandboxItem> result = new LinkedList<>();
         List<SandboxItem> sandboxItems = contentServiceInternal.getSandboxItemsByPath(siteId, List.of(path), false);
         if (CollectionUtils.isEmpty(sandboxItems)) {
             throw new ContentNotFoundException(path, siteId,
@@ -151,44 +148,10 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
         SandboxItem sandboxItem = sandboxItems.get(0);
         if (isInWorkflowOrScheduled(sandboxItem.getState())) {
-            affectedPaths.add(path);
-            boolean isNew = isNew(sandboxItem.getState());
-            boolean isRenamed = isNotEmpty(sandboxItem.getPreviousPath());
-            if (isNew || isRenamed) {
-                affectedPaths.addAll(getMandatoryDescendants(siteId, path));
-            }
-            List<String> dependencyPaths = new LinkedList<>(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
-            affectedPaths.addAll(dependencyPaths);
-            List<String> candidates = new LinkedList<>();
-            for (String p : affectedPaths) {
-                if (!candidates.contains(p)) {
-                    candidates.add(p);
-                }
-            }
-
-            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(siteId, candidates, true);
-            result = candidateItems.stream().filter(i -> isInWorkflowOrScheduled(i.getState())).collect(toList());
+            Collection<String> affectedPaths = workflowServiceInternal.getWorkflowAffectedPaths(siteId, path);
+            return contentServiceInternal.getSandboxItemsByPath(siteId, affectedPaths, true);
         }
-        return result;
-    }
-
-    private List<String> getMandatoryDescendants(String site, String path)
-            throws UserNotFoundException, ServiceLayerException {
-        List<String> descendants = new LinkedList<>();
-        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null, null,
-                null, 0, Integer.MAX_VALUE);
-        if (result != null) {
-            if (Objects.nonNull(result.getLevelDescriptor())) {
-                descendants.add(result.getLevelDescriptor().getPath());
-            }
-            if (CollectionUtils.isNotEmpty(result.getChildren())) {
-                for (SandboxItem item : result.getChildren()) {
-                    descendants.add(item.getPath());
-                    descendants.addAll(getMandatoryDescendants(site, item.getPath()));
-                }
-            }
-        }
-        return descendants;
+        return emptyList();
     }
 
     @Override
@@ -205,8 +168,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             String submittedBy = securityService.getCurrentUser();
             // set system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, true);
-            // cancel existing workflow
-            cancelExistingWorkflowEntries(siteId, pathsToAddToWorkflow);
             // create new workflow entries
             createWorkflowEntries(siteId, pathsToAddToWorkflow, submittedBy, publishingTarget, schedule, comment,
                     sendEmailNotifications);
@@ -355,8 +316,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             try {
                 // Set system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-                // Cancel scheduled items from publishing queue
-                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
                 // Add to publishing queue
                 String publishedBy = securityService.getCurrentUser();
                 boolean scheduledDateIsNow = false;
@@ -457,8 +416,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             try {
                 // Set system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-                // Cancel scheduled items from publishing queue
-                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
                 // Add to publishing queue
                 String publishedBy = securityService.getCurrentUser();
                 boolean scheduledDateIsNow = false;
@@ -466,7 +423,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     scheduledDateIsNow = true;
                     schedule = getCurrentTime();
                 }
-                deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
+                deploymentService.deploy(siteId, publishingTarget, pathsToPublish, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
                 createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy, comment);
                 // Trigger event

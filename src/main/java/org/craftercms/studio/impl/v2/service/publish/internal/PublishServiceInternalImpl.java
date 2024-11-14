@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,7 +47,7 @@ import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
 import static org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl.LIVE_ENVIRONMENT;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal, ApplicationContextAware {
 
@@ -96,7 +96,10 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
-    public void cancelPublishingPackages(String siteId, List<String> packageIds) {
+    public void cancelPublishingPackages(String siteId, Collection<String> packageIds) {
+        if (CollectionUtils.isEmpty(packageIds)) {
+            return;
+        }
         retryingDatabaseOperationFacade.retry(() -> publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED));
     }
 
@@ -252,6 +255,16 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
         applicationContext.publishEvent(new PublishEvent(siteId));
 
         return changes;
+    }
+
+    @Override
+    public Collection<String> getWorkflowAffectedPackages(final String siteId, final String path) throws ServiceLayerException {
+        return publishRequestDao.getPackagesForPath(siteId, path);
+    }
+
+    @Override
+    public Collection<String> getPackagePaths(final String site, final Collection<String> affectedPackages) {
+        return publishRequestDao.getPackagePaths(site, affectedPackages);
     }
 
     @Override

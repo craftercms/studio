@@ -34,6 +34,9 @@
     <aop:aspectj-autoproxy proxy-target-class="true"/>
     <task:annotation-driven executor="studioTaskExecutor" />
 
+    <!-- Deployer configurations -->
+    <bean class="org.craftercms.studio.config.DeployerConfig"/>
+
     <bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
@@ -76,7 +79,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="contentServiceV2" ref="contentService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -369,7 +371,6 @@
         <property name="contentRepository" ref="gitContentRepositoryV2" />
         <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
         <property name="dependencyService" ref="dependencyServiceInternal"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contextManager" ref="contextManager"/>
     </bean>
 
@@ -401,6 +402,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="accessTokenServiceInternal" ref="accessTokenServiceInternal" />
         <property name="instanceService" ref="instanceService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="securityServiceV2" ref="studio.securityService" />
@@ -471,6 +473,7 @@
         <constructor-arg name="deployer" ref="allDeployers" />
         <constructor-arg name="configurationService" ref="configurationService" />
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
@@ -618,7 +621,7 @@
 
     <bean id="itemServiceInternal"
           class="org.craftercms.studio.impl.v2.service.item.internal.ItemServiceInternalImpl">
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="siteDao" ref="siteDao" />
         <property name="itemDao" ref="itemDao" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
@@ -648,8 +651,9 @@
 
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
-        <property name="workflowDao" ref="workflowDao" />
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="workflowDao" ref="workflowDao" />
+        <constructor-arg name="dependencyService" ref="dependencyServiceInternal"/>
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"
@@ -880,6 +884,7 @@
         <constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
+        <property name="asyncClientFactory" ref="crafter.s3AsyncClientFactory"/>
         <property name="publishingTargetResolver" ref="crafter.publishingTargetResolver"/>
     </bean>
 
@@ -901,6 +906,8 @@
         <property name="contextManager" ref="contextManager"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
+        <property name="siteDao" ref="siteDao" />
+        <property name="processedCommitsDao" ref="processedCommitsDao" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
@@ -1160,12 +1167,17 @@
     <!-- ////////////////////////////////////// -->
     <!--          Crafter Deployers             -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+    <bean id="abstractDeployer" class="org.craftercms.studio.impl.v2.deployment.AbstractDeployer" abstract="true">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="restTemplate" ref="deployerRestTemplate"/>
     </bean>
 
-    <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer"
+          parent="abstractDeployer">
+    </bean>
+
+    <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer"
+          parent="abstractDeployer">
     </bean>
 
     <bean id="allDeployers" class="org.craftercms.studio.impl.v2.deployment.CompositeDeployer">
@@ -1345,9 +1357,12 @@
     <!-- Utilities -->
 
     <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
-        <property name="corePoolSize" value="5"/>
-        <property name="maxPoolSize" value="10"/>
-        <property name="queueCapacity" value="25"/>
+        <property name="corePoolSize"
+                  value="#{studioConfiguration.getProperty('studio.taskExecutor.corePoolSize')}"/>
+        <property name="maxPoolSize"
+                  value="#{studioConfiguration.getProperty('studio.taskExecutor.maxPoolSize')}"/>
+        <property name="queueCapacity"
+                  value="#{studioConfiguration.getProperty('studio.taskExecutor.queueCapacity')}"/>
         <property name="waitForTasksToCompleteOnShutdown" value="false" />
     </bean>
 
@@ -1515,6 +1530,7 @@
 
     <bean id="sitePolicyInterceptor" class="org.craftercms.studio.api.v2.annotation.policy.SitePolicyAspect">
         <constructor-arg name="policyService" ref="policyService"/>
+        <constructor-arg name="contentServiceInternal" ref="contentServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1562,6 +1578,8 @@
                          value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist.enable')}"/>
         <constructor-arg name="blacklist"
                          value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist.path')}"/>
+        <constructor-arg name="whitelistGetEnvRegex"
+                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.whitelist.getenvRegex')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

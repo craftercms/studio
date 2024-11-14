@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -64,6 +64,11 @@
             <result property="targetType" column="target_type" />
             <result property="targetValue" column="target_value"/>
         </collection>
+    </resultMap>
+
+    <resultMap id="CommitAuthorMap" type="org.craftercms.studio.api.v2.dal.CommitAuthor">
+        <result property="commitId" column="commit_id"/>
+        <association property="author" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap"/>
     </resultMap>
 
     <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
@@ -270,12 +275,16 @@
         order by act.operation_timestamp desc limit #{offset},#{limit}
     </select>
 
-    <select id="getCommitAuthor" parameterType="java.util.Map"
-            resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap">
-        SELECT u.*
+    <select id="getCommitAuthors" parameterType="java.util.Map" resultMap="CommitAuthorMap">
+        SELECT a.commit_id, u.*
         FROM audit a
         INNER JOIN user u on u.username = a.actor_id
-        WHERE a.commit_id = #{commitId}
+        WHERE site_id = #{siteId}
+        AND a.commit_id IN
+        <foreach item="commitId" collection="commitIds" open="(" separator="," close=")">
+            #{commitId}
+        </foreach>
+        AND a.primary_target_value = #{path}
         AND origin = 'API'
     </select>
 

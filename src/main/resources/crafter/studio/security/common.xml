@@ -43,6 +43,12 @@
         <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
     </bean>
 
+    <bean id="sessionTimeoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditSessionTimeoutListener">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+    </bean>
+
     <!-- Users -->
 
     <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
@@ -238,6 +244,8 @@
         <!-- The UI needs to have access to the cookie -->
         <property name="cookieHttpOnly" value="false"/>
     </bean>
+
+    <bean id="csrfTokenRequestHandler" class="org.craftercms.studio.api.v2.security.StudioCsrfTokenRequestHandler" />
 
     <!--  Available Actions  -->
     <bean id="studio.availableActionsResolver"

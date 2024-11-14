@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -54,6 +54,7 @@ import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_
 import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
+import static org.craftercms.studio.impl.v2.utils.DependencyUtils.isValidDependencyPath;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
 
@@ -225,11 +226,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     @LogExecutionTime
     public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) {
         Map<String, Set<ResolvedDependency>> dependencies = null;
-        boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
-        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
-        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
-        boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
-        if (isXml || isCss || isJs || isTemplate) {
+        if (isValidDependencySource(siteId, path)) {
             dependencies = dependencyResolver.resolve(siteId, path);
         }
         return dependencies;
@@ -243,6 +240,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         for (Map.Entry<String, Set<ResolvedDependency>> entry : resolveDependencies.entrySet()) {
             dependencies.addAll(
                     entry.getValue().stream()
+                            .filter(dep -> isValidDependencyPath(dep.path()))
                             .map(dep -> {
                                 Dependency dependency = new Dependency();
                                 dependency.setSite(site);
@@ -302,6 +300,21 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             throw new ServiceLayerException(format("Failed to validate dependencies for site '%s' path '%s'",
                     siteId, targetPath), e);
         }
+    }
+
+    @Override
+    public void validateDependencies(final String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForSite(siteId));
+    }
+
+    @Override
+    public boolean isValidDependencySource(final String siteId, final String path) {
+        boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
+        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
+        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
+        boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
+
+        return isXml || isCss || isJs || isTemplate;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -399,4 +399,27 @@ public interface ItemServiceInternal {
      * @param path path of the folder where the new index.xml has been added
      */
     void updateNewPageChildren(String site, String path);
+
+    /**
+     * Recalculate the parent id for all the items in the site
+     * @param siteId the site id
+     */
+    void updateParentId(String siteId);
+
+    /**
+     * Recalculate the parent id for the given paths
+     *
+     * @param siteId the site id
+     * @param paths  the paths to update
+     */
+    void updateParentId(long siteId, Collection<String> paths);
+
+    /**
+     * Recalculate the item states for the given paths based
+     * on the publish_request and workflow tables
+     *
+     * @param siteId the site id
+     * @param paths  the item paths to update
+     */
+    void recalculateItemStates(String siteId, List<String> paths);
 }

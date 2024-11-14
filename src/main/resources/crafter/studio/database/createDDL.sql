@@ -54,18 +54,23 @@ BEGIN
     INSERT INTO remote_repository (id, site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
         SELECT null, siteId, r.remote_name, r.remote_url, r.authentication_type, r.remote_username, r.remote_password, r.remote_token, r.remote_private_key FROM remote_repository r WHERE r.site_id = sourceSiteId;
 
-    INSERT INTO dependency (id, site, source_path, target_path, type)
-        SELECT null, siteId, d.source_path, d.target_path, d.type FROM dependency d WHERE d.site = sourceSiteId;
+    INSERT INTO dependency (id, site, source_path, target_path, type, valid)
+        SELECT null, siteId, d.source_path, d.target_path, d.type, d.valid FROM dependency d WHERE d.site = sourceSiteId;
 
     INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, previous_path, ignored)
         SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.previous_path, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
-    /* parent_id points to original item parent */
     SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
-    CALL populateItemParentId(@siteNumericId);
 
     INSERT INTO navigation_order_sequence (folder_id, site, path, max_count)
         SELECT UUID(), siteId, nos.path, nos.max_count FROM navigation_order_sequence nos WHERE nos.site = sourceSiteId;
+
+    SELECT id FROM site WHERE site_id = sourceSiteId AND deleted = 0 INTO @sourceSiteNumericId;
+
+    INSERT INTO processed_commits (id, site_id, commit_id)
+        SELECT null, @siteNumericId, pc.commit_id
+        FROM processed_commits pc
+        WHERE site_id = @sourceSiteNumericId;
 END ;
 
 CREATE PROCEDURE addColumnIfNotExists(
@@ -197,6 +202,9 @@ BEGIN
 
         -- audit log
         DELETE FROM audit WHERE site_id = id;
+
+        -- processed_commits
+        DELETE FROM processed_commits WHERE site_id = id;
     END IF;
 END ;
 
@@ -207,7 +215,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.8', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.17', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -228,7 +236,8 @@ CREATE TABLE IF NOT EXISTS `audit` (
   KEY `audit_actor_idx` (`actor_id`),
   KEY `audit_site_idx` (`site_id`),
   KEY `audit_operation_idx` (`operation`),
-  KEY `audit_origin_idx` (`origin`)
+  KEY `audit_origin_idx` (`origin`),
+  KEY `audit_primary_target_value_idx` (`primary_target_value`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
@@ -259,7 +268,8 @@ CREATE TABLE IF NOT EXISTS `dependency` (
   `valid`       BIT         NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `dependency_site_idx` (`site`),
-  KEY `dependency_sourcepath_idx` (`source_path`(1000))
+  KEY `dependency_sourcepath_idx` (`source_path`(1000)),
+  KEY `dependency_targetpath_idx` (`target_path`(1000))
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
@@ -324,6 +334,19 @@ CREATE TABLE IF NOT EXISTS `site` (
   INDEX `site_id_idx` (`site_id` ASC)
 )
 
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `processed_commits`
+(
+    `id`        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `site_id`   BIGINT(20)      NOT NULL,
+    `commit_id` CHAR(40)        NOT NULL,
+    PRIMARY KEY(`id`),
+    UNIQUE INDEX `ingested_commits_commit_id_site_id` (`commit_id`, `site_id`),
+    FOREIGN KEY `ingested_commits_site_id` (`site_id`) REFERENCES `site` (`id`)
+)
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
@@ -514,7 +537,8 @@ CREATE TABLE IF NOT EXISTS `item` (
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
   FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
   UNIQUE uq_i_site_path (`site_id`, `path`(900)),
-  INDEX item_i_path (`path` ASC)
+  INDEX item_i_path (`path` ASC),
+  INDEX item_i_previous_path (`previous_path`)
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8

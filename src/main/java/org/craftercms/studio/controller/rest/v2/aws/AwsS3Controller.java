@@ -118,6 +118,7 @@ public class AwsS3Controller {
             String siteId = null;
             String profileId = null;
             String path = null;
+            String filename = null;
             while (iterator.hasNext()) {
                 FileItemInput item = iterator.next();
                 String name = item.getFieldName();
@@ -132,11 +133,16 @@ public class AwsS3Controller {
                                 break;
                             case REQUEST_PARAM_PATH:
                                 path = Streams.asString(stream);
+                                break;
+                            case REQUEST_PARAM_NAME:
+                                filename = Streams.asString(stream);
                             default:
                                 // Unknown parameter, just skip it...
                         }
                     } else {
-                        String filename = item.getName();
+                        if (StringUtils.isEmpty(filename)) {
+                            filename = item.getName();
+                        }
                         if (StringUtils.isNotEmpty(filename)) {
                             filename = FilenameUtils.getName(filename);
                         }

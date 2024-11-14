@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -316,22 +317,17 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
         logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
-                Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
+                String result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
                     boolean isFolder = isFolder(site, fromPath);
-                    Map<String, String> diskResult =
+                    String diskResult =
                             localRepositoryV1.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
                                     isFolder ? toPath : getPointerPath(site, toPath), newName);
-                    Set<String> keys = new HashSet<>(diskResult.keySet());
-                    keys.forEach(k -> {
-                        String val = diskResult.get(k);
-                        diskResult.put(getPathFromPointerPath(site, k), val);
-                    });
                     return diskResult;
                 }
             }
@@ -473,6 +469,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                 targetBlobStore.copyBlobs(sourceBlobStore, environment, paths);
             } catch (Exception e) {
                 logger.error("Failed to copy blob from source site '{}' to target site '{}'", sourceSiteId, siteId, e);
+                throw e;
             }
         }
     }
@@ -711,17 +708,10 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
 
     @Override
     @LogExecutionTime
-    public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        Map<String, String> changeSet = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
-        Map<String, String> newChangeSet = new TreeMap<>();
-
-        changeSet.forEach((key, value) -> {
-            String newKey = getOriginalPath(key);
-            String newValue = getOriginalPath(value);
-            newChangeSet.put(newKey, newValue);
-        });
-
-        return newChangeSet;
+    public void forAllSitePaths(String siteId,
+                                ThrowingConsumer<String> directoryProcessor,
+                                ThrowingConsumer<String> fileProcessor) throws Exception {
+        localRepositoryV2.forAllSitePaths(siteId, directoryProcessor, f -> fileProcessor.acceptWithException(getOriginalPath(f)));
     }
 
     @Override

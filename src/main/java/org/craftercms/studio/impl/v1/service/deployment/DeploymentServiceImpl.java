@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import org.apache.commons.collections.FastArrayList;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.FilenameUtils;
@@ -26,7 +26,6 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -42,7 +41,6 @@ import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
@@ -60,13 +58,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
-import jakarta.validation.Valid;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
@@ -74,8 +70,8 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_START_STOP_PUBLISHER;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 
 /**
  */
@@ -114,7 +110,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                        @ValidateStringParam String submissionComment,
                        final boolean scheduleDateNow)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-
         if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
@@ -233,40 +228,30 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     params.put("environment", environment);
                     params.put("state", PublishRequest.State.READY_FOR_LIVE);
                     params.put("path", path);
-                    if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info("The publishRequest in site '{}' path '{}' has already been " +
-                                "queued for publishing to the target '{}'. Will not add again.",
-                                site, path, environment);
-                    } else {
-                        publishRequest.setId(++CTED_AUTOINCREMENT);
-                        publishRequest.setSite(site);
-                        publishRequest.setEnvironment(environment);
-                        publishRequest.setPath(path);
-                        publishRequest.setScheduledDate(scheduledDate);
-                        publishRequest.setState(PublishRequest.State.READY_FOR_LIVE);
-                        publishRequest.setAction(action);
-                        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
-                            String oldPath = it.getPreviousPath();
-                            publishRequest.setOldPath(oldPath);
-                        }
 
-                        String contentTypeClass = contentService.getContentTypeClass(site, path);
-                        publishRequest.setContentTypeClass(contentTypeClass);
-                        publishRequest.setUser(approver);
-                        publishRequest.setSubmissionComment(submissionComment);
-                        publishRequest.setPackageId(packageId);
-                        newItems.add(publishRequest);
+                    publishRequest.setId(++CTED_AUTOINCREMENT);
+                    publishRequest.setSite(site);
+                    publishRequest.setEnvironment(environment);
+                    publishRequest.setPath(path);
+                    publishRequest.setScheduledDate(scheduledDate);
+                    publishRequest.setState(PublishRequest.State.READY_FOR_LIVE);
+                    publishRequest.setAction(action);
+                    if (StringUtils.isNotEmpty(it.getPreviousPath())) {
+                        String oldPath = it.getPreviousPath();
+                        publishRequest.setOldPath(oldPath);
                     }
+
+                    String contentTypeClass = contentService.getContentTypeClass(site, path);
+                    publishRequest.setContentTypeClass(contentTypeClass);
+                    publishRequest.setUser(approver);
+                    publishRequest.setSubmissionComment(submissionComment);
+                    publishRequest.setPackageId(packageId);
+                    newItems.add(publishRequest);
 
 
                     User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                    Workflow workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
-                    boolean insert = false;
-                    if (Objects.isNull(workflow)) {
-                        workflow = new Workflow();
-                        workflow.setItemId(it.getId());
-                        insert = true;
-                    }
+                    Workflow workflow = new Workflow();
+                    workflow.setItemId(it.getId());
                     workflow.setState(STATE_APPROVED);
                     workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
@@ -275,13 +260,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     workflow.setReviewerComment(submissionComment);
                     workflow.setReviewerId(reviewer.getId());
                     workflow.setPublishingPackageId(packageId);
-                    if (insert) {
-                        // If new, the submitter is the current user as well
-                        workflow.setSubmitterId(reviewer.getId());
-                        workflowServiceInternal.insertWorkflow(workflow);
-                    } else {
-                        workflowServiceInternal.updateWorkflow(workflow);
-                    }
+
+                    // The submitter is the current user as well
+                    workflow.setSubmitterId(reviewer.getId());
+                    workflowServiceInternal.insertWorkflow(workflow);
                 }
             }
         }
@@ -301,8 +283,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         for (String environment : environments) {
             List<PublishRequest> items =
                     createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
-            for (PublishRequest item : items) {
-                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
+
+            if (contentRepositoryV2.publishedRepositoryExists(site)) {
+                for (PublishRequest item : items) {
+                    retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
+                }
             }
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
@@ -400,25 +385,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     @Override
     @Valid
-    public List<org.craftercms.studio.api.v2.dal.PublishRequest> getScheduledItems(
-            @ValidateStringParam String site, String filterType) {
-        String contentTypeClass = null;
-        switch (filterType) {
-            case CONTENT_TYPE_PAGE:
-            case CONTENT_TYPE_COMPONENT:
-            case CONTENT_TYPE_ASSET:
-                contentTypeClass = filterType;
-                break;
-            default:
-                contentTypeClass = null;
-                break;
-        }
-        return publishRequestDAO.getScheduledItems(site, PublishRequest.State.READY_FOR_LIVE, contentTypeClass,
-                DateUtils.getCurrentTime());
-    }
-
-    @Override
-    @Valid
     public void cancelWorkflow(@ValidateStringParam String site,
                                @ValidateSecurePathParam String path) throws DeploymentException {
         Map<String, Object> params = new HashMap<>();
@@ -440,137 +406,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", DateUtils.getCurrentTime());
         retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.cancelWorkflowBulk(params));
-    }
-
-    @Override
-    @Valid
-    public List<ContentItemTO> getScheduledItems(@ValidateStringParam String site,
-                                                 @ValidateStringParam String sort,
-                                                 boolean ascending,
-                                                 @ValidateStringParam String subSort,
-                                                 boolean subAscending,
-                                                 @ValidateStringParam String filterType)
-            throws ServiceLayerException {
-        if (StringUtils.isEmpty(sort)) {
-            sort = DmContentItemComparator.SORT_EVENT_DATE;
-        }
-        DmContentItemComparator comparator =
-                new DmContentItemComparator(sort, ascending, true, true);
-        DmContentItemComparator subComparator =
-                new DmContentItemComparator(subSort, subAscending, true, true);
-        List<ContentItemTO> items = null;
-        items = getScheduledItems(site, comparator, subComparator, filterType);
-        return items;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator,
-                                                    DmContentItemComparator subComparator, String filterType) {
-        List<ContentItemTO> results = new FastArrayList();
-        List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-        List<org.craftercms.studio.api.v2.dal.PublishRequest> deploying = getScheduledItems(site, filterType);
-        for (org.craftercms.studio.api.v2.dal.PublishRequest deploymentItem : deploying) {
-            Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
-                    securityService.getCurrentUser(), Collections.emptyList());
-            if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(),
-                        deploymentItem.getPath(), deploymentItem.getPackageId(), results, comparator, subComparator,
-                        displayPatterns);
-            }
-        }
-        return results;
-    }
-
-    /**
-     * add a scheduled item created from the given node to the scheduled items
-     * list if the item is not a component or a static asset
-     *
-     * @param site
-     * @param launchDate
-     * @param scheduledItems
-     * @param comparator
-     * @param displayPatterns
-     */
-    protected void addScheduledItem(String site, String environment, ZonedDateTime launchDate,
-                                    String path, String packageId, List<ContentItemTO> scheduledItems,
-                                    DmContentItemComparator comparator, DmContentItemComparator subComparator,
-                                    List<String> displayPatterns) {
-        try {
-            addToScheduledDateList(site, environment, launchDate, path, packageId, scheduledItems, comparator,
-                    subComparator, displayPatterns);
-            if (!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
-                path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
-            }
-        } catch (ServiceLayerException e) {
-            logger.error("Failed to add scheduled items in site '{}' path '{}'", site, path, e);
-        }
-    }
-
-    /**
-     * add the given node to the scheduled items list
-     *
-     * @param site
-     * @param launchDate
-     * @param scheduledItems
-     * @param comparator
-     * @param subComparator
-     * @param displayPatterns
-     * @throws ServiceLayerException
-     */
-    protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate, String path,
-                                          String packageId, List<ContentItemTO> scheduledItems,
-                                          DmContentItemComparator comparator, DmContentItemComparator subComparator,
-                                          List<String> displayPatterns)
-            throws ServiceLayerException {
-        String timeZone = servicesConfig.getDefaultTimezone(site);
-        String dateLabel =
-                launchDate.withZoneSameInstant(ZoneId.of(timeZone)).format(ISO_OFFSET_DATE_TIME);
-        // add only if the current node is a file (directories are
-        // deployed with index.xml)
-        // display only if the path matches one of display patterns
-        if (ContentUtils.matchesPatterns(path, displayPatterns)) {
-            ContentItemTO itemToAdd = contentService.getContentItem(site, path, 0);
-            itemToAdd.scheduledDate = launchDate;
-            itemToAdd.environment = environment;
-            itemToAdd.packageId = packageId;
-            boolean found = false;
-            for (int index = 0; index < scheduledItems.size(); index++) {
-                ContentItemTO currDateItem = scheduledItems.get(index);
-                // if the same date label found, add the content item to
-                // it non-recursively
-                if (currDateItem.name.equals(dateLabel)) {
-                    currDateItem.addChild(itemToAdd, subComparator, false);
-                    found = true;
-                    break;
-                    // if the date is after the current date, add a new
-                    // date item before it
-                    // and add the content item to the new date item
-                } else if (itemToAdd.scheduledDate.compareTo(currDateItem.scheduledDate) < 0) {
-                    ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
-                    scheduledItems.add(index, dateItem);
-                    found = true;
-                    break;
-                }
-            }
-            // if not found, add to the end of list
-            if (!found) {
-                ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
-                scheduledItems.add(dateItem);
-            }
-
-        }
-    }
-
-    protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator,
-                                           String timeZone) {
-        ContentItemTO dateItem = new ContentItemTO();
-        dateItem.name = name;
-        dateItem.internalName = name;
-        dateItem.eventDate = itemToAdd.scheduledDate;
-        dateItem.scheduledDate = itemToAdd.scheduledDate;
-        dateItem.timezone = timeZone;
-        dateItem.addChild(itemToAdd, comparator, false);
-        return dateItem;
     }
 
     protected Set<String> getAllPublishedEnvironments(String site) {
@@ -739,38 +574,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         }
         logger.debug("Created '{}' publish requests for site '{}' target '{}'", newItems.size(), site, environment);
         return newItems;
-    }
-
-    @Override
-    public void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
-                             String submissionComment)
-            throws ServiceLayerException, DeploymentException, UserNotFoundException {
-
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-        Set<String> environements = getAllPublishedEnvironments(site);
-        if (!environements.contains(environment)) {
-            throw new EnvironmentNotFoundException();
-        }
-        // get all publishing dependencies
-        Set<String> dependencies = dependencyService.calculateDependenciesPaths(site, paths);
-        Set<String> allPaths = new HashSet<>();
-        allPaths.addAll(paths);
-        allPaths.addAll(dependencies);
-
-        // remove all items from existing workflows
-        cancelWorkflowBulk(site, allPaths);
-
-        // send to deployment queue
-        List<String> asList = new ArrayList<>(allPaths);
-        String approver = securityService.getCurrentUser();
-        boolean scheduledDateIsNow = false;
-        if (schedule == null) {
-            scheduledDateIsNow = true;
-            schedule = DateUtils.getCurrentTime();
-        }
-        deploy(site, environment, asList, schedule, approver, submissionComment, scheduledDateIsNow);
     }
 
     @Override
