@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,33 +23,16 @@ import javax.sql.DataSource;
 
 public class StudioDBScriptRunnerFactoryImpl implements StudioDBScriptRunnerFactory {
 
-    protected String delimiter;
     protected DataSource dataSource;
     protected int scriptLinesBufferSize = 10000;
 
     @Override
     public StudioDBScriptRunner getDBScriptRunner() {
-        return new StudioDBScriptRunnerImpl(delimiter, dataSource, scriptLinesBufferSize);
-    }
-
-    public String getDelimiter() {
-        return delimiter;
-    }
-
-    public void setDelimiter(String delimiter) {
-        this.delimiter = delimiter;
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
+        return new StudioDBScriptRunnerImpl(dataSource, scriptLinesBufferSize);
     }
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    public int getScriptLinesBufferSize() {
-        return scriptLinesBufferSize;
     }
 
     public void setScriptLinesBufferSize(int scriptLinesBufferSize) {

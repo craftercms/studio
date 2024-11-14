@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,25 +14,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.exception.content;
+package org.craftercms.studio.api.v2.dal;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.model.rest.Person;
 
-public class ContentAlreadyUnlockedException extends ServiceLayerException {
+public class CommitAuthor {
+    private String commitId;
+    private Person author;
 
-    public ContentAlreadyUnlockedException() {
-        super();
+    public String getCommitId() {
+        return commitId;
     }
 
-    public ContentAlreadyUnlockedException(Throwable e) {
-        super(e);
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
     }
 
-    public ContentAlreadyUnlockedException(String message) {
-        super(message);
+    public Person getAuthor() {
+        return author;
     }
 
-    public ContentAlreadyUnlockedException(String message, Exception e) {
-        super(message, e);
+    public void setAuthor(Person author) {
+        this.author = author;
     }
 }
+

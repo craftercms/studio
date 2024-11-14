@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -108,7 +109,7 @@ public interface PublishRequestDAO {
      * @param cancelledState cancelled state
      */
     void cancelPackages(@Param(SITE_ID) String siteId,
-                        @Param(PACKAGE_IDS) List<String> packageIds,
+                        @Param(PACKAGE_IDS) Collection<String> packageIds,
                         @Param(CANCELLED_STATE) String cancelledState);
 
     /**
@@ -259,4 +260,34 @@ public interface PublishRequestDAO {
                                         @Param(ACTIVITY_ACTION) String activityAction,
                                         @Param(PUBLISH_STATE) String publishState,
                                         @Param(PUBLISH_ACTION) String publishAction);
+
+    /**
+     * Get the READY_FOR_LIVE packages containing the given path
+     *
+     * @param siteId the site id
+     * @param path   the path to test
+     * @return a list of packages containing the path
+     */
+    default Collection<String> getPackagesForPath(@Param(SITE_ID) String siteId, @Param(PATH) String path) {
+        return getPackagesForPath(siteId, path, PublishRequest.State.READY_FOR_LIVE);
+    }
+
+    /**
+     * Get the paths packages containing the given path and matching the state
+     *
+     * @param siteId the site id
+     * @param path   the path to test
+     * @param state  the state to match
+     * @return a list of packages containing the path
+     */
+    Collection<String> getPackagesForPath(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(STATE) String state);
+
+    /**
+     * Get a list of the paths contained in the given packages
+     *
+     * @param site     the site id
+     * @param packages the packages to retrieve items for
+     * @return a list of the paths contained in the packages
+     */
+    Collection<String> getPackagePaths(@Param(SITE_ID) String site, @Param(PACKAGE_IDS) Collection<String> packages);
 }

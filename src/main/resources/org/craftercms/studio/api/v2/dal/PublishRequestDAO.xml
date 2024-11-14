@@ -279,4 +279,22 @@
         AND s.deleted = 0
         AND pr.state = #{publishState} AND pr.action = #{publishAction};
     </select>
+
+    <select id="getPackagesForPath">
+        SELECT DISTINCT package_id
+        FROM publish_request pr
+        WHERE pr.site = #{siteId}
+        AND pr.state = #{state}
+        AND pr.path = #{path}
+    </select>
+
+    <select id="getPackagePaths">
+        SELECT DISTINCT path
+        FROM publish_request pr
+        WHERE pr.site = #{siteId}
+        AND pr.package_id IN
+            <foreach collection="packageIds" item="packageId" separator="," open="(" close=")">
+                #{packageId}
+            </foreach>
+    </select>
 </mapper>

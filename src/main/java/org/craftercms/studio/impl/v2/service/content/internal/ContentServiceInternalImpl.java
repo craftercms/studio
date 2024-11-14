@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -25,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.dal.CommitAuthor;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -34,6 +36,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.rest.Person;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
@@ -52,6 +55,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -64,6 +68,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITE
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
+
+    private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
 
     private ContentRepository contentRepository;
     private ItemDAO itemDao;
@@ -245,7 +251,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+    public List<SandboxItem> getSandboxItemsByPath(String siteId, Collection<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
@@ -320,10 +326,25 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
         try {
+            Map<String, Object> params = new HashMap<>();
+            params.put(SITE_ID, siteId);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+
             List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
-            for (ItemVersion itemVersion : history) {
-                if (itemVersion.getVersionNumber() != null) {
-                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber(), path));
+
+            for (List<ItemVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
+                List<String> commitIds = batch.stream()
+                        .map(ItemVersion::getVersionNumber)
+                        .filter(Objects::nonNull)
+                        .collect(toList());
+                List<CommitAuthor> commitAuthors = auditServiceInternal.getCommitAuthors(siteFeed.getId(), commitIds, path);
+                Map<String, Person> authorsMap = commitAuthors.stream()
+                        .collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
+                for (ItemVersion itemVersion : batch) {
+                    String versionNumber = itemVersion.getVersionNumber();
+                    if (authorsMap.containsKey(versionNumber)) {
+                        itemVersion.setAuthor(authorsMap.get(versionNumber));
+                    }
                 }
             }
             return history;

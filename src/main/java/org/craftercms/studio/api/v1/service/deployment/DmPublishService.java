@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,8 +29,6 @@ public interface DmPublishService {
     void unpublish(String site, List<String> paths, String approver);
 
     void unpublish(String site, List<String> paths, String approver, ZonedDateTime scheduleDate);
-
-    void cancelScheduledItem(String site, String path);
 
     /**
      * Start executing bulk publish for given site, path on given environment

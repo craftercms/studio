@@ -31,6 +31,7 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
+import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -246,14 +247,15 @@ public interface ContentRepository {
     String getLastEditCommitId(String siteId, String path);
 
     /**
-     * Get a list of paths that changed since the commit ID provided to commit ID provided
+     * Execute consumers for all site paths for the given site
      *
-     * @param site         site to use
-     * @param commitIdFrom commit ID to start at
-     * @param commitIdTo   commit ID to end at
-     * @return list of paths of files that changed between two commits
+     * @param siteId             the site id
+     * @param directoryProcessor the consumer to process the directory paths
+     * @param fileProcessor      the consumer to process the file paths
      */
-    Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo);
+    void forAllSitePaths(String siteId,
+                         ThrowingConsumer<String> directoryProcessor,
+                         ThrowingConsumer<String> fileProcessor) throws Exception;
 
     /**
      * Get environment properties for item

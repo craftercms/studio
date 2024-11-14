@@ -41,7 +41,6 @@ import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
-import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
@@ -309,7 +308,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
     public void unlockContent(@SiteId String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-            throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+            throws ContentNotFoundException, SiteNotFoundException {
         logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
         generalLockService.lockContentItem(siteId, path);
         try {
@@ -319,8 +318,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
             }
             if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
-                logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
-                throw new ContentAlreadyUnlockedException();
+                logger.warn("Skipping unlock operation for item in site '{}' at path '{}': Item is already unlocked.", siteId, path);
+                return;
             }
             contentServiceInternal.itemUnlockByPath(siteId, path);
             itemServiceInternal.unlockItemByPath(siteId, path);

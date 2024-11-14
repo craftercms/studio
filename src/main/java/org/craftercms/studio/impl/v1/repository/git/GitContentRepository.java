@@ -452,7 +452,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private void insertProcessedCommitId(final String siteId, final String commitId) {
         Site site = siteDao.getSite(siteId);
         if (site != null) {
-            processedCommitsDao.insertCommit(site.getId(), commitId);
+            retryingDatabaseOperationFacade.retry(() -> processedCommitsDao.insertCommit(site.getId(), commitId));
         }
     }
 

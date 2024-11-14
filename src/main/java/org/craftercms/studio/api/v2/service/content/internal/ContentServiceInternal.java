@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,6 +30,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.springframework.core.io.Resource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -137,7 +138,7 @@ public interface ContentServiceInternal {
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+    List<SandboxItem> getSandboxItemsByPath(String siteId, Collection<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
 
     /**

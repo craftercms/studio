@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,7 @@ package org.craftercms.studio.impl.v1.service.workflow;
 
 import jakarta.validation.Valid;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -33,8 +32,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
@@ -45,9 +44,8 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -56,7 +54,7 @@ import org.springframework.context.ApplicationContextAware;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * workflow service implementation
@@ -120,70 +118,30 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         return false;
     }
 
-    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException, UserNotFoundException {
-        List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
-        List<String> paths = new ArrayList<>();
-        for (String affectedItem : allItemsToCancel) {
-            try {
-                deploymentService.cancelWorkflow(site, affectedItem);
-                paths.add(affectedItem);
-            } catch (DeploymentException e) {
-                // TODO: SJ: This can get excessive since it's in a loop. Refactor.
-                logger.trace("Failed to cancel workflow in site '{}' path '{}'", site, affectedItem, e);
-            }
+    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException {
+        Set<String> affectedPaths = new HashSet<>();
+        Collection<String> affectedPackages = publishServiceInternal.getWorkflowAffectedPackages(site, path);
+        if (CollectionUtils.isNotEmpty(affectedPackages)) {
+            publishServiceInternal.cancelPublishingPackages(site, affectedPackages);
+            workflowServiceInternal.deleteWorkflowPackages(site, affectedPackages);
+            affectedPaths.addAll(publishServiceInternal.getPackagePaths(site, affectedPackages));
         }
-        if (CollectionUtils.isNotEmpty(paths)) {
-            workflowServiceInternal.deleteWorkflowEntries(site, paths);
-            itemServiceInternal.updateStateBitsBulk(site, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
+
+        Collection<String> workflowHardDeps = new HashSet<>(workflowServiceInternal.getWorkflowHardDeps(site, path));
+        workflowHardDeps.add(path);
+        workflowServiceInternal.deleteWorkflowEntries(site, workflowHardDeps, Workflow.STATE_OPENED);
+        affectedPaths.addAll(workflowHardDeps);
+
+        if (isNotEmpty(affectedPaths)) {
+            recalculateItemStates(site, affectedPaths.stream().toList());
             applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
         }
     }
 
-    protected List<String> getWorkflowAffectedPathsInternal(String site, String path)
-            throws ServiceLayerException, UserNotFoundException {
-        List<String> affectedPaths = new ArrayList<>();
-        List<String> filteredPaths = new ArrayList<>();
-        Item item = itemServiceInternal.getItem(site, path);
-        if (isInWorkflowOrScheduled(item.getState())) {
-            affectedPaths.add(path);
-            boolean isNew = isNew(item.getState());
-            boolean isRenamed = StringUtils.isNotEmpty(item.getPreviousPath());
-            if (isNew || isRenamed) {
-                getMandatoryChildren(site, path, affectedPaths);
-            }
-            List<String> dependencyPaths = new ArrayList<>(dependencyService.getPublishingDependencies(site, affectedPaths));
-            affectedPaths.addAll(dependencyPaths);
-            List<String> candidates = new ArrayList<>();
-            for (String p : affectedPaths) {
-                if (!candidates.contains(p)) {
-                    candidates.add(p);
-                }
-            }
-
-            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(site, candidates, true);
-            for (SandboxItem cp : candidateItems) {
-                if (isInWorkflowOrScheduled(cp.getState())) {
-                    filteredPaths.add(cp.getPath());
-                }
-            }
-        }
-        return filteredPaths;
-    }
-
-    private void getMandatoryChildren(String site, String path, List<String> affectedPaths)
-            throws UserNotFoundException, ServiceLayerException {
-        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null, null,
-                null, 0, Integer.MAX_VALUE);
-        if (result != null) {
-            if (Objects.nonNull(result.getLevelDescriptor())) {
-                affectedPaths.add(result.getLevelDescriptor().getPath());
-            }
-            if (CollectionUtils.isNotEmpty(result.getChildren())) {
-                for (SandboxItem item : result.getChildren()) {
-                    affectedPaths.add(item.getPath());
-                    getMandatoryChildren(site, item.getPath(), affectedPaths);
-                }
-            }
+    // Recalculate state bits based on the current publish_request and workflow tables
+    private void recalculateItemStates(final String siteId, final List<String> affectedPaths) {
+        for (List<String> batch : ListUtils.partition(affectedPaths, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
+            itemServiceInternal.recalculateItemStates(siteId, batch);
         }
     }
 
