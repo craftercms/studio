@@ -516,8 +516,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
   FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
   UNIQUE uq_i_site_path (`site_id`, `path`(900)),
-  INDEX item_i_path (`path` ASC),
-  INDEX item_i_previous_path (`previous_path`)
+  INDEX item_i_path (`path` ASC)
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
