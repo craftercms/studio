@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -106,7 +106,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         if (StringUtils.isNotEmpty(script)) {
             Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
             try {
-                scriptExecutor.executeScriptString(script, model);
+                scriptExecutor.executeScriptString(site, script, model);
             } catch (Exception e) {
                 logger.error("Failed to execute content lifecycle script in site '{}' path '{}'", site, path, e);
             }
