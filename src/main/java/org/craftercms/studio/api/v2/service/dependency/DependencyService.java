@@ -144,4 +144,14 @@ public interface DependencyService {
      * @param siteId the site id
      */
     void validateDependencies(String siteId);
+
+    /**
+     * Indicate if the given path is a valid dependency source. e.g.: templates, pages, components
+     * Some files cannot have dependencies, like images or txt files
+     *
+     * @param siteId the site id
+     * @param path   the path to check
+     * @return true if the path is a valid dependency source, false otherwise
+     */
+    boolean isValidDependencySource(String siteId, String path);
 }

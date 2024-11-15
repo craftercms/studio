@@ -48,6 +48,8 @@ public final class  QueryParameterNames {
     public static final String NEW_PATH = "newPath";
     // commit id
     public static final String COMMIT_ID = "commitId";
+    // commit ids
+    public static final String COMMIT_IDS = "commitIds";
     // state
     public static final String STATE = "state";
     public static final String IS_SCHEDULED = "isScheduled";

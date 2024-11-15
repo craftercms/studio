@@ -21,7 +21,7 @@
 
 -->
 <site-config>
-    <version>4.0.1.2</version>
+    <version>4.2.0.0</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
 

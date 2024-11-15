@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -130,17 +130,6 @@ public interface ContentServiceInternal extends ContentService {
      * @return detailed item
      */
     DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get sandbox items for given list of paths
-     *
-     * @param siteId        site identifier
-     * @param paths         list of paths to get sandbox items
-     * @param preferContent if true return content items if available
-     * @return list of sandbox items
-     */
-    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
 
     /**

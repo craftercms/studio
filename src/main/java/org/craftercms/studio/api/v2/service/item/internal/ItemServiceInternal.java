@@ -340,4 +340,12 @@ public interface ItemServiceInternal {
      * @param siteId the site id
      */
     void updateParentId(String siteId);
+
+    /**
+     * Recalculate the parent id for the given paths
+     *
+     * @param siteId the site id
+     * @param paths  the paths to update
+     */
+    void updateParentId(long siteId, Collection<String> paths);
 }

@@ -108,6 +108,13 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     @RequireSiteExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public boolean isValidDependencySource(final String siteId, final String path) {
+        return dependencyServiceInternal.isValidDependencySource(siteId, path);
+    }
+
+    @Override
+    @RequireSiteExists
     public void validateDependencies(String siteId) {
         dependencyServiceInternal.validateDependencies(siteId);
     }

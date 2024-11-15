@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
@@ -47,6 +48,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.rest.Person;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
@@ -70,6 +72,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -84,6 +87,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 
     private GitContentRepository contentRepository;
+    private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private SecurityService securityService;
@@ -336,10 +340,23 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     @Override
     public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
         try {
+            Site site = siteService.getSite(siteId);
+
             List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
-            for (ItemVersion itemVersion : history) {
-                if (itemVersion.getVersionNumber() != null) {
-                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber(), path));
+
+            for (List<ItemVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
+                List<String> commitIds = batch.stream()
+                        .map(ItemVersion::getVersionNumber)
+                        .filter(Objects::nonNull)
+                        .collect(toList());
+                List<CommitAuthor> commitAuthors = auditServiceInternal.getCommitAuthors(site.getId(), commitIds, path);
+                Map<String, Person> authorsMap = commitAuthors.stream()
+                        .collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
+                for (ItemVersion itemVersion : batch) {
+                    String versionNumber = itemVersion.getVersionNumber();
+                    if (authorsMap.containsKey(versionNumber)) {
+                        itemVersion.setAuthor(authorsMap.get(versionNumber));
+                    }
                 }
             }
             return history;

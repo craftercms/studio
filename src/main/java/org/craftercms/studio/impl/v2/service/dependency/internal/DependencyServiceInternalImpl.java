@@ -138,11 +138,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
     @LogExecutionTime
     public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) {
         Map<String, Set<ResolvedDependency>> dependencies = null;
-        boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
-        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
-        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
-        boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
-        if (isXml || isCss || isJs || isTemplate) {
+        if (isValidDependencySource(siteId, path)) {
             dependencies = dependencyResolver.resolve(siteId, path);
         }
         return dependencies;
@@ -221,6 +217,16 @@ public class DependencyServiceInternalImpl implements DependencyService {
     @Override
     public void validateDependencies(final String siteId) {
         retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForSite(siteId));
+    }
+
+    @Override
+    public boolean isValidDependencySource(final String siteId, final String path) {
+        boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
+        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
+        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
+        boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
+
+        return isXml || isCss || isJs || isTemplate;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

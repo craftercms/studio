@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.collections4.MapUtils;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 
@@ -55,7 +54,7 @@ public class DependencyUtils {
      */
     public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
                                                      Path file, DependencyService dependencyService)
-            throws IOException, ServiceLayerException {
+            throws IOException {
         addDependenciesScriptSnippets(siteId, path, oldPath, file, dependencyService, true, true);
     }
 
@@ -75,7 +74,6 @@ public class DependencyUtils {
                                                      Path file, DependencyService dependencyService,
                                                      boolean cleanExisting, boolean revalidate)
             throws IOException {
-        Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
         if (cleanExisting) {
             if (isEmpty(oldPath)) {
                 Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
@@ -89,13 +87,17 @@ public class DependencyUtils {
                         StandardOpenOption.APPEND);
             }
         }
-
         if (revalidate) {
             // Validate existing broken dependencies pointing to the item path
             Files.write(file, validateDependencies(siteId, path).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
         }
 
+        if (!dependencyService.isValidDependencySource(siteId, path)) {
+            // Path is not a valid dependency source. e.g.: an image or a txt
+            return;
+        }
+        Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
         if (MapUtils.isEmpty(dependencies)) {
             return;
         }

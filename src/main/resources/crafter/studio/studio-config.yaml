@@ -1007,6 +1007,15 @@ studio.clockJob.task.publisher.executeEveryNCycles: 2
 studio.clockJob.task.publisher.maxRetryCount: 5
 
 ##################################################
+##             Studio Task Executor             ##
+##################################################
+# These properties configure the main Studio task executor, used
+# for running background tasks and other asynchronous operations.
+studio.taskExecutor.corePoolSize: 5
+studio.taskExecutor.maxPoolSize: 10
+studio.taskExecutor.queueCapacity: 25
+
+##################################################
 ##           Studio Groovy Scripts              ##
 ##################################################
 

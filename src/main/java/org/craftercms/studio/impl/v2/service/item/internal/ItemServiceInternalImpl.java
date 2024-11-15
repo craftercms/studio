@@ -478,7 +478,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     public void updateParentId(final String siteId) {
         Site site = siteDao.getSite(siteId);
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(site.getId()));
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentIdForSite(site.getId()));
+    }
+
+    @Override
+    public void updateParentId(final long siteId, final Collection<String> paths) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(siteId, paths));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
