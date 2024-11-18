@@ -23,6 +23,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
@@ -32,6 +33,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
@@ -69,7 +71,6 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String TEMPLATE_MODEL_DEPLOYMENT_ERROR = "deploymentError";
     private static final String TEMPLATE_MODEL_FILES = "files";
     private static final String TEMPLATE_MODEL_PACKAGE = "publishPackage";
-    private static final String TEMPLATE_MODEL_SUBMITTER_USER = "submitterUser";
     private static final String TEMPLATE_MODEL_APPROVER = "approver";
     private static final String TEMPLATE_MODEL_SCHEDULED_DATE = "scheduleDate";
     private static final String TEMPLATE_MODEL_SUBMITTER = "submitter";
@@ -104,7 +105,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @Valid
+    public void notifyPublishError(final String site, final PublishPackage publishPackage, final Throwable throwable,
+                                   final Collection<PublishItem> filesUnableToPublish) {
+        try {
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
+            final Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
+            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
+            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
+            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
+                    templateModel);
+        } catch (Throwable e) {
+            logger.error("Failed to send publishing error notification for site '{}'", site, e);
+        }
+    }
+
+    @Override
     public void notifyPackageApproval(final PublishPackage publishPackage, final Collection<String> paths) {
         String siteId = publishPackage.getSite().getSiteId();
         logger.debug("Sending content approval notification for site '{}', package '{}'", siteId, publishPackage.getId());
@@ -238,7 +254,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (cannedMessages.containsKey(key)) {
             final List<MessageTO> messages = cannedMessages.get(key);
             if (!messages.isEmpty()) {
-                return messages.get(0).getBody();
+                return messages.getFirst().getBody();
             }
         }
         return EMPTY;
@@ -490,6 +506,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.contentService = contentService;
     }
 
+    @SuppressWarnings("unused")
     public void setEmailMessages(final EmailMessageQueueTo emailMessages) {
         this.emailMessages = emailMessages;
     }

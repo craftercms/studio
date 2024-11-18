@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.notification;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 
 import java.util.Collection;
@@ -31,7 +32,9 @@ import java.util.List;
 public interface NotificationService {
 
     /** Notification Message Keys **/
-    /** Action Completed Message Keys **/
+    /**
+     * Action Completed Message Keys
+     **/
     String COMPLETE_GO_LIVE = "go-live";
     String COMPLETE_REJECT = "reject";
     String COMPLETE_SCHEDULE_GO_LIVE = "schedule-to-go-live";
@@ -39,14 +42,14 @@ public interface NotificationService {
     String COMPLETE_DELETE = "delete";
 
     /**
-     * <p>Sends a email to configure emails when a deployment had fail</p>
-     * @param site Name of the site which the deployment fail.
-     * @param throwable Throwable error which break the deployment. (Can be null)
-     * @param filesUnableToPublish List of files that where unable to publish (can be null)
+     * <p>Sends a email to configured emails when a publishing package had fail</p>
      *
+     * @param site           the site id
+     * @param publishPackage the package that was being published
+     * @param throwable      throwable error which break the deployment. (Can be null)
+     * @param failedItems    list of publish items that where unable to publish (can be null)
      */
-    // TODO: fix for new publishing system
-//    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish);
+    void notifyPublishError(String site, PublishPackage publishPackage, Throwable throwable, Collection<PublishItem> failedItems);
 
     /**
      * Process and Sends a generic email.
@@ -56,7 +59,7 @@ public interface NotificationService {
      * @param params parameters of the message this params will be used to process the message string.
      */
     @SuppressWarnings("unchecked")
-    void notify(final String site , final List<String> toUsers ,final String key, final Pair<String,Object>...params);
+    void notify(final String site, final List<String> toUsers, final String key, final Pair<String, Object>... params);
 
     /**
      * Send a notification message to the submitter of a package that has been approved
@@ -91,8 +94,8 @@ public interface NotificationService {
      * either by key/locale it will <b>return a default string</b>) </p>
      */
     @SuppressWarnings("unchecked")
-    String getNotificationMessage(final String site , final NotificationMessageType type, final String key,
-                                  final Pair<String,Object>...params);
+    String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
+                                  final Pair<String, Object>... params);
 
     /**
      * Send email to admin that repository has merged conflict

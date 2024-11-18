@@ -84,7 +84,7 @@
                             </p>
                         </body>
                     </html>
-]]></body>
+            ]]></body>
         </emailTemplate>
 
         <emailTemplate key="contentApproved">
