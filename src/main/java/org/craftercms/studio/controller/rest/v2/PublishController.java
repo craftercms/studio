@@ -132,10 +132,10 @@ public class PublishController {
         return result;
     }
 
-    @GetMapping(STATUS)
-    public ResultOne<PublishStatus> getPublishingStatus(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    @GetMapping(PATH_PARAM_SITE + STATUS)
+    public ResultOne<PublishStatus> getPublishingStatus(@PathVariable @ValidSiteId String site)
             throws SiteNotFoundException {
-        PublishStatus status = sitesService.getPublishingStatus(siteId);
+        PublishStatus status = sitesService.getPublishingStatus(site);
         ResultOne<PublishStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_PUBLISH_STATUS, status);
         result.setResponse(OK);
@@ -178,9 +178,9 @@ public class PublishController {
         return result;
     }
 
-    @PostMapping(ENABLE_PUBLISHER)
-    public Result enablePublisher(@Validated @RequestBody EnablePublisherRequest request) {
-        sitesService.enablePublishing(request.getSiteId(), request.isEnable());
+    @PostMapping(PATH_PARAM_SITE + ENABLE_PUBLISHER)
+    public Result enablePublisher(@PathVariable @NotEmpty @ValidSiteId String site, @RequestBody EnablePublisherRequest request) {
+        sitesService.enablePublishing(site, request.isEnable());
         Result result = new Result();
         result.setResponse(OK);
         return result;

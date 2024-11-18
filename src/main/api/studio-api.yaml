@@ -6643,7 +6643,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/trigger:
+  /api/2/publish/{siteId}/trigger:
     post:
       tags:
         - publishing
@@ -6652,7 +6652,7 @@ paths:
       operationId: triggerPublisher
       parameters:
         - name: siteId
-          in: query
+          in: path
           description: site ID
           required: true
           schema:
@@ -6745,7 +6745,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
 
-  /api/2/publish/status:
+  /api/2/publish/{siteId}/status:
     get:
       tags:
         - publishing
@@ -6754,7 +6754,7 @@ paths:
       operationId: getPublishingStatus
       parameters:
         - name: siteId
-          in: query
+          in: path
           description: site ID
           required: true
           schema:
@@ -6866,13 +6866,20 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/enable:
+  /api/2/publish/{siteId}/enable:
     post:
       tags:
         - publishing
       summary: Enable/disable publishing for a site
       operationId: enablePublishing
       description: 'Required permission "start_stop_publisher"'
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -6880,10 +6887,7 @@ paths:
             schema:
               type: object
               properties:
-                siteId:
-                  type: string
-                  description: site ID
-                enabled:
+                enable:
                   type: boolean
                   description: true to enable, false to disable
               required:
