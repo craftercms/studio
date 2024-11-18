@@ -1484,9 +1484,12 @@
 
     <bean id="encryptionServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.EncryptionServiceInternalImpl">
-        <property name="delay" value="#{studioConfiguration.getProperty('studio.security.encryption.delay')}"/>
-        <property name="maxLength" value="#{studioConfiguration.getProperty('studio.security.encryption.maxLength')}"/>
-        <property name="textEncryptor" ref="crafter.textEncryptor"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+        <constructor-arg name="textEncryptor" ref="crafter.textEncryptor"/>
+        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
+        <constructor-arg name="maxLength" value="#{studioConfiguration.getProperty('studio.security.encryption.maxLength')}"/>
+        <constructor-arg name="delay" value="#{studioConfiguration.getProperty('studio.security.encryption.delay')}"/>
     </bean>
 
     <bean id="encryptionService" class="org.craftercms.studio.impl.v2.service.security.EncryptionServiceImpl">
