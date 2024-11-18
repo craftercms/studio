@@ -45,7 +45,9 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
@@ -64,6 +66,7 @@ import org.craftercms.studio.api.v2.service.marketplace.registry.ConfigRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.FileRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRegistry;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -109,6 +112,7 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE;
+import static java.util.Collections.emptyList;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.IOUtils.toInputStream;
@@ -191,6 +195,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected final Lock writeLock = lock.writeLock();
 
     protected final ConfigurationService configurationService;
+    protected final PublishService publishService;
+    protected final ServicesConfig servicesConfig;
 
     /**
      * The custom HTTP headers to sent with all requests
@@ -225,7 +231,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     /**
      * List of plugin types that can be installed
      */
-    protected List<String> installableTypes = Collections.emptyList();
+    protected List<String> installableTypes = emptyList();
 
     /**
      * Folder mappings to use during plugin installation
@@ -277,10 +283,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected final ContentTypeService contentTypeService;
 
-    @ConstructorProperties({ "instanceService", "siteService", "sitesServiceInternal", "contentService",
+    @ConstructorProperties({"instanceService", "siteService", "sitesServiceInternal", "contentService",
             "studioConfiguration", "pluginDescriptorReader", "gitRepositoryHelper",
             "pluginDescriptorFilename", "templateCode", "templateComment", "retryingRepositoryOperationFacade",
-            "dependencyService", "contentTypeService", "configurationService"})
+            "dependencyService", "contentTypeService", "configurationService",
+            "servicesConfig", "publishService"})
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesService sitesServiceInternal, ContentService contentService,
                                           StudioConfiguration studioConfiguration,
@@ -290,7 +297,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                                           RetryingRepositoryOperationFacade retryingRepositoryOperationFacade,
                                           DependencyService dependencyService,
                                           ContentTypeService contentTypeService,
-                                          ConfigurationService configurationService) {
+                                          ConfigurationService configurationService,
+                                          ServicesConfig servicesConfig, PublishService publishService) {
         this.instanceService = instanceService;
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
@@ -305,6 +313,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         this.dependencyService = dependencyService;
         this.contentTypeService = contentTypeService;
         this.configurationService = configurationService;
+        this.servicesConfig = servicesConfig;
+        this.publishService = publishService;
     }
 
     public void setUrl(final String url) {
@@ -473,7 +483,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     @Override
     public List<PluginRecord> getInstalledPlugins(final String siteId) throws MarketplaceException {
         if (!contentService.contentExists(siteId, pluginRegistryPath)) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return getPluginRegistry(siteId).getPlugins();
     }
@@ -575,8 +585,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 }
             }
         } catch (IOException | TransformerException | ServiceLayerException | DocumentException | GitAPIException |
-                PluginException | org.apache.commons.configuration2.ex.ConfigurationException |
-                UserNotFoundException e) {
+                 PluginException | org.apache.commons.configuration2.ex.ConfigurationException | UserNotFoundException |
+                 AuthenticationException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -823,7 +833,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             // commit all changes
             commitChanges(siteId, changedFiles, true, true, "Remove plugin " + pluginId);
         } catch (IOException | GitAPIException | CommitNotFoundException | EnvironmentNotFoundException |
-                SiteNotFoundException | TransformerException | UserNotFoundException e) {
+                 SiteNotFoundException | TransformerException | UserNotFoundException | AuthenticationException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -942,7 +952,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected void commitChanges(String siteId, List<String> changedFiles, boolean update, boolean publish,
                                  String message) throws IOException, GitAPIException, ServiceLayerException,
-            UserNotFoundException {
+            UserNotFoundException, AuthenticationException {
         logger.debug("Commit the changes in site '{}' with the message '{}'", siteId, message);
         Path siteDir = getRepoDirectory(siteId);
         try (Git git = Git.open(siteDir.toFile())) {
@@ -956,9 +966,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
             if (publish) {
                 // publish changes
+                String liveTarget = servicesConfig.getLiveEnvironment(siteId);
                 logger.debug("Publish the changes in site '{}' with the message '{}'", siteId, message);
-                // TODO: implement for new publishing system
-//                deploymentService.publishCommits(siteId, "live", List.of(commit.getName()), message);
+                publishService.publish(siteId, liveTarget, emptyList(),
+                        List.of(commit.getName()), null, message, false);
             }
         }
     }
