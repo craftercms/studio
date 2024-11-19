@@ -216,7 +216,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, true));
             auditPublishSubmission(publishPackage, OPERATION_PUBLISH);
 
-            applicationContext.publishEvent(new WorkflowEvent(siteId, publishPackage.getId(), DIRECT_PUBLISH));
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, publishPackage.getId(), DIRECT_PUBLISH));
             notifyPublisher(publishPackage, siteService.getSite(siteId));
             return publishPackage.getId();
         } catch (Exception e) {
@@ -598,7 +598,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
-            applicationContext.publishEvent(new WorkflowEvent(site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : DIRECT_PUBLISH));
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(),
+                    site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : DIRECT_PUBLISH));
             if (!requestApproval) {
                 notifyPublisher(publishPackage, site);
             }

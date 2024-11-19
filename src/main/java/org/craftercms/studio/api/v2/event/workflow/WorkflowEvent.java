@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v2.event.workflow;
 
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
+import org.springframework.security.core.Authentication;
 
 import static java.lang.String.format;
 
@@ -33,10 +34,14 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
     private final WorkFlowEventType eventType;
     private final long packageId;
 
-    public WorkflowEvent(final String siteId, final long packageId, final WorkFlowEventType eventType) {
-        super(siteId);
+    public WorkflowEvent(Authentication authentication, final String siteId, final long packageId, final WorkFlowEventType eventType) {
+        super(authentication, siteId);
         this.eventType = eventType;
         this.packageId = packageId;
+    }
+
+    public WorkflowEvent(final String siteId, final long packageId, final WorkFlowEventType eventType) {
+        this(null, siteId, packageId, eventType);
     }
 
     @Override
@@ -57,6 +62,7 @@ public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent 
         return "WorkflowEvent{" +
                 "siteId='" + siteId + '\'' +
                 ", timestamp=" + timestamp +
+                ", user=" + user +
                 ", type=" + eventType +
                 ", packageId=" + packageId +
                 '}';

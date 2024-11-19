@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -67,6 +68,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     private PublishDAO publishDao;
     private UserServiceInternal userServiceInternal;
     private ServicesConfig servicesConfig;
+    private SecurityService securityService;
     private ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -167,8 +169,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
             activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
                     operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
-            eventPublisher.publishEvent(new WorkflowEvent(siteId, packageId, eventType));
-            // TODO: implement notifications
+            eventPublisher.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, packageId, eventType));
         } finally {
             generalLockService.unlock(packageLockKey);
         }
@@ -226,6 +227,10 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
     public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public void setSecurityService(final SecurityService securityService) {
+        this.securityService = securityService;
     }
 
     @Override
