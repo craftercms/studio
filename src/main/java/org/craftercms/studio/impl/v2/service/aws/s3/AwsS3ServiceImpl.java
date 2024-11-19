@@ -136,9 +136,8 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         S3Client client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();
 
-        MimeType filerType =
+        MimeType filterType =
             StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
-
         String fullPrefix = normalizePrefix(UrlUtils.concat(profile.getPrefix(), path));
 
         ListObjectsV2Request request = ListObjectsV2Request.builder()
@@ -148,40 +147,54 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                 .build();
 
         ListObjectsV2Iterable response = client.listObjectsV2Paginator(request);
-        int commonPrefixesCount = 0;
+        int contentsCount = 0;
         // fetch all prefixes and fetch content key up to maxKeys
         for (ListObjectsV2Response page : response) {
-            page.commonPrefixes().stream()
-                    .map(p -> {
-                        String relativeKey = StringUtils.removeStart(p.prefix(), profile.getPrefix());
-                        return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
-                    })
-                    .forEach(items::add);
-            commonPrefixesCount += page.commonPrefixes().size();
-
-            // Do not fetch content key if it exceeded the maxKeys but continue to fetch prefixes
-            if (items.size() >= maxKeys + commonPrefixesCount) {
-                continue;
-            }
-
-            List<S3Item> contents = page.contents().stream()
-                    .filter(o -> !StringUtils.equals(o.key(), fullPrefix) &&
-                            MimeType.valueOf(StudioUtils.getMimeType(o.key())).isCompatibleWith(filerType))
-                    .map(o -> {
-                        String relativeKey = StringUtils.removeStart(o.key(), profile.getPrefix());
-                        return new S3Item(relativeKey, createUrl(profileId, relativeKey), false, profile.getBucketName(), profile.getPrefix());
-                    }).toList();
-
-            for (S3Item content: contents) {
-                // Do not add more content key if the total exceeded the maxKeys
-                if (items.size() >= maxKeys + commonPrefixesCount) {
-                    break;
-                }
-                items.add(content);
+            items.addAll(processPrefixes(page, profile));
+            if (contentsCount < maxKeys) {
+                List<S3Item> contents = processContentKeys(page, profile, fullPrefix, filterType, maxKeys - contentsCount);
+                items.addAll(contents);
+                contentsCount += contents.size();
             }
         }
 
         return items;
+    }
+
+    /**
+     * Process S3 prefix
+     * @param page S3 response object
+     * @param profile S3 profile
+     * @return list of {@link S3Item}
+     */
+    private List<S3Item> processPrefixes(ListObjectsV2Response page, S3Profile profile) {
+        return page.commonPrefixes().stream()
+                .map(p -> {
+                    String relativeKey = StringUtils.removeStart(p.prefix(), profile.getPrefix());
+                    return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
+                })
+                .toList();
+    }
+
+    /**
+     * Process content keys
+     * @param page S3 response object
+     * @param profile S3 profile
+     * @param fullPrefix full prefix
+     * @param filterType filter type
+     * @param maxKeys max keys
+     * @return list of {@link S3Item} up to max keys
+     */
+    private List<S3Item> processContentKeys(ListObjectsV2Response page, S3Profile profile, String fullPrefix, MimeType filterType, int maxKeys) {
+        return page.contents().stream()
+                .filter(o -> !StringUtils.equals(o.key(), fullPrefix) &&
+                        MimeType.valueOf(StudioUtils.getMimeType(o.key())).isCompatibleWith(filterType))
+                .map(o -> {
+                    String relativeKey = StringUtils.removeStart(o.key(), profile.getPrefix());
+                    return new S3Item(relativeKey, createUrl(profile.getProfileId(), relativeKey), false, profile.getBucketName(), profile.getPrefix());
+                })
+                .limit(maxKeys)
+                .toList();
     }
 
     protected String createUrl(String profileId, String key) {
