@@ -1487,7 +1487,7 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
         <constructor-arg name="textEncryptor" ref="crafter.textEncryptor"/>
-        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
+        <constructor-arg name="siteDao" ref="siteDao" />
         <constructor-arg name="maxLength" value="#{studioConfiguration.getProperty('studio.security.encryption.maxLength')}"/>
         <constructor-arg name="delay" value="#{studioConfiguration.getProperty('studio.security.encryption.delay')}"/>
     </bean>

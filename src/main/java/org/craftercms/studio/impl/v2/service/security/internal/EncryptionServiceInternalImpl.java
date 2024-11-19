@@ -16,13 +16,14 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
@@ -32,12 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.beans.ConstructorProperties;
-import java.util.Map;
-import java.util.UUID;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ENCRYPTION_TOKEN;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
@@ -45,23 +43,23 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public class EncryptionServiceInternalImpl implements EncryptionServiceInternal {
 
-    private final static Logger logger = LoggerFactory.getLogger(EncryptionServiceInternalImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(EncryptionServiceInternalImpl.class);
 
     private final StudioConfiguration studioConfiguration;
     private final AuditServiceInternal auditServiceInternal;
     private final TextEncryptor textEncryptor;
-    private final SiteFeedMapper siteFeedMapper;
+    private final SiteDAO siteDAO;
     private final int maxLength;
     private final long delay;
 
-    @ConstructorProperties({"studioConfiguration", "auditServiceInternal", "textEncryptor", "siteFeedMapper",
+    @ConstructorProperties({"studioConfiguration", "auditServiceInternal", "textEncryptor", "siteDAO",
             "maxLength", "delay"})
     public EncryptionServiceInternalImpl(StudioConfiguration studioConfiguration, AuditServiceInternal auditServiceInternal,
-                                         TextEncryptor textEncryptor, SiteFeedMapper siteFeedMapper, int maxLength, long delay) {
+                                         TextEncryptor textEncryptor, SiteDAO siteDAO, int maxLength, long delay) {
         this.studioConfiguration = studioConfiguration;
         this.auditServiceInternal = auditServiceInternal;
         this.textEncryptor = textEncryptor;
-        this.siteFeedMapper = siteFeedMapper;
+        this.siteDAO = siteDAO;
         this.maxLength = maxLength;
         this.delay = delay;
     }
@@ -78,7 +76,7 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
             var auth = SecurityContextHolder.getContext().getAuthentication();
             String resolvedSiteId = StringUtils.isNotEmpty(siteId) ? siteId
                     : studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
-            String targetId = UUID.randomUUID().toString();
+            String targetId = DigestUtils.md5Hex(encryptedToken);
             createEncryptionAuditLog(resolvedSiteId, auth.getName(), targetId);
             logger.debug("Encryption token created for site '{}', target ID '{}'", resolvedSiteId, targetId);
 
@@ -95,7 +93,7 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
      * @param targetId encryption target id
      */
     private void createEncryptionAuditLog(String siteId, String actor, String targetId) {
-        SiteFeed site = siteFeedMapper.getSite(Map.of(SITE_ID, siteId));
+        Site site = siteDAO.getSite(siteId);
         AuditLog entry = auditServiceInternal.createAuditLogEntry();
         entry.setOperation(OPERATION_CREATE);
         entry.setActorId(actor);
