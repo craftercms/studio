@@ -48,6 +48,8 @@ public final class  QueryParameterNames {
     public static final String NEW_PATH = "newPath";
     // commit id
     public static final String COMMIT_ID = "commitId";
+    // commit ids
+    public static final String COMMIT_IDS = "commitIds";
     // state
     public static final String STATE = "state";
 
@@ -151,6 +153,8 @@ public final class  QueryParameterNames {
     public static final String PUBLISHING_TARGET = "publishingTarget";
 
     public static final String SCHEDULED_STATE  = "scheduledState";
+    public static final String DESTINATION_STATE  = "destinationState";
+    public static final String IN_WORKFLOW_STATE  = "inWorkflowState";
 
     public static final String DAYS = "days";
 

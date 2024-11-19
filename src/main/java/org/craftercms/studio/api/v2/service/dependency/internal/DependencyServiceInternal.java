@@ -133,6 +133,7 @@ public interface DependencyServiceInternal {
      * @param targetPath the target path of the dependencies to invalidate
      */
     void invalidateDependencies(String siteId, String targetPath) throws ServiceLayerException;
+
     /**
      * Mark as valid the dependency records with the given target path
      *
@@ -142,9 +143,19 @@ public interface DependencyServiceInternal {
     void validateDependencies(String siteId, String targetPath) throws ServiceLayerException;
 
     /**
-     * Mark as valid all site dependencies if the target_path exists in the site
+     * Mark as valid/invalid all site dependencies depending on the existence of the target_path in the site
      *
      * @param siteId the site id
      */
     void validateDependencies(String siteId);
+
+    /**
+     * Indicate if the given path is a valid dependency source. e.g.: templates, pages, components
+     * Some files cannot have dependencies, like images or txt files
+     *
+     * @param siteId the site id
+     * @param path   the path to check
+     * @return true if the path is a valid dependency source, false otherwise
+     */
+    boolean isValidDependencySource(String siteId, String path);
 }

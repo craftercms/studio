@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.deployment;
 
+import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
@@ -55,8 +56,8 @@ public class PreviewDeployer extends AbstractDeployer {
     private final static String ENV_PREVIEW = "preview";
     private final static String ENV_AUTHORING = "authoring";
 
-    public PreviewDeployer(final StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
+    public PreviewDeployer(final StudioConfiguration studioConfiguration, final RestTemplate restTemplate) {
+        super(studioConfiguration, restTemplate);
     }
 
 

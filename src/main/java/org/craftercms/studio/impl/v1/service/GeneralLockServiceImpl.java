@@ -64,20 +64,6 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     }
 
     @Override
-    public void lock(final String... lockKeys) {
-        logger.debug("Thread '{}' will attempt to lock multiple objects '{}'", Thread.currentThread().getName(), lockKeys);
-        Arrays.stream(lockKeys).sorted().forEach(this::lock);
-    }
-
-    @Override
-    public void unlock(final String... lockKeys) {
-        logger.debug("Thread '{}' will attempt to unlock multiple objects '{}'", Thread.currentThread().getName(), lockKeys);
-        for (String lockKey : lockKeys) {
-            unlock(lockKey);
-        }
-    }
-
-    @Override
     @Valid
     public boolean tryLock(@ValidateStringParam String objectId) {
         ReentrantLock nodeLock;

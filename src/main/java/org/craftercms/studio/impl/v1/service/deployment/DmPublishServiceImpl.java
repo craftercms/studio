@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -101,17 +101,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             deploymentService.delete(site, paths, approver, scheduleDate, null);
         } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
             logger.error("Failed to delete files during publishing site '{}'", site, e);
-        }
-    }
-
-    @Override
-    @Valid
-    public void cancelScheduledItem(@ValidateStringParam String site,
-                                    @ValidateSecurePathParam String path) {
-        try {
-            deploymentService.cancelWorkflow(site, path);
-        } catch (DeploymentException e) {
-            logger.error("Failed to cancel workflow for site '{}' path '{}'", site, path, e);
         }
     }
 

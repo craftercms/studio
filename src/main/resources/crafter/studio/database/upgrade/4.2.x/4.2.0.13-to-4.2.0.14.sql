@@ -14,12 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.script;
 
-import javax.script.ScriptException;
-import java.util.Map;
+ALTER TABLE `dependency`
+    ADD INDEX `dependency_targetpath_idx` (`target_path`(1000)) ;
 
-public interface ScriptExecutor {
-
-    void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException;
-}
+UPDATE `_meta` SET `version` = '4.2.0.14' ;

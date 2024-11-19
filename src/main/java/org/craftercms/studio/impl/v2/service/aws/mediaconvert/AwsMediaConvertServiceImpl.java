@@ -241,7 +241,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      */
     protected String createUrl(S3Client s3Client, String profileId, String fullUri) {
         S3Uri uri = s3Client.utilities().parseUri(URI.create(fullUri));
-        return format(urlPattern, profileId, uri.key());
+        return format(urlPattern, profileId, uri.key().orElse(""));
     }
 
 }

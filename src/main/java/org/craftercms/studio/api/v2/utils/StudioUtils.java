@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.utils;
 
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;

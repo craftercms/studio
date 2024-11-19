@@ -96,7 +96,10 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
-    public void cancelPublishingPackages(String siteId, List<String> packageIds) {
+    public void cancelPublishingPackages(String siteId, Collection<String> packageIds) {
+        if (CollectionUtils.isEmpty(packageIds)) {
+            return;
+        }
         retryingDatabaseOperationFacade.retry(() -> publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED));
     }
 
@@ -252,6 +255,16 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
         applicationContext.publishEvent(new PublishEvent(siteId));
 
         return changes;
+    }
+
+    @Override
+    public Collection<String> getWorkflowAffectedPackages(final String siteId, final String path) throws ServiceLayerException {
+        return publishRequestDao.getPackagesForPath(siteId, path);
+    }
+
+    @Override
+    public Collection<String> getPackagePaths(final String site, final Collection<String> affectedPackages) {
+        return publishRequestDao.getPackagePaths(site, affectedPackages);
     }
 
     @Override
