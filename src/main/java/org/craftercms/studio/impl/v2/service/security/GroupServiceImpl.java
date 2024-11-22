@@ -187,6 +187,12 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
+    public Group getGroupByName(String groupName) throws ServiceLayerException, GroupNotFoundException {
+	    return groupServiceInternal.getGroupByName(groupName);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
     public List<UserResponse> getGroupMembers(long groupId, int offset, int limit, String sort)
             throws ServiceLayerException, GroupNotFoundException {
         List<User> users = groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);

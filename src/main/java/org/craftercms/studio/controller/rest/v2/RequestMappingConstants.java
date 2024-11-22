@@ -59,6 +59,7 @@ public final class RequestMappingConstants {
     /** Groups controller */
     public static final String GROUPS = "/groups";
     public static final String MEMBERS = "/members";
+    public static final String PATH_PARAM_GROUP_NAME = "/by_name/{groupName}";
 
     /** Users controller */
     public static final String USERS = "/users";
