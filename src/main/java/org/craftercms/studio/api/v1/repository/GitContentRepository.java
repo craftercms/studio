@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.util.List;
 
-public interface GitContentRepository extends ContentRepository{
+public interface GitContentRepository extends ContentRepository {
 
     /**
      * get immediate children for path
