@@ -196,7 +196,7 @@ public class GitRepositoryHelper implements DisposableBean {
         Repository publishedRepo;
 
         Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
-        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);//.resolve(GIT_ROOT);
+        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);
 
         try {
             if (Files.exists(siteSandboxRepoPath)) {
