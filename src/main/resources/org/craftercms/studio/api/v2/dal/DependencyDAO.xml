@@ -42,7 +42,7 @@
             UNION
                 SELECT d.source_path, d.target_path, d.site
                 FROM cte, dependency d
-                        WHERE cte.target_path = d.source_path
+                WHERE cte.target_path = d.source_path
                 AND d.site = #{siteId}
                 AND cte.site = #{siteId}
                 AND d.valid = 1
@@ -60,6 +60,29 @@
                      open="(" separator=" OR " close=")">
                 cte.target_path NOT RLIKE #{pattern}
             </foreach>
+    </select>
+
+    <select id="getPublishingSoftDependenciesForList" resultType="java.util.Map">
+        SELECT d.source_path, d.target_path, d.site
+        FROM dependency d
+            INNER JOIN site s ON s.site_id = d.site
+            INNER JOIN item i ON i.path = d.target_path
+        WHERE d.source_path IN
+            <foreach item="path" index="index" collection="paths"
+                     open="(" separator="," close=")">
+                #{path}
+                </foreach>
+        AND d.site = #{siteId}
+        AND d.valid = 1
+        AND
+            <foreach item="pattern" index="index" collection="regex"
+                     open="(" separator=" OR " close=")">
+                d.target_path NOT RLIKE #{pattern}
+            </foreach>
+        AND i.site_id = s.id
+        AND s.deleted = 0
+        AND (i.state &amp; #{modifiedMask}) > 0
+        AND (i.state &amp; #{newMask}) = 0
     </select>
 
     <!-- Recursively get:
