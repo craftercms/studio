@@ -261,6 +261,7 @@
 
     <select id="getPackageForItems" resultMap="PublishPackageMap">
         <bind name="includeChildren" value="false" />
+        <bind name="target" value="null" />
         <include refid="getAllPackagesForFilters" />
         <include refid="packagePathsFilter" />
         ORDER BY pp.schedule ASC LIMIT 1
