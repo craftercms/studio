@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.event.user.UserUpdatedEvent;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -138,11 +139,13 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     }
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, String keyword, int offset, int limit,
+    public List<User> getAllUsersForSite(long orgId, List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
                                          String sort)
             throws ServiceLayerException {
         try {
-            return userDao.getAllUsersForSite(groupNames, keyword, offset, limit, sort);
+            return userDao.getAllUsersForSite(
+                groupNames.stream().map(NormalizedGroup::toString).toList(), keyword, offset, limit, sort
+            );
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -159,9 +162,11 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 
     @Override
     public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
-        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
+        List<NormalizedGroup> groupNames = groupServiceInternal.getSiteGroups(siteId);
         try {
-            return userDao.getAllUsersForSiteTotal(groupNames, keyword);
+            return userDao.getAllUsersForSiteTotal(
+                groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
+            );
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
