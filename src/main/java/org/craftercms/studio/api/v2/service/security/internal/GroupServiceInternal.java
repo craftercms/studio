@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 
 import java.util.List;
 
@@ -57,6 +58,6 @@ public interface GroupServiceInternal {
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws GroupNotFoundException,
             UserNotFoundException, ServiceLayerException;
 
-    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
+    List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException;
 
 }
