@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
     public List<UserResponse> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException {
-        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
+        List<NormalizedGroup> groupNames = groupServiceInternal.getSiteGroups(siteId);
         List<User> users = userServiceInternal.getAllUsersForSite(orgId, groupNames, keyword, offset, limit, sort);
         return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
@@ -307,8 +307,10 @@ public class UserServiceImpl implements UserService {
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
-            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
-            if (isSysAdmin || userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getGroupName()))) {
+            List<NormalizedGroup> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            if (isSysAdmin || userGroups.stream().anyMatch(userGroup ->
+                    siteGroups.contains(new NormalizedGroup(userGroup.getGroupName())))
+            ) {
                 try {
                     SiteFeed siteFeed = siteService.getSite(siteId);
                     Site site = new Site();
