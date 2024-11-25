@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.lang.NonNull;
 
@@ -45,7 +46,7 @@ public interface UserServiceInternal {
      * @return requested page of list of users
      * @throws ServiceLayerException
      */
-    List<User> getAllUsersForSite(long orgId, List<String> groupNames, String keyword, int offset, int limit,
+    List<User> getAllUsersForSite(long orgId, List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
                                   String sort) throws ServiceLayerException;
 
     /**
