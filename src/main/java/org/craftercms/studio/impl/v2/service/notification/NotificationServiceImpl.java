@@ -103,22 +103,6 @@ public class NotificationServiceImpl implements NotificationService {
         configuration.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23).build());
     }
 
-//    @Override
-//    @Valid
-//    public void notifyDeploymentError(@ValidateStringParam final String site, final Throwable throwable,
-//                                      final List<PublishRequest> filesUnableToPublish) {
-//        try {
-//            final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-//            final Map<String, Object> templateModel = new HashMap<>();
-//            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
-//            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
-//            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
-//                    templateModel);
-//        } catch (Throwable e) {
-//            logger.error("Failed to send publishing error notification for site '{}'", site, e);
-//        }
-//    }
-
     @Override
     @Valid
     public void notifyPackageApproval(final PublishPackage publishPackage, final Collection<String> paths) {
