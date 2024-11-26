@@ -61,6 +61,8 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_APPROVER = "approver";
     public static final String REQUEST_PARAM_ITEM_TYPE = "itemType";
     public static final String REQUEST_PARAM_INCLUDE_CHILDREN = "includeChildren";
+    public static final String REQUEST_PARAM_S3_MAX_KEYS= "maxKeys";
+    public static final String REQUEST_GROUP_NAME = "groupName";
 
     public static final String GROUP_SORT_COLUMNS = "id record_last_updated group_name externally_managed";
 
