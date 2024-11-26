@@ -16,16 +16,10 @@
 
 package org.craftercms.studio.model.rest.publish;
 
-import jakarta.validation.constraints.NotEmpty;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-
 /**
  * Request to enable/disable the publisher task for a site
  */
 public class EnablePublisherRequest {
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
     private boolean enable;
 
     public boolean isEnable() {
@@ -36,11 +30,4 @@ public class EnablePublisherRequest {
         this.enable = enable;
     }
 
-    public @NotEmpty @ValidSiteId String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(@NotEmpty @ValidSiteId String siteId) {
-        this.siteId = siteId;
-    }
 }

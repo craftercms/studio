@@ -39,6 +39,8 @@ public interface DependencyDAO {
 
     /**
      * Get soft dependencies from DB for list of content paths
+     * This query is recursive, so it will get soft deps of soft deps, filtering the
+     * non-new/non-edited items at the end.
      *
      * @param site                             site identifier
      * @param paths                            list of content paths
@@ -51,6 +53,21 @@ public interface DependencyDAO {
                                                          @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
                                                          @Param(MODIFIED_MASK) long modifiedMask,
                                                          @Param(NEW_MASK) long newMask);
+
+    /**
+     * Get publishing soft dependencies from DB for list of content paths
+     *
+     * @param site                             site identifier
+     * @param paths                            list of content paths
+     * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+     * @param modifiedMask                     state bit mask for modified item
+     * @param newMask                          state bit mask for new item
+     * @return List of soft dependencies
+     */
+    List<Map<String, String>> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+                                                                   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+                                                                   @Param(MODIFIED_MASK) long modifiedMask,
+                                                                   @Param(NEW_MASK) long newMask);
 
     /**
      * Get hard dependencies from DB for list of content paths

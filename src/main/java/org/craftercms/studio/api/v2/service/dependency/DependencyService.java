@@ -22,7 +22,10 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface DependencyService {
 
@@ -30,12 +33,26 @@ public interface DependencyService {
      * Get a soft dependencies of a list of items. A soft
      * dependency is:
      * * an edited, shared (not item specific) dependency
+     * <p>
+     * This method will also get transitive soft dependencies, even across published items.
+     * e.g.: if A depends on B and B depends on C, then A depends on C, even if B is published.
      *
      * @param site  Site to operate on
      * @param paths List of paths to items to retrieve deps for
      * @return list of soft dependencies
      */
-    Collection<String> getSoftDependencies(String site, Collection<String> paths);
+    Collection<String> getSoftDependencies(String site, Set<String> paths);
+
+    /**
+     * Get the publishing soft dependencies of a list of items. A soft
+     * dependency is:
+     * * an edited, shared (not item specific) dependency
+     *
+     * @param site  Site to operate on
+     * @param paths List of paths to items to retrieve deps for
+     * @return list of soft dependencies
+     */
+    Collection<String> getPublishingSoftDependencies(String site, Set<String> paths);
 
     /**
      * Get then hard dependencies of an item. A hard

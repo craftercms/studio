@@ -163,7 +163,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 .collect(teeing(
                         flatMapping(requestPath -> expandPublishRequestPath(site, requestPath).stream(), toSet()),
                         flatMapping(requestPath -> (requestPath.includeSoftDeps() ?
-                                dependencyServiceInternal.getSoftDependencies(site.getSiteId(), Set.of(requestPath.path()))
+                                dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), Set.of(requestPath.path()))
                                 : SetUtils.<String>emptySet()).stream(), toSet()),
                         SetUtils::union
                 )));
@@ -180,9 +180,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
         Collection<String> deletedPaths = commitOperations.get(true);
 
-        Collection<String> softDependencies = dependencyServiceInternal.getSoftDependencies(siteId, corePackagePaths);
+        Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths);
         // Get hard deps of them all
-        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, union(corePackagePaths, softDependencies));
+        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
         return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
     }
 
@@ -395,7 +395,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             }
         }
         if (!softDepsPaths.isEmpty()) {
-            allPaths.addAll(dependencyServiceInternal.getSoftDependencies(site.getSiteId(), softDepsPaths));
+            allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths));
         }
 
         Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);

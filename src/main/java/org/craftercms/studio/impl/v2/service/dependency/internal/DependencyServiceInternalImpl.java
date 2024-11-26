@@ -66,15 +66,30 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
     @Override
     @LogExecutionTime
-    public Collection<String> getSoftDependencies(String site, Collection<String> paths) {
+    public Collection<String> getSoftDependencies(String site, Set<String> paths) {
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
-        Set<String> pathsParams = new HashSet<>(paths);
         Set<String> result = new HashSet<>();
-        List<Map<String, String>> deps = dependencyDao.getSoftDependenciesForList(site, pathsParams, getItemSpecificDependenciesPatterns(),
+        List<Map<String, String>> deps = dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
         for (Map<String, String> d : deps) {
             String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-            if (!pathsParams.contains(targetPath)) {
+            if (!paths.contains(targetPath)) {
+                result.add(targetPath);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @LogExecutionTime
+    public Collection<String> getPublishingSoftDependencies(final String site, final Set<String> paths) {
+        logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
+        Set<String> result = new HashSet<>();
+        List<Map<String, String>> deps = dependencyDao.getPublishingSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+                MODIFIED_MASK, NEW_MASK);
+        for (Map<String, String> d : deps) {
+            String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
+            if (!paths.contains(targetPath)) {
                 result.add(targetPath);
             }
         }
