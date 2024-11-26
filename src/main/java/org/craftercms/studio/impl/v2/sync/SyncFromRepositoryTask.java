@@ -292,7 +292,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             String packageLockKey = getPublishPackageLockKey(processingPackage.getId());
             generalLockService.lock(packageLockKey);
             try {
-                logger.debug("Publishing of package Package with id '{}' has completed and lock has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
+                logger.debug("Publishing of package with id '{}' has completed and lock has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
             } finally {
                 generalLockService.unlock(packageLockKey);
             }
