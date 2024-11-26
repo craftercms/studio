@@ -292,7 +292,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             String packageLockKey = getPublishPackageLockKey(processingPackage.getId());
             generalLockService.lock(packageLockKey);
             try {
-                logger.debug("Package with id '{}' has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
+                logger.debug("Publishing of package Package with id '{}' has completed and lock has been released. Path '{}' is no longer in workflow", processingPackage.getId(), path);
             } finally {
                 generalLockService.unlock(packageLockKey);
             }
@@ -312,7 +312,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
         generalLockService.lock(packageLockKey);
         try {
             if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
-                logger.debug("Package with id '{}' is not in READY state, it will not be cancelled", publishPackage.getId());
+                logger.debug("Package with id '{}' is not in READY state, it cannot be cancelled", publishPackage.getId());
                 return;
             }
             publishPackage.setPackageState(PublishPackage.PackageState.CANCELLED.value);
@@ -331,11 +331,11 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
     private void createCancelPackageAuditLogEntry(final PublishPackage publishPackage) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOrigin(ORIGIN_GIT);
-        auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
+        auditLog.setOperation(OPERATION_CANCEL_PUBLISH_PACKAGE);
         auditLog.setActorId(ACTOR_ID_GIT);
         auditLog.setSiteId(publishPackage.getSiteId());
         auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
         auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
         auditServiceInternal.insertAuditLog(auditLog);
     }

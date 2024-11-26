@@ -100,28 +100,28 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     private SecurityService securityService;
 
     @Override
-    public long getPublishingPackagesCount(final String siteId, final String target,
-                                          final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
-                                          final String submitter, final String reviewer,
-                                           final Boolean isScheduled) {
-        return publishDao.getPublishingPackagesCount(siteId, target, states,
+    public long getPublishPackagesCount(final String siteId, final String target,
+                                        final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+                                        final String submitter, final String reviewer,
+                                        final Boolean isScheduled) {
+        return publishDao.getPublishPackagesCount(siteId, target, states,
                 approvalStates, submitter, reviewer, isScheduled);
     }
 
     @Override
-    public Collection<PublishPackage> getPublishingPackages(final String siteId, final String target,
-                                                            final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
-                                                            final String submitter, final String reviewer,
-                                                            final Boolean isScheduled, final Collection<SortField> sort,
-                                                            final int offset, final int limit) {
-        return publishDao.getPublishingPackages(siteId, target,
+    public Collection<PublishPackage> getPublishPackages(final String siteId, final String target,
+                                                         final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                         final String submitter, final String reviewer,
+                                                         final Boolean isScheduled, final Collection<SortField> sort,
+                                                         final int offset, final int limit) {
+        return publishDao.getPublishPackages(siteId, target,
                 states, approvalStates,
                 submitter, reviewer, isScheduled,
                 sort, offset, limit);
     }
 
     @Override
-    public PublishPackageDetails getPublishingPackageDetails(String siteId, long packageId)
+    public PublishPackageDetails getPublishPackageDetails(String siteId, long packageId)
             throws PublishPackageNotFoundException, SiteNotFoundException {
         PublishPackage publishPackage = getPackage(siteId, packageId);
         Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId);
@@ -154,9 +154,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public PublishDependenciesResult getPublishDependencies(final String siteId, final String publishingTarget,
-                                                            final Collection<PublishRequestPath> publishRequestPaths,
-                                                            final Collection<String> commitIds) throws ServiceLayerException, IOException {
+    public CalculatedPublishPackageResult calculatePublishPackage(final String siteId, final String publishingTarget,
+                                                                  final Collection<PublishRequestPath> publishRequestPaths,
+                                                                  final Collection<String> commitIds) throws ServiceLayerException, IOException {
         Site site = siteService.getSite(siteId);
         Set<String> corePackagePaths = new HashSet<>();
         corePackagePaths.addAll(publishRequestPaths.stream()
@@ -183,7 +183,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         Collection<String> softDependencies = dependencyServiceInternal.getSoftDependencies(siteId, corePackagePaths);
         // Get hard deps of them all
         Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, union(corePackagePaths, softDependencies));
-        return new PublishDependenciesResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
+        return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
     }
 
     @Override
@@ -298,7 +298,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     /**
      * Get common filter for commit repo operations to be included in publish dependencies
-     * or actual publishing package submission
+     * or actual publish package submission
      */
     private Predicate<RepoOperation> getCommitRepoOperationsFilter(final Site site) {
         return op -> !contains(IGNORE_FILES, getName(op.getMoveToPath()))
@@ -319,7 +319,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         auditLog.setActorId(securityService.getCurrentUser());
         auditLog.setSiteId(p.getSiteId());
         auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
         auditLog.setPrimaryTargetValue(String.valueOf(p.getId()));
 
         AuditLogParameter commentParam = new AuditLogParameter();
@@ -478,7 +478,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
             if (publishAll) {
                 if (schedule != null) {
-                    throw new InvalidParametersException("Failed to submit publishing package: Cannot schedule a publish all operation");
+                    throw new InvalidParametersException("Failed to submit publish package: Cannot schedule a publish all operation");
                 }
                 return buildPublishAllPackage(site, publishingTarget, requestApproval, comment);
             }

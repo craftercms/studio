@@ -45,8 +45,8 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_DISABLE = "DISABLE";
     public static final String OPERATION_START_PUBLISHER = "START_PUBLISHER";
     public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
-    public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
-    public static final String OPERATION_REJECT_PUBLISHING_PACKAGE = "REJECT_PUBLISHING_PACKAGE";
+    public static final String OPERATION_CANCEL_PUBLISH_PACKAGE = "CANCEL_PUBLISH_PACKAGE";
+    public static final String OPERATION_REJECT_PUBLISH_PACKAGE = "REJECT_PUBLISH_PACKAGE";
     public static final String OPERATION_PUBLISH = "PUBLISH";
     public static final String OPERATION_INITIAL_PUBLISH = "INITIAL_PUBLISH";
     public static final String OPERATION_PUBLISH_START = "PUBLISH_START";
@@ -72,7 +72,7 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_ENCRYPTION_TOKEN = "Encryption Token";
     public static final String TARGET_TYPE_BLUEPRINT = "Blueprint";
     public static final String TARGET_TYPE_SOURCE_SITE = "Source";
-    public static final String TARGET_TYPE_PUBLISHING_PACKAGE = "Publishing Package";
+    public static final String TARGET_TYPE_PUBLISH_PACKAGE = "Publish Package";
     public static final String TARGET_TYPE_SUBMISSION_COMMENT = "Submission Comment";
     public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
     public static final String TARGET_TYPE_SYNCED_COMMIT = "Synced Commit";

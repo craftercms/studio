@@ -245,7 +245,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // Fail to continue write operation if the item is in workflow
             Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(site, List.of(path), false);
             if (isNotEmpty(packagesForItems)) {
-                throw new ContentInPublishQueueException("Unable to write content that is part of an active publishing package", packagesForItems);
+                throw new ContentInPublishQueueException("Unable to write content that is part of an active publish package", packagesForItems);
             }
             String commitId;
             try {

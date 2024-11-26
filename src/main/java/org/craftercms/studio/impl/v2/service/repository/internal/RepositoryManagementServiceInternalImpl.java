@@ -415,7 +415,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     /**
-     * Asserts that the changes in the fetched commit are not part of any active publishing package,
+     * Asserts that the changes in the fetched commit are not part of any active publish package,
      * otherwise throws a {@link ContentInPublishQueueException}.
      *
      * @param siteId      The site id
@@ -423,7 +423,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
      * @param newCommitId The commit id that is intended to be merged into HEAD
      * @throws IOException                    if an error occurs while trying to calculate the changes
      * @throws GitAPIException                if an error occurs while trying to calculate the changes
-     * @throws ContentInPublishQueueException if the changes contains paths included in active (SUBMITTED or APPROVED ready packages) publishing packages
+     * @throws ContentInPublishQueueException if the changes contains paths included in active (SUBMITTED or APPROVED ready packages) publish packages
      */
     private void assertChangesNotInPublishQueue(final String siteId, final Git git, final ObjectId newCommitId) throws IOException, GitAPIException, ContentInPublishQueueException {
         logger.debug("Checking if the fetched changes are in the publish queue");
@@ -455,7 +455,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     .forEach(p -> publishPackages.put(p.getId(), p));
         }
         if (MapUtils.isNotEmpty(publishPackages)) {
-            throw new ContentInPublishQueueException("Unable to pull changes from remote. Affected items are part of a publishing package.",
+            throw new ContentInPublishQueueException("Unable to pull changes from remote. Affected items are part of a publish package.",
                     publishPackages.values());
         }
     }

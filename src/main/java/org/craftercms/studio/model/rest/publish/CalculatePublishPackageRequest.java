@@ -20,7 +20,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
 
 import java.util.List;
@@ -28,9 +27,9 @@ import java.util.List;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 
 /**
- * Request for publishing dependencies
+ * Request for publish package calculation
  */
-public class GetPublishDependenciesRequest {
+public class CalculatePublishPackageRequest {
     @NotEmpty
     @Size(max = 20)
     @EsapiValidatedParam(type = ALPHANUMERIC)

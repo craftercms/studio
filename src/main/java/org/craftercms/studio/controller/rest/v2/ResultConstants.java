@@ -95,9 +95,7 @@ public final class ResultConstants {
 
     /** Dashboard Controller */
     public static final String RESULT_KEY_ACTIVITIES = "activities";
-    public static final String RESULT_KEY_PUBLISHING_PACKAGES = "publishingPackages";
-    public static final String RESULT_KEY_PUBLISHING_PACKAGE_ITEMS = "publishingPackageItems";
-    public static final String RESULT_KEY_PUBLISHING_ITEMS = "publishingItems";
+    public static final String RESULT_KEY_PUBLISH_PACKAGES = "publishPackages";
     public static final String RESULT_KEY_UNPUBLISHED_ITEMS = "unpublishedItems";
     public static final String RESULT_KEY_PUBLISHING_STATS = "publishingStats";
 

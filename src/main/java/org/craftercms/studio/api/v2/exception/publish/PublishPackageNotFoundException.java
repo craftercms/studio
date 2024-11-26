@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import static java.lang.String.format;
 
 /**
- * Exception thrown when one or more publishing packages cannot be found.
+ * Exception thrown when one or more publish packages cannot be found.
  */
 public class PublishPackageNotFoundException extends ServiceLayerException {
 

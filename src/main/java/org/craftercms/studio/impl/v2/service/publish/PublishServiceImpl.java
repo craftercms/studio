@@ -50,22 +50,22 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public long getPublishingPackagesCount(@SiteId final String siteId, final String target,
-                                          final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
-                                          final String submitter, final String reviewer, final Boolean isScheduled) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackagesCount(siteId, target, states, approvalStates, submitter, reviewer, isScheduled);
+    public long getPublishPackagesCount(@SiteId final String siteId, final String target,
+                                        final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+                                        final String submitter, final String reviewer, final Boolean isScheduled) throws SiteNotFoundException {
+        return publishServiceInternal.getPublishPackagesCount(siteId, target, states, approvalStates, submitter, reviewer, isScheduled);
     }
 
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishPackage> getPublishingPackages(@SiteId final String siteId,
-                                                            final String target, final Long states,
-                                                            final Collection<PublishPackage.ApprovalState> approvalStates,
-                                                            final String submitter, final String reviewer,
-                                                            final Boolean isScheduled, final Collection<SortField> sort,
-                                                            final int offset, final int limit) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishingPackages(siteId, target, states,
+    public Collection<PublishPackage> getPublishPackages(@SiteId final String siteId,
+                                                         final String target, final Long states,
+                                                         final Collection<PublishPackage.ApprovalState> approvalStates,
+                                                         final String submitter, final String reviewer,
+                                                         final Boolean isScheduled, final Collection<SortField> sort,
+                                                         final int offset, final int limit) throws SiteNotFoundException {
+        return publishServiceInternal.getPublishPackages(siteId, target, states,
                 approvalStates, submitter, reviewer,
                 isScheduled, sort, offset, limit);
     }
@@ -73,9 +73,9 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishPackageDetails getPublishingPackageDetails(@SiteId String siteId,
-                                                             long packageId) throws SiteNotFoundException, PublishPackageNotFoundException {
-        PublishPackageDetails packageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
+    public PublishPackageDetails getPublishPackageDetails(@SiteId String siteId,
+                                                          long packageId) throws SiteNotFoundException, PublishPackageNotFoundException {
+        PublishPackageDetails packageDetails = publishServiceInternal.getPublishPackageDetails(siteId, packageId);
         if (packageDetails == null || isEmpty(packageDetails.getItems())) {
             throw new PublishPackageNotFoundException(siteId, packageId);
         }
@@ -118,10 +118,10 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public PublishDependenciesResult getPublishDependencies(@SiteId String siteId, String publishingTarget, Collection<PublishRequestPath> paths,
-                                                            Collection<String> commitIds)
+    public CalculatedPublishPackageResult calculatePublishPackage(@SiteId String siteId, String publishingTarget, Collection<PublishRequestPath> paths,
+                                                                  Collection<String> commitIds)
             throws ServiceLayerException, IOException {
-        return publishServiceInternal.getPublishDependencies(siteId, publishingTarget, paths, commitIds);
+        return publishServiceInternal.calculatePublishPackage(siteId, publishingTarget, paths, commitIds);
     }
 
     @Override

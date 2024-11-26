@@ -6283,13 +6283,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/{siteId}/dependencies:
+  /api/2/publish/{siteId}/calculate:
     post:
       tags:
         - publishing
-      summary: Calculate the dependencies of a publishing item set
+      summary: Calculate the publish package given an item set
       description: 'Required permission "content_read"'
-      operationId: calculatePublishDependencies
+      operationId: calculatePublishPackage
       parameters:
         - name: siteId
           in: path
@@ -6418,7 +6418,7 @@ paths:
         - publishing
       summary: Get the list of packages in the publishing queue
       description: 'Required permission "get_publishing_queue"'
-      operationId: GetPublishingPackages
+      operationId: GetPublishPackages
       parameters:
         - name: siteId
           in: path
@@ -6509,7 +6509,7 @@ paths:
                       packages:
                         type: array
                         items:
-                          $ref: '#/components/schemas/PublishingPackage'
+                          $ref: '#/components/schemas/PublishPackage'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -6525,7 +6525,7 @@ paths:
         - publishing
       summary: Get package details
       description: 'Required permission "get_publishing_queue"'
-      operationId: getPublishingPackage
+      operationId: getPublishPackage
       parameters:
         - name: siteId
           in: path
@@ -6585,7 +6585,7 @@ paths:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
                       package:
-                        $ref: '#/components/schemas/PublishingPackage'
+                        $ref: '#/components/schemas/PublishPackage'
                       items:
                         type: array
                         items:
@@ -6605,7 +6605,7 @@ paths:
         - publishing
       summary: Get package status without the actual items list
       description: 'Required permission "get_publishing_queue"'
-      operationId: getPublishingPackageStatus
+      operationId: getPublishPackageStatus
       parameters:
         - name: siteId
           in: path
@@ -6631,7 +6631,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
-                    $ref: '#/components/schemas/PublishingPackage'
+                    $ref: '#/components/schemas/PublishPackage'
                   progress:
                     $ref: '#/components/schemas/PublishTaskProgress'
         '400':
@@ -6680,9 +6680,9 @@ paths:
     post:
       tags:
         - publishing
-      summary: Clone an existing publishing package
+      summary: Clone an existing publish package
       description: 'Required permission "request_publish, publish"'
-      operationId: clonePublishingPackage
+      operationId: clonePublishPackage
       parameters:
         - name: siteId
           in: path
@@ -8117,7 +8117,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  publishingPackages:
+                  packages:
                     type: array
                     items:
                       $ref: '#/components/schemas/PublishPackageStatus'
@@ -8165,7 +8165,7 @@ paths:
               properties:
                 comment:
                   type: string
-                  description: Reviewer's rejection comment
+                  description: Reviewer's comment
                 schedule:
                   type: string
                   format: datetime
@@ -8200,7 +8200,7 @@ paths:
     post:
       tags:
         - workflow
-      summary: Reject publishing package
+      summary: Reject publish package
       description: 'Required permission "cancel_publish"'
       operationId: workflowReject
       parameters:
@@ -8229,7 +8229,7 @@ paths:
               properties:
                 comment:
                   type: string
-                  description: Reviewer's rejection comment
+                  description: Reviewer's comment
               required:
                 - comment
       responses:
@@ -8257,9 +8257,9 @@ paths:
     post:
       tags:
         - workflow
-      summary: Cancel publishing package
+      summary: Cancel publish package
       description: 'Required permission "cancel_publish"'
-      operationId: cancelPublishingPackage
+      operationId: cancelPublishPackage
       parameters:
         - name: site
           in: path
@@ -8286,7 +8286,7 @@ paths:
               properties:
                 comment:
                   type: string
-                  description: Reviewer's rejection comment
+                  description: Reviewer's comment
               required:
                 - comment
       responses:
@@ -9420,7 +9420,7 @@ components:
       type: object
       description: API v1 object
 
-    PublishingPackage:
+    PublishPackage:
       allOf:
         - $ref: '#/components/schemas/PublishPackageStatus'
         - type: object
@@ -9462,9 +9462,9 @@ components:
             - state
             - publishingTarget
 
-    PublishingPackageDetails:
+    PublishPackageDetails:
       allOf:
-        - $ref: '#/components/schemas/PublishingPackage'
+        - $ref: '#/components/schemas/PublishPackage'
         - type: object
           properties:
             items:
@@ -10464,7 +10464,7 @@ components:
         - firstName
         - lastName
 
-    DashboardPublishingPackage:
+    DashboardPublishPackage:
       type: object
       properties:
         id:
@@ -11183,7 +11183,7 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
-              publishingPackages:
+              publishPackages:
                 type: array
                 items:
                   $ref: '#/components/schemas/PublishPackageStatus'
@@ -11289,7 +11289,7 @@ components:
             properties:
               message:
                 type: string
-              publishingPackages:
+              publishPackages:
                 type: array
                 items:
                   $ref: '#/components/schemas/PublishPackageStatus'

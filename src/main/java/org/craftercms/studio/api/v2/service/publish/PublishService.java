@@ -36,36 +36,36 @@ import java.util.List;
 
 /**
  * Service for publishing submissions
- * This service is responsible for creating publishing packages,
+ * This service is responsible for creating publish packages,
  * calculating dependencies and retrieving information packages and the publishing queue.
  * For the actual publishing queue processing, see {@link Publisher}
  */
 public interface PublishService {
 
     /**
-     * Get total number of publishing packages for given search parameters
+     * Get total number of publish packages for given search parameters
      *
      * @param siteId         site identifier
      * @param target         publishing target
-     * @param states         publishing package states bits
+     * @param states         publish package states bits
      * @param approvalStates approval states to filter packages
      * @param submitter      submitter username
      * @param reviewer       reviewer username
      * @param isScheduled    if the package is scheduled
-     * @return total number of publishing packages
+     * @return total number of publish packages
      * @throws SiteNotFoundException site not found
      */
-    long getPublishingPackagesCount(String siteId, String target, Long states,
-                                    final Collection<ApprovalState> approvalStates, String submitter,
-                                    String reviewer, Boolean isScheduled)
+    long getPublishPackagesCount(String siteId, String target, Long states,
+                                 final Collection<ApprovalState> approvalStates, String submitter,
+                                 String reviewer, Boolean isScheduled)
             throws SiteNotFoundException;
 
     /**
-     * Get publishing packages for given search parameters
+     * Get publish packages for given search parameters
      *
      * @param siteId         site identifier
      * @param target         publishing target
-     * @param states         publishing package state bits
+     * @param states         publish package state bits
      * @param approvalStates approval states to filter packages
      * @param submitter      submitter username
      * @param reviewer       reviewer username
@@ -73,24 +73,24 @@ public interface PublishService {
      * @param sort           sort fields
      * @param offset         offset for pagination
      * @param limit          limit for pagination
-     * @return list of publishing packages
+     * @return list of publish packages
      * @throws SiteNotFoundException site not found
      */
-    Collection<PublishPackage> getPublishingPackages(String siteId, String target, Long states,
-                                                     Collection<ApprovalState> approvalStates,
-                                                     String submitter, String reviewer,
-                                                     Boolean isScheduled, Collection<SortField> sort,
-                                                     int offset, int limit) throws SiteNotFoundException;
+    Collection<PublishPackage> getPublishPackages(String siteId, String target, Long states,
+                                                  Collection<ApprovalState> approvalStates,
+                                                  String submitter, String reviewer,
+                                                  Boolean isScheduled, Collection<SortField> sort,
+                                                  int offset, int limit) throws SiteNotFoundException;
 
     /**
-     * Get publishing package details
+     * Get publish package details
      *
      * @param siteId    site identifier
      * @param packageId package identifier
-     * @return publishing package details
+     * @return publish package details
      * @throws SiteNotFoundException site not found
      */
-    PublishPackageDetails getPublishingPackageDetails(String siteId, long packageId) throws SiteNotFoundException, PublishPackageNotFoundException;
+    PublishPackageDetails getPublishPackageDetails(String siteId, long packageId) throws SiteNotFoundException, PublishPackageNotFoundException;
 
     /**
      * Get available publishing targets for given site
@@ -111,7 +111,7 @@ public interface PublishService {
     boolean isSitePublished(String siteId) throws SiteNotFoundException;
 
     /**
-     * Create a 'APPROVED' publishing package. The created package will be ready to be published.
+     * Create a 'APPROVED' publish package. The created package will be ready to be published.
      *
      * @param siteId           the id of the site
      * @param publishingTarget the publishing target
@@ -127,7 +127,7 @@ public interface PublishService {
             throws ServiceLayerException, AuthenticationException;
 
     /**
-     * Create a 'SUBMITTED' publishing package. The created package will require approval.
+     * Create a 'SUBMITTED' publish package. The created package will require approval.
      *
      * @param siteId           the id of the site
      * @param publishingTarget the publishing target
@@ -151,12 +151,12 @@ public interface PublishService {
     int getNumberOfPublishes(String siteId, int days);
 
     /**
-     * Get the dependencies for the given paths and commit ids
+     * Calculate a publish package given a list of paths and commit ids
      *
      * @param siteId           site identifier
      * @param publishingTarget the publishing target
-     * @param paths            paths to get dependencies for
-     * @param commitIds        commit ids to get dependencies for
+     * @param paths            paths to calculate the package for
+     * @param commitIds        commit ids to calculate the package for
      * @return a package containing:
      * <ul>
      *     <li>items: the items to publish</li>
@@ -167,7 +167,7 @@ public interface PublishService {
      * @throws ServiceLayerException
      * @throws IOException
      */
-    PublishDependenciesResult getPublishDependencies(String siteId, String publishingTarget, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
+    CalculatedPublishPackageResult calculatePublishPackage(String siteId, String publishingTarget, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
 
     /**
      * Get the submitted package containing the given item
@@ -200,11 +200,11 @@ public interface PublishService {
     long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException;
 
     /**
-     * Get a publishing package by site and package id
+     * Get a publish package by site and package id
      *
      * @param siteId    the site id
      * @param packageId the package id
-     * @return the publishing package
+     * @return the publish package
      * @throws PublishPackageNotFoundException if the package is not found
      * @throws SiteNotFoundException           if the site is not found
      */
@@ -251,7 +251,7 @@ public interface PublishService {
      * @param hardDependencies the hard dependencies of the items
      * @param softDependencies the soft dependencies of the items
      */
-    record PublishDependenciesResult(Collection<String> items, Collection<String> deletedItems,
-                                     Collection<String> hardDependencies, Collection<String> softDependencies) {
+    record CalculatedPublishPackageResult(Collection<String> items, Collection<String> deletedItems,
+                                          Collection<String> hardDependencies, Collection<String> softDependencies) {
     }
 }

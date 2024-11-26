@@ -87,7 +87,7 @@ public interface WorkflowService {
             throws ServiceLayerException, AuthenticationException;
 
     /**
-     * Cancel publishing package
+     * Cancel publish package
      *
      * @param siteId    site identifier
      * @param packageId the package identifier
@@ -98,7 +98,7 @@ public interface WorkflowService {
             throws ServiceLayerException, AuthenticationException;
 
     /**
-     * Reject publishing package
+     * Reject publish package
      *
      * @param siteId    site identifier
      * @param packageId the package to reject

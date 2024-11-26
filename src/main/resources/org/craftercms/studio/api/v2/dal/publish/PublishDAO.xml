@@ -37,7 +37,7 @@
     </resultMap>
 
     <resultMap id="DashboardPackageMap" autoMapping="true"
-               type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
+               type="org.craftercms.studio.model.rest.dashboard.DashboardPublishPackage">
         <result property="comment" column="submitter_comment"/>
         <result property="publishingTarget" column="target"/>
         <result property="schedule" column="published_on"/>
@@ -345,7 +345,7 @@
         AND (pp.package_state &amp; #{completedState}) > 0
     </select>
 
-    <select id="getPublishingPackagesCount">
+    <select id="getPublishPackagesCount">
         SELECT COUNT(1)
         FROM (
             <include refid="getAllPackagesForFilters" />
@@ -355,7 +355,7 @@
         ) AS tbl
     </select>
 
-    <select id="getPublishingPackagesInternal">
+    <select id="getPublishPackagesInternal">
         <include refid="getAllPackagesForFilters" />
         <if test="isScheduled != null">
             AND pp.schedule IS <if test="isScheduled">NOT</if> NULL

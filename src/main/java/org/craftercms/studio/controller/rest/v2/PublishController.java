@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.publish.PublishService.PublishDependenciesResult;
+import org.craftercms.studio.api.v2.service.publish.PublishService.CalculatedPublishPackageResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
@@ -74,7 +74,7 @@ public class PublishController {
     }
 
     @GetMapping(PATH_PARAM_SITE + PACKAGES)
-    public PaginatedResultList<PublishPackage> getPublishingPackages(@ValidSiteId @PathVariable String site,
+    public PaginatedResultList<PublishPackage> getPublishPackages(@ValidSiteId @PathVariable String site,
                                                                      @EsapiValidatedParam(type = ALPHANUMERIC) @Size(max = 20)
                                                                      @RequestParam(name = REQUEST_PARAM_TARGET, required = false)
                                                                      String target,
@@ -94,10 +94,10 @@ public class PublishController {
                                                                      @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
                                                                              defaultValue = "10") @PositiveOrZero int limit)
             throws SiteNotFoundException {
-        long total = publishService.getPublishingPackagesCount(site, target, states, approvalStates, submitter, reviewer, isScheduled);
+        long total = publishService.getPublishPackagesCount(site, target, states, approvalStates, submitter, reviewer, isScheduled);
         Collection<PublishPackage> packages = new ArrayList<>();
         if (total > 0) {
-            packages = publishService.getPublishingPackages(site, target, states, approvalStates, submitter, reviewer, isScheduled, sort, offset, limit);
+            packages = publishService.getPublishPackages(site, target, states, approvalStates, submitter, reviewer, isScheduled, sort, offset, limit);
         }
 
         PaginatedResultList<PublishPackage> result = new PaginatedResultList<>();
@@ -110,13 +110,13 @@ public class PublishController {
     }
 
     @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
-    public ResultOne<PublishPackageDetails> getPublishingPackage(@PathVariable @ValidSiteId String site,
+    public ResultOne<PublishPackageDetails> getPublishPackage(@PathVariable @ValidSiteId String site,
                                                                  @PathVariable @Positive long packageId)
             throws SiteNotFoundException, PublishPackageNotFoundException {
-        PublishPackageDetails publishingPackageDetails =
-                publishService.getPublishingPackageDetails(site, packageId);
+        PublishPackageDetails publishPackageDetails =
+                publishService.getPublishPackageDetails(site, packageId);
         ResultOne<PublishPackageDetails> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_PACKAGE, publishingPackageDetails);
+        result.setEntity(RESULT_KEY_PACKAGE, publishPackageDetails);
         result.setResponse(OK);
         return result;
     }
@@ -165,16 +165,16 @@ public class PublishController {
         return result;
     }
 
-    @PostMapping(PATH_PARAM_SITE + DEPENDENCIES)
-    public ResultOne<PublishDependenciesResult> getPublishDependencies(@PathVariable @NotEmpty @ValidSiteId String site,
-                                                                       @Validated @RequestBody GetPublishDependenciesRequest request)
+    @PostMapping(PATH_PARAM_SITE + CALCULATE)
+    public ResultOne<CalculatedPublishPackageResult> calculatePublishPackage(@PathVariable @NotEmpty @ValidSiteId String site,
+                                                                             @Validated @RequestBody CalculatePublishPackageRequest request)
             throws ServiceLayerException, IOException {
-        PublishDependenciesResult dependenciesPackage = publishService.getPublishDependencies(site,
+        CalculatedPublishPackageResult calculatedPackage = publishService.calculatePublishPackage(site,
                 request.getPublishingTarget(), request.getPaths(), request.getCommitIds());
 
-        ResultOne<PublishDependenciesResult> result = new ResultOne<>();
+        ResultOne<CalculatedPublishPackageResult> result = new ResultOne<>();
         result.setResponse(OK);
-        result.setEntity(RESULT_KEY_PACKAGE, dependenciesPackage);
+        result.setEntity(RESULT_KEY_PACKAGE, calculatedPackage);
         return result;
     }
 

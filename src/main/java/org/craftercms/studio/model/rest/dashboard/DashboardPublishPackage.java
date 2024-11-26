@@ -22,9 +22,9 @@ import org.craftercms.studio.model.rest.Person;
 import java.time.Instant;
 
 /**
- * Represents a publishing package in the dashboard
+ * Represents a publish package in the dashboard
  */
-public class DashboardPublishingPackage {
+public class DashboardPublishPackage {
     private long id;
     private PublishPackage.PackageType packageType;
     private String comment;

@@ -116,7 +116,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
         doReviewPackage(siteId, packageId, p -> {
             p.setPackageState(CANCELLED.value);
             p.setReviewerComment(comment);
-        }, OPERATION_CANCEL_PUBLISHING_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
+        }, OPERATION_CANCEL_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
     }
 
     @Override
@@ -126,7 +126,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
             p.setApprovalState(REJECTED);
             p.setPackageState(CANCELLED.value);
             p.setReviewerComment(comment);
-        }, OPERATION_REJECT_PUBLISHING_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
+        }, OPERATION_REJECT_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
     }
 
     /**
@@ -190,7 +190,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
         auditLog.setActorId(username);
         auditLog.setSiteId(publishPackage.getSiteId());
         auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
         auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
         auditServiceInternal.insertAuditLog(auditLog);
     }

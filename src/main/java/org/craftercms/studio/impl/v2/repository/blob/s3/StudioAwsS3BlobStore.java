@@ -437,7 +437,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                     publishItemTO.setFailed(PublishUtils.translateItemException(throwable));
                     failedItems.add(publishItemTO);
                 } catch (PublishException e) {
-                    throw new BlobStoreException(format("Unable to continue publishing package: %s", e.getMessage()), e);
+                    throw new BlobStoreException(format("Unable to continue publish package: %s", e.getMessage()), e);
                 }
             }
 

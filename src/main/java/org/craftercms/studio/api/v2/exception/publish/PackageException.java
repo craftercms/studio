@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.exception.publish;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
- * Base class for publishing package related exceptions
+ * Base class for publish package related exceptions
  */
 public abstract class PackageException extends ServiceLayerException {
     private final String siteId;

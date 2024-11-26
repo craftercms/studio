@@ -148,10 +148,10 @@ public class Publisher implements ApplicationEventPublisherAware {
 
     private void lockAndPublish(final long siteId, final long packageId) throws ServiceLayerException {
         String packageIdLockKey = StudioUtils.getPublishPackageLockKey(packageId);
-        logger.debug("Trying to acquire lock for publishing package '{}'", packageId);
+        logger.debug("Trying to acquire lock for publish package '{}'", packageId);
         boolean lockAcquired = generalLockService.tryLock(packageIdLockKey);
         if (!lockAcquired) {
-            logger.warn("Failed to acquire lock for publishing package '{}' for site '{}'", packageId, siteId);
+            logger.warn("Failed to acquire lock for publish package '{}' for site '{}'", packageId, siteId);
             return;
         }
         try {
@@ -473,7 +473,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         auditLog.setActorId(actorId);
         auditLog.setSiteId(p.getSiteId());
         auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
-        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
         auditLog.setPrimaryTargetValue(String.valueOf(p.getId()));
         auditServiceInternal.insertAuditLog(auditLog);
     }

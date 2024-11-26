@@ -70,7 +70,7 @@ try {
     } else {
         response.setStatus(409)
         result.message = inQueueException.message
-        result.publishingPackages = inQueueException.getPublishPackages()
+        result.publishPackages = inQueueException.getPublishPackages()
                 .collect { new PublishPackageResponse(it) }
     }
 }

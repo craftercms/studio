@@ -104,7 +104,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 
             Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, List.of(sourcePath), true);
             if (isNotEmpty(packagesForItems)) {
-                throw new ContentInPublishQueueException("Unable to CUT content that is part of an active publishing package", packagesForItems);
+                throw new ContentInPublishQueueException("Unable to cut content that is part of an active publish package", packagesForItems);
             }
         }
     }

@@ -376,9 +376,9 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PublishPackageNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResultOne<Long> handlePublishingPackageNotFoundException(HttpServletRequest request,
+    public ResultOne<Long> handlePublishPackageNotFoundException(HttpServletRequest request,
                                                                     PublishPackageNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.PUBLISHING_PACKAGE_NOT_FOUND);
+        ApiResponse response = new ApiResponse(ApiResponse.PUBLISH_PACKAGE_NOT_FOUND);
         handleExceptionInternal(request, e, response);
 
         ResultOne<Long> result = new ResultOne<>();
@@ -594,7 +594,7 @@ public class ExceptionHandlers {
         handleExceptionInternal(request, e, response);
         ResultList<PublishPackageResponse> result = new ResultList<>();
         result.setResponse(response);
-        result.setEntities(RESULT_KEY_PUBLISHING_PACKAGES,
+        result.setEntities(RESULT_KEY_PUBLISH_PACKAGES,
                 e.getPublishPackages().stream().map(PublishPackageResponse::new).toList());
 
         return result;

@@ -283,7 +283,7 @@ public interface PublishDAO {
     @Transactional
     default void cancelPackage(final PublishPackage publishPackage, final String liveTarget) {
         updatePackage(publishPackage);
-        updateItemStateBits(publishPackage.getId(), 0, CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
+        updateItemStateBits(publishPackage.getId(), 0, CANCEL_PUBLISH_PACKAGE_OFF_MASK);
         recalculateItemStateBits(publishPackage.getId(), liveTarget);
     }
 
@@ -468,7 +468,7 @@ public interface PublishDAO {
      * @param approvalStates  the approval states to filter by
      * @return the total number of packages matching the filters
      */
-    long getPublishingPackagesCount(@Param(SITE_ID) String siteId,
+    long getPublishPackagesCount(@Param(SITE_ID) String siteId,
                                     @Param(TARGET) String target,
                                     @Param(PACKAGE_STATE) Long packageState,
                                     @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
@@ -489,7 +489,7 @@ public interface PublishDAO {
      * @param limit limit
      * @return the publish packages matching the filters
      */
-    default Collection<PublishPackage> getPublishingPackages(@Param(SITE_ID) String siteId,
+    default Collection<PublishPackage> getPublishPackages(@Param(SITE_ID) String siteId,
                                                              @Param(TARGET) String target,
                                                              @Param(PACKAGE_STATE) Long packageState,
                                                              @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
@@ -499,14 +499,14 @@ public interface PublishDAO {
                                                              @Param(SORT_FIELDS) Collection<SortField> sortFields,
                                                              @Param(OFFSET) Integer offset,
                                                              @Param(LIMIT) Integer limit) {
-        return getPublishingPackagesInternal(siteId, target, packageState,
+        return getPublishPackagesInternal(siteId, target, packageState,
                 approvalStates, submitter, reviewer,
                 isScheduled, mapSortFields(sortFields, SORT_FIELD_MAP), offset, limit);
     }
     /**
-     * Internal method so we can map the sort fields to the actual columns for getPublishingPackages
+     * Internal method so we can map the sort fields to the actual columns for getPublishPackages
      */
-    Collection<PublishPackage> getPublishingPackagesInternal(@Param(SITE_ID) String siteId,
+    Collection<PublishPackage> getPublishPackagesInternal(@Param(SITE_ID) String siteId,
                                                              @Param(TARGET) String target,
                                                              @Param(PACKAGE_STATE) Long packageState,
                                                              @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
