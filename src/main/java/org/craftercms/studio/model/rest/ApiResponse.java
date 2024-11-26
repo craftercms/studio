@@ -182,12 +182,12 @@ public class ApiResponse {
     public static final ApiResponse S3_UNREACHABLE = new ApiResponse(52001, "S3 is unreachable",
             "Check your network configuration and S3 availability", StringUtils.EMPTY);
     public static final ApiResponse S3_BUCKET_NOT_FOUND = new ApiResponse(52002, "S3 bucket not found",
-            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+            "Check the configured bucket name is correct", StringUtils.EMPTY);
     public static final ApiResponse S3_UNAUTHORIZED = new ApiResponse(52003, "S3 unauthorized access",
             "Check your AWS credentials", StringUtils.EMPTY);
     public static final ApiResponse S3_FORBIDDEN = new ApiResponse(52004, "S3 FORBIDDEN",
             "Check your AWS credentials", StringUtils.EMPTY);
-    public static final ApiResponse S3_KEY_NOT_FOUND = new ApiResponse(8005, "S3 key not found",
+    public static final ApiResponse S3_KEY_NOT_FOUND = new ApiResponse(52005, "S3 key not found",
             "Check your network configuration and S3 availability", StringUtils.EMPTY);
 
     // 53000 - 54000
