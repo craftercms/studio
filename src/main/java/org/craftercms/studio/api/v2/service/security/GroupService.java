@@ -109,6 +109,16 @@ public interface GroupService {
      */
     Group getGroup(long groupId) throws ServiceLayerException, GroupNotFoundException;
 
+	/**
+	 * Get Group ID
+	 *
+	 * @param groupName Group name
+	 * @return Group
+	 * @throws ServiceLayerException  general service error
+	 * @throws GroupNotFoundException group not found
+	 */
+	Group getGroupByName(String groupName) throws ServiceLayerException, GroupNotFoundException;
+
     /**
      * Get group members
      *

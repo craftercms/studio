@@ -19,10 +19,16 @@ package org.craftercms.studio.api.v2.annotation;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.craftercms.commons.aop.AopUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
+import org.slf4j.spi.LoggingEventBuilder;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
@@ -46,22 +52,40 @@ public class LogExecutionTimeAnnotationHandler {
             "@annotation(LogExecutionTime) || " +
             "execution(@(@LogExecutionTime *) * *(..))")
     public Object logExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
-        String methodName = pjp.getSignature().toShortString();
+        MethodSignature signature = (MethodSignature) pjp.getSignature();
+        String methodName = signature.toShortString();
         String args = Arrays.toString(pjp.getArgs());
-        Logger methodLogger = LoggerFactory.getLogger(pjp.getSignature().getDeclaringType());
+        Logger methodLogger = LoggerFactory.getLogger(signature.getDeclaringType());
+
         if (methodLogger == null) {
             logger.debug("Method '{}' is annotated with @LogExecutionTime but does not have a valid logger. " +
                     "This annotation will be ignored.", methodName);
             return pjp.proceed();
         }
 
+        Method method = AopUtils.getActualMethod(pjp);
+        LogExecutionTime annotation = AnnotationUtils.findAnnotation(method, LogExecutionTime.class);
+        if (annotation == null) {
+            annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), LogExecutionTime.class);
+        }
+
+        if (annotation == null) {
+            logger.debug("Unable to find LogExecutionTime annotation on method '{}.{}'. ",
+                    method.getDeclaringClass().getName(), method.getName());
+            return pjp.proceed();
+        }
+
+        Level logLevel = annotation.value() != null ? annotation.value() : Level.TRACE;
+
         long startTime = 0;
-        if (methodLogger.isTraceEnabled()) {
+        if (methodLogger.isEnabledForLevel(logLevel)) {
             startTime = System.currentTimeMillis();
         }
         Object process = pjp.proceed();
-        if (methodLogger.isTraceEnabled()) {
-            methodLogger.trace("Method '{}' with parameters '{}' executed in '{}' milliseconds", methodName, args, System.currentTimeMillis() - startTime);
+        if (methodLogger.isEnabledForLevel(logLevel)) {
+            LoggingEventBuilder loggingEventBuilder = methodLogger.atLevel(logLevel);
+            loggingEventBuilder.log("Method '{}' with parameters '{}' executed in '{}' milliseconds",
+                    methodName, args, System.currentTimeMillis() - startTime);
         }
 
         return process;

@@ -227,7 +227,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
+    public List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException {
         Map<NormalizedGroup, List<NormalizedRole>> groupRoleMapping;
         try {
             groupRoleMapping = configurationService.getRoleMappings(siteId);
@@ -235,10 +235,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
             throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
         }
 
-        return new ArrayList<>(groupRoleMapping.keySet()
-                .stream()
-                .map(NormalizedGroup::toString)
-                .toList());
+        return new ArrayList<>(groupRoleMapping.keySet());
     }
 
     public GroupDAO getGroupDao() {

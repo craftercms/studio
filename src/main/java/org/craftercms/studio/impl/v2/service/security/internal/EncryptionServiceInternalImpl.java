@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,54 +16,91 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.beans.ConstructorProperties;
+
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ENCRYPTION_TOKEN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
  * @author joseross
  */
 public class EncryptionServiceInternalImpl implements EncryptionServiceInternal {
 
-    protected long delay;
+    private static final Logger logger = LoggerFactory.getLogger(EncryptionServiceInternalImpl.class);
 
-    protected int maxLength;
+    private final StudioConfiguration studioConfiguration;
+    private final AuditServiceInternal auditServiceInternal;
+    private final TextEncryptor textEncryptor;
+    private final SiteDAO siteDAO;
+    private final int maxLength;
+    private final long delay;
 
-    protected TextEncryptor textEncryptor;
+    @ConstructorProperties({"studioConfiguration", "auditServiceInternal", "textEncryptor", "siteDAO",
+            "maxLength", "delay"})
+    public EncryptionServiceInternalImpl(StudioConfiguration studioConfiguration, AuditServiceInternal auditServiceInternal,
+                                         TextEncryptor textEncryptor, SiteDAO siteDAO, int maxLength, long delay) {
+        this.studioConfiguration = studioConfiguration;
+        this.auditServiceInternal = auditServiceInternal;
+        this.textEncryptor = textEncryptor;
+        this.siteDAO = siteDAO;
+        this.maxLength = maxLength;
+        this.delay = delay;
+    }
 
     @Override
-    public String encrypt(final String text) throws ServiceLayerException {
+    public String encrypt(final String siteId, final String text) throws ServiceLayerException {
         if (StringUtils.isEmpty(text) || text.length() > maxLength) {
             throw new InvalidParametersException("The provided text is invalid");
         }
         try {
             Thread.sleep(delay * 1000);
-            return textEncryptor.encrypt(text);
+            String encryptedToken = textEncryptor.encrypt(text);
+
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            String resolvedSiteId = StringUtils.isNotEmpty(siteId) ? siteId
+                    : studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
+            String targetId = DigestUtils.md5Hex(encryptedToken);
+            createEncryptionAuditLog(resolvedSiteId, auth.getName(), targetId);
+            logger.debug("Encryption token created for site '{}', target ID '{}'", resolvedSiteId, targetId);
+
+            return encryptedToken;
         } catch (CryptoException | InterruptedException e) {
             throw new ServiceLayerException("Error encrypting text", e);
         }
     }
 
-    public long getDelay() {
-        return delay;
-    }
-
-    public void setDelay(long delay) {
-        this.delay = delay;
-    }
-
-    public int getMaxLength() {
-        return maxLength;
-    }
-
-    public void setMaxLength(int maxLength) {
-        this.maxLength = maxLength;
-    }
-
-    public void setTextEncryptor(TextEncryptor textEncryptor) {
-        this.textEncryptor = textEncryptor;
+    /**
+     * Create encryption audit log
+     * @param siteId site identifier
+     * @param actor actor
+     * @param targetId encryption target id
+     */
+    private void createEncryptionAuditLog(String siteId, String actor, String targetId) {
+        Site site = siteDAO.getSite(siteId);
+        AuditLog entry = auditServiceInternal.createAuditLogEntry();
+        entry.setOperation(OPERATION_CREATE);
+        entry.setActorId(actor);
+        entry.setSiteId(site.getId());
+        entry.setPrimaryTargetId(targetId);
+        entry.setPrimaryTargetType(TARGET_TYPE_ENCRYPTION_TOKEN);
+        entry.setPrimaryTargetValue(targetId);
+        auditServiceInternal.insertAuditLog(entry);
     }
 }

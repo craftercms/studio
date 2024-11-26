@@ -271,6 +271,41 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/groups/by_name/{name}:
+    get:
+      tags:
+        - groups
+      summary: Get group by name
+      description: 'Required Permission: "READ_GROUPS"'
+      operationId: getGroupByName
+      parameters:
+        - name: name
+          in: path
+          description: The group name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  group:
+                    $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/2/groups/{id}/members:
     get:
       tags:
@@ -1561,6 +1596,12 @@ paths:
           required: false
           schema:
             type: string
+        - name: maxKeys
+          in: query
+          description: The maximum number of keys to retrieve (default value is 100)
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: OK

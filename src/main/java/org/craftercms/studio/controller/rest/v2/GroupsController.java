@@ -167,6 +167,22 @@ public class GroupsController {
     }
 
     /**
+	 * Get group name API
+	 *
+	 * @param groupName Group name
+	 * @return Response containing requested group
+	 */
+	@GetMapping(PATH_PARAM_GROUP_NAME)
+	public ResultOne<Group> getGroupByName(@PathVariable(REQUEST_GROUP_NAME) String groupName)
+		throws ServiceLayerException, GroupNotFoundException {
+		Group group = groupService.getGroupByName(groupName);
+		ResultOne<Group> result = new ResultOne<>();
+		result.setResponse(OK);
+		result.setEntity(RESULT_KEY_GROUP, group);
+		return result;
+	}
+
+     /**
      * Get group members API
      *
      * @param groupId Group identifier
