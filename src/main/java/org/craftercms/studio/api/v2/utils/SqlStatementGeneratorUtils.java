@@ -32,19 +32,19 @@ public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_INSERT =
             "INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by," +
-                    " last_modified_on, last_published_on, label, content_type_id, system_type, mime_type," +
-                    " locale_code, translation_source_id, size, previous_path, ignored)" +
+                    " last_modified_on, label, content_type_id, system_type, mime_type," +
+                    " locale_code, translation_source_id, size, ignored)" +
                     " VALUES (#{siteId}, '#{path}', '#{previewUrl}', #{state}, #{lockedBy}, #{createdBy}," +
-                    " '#{createdOn}', #{lastModifiedBy}, '#{lastModifiedOn}', '#{lastPublishedOn}', '#{label}'," +
+                    " '#{createdOn}', #{lastModifiedBy}, '#{lastModifiedOn}', '#{label}'," +
                     " '#{contentTypeId}', '#{systemType}', '#{mimeType}', '#{localeCode}'," +
-                    " #{translationSourceId}, #{size}, '#{previousPath}', #{ignoredAsInt})" +
+                    " #{translationSourceId}, #{size}, #{ignoredAsInt})" +
                     " ON DUPLICATE KEY UPDATE site_id = #{siteId}, path = '#{path}', preview_url = '#{previewUrl}'," +
                     " state = #{state}, locked_by = #{lockedBy}, last_modified_by = #{lastModifiedBy}," +
-                    " last_modified_on = '#{lastModifiedOn}', last_published_on = '#{lastPublishedOn}'," +
+                    " last_modified_on = '#{lastModifiedOn}'," +
                     " label = '#{label}', content_type_id = '#{contentTypeId}', system_type = '#{systemType}'," +
                     " mime_type = '#{mimeType}', locale_code = '#{localeCode}'," +
                     " translation_source_id = #{translationSourceId}, size = #{size}," +
-                    " previous_path = '#{previousPath}', ignored = #{ignoredAsInt} ;";
+                    " ignored = #{ignoredAsInt} ;";
 
     public static final String ITEM_UPDATE =
             "UPDATE item SET preview_url = '#{previewUrl}'," +
@@ -101,8 +101,7 @@ public final class SqlStatementGeneratorUtils {
                                        Long createdBy, ZonedDateTime createdOn, Long lastModifiedBy,
                                        ZonedDateTime lastModifiedOn, ZonedDateTime lastPublishedOn, String label,
                                        String contentTypeId, String systemType, String mimeType, String localeCode,
-                                       Long translationSourceId, Long size,
-                                       String previousPath) {
+                                       Long translationSourceId, Long size) {
         Timestamp sqlTsCreated = new Timestamp(createdOn.toInstant().toEpochMilli());
         Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
         Timestamp sqlTsLastPublished = Objects.isNull(lastPublishedOn) ?
@@ -147,11 +146,6 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{translationSourceId}", Objects.isNull(translationSourceId) ? "NULL" :
                 Long.toString(translationSourceId));
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
-        if (StringUtils.isEmpty(previousPath)) {
-            sql = StringUtils.replace(sql, "'#{previousPath}'", "NULL");
-        } else {
-            sql = StringUtils.replace(sql,"#{previousPath}", escapeSingleQuote(previousPath));
-        }
         sql = StringUtils.replace(sql,"#{ignoredAsInt}", Integer.toString(ignoredAsInt));
         return sql;
     }

@@ -43,7 +43,12 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_TYPE = "type";
     public static final String REQUEST_PARAM_ENVIRONMENT = "environment";
     public static final String REQUEST_PARAM_STATES = "states";
+    public static final String REQUEST_PARAM_APPROVAL_STATES = "approvalStates";
     public static final String REQUEST_PARAM_PACKAGE_ID = "packageId";
+    public static final String REQUEST_PARAM_SUBMITTER = "submitter";
+    public static final String REQUEST_PARAM_REVIEWER = "reviewer";
+    public static final String PUBLISH_PACKAGES_SORT_FIELDS = "schedule publishedOn reviewedOn";
+    public static final String REQUEST_PARAM_IS_SCHEDULED = "isScheduled";
     public static final String REQUEST_PARAM_TOKEN = "token";
     public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
     public static final String REQUEST_PARAM_DAYS = "days";
@@ -55,6 +60,7 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
     public static final String REQUEST_PARAM_ITEM_TYPE = "itemType";
+    public static final String REQUEST_PARAM_INCLUDE_CHILDREN = "includeChildren";
     public static final String REQUEST_PARAM_S3_MAX_KEYS= "maxKeys";
     public static final String REQUEST_GROUP_NAME = "groupName";
 
@@ -67,6 +73,9 @@ public final class RequestConstants {
 
     public static final String PUBLISH_REQUEST_SORT_FIELDS = "id dateScheduled label";
     public static final String ITEM_TYPE_VALUES = "asset|component|content type|document|file|folder|levelDescriptor|page|renderingTemplate|script|taxonomy";
+    public static final String RESULT_KEY_PACKAGE_ID = "packageId";
+    public static final String RESULT_KEY_PACKAGE = "package";
+
     private RequestConstants() {
     }
 }

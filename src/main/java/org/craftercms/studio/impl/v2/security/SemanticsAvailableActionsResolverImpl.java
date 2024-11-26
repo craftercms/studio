@@ -25,15 +25,15 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.Person;
@@ -58,10 +58,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private AvailableActionsResolver availableActionsResolver;
     private ContentServiceInternal contentServiceInternal;
     private ServicesConfig servicesConfig;
-    private WorkflowServiceInternal workflowServiceInternal;
     private UserServiceInternal userServiceInternal;
     private StudioBlobStoreResolver studioBlobStoreResolver;
     private ContentTypeServiceInternal contentTypeServiceInternal;
+    private PublishService publishServiceInternal;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -150,9 +150,9 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             }
 
             if (isInWorkflow(itemState)) {
-                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, itemPath);
+                PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(siteId, itemPath, false);
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (user.getId() == workflow.getId()) {
+                if (user.getId() == publishPackage.getSubmitterId()) {
                     result &= ~PUBLISH_APPROVE;
                     result &= ~PUBLISH_SCHEDULE;
                     result &= ~PUBLISH_REJECT;
@@ -241,10 +241,6 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         this.servicesConfig = servicesConfig;
     }
 
-    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
-        this.workflowServiceInternal = workflowServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
@@ -261,4 +257,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         this.securityServiceV1 = securityServiceV1;
     }
 
+    public void setPublishServiceInternal(final PublishService publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
+    }
 }

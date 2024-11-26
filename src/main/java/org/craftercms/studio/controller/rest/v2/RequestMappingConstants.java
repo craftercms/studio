@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,10 +29,8 @@ public final class RequestMappingConstants {
     /** Dashboard Controller */
     public static final String DASHBOARD = "/dashboard";
     public static final String ACTIVITY = "/activity";
-    public static final String PENDING_APPROVAL = "/pending_approval";
     public static final String UNPUBLISHED = "/unpublished";
     public static final String PUBLISHING = "/publishing";
-    public static final String SCHEDULED = "/scheduled";
     public static final String STATS = "/stats";
     public static final String EXPIRING = "/expiring";
     public static final String EXPIRED = "/expired";
@@ -107,9 +105,11 @@ public final class RequestMappingConstants {
     public static final String PACKAGES = "/packages";
     public static final String PACKAGE = "/package";
     public static final String CANCEL = "/cancel";
-    public static final String HISTORY = "/history";
     public static final String AVAILABLE_TARGETS = "/available_targets";
     public static final String HAS_INITIAL_PUBLISH = "/has_initial_publish";
+    public static final String ENABLE_PUBLISHER = "/enable";
+    public static final String PATH_PARAM_PACKAGE = "/{packageId}";
+    public static final String CALCULATE = "/calculate";
 
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";
@@ -121,6 +121,7 @@ public final class RequestMappingConstants {
     public static final String ITEM_STATES = "/item_states";
     public static final String UPDATE_ITEM_STATES_BY_QUERY = "/update_item_states_by_query";
     public static final String AFFECTED_PATHS = "/affected_paths";
+    public static final String AFFECTED_PACKAGES = "/affected_packages";
     public static final String REQUEST_PUBLISH = "/request_publish";
     public static final String REJECT = "/reject";
     public static final String APPROVE = "/approve";

@@ -42,7 +42,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
-    private static final Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
+    private final static Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
     private static final String PUBLISH_API_ROOT = "/api/1/services/api/1/publish/";
     private static final String COMMITS = "/api/1/services/api/1/publish/commits.json";
 

@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -58,14 +58,14 @@ public class DependencyServiceImpl implements DependencyService {
     protected DependencyMapper dependencyMapper;
     protected StudioConfiguration studioConfiguration;
     protected ContentService contentService;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
-    protected org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal dependencyService;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
     protected ItemDAO itemDao;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
-    public List<String> getPublishingDependencies(String site, String path)
+    public Collection<String> getPublishingDependencies(String site, String path)
             throws ServiceLayerException {
         logger.debug("Get publishing dependencies for site '{}' path '{}'", site, path);
         List<String> paths = new ArrayList<>();
@@ -74,7 +74,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public List<String> getPublishingDependencies(String site, List<String> paths)
+    public Collection<String> getPublishingDependencies(String site, List<String> paths)
             throws ServiceLayerException {
         return dependencyService.getHardDependencies(site, paths);
     }
@@ -322,141 +322,15 @@ public class DependencyServiceImpl implements DependencyService {
         return itemSpecificDependenciesPatterns;
     }
 
-    @Override
-    public Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
-            throws ServiceLayerException {
-        Map<String, List<CalculateDependenciesEntityTO>> toRet =
-                new HashMap<>();
-        List<CalculateDependenciesEntityTO> entities = new ArrayList<>();
-            Map<String, String> deps = calculatePublishingDependencies(site, paths);
-            Map<String, List<Map<String, String>>> temp = new HashMap<>();
-            for (String p : paths) {
-                temp.put(p, new ArrayList<>());
-            }
-            for (Map.Entry<String, String> d : deps.entrySet()) {
-                if (d.getKey() != d.getValue()) {
-                    List<Map<String, String>> ds = temp.get(d.getValue());
-                    ds.add(new HashMap<>() {{
-                        put(StudioConstants.JSON_PROPERTY_ITEM, d.getKey());
-                    }});
-                }
-            }
-            for (Map.Entry<String, List<Map<String,String >>> t : temp.entrySet()) {
-                CalculateDependenciesEntityTO calculateDependenciesEntityTO = new CalculateDependenciesEntityTO();
-                calculateDependenciesEntityTO.setItem(t.getKey());
-                calculateDependenciesEntityTO.setDependencies(t.getValue());
-                entities.add(calculateDependenciesEntityTO);
-            }
-
-        toRet.put("entities", entities);
-        return toRet;
-    }
-
-    @Override
-    public Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException {
-        Map<String, String> dependencies = calculatePublishingDependencies(site, paths);
-        return dependencies.keySet();
-    }
-
-    private Map<String, String> calculatePublishingDependencies(String site, List<String> paths)
-            throws ServiceLayerException {
-        Set<String> toRet = new HashSet<>();
-
-        logger.debug("Get all the publishing dependencies for site '{}' paths '{}'", site, paths);
-        Set<String> pathsParams = new HashSet<>(paths);
-        Set<String> mandatoryParents = getMandatoryParentsForPublishing(site, paths);
-        Map<String, String> ancestors = new HashMap<>();
-        for (String p : paths) {
-            ancestors.put(p, p);
-        }
-        for (String p : mandatoryParents) {
-            String prefix = p.replace(FILE_SEPARATOR + INDEX_FILE, "");
-            for (String p2 : paths) {
-                if (p2.startsWith(prefix)) {
-                    ancestors.put(p, p2);
-                    break;
-                }
-            }
-        }
-        boolean exitCondition = false;
-        do {
-            List<Map<String, String>> deps = calculatePublishingDependenciesForListFromDB(site, pathsParams);
-            List<String> targetPaths = new ArrayList<>();
-            for (Map<String, String> d : deps) {
-                String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
-                String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!ancestors.containsKey(targetPath)) {
-                    if (!StringUtils.equals(targetPath, ancestors.get(srcPath))) {
-                        ancestors.put(targetPath, ancestors.get(srcPath));
-                    }
-                }
-                targetPaths.add(targetPath);
-            }
-            exitCondition = !toRet.addAll(targetPaths);
-            pathsParams.clear();
-            pathsParams.addAll(targetPaths);
-        } while (!exitCondition);
-
-        return ancestors;
-    }
-
-    private Set<String> getMandatoryParentsForPublishing(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<>();
-        Set<String> possibleParents = calculatePossibleParents(paths);
-        if (!possibleParents.isEmpty()) {
-            List<String> pp = new ArrayList<>(possibleParents);
-            List<String> result = itemDao.getMandatoryParentsForPublishing(site, pp, ItemState.NEW_MASK,
-                    ItemState.MODIFIED_MASK);
-            toRet.addAll(result);
-        }
-        return toRet;
-    }
-
-    private Set<String> calculatePossibleParents(List<String> paths) {
-        Set<String> possibleParents = new HashSet<>();
-        for (String path : paths) {
-            StringTokenizer stPath = new StringTokenizer(path.replace(FILE_SEPARATOR + INDEX_FILE, ""), FILE_SEPARATOR);
-            StringBuilder candidate = new StringBuilder(FILE_SEPARATOR);
-            if (stPath.countTokens() > 0) {
-                do {
-                    String token = stPath.nextToken();
-                    if (stPath.hasMoreTokens()) {
-                        candidate.append(token).append(FILE_SEPARATOR);
-                        possibleParents.add(candidate.toString() + INDEX_FILE);
-                    }
-                } while (stPath.hasMoreTokens());
-            }
-        }
-        return possibleParents;
-    }
-
-    private List<Map<String, String>> calculatePublishingDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
-        params.put(MODIFIED_MASK, ItemState.MODIFIED_MASK);
-        params.put(NEW_MASK, ItemState.NEW_MASK);
-        return dependencyMapper.calculatePublishingDependenciesForList(params);
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
     }
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
@@ -468,7 +342,7 @@ public class DependencyServiceImpl implements DependencyService {
         this.dependencyMapper = dependencyMapper;
     }
 
-    public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal dependencyService) {
+    public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 

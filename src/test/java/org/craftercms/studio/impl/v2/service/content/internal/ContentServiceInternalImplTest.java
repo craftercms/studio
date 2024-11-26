@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,7 @@ public class ContentServiceInternalImplTest {
     private static final String NON_EXIST_CONTENT_PATH = "/sample/non-exists-content-path";
 
     @Mock
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
 
     @InjectMocks
     protected ContentServiceInternalImpl serviceInternal;

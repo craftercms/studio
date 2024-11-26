@@ -74,18 +74,16 @@ public class MergeResult {
         return new MergeResult(false, 0, null);
     }
 
-    public static MergeResult from(PullResult pullResult, Collection<String> mergedCommits) {
-        org.eclipse.jgit.api.MergeResult mergeResult = pullResult.getMergeResult();
+    public static MergeResult from(org.eclipse.jgit.api.MergeResult mergeResult, Collection<String> mergedCommits) {
         long commitsMerged = 0;
         String mergeCommitId = null;
         // Don't check the values if the status is not MERGED, for some reason JGit keeps returning the previous values
         // even if the status is something like ALREADY_UP_TO_DATE
-        if (mergeResult != null &&
-            mergeResult.getMergeStatus() == org.eclipse.jgit.api.MergeResult.MergeStatus.MERGED) {
+        if (mergeResult.getMergeStatus() == org.eclipse.jgit.api.MergeResult.MergeStatus.MERGED) {
             commitsMerged = mergedCommits.size();
             mergeCommitId = mergeResult.getNewHead().name();
         }
-        return new MergeResult(pullResult.isSuccessful(), commitsMerged, mergeCommitId);
+        return new MergeResult(mergeResult.getMergeStatus().isSuccessful(), commitsMerged, mergeCommitId);
     }
 
 }

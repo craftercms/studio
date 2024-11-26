@@ -261,11 +261,11 @@
         <property name="availableActionsResolver" ref="studio.availableActionsResolver" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="securityServiceV1" ref="cstudioSecurityService"/>
+        <property name="publishServiceInternal" ref="publishServiceInternal"/>
     </bean>
 
     <bean id="studio.loginPageFilter"

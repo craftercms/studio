@@ -18,6 +18,11 @@ package org.craftercms.studio.controller.rest.v2;
 
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -30,18 +35,12 @@ import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.HandlerMapping;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 import java.beans.ConstructorProperties;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
@@ -72,34 +71,30 @@ public class PluginController extends ManagementTokenAware {
     }
 
     @GetMapping("/get_configuration")
-    public ResponseBody getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ContentNotFoundException {
+    public ResultOne<String> getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ContentNotFoundException {
         String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<>();
         result.setEntity("content", content);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping("/write_configuration")
-    public ResponseBody writeConfiguration(@Valid @RequestBody WriteConfigurationRequest request)
+    public Result writeConfiguration(@Valid @RequestBody WriteConfigurationRequest request)
             throws UserNotFoundException, ServiceLayerException {
         marketplaceService.writePluginConfiguration(request.getSiteId(), request.getPluginId(), request.getContent());
 
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     /**
      * Reloads the groovy classes for the given site
      */
     @GetMapping("/script/reload")
-    public ResponseBody reloadClasses(@ValidSiteId @RequestParam String siteId, @RequestParam String token)
+    public Result reloadClasses(@ValidSiteId @RequestParam String siteId, @RequestParam String token)
             throws InvalidParametersException, InvalidManagementTokenException {
         validateToken(token);
 
@@ -108,16 +103,14 @@ public class PluginController extends ManagementTokenAware {
         var result = new Result();
         result.setResponse(ApiResponse.OK);
 
-        var response = new ResponseBody();
-        response.setResult(result);
-        return response;
+        return result;
     }
 
     /**
      *  Executes a rest script for the given site
      */
     @RequestMapping("/script/**")
-    public ResponseBody runScript(@ValidSiteId @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
+    public ResultOne<Object> runScript(@ValidSiteId @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
             throws ResourceException, ScriptException, ConfigurationException {
         // No better way to do this for now, later can be replaced by "/script/{*scriptUrl}"
         var scriptUrl = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
@@ -138,10 +131,7 @@ public class PluginController extends ManagementTokenAware {
         result.setEntity(RESULT_KEY_RESULT, object);
         result.setResponse(ApiResponse.OK);
 
-        var body = new ResponseBody();
-        body.setResult(result);
-
-        return body;
+        return result;
     }
 
     public static class WriteConfigurationRequest {

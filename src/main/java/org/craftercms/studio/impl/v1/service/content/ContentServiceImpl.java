@@ -42,7 +42,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
@@ -53,19 +52,20 @@ import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.annotation.policy.*;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
-import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -93,6 +93,7 @@ import org.xml.sax.SAXException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -133,11 +134,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private static final String COPY_DEP = "{copyDep}";
     private static final String ELM_ORDER_DEFAULT_SELECTOR = "//" + DmXmlConstants.ELM_ORDER_DEFAULT;
 
-    private ContentRepository _contentRepository;
-    private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
+    private org.craftercms.studio.api.v1.repository.GitContentRepository _contentRepository;
+    private GitContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected DependencyService dependencyService;
-    protected DependencyServiceInternal dependencyServiceV2;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2;
     protected ProcessContentExecutor contentProcessor;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -150,12 +151,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected EntitlementValidator entitlementValidator;
     protected AuditServiceInternal auditServiceInternal;
     protected ItemServiceInternal itemServiceInternal;
-    protected WorkflowServiceInternal workflowServiceInternal;
+    protected WorkflowService workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected ApplicationContext applicationContext;
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
+    protected PublishService publishServiceInternal;
 
-    protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+    protected org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal contentServiceV2;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -399,10 +401,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String folderPath = removeEnd(path, FILE_SEPARATOR + fileName);
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
 
+        boolean clearSystemProcessing = false;
         try {
             boolean shouldUpdateChildrenParent = false;
             if (contentExists(site, path)) {
                 trySetSystemProcessing(site, path);
+                clearSystemProcessing = true;
             } else {
                 // Check if creating a new page to an existing folder
                 boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -440,10 +444,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
                         SAVE_AND_NOT_CLOSE_OFF_MASK);
             }
-        }  catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             logger.error("Failed to write content at site '{}' path '{}'", site, path, e);
-            itemServiceInternal.setSystemProcessing(site, path, false);
             throw e;
+        } finally {
+            if (clearSystemProcessing) {
+                itemServiceInternal.setSystemProcessing(site, path, false);
+            }
         }
     }
 
@@ -526,6 +533,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             throw new ServiceLayerException("Content " + path + " can't be renamed because target path " +
                     checkPath + " already exists");
         }
+        contentServiceV2.assertNotInWorkflow(site, List.of(path), true);
         try {
             //TODO: This should be made transactional, write will commit even if move fails
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
@@ -754,84 +762,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, securityService.getCurrentUser(),
                 commitId, ancestor.getId());
         return itemServiceInternal.getItem(site, parentPath, true);
-    }
-
-    @Override
-    @Valid
-    public boolean deleteContent(@ValidateStringParam String site,
-                                 @ValidateSecurePathParam String path,
-                                 @ValidateStringParam String approver)
-            throws ServiceLayerException, UserNotFoundException {
-        return deleteContent(site, path, true, approver);
-    }
-
-    @Override
-    @Valid
-    public boolean deleteContent(@ValidateStringParam String site,
-                                 @ValidateSecurePathParam String path, boolean generateActivity,
-                                 @ValidateStringParam String approver)
-            throws ServiceLayerException, UserNotFoundException {
-        String commitId;
-        boolean toReturn = false;
-        if (generateActivity) {
-            generateDeleteActivity(site, path, approver);
-        }
-        commitId = _contentRepository.deleteContent(site, path, approver);
-
-        itemServiceInternal.deleteItem(site, path);
-        try {
-            dependencyServiceV2.deleteItemDependencies(site, path);
-        } catch (ServiceLayerException e) {
-            logger.error("Failed to delete dependencies for item at site '{}' path '{}'", site, path, e);
-        }
-
-        applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
-
-        // TODO: SJ: Add commitId to database for this item in version 2.7.x
-
-        if (commitId != null) {
-            toReturn = true;
-        }
-
-        return toReturn;
-    }
-
-    protected void generateDeleteActivity(String site, String path, String approver)
-            throws ServiceLayerException, UserNotFoundException {
-        // This method creates a database record to show the activity of deleting a file
-        // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
-        // TODO: SJ: activities. Fix in 3.1+ by introducing the audit service and refactoring accordingly
-        if (isEmpty(approver)) {
-            approver = securityService.getCurrentUser();
-        }
-        boolean exists = contentExists(site, path);
-        if (exists) {
-            User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
-            Item it = itemServiceInternal.getItem(site, path);
-            ContentItemTO item = getContentItem(site, path, 0);
-            logger.debug("Post delete activity for site '{}' path '{}' approved by '{}'", site, path, approver);
-            Site siteFeed = siteService.getSite(site);
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_DELETE);
-            auditLog.setSiteId(siteFeed.getId());
-            auditLog.setActorId(approver);
-            auditLog.setPrimaryTargetId(site + ":" + path);
-            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLog.setPrimaryTargetValue(path);
-            auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
-            auditServiceInternal.insertAuditLog(auditLog);
-
-            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_DELETE,
-                    DateUtils.getCurrentTime(), it, null);
-
-            // process content life cycle
-            if (path.endsWith(DmConstants.XML_PATTERN)) {
-
-                String contentType = item.getContentType();
-                dmContentLifeCycleService.process(site, approver, path,
-                        contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
-            }
-        }
     }
 
     @Override
@@ -1864,7 +1794,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
 
                 // POPULATE LOCK STATUS
-                populateMetadata(site, item);
+                populateMetadata(site, item, path);
 
                 // POPULATE WORKFLOW STATUS
                 if (!item.isFolder() || item.isContainer()) {
@@ -2018,7 +1948,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected void populateMetadata(String site, ContentItemTO item)
+    protected void populateMetadata(final String site, final ContentItemTO item, final String path)
             throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Refactor to return a ContentItemTO instead of changing the parameter
         // TODO: SJ: Change method name to be getContentItemMetadata or similar
@@ -2027,66 +1957,57 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // TODO: SJ: Create a method String getValueIfNotNull(String) to use to return not null/empty string if null
         // TODO: SJ: Use that method to reduce redundant code here. 3.1+
         Item metadata = itemServiceInternal.getItem(site, item.getUri());
-        WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(site, item.getUri());
-        if (metadata != null) {
-            // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
-            // database if it's not null
-            if (isNull(metadata.getLockOwner())) {
-                item.setLockOwner("");
-            } else {
-                item.setLockOwner(metadata.getLockOwner().getUsername());
-            }
-
-
-            // Set the scheduled date
-            if (workflowItem != null && workflowItem.getSchedule() != null) {
-                item.scheduledDate = workflowItem.getSchedule();
-                item.setScheduledDate(workflowItem.getSchedule());
-            }
-
-            Person modifier = metadata.getModifier();
-            String modifierUsername = modifier != null ? modifier.getUsername() : null;
-            // Set the modifier (user) if known
-            if (isEmpty(modifierUsername)) {
-                item.setUser("");
-                item.setUserLastName("");
-                item.setUserFirstName("");
-            } else {
-                User u = userServiceInternal.getUserByIdOrUsername(-1, modifierUsername);
-                item.user = modifierUsername;
-                item.setUser(modifierUsername);
-                item.userFirstName = u.getFirstName();
-                item.setUserFirstName(u.getFirstName());
-                item.userLastName = u.getLastName();
-                item.setUserLastName(u.getLastName());
-            }
-
-            if (metadata.getLastModifiedOn() != null) {
-                item.lastEditDate = metadata.getLastModifiedOn();
-                item.eventDate = metadata.getLastModifiedOn();
-                item.setLastEditDate(metadata.getLastModifiedOn());
-                item.setEventDate(metadata.getLastModifiedOn());
-            }
-
-            if (metadata.getLastPublishedOn() != null) {
-                item.published = true;
-                item.setPublished(true);
-                item.publishedDate = metadata.getLastPublishedOn();
-                item.setPublishedDate(metadata.getLastPublishedOn());
-            }
-
-            if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getSubmitterComment())) {
-                item.setSubmissionComment(workflowItem.getSubmitterComment());
-            }
-            if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getTargetEnvironment())) {
-                item.setSubmittedToEnvironment(workflowItem.getTargetEnvironment());
-            }
-            if (Objects.nonNull(workflowItem)) {
-                item.isSubmitted = true;
-                item.setSubmitted(true);
-            }
-        } else {
+        if (metadata == null) {
             item.setLockOwner("");
+            return;
+        }
+        // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
+        // database if it's not null
+        if (isNull(metadata.getLockOwner())) {
+            item.setLockOwner("");
+        } else {
+            item.setLockOwner(metadata.getLockOwner().getUsername());
+        }
+
+        Person modifier = metadata.getModifier();
+        String modifierUsername = modifier != null ? modifier.getUsername() : null;
+        // Set the modifier (user) if known
+        if (isEmpty(modifierUsername)) {
+            item.setUser("");
+            item.setUserLastName("");
+            item.setUserFirstName("");
+        } else {
+            User u = userServiceInternal.getUserByIdOrUsername(-1, modifierUsername);
+            item.user = modifierUsername;
+            item.setUser(modifierUsername);
+            item.userFirstName = u.getFirstName();
+            item.setUserFirstName(u.getFirstName());
+            item.userLastName = u.getLastName();
+            item.setUserLastName(u.getLastName());
+        }
+
+        if (metadata.getLastModifiedOn() != null) {
+            item.setLastEditDate(metadata.getLastModifiedOn());
+            item.setEventDate(metadata.getLastModifiedOn());
+        }
+
+        if (metadata.getLastPublishedOn() != null) {
+            item.setPublished(true);
+            item.setPublishedDate(metadata.getLastPublishedOn());
+        }
+
+        PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(site, path, false);
+        if (publishPackage != null) {
+            if (publishPackage.getSchedule() != null) {
+                item.setScheduledDate(publishPackage.getSchedule().atZone(ZoneOffset.UTC));
+            }
+            if (StringUtils.isNotEmpty(publishPackage.getSubmitterComment())) {
+                item.setSubmissionComment(publishPackage.getSubmitterComment());
+            }
+            if (StringUtils.isNotEmpty(publishPackage.getTarget())) {
+                item.setSubmittedToEnvironment(publishPackage.getTarget());
+            }
+            item.setSubmitted(true);
         }
     }
 
@@ -2673,8 +2594,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         if (contentExists(siteId, targetPath)) {
             throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
-                                "because an item with the name '%s' already exists.", path, siteId, name));
+                    "because an item with the name '%s' already exists.", path, siteId, name));
         }
+//        check if there are children in-queue
+        contentServiceV2.assertNotInWorkflow(siteId, List.of(path), true);
 
         ContentItemTO sourceContentItem = getContentItem(siteId, path);
         boolean isFolder = sourceContentItem.isFolder();
@@ -2757,7 +2680,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.applicationContext = applicationContext;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
+    public void setContentRepository(org.craftercms.studio.api.v1.repository.GitContentRepository contentRepository) {
         this._contentRepository = contentRepository;
     }
 
@@ -2769,7 +2692,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.dependencyService = dependencyService;
     }
 
-    public void setDependencyServiceV2(DependencyServiceInternal dependencyServiceV2) {
+    public void setDependencyServiceV2(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2) {
         this.dependencyServiceV2 = dependencyServiceV2;
     }
 
@@ -2817,7 +2740,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
+    public void setContentRepositoryV2(GitContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
@@ -2825,7 +2748,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
+    public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
@@ -2837,10 +2760,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 
-    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
     }
 
+    public void setPublishServiceInternal(final PublishService publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
+    }
     /**
      * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
      */

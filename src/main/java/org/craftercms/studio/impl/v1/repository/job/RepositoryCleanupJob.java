@@ -17,10 +17,10 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 
 /**
  * Triggers a cleanup for all repositories on all existing sites.
@@ -31,9 +31,9 @@ public class RepositoryCleanupJob {
     protected static final Logger logger = LoggerFactory.getLogger(RepositoryCleanupJob.class);
 
     protected SiteService siteService;
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
 
-    public RepositoryCleanupJob(final SiteService siteService, final ContentRepository contentRepository) {
+    public RepositoryCleanupJob(final SiteService siteService, final GitContentRepository contentRepository) {
         this.siteService = siteService;
         this.contentRepository = contentRepository;
     }

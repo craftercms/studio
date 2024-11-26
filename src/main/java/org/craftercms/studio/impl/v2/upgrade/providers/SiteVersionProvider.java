@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.upgrade.providers;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.Resource;
 
@@ -41,7 +42,7 @@ public class SiteVersionProvider extends XmlFileVersionProvider {
     protected Resource defaultFile;
 
     @ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository", "defaultFile"})
-    public SiteVersionProvider(String path, String xpath, String defaultVersion, ContentRepository contentRepository,
+    public SiteVersionProvider(String path, String xpath, String defaultVersion, GitContentRepository contentRepository,
                                Resource defaultFile) {
         super(path, xpath, defaultVersion, contentRepository);
         this.defaultFile = defaultFile;

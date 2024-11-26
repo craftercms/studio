@@ -20,7 +20,7 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
 
     public static final String NAME = "ExtractDependencyProcessor";
 
-    protected DependencyServiceInternal dependencyService;
+    protected DependencyService dependencyService;
 
     /**
      * default constructor
@@ -63,5 +63,5 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
         }
     }
 
-    public void setDependencyService(DependencyServiceInternal dependencyService) { this.dependencyService = dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 }

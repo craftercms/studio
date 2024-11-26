@@ -199,6 +199,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.studioConfiguration = studioConfiguration;
     }
 
+    @SuppressWarnings("unused")
     public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
     }
@@ -207,6 +208,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
     }

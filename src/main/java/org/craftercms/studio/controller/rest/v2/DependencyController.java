@@ -16,21 +16,22 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.model.rest.dependency.GetSoftDependenciesRequestBody;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -47,24 +48,20 @@ public class DependencyController {
         this.dependencyService = dependencyService;
     }
 
-    @Valid
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
-            throws ServiceLayerException {
+    public ResultOne<Map<String, Collection<String>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
         Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
-        List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
+        Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
         softDeps.removeAll(hardDeps);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, Collection<String>>> result = new ResultOne<>();
         result.setResponse(OK);
         Map<String, Collection<String>> items = new HashMap<>();
         items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
         items.put(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
         result.setEntity(RESULT_KEY_ITEMS, items);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(DEPENDENT_ITEMS)

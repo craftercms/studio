@@ -203,20 +203,6 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * delete content at the path
-     *
-     * @param site - the project ID
-     * @param path path to content
-     * @return return true if successful
-     *
-     * @throws SiteNotFoundException site not found
-     */
-    boolean deleteContent(String site, String path, String approver) throws ServiceLayerException, UserNotFoundException;
-
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
      * copy content fromPath to toPath
      *
      * @param site     - the project ID

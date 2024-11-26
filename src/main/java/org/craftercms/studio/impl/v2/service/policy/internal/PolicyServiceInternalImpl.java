@@ -17,9 +17,7 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
@@ -27,6 +25,8 @@ import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
@@ -35,10 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.io.FilenameUtils.getName;
-import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 
 /**
  * Default implementation of {@link PolicyServiceInternal}
@@ -55,7 +55,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     public static final String CONFIG_KEY_PERMITTED = "permitted";
     public static final  String CONFIG_KEY_DENIED = "denied";
 
-    protected ContentRepository contentRepository;
+    protected GitContentRepository contentRepository;
 
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
 
@@ -69,7 +69,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
     @ConstructorProperties({"contentRepository", "contentRepositoryV2", "configurationService", "systemValidator",
             "policyValidators", "configPath"})
-    public PolicyServiceInternalImpl(ContentRepository contentRepository,
+    public PolicyServiceInternalImpl(GitContentRepository contentRepository,
                                      org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                      ConfigurationService configurationService,
                                      PolicyValidator systemValidator,

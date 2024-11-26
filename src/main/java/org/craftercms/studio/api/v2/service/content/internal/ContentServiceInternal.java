@@ -22,6 +22,8 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
@@ -35,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface ContentServiceInternal {
+public interface ContentServiceInternal extends ContentService {
 
     /**
      * Check the existent of a content path
@@ -134,17 +136,6 @@ public interface ContentServiceInternal {
      * Get sandbox items for given list of paths
      *
      * @param siteId        site identifier
-     * @param paths         list of paths to get sandbox items
-     * @param preferContent if true return content items if available
-     * @return list of sandbox items
-     */
-    List<SandboxItem> getSandboxItemsByPath(String siteId, Collection<String> paths, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get sandbox items for given list of paths
-     *
-     * @param siteId        site identifier
      * @param ids           list of ids to get sandbox items
      * @param sortFields
      * @param preferContent if true return content items if available
@@ -214,4 +205,14 @@ public interface ContentServiceInternal {
      * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
      */
     List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+
+    /**
+     * Check if the content is part of any ready/processing publish package and fail if it is
+     *
+     * @param siteId          the site id
+     * @param paths           the paths to check
+     * @param includeChildren if true, check if any children of the paths are part of a publish package
+     * @throws ContentInPublishQueueException if the content is part of a publish package
+     */
+    void assertNotInWorkflow(String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
 }

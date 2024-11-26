@@ -84,7 +84,7 @@ public class Activity {
         this.publishPackage = publishPackage;
     }
 
-    //TODO: Populate with metadata once Publishing Packages are fully implemented
+    //TODO: Populate with metadata once Publish Packages are fully implemented
     public static class Package {
 
         protected String id;

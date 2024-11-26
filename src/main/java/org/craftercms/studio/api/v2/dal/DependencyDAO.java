@@ -18,10 +18,15 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 /**
@@ -53,14 +58,38 @@ public interface DependencyDAO {
      * @param site                             site identifier
      * @param paths                            list of content paths
      * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param modifiedMask                     state bit map for modified item
-     * @param newMask                          state bit map for new item
+     * @param isLiveTarget true if publishing target is live, false if staging
      * @return List of hard dependencies
      */
-    List<Map<String, String>> getHardDependenciesForList(@Param("site") String site, @Param("paths") Set<String> paths,
-                                                         @Param("regex") List<String> itemSpecificDependenciesPatterns,
-                                                         @Param(MODIFIED_MASK) long modifiedMask,
-                                                         @Param(NEW_MASK) long newMask);
+    default List<String> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
+                                                    final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
+        long newMaskOn = NEW.value;
+        long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
+        return getHardDependenciesForList(site, target, paths, itemSpecificDependenciesPatterns,
+                CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, isLiveTarget);
+    }
+
+    /**
+     * Get hard dependencies from DB for list of content paths
+     *
+     * @param site                             site identifier
+     * @param paths                            list of content paths
+     * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+     * @param systemTypeFolder                 system type folder
+     * @param newInTargetMaskOn                state bit mask for new item in target (e.g: never published in staging)
+     *                                         items must contain the bits in this mask
+     * @param newInTargetMaskOff               state bit mask for new item in target (e.g: never published in live)
+     *                                         items must not contain the bits in this mask
+     * @param isLiveTarget                     true if publishing target is live, false if staging
+     * @return List of hard dependencies
+     */
+    List<String> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
+                                            @Param(PATHS) Collection<String> paths,
+                                            @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+                                            @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                                            @Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
+                                            @Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
+                                            @Param(IS_LIVE_TARGET) boolean isLiveTarget);
 
     /**
      * Get items depending on given paths

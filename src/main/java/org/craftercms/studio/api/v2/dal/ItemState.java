@@ -61,9 +61,9 @@ public enum ItemState {
     public static final long SAVE_AND_CLOSE_OFF_MASK = SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value +
             USER_LOCKED.value + DESTINATION.value;
 
-    public static final long CANCEL_PUBLISHING_PACKAGE_ON_MASK = MODIFIED.value;
-    public static final long CANCEL_PUBLISHING_PACKAGE_OFF_MASK = SYSTEM_PROCESSING.value + IN_WORKFLOW.value +
-            SCHEDULED.value + USER_LOCKED.value + DESTINATION.value;
+    public static final long CANCEL_PUBLISH_PACKAGE_ON_MASK = MODIFIED.value;
+    public static final long CANCEL_PUBLISH_PACKAGE_OFF_MASK = IN_WORKFLOW.value +
+            SCHEDULED.value + DESTINATION.value;
 
     public static final long SAVE_AND_NOT_CLOSE_ON_MASK = MODIFIED.value;
     public static final long SAVE_AND_NOT_CLOSE_OFF_MASK =

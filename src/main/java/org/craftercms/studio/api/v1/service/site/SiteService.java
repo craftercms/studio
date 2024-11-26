@@ -215,34 +215,6 @@ public interface SiteService {
     SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
 
     /**
-     * Check if publishing is enabled for given site
-     *
-     * @param siteId site id
-     * @return true if publishing is enabled for given site, otherwise false
-     */
-    boolean isPublishingEnabled(String siteId);
-
-    /**
-     * Enable/Disable publishing for given site
-     *
-     * @param siteId  site id
-     * @param enabled true to enable publishing, false to disable publishing
-     * @return true if operation was successful, otherwise false
-     * @throws SiteNotFoundException site not found
-     */
-    boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException;
-
-    /**
-     * Update publishing status message for given site
-     *
-     * @param siteId site id
-     * @param status status
-     * @return true if publishing status message is successfully updated
-     * @throws SiteNotFoundException site not found
-     */
-    boolean updatePublishingStatus(String siteId, String status) throws SiteNotFoundException;
-
-    /**
      * Add remote repository for site content repository
      *
      * @param siteId             site identifier
@@ -299,9 +271,5 @@ public interface SiteService {
     List<String> getAllCreatedSites();
 
     void setSiteState(String siteId, String state);
-
-    boolean isPublishedRepoCreated(String siteId);
-
-    void setPublishedRepoCreated(String siteId);
 
 }

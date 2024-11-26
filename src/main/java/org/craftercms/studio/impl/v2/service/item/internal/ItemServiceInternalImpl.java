@@ -34,17 +34,11 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
@@ -74,7 +68,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public DetailedItem getItem(String siteId, long id) {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+        return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, stagingEnv, liveEnv);
     }
 
     @Override
@@ -92,11 +86,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, CONTENT_TYPE_FOLDER,
-                    COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(site.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-                    stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPath(site.getId(), path, stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);
@@ -112,13 +104,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public List<Item> getItems(String siteId, List<String> paths, boolean preferContent) {
         Site site = siteDao.getSite(siteId);
-        return itemDao.getSandboxItemsByPath(site.getId(), paths, CONTENT_TYPE_FOLDER, preferContent);
+        return itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent);
     }
 
     @Override
-    public void deleteItem(String siteId, String path) {
-        Site site = siteDao.getSite(siteId);
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(site.getId(), path));
+    public void deleteItem(long siteId, String path) {
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteId, path));
     }
 
     @Override
@@ -134,7 +125,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing) {
+    public void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing) {
         if (isSystemProcessing) {
             setStatesBySiteAndPathBulk(siteId, paths, ItemState.SYSTEM_PROCESSING.value);
         } else {
@@ -142,14 +133,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
     }
 
-    private void setStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
+    private void setStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
             Site site = siteDao.getSite(siteId);
             retryingDatabaseOperationFacade.retry(() -> itemDao.setStatesBySiteAndPathBulk(site.getId(), paths, statesBitMap));
         }
     }
 
-    private void resetStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
+    private void resetStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
             Site site = siteDao.getSite(siteId);
             retryingDatabaseOperationFacade.retry(() -> itemDao.resetStatesBySiteAndPathBulk(site.getId(), paths, statesBitMap));
@@ -160,11 +151,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap) {
         List<String> paths = new ArrayList<>();
         paths.add(path);
-        updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
-    }
-
-    @Override
-    public void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap) {
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
     }
 
@@ -189,11 +175,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             item.setState(NEW.value);
         }
         return Item.Builder.buildFromClone(item).withId(item.getId());
-    }
-
-    @Override
-    public void deleteItemsForSite(long siteId) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteItemsForSite(siteId));
     }
 
     @Override
@@ -352,8 +333,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         String oldPreviewUrl = getBrowserUrl(siteId, oldPath);
         String newPreviewUrl = getBrowserUrl(siteId, newPath);
         retryingDatabaseOperationFacade.retry(() ->
-                itemDao.moveItem(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label,
-                        SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK));
+                itemDao.moveItem(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label));
     }
 
     @Override
@@ -368,37 +348,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void clearPreviousPath(String siteId, String path) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.clearPreviousPath(siteId, path));
-    }
-
-    @Override
-    public PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem) {
-        PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
-        Item item = getItem(historyItem.getSiteId(), historyItem.getPath());
-        dashboardItem.setSiteId(historyItem.getSiteId());
-        dashboardItem.setPath(historyItem.getPath());
-        dashboardItem.setLabel(item.getLabel());
-        dashboardItem.setEnvironment(historyItem.getEnvironment());
-        dashboardItem.setDatePublished(historyItem.getPublishedDate());
-        dashboardItem.setPublisher(historyItem.getPublisher());
-        return dashboardItem;
-    }
-
-    @Override
-    public List<Item> getInProgressItems(String siteId) {
-        return itemDao.getInProgressItems(siteId, IN_PROGRESS_MASK);
-    }
-
-    @Override
-    public boolean isUpdatedOrNew(String siteId, String path) {
-        Item item = getItem(siteId, path);
-        return ItemState.isNew(item.getState()) || ItemState.isModified(item.getState());
-    }
-
-    @Override
-    public void deleteItemForFolder(long siteId, String folderPath) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPathForFolder(siteId, folderPath));
+    public Collection<String> getUnpublishedPaths(long siteId) {
+        return itemDao.getUnpublishedPaths(siteId);
     }
 
     @Override
@@ -413,30 +364,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean previousPathExists(String siteId, String path) {
-        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
-    }
-
-    @Override
-    public List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths) {
-        return itemDao.getMandatoryParentsForPublishing(siteId, paths, NEW_MASK, MODIFIED_MASK);
-    }
-
-    @Override
-    public List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(String siteId, List<String> parents) {
-        return itemDao
-                .getExistingRenamedChildrenOfMandatoryParentsForPublishing(siteId, parents, NEW_MASK, MODIFIED_MASK);
-    }
-
-    @Override
-    public List<String> getChangeSetForSubtree(String siteId, String path) {
-        String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
-        return itemDao.getChangeSetForSubtree(siteId, path, likePath,
-                List.of(CONTENT_TYPE_FOLDER, CONTENT_TYPE_UNKNOWN), IN_PROGRESS_MASK);
-    }
-
-    @Override
-    public void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOn(siteId, path, lastPublishedOn));
+        // TODO: implement using new item_target table
+//        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
+        return false;
     }
 
     @Override
@@ -452,13 +382,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public int getItemStatesTotal(String siteId, String path, Long states, List<String> systemTypes) {
-        return itemDao.getItemStatesTotal(siteId, path, states, systemTypes);
+    public int getItemByStatesTotal(String siteId, String path, Long states, List<String> systemTypes) {
+        return itemDao.getItemByStatesTotal(siteId, path, states, systemTypes);
     }
 
     @Override
-    public List<Item> getItemStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
-        return itemDao.getItemStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
+    public Map<String, ItemPathAndState> getItemStates(final String siteId, final Collection<String> paths) {
+        return itemDao.getItemStates(siteId, paths);
+    }
+
+    @Override
+    public List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
+        return itemDao.getItemByStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
     }
 
     @Override
@@ -526,12 +461,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<String> getSubtreeForDelete(String siteId, String path) {
-        String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
-        return itemDao.getSubtreeForDelete(siteId, likePath);
-    }
-
-    @Override
     public void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap) {
         Site site = siteDao.getSite(siteId);
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesForSite(site.getId(), onStateBitMap, offStateBitMap));
@@ -543,6 +472,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public Collection<String> getChildrenPaths(long siteId, String path) {
+        return itemDao.getChildrenPaths(siteId, path);
+    }
+
     public void updateParentId(final String siteId) {
         Site site = siteDao.getSite(siteId);
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentIdForSite(site.getId()));
@@ -553,19 +486,16 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(siteId, paths));
     }
 
-    @Override
-    public void recalculateItemStates(final String siteId, final List<String> paths) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.recalculateItemStates(siteId, paths));
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setSiteDao(final SiteDAO siteDao) {
         this.siteDao = siteDao;
     }
 
+    @SuppressWarnings("unused")
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
     }
@@ -574,6 +504,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         this.servicesConfig = servicesConfig;
     }
 
+    @SuppressWarnings("unused")
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
     }
