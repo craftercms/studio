@@ -108,7 +108,7 @@
                 SELECT 1
                  FROM item_target it
                  WHERE it.item_id = i.id
-                 AND it.renamed = 1
+                 AND it.previous_path IS NOT NULL
                 <if test="!isLiveTarget"> <!-- If live, any record will do -->
                  AND it.target = #{target}
                 </if>
@@ -132,7 +132,7 @@
                 SELECT 1
                  FROM item_target it
                  WHERE it.item_id = c.id
-                 AND it.renamed = 1
+                 AND it.previous_path IS NOT NULL
                 <if test="!isLiveTarget"> <!-- If live, any record will do -->
                  AND it.target = #{target}
                 </if>

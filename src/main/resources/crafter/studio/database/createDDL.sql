@@ -674,7 +674,7 @@ CREATE TABLE IF NOT EXISTS `item_publish_item`
     ROW_FORMAT = DYNAMIC ;
 
 /*
-    Keep track of old paths for published and then renamed content items
+    Keep track of old paths for published-and-then-renamed content items
 */
 CREATE TABLE IF NOT EXISTS `item_target`
 (
@@ -683,7 +683,6 @@ CREATE TABLE IF NOT EXISTS `item_target`
     `previous_path`         VARCHAR(2048)   NULL,
     `last_published_on`     TIMESTAMP       NOT NULL,
     `published_commit_id`   VARCHAR(40)     NOT NULL,
-    `renamed`               BOOLEAN         NOT NULL DEFAULT 0,
     PRIMARY KEY(`item_id`, `target`),
     FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )

@@ -283,11 +283,15 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                 .toList();
     }
 
+    /**
+     * Set the previous paths (stagingPreviousPath, livePreviousPath) to the publish item based on the item targets.
+     */
     private void setPreviousPaths(final PublishItem item, final String siteId, final Collection<ItemTarget> itemTargets) {
+        String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
         itemTargets.stream()
                 .filter(itemTarget -> StringUtils.isNotEmpty(itemTarget.getPreviousPath()))
                 .forEach(itemTarget -> {
-                    boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), itemTarget.getTarget());
+                    boolean isLiveTarget = StringUtils.equals(liveEnvironment, itemTarget.getTarget());
                     if (isLiveTarget) {
                         item.setLivePreviousPath(itemTarget.getPreviousPath());
                     } else {
