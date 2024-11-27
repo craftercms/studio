@@ -9562,9 +9562,9 @@ components:
           type: string
           format: date-time
           description: end time of the task execution
-        status:
+        state:
           type: string
-          description: status of the task execution
+          description: state of the task execution
           enum:
             - READY
             - IN_PROGRESS
@@ -11036,7 +11036,7 @@ components:
           format: date-time
         submitterComment:
           type: string
-        reviwerComment:
+        reviewerComment:
           type: string
         reviewedOn:
           type: string
