@@ -601,7 +601,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             }
             return publishPackage.getId();
         } catch (IOException e) {
-            logger.error("Failed to submit publish package: ", e);
+            logger.error("Failed to submit publish package", e);
             throw new ServiceLayerException("Failed to submit publish package", e);
         }
     }
