@@ -9562,9 +9562,9 @@ components:
           type: string
           format: date-time
           description: end time of the task execution
-        status:
+        state:
           type: string
-          description: status of the task execution
+          description: state of the task execution
           enum:
             - READY
             - IN_PROGRESS
@@ -10473,41 +10473,6 @@ components:
         - firstName
         - lastName
 
-    DashboardPublishPackage:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-          description: package id
-        packageType:
-          type: string
-          enum:
-            - INITIAL_PUBLISH
-            - PUBLISH_ALL
-            - ITEM_LIST
-        comment:
-          type: string
-          description: submission comment by publisher
-        submitter:
-          $ref: '#/components/schemas/Person'
-        size:
-          type: integer
-          format: int32
-          description: number of items in the package
-        publishingTarget:
-          type: string
-          description: publishing target
-        schedule:
-          type: string
-          format: date-time
-          description: date and time when package was published
-      required:
-        - id
-        - submitter
-        - size
-        - publishingTarget
-
     PublishingStats:
       type: object
       properties:
@@ -11071,7 +11036,7 @@ components:
           format: date-time
         submitterComment:
           type: string
-        reviwerComment:
+        reviewerComment:
           type: string
         reviewedOn:
           type: string
