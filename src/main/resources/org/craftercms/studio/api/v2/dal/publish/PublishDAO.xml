@@ -36,15 +36,6 @@
                      select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
     </resultMap>
 
-    <resultMap id="DashboardPackageMap" autoMapping="true"
-               type="org.craftercms.studio.model.rest.dashboard.DashboardPublishPackage">
-        <result property="comment" column="submitter_comment"/>
-        <result property="publishingTarget" column="target"/>
-        <result property="schedule" column="published_on"/>
-        <association property="submitter" column="submitter_id"
-                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-    </resultMap>
-
     <insert id="insertPackage"
             useGeneratedKeys="true"
             keyProperty="publishPackage.id">
