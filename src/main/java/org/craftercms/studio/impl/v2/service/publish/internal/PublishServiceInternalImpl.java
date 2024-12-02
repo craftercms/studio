@@ -665,10 +665,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     /**
      * Build an initial publish package for a site.
-     * @param site the site
+     *
+     * @param site             the site
      * @param publishingTarget the publishing target
-     * @param requestApproval whether to request approval
-     * @param comment the comment
+     * @param requestApproval  whether to request approval
+     * @param comment          the comment
      * @return created package id
      */
     protected long buildInitialPublishPackage(Site site, String publishingTarget, boolean requestApproval, String comment)
@@ -679,15 +680,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     /**
      * Create a collection of {@link PublishItem} objects for a publish all request.
      * @param site the site
-     * @param paths the publish paths
-     * @param commitIds the commit ids
      * @return the collection of publish items
      */
     @NotNull
-    protected Collection<PublishItem> getPublishAllItems(Site site, Collection<PublishRequestPath> paths, Collection<String> commitIds)
+    protected Collection<PublishItem> getPublishAllItems(final Site site)
             throws InvalidParametersException {
-        Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), paths.stream().map(PublishRequestPath::path).collect(toList()));
-        List<PublishItem> publishItems = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
+        Collection<String> unpublishedPaths = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
+                .filter(path -> !contentRepository.isFolder(site.getSiteId(), path))
+                .toList();
+        Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), unpublishedPaths);
+        List<PublishItem> publishItems = unpublishedPaths.stream()
                 .map(path -> {
                     long itemState = statesByPath.get(path).getState();
                     return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
@@ -709,7 +711,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @return created package id
      */
     protected long buildPublishAllPackage(Site site, String publishingTarget, boolean requestApproval, String comment) throws AuthenticationException, ServiceLayerException {
-        return buildPublishPackage(site, publishingTarget, PUBLISH_ALL, emptyList(), emptyList(), requestApproval, null, comment, this::getPublishAllItems);
+        return buildPublishPackage(site, publishingTarget, PUBLISH_ALL, emptyList(), emptyList(), requestApproval, null, comment,
+                (siteId, __, ___) -> getPublishAllItems(siteId));
     }
 
     /**
