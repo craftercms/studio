@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1226,7 +1227,10 @@ public class GitContentRepositoryImpl implements GitContentRepository {
 
             // Get affected paths, translate to git paths, group by action
             Map<Action, List<String>> pathsByAction = publishItems.stream()
-                    .collect(groupingBy(PublishItemTO::getAction,
+                    .collect(groupingBy(pi -> switch (pi.getAction()) {
+                                case ADD, UPDATE -> ADD;
+                                case DELETE -> DELETE;
+                            },
                             mapping(((Function<String, String>) helper::getGitPath).compose(PublishItemTO::getPath), toList())));
 
             // git read-tree target_branch
