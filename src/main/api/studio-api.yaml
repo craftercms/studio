@@ -6589,7 +6589,7 @@ paths:
                       items:
                         type: array
                         items:
-                          $ref: '#/components/schemas/SandboxItem'
+                          $ref: '#/components/schemas/PublishItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
