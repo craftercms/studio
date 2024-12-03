@@ -348,7 +348,7 @@
         ) AS tbl
     </select>
 
-    <select id="getPublishPackagesInternal">
+    <select id="getPublishPackagesInternal" resultMap="PublishPackageMap">
         <include refid="getAllPackagesForFilters" />
         <if test="isScheduled != null">
             AND pp.schedule IS <if test="isScheduled">NOT</if> NULL
