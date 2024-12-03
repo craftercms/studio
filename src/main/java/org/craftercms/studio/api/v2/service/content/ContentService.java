@@ -81,14 +81,15 @@ public interface ContentService {
      * - given paths
      * - child items for given paths
      *
-     * @param siteId            site identifier
-     * @param paths             content to be deleted
-     * @param submissionComment submission comment
+     * @param siteId         site identifier
+     * @param paths          content to be deleted
+     * @param publishTitle   title of the publish package
+     * @param publishComment submitter comment of the publish package
      * @return id of publish package, or 0 if no package was created (if the site has not been published)
      * @throws ServiceLayerException   general service error
      * @throws AuthenticationException authentication error
      */
-    long deleteContent(String siteId, List<String> paths, String submissionComment)
+    long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**

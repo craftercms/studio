@@ -30,6 +30,7 @@ public class PublishPackage {
     protected long id;
     protected long siteId;
     protected Site site;
+    protected String title;
     protected String target;
     protected Instant schedule;
     protected ApprovalState approvalState;
@@ -77,6 +78,14 @@ public class PublishPackage {
 
     public void setSite(Site site) {
         this.site = site;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
     }
 
     public String getTarget() {

@@ -5238,6 +5238,10 @@ paths:
                   description: optional (soft) dependencies
                   items:
                     type: string
+                title:
+                  type: string
+                  description: title of the package to publish the deletion
+                  maxLength: 200
                 comment:
                   type: string
                   description: deletion comment by the user performing the delete
@@ -6384,9 +6388,13 @@ paths:
                   type: boolean
                   description: publish all site content
                   default: false
+                title:
+                  type: string
+                  description: package title
+                  maxLength: 200
                 comment:
-                    type: string
-                    description: optional comment
+                  type: string
+                  description: package comment
       responses:
         '200':
           description: OK

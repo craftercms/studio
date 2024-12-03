@@ -611,6 +611,7 @@ CREATE TABLE IF NOT EXISTS `publish_package`
     `id`	                        BIGINT(20)      NOT NULL AUTO_INCREMENT,
     `site_id`	                    BIGINT(20)	    NOT NULL,
     `target`	                    VARCHAR(20)	    NOT NULL,
+    `title`                         VARCHAR(200)    NOT NULL,
     `schedule`	                    TIMESTAMP,
     `approval_state`	            ENUM ('SUBMITTED', 'APPROVED', 'REJECTED')	NOT NULL,
     `package_state`	                BIGINT          NOT NULL,

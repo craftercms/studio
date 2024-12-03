@@ -126,7 +126,7 @@ public class ContentController {
         }
 
         contentService.deleteContent(deleteRequestBody.getSiteId(),
-                items,
+                items, deleteRequestBody.getTitle(),
                 deleteRequestBody.getComment());
         var result = new Result();
         result.setResponse(OK);

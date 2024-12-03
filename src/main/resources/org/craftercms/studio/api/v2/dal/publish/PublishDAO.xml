@@ -42,6 +42,7 @@
         INSERT INTO publish_package
         (site_id,
         target,
+        title,
         schedule,
         approval_state,
         package_state,
@@ -52,6 +53,7 @@
         VALUES
         (#{publishPackage.siteId},
         #{publishPackage.target},
+        #{publishPackage.title},
         #{publishPackage.schedule},
         #{publishPackage.approvalState},
         #{readyState},

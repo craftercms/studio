@@ -95,9 +95,10 @@ public class ContentServiceImpl implements ContentService {
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public long deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                                 String submissionComment)
+                                 String publishTitle,
+                                 String publishComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        return contentServiceInternal.deleteContent(siteId, paths, submissionComment);
+        return contentServiceInternal.deleteContent(siteId, paths, publishTitle, publishComment);
     }
 
     @Override

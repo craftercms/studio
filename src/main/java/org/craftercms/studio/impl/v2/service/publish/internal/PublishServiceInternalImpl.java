@@ -200,14 +200,15 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     @Transactional
-    public long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
+    public long publishDelete(String siteId, Collection<String> userRequestedPaths,
+                              Collection<String> dependencies, String title, String comment) throws ServiceLayerException {
         try {
             if (!contentRepository.publishedRepositoryExists(siteId)) {
                 logger.warn("Site '{}' is not published, publish DELETE operations will be ignored", siteId);
                 return 0;
             }
             String liveTarget = servicesConfig.getLiveEnvironment(siteId);
-            PublishPackage publishPackage = createPackage(siteService.getSite(siteId), liveTarget, ITEM_LIST, false, null, comment);
+            PublishPackage publishPackage = createPackage(siteService.getSite(siteId), liveTarget, ITEM_LIST, false, null, title, comment);
             Collection<PublishItem> publishItems = createDeletePublishItems(siteId, userRequestedPaths, dependencies);
             if (CollectionUtils.isEmpty(publishItems)) {
                 logger.debug("Deleted items are not published, nothing to do.");
@@ -452,16 +453,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public long publish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
-                        final List<String> commitIds, final Instant schedule, final String comment, final boolean publishAll)
+                        final List<String> commitIds, final Instant schedule, final String title, final String comment, final boolean publishAll)
             throws ServiceLayerException, AuthenticationException {
-        return routePackageSubmission(siteId, publishingTarget, paths, commitIds, schedule, comment, false, publishAll);
+        return routePackageSubmission(siteId, publishingTarget, paths, commitIds, schedule, title, comment, false, publishAll);
     }
 
     @Override
     public long requestPublish(final String siteId, final String publishingTarget, final List<PublishRequestPath> paths,
-                               final List<String> commitIds, final Instant schedule, final String comment, final boolean publishAll)
+                               final List<String> commitIds, final Instant schedule, final String title, final String comment, final boolean publishAll)
             throws AuthenticationException, ServiceLayerException {
-        return routePackageSubmission(siteId, publishingTarget, paths, commitIds, schedule, comment, true, publishAll);
+        return routePackageSubmission(siteId, publishingTarget, paths, commitIds, schedule, title, comment, true, publishAll);
     }
 
     /**
@@ -469,7 +470,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      */
     private long routePackageSubmission(final String siteId, final String publishingTarget,
                                         final List<PublishRequestPath> paths, final List<String> commitIds,
-                                        final Instant schedule, final String comment,
+                                        final Instant schedule, final String title, final String comment,
                                         final boolean requestApproval, final boolean publishAll)
             throws ServiceLayerException, AuthenticationException {
         Site site = siteService.getSite(siteId);
@@ -477,18 +478,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         generalLockService.lock(lockKey);
         try {
             if (!site.isSitePublishedRepoCreated()) {
-                return buildInitialPublishPackage(site, publishingTarget, requestApproval, comment);
+                return buildInitialPublishPackage(site, publishingTarget, requestApproval, title, comment);
             }
 
             if (publishAll) {
                 if (schedule != null) {
                     throw new InvalidParametersException("Failed to submit publish package: Cannot schedule a publish all operation");
                 }
-                return buildPublishAllPackage(site, publishingTarget, requestApproval, comment);
+                return buildPublishAllPackage(site, publishingTarget, requestApproval, title, comment);
             }
 
             return buildItemListPackage(site, publishingTarget,
-                    paths, commitIds, requestApproval, schedule, comment);
+                    paths, commitIds, requestApproval, schedule, title, comment);
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -562,6 +563,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                            final PackageType packageType,
                                            final boolean requestApproval,
                                            final Instant schedule,
+                                           final String title,
                                            final String comment) throws AuthenticationException {
         PublishPackage publishPackage = new PublishPackage();
         publishPackage.setPackageType(packageType);
@@ -569,6 +571,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         publishPackage.setSiteId(site.getId());
         publishPackage.setTarget(target);
         publishPackage.setSchedule(schedule);
+        publishPackage.setTitle(title);
         publishPackage.setSubmitterComment(comment);
         publishPackage.setSubmitterId(userServiceInternal.getCurrentUser().getId());
         publishPackage.setCommitId(site.getLastCommitId());
@@ -582,19 +585,21 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @return the id of the created package
      */
     protected long buildPublishPackage(final Site site,
-                                    final String target,
-                                    final PackageType packageType,
-                                    final Collection<PublishRequestPath> paths,
-                                    final Collection<String> commitIds,
-                                    final boolean requestApproval,
-                                    final Instant schedule,
-                                    final String comment,
-                                    final GetPublishItems getPublishItemsFunction)
+                                       final String target,
+                                       final PackageType packageType,
+                                       final Collection<PublishRequestPath> paths,
+                                       final Collection<String> commitIds,
+                                       final boolean requestApproval,
+                                       final Instant schedule,
+                                       final String title,
+                                       final String comment,
+                                       final GetPublishItems getPublishItemsFunction)
             throws ServiceLayerException, AuthenticationException {
         try {
             // Combine list of paths and list of commit changes
             Collection<PublishItem> publishItems = getPublishItemsFunction.get(site, paths, commitIds);
-            PublishPackage publishPackage = submitPublishPackage(site, target, packageType, requestApproval, schedule, comment, publishItems);
+            PublishPackage publishPackage = submitPublishPackage(site, target, packageType, requestApproval,
+                    schedule, title, comment, publishItems);
 
             auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
@@ -611,7 +616,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     private PublishPackage submitPublishPackage(Site site, String target, PackageType packageType, boolean requestApproval,
-                                                Instant schedule, String comment,
+                                                Instant schedule, String title, String comment,
                                                 Collection<PublishItem> publishItems) throws AuthenticationException, ServiceLayerException {
         Collection<String> allPaths = null;
         boolean clearSystemProcessing = false;
@@ -626,7 +631,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             clearSystemProcessing = true;
             itemServiceInternal.setSystemProcessingBulk(site.getSiteId(), allPaths, true);
             // Create package
-            PublishPackage publishPackage = createPackage(site, target, packageType, requestApproval, schedule, comment);
+            PublishPackage publishPackage = createPackage(site, target, packageType,
+                    requestApproval, schedule, title, comment);
 
             boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
             retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
@@ -672,9 +678,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @param comment          the comment
      * @return created package id
      */
-    protected long buildInitialPublishPackage(Site site, String publishingTarget, boolean requestApproval, String comment)
+    protected long buildInitialPublishPackage(Site site, String publishingTarget, boolean requestApproval, String title, String comment)
             throws AuthenticationException, ServiceLayerException {
-        return buildPublishPackage(site, publishingTarget, INITIAL_PUBLISH, emptyList(), emptyList(), requestApproval, null, comment, (s, p, c) -> emptyList());
+        return buildPublishPackage(site, publishingTarget, INITIAL_PUBLISH, emptyList(), emptyList(), requestApproval, null, title, comment, (s, p, c) -> emptyList());
     }
 
     /**
@@ -710,9 +716,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @param comment          the comment
      * @return created package id
      */
-    protected long buildPublishAllPackage(Site site, String publishingTarget, boolean requestApproval, String comment) throws AuthenticationException, ServiceLayerException {
-        return buildPublishPackage(site, publishingTarget, PUBLISH_ALL, emptyList(), emptyList(), requestApproval, null, comment,
-                (siteId, __, ___) -> getPublishAllItems(siteId));
+    protected long buildPublishAllPackage(Site site, String publishingTarget, boolean requestApproval, String title, String comment) throws AuthenticationException, ServiceLayerException {
+        return buildPublishPackage(site, publishingTarget, PUBLISH_ALL, emptyList(), emptyList(),
+                requestApproval, null, title, comment, (siteId, __, ___) -> getPublishAllItems(siteId));
     }
 
     /**
@@ -750,9 +756,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * @param comment         the comment
      * @return created package id
      */
-    protected long buildItemListPackage(Site site, String target, Collection<PublishRequestPath> paths, Collection<String> commitIds, boolean requestApproval, Instant schedule, String comment)
+    protected long buildItemListPackage(Site site, String target, Collection<PublishRequestPath> paths,
+                                        Collection<String> commitIds, boolean requestApproval, Instant schedule,
+                                        String title, String comment)
             throws ServiceLayerException, AuthenticationException {
-        return buildPublishPackage(site, target, ITEM_LIST, paths, commitIds, requestApproval, schedule, comment, this::getItemListPackageItems);
+        return buildPublishPackage(site, target, ITEM_LIST, paths, commitIds, requestApproval, schedule, title, comment, this::getItemListPackageItems);
     }
 
 }
