@@ -42,6 +42,7 @@
         INSERT INTO publish_package
         (site_id,
         target,
+        title,
         schedule,
         approval_state,
         package_state,
@@ -52,6 +53,7 @@
         VALUES
         (#{publishPackage.siteId},
         #{publishPackage.target},
+        #{publishPackage.title},
         #{publishPackage.schedule},
         #{publishPackage.approvalState},
         #{readyState},
@@ -346,7 +348,7 @@
         ) AS tbl
     </select>
 
-    <select id="getPublishPackagesInternal">
+    <select id="getPublishPackagesInternal" resultMap="PublishPackageMap">
         <include refid="getAllPackagesForFilters" />
         <if test="isScheduled != null">
             AND pp.schedule IS <if test="isScheduled">NOT</if> NULL

@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
 
 import java.time.Instant;
@@ -40,7 +41,11 @@ public class PublishPackageRequest {
     private Instant schedule;
     private boolean requestApproval;
     private boolean publishAll;
+    @NotEmpty
     private String comment;
+    @NotEmpty
+    @Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
+    private String title;
 
     public String getPublishingTarget() {
         return publishingTarget;
@@ -96,5 +101,13 @@ public class PublishPackageRequest {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
     }
 }

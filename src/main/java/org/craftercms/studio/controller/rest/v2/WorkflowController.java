@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
-import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
 import org.craftercms.studio.model.rest.workflow.*;
@@ -41,7 +40,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -156,52 +154,6 @@ public class WorkflowController {
                 .map(PublishPackageResponse::new).toList();
         ResultList<PublishPackageResponse> result = new ResultList<>();
         result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);
-        result.setResponse(OK);
-        return result;
-    }
-
-    @Deprecated
-    @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
-    public Result requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
-            throws ServiceLayerException, AuthenticationException {
-        List<String> paths = new ArrayList<>(requestPublishRequestBody.getItems());
-        if (!isEmpty(requestPublishRequestBody.getOptionalDependencies())) {
-            paths.addAll(requestPublishRequestBody.getOptionalDependencies());
-        }
-        List<PublishService.PublishRequestPath> requestPaths =
-                paths.stream()
-                        .map(item -> new PublishService.PublishRequestPath(item, false, false))
-                        .toList();
-        Instant schedule = requestPublishRequestBody.getSchedule() != null ?
-                requestPublishRequestBody.getSchedule().toInstant() : null;
-        long packageId = publishService.requestPublish(requestPublishRequestBody.getSiteId(), requestPublishRequestBody.getPublishingTarget(),
-                requestPaths, emptyList(), schedule, requestPublishRequestBody.getComment(), false);
-        ResultOne<Long> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
-        result.setResponse(OK);
-        return result;
-    }
-
-    @Deprecated
-    @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
-    public Result publish(@Valid @RequestBody PublishRequestBody publishRequestBody)
-            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-        List<String> paths = new ArrayList<>(publishRequestBody.getItems());
-        if (!isEmpty(publishRequestBody.getOptionalDependencies())) {
-            paths.addAll(publishRequestBody.getOptionalDependencies());
-        }
-        List<PublishService.PublishRequestPath> requestPaths =
-                paths
-                        .stream()
-                        .map(item -> new PublishService.PublishRequestPath(item, false, false))
-                        .toList();
-        Instant schedule = publishRequestBody.getSchedule() != null ?
-                publishRequestBody.getSchedule().toInstant() : null;
-        long packageId = publishService.publish(publishRequestBody.getSiteId(), publishRequestBody.getPublishingTarget(),
-                requestPaths, emptyList(),
-                schedule, publishRequestBody.getComment(), false);
-        ResultOne<Long> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         result.setResponse(OK);
         return result;
     }

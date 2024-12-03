@@ -87,18 +87,18 @@ public class PublishServiceImpl implements PublishService {
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                        List<String> commitIds, Instant schedule, String comment, boolean submitAll)
+                        List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
             throws AuthenticationException, ServiceLayerException {
-        return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, comment, submitAll);
+        return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
     }
 
     @Override
     @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public long requestPublish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                               List<String> commitIds, Instant schedule, String comment, boolean submitAll)
+                               List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
             throws AuthenticationException, ServiceLayerException {
-        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, comment, submitAll);
+        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
     }
 
     @Override
@@ -142,8 +142,9 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public long publishDelete(@SiteId String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException {
-        return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, comment);
+    public long publishDelete(@SiteId String siteId, Collection<String> userRequestedPaths,
+                              Collection<String> dependencies, String title, String comment) throws ServiceLayerException {
+        return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, title, comment);
     }
 
     @Override

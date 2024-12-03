@@ -390,12 +390,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public long deleteContent(String siteId, List<String> paths, String submissionComment)
+    public long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         // Lock the sandbox repository to prevent publish packages being submitted (delete operation might conflict with submitted packages)
         String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
         generalLockService.lock(sandboxRepoLockKey);
-        Collection<String> allPaths = null;
+        Collection<String> allPaths = new ArrayList<>();
         try {
             AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
             if (itemServiceInternal.isSystemProcessing(siteId, paths)) {
@@ -404,18 +404,25 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
                         siteId, paths));
             }
             itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
+            allPaths.addAll(paths);
+
+            Optional<String> notFound = paths.stream().filter(path -> !contentRepository.contentExists(siteId, path)).findFirst();
+            if (notFound.isPresent()) {
+                throw new ContentNotFoundException(notFound.get(), siteId, "Content '%s' not found in site '%s'".formatted(notFound.get(), siteId));
+            }
+
             Site site = siteService.getSite(siteId);
             List<String> children = paths.stream()
                     .map(path -> contentRepository.getSubtreeItems(siteId, path))
                     .flatMap(List::stream)
                     .toList();
             itemServiceInternal.setSystemProcessingBulk(siteId, children, true);
+            allPaths.addAll(children);
 
             Collection<String> userRequested = union(paths, children);
             List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
             itemServiceInternal.setSystemProcessingBulk(siteId, dependencies, true);
-
-            allPaths = union(userRequested, dependencies);
+            allPaths.addAll(dependencies);
 
             // check and fail if any of the items is part of a publish package
             assertNotInWorkflow(siteId, allPaths, false);
@@ -424,7 +431,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 
             long publishPackageId = 0;
             if (contentRepository.publishedRepositoryExists(siteId)) {
-                publishPackageId = publishServiceInternal.publishDelete(siteId, userRequested, dependencies, submissionComment);
+                publishPackageId = publishServiceInternal.publishDelete(siteId, userRequested,
+                        dependencies, publishTitle, publishComment);
             }
 
             for (String path : allPaths) {
@@ -441,7 +449,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
             }
             return publishPackageId;
         } finally {
-            itemServiceInternal.setSystemProcessingBulk(siteId, allPaths, false);
+            if (!allPaths.isEmpty()) {
+                itemServiceInternal.setSystemProcessingBulk(siteId, allPaths, false);
+            }
             generalLockService.unlock(sandboxRepoLockKey);
         }
     }

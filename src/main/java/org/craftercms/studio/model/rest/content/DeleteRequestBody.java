@@ -16,11 +16,13 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 
-import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
@@ -32,6 +34,9 @@ public class DeleteRequestBody {
     @NotEmpty
     private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
     private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> optionalDependencies;
+    @NotEmpty
+    @Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
+    private String title;
     private String comment;
 
     public String getSiteId() {
@@ -56,6 +61,14 @@ public class DeleteRequestBody {
 
     public void setOptionalDependencies(List<String> optionalDependencies) {
         this.optionalDependencies = optionalDependencies;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
     }
 
     public String getComment() {

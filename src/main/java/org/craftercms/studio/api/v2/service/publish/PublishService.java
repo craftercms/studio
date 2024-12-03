@@ -42,6 +42,8 @@ import java.util.List;
  */
 public interface PublishService {
 
+    int PACKAGE_TITLE_MAX_LENGTH = 200;
+
     /**
      * Get total number of publish packages for given search parameters
      *
@@ -118,12 +120,13 @@ public interface PublishService {
      * @param paths            the paths to publish
      * @param commitIds        the commit ids to publish
      * @param schedule         the scheduled date for the publishing (null to publish immediately)
+     * @param title            the title for the publish package
      * @param comment          the comment for the publishing
      * @param publishAll       if this is a publish-all request
      * @return the id of the created package
      */
     long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                 List<String> commitIds, Instant schedule, String comment, boolean publishAll)
+                 List<String> commitIds, Instant schedule, String title, String comment, boolean publishAll)
             throws ServiceLayerException, AuthenticationException;
 
     /**
@@ -134,18 +137,20 @@ public interface PublishService {
      * @param paths            the paths to publish
      * @param commitIds        the commit ids to publish
      * @param schedule         the scheduled date for the publishing (null to publish immediately)
-     * @param comment          the comment for the publishing
+     * @param title            the title for the publish package
+     * @param comment          the comment for the publish package
      * @param publishAll       if this is a publish-all request
      * @return the id of the created package
      */
     long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                        List<String> commitIds, Instant schedule, String comment, boolean publishAll)
+                        List<String> commitIds, Instant schedule, String title, String comment, boolean publishAll)
             throws AuthenticationException, ServiceLayerException;
 
     /**
      * Get the number of publishes for the given site in the last days
+     *
      * @param siteId the site id
-     * @param days the number of days to look back
+     * @param days   the number of days to look back
      * @return the number of publishes
      */
     int getNumberOfPublishes(String siteId, int days);
@@ -164,10 +169,12 @@ public interface PublishService {
      *     <li>hardDependencies: the hard dependencies of the items</li>
      *     <li>softDependencies: the soft dependencies of the items</li>
      *     </ul>
-     * @throws ServiceLayerException
-     * @throws IOException
+     * @throws ServiceLayerException if there is an error calculating the package
+     * @throws IOException           if there is an error reading the repository
      */
-    CalculatedPublishPackageResult calculatePublishPackage(String siteId, String publishingTarget, Collection<PublishRequestPath> paths, Collection<String> commitIds) throws ServiceLayerException, IOException;
+    CalculatedPublishPackageResult calculatePublishPackage(String siteId, String publishingTarget,
+                                                           Collection<PublishRequestPath> paths, Collection<String> commitIds)
+            throws ServiceLayerException, IOException;
 
     /**
      * Get the submitted package containing the given item
@@ -195,9 +202,10 @@ public interface PublishService {
      * @param siteId             the site id
      * @param userRequestedPaths the paths to delete as requested by the user
      * @param dependencies       the delete dependencies of the requested paths
+     * @param title              the title of the publish package
      * @param comment            user user comment
      */
-    long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String comment) throws ServiceLayerException;
+    long publishDelete(String siteId, Collection<String> userRequestedPaths, Collection<String> dependencies, String title, String comment) throws ServiceLayerException;
 
     /**
      * Get a publish package by site and package id

@@ -354,13 +354,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public boolean previousPathExists(String siteId, String path) {
-        // TODO: implement using new item_target table
-//        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
-        return false;
-    }
-
-    @Override
     public void lockItemByPath(String siteId, String path, String username)
             throws UserNotFoundException, ServiceLayerException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);

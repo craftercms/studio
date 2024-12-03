@@ -969,7 +969,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 String liveTarget = servicesConfig.getLiveEnvironment(siteId);
                 logger.debug("Publish the changes in site '{}' with the message '{}'", siteId, message);
                 publishService.publish(siteId, liveTarget, emptyList(),
-                        List.of(commit.getName()), null, message, false);
+                        List.of(commit.getName()), null, message.substring(0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message, false);
             }
         }
     }

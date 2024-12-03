@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
@@ -197,7 +198,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         files.add(getContentTypePath(contentType));
 
         try {
-            contentService.deleteContent(siteId, files, "Delete content-type " + contentType);
+            String message = "Delete content-type %s".formatted(contentType);
+            contentService.deleteContent(siteId, files, message.substring(0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message);
         } catch (Exception e) {
             throw new ServiceLayerException(format("Error deleting content-type '%s' in site '%s'", contentType, siteId), e);
         }
