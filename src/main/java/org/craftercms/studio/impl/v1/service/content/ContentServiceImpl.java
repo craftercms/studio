@@ -411,16 +411,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // Check if creating a new page to an existing folder
                 boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
                 shouldUpdateChildrenParent = isPage && contentExists(site, folderPath);
-
-                // Content does not exist; check for moved content and deleted content
-                if (itemServiceInternal.previousPathExists(site, path)) {
-                    logger.error("Content '{}' in site '{}', cannot be created " +
-                            "because this name/URL was in use by another content item that has been moved or " +
-                            "deleted but not yet published.", path, site);
-                    throw new ServiceLayerException(format("Content '%s' in site '%s', cannot be created " +
-                            "because this name/URL was in use by another content item that has been moved or " +
-                            "deleted but not yet published.", path, site));
-                }
             }
 
             // TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
@@ -608,12 +598,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             if (item != null) {
                 trySetSystemProcessing(site, path);
-            }
-
-            if (itemServiceInternal.previousPathExists(site, path)) {
-                throw new ServiceLayerException(format("Content '%s' in site '%s' cannot be created because "
-                    + "this name/URL was in use by another content item that has been moved or deleted but "
-                    + "not yet published.", path, site));
             }
 
             ResultTO result = processContent(site, id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);

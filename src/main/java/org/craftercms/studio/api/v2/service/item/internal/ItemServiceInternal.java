@@ -240,14 +240,6 @@ public interface ItemServiceInternal {
     }
 
     /**
-     * Check if path exists as previous path
-     * @param siteId site identifier
-     * @param path path to check
-     * @return true if item exists with previous path as given path
-     */
-    boolean previousPathExists(String siteId, String path);
-
-    /**
      * Lock item for given lock owner
      * @param siteId site identifier
      * @param path item path
