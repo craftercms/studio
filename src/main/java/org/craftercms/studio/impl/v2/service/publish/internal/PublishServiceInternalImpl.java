@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -199,7 +198,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    @Transactional
     public long publishDelete(String siteId, Collection<String> userRequestedPaths,
                               Collection<String> dependencies, String title, String comment) throws ServiceLayerException {
         try {
