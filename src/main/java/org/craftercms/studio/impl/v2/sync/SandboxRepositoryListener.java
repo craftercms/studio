@@ -78,7 +78,7 @@ public class SandboxRepositoryListener implements ApplicationEventPublisherAware
             try {
                 repositoryWatcher.registerSite(site.getSiteId(), sandboxRepoPath);
             } catch (SiteNotFoundException | IOException e) {
-                logger.error("Error registering site '{}' for repository events", site, e);
+                logger.error("Error registering site '{}' for repository events", site.getSiteId(), e);
             }
             eventPublisher.publishEvent(new SyncFromRepoEvent(site.getSiteId()));
         });
