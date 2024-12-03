@@ -6589,7 +6589,7 @@ paths:
                       items:
                         type: array
                         items:
-                          $ref: '#/components/schemas/SandboxItem'
+                          $ref: '#/components/schemas/PublishItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -9543,9 +9543,11 @@ components:
       description: general task progress object
       properties:
         taskId:
-          type: string
+          type: object
           description: task identifier
-          example: site123_PUBLISH
+          example:
+            siteId: "ed3"
+            packageId: 17
         siteId:
           type: string
           description: site identifier
