@@ -6405,12 +6405,10 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  package:
-                    type: object
-                    properties:
-                      packageId:
-                        type: string
-                        description: the package id
+                  packageId:
+                    type: integer
+                    format: int64
+                    description: the package id
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
