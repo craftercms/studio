@@ -168,9 +168,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(siteId, itemPath, false);
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user.getId() == publishPackage.getSubmitterId()) {
-                    result &= ~PUBLISH_APPROVE;
                     result &= ~PUBLISH_SCHEDULE;
-                    result &= ~PUBLISH_REJECT;
                 }
             }
         }
