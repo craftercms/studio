@@ -6584,18 +6584,13 @@ paths:
           content:
             application/json:
               schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
                 allOf:
                   - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      package:
-                        $ref: '#/components/schemas/PublishPackage'
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/PublishItem'
+                  - $ref: '#/components/schemas/PublishPackageDetails'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -9478,15 +9473,15 @@ components:
             - publishingTarget
 
     PublishPackageDetails:
-      allOf:
-        - $ref: '#/components/schemas/PublishPackage'
-        - type: object
-          properties:
-            items:
-              type: array
-              description: list of items to be published
-              items:
-                $ref: '#/components/schemas/PublishItem'
+      type: object
+      properties:
+        package:
+          $ref: '#/components/schemas/PublishPackage'
+        items:
+          type: array
+          description: list of items to be published
+          items:
+            $ref: '#/components/schemas/PublishItem'
 
     PublishItem:
       type: object
@@ -9530,6 +9525,31 @@ components:
         stagingError:
           type: integer
           description: ApiResponse code
+        itemMetadata:
+          type: object
+          description: metadata of the content item
+          properties:
+            label:
+              type: string
+              description: content item label (internal-name)
+            systemType:
+              type: string
+              description: system type of the content item
+              enum:
+                - asset
+                - page
+                - component
+                - levelDescriptor
+                - document
+                - renderingTemplate
+                - content type
+                - file
+                - folder
+                - script
+                - taxonomy
+            mimeType:
+              type: string
+              description: mime-type of content item file
 
     PublishTaskProgress:
       type: object

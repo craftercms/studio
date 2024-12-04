@@ -36,6 +36,19 @@
                      select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
     </resultMap>
 
+    <resultMap id="PublishItemMapWithMetadata" type="org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata" autoMapping="true">
+        <association property="itemTargets" column="item_id"
+                     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
+        <association property="itemMetadata" column="item_id"
+                     select="publishItemMetadata"/>
+    </resultMap>
+
+    <select id="publishItemMetadata" resultType="org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata">
+        SELECT i.label, i.system_type, i.mime_type
+        FROM item i
+        WHERE i.id = #{itemId}
+    </select>
+
     <insert id="insertPackage"
             useGeneratedKeys="true"
             keyProperty="publishPackage.id">
@@ -212,6 +225,14 @@
     </update>
 
     <select id="getPublishItems" resultMap="PublishItemMap">
+        <include refid="getPublishItemsQuery"/>
+    </select>
+
+    <select id="getPublishItemsWithMetadata" resultMap="PublishItemMapWithMetadata">
+        <include refid="getPublishItemsQuery"/>
+    </select>
+
+    <sql id="getPublishItemsQuery">
         SELECT pi.*, ipi.item_id
         FROM publish_item pi
             INNER JOIN publish_package pp ON pi.package_id = pp.id
@@ -222,7 +243,7 @@
         <if test="offset != null and limit != null">
             LIMIT #{offset},#{limit}
         </if>
-    </select>
+    </sql>
 
     <select id="getPublishItemsCount">
         SELECT COUNT(1)

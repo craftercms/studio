@@ -343,6 +343,29 @@ public interface PublishDAO {
                                             @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
     /**
+     * Get the publish items (with metadata) for the given package
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return PublishItemWithMetadata records for the package
+     */
+    default Collection<PublishItemWithMetadata> getPublishItemsWithMetadata(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId) {
+        return getPublishItemsWithMetadata(siteId, packageId, null, null);
+    }
+
+    /**
+     * Get the paginated list of publish items (with metadata) for the given package
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @param offset    the offset to start from
+     * @param limit     the max number of items to return
+     * @return PublishItemWithMetadata paginated records for the package
+     */
+    Collection<PublishItemWithMetadata> getPublishItemsWithMetadata(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+                                                                    @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
+
+    /**
      * Get the total number of items in a package
      *
      * @param siteId    the site id
@@ -503,6 +526,7 @@ public interface PublishDAO {
                 approvalStates, submitter, reviewer,
                 isScheduled, mapSortFields(sortFields, SORT_FIELD_MAP), offset, limit);
     }
+
     /**
      * Internal method so we can map the sort fields to the actual columns for getPublishPackages
      */
