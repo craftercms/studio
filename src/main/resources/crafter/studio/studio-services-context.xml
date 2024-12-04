@@ -593,6 +593,7 @@
         <property name="publishDao" ref="publishDao"/>
         <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="securityService" ref="studio.securityService"/>
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"
