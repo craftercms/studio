@@ -48,6 +48,7 @@ public class PublishPackage {
     protected String commitId;
     protected String publishedStagingCommitId;
     protected String publishedLiveCommitId;
+    protected int itemCount;
 
     protected Person submitter;
     protected Person reviewer;
@@ -242,6 +243,14 @@ public class PublishPackage {
 
     public void setReviewer(final Person reviewer) {
         this.reviewer = reviewer;
+    }
+
+    public int getItemCount() {
+        return itemCount;
+    }
+
+    public void setItemCount(int itemCount) {
+        this.itemCount = itemCount;
     }
 
     /**

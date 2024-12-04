@@ -29,6 +29,8 @@
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
         <association property="reviewer" column="reviewer_id"
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="itemCount" column="{packageId=id,siteId=site_id}"
+                     select="getPublishItemsCount"/>
     </resultMap>
 
     <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
@@ -245,13 +247,13 @@
         </if>
     </sql>
 
-    <select id="getPublishItemsCount">
+    <select id="getPublishItemsCount" resultType="java.lang.Integer">
         SELECT COUNT(1)
         FROM publish_item pi
         INNER JOIN publish_package pp ON pi.package_id = pp.id
         INNER JOIN site s ON pp.site_id = s.id
         WHERE pi.package_id = #{packageId}
-        AND s.site_id = #{siteId}
+        AND s.id = #{siteId}
     </select>
 
     <update id="updatePublishItemState">

@@ -9464,6 +9464,9 @@ components:
             publishedLiveCommitId:
               type: string
               description: commit ID published to live
+            itemCount:
+              type: integer
+              description: number of items in the package
           required:
             - id
             - siteId
