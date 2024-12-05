@@ -17,25 +17,25 @@
 package org.craftercms.studio.model.rest.publish;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 
 import java.util.Collection;
 
 /**
- * Contains a {@link PublishPackage} general information and also its {@link PublishItem}s
+ * Contains a {@link PublishPackage} general information and also its {@link PublishItemWithMetadata}s
  */
 public class PublishPackageDetails {
 
-    private final Collection<PublishItem> items;
+    private final Collection<PublishItemWithMetadata> items;
     private final PublishPackage publishPackage;
 
-    public PublishPackageDetails(final PublishPackage publishPackage, final Collection<PublishItem> items) {
+    public PublishPackageDetails(final PublishPackage publishPackage, final Collection<PublishItemWithMetadata> items) {
         this.publishPackage = publishPackage;
         this.items = items;
     }
 
-    public Collection<PublishItem> getItems() {
+    public Collection<PublishItemWithMetadata> getItems() {
         return items;
     }
 

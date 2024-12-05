@@ -123,7 +123,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     public PublishPackageDetails getPublishPackageDetails(String siteId, long packageId)
             throws PublishPackageNotFoundException, SiteNotFoundException {
         PublishPackage publishPackage = getPackage(siteId, packageId);
-        Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId);
+        Collection<PublishItemWithMetadata> publishItems = publishDao.getPublishItemsWithMetadata(siteId, packageId);
         return new PublishPackageDetails(publishPackage, publishItems);
     }
 
@@ -239,7 +239,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     @Override
     public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
                                                    final int offset, final int limit) throws PublishPackageNotFoundException, SiteNotFoundException {
-
         Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId, offset, limit);
         if (isEmpty(publishItems)) {
             if (getPackage(siteId, packageId) == null) {

@@ -29,12 +29,27 @@
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
         <association property="reviewer" column="reviewer_id"
                      select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="itemCount" column="{packageId=id,siteId=site_id}"
+                     select="getPublishItemsCount"/>
     </resultMap>
 
     <resultMap id="PublishItemMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItem" autoMapping="true">
         <association property="itemTargets" column="item_id"
                      select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
     </resultMap>
+
+    <resultMap id="PublishItemMapWithMetadata" type="org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata" autoMapping="true">
+        <association property="itemTargets" column="item_id"
+                     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
+        <association property="itemMetadata" column="item_id"
+                     select="publishItemMetadata"/>
+    </resultMap>
+
+    <select id="publishItemMetadata" resultType="org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata">
+        SELECT i.label, i.system_type, i.mime_type
+        FROM item i
+        WHERE i.id = #{itemId}
+    </select>
 
     <insert id="insertPackage"
             useGeneratedKeys="true"
@@ -212,6 +227,14 @@
     </update>
 
     <select id="getPublishItems" resultMap="PublishItemMap">
+        <include refid="getPublishItemsQuery"/>
+    </select>
+
+    <select id="getPublishItemsWithMetadata" resultMap="PublishItemMapWithMetadata">
+        <include refid="getPublishItemsQuery"/>
+    </select>
+
+    <sql id="getPublishItemsQuery">
         SELECT pi.*, ipi.item_id
         FROM publish_item pi
             INNER JOIN publish_package pp ON pi.package_id = pp.id
@@ -222,15 +245,15 @@
         <if test="offset != null and limit != null">
             LIMIT #{offset},#{limit}
         </if>
-    </select>
+    </sql>
 
-    <select id="getPublishItemsCount">
+    <select id="getPublishItemsCount" resultType="java.lang.Integer">
         SELECT COUNT(1)
         FROM publish_item pi
         INNER JOIN publish_package pp ON pi.package_id = pp.id
         INNER JOIN site s ON pp.site_id = s.id
         WHERE pi.package_id = #{packageId}
-        AND s.site_id = #{siteId}
+        AND s.id = #{siteId}
     </select>
 
     <update id="updatePublishItemState">
