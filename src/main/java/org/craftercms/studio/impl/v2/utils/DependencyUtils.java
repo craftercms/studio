@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.collections4.MapUtils;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,12 +50,28 @@ public class DependencyUtils {
      * @param oldPath           the content item old path
      * @param file              the file
      * @param dependencyService the dependency service
+     * @throws IOException if an error occurs while updating the script
+     */
+    public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
+                                                     Path file, DependencyService dependencyService)
+            throws IOException {
+        addDependenciesScriptSnippets(siteId, path, oldPath, file, dependencyService, true, true);
+    }
+
+    /**
+     * Add the script snippets to update the dependencies for the given path
+     *
+     * @param siteId            the site id
+     * @param path              the content item path
+     * @param oldPath           the content item old path
+     * @param file              the file
+     * @param dependencyService the dependency service
      * @param cleanExisting     if true, the existing dependencies for the path will be deleted
      * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
      * @throws IOException if an error occurs while updating the script
      */
     public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
-                                                     Path file, DependencyServiceInternal dependencyService,
+                                                     Path file, DependencyService dependencyService,
                                                      boolean cleanExisting, boolean revalidate)
             throws IOException {
         if (cleanExisting) {

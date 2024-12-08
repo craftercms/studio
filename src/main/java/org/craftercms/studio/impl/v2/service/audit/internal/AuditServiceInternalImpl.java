@@ -181,11 +181,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public void deleteAuditLogForSite(long siteId) {
-        retryingDatabaseOperationFacade.retry(() -> auditDao.deleteAuditLogForSite(siteId));
-    }
-
-    @Override
     public List<CommitAuthor> getCommitAuthors(final long siteId, final List<String> commitIds, final String path) {
         return auditDao.getCommitAuthors(siteId, commitIds, path);
     }

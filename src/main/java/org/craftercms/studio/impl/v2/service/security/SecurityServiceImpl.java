@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -175,9 +176,9 @@ public class SecurityServiceImpl implements SecurityService {
             }
 
             List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
-            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            List<NormalizedGroup> siteGroups = groupServiceInternal.getSiteGroups(siteId);
             return userGroups.stream()
-                    .map(Group::getGroupName)
+                    .map(group -> new NormalizedGroup((group.getGroupName())))
                     .anyMatch(siteGroups::contains);
         } catch (ServiceLayerException | UserNotFoundException e) {
             logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
@@ -198,6 +199,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.studioConfiguration = studioConfiguration;
     }
 
+    @SuppressWarnings("unused")
     public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
     }
@@ -206,6 +208,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.userServiceInternal = userServiceInternal;
     }
 
+    @SuppressWarnings("unused")
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
     }

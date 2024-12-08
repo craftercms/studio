@@ -15,14 +15,13 @@
  */
 package org.craftercms.studio.api.v1.service.dependency;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Dependency Service is the sole custodian of the dependency database
@@ -46,7 +45,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException Internal error, see exception details
 	 * @return list of mandatory dependencies paths for publishing
 	 */
-	List<String> getPublishingDependencies(String site, String path)
+	Collection<String> getPublishingDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
@@ -62,7 +61,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException Internal error, see exception details
 	 * @return list of mandatory dependencies paths for publishing
 	 */
-	List<String> getPublishingDependencies(String site, List<String> paths)
+	Collection<String> getPublishingDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
@@ -142,25 +141,4 @@ public interface DependencyService {
      */
 	Set<String> getDeleteDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-    /**
-     * Calculate dependencies for publishing
-     *
-     * @param site Site to operate on
-     * @param paths List of items to calculate dependencies for
-     * @return Formatted result set
-     * @throws ServiceLayerException general service error
-     */
-	Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
-            throws ServiceLayerException;
-
-    /**
-     * Calculate dependencies paths for publishing
-     * @param site site to use
-     * @param paths list of items to calculate dependencies for
-     * @return dependencies paths
-	 *
-	 * @throws ServiceLayerException general service error
-     */
-	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException;
 }

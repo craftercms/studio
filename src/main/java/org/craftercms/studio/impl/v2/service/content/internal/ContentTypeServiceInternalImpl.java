@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
@@ -36,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
@@ -179,7 +179,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
         var files = new LinkedList<String>();
@@ -197,10 +197,12 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         files.addAll(usage.getScripts());
         files.add(getContentTypePath(contentType));
 
-        if (!contentService.deleteContent(siteId, files, "Delete content-type " + contentType)) {
-            throw new ServiceLayerException("Error deleting content-type " + contentType + " in site "+ siteId);
+        try {
+            String message = "Delete content-type %s".formatted(contentType);
+            contentService.deleteContent(siteId, files, message.substring(0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message);
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Error deleting content-type '%s' in site '%s'", contentType, siteId), e);
         }
-
     }
 
     @Override

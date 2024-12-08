@@ -17,11 +17,10 @@
 package org.craftercms.studio.model.rest;
 
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 
@@ -62,4 +61,5 @@ public class PublishAllRequest {
     public void setSubmissionComment(String submissionComment) {
         this.submissionComment = submissionComment;
     }
+
 }

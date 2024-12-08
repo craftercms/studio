@@ -99,6 +99,14 @@ public class ApiResponse {
             "Try pasting the content to a different folder", StringUtils.EMPTY);
     public static final ApiResponse BLOB_NOT_FOUND = new ApiResponse(7005, "Content not found in blob store",
             "Check your blob store configurations", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_IN_PUBLISH_QUEUE = new ApiResponse(7006, "Cannot edit content that is part of an active publish package",
+            "Cancel affected publish packages and retry", StringUtils.EMPTY);
+    public static final ApiResponse PUBLISH_PACKAGE_NOT_FOUND = new ApiResponse(7007, "Publish package not found",
+            "Check if you sent in the right Publish Package Id", StringUtils.EMPTY);
+    public static final ApiResponse INVALID_PACKAGE_STATE = new ApiResponse(7008, "Requested publish package is not in the required state for this operation",
+            "Check the current publish package state", StringUtils.EMPTY);
+    public static final ApiResponse PACKAGE_ALREADY_APPROVED = new ApiResponse(7009, "Requested publish package is already APPROVED",
+            "Check the current publish package state", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
@@ -171,6 +179,16 @@ public class ApiResponse {
     // 52000 - 53000
     public static final ApiResponse AWS_UNREACHABLE = new ApiResponse(52000, "AWS is unreachable",
             "Advise the user that AWS engine is not reachable", StringUtils.EMPTY);
+    public static final ApiResponse S3_UNREACHABLE = new ApiResponse(52001, "S3 is unreachable",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
+    public static final ApiResponse S3_BUCKET_NOT_FOUND = new ApiResponse(52002, "S3 bucket not found",
+            "Check the configured bucket name is correct", StringUtils.EMPTY);
+    public static final ApiResponse S3_UNAUTHORIZED = new ApiResponse(52003, "S3 unauthorized access",
+            "Check your AWS credentials", StringUtils.EMPTY);
+    public static final ApiResponse S3_FORBIDDEN = new ApiResponse(52004, "S3 FORBIDDEN",
+            "Check your AWS credentials", StringUtils.EMPTY);
+    public static final ApiResponse S3_KEY_NOT_FOUND = new ApiResponse(52005, "S3 key not found",
+            "Check your network configuration and S3 availability", StringUtils.EMPTY);
 
     // 53000 - 54000
     public static final ApiResponse LOGGER_NOT_FOUND = new ApiResponse(53000, "The logger was not found",

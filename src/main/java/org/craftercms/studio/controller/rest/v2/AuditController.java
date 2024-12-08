@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.constraints.PositiveOrZero;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
@@ -25,7 +26,6 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.CollectionUtils;
@@ -35,8 +35,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -52,7 +50,7 @@ public class AuditController {
     private AuditService auditService;
 
     @GetMapping(API_2 + AUDIT)
-    public ResponseBody getAuditLog(
+    public PaginatedResultList<AuditLog> getAuditLog(
             @ValidSiteId
             @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
@@ -81,30 +79,25 @@ public class AuditController {
         List<AuditLog> auditLog = auditService.getAuditLog(siteId, offset, limit, user, operations,
                 includeParameters, dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
 
-        ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<AuditLog> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setLimit(CollectionUtils.isEmpty(auditLog) ? 0 : auditLog.size());
         result.setOffset(offset);
         result.setEntities(RESULT_KEY_AUDIT_LOG, auditLog);
         result.setResponse(ApiResponse.OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @Valid
     @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
-    public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId,
-                                         @ValidSiteId
+    public ResultOne<AuditLog> getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId,
+                                                @ValidSiteId
                                          @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId) throws SiteNotFoundException {
         AuditLog auditLogEntry = auditService.getAuditLogEntry(siteId, auditLogId);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<AuditLog> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_AUDIT_LOG, auditLogEntry);
         result.setResponse(ApiResponse.OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     public void setAuditService(AuditService auditService) {

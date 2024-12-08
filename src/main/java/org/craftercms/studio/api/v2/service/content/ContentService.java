@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -67,17 +66,6 @@ public interface ContentService {
     List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
 
     /**
-     * Get child items for given path. Child item is
-     *  - belongs to item subtree
-     *  - is item specific dependency
-     *
-     * @param siteId site identifier
-     * @param path path to get child items for
-     * @return list of paths of child items
-     */
-    List<String> getChildItems(String siteId, String path);
-
-    /**
      * Get child items for given paths. Child item is
      *  - belongs to item subtree
      *  - is item specific dependency
@@ -89,36 +77,20 @@ public interface ContentService {
     List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
 
     /**
-     * Delete content for given path. Following content will be deleted:
-     *  - given path
-     *  - child items for given path
-     * @param siteId site identifier
-     * @param path content to be deleted
-     * @param submissionComment  submission comment
-     * @return true if success, otherwise false
-     *
-     * @throws ServiceLayerException general service error
-     * @throws AuthenticationException authentication error
-     * @throws DeploymentException deployment error caused by delete
-     */
-    boolean deleteContent(String siteId, String path, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
-
-    /**
      * Delete content for given paths. Following content will be deleted:
-     *  - given paths
-     *  - child items for given paths
-     * @param siteId site identifier
-     * @param paths content to be deleted
-     * @param submissionComment submission comment
-     * @return true if success, otherwise false
+     * - given paths
+     * - child items for given paths
      *
-     * @throws ServiceLayerException general service error
+     * @param siteId         site identifier
+     * @param paths          content to be deleted
+     * @param publishTitle   title of the publish package
+     * @param publishComment submitter comment of the publish package
+     * @return id of publish package, or 0 if no package was created (if the site has not been published)
+     * @throws ServiceLayerException   general service error
      * @throws AuthenticationException authentication error
-     * @throws DeploymentException deployment error caused by delete
      */
-    boolean deleteContent(String siteId, List<String> paths, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
+    long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     /**
      * Get list of children for given path

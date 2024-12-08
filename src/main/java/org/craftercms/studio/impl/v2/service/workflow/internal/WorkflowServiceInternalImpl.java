@@ -16,135 +16,229 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
-import org.apache.commons.collections4.ListUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v2.dal.WorkflowDAO;
-import org.craftercms.studio.api.v2.dal.WorkflowItem;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
-import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
-import org.craftercms.studio.api.v2.utils.DalUtils;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
+import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 
-import java.beans.ConstructorProperties;
-import java.util.Collection;
-import java.util.HashSet;
+import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
-import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+import static java.time.Instant.now;
+import static java.util.stream.Collectors.toList;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 
-public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
+public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
 
-    private final WorkflowDAO workflowDao;
-    private final DependencyServiceInternal dependencyService;
-    private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final static Logger logger = LoggerFactory.getLogger(WorkflowServiceInternalImpl.class);
 
-    @ConstructorProperties({"dependencyService", "retryingDatabaseOperationFacade", "workflowDao"})
-    public WorkflowServiceInternalImpl(final DependencyServiceInternal dependencyService, final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-                                       final WorkflowDAO workflowDao) {
-        this.dependencyService = dependencyService;
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-        this.workflowDao = workflowDao;
+    private ItemServiceInternal itemServiceInternal;
+    private SitesService siteService;
+    private GeneralLockService generalLockService;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private AuditServiceInternal auditServiceInternal;
+    private PublishDAO publishDao;
+    private UserServiceInternal userServiceInternal;
+    private ServicesConfig servicesConfig;
+    private SecurityService securityService;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Override
+    public int getItemStatesTotal(String siteId, String path, Long states) {
+        return itemServiceInternal.getItemByStatesTotal(siteId, path, states, null);
     }
 
     @Override
-    public WorkflowItem getWorkflowItem(String siteId, String path, String state) {
-        return workflowDao.getWorkflowEntryOpened(siteId, path, state);
+    public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
+        return itemServiceInternal.getItemByStates(siteId, path, states, null, null, offset, limit).stream()
+                .map(SandboxItem::getInstance)
+                .collect(toList());
     }
 
     @Override
-    public WorkflowItem getWorkflowEntry(String siteId, String path) {
-        return getWorkflowItem(siteId, path, STATE_OPENED);
+    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+        itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
     }
 
     @Override
-    public Workflow getWorkflowEntryForApproval(Long itemId) {
-        return workflowDao.getWorkflowEntryForApproval(itemId, STATE_OPENED);
+    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+        itemServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
+                live, staged, isNew, modified);
     }
 
     @Override
-    public Workflow getWorkflowEntry(String siteId, String path, String publishingPackageId) {
-        return workflowDao.getWorkflowEntry(siteId, path, publishingPackageId);
+    public void approvePackage(final String siteId, final long packageId,
+                               final Instant schedule, final boolean updateSchedule, final String comment)
+            throws AuthenticationException, ServiceLayerException {
+        doReviewPackage(siteId, packageId, p -> {
+            if (APPROVED == p.getApprovalState()) {
+                throw new PackageAlreadyApprovedException(siteId, packageId);
+            }
+            if (updateSchedule) {
+                p.setSchedule(schedule);
+            }
+            p.setApprovalState(APPROVED);
+            p.setReviewerComment(comment);
+        }, OPERATION_APPROVE, WorkflowEvent.WorkFlowEventType.APPROVE);
     }
 
     @Override
-    public void insertWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntry(workflow));
+    public void cancelPackage(final String siteId, final long packageId, String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            p.setPackageState(CANCELLED.value);
+            p.setReviewerComment(comment);
+        }, OPERATION_CANCEL_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
     }
 
     @Override
-    public void insertWorkflowEntries(List<Workflow> workflowEntries) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntries(workflowEntries));
+    public void rejectPackage(final String siteId, final long packageId, final String comment)
+            throws ServiceLayerException, AuthenticationException {
+        doReviewPackage(siteId, packageId, p -> {
+            p.setApprovalState(REJECTED);
+            p.setPackageState(CANCELLED.value);
+            p.setReviewerComment(comment);
+        }, OPERATION_REJECT_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
+    }
+
+    /**
+     * Update a packageState and/or approvalState of a package
+     *
+     * @param siteId        the site id
+     * @param packageId     the package id
+     * @param packageReview the package review operation
+     * @param operation     the operation being performed (e.g. cancel, reject, approve)
+     * @param eventType     the workflow event type to be triggered if the update is completed
+     * @throws ServiceLayerException   if the package is not found or is not in a valid state
+     * @throws AuthenticationException if there is an error trying to retrieve the current user
+     */
+    private void doReviewPackage(final String siteId, final long packageId,
+                                 final PackageReview packageReview,
+                                 final String operation, final WorkflowEvent.WorkFlowEventType eventType)
+            throws ServiceLayerException, AuthenticationException {
+        Site site = siteService.getSite(siteId);
+        User user = userServiceInternal.getCurrentUser();
+
+        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+        if (publishPackage == null) {
+            throw new PublishPackageNotFoundException(siteId, packageId);
+        }
+
+        String packageLockKey = getPublishPackageLockKey(packageId);
+        generalLockService.lock(packageLockKey);
+        try {
+            publishPackage = publishDao.getById(site.getId(), packageId);
+            if (publishPackage.getPackageState() != PublishPackage.PackageState.READY.value) {
+                throw new InvalidPackageStateException("Unable to review package because it is not in READY state", siteId, packageId);
+            }
+
+            packageReview.reviewPackage(publishPackage);
+            publishPackage.setReviewedOn(now());
+            publishPackage.setReviewerId(user.getId());
+            publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
+
+            createUpdateStatePackageAuditLogEntry(publishPackage, user.getUsername(), operation);
+
+            activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
+                    operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
+            eventPublisher.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, packageId, eventType));
+        } finally {
+            generalLockService.unlock(packageLockKey);
+        }
+    }
+
+    /**
+     * Audit package state update: cancellation/rejection/approval
+     *
+     * @param publishPackage the package being cancelled
+     * @param username       the username of the user who cancelled the package
+     * @param operation      the operation being performed
+     */
+    private void createUpdateStatePackageAuditLogEntry(final PublishPackage publishPackage,
+                                                       final String username, final String operation) {
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOrigin(ORIGIN_API);
+        auditLog.setOperation(operation);
+        auditLog.setActorId(username);
+        auditLog.setSiteId(publishPackage.getSiteId());
+        auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
+        auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
+
+    @SuppressWarnings("unused")
+    public void setActivityStreamServiceInternal(final ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    @SuppressWarnings("unused")
+    public void setPublishDao(final PublishDAO publishDao) {
+        this.publishDao = publishDao;
+    }
+
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public void setSiteService(final SitesService siteService) {
+        this.siteService = siteService;
+    }
+
+    public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public void setSecurityService(final SecurityService securityService) {
+        this.securityService = securityService;
     }
 
     @Override
-    public void updateWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.updateWorkflowEntry(workflow));
+    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
     }
 
-    @Override
-    public List<WorkflowItem> getSubmittedItems(String site) {
-        return workflowDao.getSubmittedItems(site, STATE_OPENED);
-    }
-
-    @Override
-    public void deleteWorkflowEntries(String siteId, Collection<String> paths) {
-        deleteWorkflowEntries(siteId, paths, null);
-    }
-
-    @Override
-    public void deleteWorkflowEntries(final String siteId, final Collection<String> paths, final String workflowState) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntries(siteId, paths, workflowState));
-    }
-
-    @Override
-    public void deleteWorkflowEntry(String siteId, String path) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntry(siteId, path));
-    }
-
-    @Override
-    public void deleteWorkflowEntriesForSite(long siteId) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntriesForSite(siteId));
-    }
-
-    @Override
-    public int getContentPendingApprovalTotal(String siteId) {
-        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED).orElse(0);
-    }
-
-    @Override
-    public List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit) {
-        return workflowDao.getContentPendingApproval(siteId, STATE_OPENED, offset, limit);
-    }
-
-    @Override
-    public List<Workflow> getContentPendingApprovalDetail(String siteId, String packageId) {
-        return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
-    }
-
-    @Override
-    public Collection<String> getWorkflowAffectedPaths(final String siteId, final String path) throws ServiceLayerException {
-        Set<String> affectedPaths = new HashSet<>();
-        affectedPaths.add(path);
-        affectedPaths.addAll(workflowDao.getSamePackagePaths(siteId, path));
-        affectedPaths.addAll(getWorkflowHardDeps(siteId, path));
-
-        return affectedPaths;
-    }
-
-    @Override
-    public Collection<String> getWorkflowHardDeps(final String siteId, final String path) throws ServiceLayerException {
-        List<String> hardDependencies = dependencyService.getHardDependencies(siteId, List.of(path));
-        return ListUtils.partition(hardDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE).stream()
-                .map(batch -> workflowDao.getPathsInWorkflow(siteId, batch))
-                .flatMap(Collection::stream)
-                .toList();
-    }
-
-    @Override
-    public void deleteWorkflowPackages(String siteId, Collection<String> affectedPackages) {
-        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowPackages(siteId, affectedPackages));
+    private interface PackageReview {
+        void reviewPackage(PublishPackage publishPackage) throws ServiceLayerException;
     }
 }

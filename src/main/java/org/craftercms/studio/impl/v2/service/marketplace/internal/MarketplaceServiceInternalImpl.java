@@ -40,33 +40,19 @@ import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
-import org.craftercms.studio.api.v2.exception.marketplace.IncompatiblePluginException;
-import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
-import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
-import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceRegistryException;
-import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
-import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
-import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
-import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
-import org.craftercms.studio.api.v2.exception.marketplace.RemovePluginException;
+import org.craftercms.studio.api.v2.exception.marketplace.*;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
@@ -80,17 +66,15 @@ import org.craftercms.studio.api.v2.service.marketplace.registry.ConfigRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.FileRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRegistry;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.Node;
+import org.dom4j.*;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -98,6 +82,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
@@ -111,25 +97,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.xml.transform.TransformerException;
 import java.beans.ConstructorProperties;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -140,22 +112,16 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE;
+import static java.util.Collections.emptyList;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang.text.StrSubstitutor.replace;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.contains;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
-import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.SOURCE_GIT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
-import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginPath;
-import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.*;
 import static org.craftercms.studio.impl.v2.utils.XsltUtils.executeTemplate;
 
 /**
@@ -229,6 +195,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected final Lock writeLock = lock.writeLock();
 
     protected final ConfigurationService configurationService;
+    protected final PublishService publishService;
+    protected final ServicesConfig servicesConfig;
 
     /**
      * The custom HTTP headers to sent with all requests
@@ -263,7 +231,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     /**
      * List of plugin types that can be installed
      */
-    protected List<String> installableTypes = Collections.emptyList();
+    protected List<String> installableTypes = emptyList();
 
     /**
      * Folder mappings to use during plugin installation
@@ -311,16 +279,15 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    protected final DeploymentService deploymentService;
-
     protected final DependencyService dependencyService;
 
     protected final ContentTypeService contentTypeService;
 
-    @ConstructorProperties({ "instanceService", "siteService", "sitesServiceInternal", "contentService",
+    @ConstructorProperties({"instanceService", "siteService", "sitesServiceInternal", "contentService",
             "studioConfiguration", "pluginDescriptorReader", "gitRepositoryHelper",
             "pluginDescriptorFilename", "templateCode", "templateComment", "retryingRepositoryOperationFacade",
-            "deploymentService", "dependencyService", "contentTypeService", "configurationService"})
+            "dependencyService", "contentTypeService", "configurationService",
+            "servicesConfig", "publishService"})
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesService sitesServiceInternal, ContentService contentService,
                                           StudioConfiguration studioConfiguration,
@@ -328,9 +295,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                                           GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename,
                                           String templateCode, String templateComment,
                                           RetryingRepositoryOperationFacade retryingRepositoryOperationFacade,
-                                          DeploymentService deploymentService, DependencyService dependencyService,
+                                          DependencyService dependencyService,
                                           ContentTypeService contentTypeService,
-                                          ConfigurationService configurationService) {
+                                          ConfigurationService configurationService,
+                                          ServicesConfig servicesConfig, PublishService publishService) {
         this.instanceService = instanceService;
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
@@ -342,10 +310,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         this.templateCode = templateCode;
         this.templateComment = templateComment;
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
-        this.deploymentService = deploymentService;
         this.dependencyService = dependencyService;
         this.contentTypeService = contentTypeService;
         this.configurationService = configurationService;
+        this.servicesConfig = servicesConfig;
+        this.publishService = publishService;
     }
 
     public void setUrl(final String url) {
@@ -514,7 +483,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     @Override
     public List<PluginRecord> getInstalledPlugins(final String siteId) throws MarketplaceException {
         if (!contentService.contentExists(siteId, pluginRegistryPath)) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return getPluginRegistry(siteId).getPlugins();
     }
@@ -616,8 +585,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 }
             }
         } catch (IOException | TransformerException | ServiceLayerException | DocumentException | GitAPIException |
-                PluginException | org.apache.commons.configuration2.ex.ConfigurationException |
-                UserNotFoundException e) {
+                 PluginException | org.apache.commons.configuration2.ex.ConfigurationException | UserNotFoundException |
+                 AuthenticationException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -864,7 +833,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             // commit all changes
             commitChanges(siteId, changedFiles, true, true, "Remove plugin " + pluginId);
         } catch (IOException | GitAPIException | CommitNotFoundException | EnvironmentNotFoundException |
-                SiteNotFoundException | TransformerException | UserNotFoundException e) {
+                 SiteNotFoundException | TransformerException | UserNotFoundException | AuthenticationException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -983,7 +952,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected void commitChanges(String siteId, List<String> changedFiles, boolean update, boolean publish,
                                  String message) throws IOException, GitAPIException, ServiceLayerException,
-            UserNotFoundException {
+            UserNotFoundException, AuthenticationException {
         logger.debug("Commit the changes in site '{}' with the message '{}'", siteId, message);
         Path siteDir = getRepoDirectory(siteId);
         try (Git git = Git.open(siteDir.toFile())) {
@@ -997,8 +966,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
             if (publish) {
                 // publish changes
+                String liveTarget = servicesConfig.getLiveEnvironment(siteId);
                 logger.debug("Publish the changes in site '{}' with the message '{}'", siteId, message);
-                deploymentService.publishCommits(siteId, "live", List.of(commit.getName()), message);
+                publishService.publish(siteId, liveTarget, emptyList(),
+                        List.of(commit.getName()), null, message.substring(0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message, false);
             }
         }
     }

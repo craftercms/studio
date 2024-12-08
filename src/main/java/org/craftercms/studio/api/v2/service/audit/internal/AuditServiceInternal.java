@@ -95,12 +95,6 @@ public interface AuditServiceInternal {
                                                 int limit, String contentType, boolean hideLiveItems);
 
     /**
-     * Delete audit log for site
-     * @param siteId site id
-     */
-    void deleteAuditLogForSite(long siteId);
-
-    /**
      * Get commit authors from a list of commit ids
      * This will look in the audit data and retrieve a CommitAuthor when:
      * <ul>

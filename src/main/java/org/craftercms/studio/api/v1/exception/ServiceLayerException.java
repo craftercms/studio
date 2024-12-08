@@ -32,7 +32,7 @@ public class ServiceLayerException extends Exception {
 		super(message);
 	}
 	
-	public ServiceLayerException(String message, Exception e) {
+	public ServiceLayerException(String message, Throwable e) {
 		super(message, e);
 	}
 

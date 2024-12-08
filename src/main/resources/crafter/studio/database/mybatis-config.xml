@@ -20,6 +20,7 @@
     <settings>
         <setting name="cacheEnabled" value="false"/>
         <setting name="jdbcTypeForNull" value="VARCHAR"/>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
 
     <typeAliases>

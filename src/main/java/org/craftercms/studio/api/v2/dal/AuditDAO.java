@@ -40,12 +40,6 @@ public interface AuditDAO {
     List<AuditLog> selectUserFeedEntries(Map params);
 
     /**
-     * Delete audit log for site
-     * @param siteId site id
-     */
-    void deleteAuditLogForSite(@Param(SITE_ID) long siteId);
-
-    /**
      * Gets commit authors from a list of commit ids.
      * This will retrieve a {@link CommitAuthor} object from the database when
      * the commit was created by Studio, meaning the following conditions are met:

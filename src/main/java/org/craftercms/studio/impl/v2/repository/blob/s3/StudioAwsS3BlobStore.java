@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.repository.blob.s3;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -28,11 +27,13 @@ import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
 import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
-import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.exception.publish.PublishException;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
-import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
+import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -44,11 +45,18 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
 
 /**
@@ -57,7 +65,8 @@ import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
  * @author joseross
  * @since 3.1.6
  */
-public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobStoreAdapter {
+public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobStore {
+
 
     private static final Logger logger = LoggerFactory.getLogger(StudioAwsS3BlobStore.class);
 
@@ -68,6 +77,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     protected boolean readOnly;
 
     private final ThreadPoolTaskExecutor taskExecutor;
+
+
 
     @ConstructorProperties({"servicesConfig", "taskExecutor"})
     public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, final ThreadPoolTaskExecutor taskExecutor) {
@@ -219,7 +230,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) throws ServiceLayerException {
+    public void deleteContent(String site, String path) throws ServiceLayerException {
         checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Delete content at site '{}' path '{}'", site, getFullKey(previewMapping, path));
@@ -265,7 +276,6 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                         site, getFullKey(previewMapping, path)), e);
             }
         }
-        return OK;
     }
 
     @Override
@@ -351,148 +361,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException {
-        checkReadWriteMode();
-        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug("Copy content in site '{}' from '{}' to '{}'",
-                site, getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
-        if (isFolder(fromPath)) {
-            ListObjectsV2Request request = ListObjectsV2Request.builder()
-                    .bucket(previewMapping.target)
-                    .prefix(appendIfMissing(getKey(previewMapping, fromPath), "/"))
-                    .build();
-            try {
-                ListObjectsV2Iterable result = getClient().listObjectsV2Paginator(request);
-
-                for (ListObjectsV2Response page : result) {
-                    String[] keys = result.contents().stream()
-                            .map(S3Object::key)
-                            .toList()
-                            .toArray(new String[]{});
-                    for (String key : keys) {
-                        String filePath =
-                                Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
-                        logger.trace("Copy content in site '{}' from '{}' to '{}'",
-                                site,
-                                getFullKey(previewMapping, key),
-                                getFullKey(previewMapping, toPath + "/" + filePath));
-                        try {
-                            copyFile(previewMapping.target, key, previewMapping.target,
-                                    getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, this::getClient);
-                        } catch (Exception e) {
-                            logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
-                                    site,
-                                    getFullKey(previewMapping, key),
-                                    getFullKey(previewMapping, toPath + "/" + filePath),
-                                    e);
-                            throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' to '%s'",
-                                    site,
-                                    getFullKey(previewMapping, key),
-                                    getFullKey(previewMapping, toPath + "/" + filePath)), e);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                logger.error("Failed to list content in site '{}' at '{}'",
-                        site, getFullKey(previewMapping, fromPath), e);
-                throw new BlobStoreException(format("Failed to list content in site '%s' at '%s'",
-                        site, getFullKey(previewMapping, fromPath)), e);
-            }
-        } else {
-            try {
-                copyFile(previewMapping.target, getKey(previewMapping, fromPath), previewMapping.target,
-                        getKey(previewMapping, toPath), COPY_PART_SIZE, this::getClient);
-            } catch (Exception e) {
-                logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
-                        site,
-                        getFullKey(previewMapping, fromPath),
-                        getFullKey(previewMapping, toPath),
-                        e);
-                throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' to '%s'",
-                        site,
-                        getFullKey(previewMapping, fromPath),
-                        getFullKey(previewMapping, toPath)), e);
-            }
-        }
-        return OK;
-    }
-
-    @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) {
-        // If store is in readonly mode, nothing to do here.
-        if (readOnly) {
-            logger.warn("Publish request ignored in blobstore '{}' because it is readonly", id);
-            return;
-        }
-
-        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        Mapping envMapping = getMapping(environment);
-        logger.debug("Publish content in site '{}' from bucket '{}' to bucket '{}'",
-                site, previewMapping.target, envMapping.target);
-        for (DeploymentItemTO item : deploymentItems) {
-            if (item.isDelete()) {
-                logger.trace("Delete content at site '{}' path '{}'", site, getFullKey(envMapping, item.getPath()));
-                try {
-                    deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getPath()));
-                    if (isNotEmpty(item.getOldPath())) {
-                        logger.trace("Delete content at site '{}' path '{}'",
-                                site, getFullKey(envMapping, item.getOldPath()));
-                        deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getOldPath()));
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to delete content at site '{}' path '{}'",
-                            site, getFullKey(previewMapping, item.getPath()), e);
-                    throw new BlobStoreException(format("Failed to delete content at site '%s' path '%s'",
-                            site, getFullKey(previewMapping, item.getPath())), e);
-                }
-            } else if (item.isMove()) {
-                logger.trace("Move content in site '{}' from '{}' to '{}'",
-                        site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
-                try {
-                    copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
-                            getKey(envMapping, item.getPath()), COPY_PART_SIZE, this::getClient);
-                    if (!StringUtils.equals(item.getOldPath(), item.getPath())) {
-                        deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getOldPath()));
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to move content in site '{}' from '{}' to '{}'",
-                            site,
-                            getFullKey(envMapping, item.getOldPath()),
-                            getFullKey(envMapping, item.getPath()),
-                            e);
-                    throw new BlobStoreException(format("Failed to move content in site '%s' from '%s' to '%s'",
-                            site,
-                            getFullKey(envMapping, item.getOldPath()),
-                            getFullKey(envMapping, item.getPath())), e);
-                }
-            } else {
-                logger.trace("Copy content in site '{}' from '{}' to '{}'",
-                        site, getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()));
-                try {
-                    copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
-                            getKey(envMapping, item.getPath()), COPY_PART_SIZE, this::getClient);
-                } catch (Exception e) {
-                    logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
-                            site,
-                            getFullKey(previewMapping, item.getPath()),
-                            getFullKey(envMapping, item.getPath()),
-                            e);
-                    throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' to '%s'",
-                            site,
-                            getFullKey(previewMapping, item.getPath()),
-                            getFullKey(envMapping, item.getPath())), e);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void initialPublish(String siteId) {
+    public String initialPublish(final String siteId) {
         // If store is in readonly mode, nothing to do here.
         if (readOnly) {
             logger.warn("Initial publish request ignored in blobstore '{}' because it is readonly", id);
-            return;
+            return null;
         }
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
@@ -510,65 +383,69 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
                     MIN_PART_SIZE, this::getClient);
         }
+        return null; // TODO: refactor these interfaces so we don't need to return anything
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
-        // If store is in readonly mode, nothing to do here.
+    public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
+                                                                 final String publishingTarget,
+                                                                 final Collection<T> blobStoreItems) throws ServiceLayerException {
+        final String siteId = publishPackage.getSite().getSiteId();
+        // If readonly, fail everything so shadow files are not committed
         if (readOnly) {
-            logger.warn("'Complete publish all' request ignored in blobstore '{}' because it is readonly", id);
-            return;
+            logger.warn("Publish request ignored in blobstore '{}' for site '{}', package '{}' because it is readonly",
+                    id, siteId, publishPackage.getId());
+            return new PublishChangeSet<>(blobStoreItems, emptyList());
         }
+
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 
-        logger.info("Perform Publish All for site '{}' to target '{}'", siteId, targetMapping);
+        logger.info("Perform Publish for site '{}' to target '{}'", siteId, targetMapping);
 
-        for (String updatedPath : changes.getUpdatedPaths()) {
-            try {
-                // TODO: check if readonly? Or just ignore?
-                copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
-                        getKey(targetMapping, updatedPath), COPY_PART_SIZE, this::getClient);
-            } catch (Exception e) {
-                logger.error("Failed to copy '{}' from bucket '{}' to bucket '{}' for site '{}': {}", updatedPath, previewMapping.target,
-                        targetMapping.target, siteId, e.getMessage());
-                changes.getFailedPaths().add(updatedPath);
-            }
-        }
-
-        for (List<String> batch : ListUtils.partition(new LinkedList<>(changes.getDeletedPaths()), DELETE_BATCH_SIZE)) {
-            String[] keys = batch.stream().map(path -> getKey(targetMapping, path)).toArray(String[]::new);
+        Map<PublishItem.Action, List<T>> itemsByAction = blobStoreItems.stream().collect(groupingBy(PublishItemTO::getAction, Collectors.toList()));
+        Collection<T> failedItems = new ArrayList<>();
+        for (List<? extends PublishItemTO> batch : ListUtils.partition(new LinkedList<>(itemsByAction.computeIfAbsent(DELETE, k -> emptyList())), DELETE_BATCH_SIZE)) {
+            String[] keys = batch.stream().map(PublishItemTO::getPath).map(path -> getKey(targetMapping, path)).toArray(String[]::new);
             deleteS3Objects(getClient(), targetMapping.target, keys);
+            batch.forEach(PublishItemTO::setCompleted);
         }
 
-        logger.info("Completed Publish All for site '{}' to target '{}'", siteId, targetMapping);
+        List<AwsUtils.CopyPathRequest> updatedPaths = itemsByAction.computeIfAbsent(ADD, k -> emptyList()).stream()
+                .map(i-> getRequest(i, failedItems))
+                .toList();
+
+        if (isNotEmpty(updatedPaths)) {
+            AwsUtils.copyObjectsResultAware(getAsyncClient(), taskExecutor.getThreadPoolExecutor(),
+                    previewMapping.target, previewMapping.prefix,
+                    targetMapping.target, targetMapping.prefix, updatedPaths);
+        }
+        logger.info("Completed Publish for site '{}', package '{}' to target '{}'", siteId, publishPackage.getId(), publishingTarget);
+        return new PublishChangeSet<>(subtract(blobStoreItems, failedItems), failedItems);
     }
 
-    @Override
-    public void cancelPublishAll(String siteId, String publishingTarget) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
+    private <T extends PublishItemTO> AwsUtils.CopyPathRequest getRequest(final T publishItemTO, final Collection<T> failedItems) {
+        return new AwsUtils.CopyPathRequest() {
+            @Override
+            public String getPath() {
+                return publishItemTO.getPath();
+            }
 
-    @Override
-    public void duplicateSite(String sourceSiteId, String siteId, String sourceSandboxBranch, String sandboxBranch) {
-        // TODO: segregate these interfaces properly
-        throw new UnsupportedOperationException();
+            @Override
+            public void fail(Throwable throwable) {
+                try {
+                    publishItemTO.setFailed(PublishUtils.translateItemException(throwable));
+                    failedItems.add(publishItemTO);
+                } catch (PublishException e) {
+                    throw new BlobStoreException(format("Unable to continue publish package: %s", e.getMessage()), e);
+                }
+            }
+
+            @Override
+            public void complete() {
+                publishItemTO.setCompleted();
+            }
+        };
     }
 
     @Override
