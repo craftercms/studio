@@ -21,7 +21,7 @@ plugin:
     GraphQL-based and headless blueprint for a storefront
   website:
     name: GraphQL Headless Store Blueprint
-    url: https://craftercms.org
+    url: https://craftercms.com
   media:
     screenshots:
       - title: Store Items
