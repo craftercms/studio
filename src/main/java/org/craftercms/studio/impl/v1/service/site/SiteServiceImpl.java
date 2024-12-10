@@ -672,7 +672,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
             logger.error("Failed to create site '{}'. Unsupported search engine '{}', please update your " +
                 "site to use Elasticsearch. For more information see " +
-                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
+                "https://craftercms.com/docs/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
                 siteId, SearchEngines.CRAFTER_SEARCH);
 
             // rollback ...
@@ -681,7 +681,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
             throw new SiteCreationException("Unsupported search engine CrafterSearch, please update your site to use " +
                 "Elasticsearch. For more information see " +
-                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
+                "https://craftercms.com/docs/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
         }
 
         if (success) {
