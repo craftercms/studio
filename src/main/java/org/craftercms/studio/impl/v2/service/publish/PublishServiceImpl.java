@@ -76,7 +76,7 @@ public class PublishServiceImpl implements PublishService {
     public PublishPackageDetails getPublishPackageDetails(@SiteId String siteId,
                                                           long packageId) throws SiteNotFoundException, PublishPackageNotFoundException {
         PublishPackageDetails packageDetails = publishServiceInternal.getPublishPackageDetails(siteId, packageId);
-        if (packageDetails == null || isEmpty(packageDetails.getItems())) {
+        if (packageDetails == null) {
             throw new PublishPackageNotFoundException(siteId, packageId);
         }
 
