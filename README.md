@@ -1,7 +1,7 @@
 Crafter Studio
 ==============
 
-Crafter Studio is the authoring environment for CrafterCMS. For more information, please read the [docs.](http://docs.craftercms.org)
+Crafter Studio is the authoring environment for CrafterCMS. For more information, please read the [docs.](http://craftercms.com/docs)
 
 # Community
 ## Contributors
