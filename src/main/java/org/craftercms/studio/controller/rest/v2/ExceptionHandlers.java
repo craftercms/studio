@@ -34,6 +34,7 @@ import org.craftercms.core.util.ExceptionUtils;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
@@ -53,7 +54,6 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
 import org.owasp.esapi.ESAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -588,14 +588,13 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(ContentInPublishQueueException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResultList<PublishPackageResponse> handleException(HttpServletRequest request, ContentInPublishQueueException e) {
+    public ResultList<PublishPackage> handleException(HttpServletRequest request, ContentInPublishQueueException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_IN_PUBLISH_QUEUE);
         response.setMessage(e.getMessage());
         handleExceptionInternal(request, e, response);
-        ResultList<PublishPackageResponse> result = new ResultList<>();
+        ResultList<PublishPackage> result = new ResultList<>();
         result.setResponse(response);
-        result.setEntities(RESULT_KEY_PUBLISH_PACKAGES,
-                e.getPublishPackages().stream().map(PublishPackageResponse::new).toList());
+        result.setEntities(RESULT_KEY_PUBLISH_PACKAGES, e.getPublishPackages());
 
         return result;
     }

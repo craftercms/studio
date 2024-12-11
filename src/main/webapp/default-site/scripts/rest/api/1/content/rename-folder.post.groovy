@@ -18,7 +18,6 @@
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.core.util.ExceptionUtils
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException
-import org.craftercms.studio.model.rest.publish.PublishPackageResponse
 import scripts.api.ContentServices
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException
 import org.craftercms.commons.validation.ValidationException
@@ -71,7 +70,6 @@ try {
         response.setStatus(409)
         result.message = inQueueException.message
         result.publishPackages = inQueueException.getPublishPackages()
-                .collect { new PublishPackageResponse(it) }
     }
 }
 return result
