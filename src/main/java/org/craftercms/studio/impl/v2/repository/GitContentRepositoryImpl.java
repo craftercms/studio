@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -754,7 +753,11 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     }
 
     @Override
-    public List<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
+    public SequencedCollection<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
+        if (isEmpty(commitIds)) {
+            return emptyList();
+        }
+
         String repoLockKey = helper.getSandboxRepoLockKey(siteId);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(repoLockKey);
