@@ -179,11 +179,11 @@ public class WorkflowController {
         return result;
     }
 
-    @PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + CANCEL)
-    public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+    @PostMapping(PATH_PARAM_SITE + CANCEL)
+    public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
                          @Valid @RequestBody ReviewPackageRequestBody cancelPackageRequest)
             throws ServiceLayerException, AuthenticationException {
-        workflowService.cancelPackage(site, packageId, cancelPackageRequest.getComment());
+        workflowService.cancelPackages(site, cancelPackageRequest.getPackageIds(), cancelPackageRequest.getComment());
         Result result = new Result();
         result.setResponse(OK);
         return result;

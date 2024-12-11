@@ -46,6 +46,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import static java.time.Instant.now;
@@ -111,12 +112,14 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
     }
 
     @Override
-    public void cancelPackage(final String siteId, final long packageId, String comment)
+    public void cancelPackages(final String siteId, Collection<Long> packageIds, String comment)
             throws ServiceLayerException, AuthenticationException {
-        doReviewPackage(siteId, packageId, p -> {
-            p.setPackageState(CANCELLED.value);
-            p.setReviewerComment(comment);
-        }, OPERATION_CANCEL_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
+        for (Long packageId : packageIds) {
+            doReviewPackage(siteId, packageId, p -> {
+                p.setPackageState(CANCELLED.value);
+                p.setReviewerComment(comment);
+            }, OPERATION_CANCEL_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
+        }
     }
 
     @Override
