@@ -312,7 +312,7 @@
             INNER JOIN site s ON pp.site_id = s.id
         WHERE s.site_id = #{siteId}
         <if test="packageState != null">
-            AND (pp.package_state &amp; #{packageState}) = #{packageState}
+            AND (pp.package_state &amp; #{packageState}) > 0
         </if>
         <if test="target != null">
             AND pp.target = #{target}
