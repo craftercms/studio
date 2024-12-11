@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.model.rest.dashboard;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
@@ -34,7 +35,7 @@ public class Activity {
     protected Item item;
 
     @JsonProperty("package")
-    protected Package publishPackage;
+    protected PublishPackage publishPackage;
 
     public long getId() {
         return id;
@@ -76,27 +77,12 @@ public class Activity {
         this.item = item;
     }
 
-    public Package getPublishPackage() {
+    public PublishPackage getPublishPackage() {
         return publishPackage;
     }
 
-    public void setPublishPackage(Package publishPackage) {
+    public void setPublishPackage(PublishPackage publishPackage) {
         this.publishPackage = publishPackage;
-    }
-
-    //TODO: Populate with metadata once Publish Packages are fully implemented
-    public static class Package {
-
-        protected String id;
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
     }
 
     public static class Item {

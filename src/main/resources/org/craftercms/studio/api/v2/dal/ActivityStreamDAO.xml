@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -26,8 +26,8 @@
         <association property="person" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap"/>
         <association property="item" columnPrefix="item_" notNullColumn="id" autoMapping="true"
                      javaType="org.craftercms.studio.model.rest.dashboard.Activity$Item"/>
-        <association property="publishPackage" columnPrefix="package_" notNullColumn="id" autoMapping="true"
-                     javaType="org.craftercms.studio.model.rest.dashboard.Activity$Package"/>
+        <association property="publishPackage" column="{packageId=package_id,siteId=site_id}"
+                     select="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getById"/>
     </resultMap>
 
     <insert id="insertActivity">
@@ -73,10 +73,9 @@
         <include refid="activitiesForUsersFilters"/>
     </select>
 
-    <!-- TODO: Fix the join once we have a real publish package table -->
     <select id="getActivitiesForUsers" resultMap="ActivityMap" >
         SELECT
-           a.id AS asid, a.action, a.action_timestamp, a.item_id, a.package_id, a.item_path as item_recordedPath,
+           a.id AS asid, a.site_id, a.action, a.action_timestamp, a.item_id, a.package_id, a.item_path as item_recordedPath,
            a.item_label as item_recordedLabel,
            u.username, u.first_name, u.last_name, u.avatar,
            i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl,
