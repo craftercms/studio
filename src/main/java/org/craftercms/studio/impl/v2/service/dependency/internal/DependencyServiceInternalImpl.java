@@ -44,6 +44,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
@@ -84,6 +86,9 @@ public class DependencyServiceInternalImpl implements DependencyService {
     @LogExecutionTime
     public Collection<String> getPublishingSoftDependencies(final String site, final Set<String> paths) {
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
+        if (isEmpty(paths)) {
+            return emptyList();
+        }
         Set<String> result = new HashSet<>();
         List<Map<String, String>> deps = dependencyDao.getPublishingSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
@@ -109,6 +114,9 @@ public class DependencyServiceInternalImpl implements DependencyService {
     @Override
     @RequireSiteExists
     public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
+        if (isEmpty(paths)) {
+            return emptyList();
+        }
         boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site), publishingTarget);
         return dependencyDao.getHardDependenciesForList(site, publishingTarget, paths,
                 getItemSpecificDependenciesPatterns(), isLiveTarget);

@@ -60,6 +60,7 @@ import java.util.function.Predicate;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
@@ -158,7 +159,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                                                                   final Collection<String> commitIds) throws ServiceLayerException, IOException {
         Site site = siteService.getSite(siteId);
         Set<String> corePackagePaths = new HashSet<>();
-        corePackagePaths.addAll(publishRequestPaths.stream()
+        corePackagePaths.addAll(emptyIfNull(publishRequestPaths).stream()
                 .collect(teeing(
                         flatMapping(requestPath -> expandPublishRequestPath(site, requestPath).stream(), toSet()),
                         flatMapping(requestPath -> (requestPath.includeSoftDeps() ?
@@ -345,7 +346,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             return;
         }
         // Validate and sort commits
-        List<String> sortedCommits = contentRepository.validatePublishCommits(site.getSiteId(), commitIds);
+        SequencedCollection<String> sortedCommits = contentRepository.validatePublishCommits(site.getSiteId(), commitIds);
         publishItemsByPath.putAll(
                 sortedCommits.stream()
                         .map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))

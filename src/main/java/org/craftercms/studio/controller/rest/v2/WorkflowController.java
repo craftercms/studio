@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -34,7 +35,6 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.model.rest.publish.PublishPackageResponse;
 import org.craftercms.studio.model.rest.workflow.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -146,13 +146,11 @@ public class WorkflowController {
     }
 
     @GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
-    public ResultList<PublishPackageResponse> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
-                                                                          @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-                                                                          @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
-        Collection<PublishPackageResponse> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren))
-                .stream()
-                .map(PublishPackageResponse::new).toList();
-        ResultList<PublishPackageResponse> result = new ResultList<>();
+    public ResultList<PublishPackage> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
+                                                                  @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+                                                                  @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
+        Collection<PublishPackage> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren));
+        ResultList<PublishPackage> result = new ResultList<>();
         result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);
         result.setResponse(OK);
         return result;

@@ -31,10 +31,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
@@ -234,7 +231,7 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      * @throws IOException           if there is any error reading the git log
      * @throws ServiceLayerException if there is any commit ID that is not valid for publishing
      */
-    List<String> validatePublishCommits(String siteId, Collection<String> commitIds) throws IOException, ServiceLayerException;
+    SequencedCollection<String> validatePublishCommits(String siteId, Collection<String> commitIds) throws IOException, ServiceLayerException;
 
     /**
      * Update the target branch ref to point to the given commit id

@@ -24,7 +24,6 @@ import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import org.craftercms.studio.api.v2.exception.content.ContentExistException
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException
-import org.craftercms.studio.model.rest.publish.PublishPackageResponse
 import scripts.api.ContentServices
 
 def result = [:]
@@ -173,7 +172,6 @@ if (JakartaServletFileUpload.isMultipartContent(request)) {
         response.setStatus(409)
         result.message = inQueueException.message
         result.publishPackages = inQueueException.getPublishPackages()
-                .collect { new PublishPackageResponse(it) }
     }
 }
 return result
