@@ -134,17 +134,6 @@ public class WorkflowController {
         return result;
     }
 
-    @Deprecated
-    @GetMapping(value = AFFECTED_PATHS, produces = APPLICATION_JSON_VALUE)
-    public ResultList<SandboxItem> getWorkflowAffectedPaths(@ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
-                                                            @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path) {
-        // TODO: remove this once the UI switches to the new endpoint getWorkflowAffectedPackages
-        ResultList<SandboxItem> result = new ResultList<>();
-        result.setEntities(RESULT_KEY_ITEMS, emptyList());
-        result.setResponse(OK);
-        return result;
-    }
-
     @GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
     public ResultList<PublishPackage> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
                                                                   @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
