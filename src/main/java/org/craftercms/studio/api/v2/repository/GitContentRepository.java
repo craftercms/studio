@@ -195,7 +195,7 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      * @throws IOException if there is any error reading the git log or getting diffs between commits
      * @throws GitAPIException if there is any error while executing git commands
      */
-    List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException;
+    List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException, ServiceLayerException;
 
     /**
      * Get the commits between two commit ids.

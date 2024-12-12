@@ -1315,6 +1315,10 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                 // Set this after the diff entry is retrieved, so that the old path is set correctly
                 version.setOldPath(prependIfMissing(currentPath, FILE_SEPARATOR));
                 versionHistory.add(version);
+                if (currentPath == null) {
+                    // We have reached the latest creation of a file in this path
+                    break;
+                }
             }
         } finally {
             generalLockService.unlock(repoLockKey);
