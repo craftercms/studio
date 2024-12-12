@@ -392,7 +392,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public List<ItemVersion> getContentItemHistory(String site, String path) {
+    public List<ItemVersion> getContentItemHistory(String site, String path) throws GitAPIException, IOException, ServiceLayerException {
         logger.debug("Get version history for site '{}' path '{}'", site, path);
         try {
             if (pointersExist(site, path)) {
@@ -404,7 +404,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
             return localRepositoryV2.getContentItemHistory(site, path);
         } catch (Exception e) {
             logger.error("Failed to get version history for site '{}' path '{}'", site, path, e);
-            return null;
+            throw e;
         }
     }
 
