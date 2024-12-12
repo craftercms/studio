@@ -38,18 +38,20 @@
                      select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
     </resultMap>
 
-    <resultMap id="PublishItemMapWithMetadata" type="org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata" autoMapping="true">
-        <association property="itemTargets" column="item_id"
-                     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
-        <association property="itemMetadata" column="item_id"
-                     select="publishItemMetadata"/>
+    <resultMap id="PublishItemMetadataMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata">
+        <constructor>
+            <arg column="label" javaType="java.lang.String"/>
+            <arg column="system_type" javaType="java.lang.String"/>
+            <arg column="mime_type" javaType="java.lang.String"/>
+        </constructor>
     </resultMap>
 
-    <select id="publishItemMetadata" resultType="org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata">
-        SELECT i.label, i.system_type, i.mime_type
-        FROM item i
-        WHERE i.id = #{itemId}
-    </select>
+    <resultMap id="PublishItemMapWithMetadata" type="org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata"
+               autoMapping="true">
+        <association property="itemTargets" column="item_id"
+                     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
+        <association property="itemMetadata" columnPrefix="meta_" resultMap="PublishItemMetadataMap"/>
+    </resultMap>
 
     <insert id="insertPackage"
             useGeneratedKeys="true"
@@ -227,23 +229,48 @@
     </update>
 
     <select id="getPublishItems" resultMap="PublishItemMap">
+        <bind name="includeMetadata" value="false" />
         <include refid="getPublishItemsQuery"/>
+        <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
+    </select>
+
+    <select id="getMatchingPublishItemCount">
+        SELECT COUNT(1)
+        FROM (
+            <bind name="includeMetadata" value="true" />
+            <include refid="getPublishItemsQuery"/>
+        ) AS tbl
     </select>
 
     <select id="getPublishItemsWithMetadata" resultMap="PublishItemMapWithMetadata">
+        <bind name="includeMetadata" value="true" />
         <include refid="getPublishItemsQuery"/>
+        <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
     </select>
 
     <sql id="getPublishItemsQuery">
         SELECT pi.*, ipi.item_id
+            <if test="includeMetadata">, i.label as meta_label, i.system_type as meta_system_type, i.mime_type as meta_mime_type</if>
         FROM publish_item pi
             INNER JOIN publish_package pp ON pi.package_id = pp.id
             INNER JOIN site s ON pp.site_id = s.id
             LEFT OUTER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+            <if test="includeMetadata">
+                INNER JOIN item i ON ipi.item_id = i.id
+            </if>
         WHERE pi.package_id = #{packageId}
         AND s.site_id = #{siteId}
-        <if test="offset != null and limit != null">
-            LIMIT #{offset},#{limit}
+
+        <if test="includeMetadata">
+            <if test="path != null">
+                AND i.path RLIKE #{path}
+            </if>
+            <if test="systemTypes != null">
+                AND i.system_type IN <foreach collection="systemTypes" item="systemType" open="(" separator="," close=")">#{systemType}</foreach>
+            </if>
+            <if test="label != null">
+                AND i.label RLIKE #{label}
+            </if>
         </if>
     </sql>
 
@@ -328,9 +355,7 @@
     <select id="getItemPackages" resultMap="PublishPackageMap">
         <include refid="getAllPackagesForFilters" />
         <include refid="packagePathsFilter" />
-        <if test="offset != null and limit != null">
-            LIMIT #{offset},#{limit}
-        </if>
+        <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
     </select>
 
     <select id="getItemPackagesCount">
@@ -377,8 +402,6 @@
             AND pp.schedule IS <if test="isScheduled">NOT</if> NULL
         </if>
         <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.orderBySortFields"/>
-        <if test="offset != null and limit != null">
-            LIMIT #{offset},#{limit}
-        </if>
+        <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
     </select>
 </mapper>

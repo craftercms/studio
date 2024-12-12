@@ -343,27 +343,34 @@ public interface PublishDAO {
                                             @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
     /**
-     * Get the publish items (with metadata) for the given package
-     *
-     * @param siteId    the site id
-     * @param packageId the package id
-     * @return PublishItemWithMetadata records for the package
-     */
-    default Collection<PublishItemWithMetadata> getPublishItemsWithMetadata(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId) {
-        return getPublishItemsWithMetadata(siteId, packageId, null, null);
-    }
-
-    /**
      * Get the paginated list of publish items (with metadata) for the given package
      *
-     * @param siteId    the site id
-     * @param packageId the package id
-     * @param offset    the offset to start from
-     * @param limit     the max number of items to return
+     * @param siteId      the site id
+     * @param packageId   the package id
+     * @param path        the path to filter by
+     * @param systemTypes the system types to filter by
+     * @param label       the label to filter by
+     * @param offset      the offset to start from
+     * @param limit       the max number of items to return
      * @return PublishItemWithMetadata paginated records for the package
      */
     Collection<PublishItemWithMetadata> getPublishItemsWithMetadata(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+                                                                    @Param(PATH) String path, @Param(SYSTEM_TYPES) Collection<String> systemTypes,
+                                                                    @Param(LABEL) String label,
                                                                     @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
+
+    /**
+     * Get the number of publish items matching the given filters
+     *
+     * @param siteId      the site id
+     * @param packageId   the package id
+     * @param path        the path to filter by
+     * @param systemTypes the system types to filter by
+     * @param label       the label to filter by
+     */
+    int getMatchingPublishItemCount(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+                                   @Param(PATH) String path, @Param(SYSTEM_TYPES) Collection<String> systemTypes,
+                                   @Param(LABEL) String label);
 
     /**
      * Update the state for all publish items in the package

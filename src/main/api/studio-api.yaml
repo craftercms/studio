@@ -6552,7 +6552,7 @@ paths:
           required: false
           schema:
             type: string
-        - name: systemType
+        - name: systemTypes
           in: query
           description: system types to filter package items by
           required: false
@@ -6578,6 +6578,20 @@ paths:
           required: false
           schema:
             type: string
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+              type: integer
+              format: int32
       responses:
         '200':
           description: OK

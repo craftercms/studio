@@ -39,8 +39,10 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_ORDER = "order";
     public static final String REQUEST_PARAM_PATH = "path";
     public static final String REQUEST_PARAM_NAME = "name";
+    public static final String REQUEST_PARAM_INTERNAL_NAME = "internalName";
     public static final String REQUEST_PARAM_PROFILE_ID = "profileId";
     public static final String REQUEST_PARAM_TYPE = "type";
+    public static final String REQUEST_PARAM_SYSTEM_TYPE = "systemType";
     public static final String REQUEST_PARAM_ENVIRONMENT = "environment";
     public static final String REQUEST_PARAM_STATES = "states";
     public static final String REQUEST_PARAM_APPROVAL_STATES = "approvalStates";

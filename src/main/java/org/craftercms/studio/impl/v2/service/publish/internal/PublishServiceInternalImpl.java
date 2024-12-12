@@ -44,7 +44,6 @@ import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,11 +120,15 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
-    public PublishPackageDetails getPublishPackageDetails(String siteId, long packageId)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
-        PublishPackage publishPackage = getPackage(siteId, packageId);
-        Collection<PublishItemWithMetadata> publishItems = publishDao.getPublishItemsWithMetadata(siteId, packageId);
-        return new PublishPackageDetails(publishPackage, publishItems);
+    public Collection<PublishItemWithMetadata> getPublishPackageItems(String siteId, long packageId,
+                                                                      String path, Collection<String> systemTypes, String internalName,
+                                                                      int offset, int limit) {
+        return publishDao.getPublishItemsWithMetadata(siteId, packageId, path, systemTypes, internalName, offset, limit);
+    }
+
+    @Override
+    public int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName) {
+        return publishDao.getMatchingPublishItemCount(siteId, packageId, path, systemType, internalName);
     }
 
     @Override
@@ -692,6 +695,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
         Collection<String> unpublishedPaths = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
                 .filter(path -> !contentRepository.isFolder(site.getSiteId(), path))
                 .toList();
+        if (isEmpty(unpublishedPaths)) {
+            throw new InvalidParametersException("Failed to submit publish package: No items to publish");
+        }
         Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), unpublishedPaths);
         List<PublishItem> publishItems = unpublishedPaths.stream()
                 .map(path -> {
@@ -699,9 +705,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
                     return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
                 })
                 .toList();
-        if (publishItems.isEmpty()) {
-            throw new InvalidParametersException("Failed to submit publish package: No items to publish");
-        }
         return publishItems;
     }
 

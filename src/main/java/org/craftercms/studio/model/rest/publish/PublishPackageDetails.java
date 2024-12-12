@@ -16,30 +16,28 @@
 
 package org.craftercms.studio.model.rest.publish;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.model.rest.PaginatedResultList;
 
 import java.util.Collection;
+
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 
 /**
  * Contains a {@link PublishPackage} general information and also its {@link PublishItemWithMetadata}s
  */
-public class PublishPackageDetails {
+public class PublishPackageDetails extends PaginatedResultList<PublishItemWithMetadata> {
 
-    private final Collection<PublishItemWithMetadata> items;
     private final PublishPackage publishPackage;
 
     public PublishPackageDetails(final PublishPackage publishPackage, final Collection<PublishItemWithMetadata> items) {
         this.publishPackage = publishPackage;
-        this.items = items;
+        setEntities(RESULT_KEY_ITEMS, items);
     }
 
-    public Collection<PublishItemWithMetadata> getItems() {
-        return items;
-    }
-
-    @JsonUnwrapped
+    @JsonProperty("package")
     public PublishPackage getPublishPackage() {
         return publishPackage;
     }
