@@ -378,7 +378,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public List<ItemVersion> getContentItemHistory(String site, String path) {
+    public List<ItemVersion> getContentItemHistory(String site, String path) throws GitAPIException, ServiceLayerException, IOException {
         logger.debug("Get version history for site '{}' path '{}'", site, path);
         try {
             if (pointersExist(site, path)) {
@@ -390,7 +390,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
             return localRepositoryV2.getContentItemHistory(site, path);
         } catch (Exception e) {
             logger.error("Failed to get version history for site '{}' path '{}'", site, path, e);
-            return null;
+            throw e;
         }
     }
 
