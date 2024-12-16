@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API
-  version: '4.2.0.0'
+  version: '4.2.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2443,45 +2443,6 @@ paths:
           $ref: '#/components/responses/api1Unauthorized'
         '404':
           $ref: '#/components/responses/api1NotFound'
-        '500':
-          $ref: '#/components/responses/api1InternalServerError'
-
-  /api/1/services/api/1/security/get-user-permissions.json:
-    get:
-      tags:
-        - security
-      summary: Get user permissions for project/site and space (path).
-      description: No required role
-      operationId: getUserPermissions
-      parameters:
-        - name: site_id
-          in: query
-          description: Project/Site ID to use
-          schema:
-            type: string
-        - name: path
-          in: query
-          description: Path of the content
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  permissions:
-                    type: array
-                    items:
-                      type: string
-                example:
-                  permissions: [
-                    "read"
-                  ]
-        '401':
-          $ref: '#/components/responses/api1Unauthorized'
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
@@ -5652,7 +5613,7 @@ paths:
     get:
       tags:
         - content
-      summary: Check the existent of a content path
+      summary: Check the existence of a content path
       description: 'Required permission "content_read"'
       operationId: contentExists
       parameters:
@@ -6962,7 +6923,7 @@ paths:
     get:
       tags:
         - security
-      summary: Get all existing tokes for the current user
+      summary: Get all existing tokens for the current user
       operationId: getAccessTokens
       description: Required permission "manage_access_token"
       responses:
