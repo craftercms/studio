@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 public interface WorkflowService {
@@ -87,14 +88,14 @@ public interface WorkflowService {
             throws ServiceLayerException, AuthenticationException;
 
     /**
-     * Cancel publish package
+     * Cancel publish packages
      *
-     * @param siteId    site identifier
-     * @param packageId the package identifier
-     * @param comment   the user comment
+     * @param siteId     site identifier
+     * @param packageIds the package identifiers
+     * @param comment    the user comment
      * @throws SiteNotFoundException site not found
      */
-    void cancelPackage(String siteId, long packageId, String comment)
+    void cancelPackages(String siteId, Collection<Long> packageIds, String comment)
             throws ServiceLayerException, AuthenticationException;
 
     /**

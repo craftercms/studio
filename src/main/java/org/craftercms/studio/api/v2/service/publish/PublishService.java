@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
@@ -85,14 +86,32 @@ public interface PublishService {
                                                   int offset, int limit) throws SiteNotFoundException;
 
     /**
-     * Get publish package details
+     * Get publish package items
      *
-     * @param siteId    site identifier
-     * @param packageId package identifier
-     * @return publish package details
-     * @throws SiteNotFoundException site not found
+     * @param siteId       site identifier
+     * @param packageId    package identifier
+     * @param path         regex to filter package items by
+     * @param systemTypes  system types to filter package items by
+     * @param internalName internal name to filter package items by
+     * @param offset       offset for pagination
+     * @param limit        limit for pagination
+     * @return publish package item list
      */
-    PublishPackageDetails getPublishPackageDetails(String siteId, long packageId) throws SiteNotFoundException, PublishPackageNotFoundException;
+    Collection<PublishItemWithMetadata> getPublishPackageItems(String siteId, long packageId,
+                                                               String path, Collection<String> systemTypes, String internalName,
+                                                               int offset, int limit);
+
+    /**
+     * Get publish package number of items matching the given filters
+     *
+     * @param siteId       site identifier
+     * @param packageId    package identifier
+     * @param path         regex to filter package items by
+     * @param systemType   system type to filter package items by
+     * @param internalName internal name to filter package items by
+     * @return publish package item list
+     */
+    int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName);
 
     /**
      * Get available publishing targets for given site

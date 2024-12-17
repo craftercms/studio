@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -47,8 +48,10 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
@@ -75,24 +78,24 @@ public class PublishController {
 
     @GetMapping(PATH_PARAM_SITE + PACKAGES)
     public PaginatedResultList<PublishPackage> getPublishPackages(@ValidSiteId @PathVariable String site,
-                                                                     @EsapiValidatedParam(type = ALPHANUMERIC) @Size(max = 20)
-                                                                     @RequestParam(name = REQUEST_PARAM_TARGET, required = false)
-                                                                     String target,
-                                                                     @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
-                                                                     @RequestParam(name = REQUEST_PARAM_APPROVAL_STATES, required = false)
-                                                                     List<PublishPackage.ApprovalState> approvalStates,
-                                                                     @RequestParam(name = REQUEST_PARAM_SUBMITTER, required = false)
-                                                                     @EsapiValidatedParam(type = USERNAME) String submitter,
-                                                                     @RequestParam(name = REQUEST_PARAM_REVIEWER, required = false)
-                                                                     @EsapiValidatedParam(type = USERNAME) String reviewer,
-                                                                     @RequestParam(name = REQUEST_PARAM_IS_SCHEDULED, required = false)
-                                                                     Boolean isScheduled,
-                                                                     @RequestParam(name = REQUEST_PARAM_SORT, required = false)
-                                                                     List<@SqlSort(columns = PUBLISH_PACKAGES_SORT_FIELDS) SortField> sort,
-                                                                     @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
-                                                                             defaultValue = "0") @PositiveOrZero int offset,
-                                                                     @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
-                                                                             defaultValue = "10") @PositiveOrZero int limit)
+                                                                  @EsapiValidatedParam(type = ALPHANUMERIC) @Size(max = 20)
+                                                                  @RequestParam(name = REQUEST_PARAM_TARGET, required = false)
+                                                                  String target,
+                                                                  @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
+                                                                  @RequestParam(name = REQUEST_PARAM_APPROVAL_STATES, required = false)
+                                                                  List<PublishPackage.ApprovalState> approvalStates,
+                                                                  @RequestParam(name = REQUEST_PARAM_SUBMITTER, required = false)
+                                                                  @EsapiValidatedParam(type = USERNAME) String submitter,
+                                                                  @RequestParam(name = REQUEST_PARAM_REVIEWER, required = false)
+                                                                  @EsapiValidatedParam(type = USERNAME) String reviewer,
+                                                                  @RequestParam(name = REQUEST_PARAM_IS_SCHEDULED, required = false)
+                                                                  Boolean isScheduled,
+                                                                  @RequestParam(name = REQUEST_PARAM_SORT, required = false)
+                                                                  List<@SqlSort(columns = PUBLISH_PACKAGES_SORT_FIELDS) SortField> sort,
+                                                                  @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
+                                                                          defaultValue = "0") @PositiveOrZero int offset,
+                                                                  @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
+                                                                          defaultValue = "10") @PositiveOrZero int limit)
             throws SiteNotFoundException {
         long total = publishService.getPublishPackagesCount(site, target, states, approvalStates, submitter, reviewer, isScheduled);
         Collection<PublishPackage> packages = new ArrayList<>();
@@ -110,13 +113,26 @@ public class PublishController {
     }
 
     @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
-    public ResultOne<PublishPackageDetails> getPublishPackage(@PathVariable @ValidSiteId String site,
-                                                                 @PathVariable @Positive long packageId)
+    public PublishPackageDetails getPublishPackage(@PathVariable @ValidSiteId String site,
+                                                   @PathVariable @Positive long packageId,
+                                                   @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
+                                                   @RequestParam(name = REQUEST_PARAM_SYSTEM_TYPE, required = false) List<String> systemTypes,
+                                                   @RequestParam(name = REQUEST_PARAM_INTERNAL_NAME, required = false) String internalName,
+                                                   @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
+                                                           defaultValue = "0") @PositiveOrZero int offset,
+                                                   @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
+                                                           defaultValue = "10") @PositiveOrZero int limit)
             throws SiteNotFoundException, PublishPackageNotFoundException {
-        PublishPackageDetails publishPackageDetails =
-                publishService.getPublishPackageDetails(site, packageId);
-        ResultOne<PublishPackageDetails> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_PACKAGE, publishPackageDetails);
+        PublishPackage publishPackage = publishService.getPackage(site, packageId);
+        Collection<PublishItemWithMetadata> items = emptyList();
+        int totalItemCount = publishService.getPublishPackageItemCount(site, packageId, path, systemTypes, internalName);
+        if (totalItemCount > 0) {
+            items = publishService.getPublishPackageItems(site, packageId, path, systemTypes, internalName, offset, limit);
+        }
+        PublishPackageDetails result = new PublishPackageDetails(publishPackage, items);
+        result.setTotal(totalItemCount);
+        result.setOffset(offset);
+        result.setLimit(limit);
         result.setResponse(OK);
         return result;
     }

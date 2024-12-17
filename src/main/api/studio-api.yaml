@@ -6552,7 +6552,7 @@ paths:
           required: false
           schema:
             type: string
-        - name: systemType
+        - name: systemTypes
           in: query
           description: system types to filter package items by
           required: false
@@ -6578,6 +6578,20 @@ paths:
           required: false
           schema:
             type: string
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+              type: integer
+              format: int32
       responses:
         '200':
           description: OK
@@ -8258,13 +8272,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/workflow/{site}/package/{package}/cancel:
+  /api/2/workflow/{site}/cancel:
     post:
       tags:
         - workflow
-      summary: Cancel publish package
+      summary: Cancel publish packages
       description: 'Required permission "cancel_publish"'
-      operationId: cancelPublishPackage
+      operationId: cancelPublishPackages
       parameters:
         - name: site
           in: path
@@ -8273,14 +8287,6 @@ paths:
           schema:
             type: string
             example: "site123"
-        - name: package
-          in: path
-          description: package ID
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: "12345"
       requestBody:
         description: parameters for publish package cancellation
         required: true
@@ -8289,6 +8295,12 @@ paths:
             schema:
               type: object
               properties:
+                packageIds:
+                  type: array
+                  description: list of package IDs to cancel
+                  items:
+                      type: integer
+                      format: int64
                 comment:
                   type: string
                   description: Reviewer's comment

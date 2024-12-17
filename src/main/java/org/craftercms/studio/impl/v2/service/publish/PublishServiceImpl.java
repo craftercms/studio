@@ -26,12 +26,12 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.io.IOException;
@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RequireSiteReady
 public class PublishServiceImpl implements PublishService {
@@ -73,14 +72,16 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishPackageDetails getPublishPackageDetails(@SiteId String siteId,
-                                                          long packageId) throws SiteNotFoundException, PublishPackageNotFoundException {
-        PublishPackageDetails packageDetails = publishServiceInternal.getPublishPackageDetails(siteId, packageId);
-        if (packageDetails == null) {
-            throw new PublishPackageNotFoundException(siteId, packageId);
-        }
+    public Collection<PublishItemWithMetadata> getPublishPackageItems(@SiteId String siteId, long packageId,
+                                                                     String path, Collection<String> systemTypes, String internalName,
+                                                                     int offset, int limit) {
+        return publishServiceInternal.getPublishPackageItems(siteId, packageId, path,
+                systemTypes, internalName, offset, limit);
+    }
 
-        return packageDetails;
+    @Override
+    public int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName) {
+        return publishServiceInternal.getPublishPackageItemCount(siteId, packageId, path, systemType, internalName);
     }
 
     @Override

@@ -30,6 +30,7 @@ import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
@@ -98,7 +99,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
-    public void cancelPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
-        workflowServiceInternal.cancelPackage(siteId, packageId, comment);
+    public void cancelPackages(@SiteId String siteId, Collection<Long> packageIds, String comment) throws ServiceLayerException, AuthenticationException {
+        workflowServiceInternal.cancelPackages(siteId, packageIds, comment);
     }
 }
