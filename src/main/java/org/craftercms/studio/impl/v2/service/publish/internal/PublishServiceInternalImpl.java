@@ -59,8 +59,7 @@ import java.util.function.Predicate;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
@@ -386,7 +385,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * - Include children if requested
      */
     private void createPublishItemsFromPaths(final Site site, final Collection<PublishRequestPath> publishRequestPaths,
-                                             final Map<String, PublishItem> publishItemsByPath) {
+                                             final Map<String, PublishItem> publishItemsByPath) throws InvalidParametersException {
         if (isEmpty(publishRequestPaths)) {
             return;
         }
@@ -404,15 +403,17 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths));
         }
 
-        Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);
-        publishItemsByPath.putAll(
-                allPaths.stream()
-                        .filter(path -> !publishItemsByPath.containsKey(path))
-                        .map(path -> {
-                            long itemState = statesByPath.get(path).getState();
-                            return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
-                        })
-                        .collect(toMap(PublishItem::getPath, item -> item)));
+        if (isNotEmpty(allPaths)) {
+            Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);
+            publishItemsByPath.putAll(
+                    allPaths.stream()
+                            .filter(path -> !publishItemsByPath.containsKey(path))
+                            .map(path -> {
+                                long itemState = statesByPath.get(path).getState();
+                                return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
+                            })
+                            .collect(toMap(PublishItem::getPath, item -> item)));
+        }
     }
 
     /**
