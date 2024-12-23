@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -170,7 +169,7 @@ public class WorkflowController {
 
     @PostMapping(PATH_PARAM_SITE + CANCEL)
     public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
-                         @Valid @RequestBody ReviewPackageRequestBody cancelPackageRequest)
+                         @Valid @RequestBody CancelPackageRequestBody cancelPackageRequest)
             throws ServiceLayerException, AuthenticationException {
         workflowService.cancelPackages(site, cancelPackageRequest.getPackageIds(), cancelPackageRequest.getComment());
         Result result = new Result();

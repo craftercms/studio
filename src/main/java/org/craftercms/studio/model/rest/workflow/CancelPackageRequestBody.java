@@ -17,14 +17,19 @@
 package org.craftercms.studio.model.rest.workflow;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+
+import java.util.List;
 
 /**
- * Request body for reviewing a package (reject, approve)
+ * Request body for cancelling
  */
-public class ReviewPackageRequestBody {
+public class CancelPackageRequestBody {
 
     @NotBlank
     private String comment;
+    @NotEmpty
+    private List<Long> packageIds;
 
     public @NotBlank String getComment() {
         return comment;
@@ -34,4 +39,11 @@ public class ReviewPackageRequestBody {
         this.comment = comment;
     }
 
+    public List<Long> getPackageIds() {
+        return packageIds;
+    }
+
+    public void setPackageIds(List<Long> packageIds) {
+        this.packageIds = packageIds;
+    }
 }
