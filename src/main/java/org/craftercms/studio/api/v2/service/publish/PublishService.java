@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 
 import java.io.IOException;
 import java.time.Instant;
