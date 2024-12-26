@@ -6662,6 +6662,82 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/publish/{siteId}/package/{packageId}/recalculate:
+    post:
+      tags:
+        - publishing
+      summary: Recalculate a complete publish package user-requested items
+      description: 'Required permission "content_read"'
+      operationId: recalculatePublishPackage
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: publish request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publishingTarget:
+                  type: string
+                  description: the publishing target (staging or live)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: string
+                          description: the item path
+                          example: "/site/website/article1/index.xml"
+                      deletedItems:
+                        type: array
+                        items:
+                          type: string
+                          description: the deleted item path
+                          example: "/site/website/about/index.xml"
+                      hardDependencies:
+                        type: array
+                        items:
+                          type: string
+                          example: "/templates/web/article.ftl"
+                      softDependencies:
+                        type: array
+                        items:
+                          type: string
+                          example: "/static-assets/images/background.png"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/2/publish/{siteId}/trigger:
     post:
       tags:

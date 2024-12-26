@@ -131,6 +131,14 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @RequirePackageExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public CalculatedPublishPackageResult recalculatePublishPackage(@SiteId String site, @PackageId long packageId, String target)
+            throws ServiceLayerException {
+        return publishServiceInternal.recalculatePublishPackage(site, packageId, target);
+    }
+
+    @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public PublishPackage getReadyPackageForItem(@SiteId final String site, final String path, final boolean includeChildren) {

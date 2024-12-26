@@ -196,6 +196,21 @@ public interface PublishService {
             throws ServiceLayerException, IOException;
 
     /**
+     * Recalculate a publish package
+     * This will retrieve the user-requested items of a previously submitted package and
+     * recalculate the dependencies.
+     *
+     * @param site      site id
+     * @param packageId package id
+     * @param target    the publishing target
+     * @return the recalculated package
+     * @throws SiteNotFoundException           if the site is not found
+     * @throws PublishPackageNotFoundException if the package is not found
+     */
+    CalculatedPublishPackageResult recalculatePublishPackage(String site, long packageId, String target)
+            throws ServiceLayerException;
+
+    /**
      * Get the submitted package containing the given item
      *
      * @param siteId          the site id

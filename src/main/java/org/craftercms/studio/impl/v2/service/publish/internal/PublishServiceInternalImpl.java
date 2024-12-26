@@ -189,6 +189,20 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
+    public CalculatedPublishPackageResult recalculatePublishPackage(String siteId, long packageId, String target)
+            throws ServiceLayerException {
+        Map<Boolean, List<String>> publishPaths = publishDao.getUserRequestedPathMap(siteId, packageId);
+
+        Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
+        Collection<String> deletedPaths = publishPaths.get(true);
+
+        Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths);
+        // Get hard deps of them all
+        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
+        return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
+    }
+
+    @Override
     public PublishPackage getReadyPackageForItem(final String siteId, final String path, final boolean includeChildren) {
         return publishDao.getReadyPackageForItem(siteId, path, includeChildren);
     }
@@ -676,6 +690,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     /**
      * Create a collection of {@link PublishItem} objects for a publish all request.
+     *
      * @param site the site
      * @return the collection of publish items
      */

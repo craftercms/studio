@@ -111,6 +111,7 @@ public final class RequestMappingConstants {
     public static final String PATH_PARAM_PACKAGE = "/{packageId}";
     public static final String ITEMS = "/items";
     public static final String CALCULATE = "/calculate";
+    public static final String RECALCULATE = "/recalculate";
 
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";

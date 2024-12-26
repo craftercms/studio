@@ -243,6 +243,16 @@
         <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
     </select>
 
+    <select id="getUserRequestedPaths">
+        SELECT pi.path as path, pi.action as action
+        FROM publish_item pi
+        INNER JOIN publish_package pp ON pi.package_id = pp.id
+        INNER JOIN site s ON pp.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND pp.id = #{packageId}
+        AND pi.user_requested = 1
+    </select>
+
     <select id="getMatchingPublishItemCount">
         SELECT COUNT(1)
         FROM (

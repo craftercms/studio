@@ -40,10 +40,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
-import org.craftercms.studio.model.rest.publish.CalculatePublishPackageRequest;
-import org.craftercms.studio.model.rest.publish.EnablePublisherRequest;
-import org.craftercms.studio.model.rest.publish.PublishPackageRequest;
+import org.craftercms.studio.model.rest.publish.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -192,6 +189,20 @@ public class PublishController {
             throws ServiceLayerException, IOException {
         CalculatedPublishPackageResult calculatedPackage = publishService.calculatePublishPackage(site,
                 request.getPublishingTarget(), request.getPaths(), request.getCommitIds());
+
+        ResultOne<CalculatedPublishPackageResult> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE, calculatedPackage);
+        return result;
+    }
+
+    @PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + RECALCULATE)
+    public ResultOne<CalculatedPublishPackageResult> recalculate(@PathVariable @NotEmpty @ValidSiteId String site,
+                                                                 @PathVariable @Positive long packageId,
+                                                                 @RequestBody RecalculatePublishPackageRequest request)
+            throws ServiceLayerException, IOException {
+        CalculatedPublishPackageResult calculatedPackage = publishService.recalculatePublishPackage(site,
+                packageId, request.getPublishingTarget());
 
         ResultOne<CalculatedPublishPackageResult> result = new ResultOne<>();
         result.setResponse(OK);

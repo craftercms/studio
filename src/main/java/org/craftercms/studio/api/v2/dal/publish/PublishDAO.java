@@ -25,13 +25,11 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
@@ -171,7 +169,7 @@ public interface PublishDAO {
             return emptyMap();
         }
         return packageIds.stream()
-                .collect(Collectors.groupingBy(PublishPackageId::siteId,
+                .collect(groupingBy(PublishPackageId::siteId,
                         LinkedHashMap::new,
                         Collectors.toList()));
     }
@@ -350,6 +348,31 @@ public interface PublishDAO {
      */
     Collection<PublishItem> getPublishItems(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
                                             @Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
+
+
+    /**
+     * Get the user requested paths for the given package, in a map.
+     * Map keys are true for delete actions, false for other actions.
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return the user requested paths by action
+     */
+    default Map<Boolean, List<String>> getUserRequestedPathMap(String siteId, long packageId) {
+        return getUserRequestedPaths(siteId, packageId).stream()
+                .collect(groupingBy(pp -> pp.getAction() == PublishItem.Action.DELETE,
+                        HashMap::new,
+                        Collectors.mapping(PublishPath::getPath, Collectors.toList())));
+    }
+
+    /**
+     * Get the {@link PublishPath} items for the given package user-requested items
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return the user requested action-path pairs
+     */
+    Collection<PublishPath> getUserRequestedPaths(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId);
 
     /**
      * Get the paginated list of publish items (with metadata) for the given package
