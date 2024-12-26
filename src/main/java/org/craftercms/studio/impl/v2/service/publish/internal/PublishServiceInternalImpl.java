@@ -230,26 +230,15 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public PublishPackage getPackage(final String siteId, final long packageId)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
+            throws SiteNotFoundException {
         Site site = siteService.getSite(siteId);
-        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
-        if (publishPackage == null) {
-            throw new PublishPackageNotFoundException(siteId, packageId);
-        }
-        return publishPackage;
+        return publishDao.getById(site.getId(), packageId);
     }
 
     @Override
     public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
                                                    final int offset, final int limit) throws PublishPackageNotFoundException, SiteNotFoundException {
-        Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId, offset, limit);
-        if (isEmpty(publishItems)) {
-            if (getPackage(siteId, packageId) == null) {
-                throw new PublishPackageNotFoundException(siteId, packageId);
-            }
-            return emptyList();
-        }
-        return publishItems;
+        return publishDao.getPublishItems(siteId, packageId, offset, limit);
     }
 
     @Override

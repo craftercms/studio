@@ -198,6 +198,15 @@ public interface PublishDAO {
     PublishPackage getById(@Param(SITE_ID) final long siteId, @Param(PACKAGE_ID) final long packageId);
 
     /**
+     * Indicate if a package exists for a site
+     *
+     * @param siteId    the site id
+     * @param packageId the package id
+     * @return true if the package exists, false otherwise
+     */
+    boolean packageExists(@Param(SITE_ID) final String siteId, @Param(PACKAGE_ID) final long packageId);
+
+    /**
      * Update a package
      */
     void updatePackage(@Param(PUBLISH_PACKAGE) final PublishPackage publishPackage);

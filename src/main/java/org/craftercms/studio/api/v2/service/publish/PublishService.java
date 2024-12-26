@@ -110,7 +110,8 @@ public interface PublishService {
      * @param internalName internal name to filter package items by
      * @return publish package item list
      */
-    int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName);
+    int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName)
+            throws SiteNotFoundException, PublishPackageNotFoundException;
 
     /**
      * Get available publishing targets for given site

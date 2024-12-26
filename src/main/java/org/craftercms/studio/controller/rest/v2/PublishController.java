@@ -137,7 +137,8 @@ public class PublishController {
                                                                                @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
                                                                                        defaultValue = "0") @PositiveOrZero int offset,
                                                                                @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
-                                                                                       defaultValue = "10") @PositiveOrZero int limit) {
+                                                                                       defaultValue = "10") @PositiveOrZero int limit)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
         Collection<PublishItemWithMetadata> items = emptyList();
         int totalItemCount = publishService.getPublishPackageItemCount(site, packageId, path, systemTypes, internalName);
         if (totalItemCount > 0) {

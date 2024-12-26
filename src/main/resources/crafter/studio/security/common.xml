@@ -191,6 +191,10 @@
         <constructor-arg name="contentRepository" ref="contentRepository"/>
     </bean>
 
+    <bean id="studio.requirePublishPackageExistsAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.publish.RequirePackageExistsAnnotationHandler">
+        <constructor-arg name="publishDao" ref="publishDao"/>
+    </bean>
+
     <bean id="studio.logExecutionTimeAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.LogExecutionTimeAnnotationHandler" />
 
     <!-- CORS -->

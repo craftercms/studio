@@ -148,6 +148,15 @@
         and site_id = #{siteId}
     </select>
 
+    <select id="packageExists">
+        SELECT EXISTS(
+                    SELECT 1
+                    FROM publish_package pp
+                    INNER JOIN site s ON pp.site_id = s.id
+                    WHERE pp.id = #{packageId} AND s.site_id = #{siteId}
+                )
+    </select>
+
     <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
         UPDATE publish_package
         SET
