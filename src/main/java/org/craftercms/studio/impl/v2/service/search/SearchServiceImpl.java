@@ -67,4 +67,12 @@ public class SearchServiceImpl implements SearchService {
         return searchService.search(siteId, params, maxExpansions);
     }
 
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
+    public SearchResult search(@SiteId final String siteId, final SearchParams params)
+            throws ServiceLayerException {
+        return searchService.search(siteId, params, DEFAULT_MAX_EXPANSIONS);
+    }
+
 }
