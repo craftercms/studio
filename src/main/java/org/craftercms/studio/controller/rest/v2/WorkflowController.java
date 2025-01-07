@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -59,6 +60,8 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @RestController
 @RequestMapping(API_2 + WORKFLOW)
 public class WorkflowController {
+
+    public static final String DEFAULT_QUERY_BY_PATH_REGEX = ".*";
 
     private final WorkflowService workflowService;
     private final PublishService publishService;
@@ -124,7 +127,8 @@ public class WorkflowController {
             throws SiteNotFoundException {
         UpdateItemStatesByQueryRequestBody.Query query = requestBody.getQuery();
         ItemStatesUpdate update = requestBody.getUpdate();
-        workflowService.updateItemStatesByQuery(query.getSiteId(), query.getPath(),
+        String resolvedPathRegex = StringUtils.isNotEmpty(query.getPath()) ? query.getPath() : DEFAULT_QUERY_BY_PATH_REGEX;
+        workflowService.updateItemStatesByQuery(query.getSiteId(), resolvedPathRegex,
                 query.getStates(), update.isClearSystemProcessing(),
                 update.isClearUserLocked(), update.getLive(),
                 update.getStaged(), update.getNew(), update.getModified());
