@@ -240,9 +240,9 @@
     <!-- CSRF -->
 
     <!-- If we replace the session in the future we can remove CSRF completely -->
-    <bean id="csrfTokenRepository" class="org.craftercms.studio.api.v2.security.StudioCookieCsrfTokenRepository">
+    <bean id="csrfTokenRepository" class="org.springframework.security.web.csrf.CookieCsrfTokenRepository">
         <!-- The UI needs to have access to the cookie -->
-        <constructor-arg name="cookieHttpOnly" value="false"/>
+        <property name="cookieHttpOnly" value="false"/>
     </bean>
 
     <bean id="csrfTokenRequestHandler" class="org.craftercms.studio.api.v2.security.StudioCsrfTokenRequestHandler" />
