@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -197,12 +198,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         files.addAll(usage.getScripts());
         files.add(getContentTypePath(contentType));
 
-        try {
-            String message = "Delete content-type %s".formatted(contentType);
-            contentService.deleteContent(siteId, files, message.substring(0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message);
-        } catch (Exception e) {
-            throw new ServiceLayerException(format("Error deleting content-type '%s' in site '%s'", contentType, siteId), e);
-        }
+        String message = "Delete content-type %s".formatted(contentType);
+        contentService.deleteContent(siteId, files, StringUtils.left(message, PublishService.PACKAGE_TITLE_MAX_LENGTH), message);
     }
 
     @Override
