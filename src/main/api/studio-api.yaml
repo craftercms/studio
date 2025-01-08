@@ -8055,7 +8055,6 @@ paths:
                       description: state bitmap mask to filter by state
                   required:
                     - siteId
-                    - paths
                 update:
                   type: object
                   properties:
