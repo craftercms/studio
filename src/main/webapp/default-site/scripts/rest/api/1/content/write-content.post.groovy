@@ -46,36 +46,11 @@ def systemAsset = null;
 def context = ContentServices.createContext(applicationContext, request)
 
 if (JakartaServletFileUpload.isMultipartContent(request)) {
-    def upload = new JakartaServletFileUpload()
-    def iterator = upload.getItemIterator(request)
-    while(iterator.hasNext()) {
-        def item = iterator.next()
-        def name = item.getFieldName()
+    request.getParts().each { item ->
+        def name = item.getName()
         def stream = item.getInputStream()
-        if (item.isFormField()) {
-            switch (name) {
-                case "site_id":
-                case "site":
-                    site = Streams.asString(stream)
-                    break
-                case "path":
-                    path = Streams.asString(stream)
-                    break
-                case "isImage":
-                    isImage = Streams.asString(stream)
-                    break
-                case "allowedWidth":
-                    allowedWidth = Streams.asString(stream)
-                    break
-                case "allowedHeight":
-                    allowedHeight = Streams.asString(stream)
-                    break
-                case "allowLessSize":
-                    allowLessSize = Streams.asString(stream)
-                    break
-            }
-        } else {
-            fileName = item.getName()
+        if (item.submittedFileName) {
+            fileName = item.submittedFileName
             if (fileName != null) {
                 fileName = FilenameUtils.getName(fileName)
             }
@@ -100,6 +75,28 @@ if (JakartaServletFileUpload.isMultipartContent(request)) {
             } catch (ServiceLayerException e) {
                 response.setStatus(500)
                 result.setMessage = e.getMessage()
+            }
+        } else {
+            switch (name) {
+                case "site_id":
+                case "site":
+                    site = Streams.asString(stream)
+                    break
+                case "path":
+                    path = Streams.asString(stream)
+                    break
+                case "isImage":
+                    isImage = Streams.asString(stream)
+                    break
+                case "allowedWidth":
+                    allowedWidth = Streams.asString(stream)
+                    break
+                case "allowedHeight":
+                    allowedHeight = Streams.asString(stream)
+                    break
+                case "allowLessSize":
+                    allowLessSize = Streams.asString(stream)
+                    break
             }
         }
     }

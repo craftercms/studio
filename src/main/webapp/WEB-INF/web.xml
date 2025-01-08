@@ -183,6 +183,7 @@
 			<param-value>classpath:crafter/engine/rendering/main-rendering-context.xml</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
+		<multipart-config />
 	</servlet>
 
 	<servlet-mapping>
