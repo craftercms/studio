@@ -20,8 +20,8 @@ import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.repository.PublishCapableContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +33,7 @@ import java.util.List;
  * @since 3.1.6
  */
 public interface StudioBlobStore extends BlobStore, ContentRepository,
-        org.craftercms.studio.api.v2.repository.ContentRepository, PublishCapableContentRepository {
+        org.craftercms.studio.api.v2.repository.ContentRepository {
 
     /**
      * Return a reference to a file in the store
@@ -68,7 +68,8 @@ public interface StudioBlobStore extends BlobStore, ContentRepository,
      */
     <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
                                                           String publishingTarget,
-                                                          Collection<T> blobStoreItems) throws ServiceLayerException;
+                                                          Collection<T> blobStoreItems,
+                                                          TaskProgress.Stage stage) throws ServiceLayerException;
 
     /**
      * Delete the content at the given path

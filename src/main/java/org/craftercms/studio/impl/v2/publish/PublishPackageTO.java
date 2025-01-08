@@ -86,6 +86,14 @@ public class PublishPackageTO {
         return targetStrategy.getItemSuccessState();
     }
 
+    public void setError(final int errorCode) {
+        targetStrategy.setError(publishPackage, errorCode);
+    }
+
+    public String getPublishedCommitId() {
+        return targetStrategy.getPublishCommitId(publishPackage);
+    }
+
     /**
      * Stategy to access the target specific fields of the {@link PublishPackage}
      */
@@ -104,6 +112,10 @@ public class PublishPackageTO {
         long getItemSuccessOffMask();
 
         long getItemSuccessState();
+
+        void setError(PublishPackage publishPackage, int errorCode);
+
+        String getPublishCommitId(PublishPackage publishPackage);
     }
 
     /**
@@ -144,6 +156,16 @@ public class PublishPackageTO {
         public long getItemSuccessState() {
             return PublishItem.PublishState.LIVE_SUCCESS.value;
         }
+
+        @Override
+        public void setError(PublishPackage publishPackage, int errorCode) {
+            publishPackage.setLiveError(errorCode);
+        }
+
+        @Override
+        public String getPublishCommitId(PublishPackage publishPackage) {
+            return publishPackage.getPublishedLiveCommitId();
+        }
     }
 
     /**
@@ -183,6 +205,16 @@ public class PublishPackageTO {
         @Override
         public long getItemSuccessState() {
             return PublishItem.PublishState.STAGING_SUCCESS.value;
+        }
+
+        @Override
+        public void setError(PublishPackage publishPackage, int errorCode) {
+            publishPackage.setStagingError(errorCode);
+        }
+
+        @Override
+        public String getPublishCommitId(PublishPackage publishPackage) {
+            return publishPackage.getPublishedStagingCommitId();
         }
     }
 }

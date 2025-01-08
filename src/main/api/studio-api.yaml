@@ -9640,11 +9640,19 @@ components:
       allOf:
         - type: object
           properties:
-            packageId:
-              type: integer
-              format: int64
-              description: package identifier
-              example: 123
+            result:
+              description: result of the publish task execution
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  description: true if task was successful, otherwise false
+                message:
+                  type: string
+                  description: message of the task execution
+                result:
+                  type: integer
+                  description: final state of the publish package
         - $ref: '#/components/schemas/AbstractTaskProgress'
 
     AbstractTaskProgress:
@@ -9657,10 +9665,6 @@ components:
           example:
             siteId: "ed3"
             packageId: 17
-        siteId:
-          type: string
-          description: site identifier
-          example: site123
         type:
           type: string
           description: task type

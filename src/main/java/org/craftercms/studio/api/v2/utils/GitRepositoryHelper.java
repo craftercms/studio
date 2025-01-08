@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
@@ -1520,13 +1521,14 @@ public class GitRepositoryHelper implements DisposableBean {
      * @param deletedPaths   the paths to delete from the tree
      * @param commitId       the commit id to get the new file versions from
      * @param parentCommitId the commit to read the initial tree from
+     * @param taskProgress   the task progress to report progress to
      * @return the new tree id
      * @throws IOException          if an error occurs while writing the tree
      * @throws InterruptedException if the operation is interrupted while waiting for the git process to finish
      */
     public String writeTree(final Repository repo, final List<String> paths, final List<String> deletedPaths,
-                            final String commitId, final ObjectId parentCommitId) throws IOException, InterruptedException {
-        return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths, commitId, parentCommitId);
+                            final String commitId, final ObjectId parentCommitId, TaskProgress<?, ?> taskProgress) throws IOException, InterruptedException {
+        return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths, commitId, parentCommitId, taskProgress);
     }
 
     /**

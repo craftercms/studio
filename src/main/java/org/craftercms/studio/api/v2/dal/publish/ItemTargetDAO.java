@@ -40,9 +40,9 @@ public interface ItemTargetDAO {
     String TARGET = "target";
     String LIVE_TARGET = "liveTarget";
     String STAGING_TARGET = "stagingTarget";
-    String TARGETS = "targets";
     String TIMESTAMP = "timestamp";
     String PATHS = "paths";
+    String ITEM_FAILURE_STATE = "itemFailureState";
 
     /**
      * Update for successful publish items in the package.
@@ -93,13 +93,17 @@ public interface ItemTargetDAO {
     /**
      * Populate the item_target table for the initial publish.
      *
-     * @param siteId    the site id
-     * @param targets   the publishing targets
-     * @param commitId  the commit id of published repository
-     * @param timestamp the timestamp for the published_on date
+     * @param siteId           the site id
+     * @param packageId        the package id
+     * @param itemFailureState the state to match failed items for the target
+     * @param target           the publishing target
+     * @param commitId         the commit id of published repository
+     * @param timestamp        the timestamp for the published_on date
      */
     void insertForInitialPublish(@Param(SITE_ID) long siteId,
-                                 @Param(TARGETS) Collection<String> targets,
+                                 @Param(PACKAGE_ID) long packageId,
+                                 @Param(ITEM_FAILURE_STATE) long itemFailureState,
+                                 @Param(TARGET) String target,
                                  @Param(COMMIT_ID) String commitId,
                                  @Param(TIMESTAMP) Instant timestamp);
 

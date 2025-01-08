@@ -18,7 +18,10 @@ package org.craftercms.studio.impl.v2.event;
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
+import org.craftercms.studio.api.v2.event.task.TaskEvent;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.model.task.SiteTask;
+import org.craftercms.studio.model.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,15 @@ public class EventBroadcaster {
     @EventListener
     public void publishGlobalEvent(final GlobalBroadcastEvent event) {
         publishEvent(event, DESTINATION_ROOT);
+    }
+
+    @Order
+    @EventListener
+    public void publishTaskEvent(final TaskEvent taskEvent) {
+        switch (taskEvent.getProgress().getTask()) {
+            case SiteTask<?> siteTask -> publishEvent(taskEvent, DESTINATION_ROOT + "/" + siteTask.getSiteId());
+            case Task<?> __ -> publishEvent(taskEvent, DESTINATION_ROOT);
+        }
     }
 
     private void publishEvent(final BroadcastEvent event, final String destination) {

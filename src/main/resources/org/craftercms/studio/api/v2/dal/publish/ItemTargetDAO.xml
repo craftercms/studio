@@ -58,14 +58,15 @@
     <insert id="insertForInitialPublish">
         INSERT INTO item_target
         (item_id, target, previous_path, published_commit_id, last_published_on)
-        SELECT i.id, t.target, null, #{commitId}, #{timestamp}
-        FROM item i,
-        (
-            <foreach collection="targets" item="target" index="index" separator="UNION" >
-                (SELECT #{target} target)
-            </foreach>
-        ) AS t
+        SELECT i.id, #{target}, null, #{commitId}, #{timestamp}
+        FROM item i
         WHERE i.site_id = #{siteId}
+        AND i.path NOT IN (
+                    SELECT pi.path
+                    FROM publish_item pi
+                    WHERE pi.package_id = #{packageId}
+                    AND (pi.publish_state &amp; #{itemFailureState}) > 0
+        )
     </insert>
 
     <insert id="initStaging">

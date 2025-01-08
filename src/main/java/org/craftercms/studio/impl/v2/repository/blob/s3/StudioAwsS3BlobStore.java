@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeExcep
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +78,6 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     protected boolean readOnly;
 
     private final ThreadPoolTaskExecutor taskExecutor;
-
-
 
     @ConstructorProperties({"servicesConfig", "taskExecutor"})
     public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, final ThreadPoolTaskExecutor taskExecutor) {
@@ -361,35 +360,10 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String initialPublish(final String siteId) {
-        // If store is in readonly mode, nothing to do here.
-        if (readOnly) {
-            logger.warn("Initial publish request ignored in blobstore '{}' because it is readonly", id);
-            return null;
-        }
-        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
-
-        logger.debug("Perform initial publish for site '{}' ", siteId);
-
-        logger.debug("Perform initial publish for site '{}' to target 'live'", siteId);
-        copyFolder(previewMapping.target, previewMapping.prefix, liveMapping.target, liveMapping.prefix,
-                MIN_PART_SIZE, this::getClient);
-
-        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            Mapping statingMapping = getMapping(servicesConfig.getStagingEnvironment(siteId));
-
-            logger.debug("Perform initial publish for site '{}' to target 'staging'", siteId);
-            copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
-                    MIN_PART_SIZE, this::getClient);
-        }
-        return null; // TODO: refactor these interfaces so we don't need to return anything
-    }
-
-    @Override
     public <T extends PublishItemTO> PublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
-                                                                 final Collection<T> blobStoreItems) throws ServiceLayerException {
+                                                                 final Collection<T> blobStoreItems,
+                                                                 final TaskProgress.Stage stage) {
         final String siteId = publishPackage.getSite().getSiteId();
         // If readonly, fail everything so shadow files are not committed
         if (readOnly) {
@@ -409,10 +383,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             String[] keys = batch.stream().map(PublishItemTO::getPath).map(path -> getKey(targetMapping, path)).toArray(String[]::new);
             deleteS3Objects(getClient(), targetMapping.target, keys);
             batch.forEach(PublishItemTO::setCompleted);
+            stage.advance(batch.size());
         }
 
         List<AwsUtils.CopyPathRequest> updatedPaths = itemsByAction.computeIfAbsent(ADD, k -> emptyList()).stream()
-                .map(i-> getRequest(i, failedItems))
+                .map(i-> getRequest(i, failedItems, stage))
                 .toList();
 
         if (isNotEmpty(updatedPaths)) {
@@ -424,7 +399,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         return new PublishChangeSet<>(subtract(blobStoreItems, failedItems), failedItems);
     }
 
-    private <T extends PublishItemTO> AwsUtils.CopyPathRequest getRequest(final T publishItemTO, final Collection<T> failedItems) {
+    private <T extends PublishItemTO> AwsUtils.CopyPathRequest getRequest(final T publishItemTO, final Collection<T> failedItems, TaskProgress.Stage stage) {
         return new AwsUtils.CopyPathRequest() {
             @Override
             public String getPath() {
@@ -436,6 +411,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 try {
                     publishItemTO.setFailed(PublishUtils.translateItemException(throwable));
                     failedItems.add(publishItemTO);
+                    stage.advanceOne();
+                    stage.setErrors();
                 } catch (PublishException e) {
                     throw new BlobStoreException(format("Unable to continue publish package: %s", e.getMessage()), e);
                 }
@@ -444,6 +421,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             @Override
             public void complete() {
                 publishItemTO.setCompleted();
+                stage.advanceOne();
             }
         };
     }

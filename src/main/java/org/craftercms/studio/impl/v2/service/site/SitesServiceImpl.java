@@ -33,13 +33,15 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.task.TaskId;
+import org.craftercms.studio.api.v2.task.TaskManager;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.task.PublishTask;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
@@ -48,14 +50,14 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 public class SitesServiceImpl implements SitesService {
 
     private final SitesService sitesServiceInternal;
-    private final PublishingProgressServiceInternal publishingProgressServiceInternal;
+    private final TaskManager taskManager;
     private final GitContentRepository contentRepository;
 
-    @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository"})
-    public SitesServiceImpl(final SitesService sitesServiceInternal, final PublishingProgressServiceInternal publishingProgressServiceInternal,
+    @ConstructorProperties({"sitesServiceInternal", "taskManager", "contentRepository"})
+    public SitesServiceImpl(final SitesService sitesServiceInternal, final TaskManager taskManager,
                             final GitContentRepository contentRepository) {
         this.sitesServiceInternal = sitesServiceInternal;
-        this.publishingProgressServiceInternal = publishingProgressServiceInternal;
+        this.taskManager = taskManager;
         this.contentRepository = contentRepository;
     }
 
@@ -114,14 +116,14 @@ public class SitesServiceImpl implements SitesService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
     public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
         PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
-        PublishingProgressObserver publishingProgressObserver =
-                publishingProgressServiceInternal.getPublishingProgress(siteId);
-        if (Objects.nonNull(publishingProgressObserver)) {
-            publishStatus.setPublishingTarget(publishingProgressObserver.getPublishingTarget());
-            publishStatus.setSubmissionId(publishingProgressObserver.getPackageId());
-            publishStatus.setNumberOfItems(publishingProgressObserver.getNumberOfFilesCompleted());
-            publishStatus.setTotalItems(publishingProgressObserver.getNumberOfFilesBeingPublished());
-        }
+        Collection<TaskProgress<TaskId.SiteTaskId, Long>> publishTask = taskManager.getSiteTasksByType(siteId, PublishTask.PUBLISH_TASK_TYPE);
+//TODO: retrieve current "publish" task from taskManager, if any
+//        if (Objects.nonNull(publishingProgressObserver)) {
+//            publishStatus.setPublishingTarget(publishingProgressObserver.getPublishingTarget());
+//            publishStatus.setSubmissionId(publishingProgressObserver.getPackageId());
+//            publishStatus.setNumberOfItems(publishingProgressObserver.getNumberOfFilesCompleted());
+//            publishStatus.setTotalItems(publishingProgressObserver.getNumberOfFilesBeingPublished());
+//        }
         publishStatus.setPublished(contentRepository.publishedRepositoryExists(siteId));
         return publishStatus;
     }

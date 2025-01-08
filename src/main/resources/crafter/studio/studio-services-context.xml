@@ -404,7 +404,7 @@
 
     <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
         <constructor-arg name="sitesServiceInternal" ref="sitesServiceInternal"/>
-        <constructor-arg name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
+        <constructor-arg name="taskManager" ref="taskManager" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
@@ -549,11 +549,6 @@
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
         <property name="itemTargetDao" ref="itemTargetDao"/>
         <property name="securityService" ref="studio.securityService"/>
-    </bean>
-
-    <bean id="studio.publishingProgressServiceInternal"
-          class="org.craftercms.studio.impl.v2.service.publish.internal.PublishingProgressServiceInternalImpl">
-
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -712,6 +707,11 @@
     <bean id="publisher" class="org.craftercms.studio.impl.v2.publish.Publisher">
     </bean>
 
+    <bean id="taskManager" class="org.craftercms.studio.impl.v2.service.task.TaskManagerImpl">
+    </bean>
+
+    <bean id="taskProgress" scope="prototype" class="org.craftercms.studio.impl.v2.service.task.TaskProgressImpl"/>
+
     <bean id="workflowEventListener" class="org.craftercms.studio.impl.v2.workflow.WorkflowEventListener">
         <constructor-arg name="publishService" ref="publishServiceInternal"/>
     </bean>
@@ -825,6 +825,7 @@
         <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
         <property name="blobStoreResolver" ref="blobStoreResolver"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="taskManager" ref="taskManager"/>
     </bean>
 
     <bean id="gitContentRepository" class="org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl">
@@ -854,9 +855,9 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-        <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="scriptRunnerFactory" ref="studio.dbScriptRunner"/>
+        <property name="taskManager"  ref="taskManager"/>
     </bean>
 
     <bean id="studio.gitCli" class="org.craftercms.studio.impl.v2.utils.git.GitCli">
