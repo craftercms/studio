@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -124,10 +123,13 @@ public class WorkflowController {
 
     @PostMapping(value = UPDATE_ITEM_STATES_BY_QUERY, produces = APPLICATION_JSON_VALUE)
     public Result updateItemStatesByQuery(@Valid @RequestBody UpdateItemStatesByQueryRequestBody requestBody)
-            throws SiteNotFoundException {
+            throws SiteNotFoundException, InvalidParametersException {
         UpdateItemStatesByQueryRequestBody.Query query = requestBody.getQuery();
         ItemStatesUpdate update = requestBody.getUpdate();
         String resolvedPathRegex = StringUtils.isNotEmpty(query.getPath()) ? query.getPath() : DEFAULT_QUERY_BY_PATH_REGEX;
+        if (!isPathRegexValid(resolvedPathRegex)) {
+            throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
+        }
         workflowService.updateItemStatesByQuery(query.getSiteId(), resolvedPathRegex,
                 query.getStates(), update.isClearSystemProcessing(),
                 update.isClearUserLocked(), update.getLive(),
