@@ -362,17 +362,17 @@ public interface PublishDAO {
         return getUserRequestedPaths(siteId, packageId).stream()
                 .collect(groupingBy(pp -> pp.getAction() == PublishItem.Action.DELETE,
                         HashMap::new,
-                        Collectors.mapping(PublishPath::getPath, Collectors.toList())));
+                        Collectors.mapping(PathActionPair::getPath, Collectors.toList())));
     }
 
     /**
-     * Get the {@link PublishPath} items for the given package user-requested items
+     * Get the {@link PathActionPair} items for the given package user-requested items
      *
      * @param siteId    the site id
      * @param packageId the package id
      * @return the user requested action-path pairs
      */
-    Collection<PublishPath> getUserRequestedPaths(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId);
+    Collection<PathActionPair> getUserRequestedPaths(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId);
 
     /**
      * Get the paginated list of publish items (with metadata) for the given package

@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.dal.publish;
 /**
  * Simplified Publish item path-action pair.
  */
-public class PublishPath {
+public class PathActionPair {
     private String path;
     private PublishItem.Action action;
 
