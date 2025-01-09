@@ -14,24 +14,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.workflow;
+package org.craftercms.studio.api.v2.annotation.publish;
 
-import jakarta.validation.constraints.NotBlank;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Request body for reviewing a package (reject, approve)
+ * Annotation to mark the method or class that requires a package to exist
+ * Notice that this annotation extends @{@link RequireSiteExists}
  */
-public class ReviewPackageRequestBody {
-
-    @NotBlank
-    private String comment;
-
-    public @NotBlank String getComment() {
-        return comment;
-    }
-
-    public void setComment(@NotBlank String comment) {
-        this.comment = comment;
-    }
-
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@RequireSiteExists
+public @interface RequirePackageExists {
 }

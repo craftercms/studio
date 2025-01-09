@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.publish.PackageId;
+import org.craftercms.studio.api.v2.annotation.publish.RequirePackageExists;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -70,9 +72,9 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @RequireSiteExists
+    @RequirePackageExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishItemWithMetadata> getPublishPackageItems(@SiteId String siteId, long packageId,
+    public Collection<PublishItemWithMetadata> getPublishPackageItems(@SiteId String siteId, @PackageId long packageId,
                                                                      String path, Collection<String> systemTypes, String internalName,
                                                                      int offset, int limit) {
         return publishServiceInternal.getPublishPackageItems(siteId, packageId, path,
@@ -80,7 +82,10 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    public int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName) {
+    @RequirePackageExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+    public int getPublishPackageItemCount(@SiteId String siteId, @PackageId long packageId, String path, List<String> systemType, String internalName)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
         return publishServiceInternal.getPublishPackageItemCount(siteId, packageId, path, systemType, internalName);
     }
 
@@ -126,6 +131,14 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @RequirePackageExists
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public CalculatedPublishPackageResult recalculatePublishPackage(@SiteId String site, @PackageId long packageId, String target)
+            throws ServiceLayerException {
+        return publishServiceInternal.recalculatePublishPackage(site, packageId, target);
+    }
+
+    @Override
     @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public PublishPackage getReadyPackageForItem(@SiteId final String site, final String path, final boolean includeChildren) {
@@ -149,17 +162,17 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @RequireSiteExists
+    @RequirePackageExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishPackage getPackage(@SiteId String siteId, long packageId)
+    public PublishPackage getPackage(@SiteId String siteId, @PackageId long packageId)
             throws PublishPackageNotFoundException, SiteNotFoundException {
         return publishServiceInternal.getPackage(siteId, packageId);
     }
 
     @Override
-    @RequireSiteExists
+    @RequirePackageExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishItem> getPublishItems(@SiteId String siteId, final long packageId,
+    public Collection<PublishItem> getPublishItems(@SiteId String siteId, @PackageId final long packageId,
                                                    final int offset, final int limit)
             throws PublishPackageNotFoundException, SiteNotFoundException {
         return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);

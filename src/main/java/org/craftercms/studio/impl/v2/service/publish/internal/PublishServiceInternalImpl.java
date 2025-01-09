@@ -59,8 +59,7 @@ import java.util.function.Predicate;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
@@ -190,6 +189,20 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
     }
 
     @Override
+    public CalculatedPublishPackageResult recalculatePublishPackage(String siteId, long packageId, String target)
+            throws ServiceLayerException {
+        Map<Boolean, List<String>> publishPaths = publishDao.getUserRequestedPathMap(siteId, packageId);
+
+        Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
+        Collection<String> deletedPaths = publishPaths.get(true);
+
+        Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths);
+        // Get hard deps of them all
+        Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
+        return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
+    }
+
+    @Override
     public PublishPackage getReadyPackageForItem(final String siteId, final String path, final boolean includeChildren) {
         return publishDao.getReadyPackageForItem(siteId, path, includeChildren);
     }
@@ -231,26 +244,15 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     @Override
     public PublishPackage getPackage(final String siteId, final long packageId)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
+            throws SiteNotFoundException {
         Site site = siteService.getSite(siteId);
-        PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
-        if (publishPackage == null) {
-            throw new PublishPackageNotFoundException(siteId, packageId);
-        }
-        return publishPackage;
+        return publishDao.getById(site.getId(), packageId);
     }
 
     @Override
     public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
                                                    final int offset, final int limit) throws PublishPackageNotFoundException, SiteNotFoundException {
-        Collection<PublishItem> publishItems = publishDao.getPublishItems(siteId, packageId, offset, limit);
-        if (isEmpty(publishItems)) {
-            if (getPackage(siteId, packageId) == null) {
-                throw new PublishPackageNotFoundException(siteId, packageId);
-            }
-            return emptyList();
-        }
-        return publishItems;
+        return publishDao.getPublishItems(siteId, packageId, offset, limit);
     }
 
     @Override
@@ -386,7 +388,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
      * - Include children if requested
      */
     private void createPublishItemsFromPaths(final Site site, final Collection<PublishRequestPath> publishRequestPaths,
-                                             final Map<String, PublishItem> publishItemsByPath) {
+                                             final Map<String, PublishItem> publishItemsByPath) throws InvalidParametersException {
         if (isEmpty(publishRequestPaths)) {
             return;
         }
@@ -404,15 +406,17 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
             allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths));
         }
 
-        Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);
-        publishItemsByPath.putAll(
-                allPaths.stream()
-                        .filter(path -> !publishItemsByPath.containsKey(path))
-                        .map(path -> {
-                            long itemState = statesByPath.get(path).getState();
-                            return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
-                        })
-                        .collect(toMap(PublishItem::getPath, item -> item)));
+        if (isNotEmpty(allPaths)) {
+            Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);
+            publishItemsByPath.putAll(
+                    allPaths.stream()
+                            .filter(path -> !publishItemsByPath.containsKey(path))
+                            .map(path -> {
+                                long itemState = statesByPath.get(path).getState();
+                                return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
+                            })
+                            .collect(toMap(PublishItem::getPath, item -> item)));
+        }
     }
 
     /**
@@ -686,6 +690,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
     /**
      * Create a collection of {@link PublishItem} objects for a publish all request.
+     *
      * @param site the site
      * @return the collection of publish items
      */

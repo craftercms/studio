@@ -41,6 +41,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.publish.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,7 +49,6 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -59,6 +59,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.RESULT_K
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -113,37 +114,38 @@ public class PublishController {
     }
 
     @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
-    public PublishPackageDetails getPublishPackage(@PathVariable @ValidSiteId String site,
-                                                   @PathVariable @Positive long packageId,
-                                                   @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
-                                                   @RequestParam(name = REQUEST_PARAM_SYSTEM_TYPE, required = false) List<String> systemTypes,
-                                                   @RequestParam(name = REQUEST_PARAM_INTERNAL_NAME, required = false) String internalName,
-                                                   @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
-                                                           defaultValue = "0") @PositiveOrZero int offset,
-                                                   @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
-                                                           defaultValue = "10") @PositiveOrZero int limit)
+    public ResultOne<PublishPackage> getPublishPackage(@PathVariable @ValidSiteId String site,
+                                                       @PathVariable @Positive long packageId)
             throws SiteNotFoundException, PublishPackageNotFoundException {
         PublishPackage publishPackage = publishService.getPackage(site, packageId);
+        ResultOne<PublishPackage> result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_PACKAGE, publishPackage);
+        // TODO: add the package status (progress) to the response
+        result.setResponse(OK);
+        return result;
+    }
+
+    @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + ITEMS)
+    public PaginatedResultList<PublishItemWithMetadata> getPublishPackageItems(@PathVariable @ValidSiteId String site,
+                                                                               @PathVariable @Positive long packageId,
+                                                                               @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
+                                                                               @RequestParam(name = REQUEST_PARAM_SYSTEM_TYPE, required = false) List<String> systemTypes,
+                                                                               @RequestParam(name = REQUEST_PARAM_INTERNAL_NAME, required = false) String internalName,
+                                                                               @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
+                                                                                       defaultValue = "0") @PositiveOrZero int offset,
+                                                                               @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
+                                                                                       defaultValue = "10") @PositiveOrZero int limit)
+            throws PublishPackageNotFoundException, SiteNotFoundException {
         Collection<PublishItemWithMetadata> items = emptyList();
         int totalItemCount = publishService.getPublishPackageItemCount(site, packageId, path, systemTypes, internalName);
         if (totalItemCount > 0) {
             items = publishService.getPublishPackageItems(site, packageId, path, systemTypes, internalName, offset, limit);
         }
-        PublishPackageDetails result = new PublishPackageDetails(publishPackage, items);
-        result.setTotal(totalItemCount);
+        PaginatedResultList<PublishItemWithMetadata> result = new PaginatedResultList<>();
+        result.setEntities(RESULT_KEY_ITEMS, items);
         result.setOffset(offset);
         result.setLimit(limit);
-        result.setResponse(OK);
-        return result;
-    }
-
-    @GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + STATUS)
-    public ResultOne<PublishPackage> getPublishPackageStatus(@PathVariable @ValidSiteId String site, @PathVariable @Positive long packageId)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
-        // TODO: add the package status (progress) to the response
-        PublishPackage publishPackage = publishService.getPackage(site, packageId);
-        ResultOne<PublishPackage> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_PACKAGE, publishPackage);
+        result.setTotal(totalItemCount);
         result.setResponse(OK);
         return result;
     }
@@ -194,6 +196,20 @@ public class PublishController {
         return result;
     }
 
+    @PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + RECALCULATE)
+    public ResultOne<CalculatedPublishPackageResult> recalculate(@PathVariable @NotEmpty @ValidSiteId String site,
+                                                                 @PathVariable @Positive long packageId,
+                                                                 @RequestBody RecalculatePublishPackageRequest request)
+            throws ServiceLayerException, IOException {
+        CalculatedPublishPackageResult calculatedPackage = publishService.recalculatePublishPackage(site,
+                packageId, request.getPublishingTarget());
+
+        ResultOne<CalculatedPublishPackageResult> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PACKAGE, calculatedPackage);
+        return result;
+    }
+
     @PostMapping(PATH_PARAM_SITE + ENABLE_PUBLISHER)
     public Result enablePublisher(@PathVariable @NotEmpty @ValidSiteId String site, @RequestBody EnablePublisherRequest request) {
         sitesService.enablePublishing(site, request.isEnable());
@@ -202,14 +218,15 @@ public class PublishController {
         return result;
     }
 
-    @PostMapping(PATH_PARAM_SITE)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(PATH_PARAM_SITE + PACKAGE)
     public ResultOne<Long> publish(@PathVariable @NotEmpty @ValidSiteId String site,
                                    @Validated @RequestBody PublishPackageRequest request)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         long packageId = submitPublishPackage(site, request);
 
         ResultOne<Long> result = new ResultOne<>();
-        result.setResponse(OK);
+        result.setResponse(CREATED);
         result.setEntity(RESULT_KEY_PACKAGE_ID, packageId);
         return result;
     }

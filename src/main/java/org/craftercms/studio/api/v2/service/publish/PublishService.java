@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.craftercms.studio.model.rest.publish.PublishPackageDetails;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -111,7 +110,8 @@ public interface PublishService {
      * @param internalName internal name to filter package items by
      * @return publish package item list
      */
-    int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName);
+    int getPublishPackageItemCount(String siteId, long packageId, String path, List<String> systemType, String internalName)
+            throws SiteNotFoundException, PublishPackageNotFoundException;
 
     /**
      * Get available publishing targets for given site
@@ -194,6 +194,21 @@ public interface PublishService {
     CalculatedPublishPackageResult calculatePublishPackage(String siteId, String publishingTarget,
                                                            Collection<PublishRequestPath> paths, Collection<String> commitIds)
             throws ServiceLayerException, IOException;
+
+    /**
+     * Recalculate a publish package
+     * This will retrieve the user-requested items of a previously submitted package and
+     * recalculate the dependencies.
+     *
+     * @param site      site id
+     * @param packageId package id
+     * @param target    the publishing target
+     * @return the recalculated package
+     * @throws SiteNotFoundException           if the site is not found
+     * @throws PublishPackageNotFoundException if the package is not found
+     */
+    CalculatedPublishPackageResult recalculatePublishPackage(String site, long packageId, String target)
+            throws ServiceLayerException;
 
     /**
      * Get the submitted package containing the given item

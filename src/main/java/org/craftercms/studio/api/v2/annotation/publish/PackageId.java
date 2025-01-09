@@ -14,24 +14,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.workflow;
+package org.craftercms.studio.api.v2.annotation.publish;
 
-import jakarta.validation.constraints.NotBlank;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Request body for reviewing a package (reject, approve)
+ * Annotation to mark the parameter containing a publish package id
  */
-public class ReviewPackageRequestBody {
-
-    @NotBlank
-    private String comment;
-
-    public @NotBlank String getComment() {
-        return comment;
-    }
-
-    public void setComment(@NotBlank String comment) {
-        this.comment = comment;
-    }
-
+@Inherited
+@Target({PARAMETER, ANNOTATION_TYPE})
+@Retention(RUNTIME)
+public @interface PackageId {
 }

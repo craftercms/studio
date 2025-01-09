@@ -176,7 +176,7 @@ public class WorkflowController {
 
     @PostMapping(PATH_PARAM_SITE + CANCEL)
     public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
-                         @Valid @RequestBody ReviewPackageRequestBody cancelPackageRequest)
+                         @Valid @RequestBody CancelPackageRequestBody cancelPackageRequest)
             throws ServiceLayerException, AuthenticationException {
         workflowService.cancelPackages(site, cancelPackageRequest.getPackageIds(), cancelPackageRequest.getComment());
         Result result = new Result();

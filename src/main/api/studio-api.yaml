@@ -6353,7 +6353,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/{siteId}:
+  /api/2/publish/{siteId}/package:
     post:
       tags:
         - publishing
@@ -6396,8 +6396,8 @@ paths:
                   type: string
                   description: package comment
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Created
           content:
             application/json:
               schema:
@@ -6546,6 +6546,50 @@ paths:
           schema:
             type: integer
             format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/PublishPackage'
+                  progress:
+                    $ref: '#/components/schemas/PublishTaskProgress'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/publish/{siteId}/package/{packageId}/items:
+    get:
+      tags:
+        - publishing
+      summary: Get publish package items
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getPublishPackageItems
+      parameters:
+        - name: siteId
+          in: path
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: integer
+            format: int64
         - name: path
           in: query
           description: regular expression to filter package items by path
@@ -6590,8 +6634,8 @@ paths:
           description: Limit for pagination
           required: false
           schema:
-              type: integer
-              format: int32
+            type: integer
+            format: int32
       responses:
         '200':
           description: OK
@@ -6599,12 +6643,16 @@ paths:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - $ref: '#/components/schemas/PublishPackageDetails'
+                  items:
+                    type: array
+                    description: list of items to be published
+                    items:
+                      $ref: '#/components/schemas/PublishItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -6614,13 +6662,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/publish/{siteId}/package/{packageId}/status:
-    get:
+  /api/2/publish/{siteId}/package/{packageId}/recalculate:
+    post:
       tags:
         - publishing
-      summary: Get package status without the actual items list
-      description: 'Required permission "get_publishing_queue"'
-      operationId: getPublishPackageStatus
+      summary: Recalculate a complete publish package user-requested items
+      description: 'Required permission "content_read"'
+      operationId: recalculatePublishPackage
       parameters:
         - name: siteId
           in: path
@@ -6635,6 +6683,17 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        description: publish request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publishingTarget:
+                  type: string
+                  description: the publishing target (staging or live)
       responses:
         '200':
           description: OK
@@ -6646,9 +6705,30 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   package:
-                    $ref: '#/components/schemas/PublishPackage'
-                  progress:
-                    $ref: '#/components/schemas/PublishTaskProgress'
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: string
+                          description: the item path
+                          example: "/site/website/article1/index.xml"
+                      deletedItems:
+                        type: array
+                        items:
+                          type: string
+                          description: the deleted item path
+                          example: "/site/website/about/index.xml"
+                      hardDependencies:
+                        type: array
+                        items:
+                          type: string
+                          example: "/templates/web/article.ftl"
+                      softDependencies:
+                        type: array
+                        items:
+                          type: string
+                          example: "/static-assets/images/background.png"
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -9485,17 +9565,6 @@ components:
             - approver
             - state
             - publishingTarget
-
-    PublishPackageDetails:
-      type: object
-      properties:
-        package:
-          $ref: '#/components/schemas/PublishPackage'
-        items:
-          type: array
-          description: list of items to be published
-          items:
-            $ref: '#/components/schemas/PublishItem'
 
     PublishItem:
       type: object

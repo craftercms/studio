@@ -148,6 +148,15 @@
         and site_id = #{siteId}
     </select>
 
+    <select id="packageExists">
+        SELECT EXISTS(
+                    SELECT 1
+                    FROM publish_package pp
+                    INNER JOIN site s ON pp.site_id = s.id
+                    WHERE pp.id = #{packageId} AND s.site_id = #{siteId}
+                )
+    </select>
+
     <update id="updatePackage" parameterType="org.craftercms.studio.api.v2.dal.publish.PublishPackage">
         UPDATE publish_package
         SET
@@ -232,6 +241,16 @@
         <bind name="includeMetadata" value="false" />
         <include refid="getPublishItemsQuery"/>
         <include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
+    </select>
+
+    <select id="getUserRequestedPaths">
+        SELECT pi.path as path, pi.action as action
+        FROM publish_item pi
+        INNER JOIN publish_package pp ON pi.package_id = pp.id
+        INNER JOIN site s ON pp.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND pp.id = #{packageId}
+        AND pi.user_requested = 1
     </select>
 
     <select id="getMatchingPublishItemCount">

@@ -14,24 +14,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.workflow;
-
-import jakarta.validation.constraints.NotBlank;
+package org.craftercms.studio.api.v2.dal.publish;
 
 /**
- * Request body for reviewing a package (reject, approve)
+ * Simplified Publish item path-action pair.
  */
-public class ReviewPackageRequestBody {
+public class PathActionPair {
+    private String path;
+    private PublishItem.Action action;
 
-    @NotBlank
-    private String comment;
-
-    public @NotBlank String getComment() {
-        return comment;
+    public PublishItem.Action getAction() {
+        return action;
     }
 
-    public void setComment(@NotBlank String comment) {
-        this.comment = comment;
+    public void setAction(PublishItem.Action action) {
+        this.action = action;
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 }
