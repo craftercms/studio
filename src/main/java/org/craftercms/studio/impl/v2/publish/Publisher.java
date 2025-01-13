@@ -147,7 +147,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
     }
 
-    private void lockAndPublish(final long siteId, final long packageId) throws ServiceLayerException {
+    protected void lockAndPublish(final long siteId, final long packageId) throws ServiceLayerException {
         String packageIdLockKey = StudioUtils.getPublishPackageLockKey(packageId);
         logger.debug("Trying to acquire lock for publish package '{}'", packageId);
         boolean lockAcquired = generalLockService.tryLock(packageIdLockKey);
@@ -166,7 +166,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     /*
      * Process a publish package
      */
-    private void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
+    protected void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
         publishPackage.updatePackageState(PROCESSING.value, READY.value);
@@ -225,7 +225,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     /**
      * Process a package that contains a list of items to publish (i.e. a package with type equal to either PUBLISH_ALL or ITEM_LIST)
      */
-    private void doPublishItemList(final PublishPackage publishPackage,
+    protected void doPublishItemList(final PublishPackage publishPackage,
                                    final Collection<PublishItem> publishItems,
                                    final TargetPublisherFunction targetPublisher) {
         String siteId = publishPackage.getSite().getSiteId();
@@ -411,7 +411,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * Convenience functional interface for a method that publishes a package to a target
      */
     @FunctionalInterface
-    private interface TargetPublisherFunction {
+    protected interface TargetPublisherFunction {
         void run(final PublishPackageTO publishPackage,
                  final String target,
                  final Collection<PublishItem> publishItems)
@@ -533,7 +533,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * @param p         the publish package
      * @param operation the operation
      */
-    private void auditPublishOperation(final PublishPackage p, final String operation) {
+    protected void auditPublishOperation(final PublishPackage p, final String operation) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
         String actorId = p.getSubmitter() != null ? p.getSubmitter().getUsername() : String.valueOf(p.getSubmitterId());
