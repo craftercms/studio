@@ -36,7 +36,7 @@
 	<parent>
 		<groupId>org.craftercms</groupId>
 		<artifactId>craftercms</artifactId>
-		<version>4.2.2</version><!-- craftercms version flag -->
+		<version>4.2.3-SNAPSHOT</version><!-- craftercms version flag -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -585,7 +585,7 @@
 			</activation>
 			<properties>
 				<studio.ui.path>target/ui/</studio.ui.path>
-				<studio.ui.version>v4.2.2</studio.ui.version><!-- craftercms ui version flag -->
+				<studio.ui.version>support/4.2.x</studio.ui.version><!-- craftercms ui version flag -->
 			</properties>
 			<build>
 				<plugins>
