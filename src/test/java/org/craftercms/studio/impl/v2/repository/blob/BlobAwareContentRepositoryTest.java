@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.Site;
@@ -199,7 +200,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void writeContentTest() throws ServiceLayerException {
+    public void writeContentTest() throws ServiceLayerException, UserNotFoundException {
         proxy.writeContent(SITE, ORIGINAL_PATH, CONTENT);
 
         verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
@@ -207,7 +208,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void writeContentFailTest() throws ServiceLayerException {
+    public void writeContentFailTest() throws ServiceLayerException, UserNotFoundException {
         when(store.writeContent(SITE, ORIGINAL_PATH, CONTENT)).thenThrow(new ServiceLayerException("Test"));
 
         try {
@@ -491,7 +492,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void fileWithoutExtensionTest() throws ServiceLayerException {
+    public void fileWithoutExtensionTest() throws ServiceLayerException, UserNotFoundException {
         proxy.writeContent(SITE, NO_EXT_PATH, CONTENT);
 
         verify(store).writeContent(SITE, NO_EXT_PATH, CONTENT);

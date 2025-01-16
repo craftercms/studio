@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -250,7 +251,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
+    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Write content to site '{}' path '{}'", site, path);
         try {
             StudioBlobStore store = getBlobStore(site, path);
@@ -471,7 +472,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public String revertContent(String site, String path, String version, boolean major, String comment) {
+    public String revertContent(String site, String path, String version, boolean major, String comment) throws UserNotFoundException, ServiceLayerException {
         return localRepositoryV1.revertContent(site, path, version, major, comment);
     }
 

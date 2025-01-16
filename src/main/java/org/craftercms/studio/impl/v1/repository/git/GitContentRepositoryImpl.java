@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -187,7 +187,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
     }
 
     @Override
-    public String writeContent(String siteId, String path, InputStream content) {
+    public String writeContent(String siteId, String path, InputStream content) throws UserNotFoundException, ServiceLayerException {
         // Write content to git and commit it
         String commitId = null;
         String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
@@ -211,9 +211,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
             } else {
                 logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
             }
-        }  catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to write content to site '{}' path '{}'", siteId, path, e);
-        } finally {
+        } catch (ServiceLayerException | UserNotFoundException e) {
+			logger.error("Failed to write content to site '{}' path '{}'", siteId, path, e);
+			throw e;
+		} finally {
             generalLockService.unlock(gitLockKey);
         }
 
@@ -571,7 +572,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
     }
 
     @Override
-    public String revertContent(String site, String path, String version, boolean major, String comment) {
+    public String revertContent(String site, String path, String version, boolean major, String comment) throws UserNotFoundException, ServiceLayerException {
         // TODO: SJ: refactor to remove the notion of a major/minor for 3.1+
         String commitId = null;
         String gitLockKey = helper.getSandboxRepoLockKey(site);

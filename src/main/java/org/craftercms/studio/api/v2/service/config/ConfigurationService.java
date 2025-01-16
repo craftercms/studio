@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -134,6 +134,7 @@ public interface ConfigurationService {
      * @param environment environment to use. if empty using default
      * @param content content of configuration file
      * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
      */
     void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
             throws ServiceLayerException, UserNotFoundException;
@@ -169,8 +170,9 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @param content content of configuration file
      * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
      */
-    void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
+    void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get the translation configuration for a given site

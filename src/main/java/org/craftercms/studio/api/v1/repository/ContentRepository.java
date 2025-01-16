@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import java.io.InputStream;
 
@@ -78,9 +79,10 @@ public interface ContentRepository {
      * @param content stream of content to write
      * @return Commit Id if successful, null otherwise
      *
-     * @throws ServiceLayerException if error happens during write
+	 * @throws ServiceLayerException general service exception
+	 * @throws UserNotFoundException user not found exception
      */
-    String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+    String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * create a folder
