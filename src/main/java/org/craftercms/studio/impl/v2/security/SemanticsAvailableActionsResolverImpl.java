@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,16 +24,12 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
-import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.Person;
@@ -46,7 +42,8 @@ import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.*;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
@@ -59,10 +56,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	private AvailableActionsResolver availableActionsResolver;
 	private ContentServiceInternal contentServiceInternal;
 	private ServicesConfig servicesConfig;
-	private UserServiceInternal userServiceInternal;
 	private StudioBlobStoreResolver studioBlobStoreResolver;
 	private ContentTypeServiceInternal contentTypeServiceInternal;
-	private PublishService publishServiceInternal;
 
 	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -181,16 +176,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		if (servicesConfig.isRequirePeerReview(siteId)) {
 			if (StringUtils.equals(username, itemModifier)) {
-				result &= ~PUBLISH_SCHEDULE;
 				result &= ~PUBLISH;
-			}
-
-			if (isInWorkflow(itemState)) {
-				PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(siteId, itemPath, false);
-				User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-				if (user.getId() == publishPackage.getSubmitterId()) {
-					result &= ~PUBLISH_SCHEDULE;
-				}
 			}
 		}
 
@@ -236,9 +222,9 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long checkActionForDependency(String siteId, String username, String dependencyPath,
-					      long actions, long itemEditMask, long depEditMask,
-					      long itemDeleteMask, long depDeleteMask)
-		throws UserNotFoundException, ServiceLayerException {
+										  long actions, long itemEditMask, long depEditMask,
+										  long itemDeleteMask, long depDeleteMask)
+			throws UserNotFoundException, ServiceLayerException {
 		if (isNotEmpty(dependencyPath)) {
 			long depAvailableActions = availableActionsResolver.getContentItemAvailableActions(username, siteId, dependencyPath);
 			actions = updateForDependency(actions, depAvailableActions, itemEditMask, depEditMask);
@@ -251,7 +237,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long updateForDependency(long itemActions, long dependencyActions, long itemActionMask,
-					 long dependencyActionMask) {
+									 long dependencyActionMask) {
 		// Check if the available actions for the dependency contain the required bit
 		if ((dependencyActions & dependencyActionMask) > 0) {
 			// If so, turn on the bit for the item too
@@ -275,10 +261,6 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.servicesConfig = servicesConfig;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
 	public void setStudioBlobStoreResolver(StudioBlobStoreResolver studioBlobStoreResolver) {
 		this.studioBlobStoreResolver = studioBlobStoreResolver;
 	}
@@ -291,7 +273,4 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.securityServiceV1 = securityServiceV1;
 	}
 
-	public void setPublishServiceInternal(final PublishService publishServiceInternal) {
-		this.publishServiceInternal = publishServiceInternal;
-	}
 }

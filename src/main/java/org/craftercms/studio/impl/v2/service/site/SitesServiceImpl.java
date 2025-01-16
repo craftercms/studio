@@ -74,7 +74,7 @@ public class SitesServiceImpl implements SitesService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void updateSite(@SiteId String siteId, String name, String description)
-		throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
+			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
 		if (isBlank(name) && isBlank(description)) {
 			throw new InvalidParametersException("The request needs to include a name or a description");
 		}
@@ -144,9 +144,9 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	@RequireSiteReady
 	@HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
-		PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
+			PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
 	public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		if (exists(siteId)) {
 			throw new SiteAlreadyExistsException(siteId);
 		}
@@ -159,7 +159,6 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
 	public void setPublishedRepoCreated(String siteId) {
 		sitesServiceInternal.setPublishedRepoCreated(siteId);
 	}

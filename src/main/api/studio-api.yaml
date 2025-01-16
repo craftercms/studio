@@ -6358,7 +6358,7 @@ paths:
             tags:
                 - publishing
             summary: Publishes the given content to the target (staging or live)
-            description: 'Required permission "publish" when requestApproval is false, "content_read" when requestApproval is true. <br />'
+            description: 'Required permission "publish_request". Additionally requires "publish_approve" when requestApproval is false. <br />'
             operationId: publish
             parameters:
                 -   name: siteId
@@ -6423,7 +6423,7 @@ paths:
             tags:
                 - publishing
             summary: Get the list of packages in the publishing queue
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: GetPublishPackages
             parameters:
                 -   name: siteId
@@ -6530,7 +6530,7 @@ paths:
             tags:
                 - publishing
             summary: Get package details
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: getPublishPackage
             parameters:
                 -   name: siteId
@@ -6574,7 +6574,7 @@ paths:
             tags:
                 - publishing
             summary: Get publish package items
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: getPublishPackageItems
             parameters:
                 -   name: siteId
@@ -6743,7 +6743,7 @@ paths:
             tags:
                 - publishing
             summary: Signal the publisher to pick the next package in the queue, if any.
-            description: 'Required permission "request_publish, publish"'
+            description: 'Required permission "publish_request, publish_approve"'
             operationId: triggerPublisher
             parameters:
                 -   name: siteId
@@ -6770,75 +6770,6 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-
-    /api/2/publish/{siteId}/package/{packageId}/clone:
-        post:
-            tags:
-                - publishing
-            summary: Clone an existing publish package
-            description: 'Required permission "request_publish, publish"'
-            operationId: clonePublishPackage
-            parameters:
-                -   name: siteId
-                    in: path
-                    description: site ID
-                    required: true
-                    schema:
-                        type: string
-                -   name: packageId
-                    in: path
-                    description: the ID of the existing package
-                    required: true
-                    schema:
-                        type: integer
-                        format: int64
-                        example: "12345"
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                schedule:
-                                    type: string
-                                    format: date-time
-                                    description: schedule the publish
-                                requestApproval:
-                                    type: boolean
-                                    description: submit the request for approval
-                                comment:
-                                    type: string
-                                    description: optional comment
-                                publishingTarget:
-                                    type: string
-                                    description: the publishing target (staging or live)
-                                    example: staging
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                                    package:
-                                        type: object
-                                        properties:
-                                            packageId:
-                                                type: string
-                                                description: the package id
-                                                example: "12346"
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
 
     /api/2/publish/{siteId}/status:
         get:
@@ -6880,7 +6811,7 @@ paths:
             tags:
                 - publishing
             summary: Get available publishing targets for site
-            description: 'Required permission "publish"'
+            description: 'Required permission "publish_request"'
             operationId: getAvailablePublishingTargets
             parameters:
                 -   name: siteId
@@ -8181,7 +8112,7 @@ paths:
             tags:
                 - workflow
             summary: Get workflow affected packages
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: getWorkflowAffectedPackages
             parameters:
                 -   name: site
@@ -8233,7 +8164,7 @@ paths:
             tags:
                 - workflow
             summary: Approve request publish submission
-            description: 'Required permission "publish"'
+            description: 'Required permission "publish_approve"'
             operationId: workflowApprove
             parameters:
                 -   name: site
@@ -8297,7 +8228,7 @@ paths:
             tags:
                 - workflow
             summary: Reject publish package
-            description: 'Required permission "cancel_publish"'
+            description: 'Required permission "publish_cancel"'
             operationId: workflowReject
             parameters:
                 -   name: site
@@ -8354,7 +8285,7 @@ paths:
             tags:
                 - workflow
             summary: Cancel publish packages
-            description: 'Required permission "cancel_publish"'
+            description: 'Required permission "publish_cancel"'
             operationId: cancelPublishPackages
             parameters:
                 -   name: site

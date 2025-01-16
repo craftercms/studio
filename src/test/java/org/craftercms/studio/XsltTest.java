@@ -329,8 +329,29 @@ public class XsltTest {
 		};
 	}
 
+	@DataProvider(name = "permissions500TestData")
+	public Object[][] permissions500TestData() {
+		return new Object[][]{
+				{
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/permission-mappings/permission-mappings-config-v5.0.0.0.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/5.0/5.0.0/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/5.0/5.0.0/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "permissions500TestData")
+	public void permissions500Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
 	@Test(dataProvider = "xsltData")
-	public void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
+	public void testXsltData(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
+	private void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
 		throws IOException, TransformerException {
 		try (InputStream templateIs = template.getInputStream();
 		     InputStream contentIs = content.getInputStream();

@@ -83,7 +83,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 	@Override
 	@RequireSiteExists
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_APPROVE)
 	public void approvePackage(@SiteId String siteId, long packageId, Instant schedule, boolean updateSchedule, String comment)
 		throws AuthenticationException, ServiceLayerException {
 		workflowServiceInternal.approvePackage(siteId, packageId, schedule, updateSchedule, comment);
@@ -91,14 +91,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 	@Override
 	@RequireSiteExists
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_REJECT)
 	public void rejectPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
 		workflowServiceInternal.rejectPackage(siteId, packageId, comment);
 	}
 
 	@Override
 	@RequireSiteExists
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CANCEL)
 	public void cancelPackages(@SiteId String siteId, Collection<Long> packageIds, String comment) throws ServiceLayerException, AuthenticationException {
 		workflowServiceInternal.cancelPackages(siteId, packageIds, comment);
 	}

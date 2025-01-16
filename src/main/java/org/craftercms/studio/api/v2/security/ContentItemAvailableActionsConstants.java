@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,14 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_COPY;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_FOLDER_CREATE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public final class ContentItemAvailableActionsConstants {
 
@@ -78,10 +71,13 @@ public final class ContentItemAvailableActionsConstants {
 		0b0000000000000000000000000000000000000000000010000000000000000000L;
 	public static final long PUBLISH =
 		0b0000000000000000000000000000000000000000000100000000000000000000L;
+	// Approve is now a package-level action
 	public static final long RETIRED_PUBLISH_APPROVED =
 		0b0000000000000000000000000000000000000000001000000000000000000000L;
-	public static final long PUBLISH_SCHEDULE =
+	// Items can be "scheduled" (submitted to publish) at any time (it will be just PUBLISH)
+	public static final long RETIRED_PUBLISH_SCHEDULE =
 		0b0000000000000000000000000000000000000000010000000000000000000000L;
+	// Reject is now a package-level action
 	public static final long RETIRED_PUBLISH_REJECT =
 		0b0000000000000000000000000000000000000000100000000000000000000000L;
 	public static final long ITEM_UNLOCK =
@@ -170,7 +166,7 @@ public final class ContentItemAvailableActionsConstants {
 	// Map permissions to available actions
 	// content_read
 	public static final long BITMAP_CONTENT_READ =
-		CONTENT_READ + CONTENT_READ_VERSION_HISTORY + CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST;
+			CONTENT_READ + CONTENT_READ_VERSION_HISTORY + CONTENT_GET_DEPENDENCIES;
 	// content_create
 	public static final long BITMAP_CONTENT_CREATE =
 		CONTENT_CREATE + CONTENT_PASTE;
@@ -186,7 +182,7 @@ public final class ContentItemAvailableActionsConstants {
 		CONTENT_DELETE + CONTENT_DELETE_CONTROLLER + CONTENT_DELETE_TEMPLATE;
 	// publish
 	public static final long BITMAP_PUBLISH =
-		PUBLISH + PUBLISH_SCHEDULE;
+			PUBLISH;
 	// item_unlock
 	public static final long BITMAP_ITEM_UNLOCK =
 		ITEM_UNLOCK;
@@ -217,8 +213,8 @@ public final class ContentItemAvailableActionsConstants {
 			case PERMISSION_CONTENT_DELETE:
 				result = BITMAP_CONTENT_DELETE;
 				break;
-			case PERMISSION_PUBLISH:
-				result = BITMAP_PUBLISH;
+			case PERMISSION_PUBLISH_REQUEST:
+				result = PUBLISH_REQUEST;
 				break;
 			case PERMISSION_ITEM_UNLOCK:
 				result = BITMAP_ITEM_UNLOCK;
