@@ -145,7 +145,7 @@ public class PublishPackage {
         this.packageState = packageState;
     }
 
-    public void setPackageState(final long onBits, final long offBits) {
+    public void updatePackageState(final long onBits, final long offBits) {
         this.packageState = (this.packageState | onBits) & ~offBits;
     }
 

@@ -14,21 +14,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.repository;
+package org.craftercms.studio.model.task;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.craftercms.studio.api.v2.task.TaskId;
 
 /**
- * Interface for content repositories that support publishing
+ * A task that is associated with a site
+ *
+ * @param <K> the type of the task id
  */
-public interface PublishCapableContentRepository {
+public abstract class SiteTask<K extends TaskId.SiteTaskId> extends Task<K> {
+
+    public SiteTask(String type, K taskId) {
+        super(type, taskId);
+
+    }
+
     /**
-     * Execute initial publish for given site
+     * Get the id of the site this task is associated with
      *
-     * @param siteId site identifier
-     * @return commit id of the initial publish.
-     * After this method runs, the returned value is the same as the last
-     * commit in the published repository for both branches(live and staging, if configured)
+     * @return the site id
      */
-    String initialPublish(String siteId) throws ServiceLayerException;
+    @JsonIgnore
+    public String getSiteId() {
+        return getTaskId().getSiteId();
+    }
 }

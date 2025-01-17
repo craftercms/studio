@@ -38,7 +38,7 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
 /**
  * Interface for content repositories that support git operations
  */
-public interface GitContentRepository extends ContentRepository, PublishCapableContentRepository {
+public interface GitContentRepository extends ContentRepository {
     String PREVIOUS_COMMIT_SUFFIX = "~1";
 
     /**
@@ -158,6 +158,18 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     void forAllSitePaths(String siteId,
                          ThrowingConsumer<String> directoryProcessor,
                          ThrowingConsumer<String> fileProcessor) throws Exception;
+
+    /**
+     * Execute {@link java.util.function.Consumer<String>} for all file paths in the site
+     *
+     * @param siteId        site id
+     * @param fileProcessor the consumer to process the file paths
+     */
+    default void forAllFileSitePaths(String siteId, ThrowingConsumer<String> fileProcessor) throws Exception {
+        // Ignore directories
+        forAllSitePaths(siteId, path -> {
+        }, fileProcessor);
+    }
 
     /**
      * Get the previous commit id from repository for given a site id and a commit id
@@ -322,31 +334,6 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
     boolean deleteSite(String siteId);
 
     /**
-     * Publishes all changes for the given site and target
-     *
-     * @param publishPackage   the publish package
-     * @param publishingTarget the publishing target
-     * @return the change set listing the affected paths and new commit ids (comparing the published repository target branch before and after the publish)
-     */
-    <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(PublishPackage publishPackage,
-                                                                String publishingTarget,
-                                                                Collection<T> publishItems) throws ServiceLayerException, IOException;
-
-    /**
-     * Publishes the given items to the given target
-     *
-     * @param publishPackage   the publish package
-     * @param publishingTarget the publishing target
-     * @param publishItems     the items to publish
-     * @param <T>              the type of the {@link PublishItemTO} objects
-     * @return the change set listing the affected paths and new commit id
-     * @throws ServiceLayerException if there is any error while publishing or publishItems is null or empty
-     */
-    <T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
-                                                             String publishingTarget,
-                                                             Collection<T> publishItems) throws ServiceLayerException, IOException;
-
-    /**
      * Create copies of the source site's repositories.
      * This method will copy sandbox and published (if exists) repositories under a new directory
      * with the new site id.
@@ -391,33 +378,4 @@ public interface GitContentRepository extends ContentRepository, PublishCapableC
      */
     String deleteContent(String siteId, Collection<String> paths, String approver) throws ServiceLayerException;
 
-    /**
-     * Store the result of a publish operation
-     *
-     * @param successfulItems the paths that were updated
-     * @param failedItems     the paths that failed to publish, mapped to the error message
-     * @param <T>             the actual type of the {@link PublishItemTO} objects
-     */
-    record GitPublishChangeSet<T extends PublishItemTO>(String commitId,
-                                                        Collection<T> successfulItems,
-                                                        Collection<T> failedItems) {
-
-        /**
-         * Check if there are successfully published changes
-         *
-         * @return true if the package had successful changes and a commit was created, false otherwise
-         */
-        public boolean completed() {
-            return !ObjectUtils.isEmpty(commitId);
-        }
-
-        /**
-         * Check if there are failed items
-         *
-         * @return true if failed items list contains items, false otherwise
-         */
-        public boolean hasFailedItems() {
-            return !ObjectUtils.isEmpty(failedItems);
-        }
-    }
 }

@@ -27,7 +27,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.
  * one {@link PublishItemTO} instance, each with a different path and
  * action. e.g.: A move operation will be expanded to a DELETE and an ADD
  */
-public class PublishItemTOImpl implements PublishItemTO {
+class PublishItemTOImpl implements PublishItemTO {
     private final PublishItem publishItem;
     private final String path;
     private final PublishItem.Action action;

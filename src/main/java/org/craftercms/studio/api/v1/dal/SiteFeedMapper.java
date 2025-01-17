@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.craftercms.studio.api.v2.dal.PublishStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -84,13 +83,6 @@ public interface SiteFeedMapper {
     List<String> getAllCreatedSites(@Param(STATE) String state);
 
     String getSiteState(@Param(SITE_ID) String siteId);
-
-    /**
-     * Get publishing status for site
-     * @param siteId site identifier
-     * @return Publishing status
-     */
-    PublishStatus getPublishingStatus(@Param(SITE_ID) String siteId);
 
     /**
      * Duplicate a site in the database.

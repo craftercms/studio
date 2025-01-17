@@ -28,19 +28,23 @@ import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.PublishCapableRepository.InitialPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.task.TaskManager;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
+import org.craftercms.studio.model.task.PublishTask;
+import org.craftercms.studio.model.task.PublishTask.PublishTaskId;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,18 +57,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
 import static org.springframework.data.util.Predicates.negate;
@@ -81,30 +82,29 @@ public class Publisher implements ApplicationEventPublisherAware {
     private final SiteDAO siteDao;
     private final PublishDAO publishDao;
     private ApplicationEventPublisher eventPublisher;
-    private final ItemServiceInternal itemServiceInternal;
     private final AuditServiceInternal auditServiceInternal;
-    private final GitContentRepository contentRepository;
+    private final StudioBlobAwareContentRepository contentRepository;
     private final GeneralLockService generalLockService;
     private final ServicesConfig servicesConfig;
     private final ItemTargetDAO itemTargetDAO;
     private final PlatformTransactionManager transactionManager;
     private final ActivityStreamServiceInternal activityService;
+    private final TaskManager taskManager;
 
-    @ConstructorProperties({"siteDao", "publishDao", "itemServiceInternal", "auditServiceInternal",
+    @ConstructorProperties({"siteDao", "publishDao", "auditServiceInternal",
             "contentRepository", "generalLockService", "servicesConfig", "itemTargetDAO", "transactionManager",
-            "activityService"})
+            "activityService", "taskManager"})
     public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
-                     final ItemServiceInternal itemServiceInternal,
                      final AuditServiceInternal auditServiceInternal,
-                     final GitContentRepository contentRepository,
+                     final StudioBlobAwareContentRepository contentRepository,
                      final GeneralLockService generalLockService,
                      final ServicesConfig servicesConfig,
                      final ItemTargetDAO itemTargetDAO,
                      final PlatformTransactionManager transactionManager,
-                     final ActivityStreamServiceInternal activityService) {
+                     final ActivityStreamServiceInternal activityService,
+                     final TaskManager taskManager) {
         this.siteDao = siteDao;
         this.publishDao = publishDao;
-        this.itemServiceInternal = itemServiceInternal;
         this.auditServiceInternal = auditServiceInternal;
         this.contentRepository = contentRepository;
         this.generalLockService = generalLockService;
@@ -112,6 +112,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         this.itemTargetDAO = itemTargetDAO;
         this.transactionManager = transactionManager;
         this.activityService = activityService;
+        this.taskManager = taskManager;
     }
 
     @Async
@@ -146,7 +147,7 @@ public class Publisher implements ApplicationEventPublisherAware {
         }
     }
 
-    private void lockAndPublish(final long siteId, final long packageId) throws ServiceLayerException {
+    protected void lockAndPublish(final long siteId, final long packageId) throws ServiceLayerException {
         String packageIdLockKey = StudioUtils.getPublishPackageLockKey(packageId);
         logger.debug("Trying to acquire lock for publish package '{}'", packageId);
         boolean lockAcquired = generalLockService.tryLock(packageIdLockKey);
@@ -165,70 +166,66 @@ public class Publisher implements ApplicationEventPublisherAware {
     /*
      * Process a publish package
      */
-    private void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
+    protected void doPublish(final PublishPackage publishPackage) throws ServiceLayerException {
         long packageId = publishPackage.getId();
         String siteId = publishPackage.getSite().getSiteId();
-        publishPackage.setPackageState(PROCESSING.value, READY.value);
+        publishPackage.updatePackageState(PROCESSING.value, READY.value);
         publishDao.updatePackage(publishPackage);
+        TaskProgress<PublishTaskId, Long> taskProgress = taskManager.registerTask(new PublishTask(siteId, packageId));
+        taskProgress.start();
+        String activityOperation = null;
         try {
-            publishDao.updatePublishItemState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
+            Stage itemLoadStage = taskProgress.startStage("Loading items list");
+            publishDao.updatePublishItemsState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
             Collection<PublishItem> publishItems = publishDao.getPublishItems(publishPackage.getSite().getSiteId(), packageId);
             // Set all affected items to system processing
             publishDao.updateItemStateBits(packageId, SYSTEM_PROCESSING.value, 0);
             auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);
+            itemLoadStage.complete();
 
-            String activityOperation;
-            // TODO: Initiate package progress reporting
             switch (publishPackage.getPackageType()) {
                 case INITIAL_PUBLISH -> {
                     logger.debug("Processing initial publish package '{}' for site '{}'", packageId, siteId);
-                    doInitialPublish(publishPackage);
                     activityOperation = OPERATION_INITIAL_PUBLISH;
+                    doInitialPublish(publishPackage);
                 }
                 case PUBLISH_ALL -> {
                     logger.debug("Processing publish-all package '{}' for site '{}'", packageId, siteId);
-                    doPublishItemList(publishPackage, publishItems, runInTransaction(this::doPublishAllTarget));
                     activityOperation = OPERATION_PUBLISH_ALL;
+                    doPublishItemList(publishPackage, publishItems, this::doPublishAllTarget);
                 }
                 case ITEM_LIST -> {
                     logger.debug("Processing publish package '{}' for site '{}'", packageId, siteId);
-                    doPublishItemList(publishPackage, publishItems, runInTransaction(this::doPublishItemListTarget));
                     activityOperation = OPERATION_PUBLISHED;
+                    doPublishItemList(publishPackage, publishItems, this::doPublishItemListTarget);
                 }
                 default ->
                         throw new ServiceLayerException(format("Unknown package type '%s' for package '%d' for site '%s'",
                                 publishPackage.getPackageType(), packageId, siteId));
             }
-            auditPublishOperation(publishPackage, OPERATION_PUBLISHED);
-            activityService.insertActivity(publishPackage.getSiteId(), publishPackage.getSubmitterId(), activityOperation, DateUtils.getCurrentTime(),
-                    null, Long.toString(packageId));
-            eventPublisher.publishEvent(new PublishEvent(siteId));
-            publishPackage.setPackageState(COMPLETED.value, 0);
-            publishDao.updatePackage(publishPackage);
-            // TODO: Complete package progress
-        } catch (Exception e) {
-            logger.error("Failed to publish package '{}' for site '{}'", packageId, siteId, e);
-            int errorCode = PublishUtils.translatePackageException(e);
-            publishPackage.setPackageState(PackageState.LIVE_FAILED.value + STAGING_FAILED.value, 0);
-            publishPackage.setLiveError(errorCode);
-            publishPackage.setStagingError(errorCode);
-            publishDao.updatePackage(publishPackage);
-            String exceptionMessage = format("Failed to publish package '%d' for site '%s'", packageId, siteId);
-            throw new ServiceLayerException(exceptionMessage, e);
         } finally {
+            Stage completeStage = taskProgress.startStage("Save completed package");
+            auditPublishOperation(publishPackage, OPERATION_PUBLISHED);
+            if (activityOperation != null) {
+                activityService.insertActivity(publishPackage.getSiteId(), publishPackage.getSubmitterId(), activityOperation, DateUtils.getCurrentTime(),
+                        null, Long.toString(packageId));
+            }
+            eventPublisher.publishEvent(new PublishEvent(siteId));
             publishPackage.setPublishedOn(now());
-            publishPackage.setPackageState(0, PROCESSING.value);
+            publishPackage.updatePackageState(COMPLETED.value, PROCESSING.value);
             publishDao.updatePackage(publishPackage);
             // Clear system processing bit for all affected items
             publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
-            publishDao.updatePublishItemState(packageId, 0, PublishItem.PublishState.PROCESSING.value);
+            publishDao.updatePublishItemsState(packageId, 0, PublishItem.PublishState.PROCESSING.value);
+            completeStage.complete();
+            taskProgress.complete(publishPackage.getPackageState());
         }
     }
 
     /**
      * Process a package that contains a list of items to publish (i.e. a package with type equal to either PUBLISH_ALL or ITEM_LIST)
      */
-    private void doPublishItemList(final PublishPackage publishPackage,
+    protected void doPublishItemList(final PublishPackage publishPackage,
                                    final Collection<PublishItem> publishItems,
                                    final TargetPublisherFunction targetPublisher) {
         String siteId = publishPackage.getSite().getSiteId();
@@ -254,18 +251,13 @@ public class Publisher implements ApplicationEventPublisherAware {
                                     final String target) {
         PublishPackageTO packageTO = getPublishPackageTO(publishPackage, isLiveTarget);
         try {
-            targetPublisher.run(packageTO, target, publishItems);
+            runInTransaction(targetPublisher).run(packageTO, target, publishItems);
         } catch (Exception e) {
             logger.error("Failed to publish package '{}' to target '{}' for site '{}'", publishPackage.getId(), target, publishPackage.getSite().getSiteId(), e);
-            int errorCode = PublishUtils.translatePackageException(e);
-            int liveErrorCode = isLiveTarget ? errorCode : 0;
-            int stagingErrorCode = isLiveTarget ? 0 : errorCode;
-            publishPackage.setPackageState(packageTO.getFailedOnBits(), 0);
-            publishPackage.setStagingError(stagingErrorCode);
-            publishPackage.setLiveError(liveErrorCode);
+            publishPackage.updatePackageState(packageTO.getFailedOnBits(), 0);
+            packageTO.setError(PublishUtils.translatePackageException(e));
             publishDao.updatePackage(publishPackage);
-            long onMask = isLiveTarget ? PublishItem.PublishState.LIVE_FAILED.value : PublishItem.PublishState.STAGING_FAILED.value;
-            publishDao.updatePublishItemState(publishPackage.getId(), onMask, 0);
+            publishDao.updatePublishItemsState(publishPackage.getId(), packageTO.getFailedOnBits(), 0);
         } finally {
             publishDao.updateItemStatesForCompletePackage(packageTO.getId(),
                     packageTO.getItemSuccessOnMask(),
@@ -316,21 +308,45 @@ public class Publisher implements ApplicationEventPublisherAware {
         PublishPackage publishPackage = packageTO.getPackage();
         String siteId = packageTO.getSite().getSiteId();
         long packageId = packageTO.getId();
+        TaskProgress<PublishTaskId, Long> taskProgress = taskManager.getTask(new PublishTaskId(siteId, packageId));
 
         String liveTarget = servicesConfig.getLiveEnvironment(siteId);
         boolean isLiveTarget = StringUtils.equals(liveTarget, target);
         if (!isLiveTarget && !contentRepository.isTargetPublished(siteId, target)) {
+            Stage initStaging = taskProgress.startStage("Init staging");
             itemTargetDAO.initStaging(packageTO.getSite().getId(), target, liveTarget);
+            initStaging.complete();
         }
 
+        Stage prepareStage = taskProgress.startStage("Prepare items for '%s'".formatted(target), publishItems.size());
         List<PublishItemTOImpl> publishItemTOs = publishItems.stream()
-                .peek(pi->logger.debug("Processing publish item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
+                .peek(pi -> logger.debug("Processing publish item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
                 .map(pi -> expandPublishItem(pi, target, isLiveTarget))
+                .peek(pi -> prepareStage.advanceOne())
                 .flatMap(List::stream)
                 .toList();
+        prepareStage.complete();
 
         GitPublishChangeSet<PublishItemTOImpl> publishChangeSet = repoPublishFunction.run(publishPackage, target, publishItemTOs);
 
+        Stage updateStatesStage = taskProgress.startStage("Update item states for '%s' target".formatted(target));
+        updateStatesOnTargetComplete(packageTO, target, publishChangeSet);
+        updateStatesStage.complete();
+
+        if (publishChangeSet.completed()) {
+            Stage refStage = taskProgress.startStage("Update ref for '%s' branch".formatted(target));
+            contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
+            refStage.complete();
+        }
+    }
+
+    /**
+     * Update the states of the package and the items affected after a target has been published
+     */
+    private void updateStatesOnTargetComplete(PublishPackageTO packageTO, String target,
+                                              GitPublishChangeSet<PublishItemTOImpl> publishChangeSet) {
+        String siteId = packageTO.getSite().getSiteId();
+        long packageId = packageTO.getId();
         Set<PublishItem> failedItems = publishChangeSet.failedItems().stream()
                 .peek(pi -> logger.error("Failed to publish item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
                 .map(PublishItemTOImpl::getPublishItem)
@@ -343,7 +359,7 @@ public class Publisher implements ApplicationEventPublisherAware {
                 .toList();
 
         if (failedItems.isEmpty()) {
-            publishDao.updatePublishItemState(packageId, packageTO.getItemSuccessState(), 0);
+            publishDao.updatePublishItemsState(packageId, packageTO.getItemSuccessState(), 0);
             if (packageTO.getPackageType() == PublishPackage.PackageType.PUBLISH_ALL) {
                 cancelOutstandingTargetPackages(packageTO.getSite().getId(), target);
             }
@@ -364,12 +380,8 @@ public class Publisher implements ApplicationEventPublisherAware {
         } else {
             packageStateOnBits = packageTO.getFailedOnBits();
         }
-        publishPackage.setPackageState(packageStateOnBits, 0);
-        publishDao.updatePackage(publishPackage);
-
-        if (publishChangeSet.completed()) {
-            contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
-        }
+        packageTO.getPackage().updatePackageState(packageStateOnBits, 0);
+        publishDao.updatePackage(packageTO.getPackage());
     }
 
     /**
@@ -383,7 +395,7 @@ public class Publisher implements ApplicationEventPublisherAware {
     private void doPublishAllTarget(final PublishPackageTO publishPackage,
                                     final String target,
                                     final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
-        doPublishTarget(publishPackage, target, publishItems, contentRepository::publishAll);
+        doPublishTarget(publishPackage, target, publishItems, contentRepository::publish);
     }
 
     private TargetPublisherFunction runInTransaction(TargetPublisherFunction publisher) {
@@ -399,7 +411,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * Convenience functional interface for a method that publishes a package to a target
      */
     @FunctionalInterface
-    private interface TargetPublisherFunction {
+    protected interface TargetPublisherFunction {
         void run(final PublishPackageTO publishPackage,
                  final String target,
                  final Collection<PublishItem> publishItems)
@@ -419,29 +431,84 @@ public class Publisher implements ApplicationEventPublisherAware {
     /**
      * Process an initial publish package
      */
-    private void doInitialPublish(final PublishPackage publishPackage) throws Exception {
+    private void doInitialPublish(final PublishPackage publishPackage) {
         String siteId = publishPackage.getSite().getSiteId();
-        String commitId = contentRepository.initialPublish(siteId);
+        long packageId = publishPackage.getId();
+        String liveTarget = servicesConfig.getLiveEnvironment(siteId);
         boolean stagingEnabled = servicesConfig.isStagingEnvironmentEnabled(siteId);
-        Instant now = now();
-        DBUtils.runInTransaction(transactionManager,
-                format(PUBLISH_TRANSACTION_NAME_FORMAT, publishPackage.getSite().getSiteId(), publishPackage.getId(), OPERATION_INITIAL_PUBLISH), () -> {
-                    cancelAllOutstandingPackages(publishPackage.getSiteId());
-                    itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK, PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+        String stagingTarget = servicesConfig.getStagingEnvironment(siteId);
 
-                    Collection<String> targets = new ArrayList<>();
-                    targets.add(servicesConfig.getLiveEnvironment(siteId));
-                    if (stagingEnabled) {
-                        targets.add(servicesConfig.getStagingEnvironment(siteId));
+        Map<String, PublishItem> failedItems = new HashMap<>();
+        if (stagingEnabled) {
+            runTargetPublisher(publishPackage, emptyList(), (packageTO, target, __) -> doInitialPublishTarget(packageTO, target, failedItems, false),
+                    false, stagingTarget);
+        }
+
+        runTargetPublisher(publishPackage, emptyList(), (packageTO, target, __) -> doInitialPublishTarget(packageTO, target, failedItems, true),
+                true, liveTarget);
+
+        if (failedItems.isEmpty()) {
+            cancelAllOutstandingPackages(publishPackage.getSite().getId());
+        } else {
+            // Insert failed items to publish_item table
+            publishDao.insertInitialPublishItems(packageId, failedItems.values());
+        }
+        // The items' states are updated after we have inserted the failed items into the publish_item table
+        if (stagingEnabled) {
+            updateStatesOnInitialPublish(publishPackage, stagingTarget, false);
+        }
+        updateStatesOnInitialPublish(publishPackage, liveTarget, true);
+    }
+
+    private PublishItem getInitialPublishItem(final long packageId, final String path) {
+        PublishItem pi = new PublishItem();
+        pi.setPackageId(packageId);
+        pi.setAction(PublishItem.Action.ADD);
+        pi.setPath(path);
+        pi.setUserRequested(true);
+        return pi;
+    }
+
+    private void doInitialPublishTarget(final PublishPackageTO packageTO, final String target,
+                                        final Map<String, PublishItem> failedItems,
+                                        final boolean isLiveTarget)
+            throws ServiceLayerException {
+        PublishPackage publishPackage = packageTO.getPackage();
+        InitialPublishChangeSet initialPublishResult = contentRepository.initialPublish(publishPackage, target);
+
+        long packageOnBits = packageTO.getSuccessOnBits();
+        if (initialPublishResult.hasFailedItems()) {
+            initialPublishResult.failedItems().forEach((path, error) -> {
+                        PublishItem publishItem = failedItems.computeIfAbsent(path, p -> getInitialPublishItem(packageTO.getId(), p));
+                        PublishItemTOImpl itemTO = new PublishItemTOImpl(publishItem, path, PublishItem.Action.ADD, isLiveTarget);
+                        itemTO.setFailed(error);
                     }
-                    itemTargetDAO.insertForInitialPublish(publishPackage.getSite().getId(), targets, commitId, now);
+            );
+            packageOnBits = packageTO.getCompletedWithErrorsOnBits();
+        }
+        packageTO.setPublishedCommitId(initialPublishResult.commitId());
+        publishPackage.updatePackageState(packageOnBits, 0);
+        publishDao.updatePackage(publishPackage);
+    }
 
-                    publishPackage.setPublishedLiveCommitId(commitId);
-                    publishPackage.setPublishedStagingCommitId(commitId);
-                    publishPackage.setPublishedOn(now);
-                    publishPackage.setPackageState(PackageState.LIVE_SUCCESS.value + PackageState.STAGING_SUCCESS.value, 0);
-                    publishDao.updatePackage(publishPackage);
-                });
+    /**
+     * Update the package state and published commit id after an initial publish has been completed
+     * Also insert the item_target records for the initial publish and update the item table state bits
+     */
+    private void updateStatesOnInitialPublish(final PublishPackage publishPackage, final String target,
+                                              final boolean isLiveTarget) {
+        PublishPackageTO packageTO = getPublishPackageTO(publishPackage, isLiveTarget);
+        long failedItemState = isLiveTarget ? PublishItem.PublishState.LIVE_FAILED.value : PublishItem.PublishState.STAGING_FAILED.value;
+
+        itemTargetDAO.insertForInitialPublish(packageTO.getSite().getId(), publishPackage.getId(),
+                failedItemState, target, packageTO.getPublishedCommitId(), publishPackage.getPublishedOn());
+
+        publishDao.updateItemStatesForInitialPublish(packageTO.getSite().getId(),
+                packageTO.getId(),
+                failedItemState,
+                packageTO.getItemSuccessOnMask(),
+                packageTO.getItemSuccessOffMask(),
+                packageTO.getItemFailureOffMask());
     }
 
     private void cancelAllOutstandingPackages(final long siteId) {
@@ -466,7 +533,7 @@ public class Publisher implements ApplicationEventPublisherAware {
      * @param p         the publish package
      * @param operation the operation
      */
-    private void auditPublishOperation(final PublishPackage p, final String operation) {
+    protected void auditPublishOperation(final PublishPackage p, final String operation) {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
         String actorId = p.getSubmitter() != null ? p.getSubmitter().getUsername() : String.valueOf(p.getSubmitterId());

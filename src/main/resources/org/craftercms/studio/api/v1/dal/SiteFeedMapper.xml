@@ -34,12 +34,6 @@
         <result property="state" column="state" />
     </resultMap>
 
-    <resultMap id="PublishStatusMap" type="org.craftercms.studio.api.v2.dal.PublishStatus">
-        <id property="id" column="id" />
-        <result property="enabledAsInt" column="publishing_enabled" />
-        <result property="status" column="publishing_status" />
-    </resultMap>
-
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
         <parameter property="id" jdbcType="BIGINT" />
         <parameter property="siteUuid" jdbcType="VARCHAR"/>
@@ -171,10 +165,5 @@
         SELECT s.state
         FROM site s
         WHERE s.site_id = #{siteId} AND s.deleted = 0
-    </select>
-
-    <select id="getPublishingStatus" resultMap="PublishStatusMap">
-        SELECT publishing_enabled, publishing_status
-        FROM site WHERE site_id = #{siteId} AND deleted = 0 LIMIT 0, 1
     </select>
 </mapper>

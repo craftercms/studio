@@ -102,6 +102,58 @@
         </foreach>
     </insert>
 
+    <insert id="insertInitialPublishItems">
+        INSERT INTO publish_item
+        (package_id,
+        path,
+        live_previous_path,
+        staging_previous_path,
+        action,
+        user_requested,
+        publish_state,
+        live_error,
+        staging_error)
+        VALUES
+        <!-- TODO: review max parameters count configs and batch as necessary -->
+        <foreach collection="items" item="item" index="index" separator=",">
+            (#{packageId},
+            #{item.path},
+            #{item.livePreviousPath},
+            #{item.stagingPreviousPath},
+            #{item.action},
+            #{item.userRequested},
+            #{item.publishState},
+            #{item.liveError},
+            #{item.stagingError})
+        </foreach>
+    </insert>
+
+    <update id="updateItemStatesForInitialPublish">
+        UPDATE item, (
+                    SELECT i.id as item_id, (CASE  <!-- If the item failed to be published for a target,
+                                                        then a matching record should exist in publish_item table -->
+                                                WHEN (i.path IN (SELECT pi.path FROM publish_item pi
+                                                                WHERE pi.package_id = #{packageId}
+                                                                AND (pi.publish_state &amp; #{itemFailureState}) > 0))
+                                                THEN 0
+                                                ELSE #{successOnStatesBitMap}
+                                            END
+                                            ) AS maskOn,
+                                            (CASE
+                                                WHEN(i.path IN (SELECT pi.path FROM publish_item pi
+                                                                WHERE pi.package_id = #{packageId}
+                                                                AND (pi.publish_state &amp; #{itemFailureState}) > 0))
+                                                THEN #{failureOffStatesBitMap}
+                                                ELSE #{successOffStatesBitMap}
+                                            END
+                                            ) AS maskOff
+                    FROM item i
+                    WHERE i.site_id = #{siteId}
+                ) AS updates
+        SET item.state = (item.state | updates.maskOn) &amp; ~updates.maskOff
+        WHERE item.id = updates.item_id
+    </update>
+
     <insert id="insertItemPublishItems">
         INSERT INTO item_publish_item
         SELECT pi.id, i.id
@@ -302,7 +354,7 @@
         AND s.id = #{siteId}
     </select>
 
-    <update id="updatePublishItemState">
+    <update id="updatePublishItemsState">
         UPDATE publish_item
         SET publish_state = (publish_state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
         WHERE package_id = #{packageId}

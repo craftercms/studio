@@ -20,6 +20,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.api.v2.utils.git.cli.GitCliOutputExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.CompositeGitCliExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.NoChangesToCommitExceptionResolver;
@@ -43,6 +45,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 import static org.apache.commons.lang3.StringUtils.trim;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TMP_FILE_SUFFIX;
@@ -305,33 +308,50 @@ public class GitCli {
      * @throws IOException if an error occurs executing the git command or when accessing the file system
      * @throws InterruptedException  if the thread is interrupted while waiting for the git process to finish
      */
-    public String writeTree(final File directory, final List<String> paths, final List<String> deletedPaths, final String commitId, final ObjectId parentCommitId)
+    public String writeTree(final File directory, final List<String> paths, final List<String> deletedPaths,
+                            final String commitId, final ObjectId parentCommitId, final TaskProgress<?, ?> taskProgress)
             throws IOException, InterruptedException {
         // git read-tree target_branch
         GitCommandLine readTreeCl = new GitCommandLine("read-tree", parentCommitId.getName());
         executeGitCommand(directory.getAbsolutePath(), readTreeCl);
         final Path indexInfoTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
+        Stage prepareWriteTreeStage = taskProgress.startStage("Prepare write tree",
+                emptyIfNull(paths).size() + emptyIfNull(deletedPaths).size());
         try {
-            for (List<String> deletedPathsBatch : ListUtils.partition(emptyIfNull(deletedPaths), PATHS_BATCH_SIZE)) {
-                // Remove from the index
-                GitCommandLine rmCommand = new GitCommandLine("rm",  "-r", "--ignore-unmatch", "--cached");
-                deletedPathsBatch.forEach(rmCommand::addParam);
-                executeGitCommand(directory.getAbsolutePath(), rmCommand);
+            if (isNotEmpty(deletedPaths)) {
+                for (List<String> deletedPathsBatch : ListUtils.partition(emptyIfNull(deletedPaths), PATHS_BATCH_SIZE)) {
+                    // Remove from the index
+                    GitCommandLine rmCommand = new GitCommandLine("rm", "-r", "--ignore-unmatch", "--cached");
+                    deletedPathsBatch.forEach(p -> {
+                        rmCommand.addParam(p);
+                        prepareWriteTreeStage.advanceOne();
+                    });
+                    executeGitCommand(directory.getAbsolutePath(), rmCommand);
+                }
             }
             // In batches, call git ls-tree and create index info file
-            for (List<String> pathsBatch : ListUtils.partition(emptyIfNull(paths), PATHS_BATCH_SIZE)) {
-                GitCommandLine lsTreeCl = new GitCommandLine("ls-tree", commitId);
-                pathsBatch.forEach(lsTreeCl::addParam);
-                String lsTreeOutput = executeGitCommand(directory.getAbsolutePath(), lsTreeCl);
-                Files.write(indexInfoTempFile, lsTreeOutput.getBytes(), StandardOpenOption.APPEND);
+            if (isNotEmpty(paths)) {
+                for (List<String> pathsBatch : ListUtils.partition(emptyIfNull(paths), PATHS_BATCH_SIZE)) {
+                    GitCommandLine lsTreeCl = new GitCommandLine("ls-tree", commitId);
+                    pathsBatch.forEach(p -> {
+                        lsTreeCl.addParam(p);
+                        prepareWriteTreeStage.advanceOne();
+                    });
+                    String lsTreeOutput = executeGitCommand(directory.getAbsolutePath(), lsTreeCl);
+                    Files.write(indexInfoTempFile, lsTreeOutput.getBytes(), StandardOpenOption.APPEND);
+                }
             }
+            prepareWriteTreeStage.complete();
             // Update index with correct version of published files
+            Stage updateIndexStage = taskProgress.startStage("Update index and write tree");
             GitCommandLine updateIndexCl = new GitCommandLine("update-index", "--index-info");
             executeGitCommand(directory.getAbsolutePath(), updateIndexCl, indexInfoTempFile.toRealPath().toFile());
 
             // git write-tree
             GitCommandLine writeTreeCl = new GitCommandLine("write-tree");
-            return trim(executeGitCommand(directory.getAbsolutePath(), writeTreeCl));
+            String treeId = trim(executeGitCommand(directory.getAbsolutePath(), writeTreeCl));
+            updateIndexStage.complete();
+            return treeId;
         } finally {
             Files.deleteIfExists(indexInfoTempFile);
         }

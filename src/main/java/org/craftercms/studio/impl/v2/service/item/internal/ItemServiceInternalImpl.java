@@ -37,6 +37,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
@@ -347,7 +349,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean isSystemProcessing(String siteId, Collection<String> paths) {
-        if (CollectionUtils.isEmpty(paths)) {
+        if (isEmpty(paths)) {
             return false;
         }
         return itemDao.matchItemState(siteId, paths, SYSTEM_PROCESSING.value);
@@ -372,6 +374,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Map<String, ItemPathAndState> getItemStates(final String siteId, final Collection<String> paths) {
+        if (isEmpty(paths)) {
+            return emptyMap();
+        }
         return itemDao.getItemStates(siteId, paths);
     }
 

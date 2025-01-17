@@ -58,6 +58,7 @@ public interface PublishDAO {
     String SITE_STATES = "siteStates";
     String ERROR = "error";
     String ITEM_SUCCESS_STATE = "itemSuccessState";
+    String ITEM_FAILURE_STATE = "itemFailureState";
     String ITEM_PUBLISHED_STATE = "publishState";
     String ON_STATES_BIT_MAP = "onStatesBitMap";
     String OFF_STATES_BIT_MAP = "offStatesBitMap";
@@ -146,6 +147,32 @@ public interface PublishDAO {
      * @param publishPackage the package to insert
      */
     void insertPackage(@Param(PUBLISH_PACKAGE) PublishPackage publishPackage, @Param(PACKAGE_READY_STATE) long packageState);
+
+    /**
+     * Insert the failed initial publish items into the publish_item table
+     *
+     * @param packageId    the package id
+     * @param publishItems the failed items
+     */
+    void insertInitialPublishItems(@Param(PACKAGE_ID) long packageId,
+                                   @Param(ITEMS) Collection<PublishItem> publishItems);
+
+    /**
+     * Update the site item states after the initial publish
+     *
+     * @param siteId           the site id
+     * @param packageId        the package id
+     * @param itemFailureState the state to match the failed items for the target
+     * @param successOnMask    the states to flip on for successful items
+     * @param successOffMask   the states to flip off for successful items
+     * @param failureOffMask   the states to flip off for failed items
+     */
+    void updateItemStatesForInitialPublish(@Param(SITE_ID) long siteId,
+                                           @Param(PACKAGE_ID) long packageId,
+                                           @Param(ITEM_FAILURE_STATE) long itemFailureState,
+                                           @Param(SUCCESS_ON_BIT_MAP) long successOnMask,
+                                           @Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
+                                           @Param(FAILURE_OFF_BIT_MAP) long failureOffMask);
 
     /**
      * Insert items into a publish package
@@ -411,7 +438,7 @@ public interface PublishDAO {
      * @param onStatesBitMap  the state bits to set to on
      * @param offStatesBitMap the state bits to set to off
      */
-    void updatePublishItemState(@Param(PACKAGE_ID) long id,
+    void updatePublishItemsState(@Param(PACKAGE_ID) long id,
                                 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                                 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
