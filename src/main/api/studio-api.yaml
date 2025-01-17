@@ -6866,8 +6866,6 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
-                  progress:
-                    $ref: '#/components/schemas/PublishTaskProgress'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -9791,39 +9789,11 @@ components:
         enabled:
           type: boolean
           description: true if publishing for site is enabled, otherwise false
-        status:
-          type: string
-          description: publishing status for site
-        lockOwner:
-          type: string
-          description: studio instance owner of publishing lock
-        lockTTL:
-          type: string
-          description: TTL timestamp for publishing lock
-        totalItems:
-          type: integer
-          format: int32
-          description: total number of item being published right now
-        numberOfItems:
-          type: integer
-          format: int32
-          description: number of items published so far
-        submissionId:
-          type: string
-          description: identifier of a submission being published
-        publishingTarget:
-          type: string
-          description: publishing target for package
         published:
           type: boolean
           description: true if site has been published at least once (initial publish; published repository exist), otherwise false
-
-      required:
-        - enabled
-        - status
-        - message
-        - lockOwner
-        - lockTTL
+        currentTask:
+          $ref: '#/components/schemas/PublishTaskProgress'
 
     DeploymentHistoryGroup:
       type: object

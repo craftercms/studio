@@ -24,9 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,66 +36,63 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TaskManagerImpl implements TaskManager, ApplicationContextAware {
 
-    private static final String GLOBAL_SITE_ID = "";
     // By site and then by task id
-    private final Map<String, Map<Object, TaskProgress<? extends TaskId, ?>>> tasks;
+    private final Map<String, Map<TaskId.SiteTaskId, TaskProgress<? extends TaskId.SiteTaskId, ?>>> tasks;
+    private final Map<TaskId, TaskProgress<? extends TaskId, ?>> globalTasks;
     private ApplicationContext applicationContext;
 
     public TaskManagerImpl() {
         tasks = new ConcurrentHashMap<>();
+        globalTasks = new ConcurrentHashMap<>();
     }
 
     /**
      * Get the map of tasks for a site
      */
-    private Map<Object, TaskProgress<? extends TaskId, ?>> bySite(final String site) {
+    private Map<TaskId.SiteTaskId, TaskProgress<? extends TaskId.SiteTaskId, ?>> bySite(final String site) {
         return tasks.computeIfAbsent(site, k -> new ConcurrentHashMap<>());
     }
 
     @Override
     public <K extends TaskId, R> TaskProgress<K, R> registerTask(final Task<K> task) {
         TaskProgressImpl<K, R> progress = applicationContext.getBean(TaskProgressImpl.class, task, this);
-        bySite(getTaskSiteId(task.getTaskId())).put(task.getTaskId(), progress);
+        switch (task.getTaskId()) {
+            case TaskId.SiteTaskId siteTaskId ->
+                    bySite(siteTaskId.getSiteId()).put(siteTaskId, (TaskProgress<? extends TaskId.SiteTaskId, ?>) progress);
+            case TaskId.GlobalTaskId globalTaskId -> globalTasks.put(globalTaskId, progress);
+        }
         return progress;
     }
 
     @Override
     public <K extends TaskId, R> TaskProgress<K, R> getTask(final K taskId) {
-        return (TaskProgress<K, R>) bySite(getTaskSiteId(taskId)).get(taskId);
+        return switch (taskId) {
+            case TaskId.SiteTaskId siteTaskId -> (TaskProgress<K, R>) bySite(siteTaskId.getSiteId()).get(taskId);
+            case TaskId.GlobalTaskId __ -> (TaskProgress<K, R>) globalTasks.get(taskId);
+        };
     }
 
     @Override
-    public <R> Collection<TaskProgress<TaskId.SiteTaskId, R>> getSiteTasksByType(final String siteId, final String type) {
+    @NonNull
+    public <K extends TaskId.SiteTaskId, R> List<TaskProgress<K, R>> getSiteTasksByType(final String siteId, final String type) {
         return bySite(siteId).values()
                 .stream()
                 .filter(task -> task.getTask().getType().equals(type))
-                .map(task -> (TaskProgress<TaskId.SiteTaskId, R>) task)
+                .map(task -> (TaskProgress<K, R>) task)
                 .toList();
     }
 
     @Override
     public Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> getSiteTasks(final String siteId) {
-        Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = new LinkedList<>();
-        bySite(siteId).values()
-                .stream()
-                .forEach(task -> siteTasks.add((TaskProgress<? extends TaskId.SiteTaskId, ?>) task));
-
-        return siteTasks;
+        return bySite(siteId).values();
     }
 
     @Override
     public <K extends TaskId> void removeTask(final K taskId) {
-        bySite(getTaskSiteId(taskId)).remove(taskId);
-    }
-
-    /**
-     * Get the site id from a {@link TaskId}, or the global site id if it is a global task
-     */
-    private String getTaskSiteId(final TaskId taskId) {
-        return switch (taskId) {
-            case TaskId.SiteTaskId siteTaskId -> siteTaskId.getSiteId();
-            case TaskId.GlobalTaskId __ -> GLOBAL_SITE_ID;
-        };
+        switch (taskId) {
+            case TaskId.SiteTaskId siteTaskId -> bySite(siteTaskId.getSiteId()).remove(taskId);
+            case TaskId.GlobalTaskId __ -> globalTasks.remove(taskId);
+        }
     }
 
     @Override

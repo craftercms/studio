@@ -17,8 +17,10 @@
 package org.craftercms.studio.api.v2.task;
 
 import org.craftercms.studio.model.task.Task;
+import org.springframework.lang.NonNull;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Keeps track of running tasks and provides functionality to monitor their progress
@@ -49,7 +51,8 @@ public interface TaskManager {
      * @param type   the type of the task
      * @return a collection of {@link TaskProgress} items for the site and type
      */
-    <R> Collection<TaskProgress<TaskId.SiteTaskId, R>> getSiteTasksByType(String siteId, String type);
+    @NonNull
+    <K extends TaskId.SiteTaskId, R> List<TaskProgress<K, R>> getSiteTasksByType(String siteId, String type);
 
     /**
      * Get a task by its id
