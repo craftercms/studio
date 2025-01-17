@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -264,7 +264,7 @@ public class GroupServiceImpl implements GroupService {
             auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setPrimaryTargetId(Long.toString(group.getId()));
-            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
             auditLog.setPrimaryTargetValue(group.getGroupName());
             List<AuditLogParameter> parameters = new ArrayList<>();
             for (User user : users) {
