@@ -41,7 +41,10 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.task.TaskManager;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.task.PublishTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -66,6 +69,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
@@ -89,6 +93,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final SecurityService securityService;
     private final AuditServiceInternal auditServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
+    private final TaskManager taskManager;
     private ApplicationContext applicationContext;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
@@ -98,7 +103,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "retryingDatabaseOperationFacade",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal",
-            "itemServiceInternal"})
+            "itemServiceInternal", "taskManager"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
                                     StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
@@ -106,7 +111,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
                                     Deployer deployer, ConfigurationService configurationService,
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal,
-                                    ItemServiceInternal itemServiceInternal) {
+                                    ItemServiceInternal itemServiceInternal, TaskManager taskManager) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
         this.blobAwareRepository = blobAwareRepository;
@@ -119,6 +124,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.securityService = securityService;
         this.auditServiceInternal = auditServiceInternal;
         this.itemServiceInternal = itemServiceInternal;
+        this.taskManager = taskManager;
     }
 
     @Override
@@ -481,7 +487,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     @Override
     public PublishStatus getPublishingStatus(String siteId) {
-        return siteFeedMapper.getPublishingStatus(siteId);
+        PublishStatus publishStatus = new PublishStatus();
+        Site site = siteDao.getSite(siteId);
+        publishStatus.setEnabled(site.getPublishingEnabled());
+        publishStatus.setPublished(blobAwareRepository.publishedRepositoryExists(siteId));
+        List<TaskProgress<PublishTask.PublishTaskId, Long>> publishTasks =
+                taskManager.getSiteTasksByType(siteId, PublishTask.PUBLISH_TASK_TYPE);
+        if (isNotEmpty(publishTasks)) {
+            publishStatus.setCurrentTask(publishTasks.getFirst());
+        }
+        return publishStatus;
     }
 
     @Override

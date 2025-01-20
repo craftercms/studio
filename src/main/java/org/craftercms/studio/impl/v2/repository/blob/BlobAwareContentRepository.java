@@ -43,13 +43,20 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
+import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.task.TaskManager;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.task.PublishTask;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -68,6 +75,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -82,8 +90,7 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
  * @since 3.1.6
  */
 public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.repository.GitContentRepository,
-        StudioBlobAwareContentRepository,
-        org.craftercms.studio.api.v2.repository.GitContentRepository {
+        StudioBlobAwareContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(BlobAwareContentRepository.class);
 
@@ -94,15 +101,20 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
     protected GitContentRepositoryImpl localRepositoryV1;
 
-    protected org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2;
+    protected GitPublishCapableRepository localRepositoryV2;
 
     protected StudioBlobStoreResolver blobStoreResolver;
     private ServicesConfig servicesConfig;
+    private TaskManager taskManager;
 
     protected final ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public void setServicesConfig(final ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public void setTaskManager(final TaskManager taskManager) {
+        this.taskManager = taskManager;
     }
 
     public void setFileExtension(String fileExtension) {
@@ -115,7 +127,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @SuppressWarnings("unused")
-    public void setLocalRepositoryV2(org.craftercms.studio.api.v2.repository.GitContentRepository localRepositoryV2) {
+    public void setLocalRepositoryV2(GitPublishCapableRepository localRepositoryV2) {
         this.localRepositoryV2 = localRepositoryV2;
     }
 
@@ -130,6 +142,10 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
     protected String getPointerPath(String siteId, String path) {
         return isFolder(siteId, path) ? path : appendIfMissing(path, "." + fileExtension);
+    }
+
+    protected boolean isBlobPath(final String path) {
+        return path.endsWith("." + fileExtension);
     }
 
     protected String getPathFromPointerPath(String siteId, String pointerPath) {
@@ -432,7 +448,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
      */
     private void duplicateBlobs(String sourceSiteId, String siteId, GitRepositories repoType, String environment, String revstr) throws ServiceLayerException {
         List<String> siteItemPaths = localRepositoryV2.getItemPaths(sourceSiteId, repoType, revstr)
-                .stream().filter(p -> p.endsWith("." + fileExtension)).toList();
+                .stream().filter(this::isBlobPath).toList();
         MultiKeyMap<StudioBlobStore, List<String>> copyItems = new MultiKeyMap<>();
         for (String path : siteItemPaths) {
             String assetPath = getOriginalPath(path);
@@ -505,8 +521,6 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     public boolean isFolder(String siteId, String path) {
         return localRepositoryV2.isFolder(siteId, path);
     }
-
-    // TODO: Remove when the API is split
 
     @Override
     public boolean deleteSite(String siteId) {
@@ -656,32 +670,79 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
     }
 
     @Override
-    public String initialPublish(final String siteId) throws ServiceLayerException {
+    public InitialPublishChangeSet initialPublish(final PublishPackage publishPackage, final String target) throws ServiceLayerException {
+        String siteId = publishPackage.getSite().getSiteId();
+        long packageId = publishPackage.getId();
         List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
-        for (StudioBlobStore blobStore : blobStores) {
-            blobStore.initialPublish(siteId);
-        }
-        return localRepositoryV2.initialPublish(siteId);
+
+        TaskProgress<PublishTask.PublishTaskId, ?> taskProgress = taskManager.getTask(new PublishTask.PublishTaskId(siteId, packageId));
+        MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> pathsByBlobStore = scanRepoForBlobPaths(taskProgress, siteId, blobStores);
+
+        Collection<BlobAwareInitialPublishItemTO> failedItems = initialPublishBlobs(publishPackage, taskProgress, target, pathsByBlobStore);
+        Collection<String> ignoredRepoPaths = failedItems.stream().map(BlobAwareInitialPublishItemTO::getRepoPath).toList();
+        String commitId = localRepositoryV2.initialPublish(publishPackage, ignoredRepoPaths, target);
+        return new InitialPublishChangeSet(commitId, failedItems.stream()
+                .collect(toMap(BlobAwareInitialPublishItemTO::getPath, BlobAwareInitialPublishItemTO::getError)));
     }
 
-    @Override
-    public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
-                                                                       final String publishingTarget,
-                                                                       final Collection<T> publishItems) throws ServiceLayerException, IOException {
-        return publishInternal(publishPackage, publishingTarget, publishItems);
+    /**
+     * Scan the repository for blob paths.
+     * This method will iterate over all the site paths and will filter out the blob paths, then
+     * it will match them with the blob stores and return a map with the paths grouped by the blob store
+     */
+    private @NotNull MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> scanRepoForBlobPaths(final TaskProgress<PublishTask.PublishTaskId, ?> taskProgress,
+                                                                                                        final String siteId, final List<StudioBlobStore> blobStores)
+            throws ServiceLayerException {
+        MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> pathsByBlobStore = new LinkedMultiValueMap<>();
+        Stage scanStage = taskProgress.startStage("Scanning repo for blob paths");
+        try {
+            // Ignore directories
+            localRepositoryV2.forAllFileSitePaths(siteId, p -> {
+                if (isBlobPath(p)) {
+                    blobStores.stream()
+                            .filter(store -> store.isCompatible(p)).findFirst()
+                            .ifPresent(
+                                    store -> pathsByBlobStore.add(store, new BlobAwareInitialPublishItemTO(getOriginalPath(p), getRepoPath(p))));
+                }
+            });
+        } catch (Exception e) {
+            throw new ServiceLayerException("Failed to get all site paths for initial publish of site '%s'".formatted(siteId), e);
+        }
+        scanStage.complete();
+        return pathsByBlobStore;
+    }
+
+    /**
+     * Publishes the blobs for the initial publish
+     *
+     * @param publishPackage   the publish package
+     * @param taskProgress     the task progress
+     * @param target           the target
+     * @param itemsByBlobStore the items by blob store
+     * @return the failed items
+     * @throws ServiceLayerException if an error occurs during the blobs publishing
+     */
+    private Collection<BlobAwareInitialPublishItemTO> initialPublishBlobs(final PublishPackage publishPackage, final TaskProgress<?, ?> taskProgress,
+                                                                          final String target, final MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> itemsByBlobStore) throws ServiceLayerException {
+        Collection<BlobAwareInitialPublishItemTO> failedItems = new LinkedList<>();
+        int totalItems = itemsByBlobStore.values().stream().mapToInt(List::size).sum();
+        Stage copyBlobsStage = taskProgress.startStage("Publishing blobs for target '%s'".formatted(target), totalItems);
+        for (Map.Entry<StudioBlobStore, List<BlobAwareInitialPublishItemTO>> entry : itemsByBlobStore.entrySet()) {
+            StudioBlobStore blobStore = entry.getKey();
+
+            StudioBlobStore.PublishChangeSet<BlobAwareInitialPublishItemTO> publishResult = blobStore.publish(publishPackage, target, entry.getValue(), copyBlobsStage);
+            failedItems.addAll(publishResult.failedItems());
+        }
+        copyBlobsStage.complete();
+        return failedItems;
     }
 
     @Override
     public <T extends PublishItemTO> GitPublishChangeSet<T> publish(final PublishPackage publishPackage,
                                                                  final String publishingTarget,
                                                                  final Collection<T> publishItems) throws ServiceLayerException, IOException {
-        return publishInternal(publishPackage, publishingTarget, publishItems);
-    }
-
-    private <T extends PublishItemTO> GitPublishChangeSet<T> publishInternal(final PublishPackage publishPackage,
-                                                                             final String publishingTarget,
-                                                                             final Collection<T> publishItems) throws ServiceLayerException, IOException {
-        List<StudioBlobStore> blobStores = blobStoreResolver.getAll(publishPackage.getSite().getSiteId());
+        String siteId = publishPackage.getSite().getSiteId();
+        List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
         List<T> failedItems = new LinkedList<>();
 
         List<BlobAwarePublishItemTOWrapper<T>> gitRepoItems = new LinkedList<>();
@@ -694,17 +755,23 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
                     () -> gitRepoItems.add(new BlobAwarePublishItemTOWrapper<>(publishItem, publishItem.getPath())));
         }
 
-        for (Map.Entry<StudioBlobStore, List<BlobAwarePublishItemTOWrapper<T>>> entry : itemsByBlobStore.entrySet()) {
-            StudioBlobStore blobStore = entry.getKey();
-            List<BlobAwarePublishItemTOWrapper<T>> blobStoreItems = entry.getValue();
-            StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
-                    publishingTarget, blobStoreItems);
+        if (!itemsByBlobStore.isEmpty()) {
+            int total = itemsByBlobStore.values().stream().mapToInt(List::size).sum();
+            Stage blobStage = taskManager.getTask(new PublishTask.PublishTaskId(siteId, publishPackage.getId()))
+                    .startStage("Publishing blobs for target '%s'".formatted(publishingTarget), total);
+            for (Map.Entry<StudioBlobStore, List<BlobAwarePublishItemTOWrapper<T>>> entry : itemsByBlobStore.entrySet()) {
+                StudioBlobStore blobStore = entry.getKey();
+                List<BlobAwarePublishItemTOWrapper<T>> blobStoreItems = entry.getValue();
+                StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
+                        publishingTarget, blobStoreItems, blobStage);
 
-            failedItems.addAll(unwrap(storeChangeset.failedItems()));
-            gitRepoItems.addAll(storeChangeset.successfulItems().stream()
-                    .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
-                    .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
-                    .toList());
+                failedItems.addAll(unwrap(storeChangeset.failedItems()));
+                gitRepoItems.addAll(storeChangeset.successfulItems().stream()
+                        .map(BlobAwarePublishItemTOWrapper::getWrappedItem)
+                        .map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
+                        .toList());
+            }
+            blobStage.complete();
         }
 
         if (isEmpty(gitRepoItems)) {
@@ -713,7 +780,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
         GitPublishChangeSet<BlobAwarePublishItemTOWrapper<T>> committedChangeset;
         if (isEmpty(failedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
-            committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget, gitRepoItems);
+            committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget);
         } else {
             committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
         }

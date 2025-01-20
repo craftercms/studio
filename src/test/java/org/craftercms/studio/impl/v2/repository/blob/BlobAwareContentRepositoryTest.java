@@ -18,17 +18,18 @@ package org.craftercms.studio.impl.v2.repository.blob;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.repository.GitContentRepository.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore.PublishChangeSet;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.task.TaskManager;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -61,6 +62,7 @@ public class BlobAwareContentRepositoryTest {
 
     public static final String SITE = "test";
     public static final long SITE_ID = 123;
+    public static final long PACKAGE_ID = 456;
     public static final String PARENT_PATH = "/static-assets";
     public static final String ORIGINAL_PATH = PARENT_PATH + "/test.txt";
     public static final String ORIGINAL_PATH_2 = PARENT_PATH + "/test2.txt";
@@ -111,6 +113,9 @@ public class BlobAwareContentRepositoryTest {
     @Mock
     private PublishPackage publishPackage;
 
+    @Mock
+    private TaskManager taskManager;
+
     private AutoCloseable mocks;
 
     @AfterMethod
@@ -159,7 +164,7 @@ public class BlobAwareContentRepositoryTest {
         when(store.getContent(SITE, ORIGINAL_PATH, false)).thenReturn(CONTENT);
         when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
 
-        when(store.moveContent(any(),any(),any(),any())).thenReturn(EMPTY);
+        when(store.moveContent(any(), any(), any(), any())).thenReturn(EMPTY);
 
         proxy.setFileExtension(BLOB_EXT);
 
@@ -172,8 +177,15 @@ public class BlobAwareContentRepositoryTest {
             return new GitPublishChangeSet<>(COMMIT_1, itemsParam, emptyList());
         });
 
-
         when(publishPackage.getSite()).thenReturn(site);
+
+        when(taskManager.getTask(any())).then(invocation -> {
+            TaskProgress taskProgress = mock(TaskProgress.class);
+
+            when(taskProgress.startStage(anyString())).thenAnswer(__ -> mock(TaskProgress.Stage.class));
+            when(taskProgress.startStage(anyString(), anyInt())).thenAnswer(__ -> mock(TaskProgress.Stage.class));
+            return taskProgress;
+        });
     }
 
     @Test
@@ -312,7 +324,7 @@ public class BlobAwareContentRepositoryTest {
         when(publishItemTO.getAction()).thenReturn(ADD);
         when(publishItemTO.getError()).thenReturn(0);
 
-        when(store.publish(any(), any(), any())).then((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+        when(store.publish(any(), any(), any(), any())).then((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             return new PublishChangeSet<>(itemsParam, emptyList());
         });
@@ -320,7 +332,7 @@ public class BlobAwareContentRepositoryTest {
         List<PublishItemTO> publishItems = singletonList(publishItemTO);
         proxy.publish(publishPackage, ENV, publishItems);
 
-        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture(), any());
 
         PublishItemTO capturedPublishItem = itemsCaptor.getValue().getFirst();
         assertEquals(capturedPublishItem.getPath(), ORIGINAL_PATH);
@@ -340,7 +352,7 @@ public class BlobAwareContentRepositoryTest {
 
         proxy.publish(publishPackage, ENV, publishItems);
 
-        verify(store, never()).publish(any(), any(), any());
+        verify(store, never()).publish(any(), any(), any(), any());
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
         PublishItemTO capturedPublishItem = itemsCaptor.getValue().getFirst();
@@ -359,7 +371,7 @@ public class BlobAwareContentRepositoryTest {
         when(localItem.getPath()).thenReturn(LOCAL_PATH);
         when(localItem.getAction()).thenReturn(ADD);
 
-        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+        when(store.publish(any(), any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             return new PublishChangeSet<>(itemsParam, emptyList());
         });
@@ -367,7 +379,7 @@ public class BlobAwareContentRepositoryTest {
         List<PublishItemTO> items = List.of(remoteItem, localItem);
         proxy.publish(publishPackage, ENV, items);
 
-        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture(), any());
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
@@ -387,7 +399,7 @@ public class BlobAwareContentRepositoryTest {
         when(localItem.getPath()).thenReturn(LOCAL_PATH);
         when(localItem.getAction()).thenReturn(ADD);
 
-        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+        when(store.publish(any(), any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             itemsParam.stream().findFirst().ifPresent(i -> i.setFailed(101));
             return new PublishChangeSet<>(emptyList(), itemsParam);
@@ -399,7 +411,7 @@ public class BlobAwareContentRepositoryTest {
         assertEquals(resultChangeSet.failedItems().size(), 1, "Exactly one failed item was expected");
         assertEquals(resultChangeSet.successfulItems().size(), 1, "Exactly one successful item was expected");
 
-        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture(), any());
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
 
         verify(localRepositoryV2).publish(any(), eq(ENV), itemsCaptor.capture());
@@ -422,7 +434,7 @@ public class BlobAwareContentRepositoryTest {
         when(localItem.getPath()).thenReturn(LOCAL_PATH);
         when(localItem.getAction()).thenReturn(ADD);
 
-        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+        when(store.publish(any(), any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             List<PublishItemTO> failed = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH)).peek(i -> i.setFailed(101)).toList();
             List<PublishItemTO> successful = itemsParam.stream().filter(i -> i.getPath().equals(ORIGINAL_PATH_2)).toList();
@@ -436,7 +448,7 @@ public class BlobAwareContentRepositoryTest {
         assertEquals(resultChangeSet.failedItems().size(), 1, "Exactly one failed item was expected");
         assertEquals(resultChangeSet.successfulItems().size(), 2, "Exactly two successful item was expected");
 
-        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture(), any());
         assertEquals(itemsCaptor.getValue().size(), 2, "Only two blobStore items should have been published");
         assertTrue(itemsCaptor.getValue().stream().anyMatch(i -> i.getPath().equals(ORIGINAL_PATH)), "remote file should have been published");
 
@@ -459,7 +471,7 @@ public class BlobAwareContentRepositoryTest {
         when(remoteItem2.getPath()).thenReturn(ORIGINAL_PATH_2);
         when(remoteItem2.getAction()).thenReturn(ADD);
 
-        when(store.publish(any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
+        when(store.publish(any(), any(), any(), any())).thenAnswer((Answer<PublishChangeSet<PublishItemTO>>) invocationOnMock -> {
             Collection<PublishItemTO> itemsParam = invocationOnMock.getArgument(2, Collection.class);
             itemsParam.forEach(i -> i.setFailed(101));
             return new PublishChangeSet<>(emptyList(), itemsParam);
@@ -473,7 +485,7 @@ public class BlobAwareContentRepositoryTest {
         assertEquals(resultChangeSet.failedItems().size(), 2, "Exactly two failed items were expected");
         assertNull(resultChangeSet.commitId(), "No commit id was expected");
 
-        verify(store).publish(any(), eq(ENV), itemsCaptor.capture());
+        verify(store).publish(any(), eq(ENV), itemsCaptor.capture(), any());
         assertEquals(itemsCaptor.getValue().size(), 2, "Exactly two blobStore items should have been published");
     }
 
@@ -509,17 +521,12 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     public void initialPublishTest() throws ServiceLayerException {
-        proxy.initialPublish(SITE);
+        PublishPackage publishPackage = mock(PublishPackage.class);
+        when(publishPackage.getSite()).thenReturn(site);
+        when(publishPackage.getId()).thenReturn(PACKAGE_ID);
+        proxy.initialPublish(publishPackage, "live");
 
-        verify(store).initialPublish(SITE);
-        verify(localRepositoryV2).initialPublish(SITE);
-    }
-
-    @Test(expectedExceptions = SiteNotFoundException.class)
-    public void blobAwareRepoBubblesUpSiteNotFoundExceptionTest() throws ServiceLayerException {
-        String nonExistingSite = "nonExistingSite";
-        doThrow(SiteNotFoundException.class).when(localRepositoryV2).initialPublish(nonExistingSite);
-        proxy.initialPublish(nonExistingSite);
+        verify(localRepositoryV2).initialPublish(eq(publishPackage), eq(emptyList()), eq("live"));
     }
 
 }

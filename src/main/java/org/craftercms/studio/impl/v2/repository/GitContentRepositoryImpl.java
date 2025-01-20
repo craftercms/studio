@@ -42,16 +42,18 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.task.TaskManager;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.task.PublishTask.PublishTaskId;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffConfig;
@@ -106,7 +108,7 @@ import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
 /**
  * Implementation of the GitContentRepositoryImpl interface.
  */
-public class GitContentRepositoryImpl implements GitContentRepository {
+public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryImpl.class);
     private static final String REFS_HEADS_FORMAT = "refs/heads/%s";
@@ -122,11 +124,12 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     private SitesService siteService;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private PublishingProgressServiceInternal publishingProgressServiceInternal;
 
     private ServicesConfig servicesConfig;
 
     protected StudioDBScriptRunnerFactory scriptRunnerFactory;
+
+    private TaskManager taskManager;
 
     @Override
     public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
@@ -1094,38 +1097,39 @@ public class GitContentRepositoryImpl implements GitContentRepository {
     }
 
     @Override
-    public String initialPublish(final String siteId) throws ServiceLayerException {
-        String commitId = getRepoLastCommitId(siteId);
+    public String initialPublish(final PublishPackage publishPackage, final Collection<String> ignorePaths,
+                                 final String target) throws ServiceLayerException {
+        String siteId = publishPackage.getSite().getSiteId();
+        long packageId = publishPackage.getId();
 
+        TaskProgress<PublishTaskId, ?> taskProgress = taskManager.getTask(new PublishTaskId(siteId, packageId));
         String publishedRepoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(publishedRepoLockKey);
         try {
+            String commitId = getRepoLastCommitId(siteId);
             // Create published repo
-            helper.createPublishedRepository(siteId);
+            if (!publishedRepositoryExists(siteId)) {
+                helper.createPublishedRepository(siteId);
+            }
             Repository repo = helper.getRepository(siteId, PUBLISHED);
             ObjectId commitIdObject = repo.resolve(commitId);
-            String treeId = helper.writeTree(repo, emptyList(), List.of(ALL_DOT_KEEP_PATTERN), commitId, commitIdObject);
+            List<String> ignore = new ArrayList<>(ignorePaths);
+            ignore.add(ALL_DOT_KEEP_PATTERN);
+            String treeId = helper.writeTree(repo, emptyList(), ignore, commitId, commitIdObject, taskProgress);
             User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
             String newCommitId = helper.commitTree(repo, treeId, commitIdObject, gitRepoUser, helper.getCommitMessage(REPO_INITIAL_PUBLISH_COMMIT_MESSAGE));
 
-            // Create staging branch
-            if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-                createEnvironmentBranch(siteId, newCommitId,
-                        servicesConfig.getStagingEnvironment(siteId));
-            }
-            // Create live branch
+            // Create target branch
             createEnvironmentBranch(siteId, newCommitId,
-                    servicesConfig.getLiveEnvironment(siteId));
+                    target);
             siteService.setPublishedRepoCreated(siteId);
-            commitId = newCommitId;
+            logger.info("Completed the initial publish of the site '{}' for target '{}'", siteId, target);
+            return newCommitId;
         } catch (Exception e) {
-            throw new ServiceLayerException(format("Failed to perform initial publish for site '%s'", siteId), e);
+            throw new ServiceLayerException(format("Failed to perform initial publish of the site '%s' for target '%s'", siteId, target), e);
         } finally {
             generalLockService.unlock(publishedRepoLockKey);
         }
-
-        logger.info("Completed the initial publish of the site '{}'", siteId);
-        return commitId;
     }
 
     private void createEnvironmentBranch(String siteId, String startPoint, String environment) {
@@ -1141,8 +1145,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
 
     @Override
     public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
-                                                                    final String publishingTarget,
-                                                                    final Collection<T> publishItems)
+                                                                    final String publishingTarget)
             throws ServiceLayerException, IOException {
         String siteId = publishPackage.getSite().getSiteId();
         logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
@@ -1170,7 +1173,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                     publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
             logger.debug("Published all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
-            return new GitPublishChangeSet<>(newCommitId, publishItems, emptyList());
+            return new GitPublishChangeSet<>(newCommitId, emptyList(), emptyList());
         } catch (GitAPIException | IOException | UserNotFoundException e) {
             logger.error("Failed to publish all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget, e);
@@ -1204,6 +1207,7 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                                                                  final String publishingTarget,
                                                                  final Collection<T> publishItems) throws ServiceLayerException, IOException {
         String siteId = publishPackage.getSite().getSiteId();
+        TaskProgress<PublishTaskId, ?> taskProgress = taskManager.getTask(new PublishTaskId(siteId, publishPackage.getId()));
         logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
                 siteId, publishPackage.getId(), publishingTarget);
         if (isEmpty(publishItems)) {
@@ -1224,7 +1228,11 @@ public class GitContentRepositoryImpl implements GitContentRepository {
         try (Git git = Git.wrap(repo)) {
             logger.debug("Fetching changes from sandbox to published repo for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
+
+            TaskProgress.Stage fetchStage = taskProgress.startStage("Fetch changes from sandbox");
             retryingRepositoryOperationFacade.call(git.fetch());
+            fetchStage.complete();
+
             User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
             ObjectId publishedLastCommitId = repo.resolve(publishingTarget);
 
@@ -1243,9 +1251,13 @@ public class GitContentRepositoryImpl implements GitContentRepository {
                     pathsByAction.get(ADD),
                     pathsByAction.get(DELETE),
                     publishPackage.getCommitId(),
-                    publishedLastCommitId);
+                    publishedLastCommitId,
+                    taskProgress);
             // git commit-tree
+            TaskProgress.Stage commitTreeStage = taskProgress
+                    .startStage("Commit changes for target '%s'".formatted(publishingTarget));
             String newCommitId = helper.commitTree(repo, newTreeId, publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
+            commitTreeStage.complete();
             logger.debug("Published all changes for site '{}' package '{}' target '{}'",
                     siteId, publishPackage.getId(), publishingTarget);
             return new GitPublishChangeSet<>(newCommitId, publishItems, emptyList());
@@ -1468,15 +1480,15 @@ public class GitContentRepositoryImpl implements GitContentRepository {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
-    public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
-        this.publishingProgressServiceInternal = publishingProgressServiceInternal;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
     public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
         this.scriptRunnerFactory = scriptRunnerFactory;
+    }
+
+    public void setTaskManager(final TaskManager taskManager) {
+        this.taskManager = taskManager;
     }
 }

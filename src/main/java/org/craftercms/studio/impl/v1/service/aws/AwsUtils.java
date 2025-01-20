@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v1.service.aws;
 
 import org.apache.commons.io.IOUtils;
-import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -34,7 +32,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.removeStart;
 
 public abstract class AwsUtils {
 
@@ -123,22 +120,6 @@ public abstract class AwsUtils {
             }
             throw new AwsException(format("Upload of file '%s' failed", filename), e);
         }
-    }
-
-    public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
-                                  int partSize, Supplier<S3Client> clientSupplier) {
-        logger.debug("Copy all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
-        ListObjectsV2Request request = ListObjectsV2Request.builder()
-                .bucket(sourceBucket)
-                .prefix(sourcePrefix)
-                .build();
-        ListObjectsV2Iterable response = clientSupplier.get().listObjectsV2Paginator(request);
-        for (S3Object object : response.contents()) {
-            String relativePrefix = removeStart(object.key(), sourcePrefix);
-            String newKey = removeStart(UrlUtils.concat(destPrefix, relativePrefix), "/");
-            copyFile(sourceBucket, object.key(), destBucket, newKey, partSize, clientSupplier);
-        }
-        logger.debug("Completed copy from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
     }
 
     public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,

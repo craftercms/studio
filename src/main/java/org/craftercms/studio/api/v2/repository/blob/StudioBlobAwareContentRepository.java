@@ -16,16 +16,18 @@
 package org.craftercms.studio.api.v2.repository.blob;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.PublishCapableRepository;
 
 /**
  * {@link ContentRepository} extension that provides blob aware operations.
  */
-public interface StudioBlobAwareContentRepository extends GitContentRepository {
+public interface StudioBlobAwareContentRepository extends GitContentRepository, PublishCapableRepository {
 
     /**
-     * Extract every blob from the source site and storeit in the target site in the blob store matching its path
+     * Extract every blob from the source site and store it in the target site in the blob store matching its path
      *
      * @param sourceSiteId the source site
      * @param siteId       the target site
