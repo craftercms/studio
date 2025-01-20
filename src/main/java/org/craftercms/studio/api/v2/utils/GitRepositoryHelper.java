@@ -43,8 +43,8 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
+import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
-import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -101,6 +101,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v2.utils.git.cli.CommitterIdentityUnknownExceptionResolver.GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.R_REMOTES;
 
@@ -121,8 +122,6 @@ public class GitRepositoryHelper implements DisposableBean {
     private static final String GIT_CONFIG_PROPERTY_EMAIL = "email";
     private static final String GIT_CONFIG_PROPERTY_NAME = "name";
     private static final String GIT_CONFIG_SECTION_USER = "user";
-
-	private static final String GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE = "committer identity unknown";
 
     private StudioConfiguration studioConfiguration;
     private TextEncryptor encryptor;
@@ -1286,7 +1285,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 restorePaths(repo, site, paths);
                 logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
                              ArrayUtils.toString(paths), e);
-				if (cause instanceof GitCliOutputException && (cause.getMessage().toLowerCase().contains(GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE))) {
+				if (cause instanceof CommitterIdentityUnknownException) {
 					throw new ServiceLayerException(GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE, e.getCause());
 				}
             }

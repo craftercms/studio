@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.utils.git.cli.GitCliOutputExceptionResolver;
+import org.craftercms.studio.impl.v2.utils.git.cli.CommitterIdentityUnknownExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.CompositeGitCliExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.NoChangesToCommitExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.RepositoryLockedExceptionResolver;
@@ -70,7 +71,10 @@ public class GitCli {
     // Exception resolvers
     public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
     public final GitCliOutputExceptionResolver COMMIT_EX_RESOLVER = new CompositeGitCliExceptionResolver(
-            RepositoryLockedExceptionResolver.INSTANCE, NoChangesToCommitExceptionResolver.INSTANCE);
+			RepositoryLockedExceptionResolver.INSTANCE,
+			NoChangesToCommitExceptionResolver.INSTANCE,
+			CommitterIdentityUnknownExceptionResolver.INSTANCE
+	);
 
     private final String gitProcName;
     private final int gitProcWaitForTimeoutSecs;
