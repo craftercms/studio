@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -117,6 +117,8 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
     private StudioConfiguration studioConfiguration;
     private UserServiceInternal userServiceInternal;
     private RemoteRepositoryDAO remoteRepositoryDAO;
+	private SiteDAO siteDao;
+	private ProcessedCommitsDAO processedCommitsDao;
     private TextEncryptor encryptor;
     private ContextManager contextManager;
     private ContentStoreService contentStoreService;
@@ -572,7 +574,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
     @Override
     public boolean repositoryExists(String siteId) {
         boolean exists = false;
-        Path siteSandboxRepoPath = helper.buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
+        Path siteSandboxRepoPath = helper.buildRepoPath(SANDBOX, siteId).resolve(GIT_ROOT);
         if (Files.exists(siteSandboxRepoPath)) {
             exists = commitIdExists(siteId, HEAD);
         }
@@ -674,7 +676,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 
             List<String> branchesToDelete = new ArrayList<>();
             for (Ref remoteBranchRef : resultRemoteBranches) {
-                if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                if (remoteBranchRef.getName().startsWith(R_REMOTES + remoteName)) {
                     branchesToDelete.add(remoteBranchRef.getName());
                 }
             }
@@ -925,7 +927,81 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
         }
     }
 
-    @Override
+	@Override
+	public void createEmptyFiles(String siteId, Collection<String> paths) {
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		try {
+			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			boolean result = paths.stream()
+					.allMatch(path -> addEmptyFile(repo, siteId, path));
+			if (result) {
+				String commitMessage = helper.getCommitMessage(REPO_CREATE_EMPTY_FILE_COMMIT_MESSAGE)
+						.replaceAll(PATTERN_SITE, siteId)
+						.replaceAll(PATTERN_PATH, StringUtils.join(paths));
+				commitFiles(repo, siteId, paths, commitMessage);
+			}
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	/**
+	 * Create and add an empty file to git
+	 * @param repo instance of {@link Repository}
+	 * @param siteId site id
+	 * @param path path to create and add to git
+	 * @return true if succeeded, false otherwise
+	 */
+	private boolean addEmptyFile(Repository repo, String siteId, String path) {
+		try {
+			File file = new File(repo.getDirectory().getParent(), path);
+			if (!file.createNewFile()) {
+				logger.error("Failed to create file to site '{}' path '{}'", siteId, path);
+				return false;
+			}
+			return helper.addFiles(repo, siteId, path);
+		} catch (Exception e) {
+			logger.error("Error adding file '{}' to site '{}'", path, siteId, e);
+			return false;
+		}
+	}
+
+	/**
+	 * Commit files to git
+	 * @param repo instance of {@link Repository}
+	 * @param siteId site id
+	 * @param paths paths to commit
+	 * @param commitMessage commit message
+	 */
+	private void commitFiles(Repository repo, String siteId, Collection<String> paths, String commitMessage) {
+		try {
+			String commitId = helper.commitFiles(repo, siteId,
+					commitMessage,
+					helper.getAuthorIdent(GIT_REPO_USER_USERNAME),
+					paths.toArray(new String[0]));
+			if (StringUtils.isNotEmpty(commitId)) {
+				persistCommit(siteId, commitId);
+			}
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			logger.error("Failed to commit file in site '{}' path '{}'", siteId, paths, e);
+		}
+	}
+
+	/**
+	 * Insert commit id into processed_commits table if the site exists
+	 *
+	 * @param siteId   site id
+	 * @param commitId commit id
+	 */
+	private void persistCommit(final String siteId, final String commitId) {
+		Site site = siteDao.getSite(siteId);
+		if (site != null) {
+			retryingDatabaseOperationFacade.retry(() -> processedCommitsDao.insertCommit(site.getId(), commitId));
+		}
+	}
+
+	@Override
     public long getContentSize(final String site, final String path) {
         // TODO: SJ: Reconsider this implementation for blob store backed repos
         try {
@@ -1451,6 +1527,14 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
     public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
         this.remoteRepositoryDAO = remoteRepositoryDAO;
     }
+
+	public void setSiteDao(SiteDAO siteDao) {
+		this.siteDao = siteDao;
+	}
+
+	public void setProcessedCommitsDao(ProcessedCommitsDAO processedCommitsDao) {
+		this.processedCommitsDao = processedCommitsDao;
+	}
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;

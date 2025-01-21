@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,11 +23,9 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
@@ -377,5 +375,12 @@ public interface GitContentRepository extends ContentRepository {
      * @throws ServiceLayerException if there is any error while deleting the items
      */
     String deleteContent(String siteId, Collection<String> paths, String approver) throws ServiceLayerException;
+
+	/**
+	 * Create empty file such as .keep to git repository and commit
+	 * @param siteId site id
+	 * @param paths list of paths to create and commit to git
+	 */
+	void createEmptyFiles(String siteId, Collection<String> paths);
 
 }

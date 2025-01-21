@@ -55,6 +55,7 @@ public interface StudioConfiguration {
     String REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE = "studio.repo.createAsOrphan.commitMessage";
     String REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE = "studio.repo.blueprintsUpdated.commitMessage";
     String REPO_CREATE_FOLDER_COMMIT_MESSAGE = "studio.repo.createFolder.commitMessage";
+	String REPO_CREATE_EMPTY_FILE_COMMIT_MESSAGE = "studio.repo.createEmptyFile.commitMessage";
     String REPO_DELETE_CONTENT_COMMIT_MESSAGE = "studio.repo.deleteContent.commitMessage";
     String REPO_MOVE_CONTENT_COMMIT_MESSAGE = "studio.repo.moveContent.commitMessage";
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";

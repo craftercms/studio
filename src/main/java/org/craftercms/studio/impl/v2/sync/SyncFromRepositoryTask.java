@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.sync;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -67,6 +68,7 @@ import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -400,6 +402,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
                 TimeUtils.logExecutionTime(() -> processRepoOperations(site, chunk, finalOperationsScript, allAncestors), logger, "Process repo operations", Level.DEBUG);
                 TimeUtils.logExecutionTimeThrowing(() -> studioDBScriptRunner.execute(finalOperationsScript, true), logger, "Executing SQL script", Level.DEBUG);
                 TimeUtils.logExecutionTime(() -> updateParentId(site, getCreatedPaths(chunk)), logger, "Update parent id", Level.DEBUG);
+				TimeUtils.logExecutionTime(() -> addMissingEmptyFiles(site, getCreatedPaths(chunk)), logger, "Add missing empty files", Level.DEBUG);
             }
             TimeUtils.logExecutionTime(() -> updateParentId(site, allAncestors.stream().toList()), logger, "Update parent id for created paths' ancestors", Level.DEBUG);
         } catch (SQLException | IOException e) {
@@ -433,6 +436,57 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
             itemServiceInternal.updateParentId(site.getId(), pathsBatch);
         }
     }
+
+	/**
+	 * Create missing empty files and commit to git repository
+	 * @param site site id
+	 * @param paths list of created paths to resolve missing empty files
+	 */
+	private void addMissingEmptyFiles(Site site, List<String> paths) {
+		if (CollectionUtils.isEmpty(paths)) {
+			return;
+		}
+
+		List<String> pathsToCreate = paths.stream()
+				.flatMap(path -> {
+					Path currentPath = Paths.get(path).getParent();
+					return Stream.iterate(currentPath, Objects::nonNull, Path::getParent)
+							.map(p -> p.resolve(EMPTY_FILE).toString())
+							.filter(keepFile -> !isIgnoreEmptyFile(keepFile))
+							.filter(keepFile -> !contentService.contentExists(site.getSiteId(), keepFile));
+				}).toList();
+
+		if (CollectionUtils.isNotEmpty(pathsToCreate)) {
+			contentRepository.createEmptyFiles(site.getSiteId(), pathsToCreate);
+		}
+	}
+
+	/**
+	 * Check if the .keep file should be ignored from creating. The following cases are ignored:
+	 * Root directory: /.keep
+	 * Any direct children of root: /site/.keep, /static-assets/.keep, /templates/.keep, etc.
+	 * Hidden directories: /static-assets/.hidden/.keep, etc.
+	 * @param keepFile the path for the .keep file
+	 * @return true if the .keep file should be ignored from creating, false otherwise
+	 */
+	private boolean isIgnoreEmptyFile(String keepFile) {
+		Path filePath = Paths.get(keepFile);
+		Path parentPath = filePath.getParent();
+
+		// Exclude .keep in root directory or directly under root
+		if (parentPath == null || parentPath.getParent() == null) {
+			return true;
+		}
+
+		// Exclude .keep in hidden folders
+		for (Path part : parentPath) {
+			if (part.toString().startsWith(".")) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
     /**
      * This method will try to get a User object for the given operation author. If the user is not found, it will
