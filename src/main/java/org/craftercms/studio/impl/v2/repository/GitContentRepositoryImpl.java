@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -922,6 +922,55 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 			}
 		} finally {
 			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	@Override
+	public void garbageCollectGitRepositories(String siteId) {
+		if (isEmpty(siteId)) {
+			garbageCollectGlobalRepository();
+		} else {
+			garbageCollectSiteRepositories(siteId);
+		}
+	}
+
+	/**
+	 * Perform git garbage collection for global repository
+	 */
+	private void garbageCollectGlobalRepository() {
+		logger.info("Garbage collect the global repository");
+		String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
+		generalLockService.lock(gitLockKey);
+		try {
+			helper.performGitGarbageCollection(EMPTY, GLOBAL);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	/**
+	 * Perform git garbage collection for site repositories SANDBOX and PUBLISHED
+	 * @param siteId site identifier
+	 */
+	private void garbageCollectSiteRepositories(String siteId) {
+		logger.info("Garbage collect the git repositories in site '{}'", siteId);
+
+		String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
+		generalLockService.lock(gitLockKeySandbox);
+		try {
+			logger.info("Garbage collect the SANDBOX repository for site '{}'", siteId);
+			helper.performGitGarbageCollection(siteId, SANDBOX);
+		} finally {
+			generalLockService.unlock(gitLockKeySandbox);
+		}
+
+		String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
+		generalLockService.lock(gitLockKeyPublished);
+		try {
+			logger.info("Garbage collect the PUBLISHED repository for site '{}'", siteId);
+			helper.performGitGarbageCollection(siteId, PUBLISHED);
+		} finally {
+			generalLockService.unlock(gitLockKeyPublished);
 		}
 	}
 

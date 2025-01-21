@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -184,7 +184,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			}
 
 			if (repo == null) {
-				logger.debug("Failed to get the repository in site '{}'", siteId);
+				logger.debug("Failed to get the '{}' repository for site '{}'", repoType, siteId);
 			}
 		}
 
@@ -1297,6 +1297,42 @@ public class GitRepositoryHelper implements DisposableBean {
 		}
 
 		return commitId;
+	}
+
+	/**
+	 * Perform git garbage collection
+	 * @param siteId site identifier
+	 * @param gitRepository git repository type
+	 */
+	public void performGitGarbageCollection(String siteId, GitRepositories gitRepository) {
+		Repository repo = getRepository(siteId, gitRepository);
+		if (repo == null) {
+			logger.info("Skip git gc for site '{}' repository '{}' as the repository is not found.", siteId, gitRepository);
+			return;
+		}
+
+		String siteDescription = isEmpty(siteId) ? "global site" : format("site '%s' git repository '%s'", siteId, gitRepository);
+
+		if (gitCliEnabled) {
+			logger.debug("Start git gc for {} using CGit", siteDescription);
+			try {
+				retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
+					gitCli.gc(repo.getWorkTree().getAbsolutePath());
+					return null;
+				});
+				logger.debug("Completed git gc for {} using CGit", siteDescription);
+			} catch (Exception e) {
+				logger.error("Failed to garbage collect the git repository in {}", siteDescription, e);
+			}
+		} else {
+			logger.debug("Start git gc for {} using JGit", siteDescription);
+			try (Git git = new Git(repo)) {
+				retryingRepositoryOperationFacade.call(git.gc());
+				logger.debug("Completed git gc for {} using JGit", siteDescription);
+			} catch (GitAPIException e) {
+				logger.error("Failed to garbage collect the git repository in {}", siteDescription, e);
+			}
+		}
 	}
 
 	/**

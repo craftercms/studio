@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,8 +17,8 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +44,9 @@ public class RepositoryCleanupJob {
 	 */
 	public void cleanupAllRepositories() {
 		logger.info("Started git garbage collection for the global repo");
-		contentRepository.cleanupRepositories(StringUtils.EMPTY);
+		contentRepository.garbageCollectGitRepositories(StringUtils.EMPTY);
 		logger.info("Started git garbage collection for all sites");
-		siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
+		siteService.getAllAvailableSites().forEach(contentRepository::garbageCollectGitRepositories);
 	}
 
 }

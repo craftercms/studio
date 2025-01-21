@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -265,6 +265,19 @@ public class GitCli {
 		} catch (Exception e) {
 			throw new GitCliException("Git commit failed on directory " + directory + " for paths " +
 				ArrayUtils.toString(paths), e);
+		}
+	}
+
+	/**
+	 * Perform git gc command
+	 * @param directory git repository directory
+	 */
+	public void gc(String directory) throws GitCliException {
+		GitCommandLine command = new GitCommandLine("gc");
+		try {
+			executeGitCommand(directory, command);
+		} catch (Exception e) {
+			throw new GitCliException(format("Git gc failed on directory '%s'", directory), e);
 		}
 	}
 
