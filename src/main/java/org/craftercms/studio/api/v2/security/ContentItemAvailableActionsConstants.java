@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -173,7 +174,7 @@ public final class ContentItemAvailableActionsConstants {
 	// content_write
 	public static final long BITMAP_CONTENT_WRITE =
 		CONTENT_EDIT + CONTENT_RENAME + CONTENT_CUT + CONTENT_UPLOAD + CONTENT_DUPLICATE + CONTENT_CHANGE_TYPE +
-			CONTENT_REVERT + CONTENT_EDIT_CONTROLLER + CONTENT_EDIT_TEMPLATE;
+		CONTENT_REVERT + CONTENT_EDIT_CONTROLLER + CONTENT_EDIT_TEMPLATE;
 	// folder_create
 	public static final long BITMAP_FOLDER_CREATE =
 		FOLDER_CREATE;
@@ -190,6 +191,24 @@ public final class ContentItemAvailableActionsConstants {
 	public static final long BITMAP_UNDEFINED = 0L;
 
 	private ContentItemAvailableActionsConstants() {
+	}
+
+	/**
+	 * Map site-wide permissions to available actions
+	 *
+	 * @param permissions all site-wide permissions for the user
+	 * @return the site-wide available actions
+	 */
+	public static long mapSiteWidePermissionsToAvailableActions(final Set<String> permissions) {
+		long result = 0;
+		if (permissions.contains(PERMISSION_PUBLISH_REQUEST)) {
+			result |= PUBLISH_REQUEST;
+			if (permissions.contains(PERMISSION_PUBLISH_REQUEST) && permissions.contains(PERMISSION_PUBLISH_APPROVE)) {
+				result |= PUBLISH;
+			}
+		}
+
+		return result;
 	}
 
 	public static long mapPermissionToContentItemAvailableActions(String permission) {
@@ -212,9 +231,6 @@ public final class ContentItemAvailableActionsConstants {
 				break;
 			case PERMISSION_CONTENT_DELETE:
 				result = BITMAP_CONTENT_DELETE;
-				break;
-			case PERMISSION_PUBLISH_REQUEST:
-				result = PUBLISH_REQUEST;
 				break;
 			case PERMISSION_ITEM_UNLOCK:
 				result = BITMAP_ITEM_UNLOCK;

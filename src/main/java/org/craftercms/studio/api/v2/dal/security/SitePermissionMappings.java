@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,32 +19,33 @@ package org.craftercms.studio.api.v2.dal.security;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v2.dal.Group;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapSiteWidePermissionsToAvailableActions;
+
+/**
+ * Mapping of user groups to available actions.
+ * Instances will keep a map of groups to roles and a map of roles to {@link RolePermissionMappings} for a given site.
+ * The {@link RolePermissionMappings} can then be used to retrieve the available actions.
+ */
 public class SitePermissionMappings {
 
-	private String siteId;
-	private Map<NormalizedRole, RolePermissionMappings> rolePermissions = new HashMap<>();
+	private final Map<NormalizedRole, RolePermissionMappings> rolePermissions = new HashMap<>();
 	private final Map<NormalizedGroup, List<NormalizedRole>> groupToRolesMapping = new HashMap<>();
 
+	/**
+	 * Get the available actions for a given user and path.
+	 * The available actions are calculated by merging the available actions for all roles the user belongs to.
+	 *
+	 * @param username user to validate permissions for
+	 * @param groups   groups the user belongs to
+	 * @param path     path of the content
+	 * @return available actions bitmap
+	 */
 	public long getAvailableActions(String username, List<Group> groups, String path) {
-		List<NormalizedRole> rolesList = new ArrayList<>();
-		List<NormalizedRole> userRoles = groupToRolesMapping.get(new NormalizedGroup(username));
-		if (CollectionUtils.isNotEmpty(userRoles)) {
-			CollectionUtils.addAll(rolesList, userRoles);
-		}
-		groups.forEach(g -> {
-			List<NormalizedRole> groupRoles = groupToRolesMapping.get(new NormalizedGroup(g.getGroupName()));
-			if (CollectionUtils.isNotEmpty(groupRoles)) {
-				CollectionUtils.addAll(rolesList, groupRoles);
-			}
-		});
+		List<NormalizedRole> rolesList = getRolesForUser(username, groups);
 
 		long availableActions = 0L;
 		for (NormalizedRole role : rolesList) {
@@ -61,41 +62,46 @@ public class SitePermissionMappings {
 		return availableActions;
 	}
 
+	/**
+	 * Get the site wide available actions for a given user.
+	 * Site-wide actions are performed on the item-level, but are allowed on site-wide permissions. e.g.: publish_request permission will
+	 * allow PUBLISH_REQUEST action for any item in the site
+	 *
+	 * @param username user to validate permissions for
+	 * @param groups   groups the user belongs to
+	 * @return available actions bitmap
+	 */
+	public long getSiteWideAvailableActions(String username, List<Group> groups) {
+		List<NormalizedRole> rolesList = getRolesForUser(username, groups);
+		Set<String> permissions = new HashSet<>();
+		for (NormalizedRole role : rolesList) {
+			RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
+			permissions.addAll(rolePermissionMappings.getSiteWidePermissions());
+		}
+
+		return mapSiteWidePermissionsToAvailableActions(permissions);
+	}
+
+	private List<NormalizedRole> getRolesForUser(String username, List<Group> groups) {
+		List<NormalizedRole> rolesList = new ArrayList<>();
+		List<NormalizedRole> userRoles = groupToRolesMapping.get(new NormalizedGroup(username));
+		if (CollectionUtils.isNotEmpty(userRoles)) {
+			CollectionUtils.addAll(rolesList, userRoles);
+		}
+		groups.forEach(g -> {
+			List<NormalizedRole> groupRoles = groupToRolesMapping.get(new NormalizedGroup(g.getGroupName()));
+			if (CollectionUtils.isNotEmpty(groupRoles)) {
+				CollectionUtils.addAll(rolesList, groupRoles);
+			}
+		});
+		return rolesList;
+	}
+
 	public void addGroupToRolesMapping(NormalizedGroup group, List<NormalizedRole> roles) {
 		groupToRolesMapping.put(group, roles);
 	}
 
-	public void addRoleToGroupMapping(String group, String role) {
-		NormalizedGroup normalizedGroup = new NormalizedGroup(group);
-		List<NormalizedRole> roles = groupToRolesMapping.get(normalizedGroup);
-		if (Objects.isNull(roles)) {
-			roles = new ArrayList<>();
-			groupToRolesMapping.put(normalizedGroup, roles);
-		}
-		roles.add(new NormalizedRole(role));
-	}
-
-	public List<NormalizedRole> getRolesForGroup(String group) {
-		return this.groupToRolesMapping.get(new NormalizedGroup(group));
-	}
-
 	public void addRolePermissionMapping(String role, RolePermissionMappings rolePermissionMappings) {
 		rolePermissions.put(new NormalizedRole(role), rolePermissionMappings);
-	}
-
-	public String getSiteId() {
-		return siteId;
-	}
-
-	public void setSiteId(String siteId) {
-		this.siteId = siteId;
-	}
-
-	public Map<NormalizedRole, RolePermissionMappings> getRolePermissions() {
-		return rolePermissions;
-	}
-
-	public void setRolePermissions(Map<NormalizedRole, RolePermissionMappings> rolePermissions) {
-		this.rolePermissions = rolePermissions;
 	}
 }

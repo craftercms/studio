@@ -21,6 +21,11 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
+/**
+ * Interface to resolve available actions from user permissions
+ * The {@link SemanticsAvailableActionsResolver} consider not only permissions but
+ * also the state and metadata of a content item to calculate available actions
+ */
 public interface SemanticsAvailableActionsResolver {
 
 	/**

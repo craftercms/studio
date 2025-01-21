@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,31 +16,35 @@
 
 package org.craftercms.studio.api.v2.dal.security;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * Maps roles to item available actions.
+ * Instances will keep a map of rules to available actions for a given role.
+ * It will also keep a set of site wide permissions. These are meant to be merged for all roles and then be used
+ * to determine site-wide actions. e.g.: a user can be assigned a role with PUBLISH_REQUEST permission and another
+ * one with PUBLISH_APPROVE permission. Such user would get the PUBLISH available action.
+ */
 public class RolePermissionMappings {
 
-	private String role;
-	private Map<String, Long> ruleContentItemPermissions = new HashMap<>();
+	private final Map<String, Long> ruleContentItemPermissions = new HashMap<>();
+	private final Set<String> siteWidePermissions = new HashSet<>();
+
 
 	public void addRuleContentItemPermissionsMapping(String rule, Long contentItemAvailableActions) {
 		ruleContentItemPermissions.put(rule, contentItemAvailableActions);
 	}
 
-	public String getRole() {
-		return role;
+	public void addSiteWidePermissions(final List<String> permissions) {
+		this.siteWidePermissions.addAll(permissions);
 	}
 
-	public void setRole(String role) {
-		this.role = role;
-	}
 
 	public Map<String, Long> getRuleContentItemPermissions() {
 		return ruleContentItemPermissions;
 	}
 
-	public void setRuleContentItemPermissions(Map<String, Long> ruleContentItemPermissions) {
-		this.ruleContentItemPermissions = ruleContentItemPermissions;
+	public Collection<String> getSiteWidePermissions() {
+		return siteWidePermissions;
 	}
 }

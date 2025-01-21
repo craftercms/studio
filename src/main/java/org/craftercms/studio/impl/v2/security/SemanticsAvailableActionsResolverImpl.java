@@ -49,6 +49,9 @@ import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsCo
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
+/**
+ * Default implementation of {@link SemanticsAvailableActionsResolver}
+ */
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
 	private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
@@ -61,7 +64,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, Item item)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, item.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
 		long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
@@ -71,12 +74,12 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		Person modifier = item.getModifier();
 		String modifierUsername = modifier != null ? modifier.getUsername() : null;
 		return applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
-			item.getSystemType(), item.getContentTypeId(), modifierUsername, item.getState(), result);
+				item.getSystemType(), item.getContentTypeId(), modifierUsername, item.getState(), result);
 	}
 
 	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
 		long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
@@ -86,9 +89,9 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		Person modifier = detailedItem.getSandbox().getModifier();
 		String modifierUsername = modifier != null ? modifier.getUsername() : null;
 		return applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
-			detailedItem.getSystemType(), detailedItem.getContentTypeId(), modifierUsername,
-			detailedItem.getState(),
-			result);
+				detailedItem.getSystemType(), detailedItem.getContentTypeId(), modifierUsername,
+				detailedItem.getState(),
+				result);
 	}
 
 	/**
@@ -116,10 +119,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long applySpecialUseCaseFilters(String username, String siteId, String itemPath, String itemMimeType,
-						String itemSystemType, String itemContentTypeId, String itemModifier,
-						long itemState,
-						long availableActions)
-		throws ServiceLayerException, UserNotFoundException {
+											String itemSystemType, String itemContentTypeId, String itemModifier,
+											long itemState,
+											long availableActions)
+			throws ServiceLayerException, UserNotFoundException {
 		long result = availableActions;
 
 		// The item is locked and the user is not the owner of the lock
@@ -156,7 +159,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
 		if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-			ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
+				ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
 			result &= ~CONTENT_DELETE;
 			result &= ~CONTENT_CUT;
 			result &= ~CONTENT_RENAME;
@@ -169,8 +172,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		}
 
 		if ((result & CONTENT_UPLOAD) > 0 &&
-			(!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
-				!StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
+				(!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
+						!StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
 			result &= ~CONTENT_UPLOAD;
 		}
 
@@ -184,11 +187,14 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		if (isNotEmpty(itemContentTypeId)) {
 			String controllerPath = contentTypeServiceInternal.getContentTypeControllerPath(itemContentTypeId);
 			result = checkActionForDependency(siteId, username, controllerPath, result,
-				CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
+					CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
 			String templatePath = contentTypeServiceInternal.getContentTypeTemplatePath(siteId, itemContentTypeId);
 			result = checkActionForDependency(siteId, username, templatePath, result,
-				CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
+					CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
 		}
+
+		long siteWideActions = availableActionsResolver.getSiteWideActions(siteId, username);
+		result = result | siteWideActions;
 
 		return result;
 	}
@@ -272,5 +278,4 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {
 		this.securityServiceV1 = securityServiceV1;
 	}
-
 }

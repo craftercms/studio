@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.permissions;
 
+import java.util.Set;
+
 public final class StudioPermissionsConstants {
 
 	// TODO: find better way
@@ -88,6 +90,8 @@ public final class StudioPermissionsConstants {
 	public static final String SITE_ID_RESOURCE_ID = "siteId";
 	public static final String PATH_RESOURCE_ID = "path";
 	public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";
+
+	public static final Set<String> SITE_WIDE_RULE_REGEXES = Set.of(".*", "/.*");
 
 
 	private StudioPermissionsConstants() {
