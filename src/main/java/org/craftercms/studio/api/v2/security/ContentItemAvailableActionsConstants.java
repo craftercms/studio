@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
@@ -199,7 +199,7 @@ public final class ContentItemAvailableActionsConstants {
 	 * @param permissions all site-wide permissions for the user
 	 * @return the site-wide available actions
 	 */
-	public static long mapSiteWidePermissionsToAvailableActions(final Set<String> permissions) {
+	public static long mapSiteWidePermissionsToItemAvailableActions(final Set<String> permissions) {
 		long result = 0;
 		if (permissions.contains(PERMISSION_PUBLISH_REQUEST)) {
 			result |= PUBLISH_REQUEST;
@@ -243,7 +243,7 @@ public final class ContentItemAvailableActionsConstants {
 		return result;
 	}
 
-	public static long mapPermissionsToContentItemAvailableActions(List<String> permissions) {
+	public static long mapPermissionsToContentItemAvailableActions(Collection<String> permissions) {
 		return permissions.stream()
 			.mapToLong(ContentItemAvailableActionsConstants::mapPermissionToContentItemAvailableActions)
 			.reduce(0L, (a, b) -> a | b);

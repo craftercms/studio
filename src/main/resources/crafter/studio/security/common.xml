@@ -254,9 +254,13 @@
 	<!--  Available Actions  -->
 	<bean id="studio.availableActionsResolver"
 	      class="org.craftercms.studio.impl.v2.security.AvailableActionsResolverImpl">
+		<constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+		<constructor-arg name="permissionMappingsProvider" ref="studio.permissionMappingsProvider"/>
+	</bean>
+
+	<bean id="studio.permissionMappingsProvider" class="org.craftercms.studio.impl.v2.security.PermissionMappingsProvider">
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="configurationService" ref="configurationService"/>
-		<constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
 		<constructor-arg name="cache" ref="configurationCache"/>
 	</bean>
 

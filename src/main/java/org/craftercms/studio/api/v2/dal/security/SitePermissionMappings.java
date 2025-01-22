@@ -20,10 +20,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v2.dal.Group;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapSiteWidePermissionsToAvailableActions;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapSiteWidePermissionsToItemAvailableActions;
 
 /**
  * Mapping of user groups to available actions.
@@ -50,14 +48,7 @@ public class SitePermissionMappings {
 		long availableActions = 0L;
 		for (NormalizedRole role : rolesList) {
 			RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
-			Map<String, Long> rulePermissions = rolePermissionMappings.getRuleContentItemPermissions();
-			for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {
-				Pattern pattern = Pattern.compile(entry.getKey());
-				Matcher matcher = pattern.matcher(path);
-				if (matcher.matches()) {
-					availableActions = availableActions | entry.getValue();
-				}
-			}
+			availableActions |= rolePermissionMappings.getActionsForPath(path);
 		}
 		return availableActions;
 	}
@@ -79,7 +70,7 @@ public class SitePermissionMappings {
 			permissions.addAll(rolePermissionMappings.getSiteWidePermissions());
 		}
 
-		return mapSiteWidePermissionsToAvailableActions(permissions);
+		return mapSiteWidePermissionsToItemAvailableActions(permissions);
 	}
 
 	private List<NormalizedRole> getRolesForUser(String username, List<Group> groups) {
