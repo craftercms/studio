@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-UPDATE item
-SET system_type = 'file'
-WHERE system_type = 'unknown';
+UPDATE item SET system_type = 'file' WHERE system_type = 'unknown' ;
 
-UPDATE _meta
-SET version = '4.0.0.26';
+UPDATE _meta SET version = '4.0.0.26' ;

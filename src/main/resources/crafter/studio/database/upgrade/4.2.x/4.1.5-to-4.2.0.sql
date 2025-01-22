@@ -15,61 +15,40 @@
  */
 
 CREATE PROCEDURE deleteSiteRelatedItems(
-    IN siteId VARCHAR (50))
+	IN siteId VARCHAR(50))
 BEGIN
-	DECLARE
-id BIGINT(20);
+	DECLARE id BIGINT(20);
 
-    IF
-EXISTS (SELECT (1) FROM site WHERE site_id = siteId AND deleted = 0)
-    THEN
-SELECT s.id
-into id
-FROM site s
-WHERE site_id = siteId
-  AND deleted = 0;
+	IF EXISTS (SELECT (1) FROM site WHERE site_id = siteId AND deleted = 0)
+	THEN
+		SELECT s.id into id
+		FROM site s
+		WHERE site_id = siteId AND deleted = 0;
 
--- Item will cascade delete workflow
-DELETE
-FROM item
-WHERE site_id = id;
+		-- Item will cascade delete workflow
+		DELETE FROM item WHERE site_id = id;
 
--- user_properties
-DELETE
-FROM user_properties
-WHERE site_id = id;
+		-- user_properties
+		DELETE FROM user_properties WHERE site_id = id;
 
--- dependencies
-DELETE
-FROM dependency
-WHERE site = siteId;
+		-- dependencies
+		DELETE FROM dependency WHERE site = siteId;
 
--- deployment data
-DELETE
-FROM publish_request
-WHERE site = siteId;
+		-- deployment data
+		DELETE FROM publish_request WHERE site = siteId;
 
--- sequences
-DELETE
-FROM navigation_order_sequence
-WHERE site = siteId;
+		-- sequences
+		DELETE FROM navigation_order_sequence WHERE site = siteId;
 
--- git log
-DELETE
-FROM gitlog
-WHERE site_id = siteId;
+		-- git log
+		DELETE FROM gitlog WHERE site_id = siteId;
 
--- remote repositories
-DELETE
-FROM remote_repository
-WHERE site_id = siteId;
+		-- remote repositories
+		DELETE FROM remote_repository WHERE site_id = siteId;
 
--- audit log
-DELETE
-FROM audit
-WHERE site_id = id;
-END IF;
+		-- audit log
+		DELETE FROM audit WHERE site_id = id;
+	END IF;
 END ;
 
-UPDATE `_meta`
-SET `version` = '4.2.0';
+UPDATE `_meta` SET `version` = '4.2.0' ;

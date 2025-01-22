@@ -13,8 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-UPDATE item
-SET state = ((state MOD POW(2, 8)) + (state DIV POW(2,8)) * POW(2, 9));
+UPDATE item SET state = ((state MOD POW(2, 8)) + (state DIV POW(2,8)) * POW (2, 9)) ;
 
-UPDATE _meta
-SET version = '4.0.0.27';
+UPDATE _meta SET version = '4.0.0.27' ;

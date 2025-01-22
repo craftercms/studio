@@ -14,11 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `site`
-    ADD COLUMN `publishing_lock_owner` VARCHAR(255) NULL;
+ALTER TABLE `site` ADD COLUMN `publishing_lock_owner` VARCHAR(255) NULL ;
 
-ALTER TABLE `site`
-    ADD COLUMN `publishing_lock_heartbeat` DATETIME NULL;
+ALTER TABLE `site` ADD COLUMN `publishing_lock_heartbeat` DATETIME NULL ;
 
-UPDATE _meta
-SET version = '3.2.0.7';
+UPDATE _meta SET version = '3.2.0.7' ;

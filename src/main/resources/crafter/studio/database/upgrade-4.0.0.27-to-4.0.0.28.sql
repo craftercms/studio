@@ -13,7 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-call dropColumnIfExists('crafter', 'site', 'status');
+call dropColumnIfExists('crafter', 'site', 'status') ;
 
-UPDATE _meta
-SET version = '4.0.0.28';
+UPDATE _meta SET version = '4.0.0.28' ;

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call addColumnIfNotExists('crafter', 'item', 'ignored', 'INT NOT NULL DEFAULT 0');
+call addColumnIfNotExists('crafter', 'item', 'ignored', 'INT NOT NULL DEFAULT 0') ;
 
-UPDATE _meta
-SET version = '4.0.0.14';
+UPDATE _meta SET version = '4.0.0.14' ;

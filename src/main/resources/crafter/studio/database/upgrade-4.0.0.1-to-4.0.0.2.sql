@@ -16,59 +16,29 @@
 
 CREATE TABLE IF NOT EXISTS `refresh_token`
 (
-    `user_id`
-    BIGINT
-(
-    20
-) PRIMARY KEY,
-    `token` VARCHAR
-(
-    50
-) NOT NULL,
-    `last_updated_on` TIMESTAMP,
-    `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY `refresh_token_ix_user_id`
-(
-    `user_id`
-) REFERENCES `user`
-(
-    `id`
+	`user_id` BIGINT(20) PRIMARY KEY,
+	`token` VARCHAR(50) NOT NULL,
+	`last_updated_on` TIMESTAMP,
+	`created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY `refresh_token_ix_user_id` (`user_id`) REFERENCES `user` (`id`)
 )
-    )
-    ENGINE = InnoDB
-    DEFAULT CHARSET = utf8
-    ROW_FORMAT = DYNAMIC;
+	ENGINE = InnoDB
+	DEFAULT CHARSET = utf8
+	ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `access_token`
 (
-    `id`
-    BIGINT
-(
-    20
-) PRIMARY KEY AUTO_INCREMENT,
-    `user_id` BIGINT
-(
-    20
-),
-    `label` VARCHAR
-(
-    2550
-) NOT NULL,
-    `enabled` BOOLEAN DEFAULT true,
-    `last_updated_on` TIMESTAMP,
-    `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `expires_at` TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY `access_token_ix_user_id`
-(
-    `user_id`
-) REFERENCES `user`
-(
-    `id`
+	`id`      BIGINT(20) PRIMARY KEY AUTO_INCREMENT,
+	`user_id` BIGINT(20),
+	`label`   VARCHAR(2550) NOT NULL,
+	`enabled` BOOLEAN DEFAULT true,
+	`last_updated_on` TIMESTAMP,
+	`created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	`expires_at` TIMESTAMP NULL DEFAULT NULL,
+	FOREIGN KEY `access_token_ix_user_id` (`user_id`) REFERENCES `user` (`id`)
 )
-    )
-    ENGINE = InnoDB
-    DEFAULT CHARSET = utf8
-    ROW_FORMAT = DYNAMIC;
+	ENGINE = InnoDB
+	DEFAULT CHARSET = utf8
+	ROW_FORMAT = DYNAMIC ;
 
-UPDATE _meta
-SET version = '4.0.0.2';
+UPDATE _meta SET version = '4.0.0.2' ;
