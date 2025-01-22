@@ -43,130 +43,130 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
 
-    private final SitesService sitesServiceInternal;
+	private final SitesService sitesServiceInternal;
 
-    @ConstructorProperties({"sitesServiceInternal"})
-    public SitesServiceImpl(final SitesService sitesServiceInternal) {
-        this.sitesServiceInternal = sitesServiceInternal;
-    }
+	@ConstructorProperties({"sitesServiceInternal"})
+	public SitesServiceImpl(final SitesService sitesServiceInternal) {
+		this.sitesServiceInternal = sitesServiceInternal;
+	}
 
-    @Override
-    public List<PluginDescriptor> getAvailableBlueprints() {
-        return sitesServiceInternal.getAvailableBlueprints();
-    }
+	@Override
+	public List<PluginDescriptor> getAvailableBlueprints() {
+		return sitesServiceInternal.getAvailableBlueprints();
+	}
 
-    @Override
-    public PluginDescriptor getBlueprintDescriptor(final String id) {
-        return sitesServiceInternal.getBlueprintDescriptor(id);
-    }
+	@Override
+	public PluginDescriptor getBlueprintDescriptor(final String id) {
+		return sitesServiceInternal.getBlueprintDescriptor(id);
+	}
 
-    @Override
-    public String getBlueprintLocation(String blueprintId) {
-        return sitesServiceInternal.getBlueprintLocation(blueprintId);
-    }
+	@Override
+	public String getBlueprintLocation(String blueprintId) {
+		return sitesServiceInternal.getBlueprintLocation(blueprintId);
+	}
 
-    @Override
-    public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
-        return sitesServiceInternal.getSiteBlueprintDescriptor(id);
-    }
+	@Override
+	public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
+		return sitesServiceInternal.getSiteBlueprintDescriptor(id);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
-    public void updateSite(@SiteId String siteId, String name, String description)
-            throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
-        if (isBlank(name) && isBlank(description)) {
-            throw new InvalidParametersException("The request needs to include a name or a description");
-        }
-        sitesServiceInternal.updateSite(siteId, name, description);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
+	public void updateSite(@SiteId String siteId, String name, String description)
+		throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
+		if (isBlank(name) && isBlank(description)) {
+			throw new InvalidParametersException("The request needs to include a name or a description");
+		}
+		sitesServiceInternal.updateSite(siteId, name, description);
+	}
 
-    @Override
-    @RequireSiteState(value = STATE_LOCKED)
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
-    public void unlockSite(@SiteId String siteId) throws SiteNotFoundException, InvalidSiteStateException {
-        sitesServiceInternal.unlockSite(siteId);
-    }
+	@Override
+	@RequireSiteState(value = STATE_LOCKED)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
+	public void unlockSite(@SiteId String siteId) throws SiteNotFoundException, InvalidSiteStateException {
+		sitesServiceInternal.unlockSite(siteId);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
-    public void deleteSite(@SiteId String siteId) throws ServiceLayerException {
-        sitesServiceInternal.deleteSite(siteId);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
+	public void deleteSite(@SiteId String siteId) throws ServiceLayerException {
+		sitesServiceInternal.deleteSite(siteId);
+	}
 
-    @Override
-    public boolean exists(String siteId) {
-        return sitesServiceInternal.exists(siteId);
-    }
+	@Override
+	public boolean exists(String siteId) {
+		return sitesServiceInternal.exists(siteId);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
-    public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
-        return sitesServiceInternal.getPublishingStatus(siteId);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
+	public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
+		return sitesServiceInternal.getPublishingStatus(siteId);
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-    public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled) {
-        sitesServiceInternal.enablePublishing(siteId, enabled);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
+	public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled) {
+		sitesServiceInternal.enablePublishing(siteId, enabled);
+	}
 
-    @Override
-    public void checkSiteState(final String siteId, final String state) throws InvalidSiteStateException, SiteNotFoundException {
-        sitesServiceInternal.checkSiteState(siteId, state);
-    }
+	@Override
+	public void checkSiteState(final String siteId, final String state) throws InvalidSiteStateException, SiteNotFoundException {
+		sitesServiceInternal.checkSiteState(siteId, state);
+	}
 
-    @Override
-    public Site getSite(String siteId) throws SiteNotFoundException{
-        if (exists(siteId)) {
-            return sitesServiceInternal.getSite(siteId);
-        }
-        throw new SiteNotFoundException(siteId);
-    }
+	@Override
+	public Site getSite(String siteId) throws SiteNotFoundException {
+		if (exists(siteId)) {
+			return sitesServiceInternal.getSite(siteId);
+		}
+		throw new SiteNotFoundException(siteId);
+	}
 
-    @Override
-    public void updateLastCommitId(String siteId, String commitId) {
-        sitesServiceInternal.updateLastCommitId(siteId, commitId);
-    }
+	@Override
+	public void updateLastCommitId(String siteId, String commitId) {
+		sitesServiceInternal.updateLastCommitId(siteId, commitId);
+	}
 
-    @Override
-    public String getLastCommitId(String siteId) {
-        return sitesServiceInternal.getLastCommitId(siteId);
-    }
+	@Override
+	public String getLastCommitId(String siteId) {
+		return sitesServiceInternal.getLastCommitId(siteId);
+	}
 
-    @Override
-    public boolean checkSiteUuid(String siteId, String siteUuid) {
-        return sitesServiceInternal.checkSiteUuid(siteId, siteUuid);
-    }
+	@Override
+	public boolean checkSiteUuid(String siteId, String siteUuid) {
+		return sitesServiceInternal.checkSiteUuid(siteId, siteUuid);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
-            PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
-    public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
-            throws ServiceLayerException {
-        if (exists(siteId)) {
-            throw new SiteAlreadyExistsException(siteId);
-        }
-        sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
-    }
+	@Override
+	@RequireSiteReady
+	@HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
+		PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
+	public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+		throws ServiceLayerException {
+		if (exists(siteId)) {
+			throw new SiteAlreadyExistsException(siteId);
+		}
+		sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
+	}
 
-    @Override
-    public List<Site> getSitesByState(final String state) {
-        return sitesServiceInternal.getSitesByState(state);
-    }
+	@Override
+	public List<Site> getSitesByState(final String state) {
+		return sitesServiceInternal.getSitesByState(state);
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
-    public void setPublishedRepoCreated(String siteId) {
-        sitesServiceInternal.setPublishedRepoCreated(siteId);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+	public void setPublishedRepoCreated(String siteId) {
+		sitesServiceInternal.setPublishedRepoCreated(siteId);
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
-    public void updatePublishingStatus(String siteId, String status) {
-        sitesServiceInternal.updatePublishingStatus(siteId, status);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
+	public void updatePublishingStatus(String siteId, String status) {
+		sitesServiceInternal.updatePublishingStatus(siteId, status);
+	}
 }

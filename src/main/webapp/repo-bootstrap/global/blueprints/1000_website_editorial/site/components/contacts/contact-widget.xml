@@ -16,7 +16,8 @@
   -->
 
 <component>
-	<content-type>/component/contact-widget</content-type>	<display-template>/templates/web/components/contact-widget.ftl</display-template>
+	<content-type>/component/contact-widget</content-type>
+	<display-template>/templates/web/components/contact-widget.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>3756</objectGroupId>
 	<objectId>37562d94-04ad-289b-eb35-d76b91b86431</objectId>

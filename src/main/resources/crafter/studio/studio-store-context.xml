@@ -19,13 +19,13 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!--
-        For now we can use existing beans, when Studio becomes standalone we will need to import the context from core
-    -->
+	<!--
+	    For now we can use existing beans, when Studio becomes standalone we will need to import the context from core
+	-->
 
-    <bean id="contextManager" class="org.craftercms.studio.impl.v2.core.ContextManagerImpl">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
-    </bean>
+	<bean id="contextManager" class="org.craftercms.studio.impl.v2.core.ContextManagerImpl">
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+		<constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
+	</bean>
 
 </beans>

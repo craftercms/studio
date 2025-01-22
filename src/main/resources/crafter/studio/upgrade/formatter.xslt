@@ -16,21 +16,21 @@
   -->
 
 <xsl:stylesheet
-        version="2.0"
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	version="2.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 >
-    <!-- to keep the right formatting, use default indent which is 4 spaces -->
-    <xsl:output method="xml" encoding="UTF-8" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting, use default indent which is 4 spaces -->
+	<xsl:output method="xml" encoding="UTF-8" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert a line break before root element-->
-        <xsl:if test="not(ancestor::*)">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="@*|node()"/>
-        </xsl:copy>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert a line break before root element-->
+		<xsl:if test="not(ancestor::*)">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="@*|node()"/>
+		</xsl:copy>
+	</xsl:template>
 </xsl:stylesheet>

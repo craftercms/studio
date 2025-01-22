@@ -20,9 +20,10 @@
 	<objectType>component</objectType>
 	<content-type>/component/articles-widget</content-type>
 	<imageThumbnail>component-articles-widget.png</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/articles-widget.ftl</value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Component - Articles Widget Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -262,28 +264,29 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>shared-content</type>
-					<id>scripts</id>
-					<title>Scripts</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/scripts/components</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>browsePath</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>type</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
+	<datasources>
+		<datasource>
+			<type>shared-content</type>
+			<id>scripts</id>
+			<title>Scripts</title>
+			<interface>item</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/scripts/components</value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>browsePath</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>type</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+			</properties>
+		</datasource>
 	</datasources>
 </form>

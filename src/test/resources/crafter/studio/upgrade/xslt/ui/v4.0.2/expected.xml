@@ -15,16 +15,16 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <ui>
-    <tool>
-        <title id="words.publishing" defaultMessage="Publishing"/>
-        <icon id="@mui/icons-material/CloudUploadOutlined"/>
-        <url>publishing</url>
-        <widget id="craftercms.components.PublishingDashboard"/>
-    </tool>
-    <tool>
-        <title id="words.git" defaultMessage="Git"/>
-        <icon id="craftercms.icons.Git"/>
-        <url>git</url>
-        <widget id="craftercms.components.GitManagement"/>
-    </tool>
+	<tool>
+		<title id="words.publishing" defaultMessage="Publishing"/>
+		<icon id="@mui/icons-material/CloudUploadOutlined"/>
+		<url>publishing</url>
+		<widget id="craftercms.components.PublishingDashboard"/>
+	</tool>
+	<tool>
+		<title id="words.git" defaultMessage="Git"/>
+		<icon id="craftercms.icons.Git"/>
+		<url>git</url>
+		<widget id="craftercms.components.GitManagement"/>
+	</tool>
 </ui>

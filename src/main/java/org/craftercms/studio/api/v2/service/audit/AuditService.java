@@ -29,72 +29,70 @@ import java.util.List;
  */
 public interface AuditService {
 
-    /**
-     * Get audit log
-     *
-     * @param siteId filter logs by given site ID. It can be null or empty when user
-     *                     is system admin, it will then retrieve entries for all sites and include admin activities.
-     * @param offset offset of the first record
-     * @param limit number of records to return
-     * @param user filter logs by given user
-     * @param operations filter logs by given operations
-     * @param includeParameters include audit log parameters into result set
-     * @param dateFrom filter logs by date starting from given date
-     * @param dateTo filter logs by date until given date
-     * @param target filter logs by given operation target
-     * @param origin filter logs by origin
-     * @param clusterNodeId filter logs by given cluster node id
-     * @param sort sort logs by given sort type
-     * @param order order logs
-     * @return audit log result set
-     */
-    List<AuditLog> getAuditLog(String siteId, int offset, int limit, String user,
-                               List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
-                               ZonedDateTime dateTo, String target, String origin, String clusterNodeId, String sort,
-                               String order) throws SiteNotFoundException;
+	/**
+	 * Get audit log
+	 *
+	 * @param siteId            filter logs by given site ID. It can be null or empty when user
+	 *                          is system admin, it will then retrieve entries for all sites and include admin activities.
+	 * @param offset            offset of the first record
+	 * @param limit             number of records to return
+	 * @param user              filter logs by given user
+	 * @param operations        filter logs by given operations
+	 * @param includeParameters include audit log parameters into result set
+	 * @param dateFrom          filter logs by date starting from given date
+	 * @param dateTo            filter logs by date until given date
+	 * @param target            filter logs by given operation target
+	 * @param origin            filter logs by origin
+	 * @param clusterNodeId     filter logs by given cluster node id
+	 * @param sort              sort logs by given sort type
+	 * @param order             order logs
+	 * @return audit log result set
+	 */
+	List<AuditLog> getAuditLog(String siteId, int offset, int limit, String user,
+				   List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
+				   ZonedDateTime dateTo, String target, String origin, String clusterNodeId, String sort,
+				   String order) throws SiteNotFoundException;
 
-    /**
-     * Get total number of audit log entries for given filters
-     *
-     * @param siteId filter logs by given site ID. It can be null or empty when user
-     *               is system admin, it will then retrieve entries for all sites and include admin activities.
-     *
-     * @param user filter logs by given user
-     * @param operations filter logs by given operations
-     * @param includeParameters include audit log parameters into result set
-     * @param dateFrom filter logs by date starting from given date
-     * @param dateTo filter logs by date until given date
-     * @param target filter logs by given operation target
-     * @param origin filter logs by origin
-     * @param clusterNodeId filter logs by given cluster node id
-     * @return number of audit log entries
-     */
-    int getAuditLogTotal(String siteId, String user, List<String> operations,
-                                    boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                    String target, String origin, String clusterNodeId) throws SiteNotFoundException;
+	/**
+	 * Get total number of audit log entries for given filters
+	 *
+	 * @param siteId            filter logs by given site ID. It can be null or empty when user
+	 *                          is system admin, it will then retrieve entries for all sites and include admin activities.
+	 * @param user              filter logs by given user
+	 * @param operations        filter logs by given operations
+	 * @param includeParameters include audit log parameters into result set
+	 * @param dateFrom          filter logs by date starting from given date
+	 * @param dateTo            filter logs by date until given date
+	 * @param target            filter logs by given operation target
+	 * @param origin            filter logs by origin
+	 * @param clusterNodeId     filter logs by given cluster node id
+	 * @return number of audit log entries
+	 */
+	int getAuditLogTotal(String siteId, String user, List<String> operations,
+			     boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+			     String target, String origin, String clusterNodeId) throws SiteNotFoundException;
 
-    /**
-     * Get audit log entry by id
-     *
-     * @param siteId     site ID. It can be null or empty when user is system admin
-     * @param auditLogId audit log id
-     * @return audit log entry
-     */
-    AuditLog getAuditLogEntry(String siteId, long auditLogId) throws SiteNotFoundException;
+	/**
+	 * Get audit log entry by id
+	 *
+	 * @param siteId     site ID. It can be null or empty when user is system admin
+	 * @param auditLogId audit log id
+	 * @return audit log entry
+	 */
+	AuditLog getAuditLogEntry(String siteId, long auditLogId) throws SiteNotFoundException;
 
-    /**
-     * Get user activities
-     *
-     * @param site site
-     * @param limit limit
-     * @param sort sort by
-     * @param ascending true if ascending order, otherwise false
-     * @param excludeLive exclude live items
-     * @param filterType filter type
-     * @return list of content items
-     *
-     * @throws ServiceLayerException general service error
-     */
-    List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
-                                      boolean excludeLive, String filterType) throws ServiceLayerException;
+	/**
+	 * Get user activities
+	 *
+	 * @param site        site
+	 * @param limit       limit
+	 * @param sort        sort by
+	 * @param ascending   true if ascending order, otherwise false
+	 * @param excludeLive exclude live items
+	 * @param filterType  filter type
+	 * @return list of content items
+	 * @throws ServiceLayerException general service error
+	 */
+	List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
+					      boolean excludeLive, String filterType) throws ServiceLayerException;
 }

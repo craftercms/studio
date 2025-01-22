@@ -20,47 +20,48 @@ import java.util.List;
 
 /**
  * Holds all the data for a search operation
+ *
  * @author joseross
  */
 public class SearchResult {
 
-    /**
-     * The total files that matched the search
-     */
-    protected long total;
+	/**
+	 * The total files that matched the search
+	 */
+	protected long total;
 
-    /**
-     * The list of files
-     */
-    protected List<SearchResultItem> items;
+	/**
+	 * The list of files
+	 */
+	protected List<SearchResultItem> items;
 
-    /**
-     * The facets of the matched files
-     */
-    protected List<SearchFacet> facets;
+	/**
+	 * The facets of the matched files
+	 */
+	protected List<SearchFacet> facets;
 
-    public long getTotal() {
-        return total;
-    }
+	public long getTotal() {
+		return total;
+	}
 
-    public void setTotal(final long total) {
-        this.total = total;
-    }
+	public void setTotal(final long total) {
+		this.total = total;
+	}
 
-    public List<SearchResultItem> getItems() {
-        return items;
-    }
+	public List<SearchResultItem> getItems() {
+		return items;
+	}
 
-    public void setItems(final List<SearchResultItem> items) {
-        this.items = items;
-    }
+	public void setItems(final List<SearchResultItem> items) {
+		this.items = items;
+	}
 
-    public List<SearchFacet> getFacets() {
-        return facets;
-    }
+	public List<SearchFacet> getFacets() {
+		return facets;
+	}
 
-    public void setFacets(final List<SearchFacet> facets) {
-        this.facets = facets;
-    }
+	public void setFacets(final List<SearchFacet> facets) {
+		this.facets = facets;
+	}
 
 }

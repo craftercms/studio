@@ -18,22 +18,22 @@ package org.craftercms.studio.api.v1.exception.security;
 
 public class PasswordDoesNotMatchException extends Exception {
 
-    public PasswordDoesNotMatchException() {
-    }
+	public PasswordDoesNotMatchException() {
+	}
 
-    public PasswordDoesNotMatchException(String message) {
-        super(message);
-    }
+	public PasswordDoesNotMatchException(String message) {
+		super(message);
+	}
 
-    public PasswordDoesNotMatchException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public PasswordDoesNotMatchException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public PasswordDoesNotMatchException(Throwable cause) {
-        super(cause);
-    }
+	public PasswordDoesNotMatchException(Throwable cause) {
+		super(cause);
+	}
 
-    public PasswordDoesNotMatchException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public PasswordDoesNotMatchException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

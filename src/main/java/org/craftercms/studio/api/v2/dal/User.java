@@ -32,209 +32,209 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 
 public class User implements UserDetails {
 
-    private static final long serialVersionUID = 968000561389890945L;
+	private static final long serialVersionUID = 968000561389890945L;
 
-    private long id = -1;
-    private ZonedDateTime recordLastUpdated;
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private boolean externallyManaged;
-    private String timezone;
-    private String locale;
-    @EsapiValidatedParam(type = EMAIL)
-    private String email;
-    private boolean enabled;
-    private boolean deleted;
-    private List<UserGroup> groups = new ArrayList<>();
+	private long id = -1;
+	private ZonedDateTime recordLastUpdated;
+	private String username;
+	private String password;
+	private String firstName;
+	private String lastName;
+	private boolean externallyManaged;
+	private String timezone;
+	private String locale;
+	@EsapiValidatedParam(type = EMAIL)
+	private String email;
+	private boolean enabled;
+	private boolean deleted;
+	private List<UserGroup> groups = new ArrayList<>();
 
-    @Override
-    @JsonIgnore
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+	@Override
+	@JsonIgnore
+	public boolean isAccountNonExpired() {
+		return true;
+	}
 
-    @Override
-    @JsonIgnore
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+	@Override
+	@JsonIgnore
+	public boolean isAccountNonLocked() {
+		return true;
+	}
 
-    @Override
-    @JsonIgnore
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+	@Override
+	@JsonIgnore
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
 
-    @Override
-    @JsonProperty("enabled")
-    public boolean isEnabled() {
-        return enabled;
-    }
+	@Override
+	@JsonProperty("enabled")
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    @JsonProperty("enabled")
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+	@JsonProperty("enabled")
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    @JsonIgnore
-    public boolean isDeleted() {
-        return deleted;
-    }
+	@JsonIgnore
+	public boolean isDeleted() {
+		return deleted;
+	}
 
-    @JsonIgnore
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
+	@JsonIgnore
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
 
-    @JsonIgnore
-    public int getEnabledAsInt() {
-        return enabled ? 1 : 0;
-    }
+	@JsonIgnore
+	public int getEnabledAsInt() {
+		return enabled ? 1 : 0;
+	}
 
-    @JsonIgnore
-    public void setEnabledAsInt(int enabled) {
-        this.enabled = enabled > 0;
-    }
+	@JsonIgnore
+	public void setEnabledAsInt(int enabled) {
+		this.enabled = enabled > 0;
+	}
 
-    @JsonIgnore
-    public int getDeletedAsInt() {
-        return deleted ? 1 : 0;
-    }
+	@JsonIgnore
+	public int getDeletedAsInt() {
+		return deleted ? 1 : 0;
+	}
 
-    @JsonIgnore
-    public void setDeletedAsInt(int deleted) {
-        this.deleted = deleted > 0;
-    }
+	@JsonIgnore
+	public void setDeletedAsInt(int deleted) {
+		this.deleted = deleted > 0;
+	}
 
 
-    @Override
-    @JsonIgnore
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return groups.stream().map(UserGroup::getGroup).collect(Collectors.toList());
-    }
+	@Override
+	@JsonIgnore
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return groups.stream().map(UserGroup::getGroup).collect(Collectors.toList());
+	}
 
-    @JsonProperty("id")
-    public long getId() {
-        return id;
-    }
+	@JsonProperty("id")
+	public long getId() {
+		return id;
+	}
 
-    @JsonProperty("id")
-    public void setId(long id) {
-        this.id = id;
-    }
+	@JsonProperty("id")
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    @JsonIgnore
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
-    }
+	@JsonIgnore
+	public ZonedDateTime getRecordLastUpdated() {
+		return recordLastUpdated;
+	}
 
-    @JsonIgnore
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
-    }
+	@JsonIgnore
+	public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
+		this.recordLastUpdated = recordLastUpdated;
+	}
 
-    @Override
-    @JsonProperty("username")
-    public String getUsername() {
-        return username;
-    }
+	@Override
+	@JsonProperty("username")
+	public String getUsername() {
+		return username;
+	}
 
-    @JsonProperty("username")
-    public void setUsername(String username) {
-        this.username = username;
-    }
+	@JsonProperty("username")
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-    @Override
-    @JsonIgnore
-    public String getPassword() {
-        return password;
-    }
+	@Override
+	@JsonIgnore
+	public String getPassword() {
+		return password;
+	}
 
-    @JsonProperty("password")
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	@JsonProperty("password")
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    @JsonProperty("firstName")
-    public String getFirstName() {
-        return firstName;
-    }
+	@JsonProperty("firstName")
+	public String getFirstName() {
+		return firstName;
+	}
 
-    @JsonProperty("firstName")
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+	@JsonProperty("firstName")
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
 
-    @JsonProperty("lastName")
-    public String getLastName() {
-        return lastName;
-    }
+	@JsonProperty("lastName")
+	public String getLastName() {
+		return lastName;
+	}
 
-    @JsonProperty("lastName")
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+	@JsonProperty("lastName")
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
 
-    @JsonProperty("externallyManaged")
-    public boolean isExternallyManaged() {
-        return externallyManaged;
-    }
+	@JsonProperty("externallyManaged")
+	public boolean isExternallyManaged() {
+		return externallyManaged;
+	}
 
-    @JsonProperty("externallyManaged")
-    public void setExternallyManaged(boolean externallyManaged) {
-        this.externallyManaged = externallyManaged;
-    }
+	@JsonProperty("externallyManaged")
+	public void setExternallyManaged(boolean externallyManaged) {
+		this.externallyManaged = externallyManaged;
+	}
 
-    @JsonIgnore
-    public int getExternallyManagedAsInt() {
-        return externallyManaged ? 1 : 0;
-    }
+	@JsonIgnore
+	public int getExternallyManagedAsInt() {
+		return externallyManaged ? 1 : 0;
+	}
 
-    @JsonIgnore
-    public void setExternallyManagedAsInt(int externallyManaged) {
-        this.externallyManaged = externallyManaged > 0;
-    }
+	@JsonIgnore
+	public void setExternallyManagedAsInt(int externallyManaged) {
+		this.externallyManaged = externallyManaged > 0;
+	}
 
-    @JsonIgnore
-    public String getTimezone() {
-        return timezone;
-    }
+	@JsonIgnore
+	public String getTimezone() {
+		return timezone;
+	}
 
-    @JsonIgnore
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
+	@JsonIgnore
+	public void setTimezone(String timezone) {
+		this.timezone = timezone;
+	}
 
-    @JsonIgnore
-    public String getLocale() {
-        return locale;
-    }
+	@JsonIgnore
+	public String getLocale() {
+		return locale;
+	}
 
-    @JsonIgnore
-    public void setLocale(String locale) {
-        this.locale = locale;
-    }
+	@JsonIgnore
+	public void setLocale(String locale) {
+		this.locale = locale;
+	}
 
-    @JsonProperty("email")
-    public String getEmail() {
-        return email;
-    }
+	@JsonProperty("email")
+	public String getEmail() {
+		return email;
+	}
 
-    @JsonProperty("email")
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	@JsonProperty("email")
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    @JsonIgnore
-    public List<UserGroup> getGroups() {
-        return groups;
-    }
+	@JsonIgnore
+	public List<UserGroup> getGroups() {
+		return groups;
+	}
 
-    @JsonIgnore
-    public void setGroups(List<UserGroup> groups) {
-        this.groups = groups;
-    }
+	@JsonIgnore
+	public void setGroups(List<UserGroup> groups) {
+		this.groups = groups;
+	}
 
 }

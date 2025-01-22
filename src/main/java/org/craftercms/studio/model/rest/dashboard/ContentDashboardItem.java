@@ -20,67 +20,67 @@ import java.time.ZonedDateTime;
 
 public class ContentDashboardItem {
 
-    private String siteId;
-    private String label;
-    private String path;
-    private String modifier;
-    private ZonedDateTime modifiedDate;
-    private String contentType;
-    private long state;
+	private String siteId;
+	private String label;
+	private String path;
+	private String modifier;
+	private ZonedDateTime modifiedDate;
+	private String contentType;
+	private long state;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
+	public void setLabel(String label) {
+		this.label = label;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public String getModifier() {
-        return modifier;
-    }
+	public String getModifier() {
+		return modifier;
+	}
 
-    public void setModifier(String modifier) {
-        this.modifier = modifier;
-    }
+	public void setModifier(String modifier) {
+		this.modifier = modifier;
+	}
 
-    public ZonedDateTime getModifiedDate() {
-        return modifiedDate;
-    }
+	public ZonedDateTime getModifiedDate() {
+		return modifiedDate;
+	}
 
-    public void setModifiedDate(ZonedDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
+	public void setModifiedDate(ZonedDateTime modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
 
-    public String getContentType() {
-        return contentType;
-    }
+	public String getContentType() {
+		return contentType;
+	}
 
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
 
-    public long getState() {
-        return state;
-    }
+	public long getState() {
+		return state;
+	}
 
-    public void setState(long state) {
-        this.state = state;
-    }
+	public void setState(long state) {
+		this.state = state;
+	}
 }

@@ -19,18 +19,19 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 public class AllFilter extends AbstractFilter {
 
-    /**
-     * filtering for all items. always returns true.
-     * @param item item
-     * @return true/false
-     */
+	/**
+	 * filtering for all items. always returns true.
+	 *
+	 * @param item item
+	 * @return true/false
+	 */
 
-    public boolean filter(ContentItemTO item) {
-        return true;
-    }
+	public boolean filter(ContentItemTO item) {
+		return true;
+	}
 
-    @Override
-    public String getIncludePattern() {
-        return ".*";
-    }
+	@Override
+	public String getIncludePattern() {
+		return ".*";
+	}
 }

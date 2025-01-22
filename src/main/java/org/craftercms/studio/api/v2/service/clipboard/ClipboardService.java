@@ -30,29 +30,29 @@ import java.util.List;
  */
 public interface ClipboardService {
 
-    /**
-     * Performs the given clipboard operation
-     *
-     * @param siteId the id of the site
-     * @param operation the clipboard operation
-     * @param targetPath the target path
-     * @param item the item to paste
-     * @return the list of pasted items
-     * @throws ServiceLayerException if there is any error during the operation
-     * @throws UserNotFoundException if the user is not found
-     */
-    List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Performs the given clipboard operation
+	 *
+	 * @param siteId     the id of the site
+	 * @param operation  the clipboard operation
+	 * @param targetPath the target path
+	 * @param item       the item to paste
+	 * @return the list of pasted items
+	 * @throws ServiceLayerException if there is any error during the operation
+	 * @throws UserNotFoundException if the user is not found
+	 */
+	List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Duplicates the given item
-     *
-     * @param siteId the id of the site
-     * @param path the path of the item
-     * @return the path of the new item
-     * @throws ServiceLayerException if there is any error copying the item
-     * @throws UserNotFoundException if the user is not found
-     */
-    String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Duplicates the given item
+	 *
+	 * @param siteId the id of the site
+	 * @param path   the path of the item
+	 * @return the path of the new item
+	 * @throws ServiceLayerException if there is any error copying the item
+	 * @throws UserNotFoundException if the user is not found
+	 */
+	String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException;
 
 }

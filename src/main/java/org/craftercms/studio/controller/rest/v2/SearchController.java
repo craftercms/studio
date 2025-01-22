@@ -28,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
 import java.beans.ConstructorProperties;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
@@ -42,25 +43,25 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/search")
 public class SearchController {
 
-    /**
-     * The search service
-     */
-    protected final SearchService searchService;
+	/**
+	 * The search service
+	 */
+	protected final SearchService searchService;
 
-    @ConstructorProperties({"searchService"})
-    public SearchController(final SearchService searchService) {
-        this.searchService = searchService;
-    }
+	@ConstructorProperties({"searchService"})
+	public SearchController(final SearchService searchService) {
+		this.searchService = searchService;
+	}
 
-    @PostMapping(value = "/search")
-    public ResultOne<SearchResult> search(@ValidSiteId @RequestParam String siteId, @Valid @RequestBody SearchParams params)
-            throws AuthenticationException, ServiceLayerException {
-        SearchResult searchResult = searchService.search(siteId, params);
+	@PostMapping(value = "/search")
+	public ResultOne<SearchResult> search(@ValidSiteId @RequestParam String siteId, @Valid @RequestBody SearchParams params)
+		throws AuthenticationException, ServiceLayerException {
+		SearchResult searchResult = searchService.search(siteId, params);
 
-        ResultOne<SearchResult> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_RESULT, searchResult);
-        return result;
-    }
+		ResultOne<SearchResult> result = new ResultOne<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntity(RESULT_KEY_RESULT, searchResult);
+		return result;
+	}
 
 }

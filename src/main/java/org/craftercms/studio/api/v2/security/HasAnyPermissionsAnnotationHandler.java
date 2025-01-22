@@ -36,58 +36,57 @@ import java.util.stream.Stream;
 /**
  * Aspect that handles {@link org.craftercms.studio.api.v2.security.HasAnyPermissions} annotations,
  * by doing appropriate permission checking.
- *
  */
 @Aspect
 @Order(-1)
 public class HasAnyPermissionsAnnotationHandler extends AbstractPermissionAnnotationHandler {
 
-    private static final String ERROR_KEY_EVALUATOR_NOT_FOUND = "security.permission.evaluatorNotFound";
-    private static final String ERROR_KEY_EVALUATION_FAILED = "security.permission.evaluationFailed";
+	private static final String ERROR_KEY_EVALUATOR_NOT_FOUND = "security.permission.evaluatorNotFound";
+	private static final String ERROR_KEY_EVALUATION_FAILED = "security.permission.evaluationFailed";
 
-    protected final SecurityService securityService;
+	protected final SecurityService securityService;
 
-    @ConstructorProperties({"permissionEvaluators", "securityService"})
-    public HasAnyPermissionsAnnotationHandler(Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators, SecurityService securityService) {
-        super(permissionEvaluators);
-        this.securityService = securityService;
-    }
+	@ConstructorProperties({"permissionEvaluators", "securityService"})
+	public HasAnyPermissionsAnnotationHandler(Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators, SecurityService securityService) {
+		super(permissionEvaluators);
+		this.securityService = securityService;
+	}
 
-    @Around("@within(org.craftercms.studio.api.v2.security.HasAnyPermissions) || " +
-            "@annotation(org.craftercms.studio.api.v2.security.HasAnyPermissions)")
-    public Object checkPermissions(ProceedingJoinPoint pjp) throws Throwable {
-        boolean allowed = false;
-        Method method = AopUtils.getActualMethod(pjp);
-        HasAnyPermissions hasAnyPermissions = getHasPermissionAnnotation(method, pjp, HasAnyPermissions.class);
-        Class<?> type = hasAnyPermissions.type();
-        String[] actions = hasAnyPermissions.actions();
-        PermissionEvaluator permissionEvaluator = permissionEvaluators.get(type);
+	@Around("@within(org.craftercms.studio.api.v2.security.HasAnyPermissions) || " +
+		"@annotation(org.craftercms.studio.api.v2.security.HasAnyPermissions)")
+	public Object checkPermissions(ProceedingJoinPoint pjp) throws Throwable {
+		boolean allowed = false;
+		Method method = AopUtils.getActualMethod(pjp);
+		HasAnyPermissions hasAnyPermissions = getHasPermissionAnnotation(method, pjp, HasAnyPermissions.class);
+		Class<?> type = hasAnyPermissions.type();
+		String[] actions = hasAnyPermissions.actions();
+		PermissionEvaluator permissionEvaluator = permissionEvaluators.get(type);
 
-        Object securedResource = getAnnotatedProtectedResource(method, pjp.getArgs());
-        if (securedResource == null) {
-            securedResource = getAnnotatedProtectedResourceIds(method, pjp.getArgs());
-        }
+		Object securedResource = getAnnotatedProtectedResource(method, pjp.getArgs());
+		if (securedResource == null) {
+			securedResource = getAnnotatedProtectedResourceIds(method, pjp.getArgs());
+		}
 
-        if (permissionEvaluator == null) {
-            throw new PermissionException(ERROR_KEY_EVALUATOR_NOT_FOUND, type);
-        }
+		if (permissionEvaluator == null) {
+			throw new PermissionException(ERROR_KEY_EVALUATOR_NOT_FOUND, type);
+		}
 
-        try {
-            for (String action : actions) {
-                allowed = allowed || permissionEvaluator.isAllowed(securedResource, action);
-            }
-        } catch (PermissionException e) {
-            throw new PermissionException(ERROR_KEY_EVALUATION_FAILED, e);
-        }
+		try {
+			for (String action : actions) {
+				allowed = allowed || permissionEvaluator.isAllowed(securedResource, action);
+			}
+		} catch (PermissionException e) {
+			throw new PermissionException(ERROR_KEY_EVALUATION_FAILED, e);
+		}
 
-        if (allowed) {
-            return pjp.proceed();
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("User ").append(securityService.getCurrentUser())
-                .append(" does not have any of the requested permissions ")
-                .append(Stream.of(actions).collect(Collectors.joining(",","[","]")));
+		if (allowed) {
+			return pjp.proceed();
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("User ").append(securityService.getCurrentUser())
+			.append(" does not have any of the requested permissions ")
+			.append(Stream.of(actions).collect(Collectors.joining(",", "[", "]")));
 
-        throw new ActionsDeniedException(sb.toString());
-    }
+		throw new ActionsDeniedException(sb.toString());
+	}
 }

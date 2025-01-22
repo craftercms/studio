@@ -49,121 +49,122 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getSiteId;
  */
 public class ScriptEngineManagerImpl implements ScriptEngineManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScriptEngineManagerImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ScriptEngineManagerImpl.class);
 
-    protected Map<String, GroovyScriptEngine> scriptEngines = new ConcurrentHashMap<>();
+	protected Map<String, GroovyScriptEngine> scriptEngines = new ConcurrentHashMap<>();
 
-    protected ContextManager contextManager;
+	protected ContextManager contextManager;
 
-    protected ContentStoreService contentStoreService;
+	protected ContentStoreService contentStoreService;
 
-    protected boolean sandboxEnabled;
+	protected boolean sandboxEnabled;
 
-    protected String classesBasePath;
+	protected String classesBasePath;
 
-    protected String restBasePath;
+	protected String restBasePath;
 
-    protected String scriptExtension;
+	protected String scriptExtension;
 
-    @ConstructorProperties({"contextManager", "contentStoreService", "sandboxEnabled", "classesBasePath",
-            "restBasePath", "scriptExtension"})
-    public ScriptEngineManagerImpl(ContextManager contextManager, ContentStoreService contentStoreService,
-                                   boolean sandboxEnabled, String classesBasePath, String restBasePath,
-                                   String scriptExtension) {
-        this.contextManager = contextManager;
-        this.contentStoreService = contentStoreService;
-        this.sandboxEnabled = sandboxEnabled;
-        this.classesBasePath = classesBasePath;
-        this.restBasePath = restBasePath;
-        this.scriptExtension = scriptExtension;
-    }
+	@ConstructorProperties({"contextManager", "contentStoreService", "sandboxEnabled", "classesBasePath",
+		"restBasePath", "scriptExtension"})
+	public ScriptEngineManagerImpl(ContextManager contextManager, ContentStoreService contentStoreService,
+				       boolean sandboxEnabled, String classesBasePath, String restBasePath,
+				       String scriptExtension) {
+		this.contextManager = contextManager;
+		this.contentStoreService = contentStoreService;
+		this.sandboxEnabled = sandboxEnabled;
+		this.classesBasePath = classesBasePath;
+		this.restBasePath = restBasePath;
+		this.scriptExtension = scriptExtension;
+	}
 
-    @Override
-    public GroovyScriptEngine getScriptEngine(String siteId) {
-        return scriptEngines.computeIfAbsent(siteId, this::createScriptEngine);
-    }
+	@Override
+	public GroovyScriptEngine getScriptEngine(String siteId) {
+		return scriptEngines.computeIfAbsent(siteId, this::createScriptEngine);
+	}
 
-    protected GroovyScriptEngine createScriptEngine(String siteId) {
-        logger.debug("Create a Script Engine for site '{}'", siteId);
-        var compilerConfig = new CompilerConfiguration();
-        if (sandboxEnabled) {
-            logger.debug("Enable the Groovy sandbox for site '{}'", siteId);
-            compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
-        }
+	protected GroovyScriptEngine createScriptEngine(String siteId) {
+		logger.debug("Create a Script Engine for site '{}'", siteId);
+		var compilerConfig = new CompilerConfiguration();
+		if (sandboxEnabled) {
+			logger.debug("Enable the Groovy sandbox for site '{}'", siteId);
+			compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
+		}
 
-        var groovyClassloader = new GroovyClassLoader(getClass().getClassLoader(), compilerConfig);
-        groovyClassloader.setResourceLoader(new StudioResourceLoader(classesBasePath, new StudioUrlStreamHandler()));
+		var groovyClassloader = new GroovyClassLoader(getClass().getClassLoader(), compilerConfig);
+		groovyClassloader.setResourceLoader(new StudioResourceLoader(classesBasePath, new StudioUrlStreamHandler()));
 
-        return new GroovyScriptEngine(new StudioResourceConnector(restBasePath), groovyClassloader);
-    }
+		return new GroovyScriptEngine(new StudioResourceConnector(restBasePath), groovyClassloader);
+	}
 
-    @Override
-    public void reloadScriptEngine(String siteId) {
-        logger.debug("Reload the Script Engine for site '{}'", siteId);
-        scriptEngines.compute(siteId, (key, old) -> createScriptEngine(siteId));
-    }
+	@Override
+	public void reloadScriptEngine(String siteId) {
+		logger.debug("Reload the Script Engine for site '{}'", siteId);
+		scriptEngines.compute(siteId, (key, old) -> createScriptEngine(siteId));
+	}
 
-    // Internal classes used to load the scripts from the site
+	// Internal classes used to load the scripts from the site
 
-    protected class StudioUrlStreamHandler extends URLStreamHandler {
+	protected class StudioUrlStreamHandler extends URLStreamHandler {
 
-        @Override
-        protected URLConnection openConnection(URL url) {
-            var context = contextManager.getContext(getSiteId());
-            return new ContentStoreUrlConnection(url, contentStoreService.getContent(context, url.getFile()));
-        }
+		@Override
+		protected URLConnection openConnection(URL url) {
+			var context = contextManager.getContext(getSiteId());
+			return new ContentStoreUrlConnection(url, contentStoreService.getContent(context, url.getFile()));
+		}
 
-    }
+	}
 
-    protected class StudioResourceConnector implements ResourceConnector {
+	protected class StudioResourceConnector implements ResourceConnector {
 
-        private final String basePath;
+		private final String basePath;
 
-        public StudioResourceConnector(String basePath) {
-            this.basePath = basePath;
-        }
-        @Override
-        public URLConnection getResourceConnection(String name) throws ResourceException {
-            try {
-                var context = contextManager.getContext(getSiteId());
-                var path = basePath + "/" + name;
-                return new ContentStoreUrlConnection(new File(path).toURI().toURL(),
-                                                        contentStoreService.getContent(context, path));
-            } catch (Exception e) {
-                throw new ResourceException(e);
-            }
-        }
-    }
+		public StudioResourceConnector(String basePath) {
+			this.basePath = basePath;
+		}
 
-    protected class StudioResourceLoader implements GroovyResourceLoader {
+		@Override
+		public URLConnection getResourceConnection(String name) throws ResourceException {
+			try {
+				var context = contextManager.getContext(getSiteId());
+				var path = basePath + "/" + name;
+				return new ContentStoreUrlConnection(new File(path).toURI().toURL(),
+					contentStoreService.getContent(context, path));
+			} catch (Exception e) {
+				throw new ResourceException(e);
+			}
+		}
+	}
 
-        private final String basePath;
+	protected class StudioResourceLoader implements GroovyResourceLoader {
 
-        private final URLStreamHandler urlStreamHandler;
+		private final String basePath;
 
-        public StudioResourceLoader(String basePath, URLStreamHandler urlStreamHandler) {
-            this.basePath = basePath;
-            this.urlStreamHandler = urlStreamHandler;
-        }
+		private final URLStreamHandler urlStreamHandler;
 
-        @Override
-        public URL loadGroovySource(String filename) throws MalformedURLException {
-            if (filename.contains(".")) {
-                filename = filename.replace('.', '/');
-            }
-            if (!filename.endsWith(scriptExtension)) {
-                filename += "." + scriptExtension;
-            }
+		public StudioResourceLoader(String basePath, URLStreamHandler urlStreamHandler) {
+			this.basePath = basePath;
+			this.urlStreamHandler = urlStreamHandler;
+		}
 
-            var context = contextManager.getContext(getSiteId());
-            var path = basePath + "/" + filename;
-            if (contentStoreService.exists(context, path)){
-                return new URL(null, "site:" + path, urlStreamHandler);
-            } else {
-                return null;
-            }
-        }
+		@Override
+		public URL loadGroovySource(String filename) throws MalformedURLException {
+			if (filename.contains(".")) {
+				filename = filename.replace('.', '/');
+			}
+			if (!filename.endsWith(scriptExtension)) {
+				filename += "." + scriptExtension;
+			}
 
-    }
+			var context = contextManager.getContext(getSiteId());
+			var path = basePath + "/" + filename;
+			if (contentStoreService.exists(context, path)) {
+				return new URL(null, "site:" + path, urlStreamHandler);
+			} else {
+				return null;
+			}
+		}
+
+	}
 
 }

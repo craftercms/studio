@@ -18,24 +18,24 @@ package org.craftercms.studio.api.v1.exception.repository;
 
 public class InvalidRemoteUrlException extends Exception {
 
-    private static final long serialVersionUID = -7945125060195956357L;
+	private static final long serialVersionUID = -7945125060195956357L;
 
-    public InvalidRemoteUrlException() {
-    }
+	public InvalidRemoteUrlException() {
+	}
 
-    public InvalidRemoteUrlException(String message) {
-        super(message);
-    }
+	public InvalidRemoteUrlException(String message) {
+		super(message);
+	}
 
-    public InvalidRemoteUrlException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public InvalidRemoteUrlException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public InvalidRemoteUrlException(Throwable cause) {
-        super(cause);
-    }
+	public InvalidRemoteUrlException(Throwable cause) {
+		super(cause);
+	}
 
-    public InvalidRemoteUrlException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public InvalidRemoteUrlException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

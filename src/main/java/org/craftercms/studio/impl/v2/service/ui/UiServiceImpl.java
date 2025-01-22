@@ -38,43 +38,43 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.DEFAU
  */
 public class UiServiceImpl implements UiService {
 
-    private SecurityService securityService;
-    private UiServiceInternal uiServiceInternal;
-    private StudioConfiguration studioConfiguration;
+	private SecurityService securityService;
+	private UiServiceInternal uiServiceInternal;
+	private StudioConfiguration studioConfiguration;
 
-    public UiServiceImpl(SecurityService securityService, UiServiceInternal uiServiceInternal) {
-        this.securityService = securityService;
-        this.uiServiceInternal = uiServiceInternal;
-    }
+	public UiServiceImpl(SecurityService securityService, UiServiceInternal uiServiceInternal) {
+		this.securityService = securityService;
+		this.uiServiceInternal = uiServiceInternal;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(user)) {
-            Set<String> permissions = securityService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
+		String user = securityService.getCurrentUser();
+		if (StringUtils.isNotEmpty(user)) {
+			Set<String> permissions = securityService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
 
-            return uiServiceInternal.getGlobalMenu(permissions);
-        } else {
-            throw new AuthenticationException("User is not authenticated");
-        }
-    }
+			return uiServiceInternal.getGlobalMenu(permissions);
+		} else {
+			throw new AuthenticationException("User is not authenticated");
+		}
+	}
 
-    @Override
-    public String getActiveEnvironment() throws AuthenticationException {
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(user)) {
-            return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-        } else {
-            throw new AuthenticationException("User is not authenticated");
-        }
-    }
+	@Override
+	public String getActiveEnvironment() throws AuthenticationException {
+		String user = securityService.getCurrentUser();
+		if (StringUtils.isNotEmpty(user)) {
+			return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+		} else {
+			throw new AuthenticationException("User is not authenticated");
+		}
+	}
 }

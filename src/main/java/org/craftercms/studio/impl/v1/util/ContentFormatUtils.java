@@ -19,28 +19,29 @@ import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
 /**
- * util methods for parsing/converting data 
- * 
- * @author hyanghee
+ * util methods for parsing/converting data
  *
+ * @author hyanghee
  */
 public class ContentFormatUtils {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContentFormatUtils.class);
 
-	/** model date format constants **/
+	/**
+	 * model date format constants
+	 **/
 	public static final String DATE_PATTERN_TIMEZONE_GMT = "GMT";
-	
+
 	/**
 	 * parse the given date using the model date format and the timezone
-	 * 
+	 *
 	 * @param format
 	 * @param dateStr
 	 * @return timeZone
@@ -48,25 +49,24 @@ public class ContentFormatUtils {
 	public static ZonedDateTime parseDate(SimpleDateFormat format, String dateStr, String timeZone) {
 		ZonedDateTime retDate = null;
 
-		if(format != null && dateStr != null) {
+		if (format != null && dateStr != null) {
 			if (StringUtils.isEmpty(timeZone)) {
 				format.setTimeZone(TimeZone.getTimeZone(DATE_PATTERN_TIMEZONE_GMT));
 			} else {
 				format.setTimeZone(TimeZone.getTimeZone(timeZone));
 			}
 
-            retDate = ZonedDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
-		}
-		else {
+			retDate = ZonedDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
+		} else {
 			LOGGER.error("Requested date format with null args dateStr: " + dateStr + " using format: " + format);
 		}
 
 		return retDate;
 	}
-    
+
 	/**
 	 * get a boolean value given a string
-	 * 
+	 *
 	 * @param str
 	 * @return boolean value
 	 */
@@ -76,7 +76,7 @@ public class ContentFormatUtils {
 
 	/**
 	 * get integer value
-	 * 
+	 *
 	 * @param str
 	 * @return int value
 	 */

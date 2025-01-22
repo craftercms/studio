@@ -21,69 +21,69 @@ import java.util.List;
 
 public class RemoteRepositoryInfo implements Serializable {
 
-    private static final long serialVersionUID = -47166234696510116L;
+	private static final long serialVersionUID = -47166234696510116L;
 
-    private String name;
-    private String url;
-    private String fetch;
-    private String pushUrl;
-    private List<String> branches;
-    private boolean reachable = true;
-    private String unreachableReason;
+	private String name;
+	private String url;
+	private String fetch;
+	private String pushUrl;
+	private List<String> branches;
+	private boolean reachable = true;
+	private String unreachableReason;
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
-    public String getFetch() {
-        return fetch;
-    }
+	public String getFetch() {
+		return fetch;
+	}
 
-    public void setFetch(String fetch) {
-        this.fetch = fetch;
-    }
+	public void setFetch(String fetch) {
+		this.fetch = fetch;
+	}
 
-    public String getPushUrl() {
-        return pushUrl;
-    }
+	public String getPushUrl() {
+		return pushUrl;
+	}
 
-    public void setPushUrl(String pushUrl) {
-        this.pushUrl = pushUrl;
-    }
+	public void setPushUrl(String pushUrl) {
+		this.pushUrl = pushUrl;
+	}
 
-    public List<String> getBranches() {
-        return branches;
-    }
+	public List<String> getBranches() {
+		return branches;
+	}
 
-    public void setBranches(List<String> branches) {
-        this.branches = branches;
-    }
+	public void setBranches(List<String> branches) {
+		this.branches = branches;
+	}
 
-    public boolean isReachable() {
-        return reachable;
-    }
+	public boolean isReachable() {
+		return reachable;
+	}
 
-    public void setReachable(boolean reachable) {
-        this.reachable = reachable;
-    }
+	public void setReachable(boolean reachable) {
+		this.reachable = reachable;
+	}
 
-    public String getUnreachableReason() {
-        return unreachableReason;
-    }
+	public String getUnreachableReason() {
+		return unreachableReason;
+	}
 
-    public void setUnreachableReason(String unreachableReason) {
-        this.unreachableReason = unreachableReason;
-    }
+	public void setUnreachableReason(String unreachableReason) {
+		this.unreachableReason = unreachableReason;
+	}
 }

@@ -22,17 +22,17 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import java.util.List;
 
 /**
- * 	// document
+ * // document
  */
 public interface DeploymentService {
 
-    /**
-     * Enable/Disable publishing for given site
-     *
-     * @param site    site id
-     * @param enabled true to enable publishing, false to disable publishing
-     * @throws SiteNotFoundException if the site cannot be found
-     */
-    void enablePublishing(String site, boolean enabled) throws SiteNotFoundException, AuthenticationException;
+	/**
+	 * Enable/Disable publishing for given site
+	 *
+	 * @param site    site id
+	 * @param enabled true to enable publishing, false to disable publishing
+	 * @throws SiteNotFoundException if the site cannot be found
+	 */
+	void enablePublishing(String site, boolean enabled) throws SiteNotFoundException, AuthenticationException;
 
 }

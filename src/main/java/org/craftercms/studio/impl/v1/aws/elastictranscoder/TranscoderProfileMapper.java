@@ -62,44 +62,43 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  *    &lt;/outputs&gt;
  * &lt;/profile&gt;
  * </pre>
- *
  */
 public class TranscoderProfileMapper extends AbstractAwsProfileMapper<TranscoderProfile> {
 
-    public static final String SERVICE_NAME = "elasticTranscoder";
+	public static final String SERVICE_NAME = "elasticTranscoder";
 
-    @ConstructorProperties({"resolver"})
-    public TranscoderProfileMapper(final ConfigurationResolver resolver) {
-        super(SERVICE_NAME, resolver);
-    }
+	@ConstructorProperties({"resolver"})
+	public TranscoderProfileMapper(final ConfigurationResolver resolver) {
+		super(SERVICE_NAME, resolver);
+	}
 
-    @Override
-    protected TranscoderProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)
-            throws ConfigurationException {
-        TranscoderProfile profile = super.mapProfile(profileConfig);
-        profile.setPipelineId(getRequiredStringProperty(profileConfig, "pipelineId"));
+	@Override
+	protected TranscoderProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)
+		throws ConfigurationException {
+		TranscoderProfile profile = super.mapProfile(profileConfig);
+		profile.setPipelineId(getRequiredStringProperty(profileConfig, "pipelineId"));
 
-        List<HierarchicalConfiguration<ImmutableNode>> outputConfigs =
-                getRequiredConfigurationsAt(profileConfig, "outputs.output");
-        List<TranscoderOutput> outputs = new ArrayList<>();
+		List<HierarchicalConfiguration<ImmutableNode>> outputConfigs =
+			getRequiredConfigurationsAt(profileConfig, "outputs.output");
+		List<TranscoderOutput> outputs = new ArrayList<>();
 
-        for (HierarchicalConfiguration outputConfig : outputConfigs) {
-            TranscoderOutput output = new TranscoderOutput();
-            output.setPresetId(getRequiredStringProperty(outputConfig, "presetId"));
-            output.setOutputKeySuffix(getRequiredStringProperty(outputConfig, "outputKeySuffix"));
-            output.setThumbnailSuffixFormat(getStringProperty(outputConfig, "thumbnailSuffixFormat"));
+		for (HierarchicalConfiguration outputConfig : outputConfigs) {
+			TranscoderOutput output = new TranscoderOutput();
+			output.setPresetId(getRequiredStringProperty(outputConfig, "presetId"));
+			output.setOutputKeySuffix(getRequiredStringProperty(outputConfig, "outputKeySuffix"));
+			output.setThumbnailSuffixFormat(getStringProperty(outputConfig, "thumbnailSuffixFormat"));
 
-            outputs.add(output);
-        }
+			outputs.add(output);
+		}
 
-        profile.setOutputs(outputs);
+		profile.setOutputs(outputs);
 
-        return profile;
-    }
+		return profile;
+	}
 
-    @Override
-    protected AbstractAwsProfile createProfile() {
-        return new TranscoderProfile();
-    }
+	@Override
+	protected AbstractAwsProfile createProfile() {
+		return new TranscoderProfile();
+	}
 
 }

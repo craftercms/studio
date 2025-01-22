@@ -18,26 +18,31 @@ package org.craftercms.studio.api.v1.job;
 
 public class CronJobContext {
 
-    private static ThreadLocal<CronJobContext> threadLocal = new ThreadLocal<>();
+	private static ThreadLocal<CronJobContext> threadLocal = new ThreadLocal<>();
 
-    public static CronJobContext getCurrent() {
-        return threadLocal.get();
-    }
+	public static CronJobContext getCurrent() {
+		return threadLocal.get();
+	}
 
-    public static void setCurrent(CronJobContext cronJobContext) {
-        threadLocal.set(cronJobContext);
-    }
+	public static void setCurrent(CronJobContext cronJobContext) {
+		threadLocal.set(cronJobContext);
+	}
 
-    public static void clear() {
-        threadLocal.remove();
-    }
+	public static void clear() {
+		threadLocal.remove();
+	}
 
-    public CronJobContext(String currentUser) {
-        this.currentUser = currentUser;
-    }
+	public CronJobContext(String currentUser) {
+		this.currentUser = currentUser;
+	}
 
-    public String getCurrentUser() { return currentUser; }
-    public void setCurrentUser(String currentUser) { this.currentUser = currentUser; }
+	public String getCurrentUser() {
+		return currentUser;
+	}
 
-    private String currentUser;
+	public void setCurrentUser(String currentUser) {
+		this.currentUser = currentUser;
+	}
+
+	private String currentUser;
 }

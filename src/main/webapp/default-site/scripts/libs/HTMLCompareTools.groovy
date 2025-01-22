@@ -47,10 +47,10 @@ class HTMLCompareTools {
 	static CONTENT_XML_TO_HTML_XSL = new ClassPathResource("crafter/studio/utils/xml-to-html.xslt")
 
 	static CharSequenceTranslator UNESCAPE_HTML_SPECIFIC =
-				new AggregateTranslator(
-					new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE),
-					new LookupTranslator(EntityArrays.HTML40_EXTENDED_UNESCAPE),
-					new NumericEntityUnescaper())
+		new AggregateTranslator(
+			new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE),
+			new LookupTranslator(EntityArrays.HTML40_EXTENDED_UNESCAPE),
+			new NumericEntityUnescaper())
 
 	static String xmlAsStringToHtml(String xml) {
 		return xmlToHtml(IOUtils.toInputStream(xml, UTF_8))
@@ -83,21 +83,21 @@ class HTMLCompareTools {
 		}
 	}
 
-	static String xmlEscapedFormatted(String xml){
+	static String xmlEscapedFormatted(String xml) {
 		def formattedXml = ''
 		def spacesCount = 0
 
-		for(String s : xml.split("(?=<)|(?<=>)")){
+		for (String s : xml.split("(?=<)|(?<=>)")) {
 			def spaces = ''
 			def i = 0
 
-			for(i; i < spacesCount; i++){
+			for (i; i < spacesCount; i++) {
 				spaces += '&nbsp;'
 			}
 
-			if(s.trim().length() > 0){
-				formattedXml += spaces + StringEscapeUtils.escapeXml(s) +  '<br/>'
-			}else{
+			if (s.trim().length() > 0) {
+				formattedXml += spaces + StringEscapeUtils.escapeXml(s) + '<br/>'
+			} else {
 				spacesCount = s.length()
 			}
 		}
@@ -111,7 +111,7 @@ class HTMLCompareTools {
 
 	static String diff(InputStream html1, InputStream html2) {
 		try {
-			SAXTransformerFactory tf =  TransformerFactory.newInstance(DEFAULT_FACTORY_CLASS, null)
+			SAXTransformerFactory tf = TransformerFactory.newInstance(DEFAULT_FACTORY_CLASS, null)
 			tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
 			TransformerHandler result = tf.newTransformerHandler()
 			StringWriter resultWriter = new StringWriter()

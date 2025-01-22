@@ -18,9 +18,10 @@ package org.craftercms.studio.api.v1.exception;
 public class SiteAlreadyExistsException extends ServiceLayerException {
 
 
-    private static final long serialVersionUID = 6422788562443045182L;
+	private static final long serialVersionUID = 6422788562443045182L;
 
-    public SiteAlreadyExistsException() {}
+	public SiteAlreadyExistsException() {
+	}
 
 	public SiteAlreadyExistsException(Exception e) {
 		super(e);

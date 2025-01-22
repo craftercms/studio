@@ -32,17 +32,17 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class EncryptionServiceImpl implements EncryptionService {
 
-    protected EncryptionServiceInternal encryptionServiceInternal;
+	protected EncryptionServiceInternal encryptionServiceInternal;
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ENCRYPTION_TOOL)
-    public String encrypt(@SiteId String siteId,
-                          @ValidateStringParam String text) throws ServiceLayerException {
-        return encryptionServiceInternal.encrypt(siteId, text);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_ENCRYPTION_TOOL)
+	public String encrypt(@SiteId String siteId,
+			      @ValidateStringParam String text) throws ServiceLayerException {
+		return encryptionServiceInternal.encrypt(siteId, text);
+	}
 
-    public void setEncryptionServiceInternal(EncryptionServiceInternal encryptionServiceInternal) {
-        this.encryptionServiceInternal = encryptionServiceInternal;
-    }
+	public void setEncryptionServiceInternal(EncryptionServiceInternal encryptionServiceInternal) {
+		this.encryptionServiceInternal = encryptionServiceInternal;
+	}
 }

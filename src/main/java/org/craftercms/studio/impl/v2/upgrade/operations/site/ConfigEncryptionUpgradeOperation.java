@@ -33,52 +33,52 @@ import java.util.regex.Pattern;
  */
 public class ConfigEncryptionUpgradeOperation extends AbstractContentUpgradeOperation {
 
-    protected static String DEFAULT_ENCRYPTED_PATTERN = "\\$\\{enc:([^}#]+)}";
+	protected static String DEFAULT_ENCRYPTED_PATTERN = "\\$\\{enc:([^}#]+)}";
 
-    protected Pattern encryptedPattern = Pattern.compile(DEFAULT_ENCRYPTED_PATTERN);
+	protected Pattern encryptedPattern = Pattern.compile(DEFAULT_ENCRYPTED_PATTERN);
 
-    protected TextEncryptor textEncryptor;
+	protected TextEncryptor textEncryptor;
 
-    @ConstructorProperties({"studioConfiguration", "textEncryptor"})
-    public ConfigEncryptionUpgradeOperation(StudioConfiguration studioConfiguration, TextEncryptor textEncryptor) {
-        super(studioConfiguration);
-        this.textEncryptor = textEncryptor;
-    }
+	@ConstructorProperties({"studioConfiguration", "textEncryptor"})
+	public ConfigEncryptionUpgradeOperation(StudioConfiguration studioConfiguration, TextEncryptor textEncryptor) {
+		super(studioConfiguration);
+		this.textEncryptor = textEncryptor;
+	}
 
-    @Override
-    protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
-        return true;
-    }
+	@Override
+	protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
+		return true;
+	}
 
-    @Override
-    protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
-        try {
-            // read the whole file
-            String content = readFile(path);
-            // find all encrypted values
-            Matcher matcher = encryptedPattern.matcher(content);
-            boolean updateFile = matcher.matches();
-            // for each one
-            while(matcher.find()) {
-                String encryptedValue = matcher.group(1);
-                // decrypt it
-                String originalValue = textEncryptor.decrypt(encryptedValue);
-                // encrypt it again
-                String newValue = textEncryptor.encrypt(originalValue);
-                // replace it
-                content = content.replaceAll(encryptedValue, newValue);
+	@Override
+	protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
+		try {
+			// read the whole file
+			String content = readFile(path);
+			// find all encrypted values
+			Matcher matcher = encryptedPattern.matcher(content);
+			boolean updateFile = matcher.matches();
+			// for each one
+			while (matcher.find()) {
+				String encryptedValue = matcher.group(1);
+				// decrypt it
+				String originalValue = textEncryptor.decrypt(encryptedValue);
+				// encrypt it again
+				String newValue = textEncryptor.encrypt(originalValue);
+				// replace it
+				content = content.replaceAll(encryptedValue, newValue);
 
-                updateFile = true;
-            }
+				updateFile = true;
+			}
 
-            // update the file if needed
-            if (updateFile) {
-                writeFile(path, content);
-            }
-        } catch (Exception e) {
-            throw new UpgradeException("Error updating file " + path + " for site " + context, e);
-        }
-    }
+			// update the file if needed
+			if (updateFile) {
+				writeFile(path, content);
+			}
+		} catch (Exception e) {
+			throw new UpgradeException("Error updating file " + path + " for site " + context, e);
+		}
+	}
 
 
 }

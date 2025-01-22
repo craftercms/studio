@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.aws.ElasticTranscoderService;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 
 import jakarta.validation.Valid;
+
 import java.io.InputStream;
 
 /**
@@ -36,23 +37,23 @@ import java.io.InputStream;
  */
 public class ElasticTranscoderServiceImpl extends AbstractAwsService<TranscoderProfile> implements ElasticTranscoderService {
 
-    private ElasticTranscoder transcoder;
+	private ElasticTranscoder transcoder;
 
-    public ElasticTranscoderServiceImpl(SiteAwareConfigProfileLoader<TranscoderProfile> profileLoader, ElasticTranscoder transcoder) {
-        super(profileLoader);
-        this.transcoder = transcoder;
-    }
+	public ElasticTranscoderServiceImpl(SiteAwareConfigProfileLoader<TranscoderProfile> profileLoader, ElasticTranscoder transcoder) {
+		super(profileLoader);
+		this.transcoder = transcoder;
+	}
 
-    @Override
-    @Valid
-    public TranscoderJob transcodeFile(@ValidateStringParam String site,
-                                       @ValidateStringParam String profileId,
-                                       @ValidateStringParam String filename,
-                                       InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
-        TranscoderProfile profile = getProfile(site, profileId);
-        TranscoderJob job = transcoder.startJob(filename, content, profile);
+	@Override
+	@Valid
+	public TranscoderJob transcodeFile(@ValidateStringParam String site,
+					   @ValidateStringParam String profileId,
+					   @ValidateStringParam String filename,
+					   InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
+		TranscoderProfile profile = getProfile(site, profileId);
+		TranscoderJob job = transcoder.startJob(filename, content, profile);
 
-        return job;
-    }
+		return job;
+	}
 
 }

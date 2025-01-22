@@ -31,55 +31,56 @@ import java.util.Map;
  *
  * @author hyanghee
  * @author Dejan Brkic
- *
  */
 public class ExtractParamsProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExtractParamsProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(ExtractParamsProcessor.class);
 
-    public static final String NAME = "ExtractParamsProcessor";
+	public static final String NAME = "ExtractParamsProcessor";
 
-    protected Map<String, String> params = null;
-    public Map<String, String> getParams() {
-        return params;
-    }
-    public void setParams(Map<String, String> params) {
-        this.params = params;
-    }
+	protected Map<String, String> params = null;
 
-    /**
-     * default constructor
-     */
-    public ExtractParamsProcessor() {
-        super(NAME);
-    }
+	public Map<String, String> getParams() {
+		return params;
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public ExtractParamsProcessor(String name) {
-        super(name);
-    }
+	public void setParams(Map<String, String> params) {
+		this.params = params;
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        // extract file name from XML if not provided
-        if (params != null) {
-            Element root = null;
-            // check for each param
-            for (String key : params.keySet()) {
-                // if the content does not contain the param, get it from the document
-                String value = content.getProperty(key);
-                if (value == null) {
-                    if (root == null) {
-                        Document document = content.getDocument();
-                        root = document.getRootElement();
-                    }
-                    value = root.valueOf(params.get(key));
-                    content.addProperty(key, value);
-                }
-            }
-        }
-    }
+	/**
+	 * default constructor
+	 */
+	public ExtractParamsProcessor() {
+		super(NAME);
+	}
+
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public ExtractParamsProcessor(String name) {
+		super(name);
+	}
+
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		// extract file name from XML if not provided
+		if (params != null) {
+			Element root = null;
+			// check for each param
+			for (String key : params.keySet()) {
+				// if the content does not contain the param, get it from the document
+				String value = content.getProperty(key);
+				if (value == null) {
+					if (root == null) {
+						Document document = content.getDocument();
+						root = document.getRootElement();
+					}
+					value = root.valueOf(params.get(key));
+					content.addProperty(key, value);
+				}
+			}
+		}
+	}
 }

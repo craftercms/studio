@@ -17,44 +17,44 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Rename child-content => components datasource -->
-    <xsl:template match="/form/datasources/datasource/type[text() = 'child-content']">
-        <xsl:element name="type">
-            <xsl:text>components</xsl:text>
-        </xsl:element>
-    </xsl:template>
+	<!-- Rename child-content => components datasource -->
+	<xsl:template match="/form/datasources/datasource/type[text() = 'child-content']">
+		<xsl:element name="type">
+			<xsl:text>components</xsl:text>
+		</xsl:element>
+	</xsl:template>
 
-    <!-- Rename dropTargets => components datasource -->
-    <xsl:template match="/form/datasources/datasource/type[text() = 'dropTargets']">
-        <xsl:element name="type">
-            <xsl:text>components</xsl:text>
-        </xsl:element>
-    </xsl:template>
+	<!-- Rename dropTargets => components datasource -->
+	<xsl:template match="/form/datasources/datasource/type[text() = 'dropTargets']">
+		<xsl:element name="type">
+			<xsl:text>components</xsl:text>
+		</xsl:element>
+	</xsl:template>
 
-    <!-- Rename site-component => simpleTaxonomy datasource -->
-    <xsl:template match="/form/datasources/datasource/type[text() = 'site-component']">
-        <xsl:element name="type">
-            <xsl:text>simpleTaxonomy</xsl:text>
-        </xsl:element>
-    </xsl:template>
+	<!-- Rename site-component => simpleTaxonomy datasource -->
+	<xsl:template match="/form/datasources/datasource/type[text() = 'site-component']">
+		<xsl:element name="type">
+			<xsl:text>simpleTaxonomy</xsl:text>
+		</xsl:element>
+	</xsl:template>
 
 </xsl:stylesheet>

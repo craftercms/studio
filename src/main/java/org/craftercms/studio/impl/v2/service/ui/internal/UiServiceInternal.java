@@ -29,15 +29,13 @@ import java.util.Set;
  */
 public interface UiServiceInternal {
 
-    /**
-     * Returns the global menu items available based on the specified permissions
-     *
-     * @param permissions the permissions that restrict what menu items the user has access to
-     *
-     * @return the list of menu items
-     *
-     * @throws ServiceLayerException if another error occurs
-     */
-    List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException;
+	/**
+	 * Returns the global menu items available based on the specified permissions
+	 *
+	 * @param permissions the permissions that restrict what menu items the user has access to
+	 * @return the list of menu items
+	 * @throws ServiceLayerException if another error occurs
+	 */
+	List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException;
 
 }

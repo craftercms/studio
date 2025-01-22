@@ -25,30 +25,30 @@ import java.util.List;
  */
 public class TranslationConfiguration {
 
-    /**
-     * The code of the default locale for all new content
-     */
-    protected String defaultLocaleCode;
+	/**
+	 * The code of the default locale for all new content
+	 */
+	protected String defaultLocaleCode;
 
-    /**
-     * The list of codes for the supported locales
-     */
-    protected List<String> localeCodes;
+	/**
+	 * The list of codes for the supported locales
+	 */
+	protected List<String> localeCodes;
 
-    public String getDefaultLocaleCode() {
-        return defaultLocaleCode;
-    }
+	public String getDefaultLocaleCode() {
+		return defaultLocaleCode;
+	}
 
-    public void setDefaultLocaleCode(String defaultLocaleCode) {
-        this.defaultLocaleCode = defaultLocaleCode;
-    }
+	public void setDefaultLocaleCode(String defaultLocaleCode) {
+		this.defaultLocaleCode = defaultLocaleCode;
+	}
 
-    public List<String> getLocaleCodes() {
-        return localeCodes;
-    }
+	public List<String> getLocaleCodes() {
+		return localeCodes;
+	}
 
-    public void setLocaleCodes(List<String> localeCodes) {
-        this.localeCodes = localeCodes;
-    }
+	public void setLocaleCodes(List<String> localeCodes) {
+		this.localeCodes = localeCodes;
+	}
 
 }

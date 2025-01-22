@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -30,93 +31,93 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 
 public class Group implements Serializable, GrantedAuthority {
 
-    private static final long serialVersionUID = 4723035066512137838L;
+	private static final long serialVersionUID = 4723035066512137838L;
 
-    private long id = -1;
-    private ZonedDateTime recordLastUpdated;
-    private Organization organization;
-    private boolean externallyManaged;
-    @NotBlank
-    @Size(min = 3, max = 512)
-    @EsapiValidatedParam(type = GROUP_NAME)
-    private String groupName;
-    @Size(max=1024)
-    private String groupDescription;
+	private long id = -1;
+	private ZonedDateTime recordLastUpdated;
+	private Organization organization;
+	private boolean externallyManaged;
+	@NotBlank
+	@Size(min = 3, max = 512)
+	@EsapiValidatedParam(type = GROUP_NAME)
+	private String groupName;
+	@Size(max = 1024)
+	private String groupDescription;
 
-    @Override
-    @JsonIgnore
-    public String getAuthority() {
-        return groupName;
-    }
+	@Override
+	@JsonIgnore
+	public String getAuthority() {
+		return groupName;
+	}
 
-    @JsonProperty("id")
-    public long getId() {
-        return id;
-    }
+	@JsonProperty("id")
+	public long getId() {
+		return id;
+	}
 
-    @JsonProperty("id")
-    public void setId(long id) {
-        this.id = id;
-    }
+	@JsonProperty("id")
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    @JsonIgnore
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
-    }
+	@JsonIgnore
+	public ZonedDateTime getRecordLastUpdated() {
+		return recordLastUpdated;
+	}
 
-    @JsonIgnore
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
-    }
+	@JsonIgnore
+	public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
+		this.recordLastUpdated = recordLastUpdated;
+	}
 
-    @JsonIgnore
-    public Organization getOrganization() {
-        return organization;
-    }
+	@JsonIgnore
+	public Organization getOrganization() {
+		return organization;
+	}
 
-    @JsonIgnore
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
-    }
+	@JsonIgnore
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
 
-    @JsonProperty("name")
-    public String getGroupName() {
-        return groupName;
-    }
+	@JsonProperty("name")
+	public String getGroupName() {
+		return groupName;
+	}
 
-    @JsonProperty("name")
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
+	@JsonProperty("name")
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
 
-    @JsonProperty("desc")
-    public String getGroupDescription() {
-        return groupDescription;
-    }
+	@JsonProperty("desc")
+	public String getGroupDescription() {
+		return groupDescription;
+	}
 
-    @JsonProperty("desc")
-    public void setGroupDescription(String groupDescription) {
-        this.groupDescription = groupDescription;
-    }
+	@JsonProperty("desc")
+	public void setGroupDescription(String groupDescription) {
+		this.groupDescription = groupDescription;
+	}
 
-    @JsonProperty("externallyManaged")
-    public boolean isExternallyManaged() {
-        return externallyManaged;
-    }
+	@JsonProperty("externallyManaged")
+	public boolean isExternallyManaged() {
+		return externallyManaged;
+	}
 
-    @JsonProperty("externallyManaged")
-    public void setExternallyManaged(boolean externallyManaged) {
-        this.externallyManaged = externallyManaged;
-    }
+	@JsonProperty("externallyManaged")
+	public void setExternallyManaged(boolean externallyManaged) {
+		this.externallyManaged = externallyManaged;
+	}
 
-    @JsonIgnore
-    public int getExternallyManagedAsInt() {
-        return externallyManaged ? 1 : 0;
-    }
+	@JsonIgnore
+	public int getExternallyManagedAsInt() {
+		return externallyManaged ? 1 : 0;
+	}
 
-    @JsonIgnore
-    public void setExternallyManagedAsInt(int externallyManaged) {
-        this.externallyManaged = externallyManaged > 0;
-    }
+	@JsonIgnore
+	public void setExternallyManagedAsInt(int externallyManaged) {
+		this.externallyManaged = externallyManaged > 0;
+	}
 
 }

@@ -21,26 +21,51 @@ import java.util.List;
 
 public class RemoteRepositoryInfoTO implements Serializable {
 
-    private static final long serialVersionUID = -2365497763591332370L;
+	private static final long serialVersionUID = -2365497763591332370L;
 
-    private String name;
-    private String url;
-    private String fetch;
-    private String push_url;
-    private List<String> branches;
+	private String name;
+	private String url;
+	private String fetch;
+	private String push_url;
+	private List<String> branches;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+	public String getName() {
+		return name;
+	}
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getFetch() { return fetch; }
-    public void setFetch(String fetch) { this.fetch = fetch; }
+	public String getUrl() {
+		return url;
+	}
 
-    public String getPush_url() { return push_url; }
-    public void setPush_url(String push_url) { this.push_url = push_url; }
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
-    public List<String> getBranches() { return branches; }
-    public void setBranches(List<String> branches) { this.branches = branches; }
+	public String getFetch() {
+		return fetch;
+	}
+
+	public void setFetch(String fetch) {
+		this.fetch = fetch;
+	}
+
+	public String getPush_url() {
+		return push_url;
+	}
+
+	public void setPush_url(String push_url) {
+		this.push_url = push_url;
+	}
+
+	public List<String> getBranches() {
+		return branches;
+	}
+
+	public void setBranches(List<String> branches) {
+		this.branches = branches;
+	}
 }

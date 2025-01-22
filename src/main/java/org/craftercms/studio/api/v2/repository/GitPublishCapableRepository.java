@@ -25,71 +25,70 @@ import java.util.Collection;
 
 /**
  * Interface for publish operations of a git repository
-
  */
 public interface GitPublishCapableRepository extends GitContentRepository {
-    /**
-     * Publishes the given items to the given target
-     *
-     * @param publishPackage   the publish package
-     * @param publishingTarget the publishing target
-     * @param publishItems     the items to publish
-     * @param <T>              the type of the {@link PublishItemTO} objects
-     * @return the change set listing the affected paths and new commit id
-     * @throws ServiceLayerException if there is any error while publishing or publishItems is null or empty
-     */
-    <T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
-                                                                                  String publishingTarget,
-                                                                                  Collection<T> publishItems) throws ServiceLayerException, IOException;
+	/**
+	 * Publishes the given items to the given target
+	 *
+	 * @param publishPackage   the publish package
+	 * @param publishingTarget the publishing target
+	 * @param publishItems     the items to publish
+	 * @param <T>              the type of the {@link PublishItemTO} objects
+	 * @return the change set listing the affected paths and new commit id
+	 * @throws ServiceLayerException if there is any error while publishing or publishItems is null or empty
+	 */
+	<T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
+								 String publishingTarget,
+								 Collection<T> publishItems) throws ServiceLayerException, IOException;
 
-    /**
-     * Publishes all changes for the given site and target
-     *
-     * @param publishPackage   the publish package
-     * @param publishingTarget the publishing target
-     * @return the change set listing the affected paths and new commit ids (comparing the published repository target branch before and after the publish)
-     */
-    <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(PublishPackage publishPackage,
-                                                                String publishingTarget) throws ServiceLayerException, IOException;
+	/**
+	 * Publishes all changes for the given site and target
+	 *
+	 * @param publishPackage   the publish package
+	 * @param publishingTarget the publishing target
+	 * @return the change set listing the affected paths and new commit ids (comparing the published repository target branch before and after the publish)
+	 */
+	<T extends PublishItemTO> GitPublishChangeSet<T> publishAll(PublishPackage publishPackage,
+								    String publishingTarget) throws ServiceLayerException, IOException;
 
-    /**
-     * Execute initial publish for given site
-     *
-     * @param publishPackage the package to publish
-     * @param ignorePaths    the paths to ignore
-     * @param target         the target to publish to
-     * @return commit id of the initial publish.
-     */
-    String initialPublish(PublishPackage publishPackage, Collection<String> ignorePaths,
-                          String target) throws ServiceLayerException;
+	/**
+	 * Execute initial publish for given site
+	 *
+	 * @param publishPackage the package to publish
+	 * @param ignorePaths    the paths to ignore
+	 * @param target         the target to publish to
+	 * @return commit id of the initial publish.
+	 */
+	String initialPublish(PublishPackage publishPackage, Collection<String> ignorePaths,
+			      String target) throws ServiceLayerException;
 
-    /**
-     * Store the result of a publish operation
-     *
-     * @param successfulItems the paths that were updated
-     * @param failedItems     the paths that failed to publish, mapped to the error message
-     * @param <T>             the actual type of the {@link PublishItemTO} objects
-     */
-    record GitPublishChangeSet<T extends PublishItemTO>(String commitId,
-                                                        Collection<T> successfulItems,
-                                                        Collection<T> failedItems) {
+	/**
+	 * Store the result of a publish operation
+	 *
+	 * @param successfulItems the paths that were updated
+	 * @param failedItems     the paths that failed to publish, mapped to the error message
+	 * @param <T>             the actual type of the {@link PublishItemTO} objects
+	 */
+	record GitPublishChangeSet<T extends PublishItemTO>(String commitId,
+							    Collection<T> successfulItems,
+							    Collection<T> failedItems) {
 
-        /**
-         * Check if there are successfully published changes
-         *
-         * @return true if the package had successful changes and a commit was created, false otherwise
-         */
-        public boolean completed() {
-            return !ObjectUtils.isEmpty(commitId);
-        }
+		/**
+		 * Check if there are successfully published changes
+		 *
+		 * @return true if the package had successful changes and a commit was created, false otherwise
+		 */
+		public boolean completed() {
+			return !ObjectUtils.isEmpty(commitId);
+		}
 
-        /**
-         * Check if there are failed items
-         *
-         * @return true if failed items list contains items, false otherwise
-         */
-        public boolean hasFailedItems() {
-            return !ObjectUtils.isEmpty(failedItems);
-        }
-    }
+		/**
+		 * Check if there are failed items
+		 *
+		 * @return true if failed items list contains items, false otherwise
+		 */
+		public boolean hasFailedItems() {
+			return !ObjectUtils.isEmpty(failedItems);
+		}
+	}
 }

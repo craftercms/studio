@@ -39,51 +39,51 @@ import static java.util.stream.Collectors.toList;
  * @since 4.0
  */
 public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils {
-    public static List<String> getChangedFiles(Git git, ObjectId initialId, ObjectId finalId, String[] patterns)
-            throws GitAPIException, IOException {
-        var repo = git.getRepository();
-        try (var reader = repo.newObjectReader()) {
-            var diffs = doDiff(git, reader, initialId, finalId);
-            return diffs.stream()
-                        .map(diff -> {
-                            switch (diff.getChangeType()) {
-                                case MODIFY:
-                                    return diff.getNewPath();
-                                case DELETE:
-                                    return diff.getOldPath();
-                                default:
-                                    return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .filter(path -> RegexUtils.matchesAny(path, patterns))
-                        .collect(toList());
-        }
-    }
+	public static List<String> getChangedFiles(Git git, ObjectId initialId, ObjectId finalId, String[] patterns)
+		throws GitAPIException, IOException {
+		var repo = git.getRepository();
+		try (var reader = repo.newObjectReader()) {
+			var diffs = doDiff(git, reader, initialId, finalId);
+			return diffs.stream()
+				.map(diff -> {
+					switch (diff.getChangeType()) {
+						case MODIFY:
+							return diff.getNewPath();
+						case DELETE:
+							return diff.getOldPath();
+						default:
+							return null;
+					}
+				})
+				.filter(Objects::nonNull)
+				.filter(path -> RegexUtils.matchesAny(path, patterns))
+				.collect(toList());
+		}
+	}
 
-    public static List<String> getChangedFiles(Git git, String initialId, String finalId, String[] patterns)
-            throws GitAPIException, IOException {
-        return getChangedFiles(git, git.getRepository().resolve(initialId),
-                git.getRepository().resolve(finalId), patterns);
-    }
+	public static List<String> getChangedFiles(Git git, String initialId, String finalId, String[] patterns)
+		throws GitAPIException, IOException {
+		return getChangedFiles(git, git.getRepository().resolve(initialId),
+			git.getRepository().resolve(finalId), patterns);
+	}
 
-    public static void translateException(TransportException e, Logger logger, String remoteName, String remoteUrl,
-                                          String remoteUsername) throws RemoteRepositoryNotFoundException,
-                                                                        InvalidRemoteRepositoryCredentialsException {
-        if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-            logger.error("Bad credentials or read-only repository '{}' URL '{}'",
-                    remoteName, remoteUrl, e);
-            throw new InvalidRemoteRepositoryCredentialsException(
-                    format("Bad credentials or read-only repository '%s' URL '%s'", remoteName, remoteUrl), e);
-        } else if (StringUtils.endsWithIgnoreCase(e.getMessage(), "key did not validate")) {
-            logger.error("Invalid private key for repository '{}' URL '{}'", remoteName, remoteUrl, e);
-            throw new InvalidRemoteRepositoryCredentialsException(
-                    format("Invalid private key for repository '%s' URL '%s'", remoteName, remoteUrl), e);
-        } else {
-            logger.error("Remote repository '{}' URL '{}' was not found", remoteName, remoteUrl, e);
-            throw new RemoteRepositoryNotFoundException(
-                    format("Remote repository '%s' URL '%s' was not found", remoteName, remoteUrl), e);
-        }
-    }
+	public static void translateException(TransportException e, Logger logger, String remoteName, String remoteUrl,
+					      String remoteUsername) throws RemoteRepositoryNotFoundException,
+		InvalidRemoteRepositoryCredentialsException {
+		if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+			logger.error("Bad credentials or read-only repository '{}' URL '{}'",
+				remoteName, remoteUrl, e);
+			throw new InvalidRemoteRepositoryCredentialsException(
+				format("Bad credentials or read-only repository '%s' URL '%s'", remoteName, remoteUrl), e);
+		} else if (StringUtils.endsWithIgnoreCase(e.getMessage(), "key did not validate")) {
+			logger.error("Invalid private key for repository '{}' URL '{}'", remoteName, remoteUrl, e);
+			throw new InvalidRemoteRepositoryCredentialsException(
+				format("Invalid private key for repository '%s' URL '%s'", remoteName, remoteUrl), e);
+		} else {
+			logger.error("Remote repository '{}' URL '{}' was not found", remoteName, remoteUrl, e);
+			throw new RemoteRepositoryNotFoundException(
+				format("Remote repository '%s' URL '%s' was not found", remoteName, remoteUrl), e);
+		}
+	}
 
 }

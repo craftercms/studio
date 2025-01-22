@@ -17,58 +17,58 @@
 package org.craftercms.studio.model.rest.workflow;
 
 public class ItemStatesUpdate {
-    private boolean clearSystemProcessing;
-    private boolean clearUserLocked;
-    private Boolean isNew;
-    private Boolean modified;
-    private Boolean live;
-    private Boolean staged;
+	private boolean clearSystemProcessing;
+	private boolean clearUserLocked;
+	private Boolean isNew;
+	private Boolean modified;
+	private Boolean live;
+	private Boolean staged;
 
-    public boolean isClearSystemProcessing() {
-        return clearSystemProcessing;
-    }
+	public boolean isClearSystemProcessing() {
+		return clearSystemProcessing;
+	}
 
-    public void setClearSystemProcessing(boolean clearSystemProcessing) {
-        this.clearSystemProcessing = clearSystemProcessing;
-    }
+	public void setClearSystemProcessing(boolean clearSystemProcessing) {
+		this.clearSystemProcessing = clearSystemProcessing;
+	}
 
-    public boolean isClearUserLocked() {
-        return clearUserLocked;
-    }
+	public boolean isClearUserLocked() {
+		return clearUserLocked;
+	}
 
-    public void setClearUserLocked(boolean clearUserLocked) {
-        this.clearUserLocked = clearUserLocked;
-    }
+	public void setClearUserLocked(boolean clearUserLocked) {
+		this.clearUserLocked = clearUserLocked;
+	}
 
-    public Boolean getNew() {
-        return isNew;
-    }
+	public Boolean getNew() {
+		return isNew;
+	}
 
-    public void setNew(final Boolean isNew) {
-        this.isNew = isNew;
-    }
+	public void setNew(final Boolean isNew) {
+		this.isNew = isNew;
+	}
 
-    public Boolean getModified() {
-        return modified;
-    }
+	public Boolean getModified() {
+		return modified;
+	}
 
-    public void setModified(final Boolean modified) {
-        this.modified = modified;
-    }
+	public void setModified(final Boolean modified) {
+		this.modified = modified;
+	}
 
-    public Boolean getLive() {
-        return live;
-    }
+	public Boolean getLive() {
+		return live;
+	}
 
-    public void setLive(Boolean live) {
-        this.live = live;
-    }
+	public void setLive(Boolean live) {
+		this.live = live;
+	}
 
-    public Boolean getStaged() {
-        return staged;
-    }
+	public Boolean getStaged() {
+		return staged;
+	}
 
-    public void setStaged(Boolean staged) {
-        this.staged = staged;
-    }
+	public void setStaged(Boolean staged) {
+		this.staged = staged;
+	}
 }

@@ -35,97 +35,97 @@ import java.util.Objects;
 
 public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioDBScriptRunnerImpl.class);
+	private final static Logger logger = LoggerFactory.getLogger(StudioDBScriptRunnerImpl.class);
 
-    protected DataSource dataSource;
-    protected int scriptLinesBufferSize;
-    protected Connection connection = null;
-    protected boolean autoCommit;
+	protected DataSource dataSource;
+	protected int scriptLinesBufferSize;
+	protected Connection connection = null;
+	protected boolean autoCommit;
 
-    protected StudioDBScriptRunnerImpl(DataSource dataSource, int scriptLinesBufferSize) {
-        this.dataSource = dataSource;
-        this.scriptLinesBufferSize = scriptLinesBufferSize;
-    }
+	protected StudioDBScriptRunnerImpl(DataSource dataSource, int scriptLinesBufferSize) {
+		this.dataSource = dataSource;
+		this.scriptLinesBufferSize = scriptLinesBufferSize;
+	}
 
-    protected void openConnection() {
-        if (Objects.isNull(connection)) {
-            try {
-                connection = dataSource.getConnection();
-                autoCommit = connection.getAutoCommit();
-                connection.setAutoCommit(false);
-            } catch (SQLException e) {
-                logger.error("Failed to open a connection to the DB", e);
-            }
-        }
-    }
+	protected void openConnection() {
+		if (Objects.isNull(connection)) {
+			try {
+				connection = dataSource.getConnection();
+				autoCommit = connection.getAutoCommit();
+				connection.setAutoCommit(false);
+			} catch (SQLException e) {
+				logger.error("Failed to open a connection to the DB", e);
+			}
+		}
+	}
 
-    protected void closeConnection() {
-        if (!Objects.isNull(connection)) {
-            try {
-                connection.setAutoCommit(autoCommit);
-                connection.close();
-            } catch (SQLException e) {
-                logger.error("Failed to close the connection to the DB", e);
-            }
-            connection = null;
-        }
-    }
+	protected void closeConnection() {
+		if (!Objects.isNull(connection)) {
+			try {
+				connection.setAutoCommit(autoCommit);
+				connection.close();
+			} catch (SQLException e) {
+				logger.error("Failed to close the connection to the DB", e);
+			}
+			connection = null;
+		}
+	}
 
-    @Override
-    @LogExecutionTime
-    public void execute(final Path sqlScriptPath, final boolean sendFullFile) throws SQLException, IOException {
-        File sqlScriptFile = sqlScriptPath.toFile();
-        try {
-            openConnection();
-            if (sendFullFile) {
-                logger.debug("Executing full SQL script '{}'", sqlScriptPath);
-                runSql(Files.readString(sqlScriptPath));
-            } else {
-                logger.debug("Executing partitioned SQL script '{}'", sqlScriptPath);
-                executePartitioned(sqlScriptFile);
-            }
-            logger.debug("Committing the DB transaction after executing the script '{}'", sqlScriptPath);
-            connection.commit();
-        } catch (SQLException | IOException e) {
-            logger.error("Failed to execute the DB script '{}'", sqlScriptFile.getAbsolutePath(), e);
-            try {
-                connection.rollback();
-            } catch (SQLException e2) {
-                logger.error("Failed to rollback the DB transaction", e2);
-            }
-            throw e;
-        } finally {
-            closeConnection();
-        }
-    }
+	@Override
+	@LogExecutionTime
+	public void execute(final Path sqlScriptPath, final boolean sendFullFile) throws SQLException, IOException {
+		File sqlScriptFile = sqlScriptPath.toFile();
+		try {
+			openConnection();
+			if (sendFullFile) {
+				logger.debug("Executing full SQL script '{}'", sqlScriptPath);
+				runSql(Files.readString(sqlScriptPath));
+			} else {
+				logger.debug("Executing partitioned SQL script '{}'", sqlScriptPath);
+				executePartitioned(sqlScriptFile);
+			}
+			logger.debug("Committing the DB transaction after executing the script '{}'", sqlScriptPath);
+			connection.commit();
+		} catch (SQLException | IOException e) {
+			logger.error("Failed to execute the DB script '{}'", sqlScriptFile.getAbsolutePath(), e);
+			try {
+				connection.rollback();
+			} catch (SQLException e2) {
+				logger.error("Failed to rollback the DB transaction", e2);
+			}
+			throw e;
+		} finally {
+			closeConnection();
+		}
+	}
 
-    private void executePartitioned(final File sqlScriptFile) throws IOException, SQLException {
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            boolean moreWork = true;
-            while (moreWork) {
-                for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
-                    line = bufferedReader.readLine();
-                    if (Objects.nonNull(line)) {
-                        sb.append(line).append(System.lineSeparator());
-                    } else {
-                        moreWork = false;
-                    }
-                }
-                if (!sb.isEmpty()) {
-                    logger.debug("Executing chunk of SQL script file '{}'", sqlScriptFile);
-                    runSql(sb.toString());
-                    sb.setLength(0);
-                }
-            }
-        }
-    }
+	private void executePartitioned(final File sqlScriptFile) throws IOException, SQLException {
+		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
+			StringBuilder sb = new StringBuilder();
+			String line;
+			boolean moreWork = true;
+			while (moreWork) {
+				for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
+					line = bufferedReader.readLine();
+					if (Objects.nonNull(line)) {
+						sb.append(line).append(System.lineSeparator());
+					} else {
+						moreWork = false;
+					}
+				}
+				if (!sb.isEmpty()) {
+					logger.debug("Executing chunk of SQL script file '{}'", sqlScriptFile);
+					runSql(sb.toString());
+					sb.setLength(0);
+				}
+			}
+		}
+	}
 
-    private void runSql(final String command) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            statement.setEscapeProcessing(false);
-            statement.execute(command);
-        }
-    }
+	private void runSql(final String command) throws SQLException {
+		try (Statement statement = connection.createStatement()) {
+			statement.setEscapeProcessing(false);
+			statement.execute(command);
+		}
+	}
 }

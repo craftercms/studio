@@ -17,42 +17,42 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <xsl:template match="site-config">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
-            <xsl:if test="not(protected-folders-patterns)">
-                <xsl:comment>
-                    <xsl:text>&#10;</xsl:text>
-                    <xsl:text>Prevent deleting, renaming or cutting root folders of sidebar</xsl:text>
-                    <xsl:text>&#10;</xsl:text>
-                </xsl:comment>
-                <xsl:element name="protected-folders-patterns">
-                    <xsl:element name="pattern">
-                        <xsl:text>^/([^ !$`&amp;*()/+]|(\\[ !$`&amp;*()+]))+$</xsl:text>
-                    </xsl:element>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+	<xsl:template match="site-config">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
+			<xsl:if test="not(protected-folders-patterns)">
+				<xsl:comment>
+					<xsl:text>&#10;</xsl:text>
+					<xsl:text>Prevent deleting, renaming or cutting root folders of sidebar</xsl:text>
+					<xsl:text>&#10;</xsl:text>
+				</xsl:comment>
+				<xsl:element name="protected-folders-patterns">
+					<xsl:element name="pattern">
+						<xsl:text>^/([^ !$`&amp;*()/+]|(\\[ !$`&amp;*()+]))+$</xsl:text>
+					</xsl:element>
+				</xsl:element>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 </xsl:stylesheet>

@@ -24,12 +24,12 @@ import org.springframework.lang.NonNull;
  * @since 4.1.2
  */
 public interface ForgotPasswordTaskFactory {
-    /**
-     * Creates a task to be executed to handle the forgot password request
-     *
-     * @param username the username
-     * @return the task
-     */
-    @NonNull
-    Runnable prepareTask(@NonNull String username);
+	/**
+	 * Creates a task to be executed to handle the forgot password request
+	 *
+	 * @param username the username
+	 * @return the task
+	 */
+	@NonNull
+	Runnable prepareTask(@NonNull String username);
 }

@@ -18,31 +18,31 @@ package org.craftercms.studio.api.v2.dal;
 
 public class DiffConflictedFile {
 
-    private String diff;
-    private String studioVersion;
-    private String remoteVersion;
+	private String diff;
+	private String studioVersion;
+	private String remoteVersion;
 
-    public String getDiff() {
-        return diff;
-    }
+	public String getDiff() {
+		return diff;
+	}
 
-    public void setDiff(String diff) {
-        this.diff = diff;
-    }
+	public void setDiff(String diff) {
+		this.diff = diff;
+	}
 
-    public String getStudioVersion() {
-        return studioVersion;
-    }
+	public String getStudioVersion() {
+		return studioVersion;
+	}
 
-    public void setStudioVersion(String studioVersion) {
-        this.studioVersion = studioVersion;
-    }
+	public void setStudioVersion(String studioVersion) {
+		this.studioVersion = studioVersion;
+	}
 
-    public String getRemoteVersion() {
-        return remoteVersion;
-    }
+	public String getRemoteVersion() {
+		return remoteVersion;
+	}
 
-    public void setRemoteVersion(String remoteVersion) {
-        this.remoteVersion = remoteVersion;
-    }
+	public void setRemoteVersion(String remoteVersion) {
+		this.remoteVersion = remoteVersion;
+	}
 }

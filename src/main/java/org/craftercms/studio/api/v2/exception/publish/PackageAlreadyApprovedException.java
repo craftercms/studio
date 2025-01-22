@@ -22,8 +22,8 @@ package org.craftercms.studio.api.v2.exception.publish;
  */
 public class PackageAlreadyApprovedException extends PackageException {
 
-    public PackageAlreadyApprovedException(final String siteId, final Long packageId) {
-        super(siteId, packageId);
-    }
+	public PackageAlreadyApprovedException(final String siteId, final Long packageId) {
+		super(siteId, packageId);
+	}
 
 }

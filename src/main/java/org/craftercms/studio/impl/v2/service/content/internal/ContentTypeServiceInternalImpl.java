@@ -70,226 +70,228 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class ContentTypeServiceInternalImpl implements ContentTypeServiceInternal {
 
-    protected final ContentTypeService contentTypeService;
-    protected final SecurityService securityService;
-    protected final ConfigurationService configurationService;
-    protected final ItemDAO itemDao;
-    protected ContentService contentService;
+	protected final ContentTypeService contentTypeService;
+	protected final SecurityService securityService;
+	protected final ConfigurationService configurationService;
+	protected final ItemDAO itemDao;
+	protected ContentService contentService;
 
-    protected final String contentTypeBasePathPattern;
-    protected final String contentTypesRootPath;
-    protected final String contentTypeDefinitionFilename;
-    protected final String contentTypeConfigFilename;
-    protected final String templateXPath;
-    protected final String controllerPattern;
-    protected final String controllerFormat;
-    protected final String previewImageXPath;
-    protected final String defaultPreviewImagePath;
-    private final GitRepositoryHelper gitRepositoryHelper;
+	protected final String contentTypeBasePathPattern;
+	protected final String contentTypesRootPath;
+	protected final String contentTypeDefinitionFilename;
+	protected final String contentTypeConfigFilename;
+	protected final String templateXPath;
+	protected final String controllerPattern;
+	protected final String controllerFormat;
+	protected final String previewImageXPath;
+	protected final String defaultPreviewImagePath;
+	private final GitRepositoryHelper gitRepositoryHelper;
 
-    @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
-            "contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
-            "contentTypesRootPath",
-            "templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
-            "gitRepositoryHelper"})
-    public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
-                                          ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
-                                          String contentTypeDefinitionFilename, String contentTypeConfigFilename,
-                                          String contentTypesRootPath, String templateXPath,
-                                          String controllerPattern, String controllerFormat,
-                                          String previewImageXPath, String defaultPreviewImagePath,
-                                          GitRepositoryHelper gitRepositoryHelper) {
-        this.contentTypeService = contentTypeService;
-        this.securityService = securityService;
-        this.configurationService = configurationService;
-        this.itemDao = itemDao;
-        this.contentTypeBasePathPattern = contentTypeBasePathPattern;
-        this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
-        this.contentTypeConfigFilename = contentTypeConfigFilename;
-        this.contentTypesRootPath = contentTypesRootPath;
-        this.templateXPath = templateXPath;
-        this.controllerPattern = controllerPattern;
-        this.controllerFormat = controllerFormat;
-        this.previewImageXPath = previewImageXPath;
-        this.defaultPreviewImagePath = defaultPreviewImagePath;
-        this.gitRepositoryHelper = gitRepositoryHelper;
-    }
+	@ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
+		"contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
+		"contentTypesRootPath",
+		"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
+		"gitRepositoryHelper"})
+	public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
+					      ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
+					      String contentTypeDefinitionFilename, String contentTypeConfigFilename,
+					      String contentTypesRootPath, String templateXPath,
+					      String controllerPattern, String controllerFormat,
+					      String previewImageXPath, String defaultPreviewImagePath,
+					      GitRepositoryHelper gitRepositoryHelper) {
+		this.contentTypeService = contentTypeService;
+		this.securityService = securityService;
+		this.configurationService = configurationService;
+		this.itemDao = itemDao;
+		this.contentTypeBasePathPattern = contentTypeBasePathPattern;
+		this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
+		this.contentTypeConfigFilename = contentTypeConfigFilename;
+		this.contentTypesRootPath = contentTypesRootPath;
+		this.templateXPath = templateXPath;
+		this.controllerPattern = controllerPattern;
+		this.controllerFormat = controllerFormat;
+		this.previewImageXPath = previewImageXPath;
+		this.defaultPreviewImagePath = defaultPreviewImagePath;
+		this.gitRepositoryHelper = gitRepositoryHelper;
+	}
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
 
-    @Override
-    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
-        return contentTypeService.getAllContentTypes(siteId, true).stream()
-                .filter(ContentTypeConfigTO::isQuickCreate)
-                .filter(contentType ->
-                    securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), securityService.getCurrentUser())
-                            .contains(PERMISSION_CONTENT_CREATE))
-                .map(contentType -> {
-                    QuickCreateItem item = new QuickCreateItem();
-                    item.setSiteId(siteId);
-                    item.setContentTypeId(contentType.getForm());
-                    item.setLabel(contentType.getLabel());
-                    item.setPath(contentType.getQuickCreatePath());
-                    return item;
-                })
-                .collect(toList());
-    }
+	@Override
+	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
+		return contentTypeService.getAllContentTypes(siteId, true).stream()
+			.filter(ContentTypeConfigTO::isQuickCreate)
+			.filter(contentType ->
+				securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), securityService.getCurrentUser())
+					.contains(PERMISSION_CONTENT_CREATE))
+			.map(contentType -> {
+				QuickCreateItem item = new QuickCreateItem();
+				item.setSiteId(siteId);
+				item.setContentTypeId(contentType.getForm());
+				item.setLabel(contentType.getLabel());
+				item.setPath(contentType.getQuickCreatePath());
+				return item;
+			})
+			.collect(toList());
+	}
 
-    @Override
-    public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
+	@Override
+	public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
 
-        var usages = new ContentTypeUsage();
+		var usages = new ContentTypeUsage();
 
-        String template = getContentTypeTemplatePath(siteId, contentType);
-        if(isNotEmpty(template)) {
-            usages.setTemplates(singletonList(template));
-        }
+		String template = getContentTypeTemplatePath(siteId, contentType);
+		if (isNotEmpty(template)) {
+			usages.setTemplates(singletonList(template));
+		}
 
-        String scriptPath = getContentTypeControllerPath(contentType);
+		String scriptPath = getContentTypeControllerPath(contentType);
 
-        List<Item> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
+		List<Item> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
 
-        usages.setContent(items.stream()
-                .filter(i -> equalsAnyIgnoreCase(i.getSystemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
-                .map(Item::getPath)
-                .collect(toList()));
+		usages.setContent(items.stream()
+			.filter(i -> equalsAnyIgnoreCase(i.getSystemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
+			.map(Item::getPath)
+			.collect(toList()));
 
-        usages.setScripts(items.stream()
-                .filter(i -> equalsIgnoreCase(i.getSystemType(), (CONTENT_TYPE_SCRIPT)))
-                .map(Item::getPath)
-                .collect(toList()));
+		usages.setScripts(items.stream()
+			.filter(i -> equalsIgnoreCase(i.getSystemType(), (CONTENT_TYPE_SCRIPT)))
+			.map(Item::getPath)
+			.collect(toList()));
 
-        return usages;
-    }
+		return usages;
+	}
 
-    @Override
-    public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
-                                                                      @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
+	@Override
+	public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
+									  @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
 
-        String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
-        boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
-        if (hasPreviewImage) {
-            String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
-            return (new ImmutablePair(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
-        }
+		String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
+		boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
+		if (hasPreviewImage) {
+			String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
+			return (new ImmutablePair(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
+		}
 
-        return (new ImmutablePair(defaultPreviewImagePath, new ClassPathResource(defaultPreviewImagePath)));
-    }
+		return (new ImmutablePair(defaultPreviewImagePath, new ClassPathResource(defaultPreviewImagePath)));
+	}
 
-    @Override
-    public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
+	@Override
+	public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
+		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+		ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
-        var files = new LinkedList<String>();
+		var files = new LinkedList<String>();
 
-        if (CollectionUtils.isNotEmpty(usage.getContent())) {
-            if (!deleteDependencies) {
-                throw new ServiceLayerException("The content-type " + contentType + " in site " + siteId +
-                        " can't be deleted because there is content using it");
-            }
+		if (CollectionUtils.isNotEmpty(usage.getContent())) {
+			if (!deleteDependencies) {
+				throw new ServiceLayerException("The content-type " + contentType + " in site " + siteId +
+					" can't be deleted because there is content using it");
+			}
 
-            files.addAll(usage.getContent());
-        }
+			files.addAll(usage.getContent());
+		}
 
-        files.addAll(usage.getTemplates());
-        files.addAll(usage.getScripts());
-        files.add(getContentTypePath(contentType));
+		files.addAll(usage.getTemplates());
+		files.addAll(usage.getScripts());
+		files.add(getContentTypePath(contentType));
 
-        String message = "Delete content-type %s".formatted(contentType);
-        contentService.deleteContent(siteId, files, StringUtils.left(message, PublishService.PACKAGE_TITLE_MAX_LENGTH), message);
-    }
+		String message = "Delete content-type %s".formatted(contentType);
+		contentService.deleteContent(siteId, files, StringUtils.left(message, PublishService.PACKAGE_TITLE_MAX_LENGTH), message);
+	}
 
-    @Override
-    public String getContentTypeControllerPath(String contentTypeId) {
-        return replaceAll(contentTypeId, controllerPattern, controllerFormat);
-    }
+	@Override
+	public String getContentTypeControllerPath(String contentTypeId) {
+		return replaceAll(contentTypeId, controllerPattern, controllerFormat);
+	}
 
-    @Override
-    public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
-        Document definition = getFormDefinitionDocument(siteId, contentTypeId);
+	@Override
+	public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
+		Document definition = getFormDefinitionDocument(siteId, contentTypeId);
 
-        Node templateNode = definition.selectSingleNode(templateXPath);
+		Node templateNode = definition.selectSingleNode(templateXPath);
 
-        if(templateNode != null && isNotEmpty(templateNode.getText())) {
-            return templateNode.getText();
-        }
+		if (templateNode != null && isNotEmpty(templateNode.getText())) {
+			return templateNode.getText();
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    @RequireSiteExists
-    public Collection<String> getAllModelDefinitions(@SiteId String site) throws ServiceLayerException {
-        List<String> modelDefinitions = new LinkedList<>();
+	@Override
+	@RequireSiteExists
+	public Collection<String> getAllModelDefinitions(@SiteId String site) throws ServiceLayerException {
+		List<String> modelDefinitions = new LinkedList<>();
 
-        Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, site);
-        Path contentTypesRepoPath = repoRootPath.resolve(gitRepositoryHelper.getGitPath(contentTypesRootPath));
-        try {
-            walkFileTree(contentTypesRepoPath, new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    return visitContentTypeFile(file, modelDefinitions);
-                }
-            });
-        } catch (IOException e) {
-            throw new ServiceLayerException(format("Failed to retrieve content types for site '%s'", site), e);
-        }
+		Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, site);
+		Path contentTypesRepoPath = repoRootPath.resolve(gitRepositoryHelper.getGitPath(contentTypesRootPath));
+		try {
+			walkFileTree(contentTypesRepoPath, new SimpleFileVisitor<>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					return visitContentTypeFile(file, modelDefinitions);
+				}
+			});
+		} catch (IOException e) {
+			throw new ServiceLayerException(format("Failed to retrieve content types for site '%s'", site), e);
+		}
 
-        return modelDefinitions;
-    }
+		return modelDefinitions;
+	}
 
-    @NotNull
-    private FileVisitResult visitContentTypeFile(final Path file, final List<String> contentTypes) throws IOException {
-        if (!file.getFileName().toString().equals(contentTypeDefinitionFilename)) {
-            return FileVisitResult.CONTINUE;
-        }
-        contentTypes.add(Files.readString(file));
-        return FileVisitResult.SKIP_SIBLINGS;
-    }
+	@NotNull
+	private FileVisitResult visitContentTypeFile(final Path file, final List<String> contentTypes) throws IOException {
+		if (!file.getFileName().toString().equals(contentTypeDefinitionFilename)) {
+			return FileVisitResult.CONTINUE;
+		}
+		contentTypes.add(Files.readString(file));
+		return FileVisitResult.SKIP_SIBLINGS;
+	}
 
-    protected String getContentTypePath(String contentType) {
-        return normalize(contentTypeBasePathPattern.replaceFirst("\\{content-type}", contentType));
-    }
+	protected String getContentTypePath(String contentType) {
+		return normalize(contentTypeBasePathPattern.replaceFirst("\\{content-type}", contentType));
+	}
 
-    /**
-     * Get preview image filename extract from form-definition.xml
-     * @param siteId
-     * @param contentTypeId
-     * @return preview image filename
-     * @throws ServiceLayerException
-     */
-    protected String getContentTypePreviewImageFilename(String siteId, String contentTypeId) throws ServiceLayerException {
-        Document definition = getFormDefinitionDocument(siteId, contentTypeId);
+	/**
+	 * Get preview image filename extract from form-definition.xml
+	 *
+	 * @param siteId
+	 * @param contentTypeId
+	 * @return preview image filename
+	 * @throws ServiceLayerException
+	 */
+	protected String getContentTypePreviewImageFilename(String siteId, String contentTypeId) throws ServiceLayerException {
+		Document definition = getFormDefinitionDocument(siteId, contentTypeId);
 
-        Node previewImageNode = definition.selectSingleNode(previewImageXPath);
+		Node previewImageNode = definition.selectSingleNode(previewImageXPath);
 
-        if (previewImageNode != null && isNotEmpty(previewImageNode.getText())) {
-            return previewImageNode.getText();
-        }
+		if (previewImageNode != null && isNotEmpty(previewImageNode.getText())) {
+			return previewImageNode.getText();
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * Get form-definition.xml as Document of a content type
-     * @param siteId
-     * @param contentTypeId
-     * @return Document of form-definition.xml
-     * @throws ServiceLayerException
-     */
-    @RequireSiteExists
-    protected Document getFormDefinitionDocument(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
-        String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
-        Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
+	/**
+	 * Get form-definition.xml as Document of a content type
+	 *
+	 * @param siteId
+	 * @param contentTypeId
+	 * @return Document of form-definition.xml
+	 * @throws ServiceLayerException
+	 */
+	@RequireSiteExists
+	protected Document getFormDefinitionDocument(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
+		String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
+		Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
 
-        if (definition == null) {
-            throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
-        }
+		if (definition == null) {
+			throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
+		}
 
-        return definition;
-    }
+		return definition;
+	}
 
 }

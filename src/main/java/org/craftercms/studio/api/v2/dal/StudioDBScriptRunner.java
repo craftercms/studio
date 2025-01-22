@@ -24,24 +24,24 @@ import java.sql.SQLException;
  * Interface for running SQL scripts in the Studio database.
  */
 public interface StudioDBScriptRunner {
-    /**
-     * Execute the given SQL script file.
-     *
-     * @param sqlScriptPath Path to the SQL script file to execute
-     * @param sendFullFile  if true, the whole script will be sent to the DB, otherwise it will be partitioned into chunks
-     * @throws SQLException if an error occurs while executing the script
-     * @throws IOException  if an error occurs while reading the script file
-     */
-    void execute(Path sqlScriptPath, boolean sendFullFile) throws SQLException, IOException;
+	/**
+	 * Execute the given SQL script file.
+	 *
+	 * @param sqlScriptPath Path to the SQL script file to execute
+	 * @param sendFullFile  if true, the whole script will be sent to the DB, otherwise it will be partitioned into chunks
+	 * @throws SQLException if an error occurs while executing the script
+	 * @throws IOException  if an error occurs while reading the script file
+	 */
+	void execute(Path sqlScriptPath, boolean sendFullFile) throws SQLException, IOException;
 
-    /**
-     * Execute the given SQL script file.
-     *
-     * @param sqlScriptPath Path to the SQL script file to execute
-     * @throws SQLException if an error occurs while executing the script
-     * @throws IOException  if an error occurs while reading the script file
-     */
-    default void execute(Path sqlScriptPath) throws SQLException, IOException {
-        execute(sqlScriptPath, false);
-    }
+	/**
+	 * Execute the given SQL script file.
+	 *
+	 * @param sqlScriptPath Path to the SQL script file to execute
+	 * @throws SQLException if an error occurs while executing the script
+	 * @throws IOException  if an error occurs while reading the script file
+	 */
+	default void execute(Path sqlScriptPath) throws SQLException, IOException {
+		execute(sqlScriptPath, false);
+	}
 }

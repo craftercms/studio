@@ -22,26 +22,26 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  * Base class for publish package related exceptions
  */
 public abstract class PackageException extends ServiceLayerException {
-    private final String siteId;
-    private final Long packageId;
+	private final String siteId;
+	private final Long packageId;
 
-    public PackageException(final String message, final String siteId, final Long packageId) {
-        super(message);
-        this.siteId = siteId;
-        this.packageId = packageId;
-    }
+	public PackageException(final String message, final String siteId, final Long packageId) {
+		super(message);
+		this.siteId = siteId;
+		this.packageId = packageId;
+	}
 
-    public PackageException(final String siteId, final Long packageId) {
-        super();
-        this.siteId = siteId;
-        this.packageId = packageId;
-    }
+	public PackageException(final String siteId, final Long packageId) {
+		super();
+		this.siteId = siteId;
+		this.packageId = packageId;
+	}
 
-    public Long getPackageId() {
-        return packageId;
-    }
+	public Long getPackageId() {
+		return packageId;
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 }

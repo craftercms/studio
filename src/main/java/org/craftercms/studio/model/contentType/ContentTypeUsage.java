@@ -27,34 +27,34 @@ import static java.util.Collections.emptyList;
  */
 public class ContentTypeUsage {
 
-    protected List<String> templates = emptyList();
+	protected List<String> templates = emptyList();
 
-    protected List<String> scripts = emptyList();
+	protected List<String> scripts = emptyList();
 
-    protected List<String> content = emptyList();
+	protected List<String> content = emptyList();
 
-    public List<String> getTemplates() {
-        return templates;
-    }
+	public List<String> getTemplates() {
+		return templates;
+	}
 
-    public void setTemplates(List<String> templates) {
-        this.templates = templates;
-    }
+	public void setTemplates(List<String> templates) {
+		this.templates = templates;
+	}
 
-    public List<String> getScripts() {
-        return scripts;
-    }
+	public List<String> getScripts() {
+		return scripts;
+	}
 
-    public void setScripts(List<String> scripts) {
-        this.scripts = scripts;
-    }
+	public void setScripts(List<String> scripts) {
+		this.scripts = scripts;
+	}
 
-    public List<String> getContent() {
-        return content;
-    }
+	public List<String> getContent() {
+		return content;
+	}
 
-    public void setContent(List<String> content) {
-        this.content = content;
-    }
+	public void setContent(List<String> content) {
+		this.content = content;
+	}
 
 }

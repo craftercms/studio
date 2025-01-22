@@ -37,58 +37,58 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  */
 public class MimeTypePolicyValidator implements PolicyValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(MimeTypePolicyValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(MimeTypePolicyValidator.class);
 
-    public static final String CONFIG_KEY_MIME_TYPES = "mime-types";
+	public static final String CONFIG_KEY_MIME_TYPES = "mime-types";
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
-        if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug("Skipping folder '{}'", action.getTarget());
-            return;
-        }
+	@Override
+	public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
+		if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
+			logger.debug("Skipping folder '{}'", action.getTarget());
+			return;
+		}
 
-        if (permittedConfig != null) {
-            validatePermitted(permittedConfig, action, result);
-        }
+		if (permittedConfig != null) {
+			validatePermitted(permittedConfig, action, result);
+		}
 
-        if (deniedConfig != null) {
-            validateDenied(deniedConfig, action, result);
-        }
-    }
+		if (deniedConfig != null) {
+			validateDenied(deniedConfig, action, result);
+		}
+	}
 
-    private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, Action action, ValidationResult result) {
-        if (!permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
-            logger.debug("No MIME type permitted restrictions found, skipping action");
-            return;
-        }
+	private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, Action action, ValidationResult result) {
+		if (!permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
+			logger.debug("No MIME type permitted restrictions found, skipping action");
+			return;
+		}
 
-        var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
-        if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
-                .map(MimeType::valueOf)
-                .noneMatch(actionMimeType::isCompatibleWith)) {
-            String message = format("MIME type '%s' not allowed", actionMimeType);
-            logger.error(message);
-            result.setAllowed(false);
-            result.setMessage(message);
-        }
-    }
+		var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
+		if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
+			.map(MimeType::valueOf)
+			.noneMatch(actionMimeType::isCompatibleWith)) {
+			String message = format("MIME type '%s' not allowed", actionMimeType);
+			logger.error(message);
+			result.setAllowed(false);
+			result.setMessage(message);
+		}
+	}
 
-    private void validateDenied(HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
-        if (!deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
-            logger.debug("No MIME type denied restrictions found, skipping action");
-            return;
-        }
+	private void validateDenied(HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
+		if (!deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
+			logger.debug("No MIME type denied restrictions found, skipping action");
+			return;
+		}
 
-        var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
-        if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
-                .map(MimeType::valueOf)
-                .anyMatch(actionMimeType::isCompatibleWith)) {
-            String message = format("MIME type '%s' not allowed", actionMimeType);
-            logger.error(message);
-            result.setAllowed(false);
-            result.setMessage(message);
-        }
-    }
+		var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
+		if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
+			.map(MimeType::valueOf)
+			.anyMatch(actionMimeType::isCompatibleWith)) {
+			String message = format("MIME type '%s' not allowed", actionMimeType);
+			logger.error(message);
+			result.setAllowed(false);
+			result.setMessage(message);
+		}
+	}
 
 }

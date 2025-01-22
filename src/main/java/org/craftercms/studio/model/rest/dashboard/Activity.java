@@ -25,135 +25,135 @@ import java.time.ZonedDateTime;
 
 public class Activity {
 
-    private long id;
-    private Person person;
-    private String actionType;
-    private ZonedDateTime actionTimestamp;
+	private long id;
+	private Person person;
+	private String actionType;
+	private ZonedDateTime actionTimestamp;
 
-    protected Object target;
+	protected Object target;
 
-    protected Item item;
+	protected Item item;
 
-    @JsonProperty("package")
-    protected PublishPackage publishPackage;
+	@JsonProperty("package")
+	protected PublishPackage publishPackage;
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public Person getPerson() {
-        return person;
-    }
+	public Person getPerson() {
+		return person;
+	}
 
-    public void setPerson(Person person) {
-        this.person = person;
-    }
+	public void setPerson(Person person) {
+		this.person = person;
+	}
 
-    public String getActionType() {
-        return actionType;
-    }
+	public String getActionType() {
+		return actionType;
+	}
 
-    public void setActionType(String actionType) {
-        this.actionType = actionType;
-    }
+	public void setActionType(String actionType) {
+		this.actionType = actionType;
+	}
 
-    public ZonedDateTime getActionTimestamp() {
-        return actionTimestamp;
-    }
+	public ZonedDateTime getActionTimestamp() {
+		return actionTimestamp;
+	}
 
-    public void setActionTimestamp(ZonedDateTime actionTimestamp) {
-        this.actionTimestamp = actionTimestamp;
-    }
+	public void setActionTimestamp(ZonedDateTime actionTimestamp) {
+		this.actionTimestamp = actionTimestamp;
+	}
 
-    public Item getItem() {
-        return item;
-    }
+	public Item getItem() {
+		return item;
+	}
 
-    public void setItem(Item item) {
-        this.item = item;
-    }
+	public void setItem(Item item) {
+		this.item = item;
+	}
 
-    public PublishPackage getPublishPackage() {
-        return publishPackage;
-    }
+	public PublishPackage getPublishPackage() {
+		return publishPackage;
+	}
 
-    public void setPublishPackage(PublishPackage publishPackage) {
-        this.publishPackage = publishPackage;
-    }
+	public void setPublishPackage(PublishPackage publishPackage) {
+		this.publishPackage = publishPackage;
+	}
 
-    public static class Item {
+	public static class Item {
 
-        protected long id;
-        protected String path;
-        protected String label;
-        protected String previewUrl;
-        protected String systemType;
+		protected long id;
+		protected String path;
+		protected String label;
+		protected String previewUrl;
+		protected String systemType;
 
-        // Backup fields used only when an item has been deleted
-        @JsonIgnore
-        protected String recordedPath;
-        @JsonIgnore
-        protected String recordedLabel;
+		// Backup fields used only when an item has been deleted
+		@JsonIgnore
+		protected String recordedPath;
+		@JsonIgnore
+		protected String recordedLabel;
 
-        public long getId() {
-            return id;
-        }
+		public long getId() {
+			return id;
+		}
 
-        public void setId(long id) {
-            this.id = id;
-        }
+		public void setId(long id) {
+			this.id = id;
+		}
 
-        public String getPath() {
-            return path != null? path : recordedPath;
-        }
+		public String getPath() {
+			return path != null ? path : recordedPath;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public void setPath(String path) {
+			this.path = path;
+		}
 
-        public String getLabel() {
-            return label != null? label : recordedLabel;
-        }
+		public String getLabel() {
+			return label != null ? label : recordedLabel;
+		}
 
-        public void setLabel(String label) {
-            this.label = label;
-        }
+		public void setLabel(String label) {
+			this.label = label;
+		}
 
-        public String getPreviewUrl() {
-            return previewUrl;
-        }
+		public String getPreviewUrl() {
+			return previewUrl;
+		}
 
-        public void setPreviewUrl(String previewUrl) {
-            this.previewUrl = previewUrl;
-        }
+		public void setPreviewUrl(String previewUrl) {
+			this.previewUrl = previewUrl;
+		}
 
-        public String getSystemType() {
-            return systemType;
-        }
+		public String getSystemType() {
+			return systemType;
+		}
 
-        public void setSystemType(String systemType) {
-            this.systemType = systemType;
-        }
+		public void setSystemType(String systemType) {
+			this.systemType = systemType;
+		}
 
-        public String getRecordedPath() {
-            return recordedPath;
-        }
+		public String getRecordedPath() {
+			return recordedPath;
+		}
 
-        public void setRecordedPath(String recordedPath) {
-            this.recordedPath = recordedPath;
-        }
+		public void setRecordedPath(String recordedPath) {
+			this.recordedPath = recordedPath;
+		}
 
-        public String getRecordedLabel() {
-            return recordedLabel;
-        }
+		public String getRecordedLabel() {
+			return recordedLabel;
+		}
 
-        public void setRecordedLabel(String recordedLabel) {
-            this.recordedLabel = recordedLabel;
-        }
-    }
+		public void setRecordedLabel(String recordedLabel) {
+			this.recordedLabel = recordedLabel;
+		}
+	}
 
 }

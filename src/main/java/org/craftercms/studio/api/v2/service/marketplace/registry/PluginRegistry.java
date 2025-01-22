@@ -29,30 +29,30 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PluginRegistry {
 
-    /**
-     * The current version of the registry
-     */
-    private String version = "1.0";
+	/**
+	 * The current version of the registry
+	 */
+	private String version = "1.0";
 
-    /**
-     * The installed plugins
-     */
-    private List<PluginRecord> plugins = new LinkedList<>();
+	/**
+	 * The installed plugins
+	 */
+	private List<PluginRecord> plugins = new LinkedList<>();
 
-    public String getVersion() {
-        return version;
-    }
+	public String getVersion() {
+		return version;
+	}
 
-    public void setVersion(String version) {
-        this.version = version;
-    }
+	public void setVersion(String version) {
+		this.version = version;
+	}
 
-    public List<PluginRecord> getPlugins() {
-        return plugins;
-    }
+	public List<PluginRecord> getPlugins() {
+		return plugins;
+	}
 
-    public void setPlugins(List<PluginRecord> plugins) {
-        this.plugins = plugins;
-    }
+	public void setPlugins(List<PluginRecord> plugins) {
+		this.plugins = plugins;
+	}
 
 }

@@ -18,21 +18,21 @@ package scripts.api.impl.user
 
 class SpringUserServices {
 
-    def USER_SERVICES_BEAN = "userService"
+	def USER_SERVICES_BEAN = "userService"
 
-    def context = null
+	def context = null
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringUserServices(context) {
-        this.context = context
-    }
+	/**
+	 * constructor
+	 *
+	 * @param context - service context
+	 */
+	def SpringUserServices(context) {
+		this.context = context
+	}
 
-    def getCurrentUser() {
-        def springBackedService = this.context.applicationContext.get(USER_SERVICES_BEAN)
-        return springBackedService.getCurrentUser()
-    }
+	def getCurrentUser() {
+		def springBackedService = this.context.applicationContext.get(USER_SERVICES_BEAN)
+		return springBackedService.getCurrentUser()
+	}
 }

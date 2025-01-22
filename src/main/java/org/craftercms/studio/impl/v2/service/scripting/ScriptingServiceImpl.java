@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceI
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
 import java.beans.ConstructorProperties;
 
 /**
@@ -37,25 +38,25 @@ import java.beans.ConstructorProperties;
  */
 public class ScriptingServiceImpl implements ScriptingService {
 
-    protected ScriptingServiceInternal scriptingServiceInternal;
+	protected ScriptingServiceInternal scriptingServiceInternal;
 
-    @ConstructorProperties({"scriptingServiceInternal"})
-    public ScriptingServiceImpl(ScriptingServiceInternal scriptingServiceInternal) {
-        this.scriptingServiceInternal = scriptingServiceInternal;
-    }
+	@ConstructorProperties({"scriptingServiceInternal"})
+	public ScriptingServiceImpl(ScriptingServiceInternal scriptingServiceInternal) {
+		this.scriptingServiceInternal = scriptingServiceInternal;
+	}
 
-    @Override
-    @Valid
-    @RequireSiteReady
-    public Object executeRestScript(@SiteId String siteId, @ValidateSecurePathParam String path,
-                                    HttpServletRequest request, HttpServletResponse response)
-            throws ResourceException, ScriptException, ConfigurationException {
-        return scriptingServiceInternal.executeRestScript(siteId, path, request, response);
-    }
+	@Override
+	@Valid
+	@RequireSiteReady
+	public Object executeRestScript(@SiteId String siteId, @ValidateSecurePathParam String path,
+					HttpServletRequest request, HttpServletResponse response)
+		throws ResourceException, ScriptException, ConfigurationException {
+		return scriptingServiceInternal.executeRestScript(siteId, path, request, response);
+	}
 
-    @Override
-    public void reload(String siteId) {
-        scriptingServiceInternal.reload(siteId);
-    }
+	@Override
+	public void reload(String siteId) {
+		scriptingServiceInternal.reload(siteId);
+	}
 
 }

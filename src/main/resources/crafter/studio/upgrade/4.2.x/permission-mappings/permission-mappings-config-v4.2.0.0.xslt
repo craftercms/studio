@@ -17,43 +17,43 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+	</xsl:template>
 
-    <!-- Remove <rule> elements with regex="~DASHBOARD~" -->
-    <xsl:template match="rule[@regex='~DASHBOARD~']"/>
+	<!-- Remove <rule> elements with regex="~DASHBOARD~" -->
+	<xsl:template match="rule[@regex='~DASHBOARD~']"/>
 
-    <!-- Match role elements to process their children -->
-    <xsl:template match="role">
-        <xsl:variable name="hasDashboardRule" select="rule[@regex='~DASHBOARD~']/allowed-permissions/permission = 'publish'" />
-        <xsl:variable name="hasPublishByCommits" select="rule[@regex='.*']/allowed-permissions/permission = 'publish_by_commits'" />
-        <xsl:copy>
-            <xsl:apply-templates select="@*|node()[not(self::rule[@regex='.*'])]"/>
-            <!-- Copy the rule with regex=".*" only if there is no DASHBOARD rule with publish permission -->
-            <!-- Or there has already the permission publish_by_commits -->
-            <xsl:if test="not($hasDashboardRule) or $hasPublishByCommits">
-                <xsl:apply-templates select="rule[@regex='.*']"/>
-            </xsl:if>
-            <!-- If the role had a DASHBOARD rule with publish permission, add <permission>publish_by_commits</permission> to the rule with regex=".*" -->
-            <xsl:if test="$hasDashboardRule">
-                <xsl:if test="not(rule[@regex='.*']/allowed-permissions/permission = 'publish_by_commits')">
-                    <rule regex=".*">
-                        <allowed-permissions>
-                            <xsl:apply-templates select="rule[@regex='.*']/allowed-permissions/permission"/>
-                            <permission>publish_by_commits</permission>
-                        </allowed-permissions>
-                    </rule>
-                </xsl:if>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Match role elements to process their children -->
+	<xsl:template match="role">
+		<xsl:variable name="hasDashboardRule" select="rule[@regex='~DASHBOARD~']/allowed-permissions/permission = 'publish'"/>
+		<xsl:variable name="hasPublishByCommits" select="rule[@regex='.*']/allowed-permissions/permission = 'publish_by_commits'"/>
+		<xsl:copy>
+			<xsl:apply-templates select="@*|node()[not(self::rule[@regex='.*'])]"/>
+			<!-- Copy the rule with regex=".*" only if there is no DASHBOARD rule with publish permission -->
+			<!-- Or there has already the permission publish_by_commits -->
+			<xsl:if test="not($hasDashboardRule) or $hasPublishByCommits">
+				<xsl:apply-templates select="rule[@regex='.*']"/>
+			</xsl:if>
+			<!-- If the role had a DASHBOARD rule with publish permission, add <permission>publish_by_commits</permission> to the rule with regex=".*" -->
+			<xsl:if test="$hasDashboardRule">
+				<xsl:if test="not(rule[@regex='.*']/allowed-permissions/permission = 'publish_by_commits')">
+					<rule regex=".*">
+						<allowed-permissions>
+							<xsl:apply-templates select="rule[@regex='.*']/allowed-permissions/permission"/>
+							<permission>publish_by_commits</permission>
+						</allowed-permissions>
+					</rule>
+				</xsl:if>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 </xsl:stylesheet>

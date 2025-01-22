@@ -23,54 +23,54 @@ import java.time.Instant;
  * for a publishing target, if any.
  */
 public class ItemTarget {
-    protected long itemId;
-    protected String target;
-    protected String previousPath;
-    protected Instant lastPublishedOn;
-    protected String publishedCommitId;
+	protected long itemId;
+	protected String target;
+	protected String previousPath;
+	protected Instant lastPublishedOn;
+	protected String publishedCommitId;
 
-    public long getItemId() {
-        return itemId;
-    }
+	public long getItemId() {
+		return itemId;
+	}
 
-    @SuppressWarnings("unused")
-    public void setItemId(long itemId) {
-        this.itemId = itemId;
-    }
+	@SuppressWarnings("unused")
+	public void setItemId(long itemId) {
+		this.itemId = itemId;
+	}
 
-    public String getTarget() {
-        return target;
-    }
+	public String getTarget() {
+		return target;
+	}
 
-    @SuppressWarnings("unused")
-    public void setTarget(String target) {
-        this.target = target;
-    }
+	@SuppressWarnings("unused")
+	public void setTarget(String target) {
+		this.target = target;
+	}
 
-    public String getPreviousPath() {
-        return previousPath;
-    }
+	public String getPreviousPath() {
+		return previousPath;
+	}
 
-    @SuppressWarnings("unused")
-    public void setPreviousPath(String previousPath) {
-        this.previousPath = previousPath;
-    }
+	@SuppressWarnings("unused")
+	public void setPreviousPath(String previousPath) {
+		this.previousPath = previousPath;
+	}
 
-    public Instant getLastPublishedOn() {
-        return lastPublishedOn;
-    }
+	public Instant getLastPublishedOn() {
+		return lastPublishedOn;
+	}
 
-    @SuppressWarnings("unused")
-    public void setLastPublishedOn(Instant lastPublishedOn) {
-        this.lastPublishedOn = lastPublishedOn;
-    }
+	@SuppressWarnings("unused")
+	public void setLastPublishedOn(Instant lastPublishedOn) {
+		this.lastPublishedOn = lastPublishedOn;
+	}
 
-    public String getPublishedCommitId() {
-        return publishedCommitId;
-    }
+	public String getPublishedCommitId() {
+		return publishedCommitId;
+	}
 
-    @SuppressWarnings("unused")
-    public void setPublishedCommitId(String publishedCommitId) {
-        this.publishedCommitId = publishedCommitId;
-    }
+	@SuppressWarnings("unused")
+	public void setPublishedCommitId(String publishedCommitId) {
+		this.publishedCommitId = publishedCommitId;
+	}
 }

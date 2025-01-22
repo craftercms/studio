@@ -26,46 +26,46 @@ import org.craftercms.studio.api.v2.repository.PublishItemTO;
  */
 public class BlobAwareInitialPublishItemTO implements PublishItemTO {
 
-    private final String path;
-    private final String repoPath;
-    private int error;
+	private final String path;
+	private final String repoPath;
+	private int error;
 
-    /**
-     * Constructor
-     *
-     * @param path     the path of the item in the blob store
-     * @param repoPath the path of the item pointer in the repository
-     */
-    public BlobAwareInitialPublishItemTO(String path, String repoPath) {
-        this.path = path;
-        this.repoPath = repoPath;
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param path     the path of the item in the blob store
+	 * @param repoPath the path of the item pointer in the repository
+	 */
+	public BlobAwareInitialPublishItemTO(String path, String repoPath) {
+		this.path = path;
+		this.repoPath = repoPath;
+	}
 
-    @Override
-    public String getPath() {
-        return path;
-    }
+	@Override
+	public String getPath() {
+		return path;
+	}
 
-    public String getRepoPath() {
-        return repoPath;
-    }
+	public String getRepoPath() {
+		return repoPath;
+	}
 
-    @Override
-    public PublishItem.Action getAction() {
-        return PublishItem.Action.ADD;
-    }
+	@Override
+	public PublishItem.Action getAction() {
+		return PublishItem.Action.ADD;
+	}
 
-    @Override
-    public int getError() {
-        return error;
-    }
+	@Override
+	public int getError() {
+		return error;
+	}
 
-    @Override
-    public void setFailed(int error) {
-        this.error = error;
-    }
+	@Override
+	public void setFailed(int error) {
+		this.error = error;
+	}
 
-    @Override
-    public void setCompleted() {
-    }
+	@Override
+	public void setCompleted() {
+	}
 }

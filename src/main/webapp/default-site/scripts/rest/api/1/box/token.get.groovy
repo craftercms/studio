@@ -22,5 +22,5 @@ def profileId = params.profileId
 def accessToken = boxService.getAccessToken(site, profileId)
 
 return [
-    accessToken : accessToken
+	accessToken: accessToken
 ]

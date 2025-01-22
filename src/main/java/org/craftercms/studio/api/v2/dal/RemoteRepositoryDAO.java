@@ -21,15 +21,15 @@ import java.util.Map;
 
 public interface RemoteRepositoryDAO {
 
-    RemoteRepository getRemoteRepository(Map params);
+	RemoteRepository getRemoteRepository(Map params);
 
-    void insertRemoteRepository(Map params);
+	void insertRemoteRepository(Map params);
 
-    void deleteRemoteRepositoryForSite(Map params);
+	void deleteRemoteRepositoryForSite(Map params);
 
-    void deleteRemoteRepository(Map params);
+	void deleteRemoteRepository(Map params);
 
-    List<RemoteRepository> listRemoteRepositories(Map params);
+	List<RemoteRepository> listRemoteRepositories(Map params);
 
-    void deleteRemoteRepositoriesForSite(Map params);
+	void deleteRemoteRepositoriesForSite(Map params);
 }

@@ -22,25 +22,25 @@ import java.util.regex.Pattern;
 
 abstract public class AbstractFilter implements Filter {
 
-    protected StudioConfiguration studioConfiguration;
+	protected StudioConfiguration studioConfiguration;
 
-    public abstract String getIncludePattern();
+	public abstract String getIncludePattern();
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public boolean match(String contentType) {
-        if(contentType != null) {
-            String includePattern = getIncludePattern();
-            Pattern pattern = Pattern.compile(includePattern);
-            Matcher matcher = pattern.matcher(contentType);
-            return matcher.matches();
-        }
-        return false;
-    }
+	public boolean match(String contentType) {
+		if (contentType != null) {
+			String includePattern = getIncludePattern();
+			Pattern pattern = Pattern.compile(includePattern);
+			Matcher matcher = pattern.matcher(contentType);
+			return matcher.matches();
+		}
+		return false;
+	}
 }

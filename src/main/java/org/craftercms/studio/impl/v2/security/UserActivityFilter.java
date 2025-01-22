@@ -28,6 +28,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 
 /**
@@ -38,38 +39,38 @@ import java.io.IOException;
  */
 public class UserActivityFilter extends OncePerRequestFilter {
 
-    /**
-     * The request matcher user to exclude URLs
-     */
-    protected RequestMatcher excludeRequestMatcher;
+	/**
+	 * The request matcher user to exclude URLs
+	 */
+	protected RequestMatcher excludeRequestMatcher;
 
-    /**
-     * The access token service
-     */
-    protected AccessTokenService accessTokenService;
+	/**
+	 * The access token service
+	 */
+	protected AccessTokenService accessTokenService;
 
-    public UserActivityFilter(AccessTokenService accessTokenService, String... excludedUrls) {
-        this.excludeRequestMatcher = new OrRegexRequestMatcher(excludedUrls);
-        this.accessTokenService = accessTokenService;
-    }
+	public UserActivityFilter(AccessTokenService accessTokenService, String... excludedUrls) {
+		this.excludeRequestMatcher = new OrRegexRequestMatcher(excludedUrls);
+		this.accessTokenService = accessTokenService;
+	}
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return excludeRequestMatcher.matches(request);
-    }
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		return excludeRequestMatcher.matches(request);
+	}
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        SecurityContext context = SecurityContextHolder.getContext();
-        if (context != null) {
-            Authentication authentication = context.getAuthentication();
-            if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
-                accessTokenService.updateUserActivity(authentication);
-            }
-        }
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+		throws ServletException, IOException {
+		SecurityContext context = SecurityContextHolder.getContext();
+		if (context != null) {
+			Authentication authentication = context.getAuthentication();
+			if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
+				accessTokenService.updateUserActivity(authentication);
+			}
+		}
 
-        filterChain.doFilter(request, response);
-    }
+		filterChain.doFilter(request, response);
+	}
 
 }

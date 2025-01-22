@@ -21,93 +21,138 @@ import java.util.Map;
 
 public class DependencyResolverConfigTO {
 
-    private Map<String, ItemType> itemTypes;
+	private Map<String, ItemType> itemTypes;
 
-    public Map<String, ItemType> getItemTypes() {
-        return itemTypes;
-    }
+	public Map<String, ItemType> getItemTypes() {
+		return itemTypes;
+	}
 
-    public void setItemTypes(Map<String, ItemType> itemTypes) {
-        this.itemTypes = itemTypes;
-    }
+	public void setItemTypes(Map<String, ItemType> itemTypes) {
+		this.itemTypes = itemTypes;
+	}
 
-    public static class ItemType {
+	public static class ItemType {
 
-        private String name;
-        private List<String> includes;
-        private List<String> excludes;
-        private Map<String, DependencyType> dependencyTypes;
+		private String name;
+		private List<String> includes;
+		private List<String> excludes;
+		private Map<String, DependencyType> dependencyTypes;
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+		public String getName() {
+			return name;
+		}
 
-        public List<String> getIncludes() { return includes; }
-        public void setIncludes(List<String> includes) { this.includes = includes; }
+		public void setName(String name) {
+			this.name = name;
+		}
 
-        public List<String> getExcludes() {
-            return excludes;
-        }
+		public List<String> getIncludes() {
+			return includes;
+		}
 
-        public void setExcludes(List<String> excludes) {
-            this.excludes = excludes;
-        }
+		public void setIncludes(List<String> includes) {
+			this.includes = includes;
+		}
 
-        public Map<String, DependencyType> getDependencyTypes() { return dependencyTypes; }
-        public void setDependencyTypes(Map<String, DependencyType> dependencyTypes) { this.dependencyTypes = dependencyTypes; }
-    }
+		public List<String> getExcludes() {
+			return excludes;
+		}
 
-    public static class DependencyType {
+		public void setExcludes(List<String> excludes) {
+			this.excludes = excludes;
+		}
 
-        private String name;
-        private List<DependencyExtractionPattern> includes;
+		public Map<String, DependencyType> getDependencyTypes() {
+			return dependencyTypes;
+		}
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+		public void setDependencyTypes(Map<String, DependencyType> dependencyTypes) {
+			this.dependencyTypes = dependencyTypes;
+		}
+	}
 
-        public List<DependencyExtractionPattern> getIncludes() { return includes; }
-        public void setIncludes(List<DependencyExtractionPattern> includes) { this.includes = includes; }
-    }
+	public static class DependencyType {
 
-    public static class DependencyExtractionPattern {
+		private String name;
+		private List<DependencyExtractionPattern> includes;
 
-        private String findRegex;
-        private List<DependencyExtractionTransform> transforms;
+		public String getName() {
+			return name;
+		}
 
-        public String getFindRegex() { return findRegex; }
-        public void setFindRegex(String findRegex) { this.findRegex = findRegex; }
+		public void setName(String name) {
+			this.name = name;
+		}
 
-        public List<DependencyExtractionTransform> getTransforms() { return transforms; }
-        public void setTransforms(List<DependencyExtractionTransform> transforms) { this.transforms = transforms; }
-    }
+		public List<DependencyExtractionPattern> getIncludes() {
+			return includes;
+		}
 
-    public static class DependencyExtractionTransform {
+		public void setIncludes(List<DependencyExtractionPattern> includes) {
+			this.includes = includes;
+		}
+	}
 
-        private String match;
-        private String replace;
-        private boolean split;
-        private String delimiter;
+	public static class DependencyExtractionPattern {
 
-        public String getMatch() { return match; }
-        public void setMatch(String match) { this.match = match; }
+		private String findRegex;
+		private List<DependencyExtractionTransform> transforms;
 
-        public String getReplace() { return replace; }
-        public void setReplace(String replace) { this.replace = replace; }
+		public String getFindRegex() {
+			return findRegex;
+		}
 
-        public boolean isSplit() {
-            return split;
-        }
+		public void setFindRegex(String findRegex) {
+			this.findRegex = findRegex;
+		}
 
-        public void setSplit(boolean split) {
-            this.split = split;
-        }
+		public List<DependencyExtractionTransform> getTransforms() {
+			return transforms;
+		}
 
-        public String getDelimiter() {
-            return delimiter;
-        }
+		public void setTransforms(List<DependencyExtractionTransform> transforms) {
+			this.transforms = transforms;
+		}
+	}
 
-        public void setDelimiter(String delimiter) {
-            this.delimiter = delimiter;
-        }
-        
-    }
+	public static class DependencyExtractionTransform {
+
+		private String match;
+		private String replace;
+		private boolean split;
+		private String delimiter;
+
+		public String getMatch() {
+			return match;
+		}
+
+		public void setMatch(String match) {
+			this.match = match;
+		}
+
+		public String getReplace() {
+			return replace;
+		}
+
+		public void setReplace(String replace) {
+			this.replace = replace;
+		}
+
+		public boolean isSplit() {
+			return split;
+		}
+
+		public void setSplit(boolean split) {
+			this.split = split;
+		}
+
+		public String getDelimiter() {
+			return delimiter;
+		}
+
+		public void setDelimiter(String delimiter) {
+			this.delimiter = delimiter;
+		}
+
+	}
 }

@@ -20,7 +20,7 @@ package org.craftercms.studio.model.task;
  * Enum representing the state of a task
  */
 public enum TaskState {
-    READY,
-    IN_PROGRESS,
-    COMPLETED
+	READY,
+	IN_PROGRESS,
+	COMPLETED
 }

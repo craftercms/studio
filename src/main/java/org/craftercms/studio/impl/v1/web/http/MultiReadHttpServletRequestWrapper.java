@@ -28,6 +28,7 @@ import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,158 +44,158 @@ import java.util.Map;
 
 public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-    private ByteArrayOutputStream cachedBytes;
-    private Map<String, String[]> parameterMap;
+	private ByteArrayOutputStream cachedBytes;
+	private Map<String, String[]> parameterMap;
 
-    public MultiReadHttpServletRequestWrapper(HttpServletRequest request) {
-        super(request);
-    }
+	public MultiReadHttpServletRequestWrapper(HttpServletRequest request) {
+		super(request);
+	}
 
-    public static void toMap(Iterable<NameValuePair> inputParams, Map<String, String[]> toMap) {
-        for (NameValuePair e : inputParams) {
-            String key = e.getName();
-            String value = e.getValue();
-            if (toMap.containsKey(key)) {
-                String[] newValue = ArrayUtils.addAll(toMap.get(key), value);
-                toMap.remove(key);
-                toMap.put(key, newValue);
-            } else {
-                toMap.put(key, new String[]{value});
-            }
-        }
-    }
+	public static void toMap(Iterable<NameValuePair> inputParams, Map<String, String[]> toMap) {
+		for (NameValuePair e : inputParams) {
+			String key = e.getName();
+			String value = e.getValue();
+			if (toMap.containsKey(key)) {
+				String[] newValue = ArrayUtils.addAll(toMap.get(key), value);
+				toMap.remove(key);
+				toMap.put(key, newValue);
+			} else {
+				toMap.put(key, new String[]{value});
+			}
+		}
+	}
 
-    @Override
-    public ServletInputStream getInputStream() throws IOException {
-        String encoding = getRequest().getCharacterEncoding();
-        if (StringUtils.isEmpty(encoding)) {
-            encoding = Charset.defaultCharset().name();
-        }
-        if (cachedBytes == null) cacheInputStream(encoding);
-        return new CachedServletInputStream();
-    }
+	@Override
+	public ServletInputStream getInputStream() throws IOException {
+		String encoding = getRequest().getCharacterEncoding();
+		if (StringUtils.isEmpty(encoding)) {
+			encoding = Charset.defaultCharset().name();
+		}
+		if (cachedBytes == null) cacheInputStream(encoding);
+		return new CachedServletInputStream();
+	}
 
-    @Override
-    public BufferedReader getReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(getInputStream()));
-    }
+	@Override
+	public BufferedReader getReader() throws IOException {
+		return new BufferedReader(new InputStreamReader(getInputStream()));
+	}
 
-    private void cacheInputStream(String encoding) throws IOException {
-    /* Cache the inputStream in order to read it multiple times. For
-     * convenience, I use apache.commons IOUtils
-     */
-        cachedBytes = new ByteArrayOutputStream();
-        IOUtils.copy(new InputStreamReader(super.getInputStream()), cachedBytes, encoding);
-    }
+	private void cacheInputStream(String encoding) throws IOException {
+		/* Cache the inputStream in order to read it multiple times. For
+		 * convenience, I use apache.commons IOUtils
+		 */
+		cachedBytes = new ByteArrayOutputStream();
+		IOUtils.copy(new InputStreamReader(super.getInputStream()), cachedBytes, encoding);
+	}
 
-    @Override
-    public String getParameter(String key) {
-        Map<String, String[]> parameterMap = getParameterMap();
-        String[] values = parameterMap.get(key);
-        return values != null && values.length > 0 ? values[0] : null;
-    }
+	@Override
+	public String getParameter(String key) {
+		Map<String, String[]> parameterMap = getParameterMap();
+		String[] values = parameterMap.get(key);
+		return values != null && values.length > 0 ? values[0] : null;
+	}
 
-    @Override
-    public String[] getParameterValues(String key) {
-        Map<String, String[]> parameterMap = getParameterMap();
-        return parameterMap.get(key);
-    }
+	@Override
+	public String[] getParameterValues(String key) {
+		Map<String, String[]> parameterMap = getParameterMap();
+		return parameterMap.get(key);
+	}
 
-    @Override
-    public Map<String, String[]> getParameterMap() {
-        if (parameterMap == null) {
-            Map<String, String[]> result = new LinkedHashMap<>();
-            decode(getQueryString(), result);
-            String encoding = getRequest().getCharacterEncoding();
-            if (StringUtils.isEmpty(encoding)) {
-                encoding = Charset.defaultCharset().name();
-            }
-            decode(getPostBodyAsString(encoding), result);
-            parameterMap = Collections.unmodifiableMap(result);
-        }
-        return parameterMap;
-    }
+	@Override
+	public Map<String, String[]> getParameterMap() {
+		if (parameterMap == null) {
+			Map<String, String[]> result = new LinkedHashMap<>();
+			decode(getQueryString(), result);
+			String encoding = getRequest().getCharacterEncoding();
+			if (StringUtils.isEmpty(encoding)) {
+				encoding = Charset.defaultCharset().name();
+			}
+			decode(getPostBodyAsString(encoding), result);
+			parameterMap = Collections.unmodifiableMap(result);
+		}
+		return parameterMap;
+	}
 
-    private void decode(String queryString, Map<String, String[]> result) {
-        if (queryString != null) toMap(decodeParams(queryString), result);
-    }
+	private void decode(String queryString, Map<String, String[]> result) {
+		if (queryString != null) toMap(decodeParams(queryString), result);
+	}
 
-    private Iterable<NameValuePair> decodeParams(String body) {
-        String encoding = getRequest().getCharacterEncoding();
-        if (StringUtils.isEmpty(encoding)) {
-            encoding = Charset.defaultCharset().name();
-        }
-        List<NameValuePair> params = new ArrayList<>(
-                URLEncodedUtils.parse(body, Charset.forName(encoding)));
-        try {
-            String cts = getContentType();
-            if (cts != null) {
-                ContentType ct = ContentType.parse(cts);
-                if (ct.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
-                    List<NameValuePair> postParams = URLEncodedUtils.parse(
-                            IOUtils.toString(getReader()), Charset.forName(encoding));
-                    CollectionUtils.addAll(params, postParams);
-                }
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-        return params;
-    }
+	private Iterable<NameValuePair> decodeParams(String body) {
+		String encoding = getRequest().getCharacterEncoding();
+		if (StringUtils.isEmpty(encoding)) {
+			encoding = Charset.defaultCharset().name();
+		}
+		List<NameValuePair> params = new ArrayList<>(
+			URLEncodedUtils.parse(body, Charset.forName(encoding)));
+		try {
+			String cts = getContentType();
+			if (cts != null) {
+				ContentType ct = ContentType.parse(cts);
+				if (ct.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
+					List<NameValuePair> postParams = URLEncodedUtils.parse(
+						IOUtils.toString(getReader()), Charset.forName(encoding));
+					CollectionUtils.addAll(params, postParams);
+				}
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+		return params;
+	}
 
-    public String getPostBodyAsString(String encoding) {
-        try {
-            if (cachedBytes == null) cacheInputStream(encoding);
-            return cachedBytes.toString(encoding);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+	public String getPostBodyAsString(String encoding) {
+		try {
+			if (cachedBytes == null) cacheInputStream(encoding);
+			return cachedBytes.toString(encoding);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    /* An inputStream which reads the cached request body */
-    public class CachedServletInputStream extends ServletInputStream {
-        private ByteArrayInputStream input;
+	/* An inputStream which reads the cached request body */
+	public class CachedServletInputStream extends ServletInputStream {
+		private ByteArrayInputStream input;
 
-        public CachedServletInputStream() {
-            /* create a new input stream from the cached request body */
-            input = new ByteArrayInputStream(cachedBytes.toByteArray());
-        }
+		public CachedServletInputStream() {
+			/* create a new input stream from the cached request body */
+			input = new ByteArrayInputStream(cachedBytes.toByteArray());
+		}
 
-        @Override
-        public boolean isFinished() {
-            return false;
-        }
+		@Override
+		public boolean isFinished() {
+			return false;
+		}
 
-        @Override
-        public boolean isReady() {
-            return false;
-        }
+		@Override
+		public boolean isReady() {
+			return false;
+		}
 
-        @Override
-        public void setReadListener(ReadListener readListener) {
-            throw new IllegalStateException();
-        }
+		@Override
+		public void setReadListener(ReadListener readListener) {
+			throw new IllegalStateException();
+		}
 
-        @Override
-        public int read() throws IOException {
-            return input.read();
-        }
-    }
+		@Override
+		public int read() throws IOException {
+			return input.read();
+		}
+	}
 
-    @Override
-    public String toString() {
-        String query = StringUtils.isEmpty(getQueryString()) ? StringUtils.EMPTY : getQueryString();
-        StringBuilder sb = new StringBuilder();
-        sb.append("URL='").append(getRequestURI()).append(query.isEmpty() ? "" : "?" + query).append("', body='");
-        String encoding = getRequest().getCharacterEncoding();
-        if (StringUtils.isEmpty(encoding)) {
-            encoding = Charset.defaultCharset().name();
-        }
-        sb.append(getPostBodyAsString(encoding));
-        sb.append("'");
-        return sb.toString();
-    }
+	@Override
+	public String toString() {
+		String query = StringUtils.isEmpty(getQueryString()) ? StringUtils.EMPTY : getQueryString();
+		StringBuilder sb = new StringBuilder();
+		sb.append("URL='").append(getRequestURI()).append(query.isEmpty() ? "" : "?" + query).append("', body='");
+		String encoding = getRequest().getCharacterEncoding();
+		if (StringUtils.isEmpty(encoding)) {
+			encoding = Charset.defaultCharset().name();
+		}
+		sb.append(getPostBodyAsString(encoding));
+		sb.append("'");
+		return sb.toString();
+	}
 
 }

@@ -43,30 +43,30 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class ClipboardServiceImpl implements ClipboardService {
 
-    protected final ClipboardServiceInternal clipboardServiceInternal;
+	protected final ClipboardServiceInternal clipboardServiceInternal;
 
-    @ConstructorProperties({"clipboardServiceInternal"})
-    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal) {
-        this.clipboardServiceInternal = clipboardServiceInternal;
-    }
+	@ConstructorProperties({"clipboardServiceInternal"})
+	public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal) {
+		this.clipboardServiceInternal = clipboardServiceInternal;
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public List<String> pasteItems(@SiteId String siteId,
-                                   Operation operation,
-                                   @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
-                                   PasteItem item) throws ServiceLayerException, UserNotFoundException {
-        return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public List<String> pasteItems(@SiteId String siteId,
+				       Operation operation,
+				       @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
+				       PasteItem item) throws ServiceLayerException, UserNotFoundException {
+		return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
+	}
 
-    @Override
-    @RequireSiteReady
-    @RequireContentExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public String duplicateItem(@SiteId String siteId,
-                                @ContentPath String path)
-            throws ServiceLayerException, UserNotFoundException {
-        return clipboardServiceInternal.duplicateItem(siteId, path);
-    }
+	@Override
+	@RequireSiteReady
+	@RequireContentExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public String duplicateItem(@SiteId String siteId,
+				    @ContentPath String path)
+		throws ServiceLayerException, UserNotFoundException {
+		return clipboardServiceInternal.duplicateItem(siteId, path);
+	}
 }

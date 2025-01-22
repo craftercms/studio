@@ -33,15 +33,15 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOU
  */
 public class AuditLogoutListener extends AbstractAuditListener {
 
-    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
-    public AuditLogoutListener(StudioConfiguration studioConfiguration, SiteService siteService,
-                               AuditServiceInternal auditServiceInternal) {
-        super(studioConfiguration, siteService, auditServiceInternal);
-    }
+	@ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
+	public AuditLogoutListener(StudioConfiguration studioConfiguration, SiteService siteService,
+				   AuditServiceInternal auditServiceInternal) {
+		super(studioConfiguration, siteService, auditServiceInternal);
+	}
 
-    @EventListener
-    public void recordLogout(LogoutSuccessEvent event) {
-        recordAuthenticationEvent(OPERATION_LOGOUT, event, "User '{}' logged out from IP '{}'");
-    }
+	@EventListener
+	public void recordLogout(LogoutSuccessEvent event) {
+		recordAuthenticationEvent(OPERATION_LOGOUT, event, "User '{}' logged out from IP '{}'");
+	}
 
 }

@@ -30,25 +30,25 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public interface ScriptingService {
 
-    /**
-     * Executes a REST script from the site repository
-     *
-     * @param siteId the id of the site
-     * @param path the path of the script
-     * @param request the current request
-     * @param response the current response
-     * @return the value returned by the script
-     * @throws ResourceException if there is any error loading the script
-     * @throws ScriptException if there is any error executing the script
-     */
-    Object executeRestScript(String siteId, String path, HttpServletRequest request, HttpServletResponse response)
-            throws ResourceException, ScriptException, ConfigurationException;
+	/**
+	 * Executes a REST script from the site repository
+	 *
+	 * @param siteId   the id of the site
+	 * @param path     the path of the script
+	 * @param request  the current request
+	 * @param response the current response
+	 * @return the value returned by the script
+	 * @throws ResourceException if there is any error loading the script
+	 * @throws ScriptException   if there is any error executing the script
+	 */
+	Object executeRestScript(String siteId, String path, HttpServletRequest request, HttpServletResponse response)
+		throws ResourceException, ScriptException, ConfigurationException;
 
-    /**
-     * Reloads the classpath for the given site
-     *
-     * @param siteId the id of the site
-     */
-    void reload(String siteId);
+	/**
+	 * Reloads the classpath for the given site
+	 *
+	 * @param siteId the id of the site
+	 */
+	void reload(String siteId);
 
 }

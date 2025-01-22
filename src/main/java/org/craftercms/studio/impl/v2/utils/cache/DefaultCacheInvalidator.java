@@ -23,19 +23,19 @@ import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 /**
  * Implementation of {@link CacheInvalidator} that invalidates a single item
  *
- * @author joseross
- * @since 4.0
  * @param <K> the type for the keys
  * @param <V> the type for the values
+ * @author joseross
+ * @since 4.0
  */
 public class DefaultCacheInvalidator<K, V> implements CacheInvalidator<K, V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultCacheInvalidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultCacheInvalidator.class);
 
-    @Override
-    public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug("Invalidate the cache for key '{}'", key);
-        cache.invalidate(key);
-    }
+	@Override
+	public void invalidate(Cache<K, V> cache, K key) {
+		logger.debug("Invalidate the cache for key '{}'", key);
+		cache.invalidate(key);
+	}
 
 }

@@ -20,18 +20,18 @@ package org.craftercms.studio.api.v2.exception;
  * Exception to be thrown when an operation is attempted on a site with an unsupported state
  */
 public class InvalidSiteStateException extends RuntimeException {
-    private final String siteId;
+	private final String siteId;
 
-    public InvalidSiteStateException(String siteId) {
-        this.siteId = siteId;
-    }
+	public InvalidSiteStateException(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public InvalidSiteStateException(String siteId, String message) {
-        super(message);
-        this.siteId = siteId;
-    }
+	public InvalidSiteStateException(String siteId, String message) {
+		super(message);
+		this.siteId = siteId;
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 }

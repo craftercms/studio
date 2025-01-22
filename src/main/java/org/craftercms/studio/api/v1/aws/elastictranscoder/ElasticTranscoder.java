@@ -27,19 +27,17 @@ import org.craftercms.studio.api.v1.exception.AwsException;
  */
 public interface ElasticTranscoder {
 
-    /**
-     * Starts a transcoder job for the specified file, based on the given {@link TranscoderProfile}. It first uploads the file to
-     * the input bucket in S3 before the job is created.
-     *
-     * @param filename  the video's file name
-     * @param content      the file of the video
-     * @param profile   the transcoding profile
-     *
-     * @return the metadata of the transcoder job. It's important to point out that returning the job info doesn't mean that the job
-     * has been completed. To monitor the progress of the job the returned job ID can be used.
-     *
-     * @throws AwsException if an error occurred
-     */
-    TranscoderJob startJob(String filename, InputStream content, TranscoderProfile profile) throws AwsException;
+	/**
+	 * Starts a transcoder job for the specified file, based on the given {@link TranscoderProfile}. It first uploads the file to
+	 * the input bucket in S3 before the job is created.
+	 *
+	 * @param filename the video's file name
+	 * @param content  the file of the video
+	 * @param profile  the transcoding profile
+	 * @return the metadata of the transcoder job. It's important to point out that returning the job info doesn't mean that the job
+	 * has been completed. To monitor the progress of the job the returned job ID can be used.
+	 * @throws AwsException if an error occurred
+	 */
+	TranscoderJob startJob(String filename, InputStream content, TranscoderProfile profile) throws AwsException;
 
 }

@@ -22,77 +22,78 @@ import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Holds the data for a search facet
+ *
  * @author joseross
  */
 public class FacetTO {
 
-    /**
-     * The name of the facet
-     */
-    protected String name;
+	/**
+	 * The name of the facet
+	 */
+	protected String name;
 
-    /**
-     * The name of the field
-     */
-    protected String field;
+	/**
+	 * The name of the field
+	 */
+	protected String field;
 
-    /**
-     * The ranges of the facet
-     */
-    protected List<FacetRangeTO> ranges;
+	/**
+	 * The ranges of the facet
+	 */
+	protected List<FacetRangeTO> ranges;
 
-    /**
-     * Indicates if the range is a date
-     */
-    protected boolean date;
+	/**
+	 * Indicates if the range is a date
+	 */
+	protected boolean date;
 
-    /**
-     * Indicates if the facet supports multiple values, defaults to {@code false}
-     */
-    protected boolean multiple = false;
+	/**
+	 * Indicates if the facet supports multiple values, defaults to {@code false}
+	 */
+	protected boolean multiple = false;
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+	public void setName(final String name) {
+		this.name = name;
+	}
 
-    public String getField() {
-        return field;
-    }
+	public String getField() {
+		return field;
+	}
 
-    public void setField(final String field) {
-        this.field = field;
-    }
+	public void setField(final String field) {
+		this.field = field;
+	}
 
-    public List<FacetRangeTO> getRanges() {
-        return ranges;
-    }
+	public List<FacetRangeTO> getRanges() {
+		return ranges;
+	}
 
-    public void setRanges(final List<FacetRangeTO> ranges) {
-        this.ranges = ranges;
-    }
+	public void setRanges(final List<FacetRangeTO> ranges) {
+		this.ranges = ranges;
+	}
 
-    public boolean isRange() {
-        return CollectionUtils.isNotEmpty(ranges);
-    }
+	public boolean isRange() {
+		return CollectionUtils.isNotEmpty(ranges);
+	}
 
-    public boolean isDate() {
-        return date;
-    }
+	public boolean isDate() {
+		return date;
+	}
 
-    public void setDate(final boolean date) {
-        this.date = date;
-    }
+	public void setDate(final boolean date) {
+		this.date = date;
+	}
 
-    public boolean isMultiple() {
-        return multiple;
-    }
+	public boolean isMultiple() {
+		return multiple;
+	}
 
-    public void setMultiple(final boolean multiple) {
-        this.multiple = multiple;
-    }
+	public void setMultiple(final boolean multiple) {
+		this.multiple = multiple;
+	}
 
 }

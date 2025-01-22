@@ -19,16 +19,16 @@ package org.craftercms.studio.model.rest;
 import org.craftercms.studio.api.v2.dal.User;
 
 /**
- Represents a {@link User} with only the necessary fields that are required to be sent in the response
+ * Represents a {@link User} with only the necessary fields that are required to be sent in the response
  */
 public class UserResponse extends User {
-    public UserResponse(User user) {
-        setId(user.getId());
-        setUsername(user.getUsername());
-        setEmail(user.getEmail());
-        setFirstName(user.getFirstName());
-        setLastName(user.getLastName());
-        setEnabled(user.isEnabled());
-        setExternallyManaged(user.isExternallyManaged());
-    }
+	public UserResponse(User user) {
+		setId(user.getId());
+		setUsername(user.getUsername());
+		setEmail(user.getEmail());
+		setFirstName(user.getFirstName());
+		setLastName(user.getLastName());
+		setEnabled(user.isEnabled());
+		setExternallyManaged(user.isExternallyManaged());
+	}
 }

@@ -22,93 +22,93 @@ import java.util.List;
 
 public interface SiteDAO {
 
-    String PUBLISHING_STATUS = "publishingStatus";
-    String SITE_ID = "siteId";
-    String ENABLED = "enabled";
-    String COMMIT_ID = "commitId";
-    String STATE = "state";
+	String PUBLISHING_STATUS = "publishingStatus";
+	String SITE_ID = "siteId";
+	String ENABLED = "enabled";
+	String COMMIT_ID = "commitId";
+	String STATE = "state";
 
-    /**
-     * Delete site
-     *
-     * @param siteId site identifier
-     */
-    void deleteSiteRelatedItems(@Param(SITE_ID) String siteId);
+	/**
+	 * Delete site
+	 *
+	 * @param siteId site identifier
+	 */
+	void deleteSiteRelatedItems(@Param(SITE_ID) String siteId);
 
-    /**
-     * Mark the site as DELETING
-     *
-     * @param siteId the site id
-     */
-    void startSiteDelete(@Param(SITE_ID) String siteId);
+	/**
+	 * Mark the site as DELETING
+	 *
+	 * @param siteId the site id
+	 */
+	void startSiteDelete(@Param(SITE_ID) String siteId);
 
-    /**
-     * Marks the site as DELETED
-     *
-     * @param siteId the site id
-     */
-    void completeSiteDelete(@Param(SITE_ID) String siteId);
+	/**
+	 * Marks the site as DELETED
+	 *
+	 * @param siteId the site id
+	 */
+	void completeSiteDelete(@Param(SITE_ID) String siteId);
 
-    /**
-     * Checks if a non-deleted site exists with the given site id
-     *
-     * @param siteId the site id
-     * @return true if the site exists, false otherwise
-     */
-    boolean exists(@Param(SITE_ID) String siteId);
+	/**
+	 * Checks if a non-deleted site exists with the given site id
+	 *
+	 * @param siteId the site id
+	 * @return true if the site exists, false otherwise
+	 */
+	boolean exists(@Param(SITE_ID) String siteId);
 
-    /**
-     * Enables/disables publishing for the given site
-     *
-     * @param siteId  the site id
-     * @param enabled true to enable publishing, false to disable
-     */
-    void enablePublishing(@Param(SITE_ID) String siteId, @Param(ENABLED) boolean enabled);
+	/**
+	 * Enables/disables publishing for the given site
+	 *
+	 * @param siteId  the site id
+	 * @param enabled true to enable publishing, false to disable
+	 */
+	void enablePublishing(@Param(SITE_ID) String siteId, @Param(ENABLED) boolean enabled);
 
-    /**
-     * Gets the site with the given site id
-     *
-     * @param siteId the site id
-     * @return the {@link Site} object
-     */
-    Site getSite(@Param(SITE_ID) String siteId);
+	/**
+	 * Gets the site with the given site id
+	 *
+	 * @param siteId the site id
+	 * @return the {@link Site} object
+	 */
+	Site getSite(@Param(SITE_ID) String siteId);
 
-    /**
-     * Get the last commit id for the given site
-     *
-     * @param siteId site id
-     * @return the last commit id
-     */
-    String getLastCommitId(@Param(SITE_ID) String siteId);
+	/**
+	 * Get the last commit id for the given site
+	 *
+	 * @param siteId site id
+	 * @return the last commit id
+	 */
+	String getLastCommitId(@Param(SITE_ID) String siteId);
 
-    /**
-     * Update a site's last commit id
-     *
-     * @param siteId   site id
-     * @param commitId commit id
-     */
-    void updateLastCommitId(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId);
+	/**
+	 * Update a site's last commit id
+	 *
+	 * @param siteId   site id
+	 * @param commitId commit id
+	 */
+	void updateLastCommitId(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId);
 
-    /**
-     * Get the sites matching the given state
-     *
-     * @param state the state
-     * @return the list of sites
-     */
-    List<Site> getSitesByState(@Param(STATE) String state);
+	/**
+	 * Get the sites matching the given state
+	 *
+	 * @param state the state
+	 * @return the list of sites
+	 */
+	List<Site> getSitesByState(@Param(STATE) String state);
 
-    /**
-     * Set published repo created flag
-     *
-     * @param siteId the site id
-     */
-    void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
+	/**
+	 * Set published repo created flag
+	 *
+	 * @param siteId the site id
+	 */
+	void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
 
-    /**
-     * Update publishing status
-     *
-     * @param siteId the site id
-     * @param status publisher status
-     */
-    void updatePublishingStatus(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status);
+	/**
+	 * Update publishing status
+	 *
+	 * @param siteId the site id
+	 * @param status publisher status
+	 */
+	void updatePublishingStatus(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status);
 }

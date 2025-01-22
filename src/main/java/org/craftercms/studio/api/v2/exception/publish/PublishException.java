@@ -20,14 +20,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
  * General exception for publish operations.
-
  */
 public class PublishException extends ServiceLayerException {
-    public PublishException(String message, Throwable e) {
-        super(message, e);
-    }
+	public PublishException(String message, Throwable e) {
+		super(message, e);
+	}
 
-    public PublishException(String message) {
-        super(message);
-    }
+	public PublishException(String message) {
+		super(message);
+	}
 }

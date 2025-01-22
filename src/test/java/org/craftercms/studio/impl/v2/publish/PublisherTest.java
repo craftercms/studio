@@ -42,132 +42,132 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PublisherTest {
-    static final String DISABLED_PUBLISH_SITE_ID = "disabledSite1";
-    static final String SITE_ID = "site2";
-    static final long PACKAGE_ID = 123;
-    static final long SITE_NUMERIC_ID = 456;
+	static final String DISABLED_PUBLISH_SITE_ID = "disabledSite1";
+	static final String SITE_ID = "site2";
+	static final long PACKAGE_ID = 123;
+	static final long SITE_NUMERIC_ID = 456;
 
-    @Mock
-    SiteDAO siteDAO;
+	@Mock
+	SiteDAO siteDAO;
 
-    @Mock
-    PublishDAO publishDAO;
+	@Mock
+	PublishDAO publishDAO;
 
-    @Mock
-    Site disabledSite;
+	@Mock
+	Site disabledSite;
 
-    @Mock
-    Site site2;
+	@Mock
+	Site site2;
 
-    @Mock
-    PublishPackage publishPackage;
+	@Mock
+	PublishPackage publishPackage;
 
-    @Mock
-    GeneralLockService generalLockService;
+	@Mock
+	GeneralLockService generalLockService;
 
-    @Mock
-    TaskManager taskManager;
+	@Mock
+	TaskManager taskManager;
 
-    @Mock
-    ActivityStreamServiceInternal activityService;
+	@Mock
+	ActivityStreamServiceInternal activityService;
 
-    @Mock
-    ApplicationEventPublisher eventPublisher;
+	@Mock
+	ApplicationEventPublisher eventPublisher;
 
-    @Spy
-    @InjectMocks
-    Publisher publisher;
+	@Spy
+	@InjectMocks
+	Publisher publisher;
 
-    @Before
-    public void setUp() {
-        when(disabledSite.getPublishingEnabled()).thenReturn(false);
+	@Before
+	public void setUp() {
+		when(disabledSite.getPublishingEnabled()).thenReturn(false);
 
-        when(site2.getPublishingEnabled()).thenReturn(true);
-        when(site2.getSiteId()).thenReturn(SITE_ID);
-        when(site2.getId()).thenReturn(SITE_NUMERIC_ID);
+		when(site2.getPublishingEnabled()).thenReturn(true);
+		when(site2.getSiteId()).thenReturn(SITE_ID);
+		when(site2.getId()).thenReturn(SITE_NUMERIC_ID);
 
-        when(siteDAO.getSite(SITE_ID)).thenReturn(site2);
-        when(site2.getState()).thenReturn(READY);
+		when(siteDAO.getSite(SITE_ID)).thenReturn(site2);
+		when(site2.getState()).thenReturn(READY);
 
-        when(siteDAO.getSite(DISABLED_PUBLISH_SITE_ID)).thenReturn(disabledSite);
+		when(siteDAO.getSite(DISABLED_PUBLISH_SITE_ID)).thenReturn(disabledSite);
 
-        when(publishPackage.getSite()).thenReturn(site2);
+		when(publishPackage.getSite()).thenReturn(site2);
 
-        when(taskManager.registerTask(any())).then(invocation -> {
-            TaskProgress<?, ?> taskProgress = mock(TaskProgress.class);
-            when(taskProgress.startStage(any())).thenReturn(mock(TaskProgress.Stage.class));
-            return taskProgress;
-        });
+		when(taskManager.registerTask(any())).then(invocation -> {
+			TaskProgress<?, ?> taskProgress = mock(TaskProgress.class);
+			when(taskProgress.startStage(any())).thenReturn(mock(TaskProgress.Stage.class));
+			return taskProgress;
+		});
 
-        publisher.setApplicationEventPublisher(eventPublisher);
+		publisher.setApplicationEventPublisher(eventPublisher);
 
-        when(publishPackage.getPackageType()).thenReturn(PublishPackage.PackageType.ITEM_LIST);
-    }
+		when(publishPackage.getPackageType()).thenReturn(PublishPackage.PackageType.ITEM_LIST);
+	}
 
-    @Test
-    public void publishDisabledTest() throws ServiceLayerException {
-        publisher.handleRequestPublishEvent(new RequestPublishEvent(DISABLED_PUBLISH_SITE_ID, PACKAGE_ID));
-        verify(publisher, never()).lockAndPublish(anyLong(), anyLong());
-    }
+	@Test
+	public void publishDisabledTest() throws ServiceLayerException {
+		publisher.handleRequestPublishEvent(new RequestPublishEvent(DISABLED_PUBLISH_SITE_ID, PACKAGE_ID));
+		verify(publisher, never()).lockAndPublish(anyLong(), anyLong());
+	}
 
-    @Test
-    public void lockUnavailableTest() throws ServiceLayerException {
-        when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(false);
-        publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
+	@Test
+	public void lockUnavailableTest() throws ServiceLayerException {
+		when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(false);
+		publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
 
-        verify(generalLockService).tryLock(StudioUtils.getPublishingLockKey(SITE_ID));
-        verify(publisher, never()).lockAndPublish(anyLong(), anyLong());
-    }
+		verify(generalLockService).tryLock(StudioUtils.getPublishingLockKey(SITE_ID));
+		verify(publisher, never()).lockAndPublish(anyLong(), anyLong());
+	}
 
-    @Test
-    public void notReadySiteTest() throws ServiceLayerException {
-        when(site2.getState()).thenReturn(Site.State.INITIALIZING);
-        publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
+	@Test
+	public void notReadySiteTest() throws ServiceLayerException {
+		when(site2.getState()).thenReturn(Site.State.INITIALIZING);
+		publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
 
-        verify(site2).getState();
-        verify(publisher, never()).lockAndPublish(anyLong(), anyLong());
-    }
+		verify(site2).getState();
+		verify(publisher, never()).lockAndPublish(anyLong(), anyLong());
+	}
 
-    @Test
-    public void lockedPackageTest() throws ServiceLayerException {
-        when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(true);
-        when(site2.getState()).thenReturn(READY);
-        when(generalLockService.tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID))).thenReturn(false);
+	@Test
+	public void lockedPackageTest() throws ServiceLayerException {
+		when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(true);
+		when(site2.getState()).thenReturn(READY);
+		when(generalLockService.tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID))).thenReturn(false);
 
-        publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
+		publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
 
-        verify(publisher).lockAndPublish(anyLong(), anyLong());
-        verify(publisher, never()).doPublish(any());
-        verify(generalLockService).tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID));
-    }
+		verify(publisher).lockAndPublish(anyLong(), anyLong());
+		verify(publisher, never()).doPublish(any());
+		verify(generalLockService).tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID));
+	}
 
-    @Test
-    public void doPublishCallTest() throws ServiceLayerException {
-        when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(true);
-        when(site2.getState()).thenReturn(READY);
-        when(generalLockService.tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID))).thenReturn(true);
-        doNothing().when(publisher).doPublish(any());
+	@Test
+	public void doPublishCallTest() throws ServiceLayerException {
+		when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(true);
+		when(site2.getState()).thenReturn(READY);
+		when(generalLockService.tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID))).thenReturn(true);
+		doNothing().when(publisher).doPublish(any());
 
-        publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
+		publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
 
-        verify(publisher).doPublish(any());
-        verify(generalLockService).tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID));
-    }
+		verify(publisher).doPublish(any());
+		verify(generalLockService).tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID));
+	}
 
-    @Test
-    public void auditPublishTest() throws ServiceLayerException {
-        when(publishPackage.getId()).thenReturn(PACKAGE_ID);
-        when(publishDAO.getById(SITE_NUMERIC_ID, PACKAGE_ID)).thenReturn(publishPackage);
+	@Test
+	public void auditPublishTest() throws ServiceLayerException {
+		when(publishPackage.getId()).thenReturn(PACKAGE_ID);
+		when(publishDAO.getById(SITE_NUMERIC_ID, PACKAGE_ID)).thenReturn(publishPackage);
 
-        when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(true);
-        when(site2.getState()).thenReturn(READY);
-        when(generalLockService.tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID))).thenReturn(true);
+		when(generalLockService.tryLock(StudioUtils.getPublishingLockKey(SITE_ID))).thenReturn(true);
+		when(site2.getState()).thenReturn(READY);
+		when(generalLockService.tryLock(StudioUtils.getPublishPackageLockKey(PACKAGE_ID))).thenReturn(true);
 
-        doNothing().when(publisher).auditPublishOperation(any(), any());
-        doNothing().when(publisher).doPublishItemList(any(), any(), any());
+		doNothing().when(publisher).auditPublishOperation(any(), any());
+		doNothing().when(publisher).doPublishItemList(any(), any(), any());
 
-        publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
+		publisher.handleRequestPublishEvent(new RequestPublishEvent(SITE_ID, PACKAGE_ID));
 
-        verify(publisher).auditPublishOperation(any(), eq(OPERATION_PUBLISH_START));
-    }
+		verify(publisher).auditPublishOperation(any(), eq(OPERATION_PUBLISH_START));
+	}
 }

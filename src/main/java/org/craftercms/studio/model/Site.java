@@ -18,57 +18,57 @@ package org.craftercms.studio.model;
 
 public class Site implements Entity {
 
-    private String siteId;
-    private String uuid;
-    private String name;
-    private String desc;
-    private String state;
+	private String siteId;
+	private String uuid;
+	private String name;
+	private String desc;
+	private String state;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getUuid() {
-        return uuid;
-    }
+	public String getUuid() {
+		return uuid;
+	}
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getDesc() {
-        return desc;
-    }
+	public String getDesc() {
+		return desc;
+	}
 
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
 
-    public void setState(final String state) {
-        this.state = state;
-    }
+	public void setState(final String state) {
+		this.state = state;
+	}
 
-    public String getState() {
-        return state;
-    }
+	public String getState() {
+		return state;
+	}
 
-    private static class State {
-        public static final String INITIALIZING = "INITIALIZING";
-        public static final String LOCKED = "LOCKED";
-        public static final String READY = "READY";
-        public static final String DELETING = "DELETING";
-        public static final String DELETED = "DELETED";
-    }
+	private static class State {
+		public static final String INITIALIZING = "INITIALIZING";
+		public static final String LOCKED = "LOCKED";
+		public static final String READY = "READY";
+		public static final String DELETING = "DELETING";
+		public static final String DELETED = "DELETED";
+	}
 }

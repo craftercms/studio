@@ -22,22 +22,22 @@ package org.craftercms.studio.api.v2.dal;
  * having to retrieve the full item.
  */
 public class ItemPathAndState {
-    private String path;
-    private Long state;
+	private String path;
+	private Long state;
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public Long getState() {
-        return state;
-    }
+	public Long getState() {
+		return state;
+	}
 
-    public void setState(Long state) {
-        this.state = state;
-    }
+	public void setState(Long state) {
+		this.state = state;
+	}
 }

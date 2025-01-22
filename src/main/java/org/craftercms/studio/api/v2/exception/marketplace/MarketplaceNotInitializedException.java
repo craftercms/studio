@@ -25,8 +25,8 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class MarketplaceNotInitializedException extends MarketplaceException {
 
-    public MarketplaceNotInitializedException() {
-        super("Marketplace service has not been initialized");
-    }
+	public MarketplaceNotInitializedException() {
+		super("Marketplace service has not been initialized");
+	}
 
 }

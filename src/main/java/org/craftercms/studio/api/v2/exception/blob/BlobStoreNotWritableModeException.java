@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class BlobStoreNotWritableModeException extends ServiceLayerException {
 
-    public BlobStoreNotWritableModeException(String message) {
-        super(message);
-    }
+	public BlobStoreNotWritableModeException(String message) {
+		super(message);
+	}
 }

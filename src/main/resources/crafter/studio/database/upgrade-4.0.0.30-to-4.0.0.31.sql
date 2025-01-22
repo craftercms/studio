@@ -14,8 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call addColumnIfNotExists('crafter', 'publish_request', 'submission_type', 'VARCHAR(32) NULL') ;
+call addColumnIfNotExists('crafter', 'publish_request', 'submission_type', 'VARCHAR(32) NULL');
 
-call addColumnIfNotExists('crafter', 'workflow', 'submission_type', 'VARCHAR(32) NULL') ;
+call addColumnIfNotExists('crafter', 'workflow', 'submission_type', 'VARCHAR(32) NULL');
 
-UPDATE _meta SET version = '4.0.0.31' ;
+UPDATE _meta
+SET version = '4.0.0.31';

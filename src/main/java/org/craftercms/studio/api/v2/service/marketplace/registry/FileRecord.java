@@ -27,31 +27,31 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileRecord {
 
-    /**
-     * The path where the file was installed
-     */
-    private String path;
+	/**
+	 * The path where the file was installed
+	 */
+	private String path;
 
-    /**
-     * The SHA-512 checksum of the file when installed
-     */
-    private String sha512;
+	/**
+	 * The SHA-512 checksum of the file when installed
+	 */
+	private String sha512;
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    @JsonIgnore
-    public String getSha512() {
-        return sha512;
-    }
+	@JsonIgnore
+	public String getSha512() {
+		return sha512;
+	}
 
-    public void setSha512(String sha512) {
-        this.sha512 = sha512;
-    }
+	public void setSha512(String sha512) {
+		this.sha512 = sha512;
+	}
 
 }

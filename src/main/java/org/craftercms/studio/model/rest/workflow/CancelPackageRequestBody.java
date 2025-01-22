@@ -26,24 +26,24 @@ import java.util.List;
  */
 public class CancelPackageRequestBody {
 
-    @NotBlank
-    private String comment;
-    @NotEmpty
-    private List<Long> packageIds;
+	@NotBlank
+	private String comment;
+	@NotEmpty
+	private List<Long> packageIds;
 
-    public @NotBlank String getComment() {
-        return comment;
-    }
+	public @NotBlank String getComment() {
+		return comment;
+	}
 
-    public void setComment(@NotBlank String comment) {
-        this.comment = comment;
-    }
+	public void setComment(@NotBlank String comment) {
+		this.comment = comment;
+	}
 
-    public List<Long> getPackageIds() {
-        return packageIds;
-    }
+	public List<Long> getPackageIds() {
+		return packageIds;
+	}
 
-    public void setPackageIds(List<Long> packageIds) {
-        this.packageIds = packageIds;
-    }
+	public void setPackageIds(List<Long> packageIds) {
+		this.packageIds = packageIds;
+	}
 }

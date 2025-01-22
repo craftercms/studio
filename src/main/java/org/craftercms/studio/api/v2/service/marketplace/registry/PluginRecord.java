@@ -31,92 +31,92 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PluginRecord {
 
-    /**
-     * The plugin id
-     */
-    private String id;
+	/**
+	 * The plugin id
+	 */
+	private String id;
 
-    /**
-     * The plugin version
-     */
-    private Version version;
+	/**
+	 * The plugin version
+	 */
+	private Version version;
 
-    /**
-     * The plugin type
-     */
-    private String type;
+	/**
+	 * The plugin type
+	 */
+	private String type;
 
-    /**
-     * The plugin url
-     */
-    private String pluginUrl;
+	/**
+	 * The plugin url
+	 */
+	private String pluginUrl;
 
-    /**
-     * The date when the plugin was installed
-     */
-    private Instant installationDate;
+	/**
+	 * The date when the plugin was installed
+	 */
+	private Instant installationDate;
 
-    /**
-     * The list of files installed for the plugin
-     */
-    private List<FileRecord> files;
+	/**
+	 * The list of files installed for the plugin
+	 */
+	private List<FileRecord> files;
 
-    private List<ConfigRecord> config;
+	private List<ConfigRecord> config;
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public Version getVersion() {
-        return version;
-    }
+	public Version getVersion() {
+		return version;
+	}
 
-    public void setVersion(Version version) {
-        this.version = version;
-    }
+	public void setVersion(Version version) {
+		this.version = version;
+	}
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public String getPluginUrl() {
-        return pluginUrl;
-    }
+	public String getPluginUrl() {
+		return pluginUrl;
+	}
 
-    public void setPluginUrl(String pluginUrl) {
-        this.pluginUrl = pluginUrl;
-    }
+	public void setPluginUrl(String pluginUrl) {
+		this.pluginUrl = pluginUrl;
+	}
 
-    public Instant getInstallationDate() {
-        return installationDate;
-    }
+	public Instant getInstallationDate() {
+		return installationDate;
+	}
 
-    public void setInstallationDate(Instant installationDate) {
-        this.installationDate = installationDate;
-    }
+	public void setInstallationDate(Instant installationDate) {
+		this.installationDate = installationDate;
+	}
 
-    public List<FileRecord> getFiles() {
-        return files;
-    }
+	public List<FileRecord> getFiles() {
+		return files;
+	}
 
-    public void setFiles(List<FileRecord> files) {
-        this.files = files;
-    }
+	public void setFiles(List<FileRecord> files) {
+		this.files = files;
+	}
 
-    public List<ConfigRecord> getConfig() {
-        return config;
-    }
+	public List<ConfigRecord> getConfig() {
+		return config;
+	}
 
-    public void setConfig(List<ConfigRecord> config) {
-        this.config = config;
-    }
+	public void setConfig(List<ConfigRecord> config) {
+		this.config = config;
+	}
 
 }

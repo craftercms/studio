@@ -38,65 +38,65 @@ import static java.lang.String.format;
  */
 public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
 
-    private String profilesModule;
-    private String profilesPath;
-    private ConfigurationMapper<T> profileMapper;
-    private ContentService contentService;
-    private ContextManager contextManager;
+	private String profilesModule;
+	private String profilesPath;
+	private ConfigurationMapper<T> profileMapper;
+	private ContentService contentService;
+	private ContextManager contextManager;
 
-    public SiteAwareConfigProfileLoader(String profilesModule, String profilesPath, ConfigurationMapper<T> profileMapper,
-                                        ContentService contentService, final ContextManager contextManager) {
-        this.profilesModule = profilesModule;
-        this.profilesPath = profilesPath;
-        this.profileMapper = profileMapper;
-        this.contentService = contentService;
-        this.contextManager = contextManager;
-    }
+	public SiteAwareConfigProfileLoader(String profilesModule, String profilesPath, ConfigurationMapper<T> profileMapper,
+					    ContentService contentService, final ContextManager contextManager) {
+		this.profilesModule = profilesModule;
+		this.profilesPath = profilesPath;
+		this.profileMapper = profileMapper;
+		this.contentService = contentService;
+		this.contextManager = contextManager;
+	}
 
-    public T loadProfile(String site, String profileId) throws ConfigurationException, ConfigurationProfileNotFoundException {
-        try (InputStream is = contentService.getContent(site, profilesPath)) {
-            return profileMapper.readConfig(new ConfigurationProviderImpl(site), profilesModule,
-                    profilesPath, null, profileId);
-        } catch (ConfigurationProfileNotFoundException e) {
-            throw new ConfigurationProfileNotFoundException(format("Profile '%s' not found from configuration at '%s'",
-                    profileId, profilesPath), e);
-        } catch (Exception e) {
-            throw new ConfigurationException(format("Error while loading profile '%s' from configuration at '%s'",
-                    profileId, profilesPath), e);
-        }
-    }
+	public T loadProfile(String site, String profileId) throws ConfigurationException, ConfigurationProfileNotFoundException {
+		try (InputStream is = contentService.getContent(site, profilesPath)) {
+			return profileMapper.readConfig(new ConfigurationProviderImpl(site), profilesModule,
+				profilesPath, null, profileId);
+		} catch (ConfigurationProfileNotFoundException e) {
+			throw new ConfigurationProfileNotFoundException(format("Profile '%s' not found from configuration at '%s'",
+				profileId, profilesPath), e);
+		} catch (Exception e) {
+			throw new ConfigurationException(format("Error while loading profile '%s' from configuration at '%s'",
+				profileId, profilesPath), e);
+		}
+	}
 
-    /**
-     *  Internal class to provide access to configuration files
-     */
-    private class ConfigurationProviderImpl implements ConfigurationProvider {
+	/**
+	 * Internal class to provide access to configuration files
+	 */
+	private class ConfigurationProviderImpl implements ConfigurationProvider {
 
-        private final String site;
-        private final Context context;
+		private final String site;
+		private final Context context;
 
-        public ConfigurationProviderImpl(String site) {
-            this.site = site;
-            context = contextManager.getContext(site);
-        }
+		public ConfigurationProviderImpl(String site) {
+			this.site = site;
+			context = contextManager.getContext(site);
+		}
 
-        @Override
-        public boolean configExists(String path) {
-            return SiteAwareConfigProfileLoader.this.contentService.contentExists(site, path);
-        }
+		@Override
+		public boolean configExists(String path) {
+			return SiteAwareConfigProfileLoader.this.contentService.contentExists(site, path);
+		}
 
-        @Override
-        public InputStream getConfig(String path) throws IOException {
-            try {
-                return SiteAwareConfigProfileLoader.this.contentService.getContent(site, path);
-            } catch (Exception e) {
-                throw new IOException("Error reading file", e);
-            }
-        }
+		@Override
+		public InputStream getConfig(String path) throws IOException {
+			try {
+				return SiteAwareConfigProfileLoader.this.contentService.getContent(site, path);
+			} catch (Exception e) {
+				throw new IOException("Error reading file", e);
+			}
+		}
 
-        @Override
-        public Map<String, String> getLookupVariables() {
-            return context.getConfigLookupVariables();
-        }
-    }
+		@Override
+		public Map<String, String> getLookupVariables() {
+			return context.getConfigLookupVariables();
+		}
+	}
 
 }

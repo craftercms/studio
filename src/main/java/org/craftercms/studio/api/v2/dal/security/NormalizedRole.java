@@ -22,15 +22,16 @@ import static java.util.Objects.requireNonNullElse;
 
 /**
  * Normalized role to deal with case-insensitive while working with roles/permissions mappings
+ *
  * @param name the name of the role
  */
 public record NormalizedRole(String name) {
-    public NormalizedRole(String name) {
-        this.name = requireNonNullElse(name, StringUtils.EMPTY).toLowerCase();
-    }
+	public NormalizedRole(String name) {
+		this.name = requireNonNullElse(name, StringUtils.EMPTY).toLowerCase();
+	}
 
-    @Override
-    public String toString() {
-        return name;
-    }
+	@Override
+	public String toString() {
+		return name;
+	}
 }

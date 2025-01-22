@@ -17,9 +17,10 @@ package org.craftercms.studio.api.v1.exception;
 
 public class EnvironmentNotFoundException extends ServiceLayerException {
 
-    private static final long serialVersionUID = 6176134353135084107L;
+	private static final long serialVersionUID = 6176134353135084107L;
 
-    public EnvironmentNotFoundException() {}
+	public EnvironmentNotFoundException() {
+	}
 
 	public EnvironmentNotFoundException(Exception e) {
 		super(e);

@@ -27,23 +27,23 @@ def paramsList = []
 
 // site_id
 try {
-    if (StringUtils.isEmpty(site)) {
-        site = params.site
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
+	if (StringUtils.isEmpty(site)) {
+		site = params.site
+		if (StringUtils.isEmpty(site)) {
+			invalidParams = true
+			paramsList.add("site_id")
+		}
+	}
 } catch (Exception e) {
-    invalidParams = true
-    paramsList.add("site_id")
+	invalidParams = true
+	paramsList.add("site_id")
 }
 
 if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
+	response.setStatus(400)
+	result.message = "Invalid parameter(s): " + paramsList
 } else {
-    def context = SiteServices.createContext(applicationContext, request)
-    result.exists = SiteServices.exists(context, site)
+	def context = SiteServices.createContext(applicationContext, request)
+	result.exists = SiteServices.exists(context, site)
 }
 return result

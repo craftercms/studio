@@ -25,21 +25,21 @@ import java.util.List;
  */
 public class ExpiringContentResult {
 
-    protected List<ExpiringContentItem> items;
+	protected List<ExpiringContentItem> items;
 
-    protected long total;
+	protected long total;
 
-    public ExpiringContentResult(List<ExpiringContentItem> items, long total) {
-        this.items = items;
-        this.total = total;
-    }
+	public ExpiringContentResult(List<ExpiringContentItem> items, long total) {
+		this.items = items;
+		this.total = total;
+	}
 
-    public List<ExpiringContentItem> getItems() {
-        return items;
-    }
+	public List<ExpiringContentItem> getItems() {
+		return items;
+	}
 
-    public long getTotal() {
-        return total;
-    }
+	public long getTotal() {
+		return total;
+	}
 
 }

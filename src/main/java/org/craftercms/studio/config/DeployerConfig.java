@@ -36,23 +36,23 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DEPLOYER_RE
 @Configuration
 public class DeployerConfig {
 
-    public static final int DEFAULT_DEPLOYER_RESPONSE_TIMEOUT = 300;
+	public static final int DEFAULT_DEPLOYER_RESPONSE_TIMEOUT = 300;
 
-    @Bean
-    @SuppressWarnings("unused")
-    public RestTemplate deployerRestTemplate(final StudioConfiguration studioConfiguration) {
-        int responseTimeoutSeconds = studioConfiguration.getProperty(DEPLOYER_RESPONSE_TIMEOUT,
-                Integer.class, DEFAULT_DEPLOYER_RESPONSE_TIMEOUT);
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        CloseableHttpClient client = HttpClientBuilder.create()
-                .useSystemProperties()
-                .setDefaultRequestConfig(RequestConfig.custom()
-                        .setResponseTimeout(responseTimeoutSeconds, SECONDS).build())
-                .build();
-        requestFactory.setHttpClient(client);
+	@Bean
+	@SuppressWarnings("unused")
+	public RestTemplate deployerRestTemplate(final StudioConfiguration studioConfiguration) {
+		int responseTimeoutSeconds = studioConfiguration.getProperty(DEPLOYER_RESPONSE_TIMEOUT,
+			Integer.class, DEFAULT_DEPLOYER_RESPONSE_TIMEOUT);
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		CloseableHttpClient client = HttpClientBuilder.create()
+			.useSystemProperties()
+			.setDefaultRequestConfig(RequestConfig.custom()
+				.setResponseTimeout(responseTimeoutSeconds, SECONDS).build())
+			.build();
+		requestFactory.setHttpClient(client);
 
-        RestTemplate restTemplate = new RestTemplate(Map.class);
-        restTemplate.setRequestFactory(requestFactory);
-        return restTemplate;
-    }
+		RestTemplate restTemplate = new RestTemplate(Map.class);
+		restTemplate.setRequestFactory(requestFactory);
+		return restTemplate;
+	}
 }

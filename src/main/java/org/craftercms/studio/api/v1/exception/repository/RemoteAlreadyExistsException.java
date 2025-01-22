@@ -20,9 +20,10 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 public class RemoteAlreadyExistsException extends ServiceLayerException {
 
 
-    private static final long serialVersionUID = 6422788562443045182L;
+	private static final long serialVersionUID = 6422788562443045182L;
 
-    public RemoteAlreadyExistsException() {}
+	public RemoteAlreadyExistsException() {
+	}
 
 	public RemoteAlreadyExistsException(Exception e) {
 		super(e);

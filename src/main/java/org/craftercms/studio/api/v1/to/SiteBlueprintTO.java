@@ -19,10 +19,10 @@ import java.io.Serializable;
 
 public class SiteBlueprintTO implements Serializable {
 
-    private static final long serialVersionUID = 3309675182536998467L;
+	private static final long serialVersionUID = 3309675182536998467L;
 
-    public String id;
-    public String label;
-    public String description;
-    public String[] screenshots;
+	public String id;
+	public String label;
+	public String description;
+	public String[] screenshots;
 }

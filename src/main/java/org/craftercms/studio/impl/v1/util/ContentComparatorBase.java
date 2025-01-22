@@ -21,14 +21,13 @@ import java.util.Comparator;
 
 /**
  * content comparater base class
- * 
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public abstract class ContentComparatorBase<T> implements Comparator<T> {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = 2704130586801127603L;
 	protected String _sort;
@@ -36,8 +35,8 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 
 	/**
 	 * constructor
-	 * 
-	 * @param sort sort strategy
+	 *
+	 * @param sort      sort strategy
 	 * @param ascending order
 	 */
 	public ContentComparatorBase(final String sort, final boolean ascending) {
@@ -47,9 +46,9 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 
 	/**
 	 * compare dates
-	 * 
-	 * @param value1 value 1
-	 * @param value2 value 2
+	 *
+	 * @param value1    value 1
+	 * @param value2    value 2
 	 * @param ascending ascending
 	 * @return sorting result
 	 */
@@ -69,9 +68,9 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 
 	/**
 	 * compare dates
-	 * 
-	 * @param value1 value 1
-	 * @param value2 value 2
+	 *
+	 * @param value1    value 1
+	 * @param value2    value 2
 	 * @param ascending ascending
 	 * @return sorting result
 	 */

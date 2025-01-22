@@ -24,24 +24,24 @@ import jakarta.validation.constraints.Size;
  * Holds the parameters for an Update Group request
  */
 public class UpdateGroupRequest {
-    private long id = -1;
-    @Size(max = 1024)
-    @JsonProperty("desc")
-    private String groupDescription;
+	private long id = -1;
+	@Size(max = 1024)
+	@JsonProperty("desc")
+	private String groupDescription;
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getGroupDescription() {
-        return groupDescription;
-    }
+	public String getGroupDescription() {
+		return groupDescription;
+	}
 
-    public void setGroupDescription(String groupDescription) {
-        this.groupDescription = groupDescription;
-    }
+	public void setGroupDescription(String groupDescription) {
+		this.groupDescription = groupDescription;
+	}
 }

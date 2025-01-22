@@ -20,19 +20,19 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 public class ContentExistException extends ServiceLayerException {
 
-    public ContentExistException() {
-        super();
-    }
+	public ContentExistException() {
+		super();
+	}
 
-    public ContentExistException(Throwable e) {
-        super(e);
-    }
+	public ContentExistException(Throwable e) {
+		super(e);
+	}
 
-    public ContentExistException(String message) {
-        super(message);
-    }
+	public ContentExistException(String message) {
+		super(message);
+	}
 
-    public ContentExistException(String message, Exception e) {
-        super(message, e);
-    }
+	public ContentExistException(String message, Exception e) {
+		super(message, e);
+	}
 }

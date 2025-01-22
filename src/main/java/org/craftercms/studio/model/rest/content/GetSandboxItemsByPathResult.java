@@ -29,17 +29,17 @@ import java.util.Collection;
  */
 public class GetSandboxItemsByPathResult extends ResultList<SandboxItem> {
 
-    /**
-     * Collection of paths for which no item was found
-     */
-    protected Collection<String> missingItems;
+	/**
+	 * Collection of paths for which no item was found
+	 */
+	protected Collection<String> missingItems;
 
-    public Collection<String> getMissingItems() {
-        return missingItems;
-    }
+	public Collection<String> getMissingItems() {
+		return missingItems;
+	}
 
-    public void setMissingItems(Collection<String> missingItems) {
-        this.missingItems = missingItems;
-    }
+	public void setMissingItems(Collection<String> missingItems) {
+		this.missingItems = missingItems;
+	}
 
 }

@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v2.event.SiteAwareEvent;
  * @since 4.2.0
  */
 public class SyncFromRepoEvent extends SiteAwareEvent {
-    public SyncFromRepoEvent(final String siteId) {
-        super(siteId);
-    }
+	public SyncFromRepoEvent(final String siteId) {
+		super(siteId);
+	}
 }

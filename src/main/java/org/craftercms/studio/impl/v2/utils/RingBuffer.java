@@ -22,39 +22,39 @@ package org.craftercms.studio.impl.v2.utils;
  * was written in the order it was written ignoring what was overwritten
  * when writing beyond the preset size. This means you always read the
  * least recently written item.
- *
+ * <p>
  * This data structure cannot be written to once reading has begun.
  *
  * @param <T> type of objects to store
  */
 public class RingBuffer<T> {
-    protected T[] ringBuffer;
-    protected int writeCursor = 0;
-    protected int readCursor = 0;
-    protected int size;
+	protected T[] ringBuffer;
+	protected int writeCursor = 0;
+	protected int readCursor = 0;
+	protected int size;
 
-    public RingBuffer(int size) {
-        this.size = size;
-        ringBuffer = (T[]) new Object[size];
-    }
+	public RingBuffer(int size) {
+		this.size = size;
+		ringBuffer = (T[]) new Object[size];
+	}
 
-    public void write(T element) {
-        ringBuffer[(writeCursor % size)] = element;
-        writeCursor++;
+	public void write(T element) {
+		ringBuffer[(writeCursor % size)] = element;
+		writeCursor++;
 
-        if (writeCursor > size) {
-            readCursor++;
-        }
-    }
+		if (writeCursor > size) {
+			readCursor++;
+		}
+	}
 
-    public T read() {
-        T element = null;
+	public T read() {
+		T element = null;
 
-        if (readCursor < writeCursor) {
-            element = ringBuffer[(readCursor % size)];
-            readCursor++;
-        }
+		if (readCursor < writeCursor) {
+			element = ringBuffer[(readCursor % size)];
+			readCursor++;
+		}
 
-        return element;
-    }
+		return element;
+	}
 }

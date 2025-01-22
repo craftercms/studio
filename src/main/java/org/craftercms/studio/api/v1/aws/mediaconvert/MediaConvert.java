@@ -27,14 +27,15 @@ import org.craftercms.studio.api.v1.exception.AwsException;
  */
 public interface MediaConvert {
 
-    /**
-     * Uploads a file to AWS S3 and starts a transcoding job in AWS MediaConvert.
-     * @param filename name of the file to upload
-     * @param content stream providing the content of the file to upload
-     * @param profile profile used to create the transcoding job
-     * @return information of the transcoding job
-     * @throws AwsException if the upload or transcoding job creation fails
-     */
-    MediaConvertJob startJob(String filename, InputStream content, MediaConvertProfile profile) throws AwsException;
+	/**
+	 * Uploads a file to AWS S3 and starts a transcoding job in AWS MediaConvert.
+	 *
+	 * @param filename name of the file to upload
+	 * @param content  stream providing the content of the file to upload
+	 * @param profile  profile used to create the transcoding job
+	 * @return information of the transcoding job
+	 * @throws AwsException if the upload or transcoding job creation fails
+	 */
+	MediaConvertJob startJob(String filename, InputStream content, MediaConvertProfile profile) throws AwsException;
 
 }

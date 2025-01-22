@@ -28,21 +28,21 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 
 public class ConfigUtils {
 
-    public static HierarchicalConfiguration<ImmutableNode> readXmlConfiguration(InputStream input)
-            throws ConfigurationException {
-        Parameters params = new Parameters();
-        FileBasedConfigurationBuilder<XMLConfiguration> builder =
-                new FileBasedConfigurationBuilder<>(XMLConfiguration.class);
-        XMLConfiguration config = builder.configure(params.xml()).getConfiguration();
-        FileHandler fileHandler = new FileHandler(config);
+	public static HierarchicalConfiguration<ImmutableNode> readXmlConfiguration(InputStream input)
+		throws ConfigurationException {
+		Parameters params = new Parameters();
+		FileBasedConfigurationBuilder<XMLConfiguration> builder =
+			new FileBasedConfigurationBuilder<>(XMLConfiguration.class);
+		XMLConfiguration config = builder.configure(params.xml()).getConfiguration();
+		FileHandler fileHandler = new FileHandler(config);
 
-        fileHandler.setEncoding("UTF-8");
-        fileHandler.load(input);
+		fileHandler.setEncoding("UTF-8");
+		fileHandler.load(input);
 
-        return config;
-    }
+		return config;
+	}
 
-    private ConfigUtils() {
-    }
+	private ConfigUtils() {
+	}
 
 }

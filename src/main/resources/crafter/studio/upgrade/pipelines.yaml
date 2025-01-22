@@ -1,1501 +1,1501 @@
 # Crafter Studio Upgrade Configuration
 
 pipelines:
+    
+    # Pipeline to upgrade system components (database, global repo, ...)
+    system:
+        requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || 3.1.30 || 3.1.31 || >=4.0'
+        versions:
+            # Entry points for supported 3.1.x versions:
+            # 3.1.9
+            -   currentVersion: 3.1.9.3
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-3.1.9.3-to-4.0.0.32.sql
+            # 3.1.12 & 3.1.13
+            -   currentVersion: 3.1.12.2
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-3.1.12.2-to-4.0.0.32.sql
+            # 3.1.17, 3.1.18, 3.1.19 & 3.1.20
+            -   currentVersion: 3.1.15
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-3.1.15-to-4.0.0.32.sql
+            # 3.1.23
+            -   currentVersion: 3.1.23.2
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        # There are no db changes, so we can still use the same script
+                        filename: upgrade-3.1.15-to-4.0.0.32.sql
+            # 3.1.24
+            -   currentVersion: 3.1.24
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        # There are no db changes, so we can still use the same script
+                        filename: upgrade-3.1.15-to-4.0.0.32.sql
+            # 3.1.24.1
+            -   currentVersion: 3.1.24.1
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        # There are no db changes, so we can still use the same script
+                        filename: upgrade-3.1.15-to-4.0.0.32.sql
+            # 3.1.28
+            -   currentVersion: 3.1.28
+                nextVersion: 4.0-t
+                operations:
+                    -   type: dbScriptUpgrader
+                        # There are no conflicting db changes, so we can still use the same script
+                        filename: upgrade-3.1.15-to-4.0.0.32.sql
+            
+            # Common operations for all 3.1.x versions:
+            # Update Global Repo
+            -   currentVersion: 4.0-t
+                nextVersion: 4.0-t2
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/3.2.x/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission get_children
+            -   currentVersion: 4.0-t2
+                nextVersion: 4.0-t3
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-translation-config.xml
+                                dest: configuration/samples/sample-translation-config.xml
+                        commitDetails: Add sample file for translation-config.xml
+            -   currentVersion: 4.0-t3
+                nextVersion: 4.0-t4
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                                dest: configuration/samples/sample-permission_mappings-config.xml
+                        commitDetails: Update sample-permission-mappings-config.xml
+            -   currentVersion: 4.0-t4
+                nextVersion: 4.0-t5
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/3.2.x/3.2.0.12/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission 'edit_site'
+            -   currentVersion: 4.0-t5
+                nextVersion: 4.0-t6
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-urlrewrite.xml
+                                dest: configuration/samples/sample-urlrewrite.xml
+                        commitDetails: Update sample file for urlrewrite.xml
+            -   currentVersion: 4.0-t6
+                nextVersion: 4.0-t7
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-webdav.xml
+                                dest: configuration/samples/sample-webdav.xml
+                        commitDetails: Update sample file for webdav.xml
+            -   currentVersion: 4.0-t7
+                nextVersion: 4.0-t8
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
+                                dest: configuration/samples/sample-site-policy-config.xml
+                        commitDetails: Add sample file for site-policy-config.xml
+            -   currentVersion: 4.0-t8
+                nextVersion: 4.0-t9
+                operations:
+                    -   type: findAndReplaceUpgrader
+                        includedPaths:
+                            - configuration/studio-config-override.yaml
+                        pattern: "studio.security.publicUrls: >\\r*\\n*\\s+"
+                        replacement: |-
+                            studio.security.publicUrls: >
+                              /api/2/plugin/script/reload.*,
+            -   currentVersion: 4.0-t9
+                nextVersion: 4.0-t10
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.2/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission 'manage_access_token'
+            -   currentVersion: 4.0-t10
+                nextVersion: 4.0-t11
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-menu-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.3/system/global-menu-config.xslt
+                        commitDetails: Add new global menu item
+            -   currentVersion: 4.0-t11
+                nextVersion: 4.0-t12
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.4/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permissions for plugins
+            -   currentVersion: 4.0-t12
+                nextVersion: 4.0-t13
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                                dest: configuration/samples/sample-ui.xml
+                        commitDetails: Add sample file for ui.xml
+            -   currentVersion: 4.0-t13
+                nextVersion: 4.0-t14
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.10/system/global-permission-mappings-config.xslt
+                        commitDetails: Relabel permissions for available actions refactor
+            -   currentVersion: 4.0-t14
+                nextVersion: 4.0-t15
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.11/system/global-permission-mappings-config.xslt
+                        commitDetails: Added site-delete
+            -   currentVersion: 4.0-t15
+                nextVersion: 4.0-t16
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
+                                dest: configuration/samples/sample-site-config.xml
+                        commitDetails: Update sample file for site-config.xml
+            -   currentVersion: 4.0-t16
+                nextVersion: 4.0-t17
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.16/system/global-permission-mappings-config.xslt
+                        commitDetails: Added publish_status and publish_clear_lock permissions for system_admin
+            -   currentVersion: 4.0-t17
+                nextVersion: 4.0-t18
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                                dest: /configuration/samples/sample-permission-mappings-config.xml
+                        commitDetails: Update sample files
+            -   currentVersion: 4.0-t18
+                nextVersion: 4.0-t19
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.20/system/global-permission-mappings-config.xslt
+                        commitDetails: Added unlock_repository permissions for system_admin
+            -   currentVersion: 4.0-t19
+                nextVersion: 4.0-t20
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                                dest: /configuration/samples/sample-permission-mappings-config.xml
+                        commitDetails: Update sample files
+            -   currentVersion: 4.0-t20
+                nextVersion: 4.0-t21
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.21/system/global-permission-mappings-config.xslt
+                        commitDetails: Added item_unlock permissions for system_admin
+            -   currentVersion: 4.0-t21
+                nextVersion: 4.0-t22
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                                dest: /configuration/samples/sample-permission-mappings-config.xml
+                        commitDetails: Update sample files
+            -   currentVersion: 4.0-t22
+                nextVersion: 4.0-t23
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.23/system/global-permission-mappings-config.xslt
+                        commitDetails: Added publish_status permissions for system_admin
+            -   currentVersion: 4.0-t23
+                nextVersion: 4.0-t24
+                operations:
+                    -   type: renameUpgrader
+                        oldPath: configuration/samples/sample-form-control-rte-setup-tinymce5.xml
+                        newPath: configuration/samples/sample-form-control-rte-config.xml
+                        commitDetails: Rename the RTE configuration sample
+            -   currentVersion: 4.0-t24
+                nextVersion: 4.0-t25
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/dependency/resolver-config.xml
+                        template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
+                        commitDetails: Add new dependencies for content-types
+            -   currentVersion: 4.0-t25
+                nextVersion: 4.0-t26
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.32/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission for removing plugins
+            # Upgrade DB
+            -   currentVersion: 4.0-t26
+                nextVersion: 4.0-t27
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-3.1.x-to-4.0.0.32.sql
+            # Populate Item table
+            -   currentVersion: 4.0-t27
+                nextVersion: 4.0-t28
+                operations:
+                    -   type: populateItemTableUpgrader
+                        spName: populateItemTable
+                        parentIdSpName: populateItemParentId
+                        clearExistingData: true
+            # Populate Workflow table
+            -   currentVersion: 4.0-t28
+                nextVersion: 4.0-t29
+                operations:
+                    -   type: migrateWorkflowUpgrader
+                        spName: migrateWorkflow
+                        clearExistingData: true
+            -   currentVersion: 4.0-t29
+                nextVersion: 4.0.0.32
+                operations:
+                    # Cleanup DB
+                    -   type: dbScriptUpgrader
+                        filename: cleanup-3.1.x-to-4.0.0.32.sql
+            
+            # 4.0 main pipeline (version older than 2 months removed for simplicity)
+            -   currentVersion: 4.0.0.30
+                nextVersion: 4.0.0.31
+                operations:
+                    -   type: renameUpgrader
+                        oldPath: configuration/samples/sample-form-control-rte-setup-tinymce5.xml
+                        newPath: configuration/samples/sample-form-control-rte-config.xml
+                        commitDetails: Rename the RTE configuration sample
+            -   currentVersion: 4.0.0.31
+                nextVersion: 4.0.0.32
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/dependency/resolver-config.xml
+                        template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
+                        commitDetails: Add new dependencies for content-types
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.32/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission for removing plugins
+            -   currentVersion: 4.0.0.32
+                nextVersion: 4.0.0.33
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.0.32-to-4.0.0.33.sql
+            -   currentVersion: 4.0.0.33
+                nextVersion: 4.0.0.34
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.0.33-to-4.0.0.34.sql
+            -   currentVersion: 4.0.0.34
+                nextVersion: 4.0.0.35
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                                dest: /configuration/samples/sample-notification-config.xml
+                        commitDetails: Update sample files
+            -   currentVersion: 4.0.0.35
+                nextVersion: 4.0.0.36
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission for searching plugins
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-role-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-role-mappings-config.xslt
+                        commitDetails: Add new mapping for site_admin
+            -   currentVersion: 4.0.0.36
+                nextVersion: 4.0.0.37
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
+            -   currentVersion: 4.0.0.37
+                nextVersion: 4.0.0.38
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-aws.xml
+                                dest: /configuration/samples/sample-aws.xml
+                        commitDetails: Update sample file for AWS
+            -   currentVersion: 4.0.0.38
+                nextVersion: 4.0.0.39
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.0.38-to-4.0.0.39.sql
+            -   currentVersion: 4.0.0.39
+                nextVersion: 4.0.0.40
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.3.xslt
+                        commitDetails: Add new content_copy permission
+            -   currentVersion: 4.0.0.40
+                nextVersion: 4.0.0.41
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.0.40-to-4.0.0.41.sql
+            -   currentVersion: 4.0.0.41
+                nextVersion: 4.0.0.42
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.0.41-to-4.0.0.42.sql
+            -   currentVersion: 4.0.0.42
+                nextVersion: 4.0.0.43
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.43/system/global-permission-mappings-config.xslt
+                        commitDetails: Added repair_repository permissions for system_admin
+            -   currentVersion: 4.0.0.43
+                nextVersion: 4.0.1
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.1.1/system/global-permission-mappings-config.xslt
+                        commitDetails: Added content_search permissions for system_admin
+            -   currentVersion: 4.0.1
+                nextVersion: 4.0.1.1
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.0.43-to-4.0.1.1.sql
+            -   currentVersion: 4.0.1.1
+                nextVersion: 4.0.1.2
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                                dest: /configuration/samples/sample-notification-config.xml
+                        commitDetails: Update sample file for notifications
+            -   currentVersion: 4.0.1.2
+                nextVersion: 4.0.1.3
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
+                                dest: /configuration/samples/sample-site-policy-config.xml
+                        commitDetails: Update sample file for site policy
+            -   currentVersion: 4.0.1.3
+                nextVersion: 4.0.1.4
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.1.3-to-4.0.1.4.sql
+            -   currentVersion: 4.0.1.4
+                nextVersion: 4.0.1.5
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt
+                        commitDetails: Added view_logs permissions for system_admin
+            -   currentVersion: 4.0.1.5
+                nextVersion: 4.0.1.6
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/dependency/resolver-config.xml
+                        template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
+                        commitDetails: Add view templates and controllers as content-type dependencies
+            -   currentVersion: 4.0.1.6
+                nextVersion: 4.0.1.7
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: configuration/samples/sample-site-config.xml
+                        template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt
+                        commitDetails: Allowing closing parenthesis in asset names
+            -   currentVersion: 4.0.1.7
+                nextVersion: 4.0.1.8
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.1.8/system/global-permission-mappings-config.xslt
+                        commitDetails: Added view_log_levels and configure_log_levels permissions for system_admin
+            -   currentVersion: 4.0.1.8
+                nextVersion: 4.0.1.9
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
+                                dest: /configuration/samples/sample-site-config-tools.xml
+                        commitDetails: Update sample datasources for site config tools
+            -   currentVersion: 4.0.1.9
+                nextVersion: 4.0.1.10
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-proxy-config.xml
+                                dest: /configuration/samples/sample-proxy-config.xml
+                        commitDetails: Update sample proxy config to include additional request and response headers
+            -   currentVersion: 4.0.1.10
+                nextVersion: 4.0.1.11
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-menu-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.1.11/system/global-menu-config.xslt
+                        commitDetails: Remove cluster from global menu
+            -   currentVersion: 4.0.1.11
+                nextVersion: 4.0.1.12
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.1.11-to-4.0.1.12.sql
+            -   currentVersion: 4.0.1.12
+                nextVersion: 4.0.1.13
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.1.12-to-4.0.1.13.sql
+            -   currentVersion: 4.0.1.13
+                nextVersion: 4.0.1.14
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade-4.0.1.13-to-4.0.1.14.sql
+            -   currentVersion: 4.0.1.14
+                nextVersion: 4.0.1.15
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
+                                dest: /configuration/samples/sample-config-list.xml
+                        commitDetails: Remove CMIS configs
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
+                                dest: /configuration/samples/sample-site-config-tools.xml
+                        commitDetails: Remove CMIS configs
+                    -   type: deleteUpgrader
+                        paths:
+                            - /configuration/samples/sample-cmis-config.xml
+                        commitDetails: Remove CMIS sample config
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.1.15/system/global-permission-mappings-config.xslt
+                        commitDetails: Remove cmis-related permissions
+            -   currentVersion: 4.0.1.15
+                nextVersion: 4.0.1.16
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
+                                dest: /configuration/samples/sample-engine-site-config.xml
+                        commitDetails: Update engine sample header mappings config
+            -   currentVersion: 4.0.1.16
+                nextVersion: 4.0.1.17
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file to include regex pattern overrides
+            -   currentVersion: 4.0.1.17
+                nextVersion: 4.1.0-t
+            -   currentVersion: 4.0.1.18
+                nextVersion: 4.1.0-t
+            -   currentVersion: 4.0.8.0
+                nextVersion: 4.1.0-t
+            # Entry point for 4.1.x upgrade
+            -   currentVersion: 4.1.0-t
+                nextVersion: 4.1.0
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
+                    -   type: findAndReplaceUpgrader
+                        includedPaths:
+                            - configuration/studio-config-override.yaml
+                        pattern: "elasticsearch_url:(\\r*\\n*\\s*)"
+                        replacement: "search_url:$1"
+                        commitDetails: Update search_url config property name
+            # 4.1 main pipeline
+            -   currentVersion: 4.1.0
+                nextVersion: 4.1.1
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                                dest: configuration/samples/sample-ui.xml
+                        commitDetails: Add sample file for ui.xml
+            -   currentVersion: 4.1.1
+                nextVersion: 4.1.2
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
+            -   currentVersion: 4.1.2
+                nextVersion: 4.1.3
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.1.x/4.1.2/system/global-permission-mappings-config.xslt
+                        commitDetails: Change create-site permission to create_site
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                                dest: /configuration/samples/sample-permission-mappings-config.xml
+                                commitDetails: Update sample permission mappings
+            -   currentVersion: 4.1.3
+                nextVersion: 4.1.4
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: 4.1.x/upgrade-4.1.3-to-4.1.4.sql
+            -   currentVersion: 4.1.4
+                nextVersion: 4.1.5
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
+            -   currentVersion: 4.1.5
+                nextVersion: 4.1.6
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                                dest: configuration/samples/sample-ui.xml
+                        commitDetails: Add sample file for ui.xml
+            -   currentVersion: 4.1.6
+                nextVersion: 4.1.7
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: 4.1.x/upgrade-4.1.6-to-4.1.7.sql
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/4.1.x/4.1.7/system/global-permission-mappings-config.xslt
+                        commitDetails: Add new permission duplicate_site
+            -   currentVersion: 4.1.7
+                nextVersion: 4.1.8
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
+                                dest: /configuration/samples/sample-engine-site-config.xml
+                        commitDetails: Update engine sample authentication config
+            -   currentVersion: 4.1.8
+                nextVersion: 4.1.9
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
+            -   currentVersion: 4.1.9
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.10
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.11
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.12
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.13
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.14
+                nextVersion: 4.2-t
+            -   currentVersion: 4.2-t
+                nextVersion: 4.2.0
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.1.5-to-4.2.0.sql
+            -   currentVersion: 4.2.0
+                nextVersion: 4.2.0.1
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0-to-4.2.0.1.sql
+            -   currentVersion: 4.2.0.1
+                nextVersion: 4.2.0.2
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.1-to-4.2.0.2.sql
+            -   currentVersion: 4.2.0.2
+                nextVersion: 4.2.0.3
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.2-to-4.2.0.3.sql
+            -   currentVersion: 4.2.0.3
+                nextVersion: 4.2.0.4
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                                dest: configuration/samples/sample-ui.xml
+                        commitDetails: Add sample file for ui.xml
+            -   currentVersion: 4.2.0.4
+                nextVersion: 4.2.0.5
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
+                                dest: /configuration/samples/sample-site-config-tools.xml
+                        commitDetails: Update sample datasources for site config tools
+            -   currentVersion: 4.2.0.5
+                nextVersion: 4.2.0.6
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+                                dest: configuration/samples/sample-blob-stores-config.xml
+                        commitDetails: Update sample studio blob stores config file
+            -   currentVersion: 4.2.0.6
+                nextVersion: 4.2.0.7
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.6-to-4.2.0.7.sql
+            -   currentVersion: 4.2.0.7
+                nextVersion: 4.2.0.8
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.7-to-4.2.0.8.sql
+            -   currentVersion: 4.2.0.8
+                nextVersion: 4.2.0.9
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.8-to-4.2.0.9.sql
+            -   currentVersion: 4.2.0.9
+                nextVersion: 4.2.0.10
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.9-to-4.2.0.10.sql
+            -   currentVersion: 4.2.0.10
+                nextVersion: 4.2.0.11
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file to add aws.cloudformation.stackCapabilities
+            -   currentVersion: 4.2.0.11
+                nextVersion: 4.2.0.12
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file content write path validator
+            -   currentVersion: 4.2.0.12
+                nextVersion: 4.2.0.13
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.12-to-4.2.0.13.sql
+            -   currentVersion: 4.2.0.13
+                nextVersion: 4.2.0.14
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.13-to-4.2.0.14.sql
+            -   currentVersion: 4.2.0.14
+                nextVersion: 4.2.0.15
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.14-to-4.2.0.15.sql
+            -   currentVersion: 4.2.0.15
+                nextVersion: 4.2.0.16
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.15-to-4.2.0.16.sql
+            -   currentVersion: 4.2.0.16
+                nextVersion: 4.2.0.17
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/4.2.x/4.2.0.16-to-4.2.0.17.sql
+    
+    # Pipeline to upgrade site repositories
+    site:
+        requires: '3.1.9 || 3.1.18 || >=4.0.0'
+        versions:
+            # Entry points for supported 3.1.x versions:
+            -   currentVersion: 3.1.9
+                nextVersion: 4.0-t
 
-  # Pipeline to upgrade system components (database, global repo, ...)
-  system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || 3.1.30 || 3.1.31 || >=4.0'
-    versions:
-      # Entry points for supported 3.1.x versions:
-      # 3.1.9
-      - currentVersion: 3.1.9.3
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-3.1.9.3-to-4.0.0.32.sql
-      # 3.1.12 & 3.1.13
-      - currentVersion: 3.1.12.2
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-3.1.12.2-to-4.0.0.32.sql
-      # 3.1.17, 3.1.18, 3.1.19 & 3.1.20
-      - currentVersion: 3.1.15
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-3.1.15-to-4.0.0.32.sql
-      # 3.1.23
-      - currentVersion: 3.1.23.2
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            # There are no db changes, so we can still use the same script
-            filename: upgrade-3.1.15-to-4.0.0.32.sql
-      # 3.1.24
-      - currentVersion: 3.1.24
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            # There are no db changes, so we can still use the same script
-            filename: upgrade-3.1.15-to-4.0.0.32.sql
-      # 3.1.24.1
-      - currentVersion: 3.1.24.1
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            # There are no db changes, so we can still use the same script
-            filename: upgrade-3.1.15-to-4.0.0.32.sql
-      # 3.1.28
-      - currentVersion: 3.1.28
-        nextVersion: 4.0-t
-        operations:
-          - type: dbScriptUpgrader
-            # There are no conflicting db changes, so we can still use the same script
-            filename: upgrade-3.1.15-to-4.0.0.32.sql
-
-      # Common operations for all 3.1.x versions:
-      # Update Global Repo
-      - currentVersion: 4.0-t
-        nextVersion: 4.0-t2
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/3.2.x/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission get_children
-      - currentVersion: 4.0-t2
-        nextVersion: 4.0-t3
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-translation-config.xml
-                dest: configuration/samples/sample-translation-config.xml
-            commitDetails: Add sample file for translation-config.xml
-      - currentVersion: 4.0-t3
-        nextVersion: 4.0-t4
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
-                dest: configuration/samples/sample-permission_mappings-config.xml
-            commitDetails: Update sample-permission-mappings-config.xml
-      - currentVersion: 4.0-t4
-        nextVersion: 4.0-t5
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/3.2.x/3.2.0.12/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission 'edit_site'
-      - currentVersion: 4.0-t5
-        nextVersion: 4.0-t6
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-urlrewrite.xml
-                dest: configuration/samples/sample-urlrewrite.xml
-            commitDetails: Update sample file for urlrewrite.xml
-      - currentVersion: 4.0-t6
-        nextVersion: 4.0-t7
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-webdav.xml
-                dest: configuration/samples/sample-webdav.xml
-            commitDetails: Update sample file for webdav.xml
-      - currentVersion: 4.0-t7
-        nextVersion: 4.0-t8
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
-                dest: configuration/samples/sample-site-policy-config.xml
-            commitDetails: Add sample file for site-policy-config.xml
-      - currentVersion: 4.0-t8
-        nextVersion: 4.0-t9
-        operations:
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - configuration/studio-config-override.yaml
-            pattern: "studio.security.publicUrls: >\\r*\\n*\\s+"
-            replacement: |-
-              studio.security.publicUrls: >
-                /api/2/plugin/script/reload.*,
-      - currentVersion: 4.0-t9
-        nextVersion: 4.0-t10
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.2/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission 'manage_access_token'
-      - currentVersion: 4.0-t10
-        nextVersion: 4.0-t11
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-menu-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.3/system/global-menu-config.xslt
-            commitDetails: Add new global menu item
-      - currentVersion: 4.0-t11
-        nextVersion: 4.0-t12
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.4/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permissions for plugins
-      - currentVersion: 4.0-t12
-        nextVersion: 4.0-t13
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
-                dest: configuration/samples/sample-ui.xml
-            commitDetails: Add sample file for ui.xml
-      - currentVersion: 4.0-t13
-        nextVersion: 4.0-t14
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.10/system/global-permission-mappings-config.xslt
-            commitDetails: Relabel permissions for available actions refactor
-      - currentVersion: 4.0-t14
-        nextVersion: 4.0-t15
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.11/system/global-permission-mappings-config.xslt
-            commitDetails: Added site-delete
-      - currentVersion: 4.0-t15
-        nextVersion: 4.0-t16
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
-                dest: configuration/samples/sample-site-config.xml
-            commitDetails: Update sample file for site-config.xml
-      - currentVersion: 4.0-t16
-        nextVersion: 4.0-t17
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.16/system/global-permission-mappings-config.xslt
-            commitDetails: Added publish_status and publish_clear_lock permissions for system_admin
-      - currentVersion: 4.0-t17
-        nextVersion: 4.0-t18
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
-                dest: /configuration/samples/sample-permission-mappings-config.xml
-            commitDetails: Update sample files
-      - currentVersion: 4.0-t18
-        nextVersion: 4.0-t19
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.20/system/global-permission-mappings-config.xslt
-            commitDetails: Added unlock_repository permissions for system_admin
-      - currentVersion: 4.0-t19
-        nextVersion: 4.0-t20
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
-                dest: /configuration/samples/sample-permission-mappings-config.xml
-            commitDetails: Update sample files
-      - currentVersion: 4.0-t20
-        nextVersion: 4.0-t21
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.21/system/global-permission-mappings-config.xslt
-            commitDetails: Added item_unlock permissions for system_admin
-      - currentVersion: 4.0-t21
-        nextVersion: 4.0-t22
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
-                dest: /configuration/samples/sample-permission-mappings-config.xml
-            commitDetails: Update sample files
-      - currentVersion: 4.0-t22
-        nextVersion: 4.0-t23
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.23/system/global-permission-mappings-config.xslt
-            commitDetails: Added publish_status permissions for system_admin
-      - currentVersion: 4.0-t23
-        nextVersion: 4.0-t24
-        operations:
-          - type: renameUpgrader
-            oldPath: configuration/samples/sample-form-control-rte-setup-tinymce5.xml
-            newPath: configuration/samples/sample-form-control-rte-config.xml
-            commitDetails: Rename the RTE configuration sample
-      - currentVersion: 4.0-t24
-        nextVersion: 4.0-t25
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/dependency/resolver-config.xml
-            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
-            commitDetails: Add new dependencies for content-types
-      - currentVersion: 4.0-t25
-        nextVersion: 4.0-t26
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.32/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission for removing plugins
-      # Upgrade DB
-      - currentVersion: 4.0-t26
-        nextVersion: 4.0-t27
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-3.1.x-to-4.0.0.32.sql
-      # Populate Item table
-      - currentVersion: 4.0-t27
-        nextVersion: 4.0-t28
-        operations:
-          - type: populateItemTableUpgrader
-            spName: populateItemTable
-            parentIdSpName: populateItemParentId
-            clearExistingData: true
-      # Populate Workflow table
-      - currentVersion: 4.0-t28
-        nextVersion: 4.0-t29
-        operations:
-          - type: migrateWorkflowUpgrader
-            spName: migrateWorkflow
-            clearExistingData: true
-      - currentVersion: 4.0-t29
-        nextVersion: 4.0.0.32
-        operations:
-          # Cleanup DB
-          - type: dbScriptUpgrader
-            filename: cleanup-3.1.x-to-4.0.0.32.sql
-
-      # 4.0 main pipeline (version older than 2 months removed for simplicity)
-      - currentVersion: 4.0.0.30
-        nextVersion: 4.0.0.31
-        operations:
-          - type: renameUpgrader
-            oldPath: configuration/samples/sample-form-control-rte-setup-tinymce5.xml
-            newPath: configuration/samples/sample-form-control-rte-config.xml
-            commitDetails: Rename the RTE configuration sample
-      - currentVersion: 4.0.0.31
-        nextVersion: 4.0.0.32
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/dependency/resolver-config.xml
-            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
-            commitDetails: Add new dependencies for content-types
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.32/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission for removing plugins
-      - currentVersion: 4.0.0.32
-        nextVersion: 4.0.0.33
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.32-to-4.0.0.33.sql
-      - currentVersion: 4.0.0.33
-        nextVersion: 4.0.0.34
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.33-to-4.0.0.34.sql
-      - currentVersion: 4.0.0.34
-        nextVersion: 4.0.0.35
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
-                dest: /configuration/samples/sample-notification-config.xml
-            commitDetails: Update sample files
-      - currentVersion: 4.0.0.35
-        nextVersion: 4.0.0.36
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission for searching plugins
-          - type: xsltFileUpgrader
-            path: /configuration/global-role-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-role-mappings-config.xslt
-            commitDetails: Add new mapping for site_admin
-      - currentVersion: 4.0.0.36
-        nextVersion: 4.0.0.37
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file
-      - currentVersion: 4.0.0.37
-        nextVersion: 4.0.0.38
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-aws.xml
-                dest: /configuration/samples/sample-aws.xml
-            commitDetails: Update sample file for AWS
-      - currentVersion: 4.0.0.38
-        nextVersion: 4.0.0.39
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.38-to-4.0.0.39.sql
-      - currentVersion: 4.0.0.39
-        nextVersion: 4.0.0.40
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.3.xslt
-            commitDetails: Add new content_copy permission
-      - currentVersion: 4.0.0.40
-        nextVersion: 4.0.0.41
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.40-to-4.0.0.41.sql
-      - currentVersion: 4.0.0.41
-        nextVersion: 4.0.0.42
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.41-to-4.0.0.42.sql
-      - currentVersion: 4.0.0.42
-        nextVersion: 4.0.0.43
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.43/system/global-permission-mappings-config.xslt
-            commitDetails: Added repair_repository permissions for system_admin
-      - currentVersion: 4.0.0.43
-        nextVersion: 4.0.1
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.1.1/system/global-permission-mappings-config.xslt
-            commitDetails: Added content_search permissions for system_admin
-      - currentVersion: 4.0.1
-        nextVersion: 4.0.1.1
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.43-to-4.0.1.1.sql
-      - currentVersion: 4.0.1.1
-        nextVersion: 4.0.1.2
-        operations:
-          - type: globalRepoUpgrader
-            files:
-                - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
-                  dest: /configuration/samples/sample-notification-config.xml
-            commitDetails: Update sample file for notifications
-      - currentVersion: 4.0.1.2
-        nextVersion: 4.0.1.3
-        operations:
-          - type: globalRepoUpgrader
-            files:
-                - src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
-                  dest: /configuration/samples/sample-site-policy-config.xml
-            commitDetails: Update sample file for site policy
-      - currentVersion: 4.0.1.3
-        nextVersion: 4.0.1.4
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.1.3-to-4.0.1.4.sql
-      - currentVersion: 4.0.1.4
-        nextVersion: 4.0.1.5
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt
-            commitDetails: Added view_logs permissions for system_admin
-      - currentVersion: 4.0.1.5
-        nextVersion: 4.0.1.6
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/dependency/resolver-config.xml
-            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
-            commitDetails: Add view templates and controllers as content-type dependencies
-      - currentVersion: 4.0.1.6
-        nextVersion: 4.0.1.7
-        operations:
-          - type: xsltFileUpgrader
-            path: configuration/samples/sample-site-config.xml
-            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt
-            commitDetails: Allowing closing parenthesis in asset names
-      - currentVersion: 4.0.1.7
-        nextVersion: 4.0.1.8
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.1.8/system/global-permission-mappings-config.xslt
-            commitDetails: Added view_log_levels and configure_log_levels permissions for system_admin
-      - currentVersion: 4.0.1.8
-        nextVersion: 4.0.1.9
-        operations:
-          - type: globalRepoUpgrader
-            files:
-                - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
-                  dest: /configuration/samples/sample-site-config-tools.xml
-            commitDetails: Update sample datasources for site config tools
-      - currentVersion: 4.0.1.9
-        nextVersion: 4.0.1.10
-        operations:
-          - type: globalRepoUpgrader
-            files:
-                - src: repo-bootstrap/global/configuration/samples/sample-proxy-config.xml
-                  dest: /configuration/samples/sample-proxy-config.xml
-            commitDetails: Update sample proxy config to include additional request and response headers
-      - currentVersion: 4.0.1.10
-        nextVersion: 4.0.1.11
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-menu-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.1.11/system/global-menu-config.xslt
-            commitDetails: Remove cluster from global menu
-      - currentVersion: 4.0.1.11
-        nextVersion: 4.0.1.12
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.1.11-to-4.0.1.12.sql
-      - currentVersion: 4.0.1.12
-        nextVersion: 4.0.1.13
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.1.12-to-4.0.1.13.sql
-      - currentVersion: 4.0.1.13
-        nextVersion: 4.0.1.14
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.1.13-to-4.0.1.14.sql
-      - currentVersion: 4.0.1.14
-        nextVersion: 4.0.1.15
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
-                dest: /configuration/samples/sample-config-list.xml
-            commitDetails: Remove CMIS configs
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
-                dest: /configuration/samples/sample-site-config-tools.xml
-            commitDetails: Remove CMIS configs
-          - type: deleteUpgrader
-            paths:
-              - /configuration/samples/sample-cmis-config.xml
-            commitDetails: Remove CMIS sample config
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.1.15/system/global-permission-mappings-config.xslt
-            commitDetails: Remove cmis-related permissions
-      - currentVersion: 4.0.1.15
-        nextVersion: 4.0.1.16
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
-                dest: /configuration/samples/sample-engine-site-config.xml
-            commitDetails: Update engine sample header mappings config
-      - currentVersion: 4.0.1.16
-        nextVersion: 4.0.1.17
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file to include regex pattern overrides
-      - currentVersion: 4.0.1.17
-        nextVersion: 4.1.0-t
-      - currentVersion: 4.0.1.18
-        nextVersion: 4.1.0-t
-      - currentVersion: 4.0.8.0
-        nextVersion: 4.1.0-t
-      # Entry point for 4.1.x upgrade
-      - currentVersion: 4.1.0-t
-        nextVersion: 4.1.0
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - configuration/studio-config-override.yaml
-            pattern: "elasticsearch_url:(\\r*\\n*\\s*)"
-            replacement: "search_url:$1"
-            commitDetails: Update search_url config property name
-      # 4.1 main pipeline
-      - currentVersion: 4.1.0
-        nextVersion: 4.1.1
-        operations:
-        - type: globalRepoUpgrader
-          files:
-            - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
-              dest: configuration/samples/sample-ui.xml
-          commitDetails: Add sample file for ui.xml
-      - currentVersion: 4.1.1
-        nextVersion: 4.1.2
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file
-      - currentVersion: 4.1.2
-        nextVersion: 4.1.3
-        operations:
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.1.x/4.1.2/system/global-permission-mappings-config.xslt
-            commitDetails: Change create-site permission to create_site
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
-                dest: /configuration/samples/sample-permission-mappings-config.xml
-                commitDetails: Update sample permission mappings
-      - currentVersion: 4.1.3
-        nextVersion: 4.1.4
-        operations:
-          - type: dbScriptUpgrader
-            filename: 4.1.x/upgrade-4.1.3-to-4.1.4.sql
-      - currentVersion: 4.1.4
-        nextVersion: 4.1.5
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file
-      - currentVersion: 4.1.5
-        nextVersion: 4.1.6
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
-                dest: configuration/samples/sample-ui.xml
-            commitDetails: Add sample file for ui.xml
-      - currentVersion: 4.1.6
-        nextVersion: 4.1.7
-        operations:
-          - type: dbScriptUpgrader
-            filename: 4.1.x/upgrade-4.1.6-to-4.1.7.sql
-          - type: xsltFileUpgrader
-            path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.1.x/4.1.7/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission duplicate_site
-      - currentVersion: 4.1.7
-        nextVersion: 4.1.8
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
-                dest: /configuration/samples/sample-engine-site-config.xml
-            commitDetails: Update engine sample authentication config
-      - currentVersion: 4.1.8
-        nextVersion: 4.1.9
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file
-      - currentVersion: 4.1.9
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.10
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.11
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.12
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.13
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.14
-        nextVersion: 4.2-t
-      - currentVersion: 4.2-t
-        nextVersion: 4.2.0
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.1.5-to-4.2.0.sql
-      - currentVersion: 4.2.0
-        nextVersion: 4.2.0.1
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0-to-4.2.0.1.sql
-      - currentVersion: 4.2.0.1
-        nextVersion: 4.2.0.2
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.1-to-4.2.0.2.sql
-      - currentVersion: 4.2.0.2
-        nextVersion: 4.2.0.3
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.2-to-4.2.0.3.sql
-      - currentVersion: 4.2.0.3
-        nextVersion: 4.2.0.4
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
-                dest: configuration/samples/sample-ui.xml
-            commitDetails: Add sample file for ui.xml
-      - currentVersion: 4.2.0.4
-        nextVersion: 4.2.0.5
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
-                dest: /configuration/samples/sample-site-config-tools.xml
-            commitDetails: Update sample datasources for site config tools
-      - currentVersion: 4.2.0.5
-        nextVersion: 4.2.0.6
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
-                dest: configuration/samples/sample-blob-stores-config.xml
-            commitDetails: Update sample studio blob stores config file
-      - currentVersion: 4.2.0.6
-        nextVersion: 4.2.0.7
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.6-to-4.2.0.7.sql
-      - currentVersion: 4.2.0.7
-        nextVersion: 4.2.0.8
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.7-to-4.2.0.8.sql
-      - currentVersion: 4.2.0.8
-        nextVersion: 4.2.0.9
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.8-to-4.2.0.9.sql
-      - currentVersion: 4.2.0.9
-        nextVersion: 4.2.0.10
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.9-to-4.2.0.10.sql
-      - currentVersion: 4.2.0.10
-        nextVersion: 4.2.0.11
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file to add aws.cloudformation.stackCapabilities
-      - currentVersion: 4.2.0.11
-        nextVersion: 4.2.0.12
-        operations:
-          - type: globalRepoUpgrader
-            files:
-              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
-                dest: /configuration/samples/sample-studio-config-override.yaml
-            commitDetails: Update sample studio override config file content write path validator
-      - currentVersion: 4.2.0.12
-        nextVersion: 4.2.0.13
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.12-to-4.2.0.13.sql
-      - currentVersion: 4.2.0.13
-        nextVersion: 4.2.0.14
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.13-to-4.2.0.14.sql
-      - currentVersion: 4.2.0.14
-        nextVersion: 4.2.0.15
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.14-to-4.2.0.15.sql
-      - currentVersion: 4.2.0.15
-        nextVersion: 4.2.0.16
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.15-to-4.2.0.16.sql
-      - currentVersion: 4.2.0.16
-        nextVersion: 4.2.0.17
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade/4.2.x/4.2.0.16-to-4.2.0.17.sql
-
-  # Pipeline to upgrade site repositories
-  site:
-    requires: '3.1.9 || 3.1.18 || >=4.0.0'
-    versions:
-      # Entry points for supported 3.1.x versions:
-      - currentVersion: 3.1.9
-        nextVersion: 4.0-t
-
-      - currentVersion: 3.1.18
-        nextVersion: 4.0-t
-
-      # Common operations for all 3.1.x versions:
-      - currentVersion: 4.0-t
-        nextVersion: 4.0-t2
-        operations:
-          - type: addFileUpgrader
-            path: /config/studio/translation-config.xml
-            file: crafter/studio/upgrade/3.2.x/3.2.0/site/translation-config.xml
-            commitDetails: Add translation config
-      - currentVersion: 4.0-t2
-        nextVersion: 4.0-t3
-        operations:
-          - type: addFileUpgrader
-            path: /config/studio/site-policy-config.xml
-            file: crafter/studio/upgrade/3.2.x/3.2.0.1/site/site-policy-config.xml
-            commitDetails: Add site policy config
-      - currentVersion: 4.0-t3
-        nextVersion: 4.0-t4
-        operations:
-          - type: addFileUpgrader
-            path: /config/studio/ui.xml
-            file: crafter/studio/upgrade/4.0.x/config/ui/ui.xml
-            commitDetails: Add Next UI config
-      - currentVersion: 4.0-t4
-        nextVersion: 4.0-t5
-        operations:
-          - type: batchXsltUpgrader
-            regex: config/studio/content-types/.+/form-definition\.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.2/site/rte-refactor.xslt
-            commitDetails: Update all usages of RTE
-      - currentVersion: 4.0-t5
-        nextVersion: 4.0-t6
-        operations:
-          - type: deleteUpgrader
-            paths:
-              - config/studio/form-control-config/rte/rte-setup.xml
-            commitDetails: Delete legacy RTE configuration
-      - currentVersion: 4.0-t6
-        nextVersion: 4.0.0.2
-        operations:
-          - type: renameUpgrader
-            oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
-            newPath: config/studio/form-control-config/rte/rte-config.xml
-            commitDetails: Rename the RTE configuration
-
-      # 4.0 main pipeline (version older than 2 months removed for simplicity)
-      - currentVersion: 4.0.0.1
-        nextVersion: 4.0.0.2
-        operations:
-          - type: batchXsltUpgrader
-            regex: config/studio/content-types/.+/form-definition\.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.2/site/rte-refactor.xslt
-            commitDetails: Update all usages of RTE
-          - type: deleteUpgrader
-            paths:
-              - config/studio/form-control-config/rte/rte-setup.xml
-            commitDetails: Delete legacy RTE configuration
-          - type: renameUpgrader
-            oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
-            newPath: config/studio/form-control-config/rte/rte-config.xml
-            commitDetails: Rename the RTE configuration
-      - currentVersion: 4.0.0.2
-        nextVersion: 4.0.0.3
-        operations:
-          - type: batchXsltUpgrader
-            regex: config/studio/content-types/.+/form-definition\.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
-            commitDetails: Update date-time & time controls with additional fields
-      - currentVersion: 4.0.0.3
-        nextVersion: 4.0.0.4
-        operations:
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - templates/system/plugins/.*\.ftl
-            pattern: '<#include "([^"]+)" ignore_missing=true\/><#-- pluginId:([^\s]+) -->'
-            replacement: '<@plugin_include "$2" "$1"/><#-- pluginId:$2 -->'
-            commitDetails: Update plugin includes to use new macro
-      - currentVersion: 4.0.0.4
-        nextVersion: 4.0.0.5
-        operations:
-          - type: deleteUpgrader
-            paths:
-              - config/studio/context-nav/sidebar.xml
-              - config/studio/form-control-config/rte/rte-config.xml
-              - config/studio/code-editor-config.xml
-              - config/studio/targeting/targeting-config.xml
-              - config/studio/preview-tools/panel.xml
-              - config/studio/context-nav/contextual-nav.xml
-              - config/studio/mime-type.xml
-            commitDetails: Delete unused configurations
-      - currentVersion: 4.0.0.5
-        nextVersion: 4.0.0.6
-        operations:
-          - type: xsltFileUpgrader
-            path: /config/studio/site-policy-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.6/site/site-policy-config.xslt
-            commitDetails: Update site-policy-config.xml to prevent asset file names from including parenthesis
-      - currentVersion: 4.0.0.6
-        nextVersion: 4.0.0.7
-        operations:
-          - type: batchXsltUpgrader
-            regex: config/studio/content-types/.+/form-definition\.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.0.7/site/update-content-type-datasources.xslt
-            commitDetails: Update datasources components and simpleTaxonomy
-      - currentVersion: 4.0.0.7
-        nextVersion: 4.0.0.8
-        operations:
-          - type: deleteUpgrader
-            paths:
-              - config/studio/data-sources/cmis-config.xml
-            commitDetails: Delete CMIS configurations
-      - currentVersion: 4.0.0.8
-        nextVersion: 4.1.0
-        operations:
-          - type: multiFindAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            rules:
-              - pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-                replacement: 'import $1org.opensearch.client.opensearch.$2$3'
-              - pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.(.*)(\\r*\\n*\\s*)"
-                replacement: 'import $1org.opensearch.client.$2$3'
-              - pattern: "import\\s+(static\\s+)?org\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-                replacement: 'import $1org.opensearch.$2$3'
-              - pattern: "import\\s+(static\\s+)?org\\.craftercms\\.search\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-                replacement: 'import $1org.craftercms.search.opensearch.$2$3'
-              - pattern: "\\bElasticsearchClientWrapper\\b"
-                replacement: 'OpenSearchClientWrapper'
-              - pattern: "\\bElasticsearchAdminService\\b"
-                replacement: 'OpenSearchAdminService'
-              - pattern: "\\bElasticsearchService\\b"
-                replacement: 'OpenSearchService'
-              - pattern: "\\bElasticsearchWrapper\\b"
-                replacement: 'OpenSearchWrapper'
-              - pattern: "\\bElasticsearchBinaryFileBatchIndexer\\b"
-                replacement: 'OpenSearchBinaryFileBatchIndexer'
-              - pattern: "\\bElasticsearchBinaryFileWithMetadataBatchIndexer\\b"
-                replacement: 'OpenSearchBinaryFileWithMetadataBatchIndexer'
-              - pattern: "\\bElasticsearchIndexingUtils\\b"
-                replacement: 'OpenSearchIndexingUtils'
-              - pattern: "\\bElasticsearchXmlFileBatchIndexer\\b"
-                replacement: 'OpenSearchXmlFileBatchIndexer'
-              - pattern: "\\bAuthoringElasticsearchBinaryFileWithMetadataBatchIndexer\\b"
-                replacement: 'AuthoringOpenSearchBinaryFileWithMetadataBatchIndexer'
-              - pattern: "\\bElasticsearchClientWrapper\\b"
-                replacement: 'OpenSearchClientWrapper'
-              - pattern: "\\bElasticsearchException\\b"
-                replacement: 'OpenSearchException'
-              - pattern: "\\bAbstractElasticsearchWrapper\\b"
-                replacement: 'AbstractOpenSearchWrapper'
-              - pattern: "\\bMultiElasticsearchAdminServiceImpl\\b"
-                replacement: 'MultiOpenSearchAdminServiceImpl'
-              - pattern: "\\bMultiElasticsearchServiceImpl\\b"
-                replacement: 'MultiOpenSearchServiceImpl'
-              - pattern: "\\bElasticsearchAdminServiceImpl\\b"
-                replacement: 'OpenSearchAdminServiceImpl'
-              - pattern: "\\bElasticsearchDocumentBuilder\\b"
-                replacement: 'OpenSearchDocumentBuilder'
-              - pattern: "\\bElasticsearchElementParserImpl\\b"
-                replacement: 'OpenSearchElementParserImpl'
-              - pattern: "\\bElasticsearchServiceImpl\\b"
-                replacement: 'OpenSearchServiceImpl'
-              - pattern: "\\bAbstractElasticsearchClientWrapper\\b"
-                replacement: 'AbstractOpenSearchClientWrapper'
-              - pattern: "\\bElasticsearchClientFactory\\b"
-                replacement: 'OpenSearchClientFactory'
-              - pattern: "\\bElasticsearchClient\\b"
-                replacement: 'OpenSearchClient'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-      - currentVersion: 4.1.0
-        nextVersion: 4.1.1
-        operations:
-          - type: findAndReplaceUpgrader
-            pattern: "\\s*searchEngine\\:.*"
-            replacement: ""
-            commitDetails: Remove searchEngine property from plugin descriptor
-            includedPaths:
-              - craftercms-plugin.yaml
-      - currentVersion: 4.1.1
-        nextVersion: 4.1.2
-        operations:
-          - type: xsltFileUpgrader
-            path: /config/studio/site-policy-config.xml
-            template: crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt
-            commitDetails: Sync Studio version to 4.1.2
-
-  # Pipeline to upgrade blueprints
-  blueprint:
-    - currentVersion: 3.0.0
-      nextVersion: 3.1.0
-      operations:
-        # This just overrides the blueprints in the repo, in the future this should be replaced with proper operations
-        - type: renameUpgrader
-          oldPath: blueprints/website_editorial
-          newPath: blueprints/1000_website_editorial
-          commitDetails: Rename Editorial blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/headless_store
-          newPath: blueprints/2000_headless_store
-          commitDetails: Rename Headless Store blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/video-center
-          newPath: blueprints/3000_video-center
-          commitDetails: Rename Video Center blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/empty
-          newPath: blueprints/4000_empty
-          commitDetails: Rename Empty blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/headless_blog
-          newPath: blueprints/5000_headless_blog
-          commitDetails: Rename Headless Blog blueprint
-          overwrite: true
-        - type: blueprintsUpgrader
+            -   currentVersion: 3.1.18
+                nextVersion: 4.0-t
+            
+            # Common operations for all 3.1.x versions:
+            -   currentVersion: 4.0-t
+                nextVersion: 4.0-t2
+                operations:
+                    -   type: addFileUpgrader
+                        path: /config/studio/translation-config.xml
+                        file: crafter/studio/upgrade/3.2.x/3.2.0/site/translation-config.xml
+                        commitDetails: Add translation config
+            -   currentVersion: 4.0-t2
+                nextVersion: 4.0-t3
+                operations:
+                    -   type: addFileUpgrader
+                        path: /config/studio/site-policy-config.xml
+                        file: crafter/studio/upgrade/3.2.x/3.2.0.1/site/site-policy-config.xml
+                        commitDetails: Add site policy config
+            -   currentVersion: 4.0-t3
+                nextVersion: 4.0-t4
+                operations:
+                    -   type: addFileUpgrader
+                        path: /config/studio/ui.xml
+                        file: crafter/studio/upgrade/4.0.x/config/ui/ui.xml
+                        commitDetails: Add Next UI config
+            -   currentVersion: 4.0-t4
+                nextVersion: 4.0-t5
+                operations:
+                    -   type: batchXsltUpgrader
+                        regex: config/studio/content-types/.+/form-definition\.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.2/site/rte-refactor.xslt
+                        commitDetails: Update all usages of RTE
+            -   currentVersion: 4.0-t5
+                nextVersion: 4.0-t6
+                operations:
+                    -   type: deleteUpgrader
+                        paths:
+                            - config/studio/form-control-config/rte/rte-setup.xml
+                        commitDetails: Delete legacy RTE configuration
+            -   currentVersion: 4.0-t6
+                nextVersion: 4.0.0.2
+                operations:
+                    -   type: renameUpgrader
+                        oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
+                        newPath: config/studio/form-control-config/rte/rte-config.xml
+                        commitDetails: Rename the RTE configuration
+            
+            # 4.0 main pipeline (version older than 2 months removed for simplicity)
+            -   currentVersion: 4.0.0.1
+                nextVersion: 4.0.0.2
+                operations:
+                    -   type: batchXsltUpgrader
+                        regex: config/studio/content-types/.+/form-definition\.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.2/site/rte-refactor.xslt
+                        commitDetails: Update all usages of RTE
+                    -   type: deleteUpgrader
+                        paths:
+                            - config/studio/form-control-config/rte/rte-setup.xml
+                        commitDetails: Delete legacy RTE configuration
+                    -   type: renameUpgrader
+                        oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
+                        newPath: config/studio/form-control-config/rte/rte-config.xml
+                        commitDetails: Rename the RTE configuration
+            -   currentVersion: 4.0.0.2
+                nextVersion: 4.0.0.3
+                operations:
+                    -   type: batchXsltUpgrader
+                        regex: config/studio/content-types/.+/form-definition\.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
+                        commitDetails: Update date-time & time controls with additional fields
+            -   currentVersion: 4.0.0.3
+                nextVersion: 4.0.0.4
+                operations:
+                    -   type: findAndReplaceUpgrader
+                        includedPaths:
+                            - templates/system/plugins/.*\.ftl
+                        pattern: '<#include "([^"]+)" ignore_missing=true\/><#-- pluginId:([^\s]+) -->'
+                        replacement: '<@plugin_include "$2" "$1"/><#-- pluginId:$2 -->'
+                        commitDetails: Update plugin includes to use new macro
+            -   currentVersion: 4.0.0.4
+                nextVersion: 4.0.0.5
+                operations:
+                    -   type: deleteUpgrader
+                        paths:
+                            - config/studio/context-nav/sidebar.xml
+                            - config/studio/form-control-config/rte/rte-config.xml
+                            - config/studio/code-editor-config.xml
+                            - config/studio/targeting/targeting-config.xml
+                            - config/studio/preview-tools/panel.xml
+                            - config/studio/context-nav/contextual-nav.xml
+                            - config/studio/mime-type.xml
+                        commitDetails: Delete unused configurations
+            -   currentVersion: 4.0.0.5
+                nextVersion: 4.0.0.6
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /config/studio/site-policy-config.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.6/site/site-policy-config.xslt
+                        commitDetails: Update site-policy-config.xml to prevent asset file names from including parenthesis
+            -   currentVersion: 4.0.0.6
+                nextVersion: 4.0.0.7
+                operations:
+                    -   type: batchXsltUpgrader
+                        regex: config/studio/content-types/.+/form-definition\.xml
+                        template: crafter/studio/upgrade/4.0.x/4.0.0.7/site/update-content-type-datasources.xslt
+                        commitDetails: Update datasources components and simpleTaxonomy
+            -   currentVersion: 4.0.0.7
+                nextVersion: 4.0.0.8
+                operations:
+                    -   type: deleteUpgrader
+                        paths:
+                            - config/studio/data-sources/cmis-config.xml
+                        commitDetails: Delete CMIS configurations
+            -   currentVersion: 4.0.0.8
+                nextVersion: 4.1.0
+                operations:
+                    -   type: multiFindAndReplaceUpgrader
+                        includedPaths:
+                            - (config/studio/)?scripts/.*\.groovy
+                        rules:
+                            -   pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
+                                replacement: 'import $1org.opensearch.client.opensearch.$2$3'
+                            -   pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.(.*)(\\r*\\n*\\s*)"
+                                replacement: 'import $1org.opensearch.client.$2$3'
+                            -   pattern: "import\\s+(static\\s+)?org\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
+                                replacement: 'import $1org.opensearch.$2$3'
+                            -   pattern: "import\\s+(static\\s+)?org\\.craftercms\\.search\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
+                                replacement: 'import $1org.craftercms.search.opensearch.$2$3'
+                            -   pattern: "\\bElasticsearchClientWrapper\\b"
+                                replacement: 'OpenSearchClientWrapper'
+                            -   pattern: "\\bElasticsearchAdminService\\b"
+                                replacement: 'OpenSearchAdminService'
+                            -   pattern: "\\bElasticsearchService\\b"
+                                replacement: 'OpenSearchService'
+                            -   pattern: "\\bElasticsearchWrapper\\b"
+                                replacement: 'OpenSearchWrapper'
+                            -   pattern: "\\bElasticsearchBinaryFileBatchIndexer\\b"
+                                replacement: 'OpenSearchBinaryFileBatchIndexer'
+                            -   pattern: "\\bElasticsearchBinaryFileWithMetadataBatchIndexer\\b"
+                                replacement: 'OpenSearchBinaryFileWithMetadataBatchIndexer'
+                            -   pattern: "\\bElasticsearchIndexingUtils\\b"
+                                replacement: 'OpenSearchIndexingUtils'
+                            -   pattern: "\\bElasticsearchXmlFileBatchIndexer\\b"
+                                replacement: 'OpenSearchXmlFileBatchIndexer'
+                            -   pattern: "\\bAuthoringElasticsearchBinaryFileWithMetadataBatchIndexer\\b"
+                                replacement: 'AuthoringOpenSearchBinaryFileWithMetadataBatchIndexer'
+                            -   pattern: "\\bElasticsearchClientWrapper\\b"
+                                replacement: 'OpenSearchClientWrapper'
+                            -   pattern: "\\bElasticsearchException\\b"
+                                replacement: 'OpenSearchException'
+                            -   pattern: "\\bAbstractElasticsearchWrapper\\b"
+                                replacement: 'AbstractOpenSearchWrapper'
+                            -   pattern: "\\bMultiElasticsearchAdminServiceImpl\\b"
+                                replacement: 'MultiOpenSearchAdminServiceImpl'
+                            -   pattern: "\\bMultiElasticsearchServiceImpl\\b"
+                                replacement: 'MultiOpenSearchServiceImpl'
+                            -   pattern: "\\bElasticsearchAdminServiceImpl\\b"
+                                replacement: 'OpenSearchAdminServiceImpl'
+                            -   pattern: "\\bElasticsearchDocumentBuilder\\b"
+                                replacement: 'OpenSearchDocumentBuilder'
+                            -   pattern: "\\bElasticsearchElementParserImpl\\b"
+                                replacement: 'OpenSearchElementParserImpl'
+                            -   pattern: "\\bElasticsearchServiceImpl\\b"
+                                replacement: 'OpenSearchServiceImpl'
+                            -   pattern: "\\bAbstractElasticsearchClientWrapper\\b"
+                                replacement: 'AbstractOpenSearchClientWrapper'
+                            -   pattern: "\\bElasticsearchClientFactory\\b"
+                                replacement: 'OpenSearchClientFactory'
+                            -   pattern: "\\bElasticsearchClient\\b"
+                                replacement: 'OpenSearchClient'
+                        commitDetails: Migrate Elasticsearch to OpenSearch
+            -   currentVersion: 4.1.0
+                nextVersion: 4.1.1
+                operations:
+                    -   type: findAndReplaceUpgrader
+                        pattern: "\\s*searchEngine\\:.*"
+                        replacement: ""
+                        commitDetails: Remove searchEngine property from plugin descriptor
+                        includedPaths:
+                            - craftercms-plugin.yaml
+            -   currentVersion: 4.1.1
+                nextVersion: 4.1.2
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /config/studio/site-policy-config.xml
+                        template: crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt
+                        commitDetails: Sync Studio version to 4.1.2
+    
+    # Pipeline to upgrade blueprints
+    blueprint:
+        -   currentVersion: 3.0.0
+            nextVersion: 3.1.0
+            operations:
+                # This just overrides the blueprints in the repo, in the future this should be replaced with proper operations
+                -   type: renameUpgrader
+                    oldPath: blueprints/website_editorial
+                    newPath: blueprints/1000_website_editorial
+                    commitDetails: Rename Editorial blueprint
+                    overwrite: true
+                -   type: renameUpgrader
+                    oldPath: blueprints/headless_store
+                    newPath: blueprints/2000_headless_store
+                    commitDetails: Rename Headless Store blueprint
+                    overwrite: true
+                -   type: renameUpgrader
+                    oldPath: blueprints/video-center
+                    newPath: blueprints/3000_video-center
+                    commitDetails: Rename Video Center blueprint
+                    overwrite: true
+                -   type: renameUpgrader
+                    oldPath: blueprints/empty
+                    newPath: blueprints/4000_empty
+                    commitDetails: Rename Empty blueprint
+                    overwrite: true
+                -   type: renameUpgrader
+                    oldPath: blueprints/headless_blog
+                    newPath: blueprints/5000_headless_blog
+                    commitDetails: Rename Headless Blog blueprint
+                    overwrite: true
+                -   type: blueprintsUpgrader
 
 # Managed Configuration Files
 configurations:
-
-  studio-site-config:
-    module: studio
-    path: site-config.xml
-    pipeline:
-      requires: '>=4.0.1'
-      versions:
-        - currentVersion: 7
-          nextVersion: 8
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v8.xslt
-              commitDetails: Added protected folders pattern configuration
-        - currentVersion: 8
-          nextVersion: 9
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v9.xslt
-              commitDetails: Add new section for locale
-        - currentVersion: 9
-          nextVersion: 10
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v10.xslt
-              commitDetails: Add new section for CDATA
-        # Switch to the new version schema
-        - currentVersion: 10
-          nextVersion: 4.0.1
-        - currentVersion: 4.0.1
-          nextVersion: 4.0.1.1
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt
-              commitDetails: Allowing closing parenthesis in asset names
-        - currentVersion: 4.0.1.1
-          nextVersion: 4.0.1.2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.2.xslt
-              commitDetails: Adding Scripts and Taxonomies to folders list
-        - currentVersion: 4.0.1.2
-          nextVersion: 4.2.0.0
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.2.x/config/site-config/site-config-v4.2.0.0.xslt
-              commitDetails: Add Component type pattern
-
-  permission-mappings-config:
-    module: studio
-    path: permission-mappings-config.xml
-    pipeline:
-      requires: '>=4.0.1'
-      versions:
-        # Entry point for 3.1.x installations (using previous versions)
-        - currentVersion: 12 # For 3.1.12 or early
-          nextVersion: 4.0-t
-        - currentVersion: 15 # For 3.1.17 or later
-          nextVersion: 4.0-t
-        - currentVersion: 16 # For 3.1.23 or later
-          nextVersion: 4.0-t
-
-        # Entry point for existing 4.0.x before version schema update
-        - currentVersion: 20
-          nextVersion: 4.0-t9
-
-        # Common operations for all 3.1.x versions:
-        - currentVersion: 4.0-t
-          nextVersion: 4.0-t2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v13.xslt
-              commitDetails: Added get_children permission
-        - currentVersion: 4.0-t2
-          nextVersion: 4.0-t3
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v14.xslt
-              commitDetails: Add new permission 'edit_site'
-        - currentVersion: 4.0-t3
-          nextVersion: 4.0-t4
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v15.xslt
-              commitDetails: Add new permissions for plugins
-        - currentVersion: 4.0-t4
-          nextVersion: 4.0-t5
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v16.xslt
-              commitDetails: Relabel permissions for available actions refactor
-        - currentVersion: 4.0-t5
-          nextVersion: 4.0-t6
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v17.xslt
-              commitDetails: Added publish_status and publish_clear_lock permissions for  admin
-        - currentVersion: 4.0-t6
-          nextVersion: 4.0-t7
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v18.xslt
-              commitDetails: Added get_children and publish_status permissions where missing
-        - currentVersion: 4.0-t7
-          nextVersion: 4.0-t8
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v19.xslt
-              commitDetails: Added unlock_repository permissions for  site admin users
-        - currentVersion: 4.0-t8
-          nextVersion: 4.0-t9
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v20.xslt
-              commitDetails: Added item_unlock permissions for admin
-        - currentVersion: 4.0-t9
-          nextVersion: 4.0.1
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v21.xslt
-              commitDetails: Add new permission for removing plugins
-
-        # Entry point for existing 4.0.x installations (before refactoring so just switch to the new version schema)
-        - currentVersion: 21
-          nextVersion: 4.0.1
-        - currentVersion: 4.0.1
-          nextVersion: 4.0.2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.2.xslt
-              commitDetails: Add content_read permission where it is missing
-        - currentVersion: 4.0.2
-          nextVersion: 4.0.3
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.3.xslt
-              commitDetails: Add new content_copy permission
-        - currentVersion: 4.0.3
-          nextVersion: 4.0.4
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.4.xslt
-              commitDetails: Fix permissions for publisher
-        - currentVersion: 4.0.4
-          nextVersion: 4.0.5
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.5.xslt
-              commitDetails: Added repair_repository permissions for  site admin users
-        - currentVersion: 4.0.5
-          nextVersion: 4.0.6
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.6.xslt
-              commitDetails: Add content_search permissions for all users
-        - currentVersion: 4.0.6
-          nextVersion: 4.0.7
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.7.xslt
-              commitDetails: Add view_logs permission for 'developer' and 'site_admin' roles
-        - currentVersion: 4.0.7
-          nextVersion: 4.0.8
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.8.xslt
-              commitDetails: Add start_stop_publisher permission for site 'admin' role
-        - currentVersion: 4.0.8
-          nextVersion: 4.0.9
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.9.xslt
-              commitDetails: Add audit_log permission for site 'developer' role
-        - currentVersion: 4.0.9
-          nextVersion: 4.0.10
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.10.xslt
-              commitDetails: Updating configuration permissions
-        - currentVersion: 4.0.10
-          nextVersion: 4.0.11
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.11.xslt
-              commitDetails: Adding set_item_states permissions
-        - currentVersion: 4.0.11
-          nextVersion: 4.0.12
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.12.xslt
-              commitDetails: Remove cmis-related permissions
-        - currentVersion: 4.0.12
-          nextVersion: 4.1.0
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.0.xslt
-              commitDetails: Add 'get_publishing_queue' permission to 'author' role
-        - currentVersion: 4.1.0
-          nextVersion: 4.1.1
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.1.xslt
-              commitDetails: Add 'get_publishing_queue' permission to 'publisher' role
-        - currentVersion: 4.1.1
-          nextVersion: 4.1.2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.2.xslt
-              commitDetails: Change 'Change Content Type' permission to 'change_content_type'
-        - currentVersion: 4.1.2
-          nextVersion: 4.2.0.0
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.0.xslt
-              commitDetails: Remove ~DASHBOARD~ permissions
-        # Update version to align with blueprints optimized version
-        - currentVersion: 4.2.0.0
-          nextVersion: 4.2.0.1
-
-  role-mappings-config:
-    module: studio
-    path: role-mappings-config.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 2
-          nextVersion: 4.0.1
-
-  config-list:
-    module: studio
-    path: administration/config-list.xml
-    pipeline:
-      requires: '>=4.0.1'
-      versions:
-        - currentVersion: 10
-          nextVersion: 11
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v11.xslt
-              commitDetails: Add translation config
-        - currentVersion: 11
-          nextVersion: 12
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v12.xslt
-              commitDetails: Add site policy config
-        - currentVersion: 12
-          nextVersion: 13
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v13.xslt
-              commitDetails: Add ui config
-        - currentVersion: 13
-          nextVersion: 14
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v14.xslt
-              commitDetails: Updates for RTE configuration
-        # Switch to the new version schema
-        - currentVersion: 14
-          nextVersion: 4.0.1
-        - currentVersion: 4.0.1
-          nextVersion: 4.0.2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.2.xslt
-              commitDetails: Remove unused configuration files
-        - currentVersion: 4.0.2
-          nextVersion: 4.0.3
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.3.xslt
-              commitDetails: Remove CMIS configs
-
-  site-config-tools:
-    module: studio
-    path: administration/site-config-tools.xml
-    pipeline:
-      requires: '>=4.0.1'
-      versions:
-        - currentVersion: 11
-          nextVersion: 12
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v12.xslt
-              commitDetails: Add plugin management
-        - currentVersion: 12
-          nextVersion: 13
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v13.xslt
-              commitDetails: Update RTE configuration
-        # Switch to the new version schema
-        - currentVersion: 13
-          nextVersion: 4.0.1
-        - currentVersion: 4.0.1
-          nextVersion: 4.0.2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.2.xslt
-              commitDetails: Rename Remote Repositories
-        - currentVersion: 4.0.2
-          nextVersion: 4.0.3
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.3.xslt
-              commitDetails: Remove unused tools
-        - currentVersion: 4.0.3
-          nextVersion: 4.0.4
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt
-              commitDetails: Update datasources components and simpleTaxonomy
-        - currentVersion: 4.0.4
-          nextVersion: 4.0.5
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.5.xslt
-              commitDetails: Remove CMIS support
-        - currentVersion: 4.0.5
-          nextVersion: 4.0.6
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.6.xslt
-              commitDetails: Add audio datasources
-
-  contextual-nav:
-    module: studio
-    path: context-nav/contextual-nav.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 2
-          nextVersion: 4.0.1
-
-  aws:
-    module: studio
-    path: aws/aws.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 2
-          nextVersion: 4.0.1
-
-  box:
-    module: studio
-    path: box/box.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 2
-          nextVersion: 4.0.1
-
-  webdav:
-    module: studio
-    path: webdav/webdav.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 2
-          nextVersion: 4.0.1
-
-  notification-config:
-    module: studio
-    path: workflow/notification-config.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        - currentVersion: 2
-          nextVersion: 3
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v3.xslt
-              commitDetails: Comment example emails
-        # Switch to the new version schema
-        - currentVersion: 3
-          nextVersion: 4.0.1
-        - currentVersion: 4
-          nextVersion: 4.0.1
-        - currentVersion: 4.0.1
-          nextVersion: 4.0.2
-          operations:
-            - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v4.0.2.xslt
-              commitDetails: Remove lang element
-        - currentVersion: 4.0.2
-          nextVersion: 4.0.3
-          operations:
-            - type: findAndReplaceUpgrader
-              pattern: "<li>\\$\\{file.internalName!file.name\\}</li>"
-              replacement: "<li>\\$\\{file.action\\}: \\$\\{file.path\\} from package \\$\\{file.packageId\\}</li>"
-              commitDetails: Update deployment error template
-            - type: findAndReplaceUpgrader
-              pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
-              replacement: "<pre>\\$\\{deploymentError\\}</pre>"
-              commitDetails: Update deployment error template
-
-  code-editor-config:
-    module: studio
-    path: code-editor-config.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 2
-          nextVersion: 4.0.1
-
-  resolver-config:
-    module: studio
-    path: dependency/resolver-config.xml
-    pipeline:
-      - currentVersion: 1
-        nextVersion: 2
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v2.xslt
-            commitDetails: Update resolver regex to support CDATA
-      - currentVersion: 2
-        nextVersion: 3
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
-            commitDetails: Add new dependencies for content-types
-      # Switch to the new version schema
-      - currentVersion: 3
-        nextVersion: 4.0.1
-      - currentVersion: 4.0.1
-        nextVersion: 4.0.1.1
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
-            commitDetails: Add view templates and controllers as content-type dependencies
-
-  engine-site-config:
-    module: engine
-    path: site-config.xml
-    pipeline:
-      requires: '>=2'
-      versions:
-       # Switch to the new version schema
-       - currentVersion: 2
-         nextVersion: 4.0.1
-
-  proxy-config:
-    module: engine
-    path: proxy-config.xml
-    pipeline:
-      requires: '>=3'
-      versions:
-        # Switch to the new version schema
-        - currentVersion: 3
-          nextVersion: 4.0.1
-
-  urlrewrite:
-    module: engine
-    path: urlrewrite.xml
-    pipeline:
-      - currentVersion: 1
-        nextVersion: 2
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/copy.xslt
-            commitDetails: Remove doctype declaration
-      # Switch to the new version schema
-      - currentVersion: 2
-        nextVersion: 4.0.1
-
-  ui:
-    module: studio
-    path: ui.xml
-    pipeline:
-      - currentVersion: 4.0.1
-        nextVersion: 4.0.2
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.2.xslt
-            commitDetails: Rename Remote Repositories
-      - currentVersion: 4.0.2
-        nextVersion: 4.0.3
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.3.xslt
-            commitDetails: Update path to use /index.xml
-      - currentVersion: 4.0.3
-        nextVersion: 4.0.4
-        operations:
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - config/studio/ui.xml
-            pattern: "craftercms\\.components\\.ItemStatesManagement"
-            replacement: "craftercms.components.WorkflowStateManagement"
-            commitDetails: Rename component
-      - currentVersion: 4.0.4
-        nextVersion: 4.0.5
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.5.xslt
-            commitDetails: Added the PaddingModeSwitchListItem widget
-      - currentVersion: 4.0.5
-        nextVersion: 4.0.6
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.6.xslt
-            commitDetails: Update the UI with new Dashlets to replace 'AwaitingApprovalDashlet'
-      - currentVersion: 4.0.6
-        nextVersion: 4.1.0
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.0.xslt
-            commitDetails: Update the UI to use 'PathNavigatorTree' and new Dashboard widgets
-      - currentVersion: 4.1.0
-        nextVersion: 4.1.1
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.1.xslt
-            commitDetails:
-      - currentVersion: 4.1.1
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.3.0
-        nextVersion: 4.2-t
-      - currentVersion: 4.1.3.1
-        nextVersion: 4.2-t
-      - currentVersion: 4.2-t
-        nextVersion: 4.2.0
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.0.xslt
-            commitDetails: Update the UI to remove 'xbDetectionTimeoutMs'
-      - currentVersion: 4.2.0
-        nextVersion: 4.2.0.1
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.1.xslt
-            commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
-      - currentVersion: 4.2.0.1
-        nextVersion: 4.2.0.2
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.2.xslt
-            commitDetails: Update 'Add Components' widget
-      - currentVersion: 4.2.0.2
-        nextVersion: 4.2.0.3
-        operations:
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - config/studio/ui.xml
-            pattern: "formatselect"
-            replacement: "blocks"
-            commitDetails: Update the RTE configuration to work with TinyMCE 7
+    
+    studio-site-config:
+        module: studio
+        path: site-config.xml
+        pipeline:
+            requires: '>=4.0.1'
+            versions:
+                -   currentVersion: 7
+                    nextVersion: 8
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v8.xslt
+                            commitDetails: Added protected folders pattern configuration
+                -   currentVersion: 8
+                    nextVersion: 9
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v9.xslt
+                            commitDetails: Add new section for locale
+                -   currentVersion: 9
+                    nextVersion: 10
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v10.xslt
+                            commitDetails: Add new section for CDATA
+                # Switch to the new version schema
+                -   currentVersion: 10
+                    nextVersion: 4.0.1
+                -   currentVersion: 4.0.1
+                    nextVersion: 4.0.1.1
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt
+                            commitDetails: Allowing closing parenthesis in asset names
+                -   currentVersion: 4.0.1.1
+                    nextVersion: 4.0.1.2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.2.xslt
+                            commitDetails: Adding Scripts and Taxonomies to folders list
+                -   currentVersion: 4.0.1.2
+                    nextVersion: 4.2.0.0
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.2.x/config/site-config/site-config-v4.2.0.0.xslt
+                            commitDetails: Add Component type pattern
+    
+    permission-mappings-config:
+        module: studio
+        path: permission-mappings-config.xml
+        pipeline:
+            requires: '>=4.0.1'
+            versions:
+                # Entry point for 3.1.x installations (using previous versions)
+                -   currentVersion: 12 # For 3.1.12 or early
+                    nextVersion: 4.0-t
+                -   currentVersion: 15 # For 3.1.17 or later
+                    nextVersion: 4.0-t
+                -   currentVersion: 16 # For 3.1.23 or later
+                    nextVersion: 4.0-t
+                
+                # Entry point for existing 4.0.x before version schema update
+                -   currentVersion: 20
+                    nextVersion: 4.0-t9
+                
+                # Common operations for all 3.1.x versions:
+                -   currentVersion: 4.0-t
+                    nextVersion: 4.0-t2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v13.xslt
+                            commitDetails: Added get_children permission
+                -   currentVersion: 4.0-t2
+                    nextVersion: 4.0-t3
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v14.xslt
+                            commitDetails: Add new permission 'edit_site'
+                -   currentVersion: 4.0-t3
+                    nextVersion: 4.0-t4
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v15.xslt
+                            commitDetails: Add new permissions for plugins
+                -   currentVersion: 4.0-t4
+                    nextVersion: 4.0-t5
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v16.xslt
+                            commitDetails: Relabel permissions for available actions refactor
+                -   currentVersion: 4.0-t5
+                    nextVersion: 4.0-t6
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v17.xslt
+                            commitDetails: Added publish_status and publish_clear_lock permissions for  admin
+                -   currentVersion: 4.0-t6
+                    nextVersion: 4.0-t7
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v18.xslt
+                            commitDetails: Added get_children and publish_status permissions where missing
+                -   currentVersion: 4.0-t7
+                    nextVersion: 4.0-t8
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v19.xslt
+                            commitDetails: Added unlock_repository permissions for  site admin users
+                -   currentVersion: 4.0-t8
+                    nextVersion: 4.0-t9
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v20.xslt
+                            commitDetails: Added item_unlock permissions for admin
+                -   currentVersion: 4.0-t9
+                    nextVersion: 4.0.1
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v21.xslt
+                            commitDetails: Add new permission for removing plugins
+                
+                # Entry point for existing 4.0.x installations (before refactoring so just switch to the new version schema)
+                -   currentVersion: 21
+                    nextVersion: 4.0.1
+                -   currentVersion: 4.0.1
+                    nextVersion: 4.0.2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.2.xslt
+                            commitDetails: Add content_read permission where it is missing
+                -   currentVersion: 4.0.2
+                    nextVersion: 4.0.3
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.3.xslt
+                            commitDetails: Add new content_copy permission
+                -   currentVersion: 4.0.3
+                    nextVersion: 4.0.4
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.4.xslt
+                            commitDetails: Fix permissions for publisher
+                -   currentVersion: 4.0.4
+                    nextVersion: 4.0.5
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.5.xslt
+                            commitDetails: Added repair_repository permissions for  site admin users
+                -   currentVersion: 4.0.5
+                    nextVersion: 4.0.6
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.6.xslt
+                            commitDetails: Add content_search permissions for all users
+                -   currentVersion: 4.0.6
+                    nextVersion: 4.0.7
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.7.xslt
+                            commitDetails: Add view_logs permission for 'developer' and 'site_admin' roles
+                -   currentVersion: 4.0.7
+                    nextVersion: 4.0.8
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.8.xslt
+                            commitDetails: Add start_stop_publisher permission for site 'admin' role
+                -   currentVersion: 4.0.8
+                    nextVersion: 4.0.9
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.9.xslt
+                            commitDetails: Add audit_log permission for site 'developer' role
+                -   currentVersion: 4.0.9
+                    nextVersion: 4.0.10
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.10.xslt
+                            commitDetails: Updating configuration permissions
+                -   currentVersion: 4.0.10
+                    nextVersion: 4.0.11
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.11.xslt
+                            commitDetails: Adding set_item_states permissions
+                -   currentVersion: 4.0.11
+                    nextVersion: 4.0.12
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.12.xslt
+                            commitDetails: Remove cmis-related permissions
+                -   currentVersion: 4.0.12
+                    nextVersion: 4.1.0
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.0.xslt
+                            commitDetails: Add 'get_publishing_queue' permission to 'author' role
+                -   currentVersion: 4.1.0
+                    nextVersion: 4.1.1
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.1.xslt
+                            commitDetails: Add 'get_publishing_queue' permission to 'publisher' role
+                -   currentVersion: 4.1.1
+                    nextVersion: 4.1.2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.2.xslt
+                            commitDetails: Change 'Change Content Type' permission to 'change_content_type'
+                -   currentVersion: 4.1.2
+                    nextVersion: 4.2.0.0
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.0.xslt
+                            commitDetails: Remove ~DASHBOARD~ permissions
+                # Update version to align with blueprints optimized version
+                -   currentVersion: 4.2.0.0
+                    nextVersion: 4.2.0.1
+    
+    role-mappings-config:
+        module: studio
+        path: role-mappings-config.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    config-list:
+        module: studio
+        path: administration/config-list.xml
+        pipeline:
+            requires: '>=4.0.1'
+            versions:
+                -   currentVersion: 10
+                    nextVersion: 11
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v11.xslt
+                            commitDetails: Add translation config
+                -   currentVersion: 11
+                    nextVersion: 12
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v12.xslt
+                            commitDetails: Add site policy config
+                -   currentVersion: 12
+                    nextVersion: 13
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v13.xslt
+                            commitDetails: Add ui config
+                -   currentVersion: 13
+                    nextVersion: 14
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v14.xslt
+                            commitDetails: Updates for RTE configuration
+                # Switch to the new version schema
+                -   currentVersion: 14
+                    nextVersion: 4.0.1
+                -   currentVersion: 4.0.1
+                    nextVersion: 4.0.2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.2.xslt
+                            commitDetails: Remove unused configuration files
+                -   currentVersion: 4.0.2
+                    nextVersion: 4.0.3
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.3.xslt
+                            commitDetails: Remove CMIS configs
+    
+    site-config-tools:
+        module: studio
+        path: administration/site-config-tools.xml
+        pipeline:
+            requires: '>=4.0.1'
+            versions:
+                -   currentVersion: 11
+                    nextVersion: 12
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v12.xslt
+                            commitDetails: Add plugin management
+                -   currentVersion: 12
+                    nextVersion: 13
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v13.xslt
+                            commitDetails: Update RTE configuration
+                # Switch to the new version schema
+                -   currentVersion: 13
+                    nextVersion: 4.0.1
+                -   currentVersion: 4.0.1
+                    nextVersion: 4.0.2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.2.xslt
+                            commitDetails: Rename Remote Repositories
+                -   currentVersion: 4.0.2
+                    nextVersion: 4.0.3
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.3.xslt
+                            commitDetails: Remove unused tools
+                -   currentVersion: 4.0.3
+                    nextVersion: 4.0.4
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt
+                            commitDetails: Update datasources components and simpleTaxonomy
+                -   currentVersion: 4.0.4
+                    nextVersion: 4.0.5
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.5.xslt
+                            commitDetails: Remove CMIS support
+                -   currentVersion: 4.0.5
+                    nextVersion: 4.0.6
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.6.xslt
+                            commitDetails: Add audio datasources
+    
+    contextual-nav:
+        module: studio
+        path: context-nav/contextual-nav.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    aws:
+        module: studio
+        path: aws/aws.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    box:
+        module: studio
+        path: box/box.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    webdav:
+        module: studio
+        path: webdav/webdav.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    notification-config:
+        module: studio
+        path: workflow/notification-config.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                -   currentVersion: 2
+                    nextVersion: 3
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v3.xslt
+                            commitDetails: Comment example emails
+                # Switch to the new version schema
+                -   currentVersion: 3
+                    nextVersion: 4.0.1
+                -   currentVersion: 4
+                    nextVersion: 4.0.1
+                -   currentVersion: 4.0.1
+                    nextVersion: 4.0.2
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v4.0.2.xslt
+                            commitDetails: Remove lang element
+                -   currentVersion: 4.0.2
+                    nextVersion: 4.0.3
+                    operations:
+                        -   type: findAndReplaceUpgrader
+                            pattern: "<li>\\$\\{file.internalName!file.name\\}</li>"
+                            replacement: "<li>\\$\\{file.action\\}: \\$\\{file.path\\} from package \\$\\{file.packageId\\}</li>"
+                            commitDetails: Update deployment error template
+                        -   type: findAndReplaceUpgrader
+                            pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
+                            replacement: "<pre>\\$\\{deploymentError\\}</pre>"
+                            commitDetails: Update deployment error template
+    
+    code-editor-config:
+        module: studio
+        path: code-editor-config.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    resolver-config:
+        module: studio
+        path: dependency/resolver-config.xml
+        pipeline:
+            -   currentVersion: 1
+                nextVersion: 2
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v2.xslt
+                        commitDetails: Update resolver regex to support CDATA
+            -   currentVersion: 2
+                nextVersion: 3
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
+                        commitDetails: Add new dependencies for content-types
+            # Switch to the new version schema
+            -   currentVersion: 3
+                nextVersion: 4.0.1
+            -   currentVersion: 4.0.1
+                nextVersion: 4.0.1.1
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
+                        commitDetails: Add view templates and controllers as content-type dependencies
+    
+    engine-site-config:
+        module: engine
+        path: site-config.xml
+        pipeline:
+            requires: '>=2'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 2
+                    nextVersion: 4.0.1
+    
+    proxy-config:
+        module: engine
+        path: proxy-config.xml
+        pipeline:
+            requires: '>=3'
+            versions:
+                # Switch to the new version schema
+                -   currentVersion: 3
+                    nextVersion: 4.0.1
+    
+    urlrewrite:
+        module: engine
+        path: urlrewrite.xml
+        pipeline:
+            -   currentVersion: 1
+                nextVersion: 2
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/copy.xslt
+                        commitDetails: Remove doctype declaration
+            # Switch to the new version schema
+            -   currentVersion: 2
+                nextVersion: 4.0.1
+    
+    ui:
+        module: studio
+        path: ui.xml
+        pipeline:
+            -   currentVersion: 4.0.1
+                nextVersion: 4.0.2
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.2.xslt
+                        commitDetails: Rename Remote Repositories
+            -   currentVersion: 4.0.2
+                nextVersion: 4.0.3
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.3.xslt
+                        commitDetails: Update path to use /index.xml
+            -   currentVersion: 4.0.3
+                nextVersion: 4.0.4
+                operations:
+                    -   type: findAndReplaceUpgrader
+                        includedPaths:
+                            - config/studio/ui.xml
+                        pattern: "craftercms\\.components\\.ItemStatesManagement"
+                        replacement: "craftercms.components.WorkflowStateManagement"
+                        commitDetails: Rename component
+            -   currentVersion: 4.0.4
+                nextVersion: 4.0.5
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.5.xslt
+                        commitDetails: Added the PaddingModeSwitchListItem widget
+            -   currentVersion: 4.0.5
+                nextVersion: 4.0.6
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.6.xslt
+                        commitDetails: Update the UI with new Dashlets to replace 'AwaitingApprovalDashlet'
+            -   currentVersion: 4.0.6
+                nextVersion: 4.1.0
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.0.xslt
+                        commitDetails: Update the UI to use 'PathNavigatorTree' and new Dashboard widgets
+            -   currentVersion: 4.1.0
+                nextVersion: 4.1.1
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.1.xslt
+                        commitDetails:
+            -   currentVersion: 4.1.1
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.3.0
+                nextVersion: 4.2-t
+            -   currentVersion: 4.1.3.1
+                nextVersion: 4.2-t
+            -   currentVersion: 4.2-t
+                nextVersion: 4.2.0
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.0.xslt
+                        commitDetails: Update the UI to remove 'xbDetectionTimeoutMs'
+            -   currentVersion: 4.2.0
+                nextVersion: 4.2.0.1
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.1.xslt
+                        commitDetails: Update the UI to change 'Site Tools' to 'Project Tools'
+            -   currentVersion: 4.2.0.1
+                nextVersion: 4.2.0.2
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/4.2.x/config/ui/ui-v4.2.0.2.xslt
+                        commitDetails: Update 'Add Components' widget
+            -   currentVersion: 4.2.0.2
+                nextVersion: 4.2.0.3
+                operations:
+                    -   type: findAndReplaceUpgrader
+                        includedPaths:
+                            - config/studio/ui.xml
+                        pattern: "formatselect"
+                        replacement: "blocks"
+                        commitDetails: Update the RTE configuration to work with TinyMCE 7

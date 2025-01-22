@@ -22,26 +22,26 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 public class RemoveRemoteRequest {
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    @Size(max = 50)
-    private String remoteName;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	@Size(max = 50)
+	private String remoteName;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getRemoteName() {
-        return remoteName;
-    }
+	public String getRemoteName() {
+		return remoteName;
+	}
 
-    public void setRemoteName(String remoteName) {
-        this.remoteName = remoteName;
-    }
+	public void setRemoteName(String remoteName) {
+		this.remoteName = remoteName;
+	}
 }

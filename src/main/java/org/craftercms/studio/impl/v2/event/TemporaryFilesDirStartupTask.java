@@ -36,19 +36,19 @@ import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
  * otherwise it will just create the directory.
  */
 public class TemporaryFilesDirStartupTask {
-    private static final Logger logger = LoggerFactory.getLogger(TemporaryFilesDirStartupTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(TemporaryFilesDirStartupTask.class);
 
-    @Order(HIGHEST_PRECEDENCE)
-    @EventListener(CleanupTemporaryFilesEvent.class)
-    public void cleanup() throws IOException {
-        logger.debug("Cleanup studio temporary files");
-        Path studioTempDir = StudioUtils.getStudioTemporaryFilesRoot();
-        logger.debug("Studio temporary directory '{}'", studioTempDir);
-        File studioTempDirFile = studioTempDir.toFile();
-        if (studioTempDirFile.exists()) {
-            FileUtils.cleanDirectory(studioTempDirFile);
-        } else {
-            FileUtils.forceMkdir(studioTempDirFile);
-        }
-    }
+	@Order(HIGHEST_PRECEDENCE)
+	@EventListener(CleanupTemporaryFilesEvent.class)
+	public void cleanup() throws IOException {
+		logger.debug("Cleanup studio temporary files");
+		Path studioTempDir = StudioUtils.getStudioTemporaryFilesRoot();
+		logger.debug("Studio temporary directory '{}'", studioTempDir);
+		File studioTempDirFile = studioTempDir.toFile();
+		if (studioTempDirFile.exists()) {
+			FileUtils.cleanDirectory(studioTempDirFile);
+		} else {
+			FileUtils.forceMkdir(studioTempDirFile);
+		}
+	}
 }

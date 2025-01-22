@@ -17,15 +17,15 @@
   -->
 
 <!DOCTYPE urlrewrite
-        PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN"
-        "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
+	PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN"
+	"http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
 
 <urlrewrite>
 
-    <!-- Add support for SPA at this path -->
-    <rule match-type="regex">
-        <from>^/alpha/.*$</from>
-        <to>/alpha</to>
-    </rule>
+	<!-- Add support for SPA at this path -->
+	<rule match-type="regex">
+		<from>^/alpha/.*$</from>
+		<to>/alpha</to>
+	</rule>
 
 </urlrewrite>

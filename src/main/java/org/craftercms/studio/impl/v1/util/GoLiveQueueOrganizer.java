@@ -29,58 +29,58 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 
 public class GoLiveQueueOrganizer {
 
-    protected static final Logger logger = LoggerFactory.getLogger(GoLiveQueueOrganizer.class);
-    
-    protected ContentService contentService;
-    protected ContentItemTO.ChildFilter childFilter;
+	protected static final Logger logger = LoggerFactory.getLogger(GoLiveQueueOrganizer.class);
 
-    public GoLiveQueueOrganizer(ContentService contentService, ContentItemTO.ChildFilter childFilter) {
-        this.contentService = contentService;
-        this.childFilter = childFilter;
-    }
+	protected ContentService contentService;
+	protected ContentItemTO.ChildFilter childFilter;
 
-    public void addToGoLiveItems(String site, ContentItemTO node,
-                                 List<ContentItemTO> categoryItems, DmContentItemComparator comparator,
-                                 boolean includeInProgress, List<String> displayPatterns) throws ServiceLayerException {
+	public GoLiveQueueOrganizer(ContentService contentService, ContentItemTO.ChildFilter childFilter) {
+		this.contentService = contentService;
+		this.childFilter = childFilter;
+	}
+
+	public void addToGoLiveItems(String site, ContentItemTO node,
+				     List<ContentItemTO> categoryItems, DmContentItemComparator comparator,
+				     boolean includeInProgress, List<String> displayPatterns) throws ServiceLayerException {
 
 
-        // if deleted, just add the top level items
-        /*WcmAvmPathTO path = new WcmAvmPathTO(node.getPath());*/
-        // display only if the path matches one of display patterns
-        if (ContentUtils.matchesPatterns(node.getUri(), displayPatterns)) {
+		// if deleted, just add the top level items
+		/*WcmAvmPathTO path = new WcmAvmPathTO(node.getPath());*/
+		// display only if the path matches one of display patterns
+		if (ContentUtils.matchesPatterns(node.getUri(), displayPatterns)) {
 
-            _addToCategoryList(categoryItems, site, node, includeInProgress, comparator);
+			_addToCategoryList(categoryItems, site, node, includeInProgress, comparator);
 
-        }
+		}
 
-    }
+	}
 
-    protected void _addToCategoryList(final List<ContentItemTO> categoryItems, final String site,
-                                      final ContentItemTO node,
-                                      boolean includeInProgress, final DmContentItemComparator comparator) {
+	protected void _addToCategoryList(final List<ContentItemTO> categoryItems, final String site,
+					  final ContentItemTO node,
+					  boolean includeInProgress, final DmContentItemComparator comparator) {
 
-        addThis(categoryItems, comparator, node, includeInProgress);
-    }
+		addThis(categoryItems, comparator, node, includeInProgress);
+	}
 
-    protected void addThis(List<ContentItemTO> categoryItems, DmContentItemComparator comparator, ContentItemTO itemToAdd, boolean includeInProgress) {
-        boolean include = itemToAdd.isSubmitted() || itemToAdd.isSubmittedForDeletion();
-        if (includeInProgress) {
-            include = include || itemToAdd.isInProgress();
-        }
-        if (!include) {
-            return;
-        }
-        ContentItemTO found = null;
-        String uri = itemToAdd.getUri();
-        for (ContentItemTO categoryItem : categoryItems) {
-            String categoryPath = categoryItem.getPath() + FILE_SEPARATOR;
-            if (uri.startsWith(categoryPath)) {
-                found = categoryItem;
-                break;
-            }
-        }
-        if (found != null && !found.getUri().equals(itemToAdd.getUri())) {
-            found.addChild(itemToAdd, comparator, true, childFilter);
-        }
-    }
+	protected void addThis(List<ContentItemTO> categoryItems, DmContentItemComparator comparator, ContentItemTO itemToAdd, boolean includeInProgress) {
+		boolean include = itemToAdd.isSubmitted() || itemToAdd.isSubmittedForDeletion();
+		if (includeInProgress) {
+			include = include || itemToAdd.isInProgress();
+		}
+		if (!include) {
+			return;
+		}
+		ContentItemTO found = null;
+		String uri = itemToAdd.getUri();
+		for (ContentItemTO categoryItem : categoryItems) {
+			String categoryPath = categoryItem.getPath() + FILE_SEPARATOR;
+			if (uri.startsWith(categoryPath)) {
+				found = categoryItem;
+				break;
+			}
+		}
+		if (found != null && !found.getUri().equals(itemToAdd.getUri())) {
+			found.addChild(itemToAdd, comparator, true, childFilter);
+		}
+	}
 }

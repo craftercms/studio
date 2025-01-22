@@ -28,34 +28,34 @@ import jakarta.validation.constraints.NotEmpty;
  */
 public class DuplicateRequest {
 
-    /**
-     * The id of the site
-     */
-    @NotEmpty
-    @ValidSiteId
-    protected String siteId;
+	/**
+	 * The id of the site
+	 */
+	@NotEmpty
+	@ValidSiteId
+	protected String siteId;
 
-    /**
-     * The path of the item
-     */
-    @NotEmpty
-    @ValidExistingContentPath
-    protected String path;
+	/**
+	 * The path of the item
+	 */
+	@NotEmpty
+	@ValidExistingContentPath
+	protected String path;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
 }

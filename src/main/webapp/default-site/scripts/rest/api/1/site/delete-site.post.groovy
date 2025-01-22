@@ -29,43 +29,43 @@ def studioConfiguration = applicationContext.get('studioConfiguration')
 
 def result = [:]
 try {
-    def requestJson = request.reader.text
-    def slurper = new JsonSlurper()
-    def parsedReq = slurper.parseText(requestJson)
+	def requestJson = request.reader.text
+	def slurper = new JsonSlurper()
+	def parsedReq = slurper.parseText(requestJson)
 
-    def siteId = parsedReq.site_id
+	def siteId = parsedReq.site_id
 
-    /** Validate Parameters */
-    def invalidParams = false
-    def paramsList = []
+	/** Validate Parameters */
+	def invalidParams = false
+	def paramsList = []
 
-    // site_id
-    try {
-        if (StringUtils.isEmpty(siteId)) {
-            siteId = parsedReq.siteId
-            if (StringUtils.isEmpty(siteId)) {
-                invalidParams = true
-                paramsList.add("site_id")
-            }
-        }
-    } catch (Exception e) {
-        invalidParams = true
-        paramsList.add("site_id")
-    }
+	// site_id
+	try {
+		if (StringUtils.isEmpty(siteId)) {
+			siteId = parsedReq.siteId
+			if (StringUtils.isEmpty(siteId)) {
+				invalidParams = true
+				paramsList.add("site_id")
+			}
+		}
+	} catch (Exception e) {
+		invalidParams = true
+		paramsList.add("site_id")
+	}
 
-    if (invalidParams) {
-        response.setStatus(400)
-        result.message = "Invalid parameter(s): " + paramsList
-    } else {
-        String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)
-        if (StringUtils.equalsIgnoreCase(siteId.trim(), systemSite)) {
-            throw new HttpStatusCodeException(HttpStatus.BAD_REQUEST,format("Deleting system site %s is not allowed", systemSite))
-        }
-        def context = SiteServices.createContext(applicationContext, request)
-        result = SiteServices.deleteSite(context, siteId)
-    }
+	if (invalidParams) {
+		response.setStatus(400)
+		result.message = "Invalid parameter(s): " + paramsList
+	} else {
+		String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)
+		if (StringUtils.equalsIgnoreCase(siteId.trim(), systemSite)) {
+			throw new HttpStatusCodeException(HttpStatus.BAD_REQUEST, format("Deleting system site %s is not allowed", systemSite))
+		}
+		def context = SiteServices.createContext(applicationContext, request)
+		result = SiteServices.deleteSite(context, siteId)
+	}
 } catch (JsonException e) {
-    response.setStatus(400)
-    result.message = "Bad Request"
+	response.setStatus(400)
+	result.message = "Bad Request"
 }
 return result

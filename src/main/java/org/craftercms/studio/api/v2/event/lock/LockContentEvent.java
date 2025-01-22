@@ -29,38 +29,38 @@ import org.springframework.security.core.Authentication;
  */
 public class LockContentEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    protected final String targetPath;
+	protected final String targetPath;
 
-    protected final boolean locked;
+	protected final boolean locked;
 
-    public LockContentEvent(Authentication authentication, String siteId, String targetPath, boolean locked) {
-        super(authentication, siteId);
-        this.targetPath = targetPath;
-        this.locked = locked;
-    }
+	public LockContentEvent(Authentication authentication, String siteId, String targetPath, boolean locked) {
+		super(authentication, siteId);
+		this.targetPath = targetPath;
+		this.locked = locked;
+	}
 
-    public String getTargetPath() {
-        return targetPath;
-    }
+	public String getTargetPath() {
+		return targetPath;
+	}
 
-    public boolean isLocked() {
-        return locked;
-    }
+	public boolean isLocked() {
+		return locked;
+	}
 
-    @Override
-    public String getEventType() {
-        return "LOCK_CONTENT_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "LOCK_CONTENT_EVENT";
+	}
 
-    @Override
-    public String toString() {
-        return "LockContentEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                ", targetPath='" + targetPath + '\'' +
-                ", locked=" + locked +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "LockContentEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			", targetPath='" + targetPath + '\'' +
+			", locked=" + locked +
+			'}';
+	}
 
 }

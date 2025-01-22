@@ -89,7 +89,7 @@
 						<role>developer</role>
 					</permittedRoles>
 					<configuration>
-                        			<title id="siteTools.title" defaultMessage="Project Tools"/>
+						<title id="siteTools.title" defaultMessage="Project Tools"/>
 						<icon id="@mui/icons-material/ConstructionRounded"/>
 						<widget id="craftercms.components.EmbeddedSiteTools"/>
 					</configuration>
@@ -108,7 +108,7 @@
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-                        			<title id="previewSearchPanel.title" defaultMessage="Search"/>
+						<title id="previewSearchPanel.title" defaultMessage="Search"/>
 						<icon id="@mui/icons-material/SearchRounded"/>
 						<widgets>
 							<widget id="craftercms.components.PreviewSearchPanel"/>
@@ -118,7 +118,7 @@
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-                        			<title id="previewComponentsPanelTitle" defaultMessage="Create Content"/>
+						<title id="previewComponentsPanelTitle" defaultMessage="Create Content"/>
 						<icon id="craftercms.icons.AddComponents"/>
 						<widgets>
 							<widget id="craftercms.components.PreviewComponentsPanel"/>
@@ -128,7 +128,7 @@
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-                        			<title id="previewBrowseComponentsPanelTitle" defaultMessage="Existing Content"/>
+						<title id="previewBrowseComponentsPanelTitle" defaultMessage="Existing Content"/>
 						<icon id="craftercms.icons.BrowseComponents"/>
 						<widgets>
 							<widget id="craftercms.components.PreviewBrowseComponentsPanel"/>
@@ -148,7 +148,7 @@
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-                       				<title id="previewAssetsPanel.title" defaultMessage="Assets"/>
+						<title id="previewAssetsPanel.title" defaultMessage="Assets"/>
 						<icon id="@mui/icons-material/ImageOutlined"/>
 						<widgets>
 							<widget id="craftercms.components.PreviewAssetsPanel"/>
@@ -417,7 +417,7 @@
 					<widget id="craftercms.components.SiteConfigurationManagement"/>
 				</tool>
 				<tool>
-                   			<title id="GlobalMenu.AuditEntryLabel" defaultMessage="Audit"/>
+					<title id="GlobalMenu.AuditEntryLabel" defaultMessage="Audit"/>
 					<icon id="@mui/icons-material/SubjectRounded"/>
 					<url>audit</url>
 					<widget id="craftercms.components.SiteAuditManagement"/>

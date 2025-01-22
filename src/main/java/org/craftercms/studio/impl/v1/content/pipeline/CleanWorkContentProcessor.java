@@ -23,29 +23,29 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 
 public class CleanWorkContentProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(CleanWorkContentProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(CleanWorkContentProcessor.class);
 
-    public static final String NAME = "CleanWorkContentProcessor";
+	public static final String NAME = "CleanWorkContentProcessor";
 
 
-    /**
-     * default constructor
-     */
-    public CleanWorkContentProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public CleanWorkContentProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public CleanWorkContentProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public CleanWorkContentProcessor(String name) {
+		super(name);
+	}
 
-    @Override
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+	@Override
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
 
-    }
+	}
 }

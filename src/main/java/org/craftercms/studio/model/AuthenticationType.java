@@ -22,6 +22,6 @@ package org.craftercms.studio.model;
  */
 public enum AuthenticationType {
 
-    DB
+	DB
 
 }

@@ -39,107 +39,107 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioAbstractAccessDecisionVoter.class);
+	private final static Logger logger = LoggerFactory.getLogger(StudioAbstractAccessDecisionVoter.class);
 
-    /**
-     * The default path to use if there is no path parameter
-     */
-    public static final String DEFAULT_PERMISSION_VOTER_PATH = "";
+	/**
+	 * The default path to use if there is no path parameter
+	 */
+	public static final String DEFAULT_PERMISSION_VOTER_PATH = "";
 
-    protected SecurityService securityService;
-    protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
-    protected UserServiceInternal userServiceInternal;
+	protected SecurityService securityService;
+	protected StudioConfiguration studioConfiguration;
+	protected SiteService siteService;
+	protected UserServiceInternal userServiceInternal;
 
-    @Override
-    public int vote(Authentication authentication, Object object, Collection collection) {
-        // Don't vote for any unauthenticated request, those are handled by spring's voters
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            return ACCESS_ABSTAIN;
-        }
+	@Override
+	public int vote(Authentication authentication, Object object, Collection collection) {
+		// Don't vote for any unauthenticated request, those are handled by spring's voters
+		if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			return ACCESS_ABSTAIN;
+		}
 
-        return voteInternal(authentication, object, collection);
-    }
+		return voteInternal(authentication, object, collection);
+	}
 
-    protected abstract int voteInternal(Authentication authentication, Object object, Collection collection);
+	protected abstract int voteInternal(Authentication authentication, Object object, Collection collection);
 
-    protected boolean isSiteMember(String siteId, User currentUser) {
-        try {
-            int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
-            List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
+	protected boolean isSiteMember(String siteId, User currentUser) {
+		try {
+			int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
+			List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
 
-            Set<String> sites = new HashSet<>();
-            for (SiteFeed site : sitesFeed) {
-                sites.add(site.getSiteId());
-            }
+			Set<String> sites = new HashSet<>();
+			for (SiteFeed site : sitesFeed) {
+				sites.add(site.getSiteId());
+			}
 
-            return sites.contains(siteId);
-        } catch (UserNotFoundException e) {
-            logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
-            return false;
-        } catch (ServiceLayerException e) {
-            logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
-            return false;
-        }
-    }
+			return sites.contains(siteId);
+		} catch (UserNotFoundException e) {
+			logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
+			return false;
+		} catch (ServiceLayerException e) {
+			logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
+			return false;
+		}
+	}
 
-    protected boolean isSiteAdmin(String siteId, User currentUser) {
-        try {
-            int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
-            List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
+	protected boolean isSiteAdmin(String siteId, User currentUser) {
+		try {
+			int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
+			List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
 
-            Map<String, Long> sites = new HashMap<>();
-            for (SiteFeed site : sitesFeed) {
-                sites.put(site.getSiteId(), site.getId());
-            }
+			Map<String, Long> sites = new HashMap<>();
+			for (SiteFeed site : sitesFeed) {
+				sites.put(site.getSiteId(), site.getId());
+			}
 
-            boolean toRet = sites.containsKey(siteId);
-            if (toRet) {
-                List<Group> userGroups = userServiceInternal.getUserGroups(sites.get(siteId), currentUser.getUsername());
-                for (Group g : userGroups) {
-                    if (g.getGroupName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
-                        toRet = true;
-                        break;
-                    }
-                }
-                toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP));
-            }
-            return toRet;
-        } catch (UserNotFoundException e) {
-            logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
-            return false;
-        } catch (ServiceLayerException e) {
-            logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
-            return false;
-        }
-    }
+			boolean toRet = sites.containsKey(siteId);
+			if (toRet) {
+				List<Group> userGroups = userServiceInternal.getUserGroups(sites.get(siteId), currentUser.getUsername());
+				for (Group g : userGroups) {
+					if (g.getGroupName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
+						toRet = true;
+						break;
+					}
+				}
+				toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP));
+			}
+			return toRet;
+		} catch (UserNotFoundException e) {
+			logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
+			return false;
+		} catch (ServiceLayerException e) {
+			logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
+			return false;
+		}
+	}
 
-    protected boolean hasPermission(String siteId, String path, String user, String permission) {
-        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
-        return StringUtils.isEmpty(permission) ||
-                (CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(permission));
-    }
+	protected boolean hasPermission(String siteId, String path, String user, String permission) {
+		Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
+		return StringUtils.isEmpty(permission) ||
+			(CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(permission));
+	}
 
-    protected boolean hasAnyPermission(String siteId, String path, String user, Set<String> permissions) {
-        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
-        return CollectionUtils.isEmpty(permissions) ||
-                (CollectionUtils.isNotEmpty(userPermissions)
-                        && CollectionUtils.containsAny(userPermissions, permissions));
-    }
+	protected boolean hasAnyPermission(String siteId, String path, String user, Set<String> permissions) {
+		Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user);
+		return CollectionUtils.isEmpty(permissions) ||
+			(CollectionUtils.isNotEmpty(userPermissions)
+				&& CollectionUtils.containsAny(userPermissions, permissions));
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
+	public void setSiteService(SiteService siteService) {
+		this.siteService = siteService;
+	}
 
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public void setSecurityService(SecurityService securityService) {
+		this.securityService = securityService;
+	}
 
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
+	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+		this.userServiceInternal = userServiceInternal;
+	}
 }

@@ -20,16 +20,16 @@
        xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
-    <aop:aspectj-autoproxy proxy-target-class="true"/>
-    <bean id="studio.retryingRepositoryOperation"
-          class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler">
-        <property name="maxRetries" value="3"/>
-        <property name="maxSleep" value="100"/>
-    </bean>
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+	<bean id="studio.retryingRepositoryOperation"
+	      class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler">
+		<property name="maxRetries" value="3"/>
+		<property name="maxSleep" value="100"/>
+	</bean>
 
-    <!-- MyBatis Mappers -->
-    <bean id="studio.retryingDatabaseOperationFacade"
-          class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
-    </bean>
+	<!-- MyBatis Mappers -->
+	<bean id="studio.retryingDatabaseOperationFacade"
+	      class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
+	</bean>
 
 </beans>

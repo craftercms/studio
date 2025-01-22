@@ -30,13 +30,13 @@ import org.springframework.security.core.userdetails.UserDetails;
  */
 public class DbAuthenticationProvider extends DaoAuthenticationProvider {
 
-    @Override
-    protected Authentication createSuccessAuthentication(Object principal, Authentication authentication,
-                                                         UserDetails user) {
-        var authenticatedUser = new AuthenticatedUser((User) principal);
-        authenticatedUser.setAuthenticationType(AuthenticationType.DB);
+	@Override
+	protected Authentication createSuccessAuthentication(Object principal, Authentication authentication,
+							     UserDetails user) {
+		var authenticatedUser = new AuthenticatedUser((User) principal);
+		authenticatedUser.setAuthenticationType(AuthenticationType.DB);
 
-        return super.createSuccessAuthentication(authenticatedUser, authentication, user);
-    }
+		return super.createSuccessAuthentication(authenticatedUser, authentication, user);
+	}
 
 }

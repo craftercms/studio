@@ -41,47 +41,48 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  */
 public class DbUserDetailsService implements UserDetailsService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DbUserDetailsService.class);
+	private static final Logger logger = LoggerFactory.getLogger(DbUserDetailsService.class);
 
-    private static final List<String> BLOCKED_USERS = List.of(GIT_REPO_USER_USERNAME);
+	private static final List<String> BLOCKED_USERS = List.of(GIT_REPO_USER_USERNAME);
 
-    private final UserDAO userDao;
-    private final LoginAttemptManager loginAttemptManager;
+	private final UserDAO userDao;
+	private final LoginAttemptManager loginAttemptManager;
 
-    @ConstructorProperties({"userDao", "loginAttemptManager"})
-    public DbUserDetailsService(final UserDAO userDao, final LoginAttemptManager loginAttemptManager) {
-        this.userDao = userDao;
-        this.loginAttemptManager = loginAttemptManager;
-    }
+	@ConstructorProperties({"userDao", "loginAttemptManager"})
+	public DbUserDetailsService(final UserDAO userDao, final LoginAttemptManager loginAttemptManager) {
+		this.userDao = userDao;
+		this.loginAttemptManager = loginAttemptManager;
+	}
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        String userNotFoundMessage = format("User not found for '%s'", username);
-        if (isBlockedUser(username)) {
-            logger.info("Access denied: User '{}' is blocked from logging in", username);
-            throw new UsernameNotFoundException(userNotFoundMessage);
-        }
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		String userNotFoundMessage = format("User not found for '%s'", username);
+		if (isBlockedUser(username)) {
+			logger.info("Access denied: User '{}' is blocked from logging in", username);
+			throw new UsernameNotFoundException(userNotFoundMessage);
+		}
 
-        if (loginAttemptManager.isUserLocked(username)) {
-            throw new LockedException(username, format("User '%s' is temporarily locked out", username),
-                    loginAttemptManager.getUserLockTimeLeftSeconds(username));
-        }
+		if (loginAttemptManager.isUserLocked(username)) {
+			throw new LockedException(username, format("User '%s' is temporarily locked out", username),
+				loginAttemptManager.getUserLockTimeLeftSeconds(username));
+		}
 
-        UserDetails user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
-        if (user != null) {
-            return user;
-        }
+		UserDetails user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
+		if (user != null) {
+			return user;
+		}
 
-        throw new UsernameNotFoundException(userNotFoundMessage);
-    }
+		throw new UsernameNotFoundException(userNotFoundMessage);
+	}
 
-    /**
-     * Check if a certain user is blocked
-     * @param username the username to check
-     * @return true if user is blocked, false otherwise
-     */
-    private boolean isBlockedUser(String username) {
-        return BLOCKED_USERS.contains(username.toLowerCase());
-    }
+	/**
+	 * Check if a certain user is blocked
+	 *
+	 * @param username the username to check
+	 * @return true if user is blocked, false otherwise
+	 */
+	private boolean isBlockedUser(String username) {
+		return BLOCKED_USERS.contains(username.toLowerCase());
+	}
 
 }

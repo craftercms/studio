@@ -27,12 +27,12 @@ import org.springframework.security.core.Authentication;
  */
 public class SiteReadyEvent extends SiteLifecycleEvent {
 
-    public SiteReadyEvent(final String siteId, final String siteUuid) {
-        super(siteId, siteUuid);
-    }
+	public SiteReadyEvent(final String siteId, final String siteUuid) {
+		super(siteId, siteUuid);
+	}
 
-    @Override
-    public String getEventType() {
-        return "SITE_READY_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "SITE_READY_EVENT";
+	}
 }

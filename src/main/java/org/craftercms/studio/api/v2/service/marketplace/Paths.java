@@ -24,8 +24,8 @@ package org.craftercms.studio.api.v2.service.marketplace;
  */
 public interface Paths {
 
-    String PLUGIN_SEARCH = "/api/1/plugin/search";
+	String PLUGIN_SEARCH = "/api/1/plugin/search";
 
-    String GET_PLUGIN = "/api/1/plugin";
+	String GET_PLUGIN = "/api/1/plugin";
 
 }

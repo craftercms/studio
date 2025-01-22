@@ -20,6 +20,7 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 /**
@@ -31,34 +32,34 @@ import java.util.List;
 @JsonIgnoreProperties
 public class GetSandboxItemsByPathRequestBody {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    private List<@ValidExistingContentPath @NotEmpty String> paths;
-    private boolean preferContent;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	private List<@ValidExistingContentPath @NotEmpty String> paths;
+	private boolean preferContent;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public List<String> getPaths() {
-        return paths;
-    }
+	public List<String> getPaths() {
+		return paths;
+	}
 
-    public void setPaths(List<String> paths) {
-        this.paths = paths;
-    }
+	public void setPaths(List<String> paths) {
+		this.paths = paths;
+	}
 
-    public boolean isPreferContent() {
-        return preferContent;
-    }
+	public boolean isPreferContent() {
+		return preferContent;
+	}
 
-    public void setPreferContent(boolean preferContent) {
-        this.preferContent = preferContent;
-    }
+	public void setPreferContent(boolean preferContent) {
+		this.preferContent = preferContent;
+	}
 }

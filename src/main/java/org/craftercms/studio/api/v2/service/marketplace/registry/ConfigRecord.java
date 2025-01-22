@@ -25,37 +25,37 @@ import org.craftercms.commons.plugin.model.Installation;
  */
 public class ConfigRecord {
 
-    public static ConfigRecord from(Installation installation) {
-        ConfigRecord record = new ConfigRecord();
-        record.setType(installation.getType());
-        record.setElementXpath(installation.getElementXpath());
-        return record;
-    }
+	public static ConfigRecord from(Installation installation) {
+		ConfigRecord record = new ConfigRecord();
+		record.setType(installation.getType());
+		record.setElementXpath(installation.getElementXpath());
+		return record;
+	}
 
-    /**
-     * The type of configuration
-     */
-    private String type;
+	/**
+	 * The type of configuration
+	 */
+	private String type;
 
-    /**
-     * The XPath selector of the injected element
-     */
-    private String elementXpath;
+	/**
+	 * The XPath selector of the injected element
+	 */
+	private String elementXpath;
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public String getElementXpath() {
-        return elementXpath;
-    }
+	public String getElementXpath() {
+		return elementXpath;
+	}
 
-    public void setElementXpath(String elementXpath) {
-        this.elementXpath = elementXpath;
-    }
+	public void setElementXpath(String elementXpath) {
+		this.elementXpath = elementXpath;
+	}
 
 }

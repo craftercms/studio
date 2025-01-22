@@ -32,18 +32,18 @@ import org.craftercms.studio.api.v1.image.transformation.ImageTransformer;
  */
 public class TinifyTransformer implements ImageTransformer {
 
-    public TinifyTransformer(String apiKey) {
-        Tinify.setKey(apiKey);
-    }
+	public TinifyTransformer(String apiKey) {
+		Tinify.setKey(apiKey);
+	}
 
-    @Override
-    public void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException {
-        try {
-            Source source = Tinify.fromFile(sourcePath.toAbsolutePath().toString());
-            source.toFile(targetPath.toAbsolutePath().toString());
-        } catch (Exception e) {
-            throw new ImageTransformationException("Error while performing the Tinify transformation", e);
-        }
-    }
+	@Override
+	public void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException {
+		try {
+			Source source = Tinify.fromFile(sourcePath.toAbsolutePath().toString());
+			source.toFile(targetPath.toAbsolutePath().toString());
+		} catch (Exception e) {
+			throw new ImageTransformationException("Error while performing the Tinify transformation", e);
+		}
+	}
 
 }

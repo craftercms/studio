@@ -33,27 +33,27 @@ import org.springframework.security.config.annotation.web.socket.AbstractSecurit
 @Configuration
 public class WebsocketSecurityConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer {
 
-    protected SecurityExpressionHandler<Message<Object>> expressionHandler;
+	protected SecurityExpressionHandler<Message<Object>> expressionHandler;
 
-    @Autowired
-    public WebsocketSecurityConfig(SecurityExpressionHandler<Message<Object>> expressionHandler) {
-        this.expressionHandler = expressionHandler;
-    }
+	@Autowired
+	public WebsocketSecurityConfig(SecurityExpressionHandler<Message<Object>> expressionHandler) {
+		this.expressionHandler = expressionHandler;
+	}
 
-    @Override
-    protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-        messages
-            // Add support for Studio's expressions
-            .expressionHandler(expressionHandler)
+	@Override
+	protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
+		messages
+			// Add support for Studio's expressions
+			.expressionHandler(expressionHandler)
 
-            // Require authentication for CONNECT messages
-            .nullDestMatcher().authenticated()
-            // Only allow users to subscribe if they are system admins
-            .simpSubscribeDestMatchers("/topic/studio").authenticated()
-            // Only allow users to subscribe if they are site members
-            .simpSubscribeDestMatchers("/topic/studio/{siteId}").access("isSiteMember(#siteId)")
-            // Reject any other incoming message from users
-            .anyMessage().denyAll();
-    }
+			// Require authentication for CONNECT messages
+			.nullDestMatcher().authenticated()
+			// Only allow users to subscribe if they are system admins
+			.simpSubscribeDestMatchers("/topic/studio").authenticated()
+			// Only allow users to subscribe if they are site members
+			.simpSubscribeDestMatchers("/topic/studio/{siteId}").access("isSiteMember(#siteId)")
+			// Reject any other incoming message from users
+			.anyMessage().denyAll();
+	}
 
 }

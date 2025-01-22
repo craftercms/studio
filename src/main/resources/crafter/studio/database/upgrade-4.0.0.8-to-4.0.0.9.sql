@@ -14,10 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-DROP TABLE IF EXISTS item_state ;
+DROP TABLE IF EXISTS item_state;
 
-DROP TABLE IF EXISTS item_metadata ;
+DROP TABLE IF EXISTS item_metadata;
 
-DROP PROCEDURE IF EXISTS migrateWorkflow ;
+DROP PROCEDURE IF EXISTS migrateWorkflow;
 
-UPDATE _meta SET version = '4.0.0.9' ;
+UPDATE _meta
+SET version = '4.0.0.9';

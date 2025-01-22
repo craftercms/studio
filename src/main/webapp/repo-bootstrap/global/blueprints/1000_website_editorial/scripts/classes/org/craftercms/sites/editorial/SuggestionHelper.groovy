@@ -20,19 +20,19 @@ import org.opensearch.client.opensearch.core.SearchRequest
 import org.craftercms.search.opensearch.client.OpenSearchClientWrapper
 
 class SuggestionHelper {
-	
+
 	static final String DEFAULT_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
 	static final String DEFAULT_SEARCH_FIELD = "subject_t"
 
 	OpenSearchClientWrapper searchClient
-	
+
 	String contentTypeQuery = DEFAULT_CONTENT_TYPE_QUERY
 	String searchField = DEFAULT_SEARCH_FIELD
-	
+
 	SuggestionHelper(searchClient) {
 		this.searchClient = searchClient
 	}
-	
+
 	def getSuggestions(String term) {
 		def queryStr = "${contentTypeQuery} AND ${searchField}:*${term}*"
 		def result = searchClient.search(SearchRequest.of(r -> r
@@ -45,12 +45,12 @@ class SuggestionHelper {
 
 		return process(result)
 	}
-	
+
 	def process(result) {
 		def processed = result.hits.hits*.source().collect { doc ->
 			doc[searchField]
 		}
 		return processed
 	}
-	
+
 }

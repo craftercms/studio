@@ -33,90 +33,90 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.STUDIO_CLOCK
 
 public class StudioClockExecutor implements Job {
 
-    private static final Logger logger = LoggerFactory.getLogger(StudioClockExecutor.class);
-    private static final ReentrantLock singleWorkerLock = new ReentrantLock();
-    private static boolean running = false;
-    private SystemStatusProvider systemStatusProvider;
+	private static final Logger logger = LoggerFactory.getLogger(StudioClockExecutor.class);
+	private static final ReentrantLock singleWorkerLock = new ReentrantLock();
+	private static boolean running = false;
+	private SystemStatusProvider systemStatusProvider;
 
-    public synchronized static boolean isRunning() {
-        return running;
-    }
+	public synchronized static boolean isRunning() {
+		return running;
+	}
 
-    public synchronized static void setRunning(boolean isRunning) {
-        running = isRunning;
-    }
+	public synchronized static void setRunning(boolean isRunning) {
+		running = isRunning;
+	}
 
-    private TaskExecutor taskExecutor;
-    private SiteService siteService;
-    private GeneralLockService generalLockService;
-    private List<Job> globalTasks;
-    private List<SiteJob> siteTasks;
-    private static int threadCounter = 0;
+	private TaskExecutor taskExecutor;
+	private SiteService siteService;
+	private GeneralLockService generalLockService;
+	private List<Job> globalTasks;
+	private List<SiteJob> siteTasks;
+	private static int threadCounter = 0;
 
-    @Override
-    public void execute() {
-        threadCounter++;
-        if (systemStatusProvider.isSystemReady()) {
-            if (singleWorkerLock.tryLock()) {
-                try {
-                    setRunning(true);
-                    logger.debug("Execute the Studio Clock Job in thread '{}'", threadCounter);
-                    executeTasks();
-                } catch (Exception e) {
-                    logger.error("Studio Clock Job failed", e);
-                } finally {
-                    setRunning(false);
-                    singleWorkerLock.unlock();
-                }
-            }
-        } else {
-            logger.debug("The system is not ready yet to execute Studio Clock Job. Skip a cycle.");
-        }
-    }
+	@Override
+	public void execute() {
+		threadCounter++;
+		if (systemStatusProvider.isSystemReady()) {
+			if (singleWorkerLock.tryLock()) {
+				try {
+					setRunning(true);
+					logger.debug("Execute the Studio Clock Job in thread '{}'", threadCounter);
+					executeTasks();
+				} catch (Exception e) {
+					logger.error("Studio Clock Job failed", e);
+				} finally {
+					setRunning(false);
+					singleWorkerLock.unlock();
+				}
+			}
+		} else {
+			logger.debug("The system is not ready yet to execute Studio Clock Job. Skip a cycle.");
+		}
+	}
 
-    private void executeTasks() {
-        for (Job job : globalTasks) {
-            job.execute();
-        }
+	private void executeTasks() {
+		for (Job job : globalTasks) {
+			job.execute();
+		}
 
-        List<String> sites = siteService.getAllCreatedSites();
-        for (String site : sites) {
-            taskExecutor.execute(() -> {
-                String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
-                if (generalLockService.tryLock(tasksLock)) {
-                    try {
-                        for (SiteJob siteTask : siteTasks) {
-                            siteTask.execute(site);
-                        }
-                    } finally {
-                        generalLockService.unlock(tasksLock);
-                    }
-                }
-            });
-        }
-    }
+		List<String> sites = siteService.getAllCreatedSites();
+		for (String site : sites) {
+			taskExecutor.execute(() -> {
+				String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
+				if (generalLockService.tryLock(tasksLock)) {
+					try {
+						for (SiteJob siteTask : siteTasks) {
+							siteTask.execute(site);
+						}
+					} finally {
+						generalLockService.unlock(tasksLock);
+					}
+				}
+			});
+		}
+	}
 
-    public void setTaskExecutor(TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
-    }
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
+	public void setSiteService(SiteService siteService) {
+		this.siteService = siteService;
+	}
 
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
+	public void setGeneralLockService(GeneralLockService generalLockService) {
+		this.generalLockService = generalLockService;
+	}
 
-    public void setGlobalTasks(List<Job> globalTasks) {
-        this.globalTasks = globalTasks;
-    }
+	public void setGlobalTasks(List<Job> globalTasks) {
+		this.globalTasks = globalTasks;
+	}
 
-    public void setSiteTasks(List<SiteJob> siteTasks) {
-        this.siteTasks = siteTasks;
-    }
+	public void setSiteTasks(List<SiteJob> siteTasks) {
+		this.siteTasks = siteTasks;
+	}
 
-    public void setSystemStatusProvider(SystemStatusProvider systemStatusProvider) {
-        this.systemStatusProvider = systemStatusProvider;
-    }
+	public void setSystemStatusProvider(SystemStatusProvider systemStatusProvider) {
+		this.systemStatusProvider = systemStatusProvider;
+	}
 }

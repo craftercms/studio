@@ -26,65 +26,65 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 
 public class UpdateItemStatesByQueryRequestBody {
 
-    @Valid
-    @NotNull
-    private Query query;
-    @Valid
-    @NotNull
-    private ItemStatesUpdate update;
+	@Valid
+	@NotNull
+	private Query query;
+	@Valid
+	@NotNull
+	private ItemStatesUpdate update;
 
-    public Query getQuery() {
-        return query;
-    }
+	public Query getQuery() {
+		return query;
+	}
 
-    public void setQuery(Query query) {
-        this.query = query;
-    }
+	public void setQuery(Query query) {
+		this.query = query;
+	}
 
-    public ItemStatesUpdate getUpdate() {
-        return update;
-    }
+	public ItemStatesUpdate getUpdate() {
+		return update;
+	}
 
-    public void setUpdate(ItemStatesUpdate update) {
-        this.update = update;
-    }
+	public void setUpdate(ItemStatesUpdate update) {
+		this.update = update;
+	}
 
-    public static class Query {
-        @NotEmpty
-        @ValidSiteId
-        private String siteId;
+	public static class Query {
+		@NotEmpty
+		@ValidSiteId
+		private String siteId;
 
-        /**
-         * Content path regex
-         */
-        @ValidateSecurePathParam
-        @ValidateNoTagsParam
-        private String path;
+		/**
+		 * Content path regex
+		 */
+		@ValidateSecurePathParam
+		@ValidateNoTagsParam
+		private String path;
 
-        private Long states;
+		private Long states;
 
-        public String getSiteId() {
-            return siteId;
-        }
+		public String getSiteId() {
+			return siteId;
+		}
 
-        public void setSiteId(String siteId) {
-            this.siteId = siteId;
-        }
+		public void setSiteId(String siteId) {
+			this.siteId = siteId;
+		}
 
-        public String getPath() {
-            return path;
-        }
+		public String getPath() {
+			return path;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public void setPath(String path) {
+			this.path = path;
+		}
 
-        public Long getStates() {
-            return states;
-        }
+		public Long getStates() {
+			return states;
+		}
 
-        public void setStates(Long states) {
-            this.states = states;
-        }
-    }
+		public void setStates(Long states) {
+			this.states = states;
+		}
+	}
 }

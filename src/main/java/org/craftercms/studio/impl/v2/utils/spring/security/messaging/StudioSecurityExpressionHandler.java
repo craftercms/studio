@@ -27,29 +27,28 @@ import org.springframework.security.messaging.access.expression.DefaultMessageSe
 /**
  * Extension of {@link DefaultMessageSecurityExpressionHandler} that allows to integrate Studio security expressions
  *
- * @see  StudioMessageSecurityExpressionRoot
- *
  * @author joseross
+ * @see StudioMessageSecurityExpressionRoot
  * @since 4.0.0
  */
 public class StudioSecurityExpressionHandler<T> extends DefaultMessageSecurityExpressionHandler<T> {
 
-    protected final SecurityService securityService;
+	protected final SecurityService securityService;
 
-    public StudioSecurityExpressionHandler(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public StudioSecurityExpressionHandler(SecurityService securityService) {
+		this.securityService = securityService;
+	}
 
-    @Override
-    protected SecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication,
-                                                                        Message<T> invocation) {
-        StudioMessageSecurityExpressionRoot root = new StudioMessageSecurityExpressionRoot(authentication, invocation,
-                                                        securityService);
-        root.setPermissionEvaluator(getPermissionEvaluator());
-        // A new instance needs to be created because it is private in the super class
-        root.setTrustResolver(new AuthenticationTrustResolverImpl());
-        root.setRoleHierarchy(getRoleHierarchy());
-        return root;
-    }
+	@Override
+	protected SecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication,
+									    Message<T> invocation) {
+		StudioMessageSecurityExpressionRoot root = new StudioMessageSecurityExpressionRoot(authentication, invocation,
+			securityService);
+		root.setPermissionEvaluator(getPermissionEvaluator());
+		// A new instance needs to be created because it is private in the super class
+		root.setTrustResolver(new AuthenticationTrustResolverImpl());
+		root.setRoleHierarchy(getRoleHierarchy());
+		return root;
+	}
 
 }

@@ -15,12 +15,12 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <config>
-    <regularTag>test</regularTag>
-    <escapedTag><![CDATA[<hello/>]]></escapedTag>
-    <complicatedTag>
-        <![CDATA[<hello/>]]>
-    </complicatedTag>
-    <withAttrs test="true" empty="false">
-        <![CDATA[<hello/>]]>
-    </withAttrs>
+	<regularTag>test</regularTag>
+	<escapedTag><![CDATA[<hello/>]]></escapedTag>
+	<complicatedTag>
+		<![CDATA[<hello/>]]>
+	</complicatedTag>
+	<withAttrs test="true" empty="false">
+		<![CDATA[<hello/>]]>
+	</withAttrs>
 </config>

@@ -55,145 +55,145 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 
 public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
-    private static final Logger logger = LoggerFactory.getLogger(AvailableActionsResolverImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(AvailableActionsResolverImpl.class);
 
-    public static final String CACHE_KEY = ":available-actions";
+	public static final String CACHE_KEY = ":available-actions";
 
-    private final StudioConfiguration studioConfiguration;
-    private final ConfigurationService configurationService;
-    private final UserServiceInternal userServiceInternal;
-    private final Cache<String, SitePermissionMappings> cache;
+	private final StudioConfiguration studioConfiguration;
+	private final ConfigurationService configurationService;
+	private final UserServiceInternal userServiceInternal;
+	private final Cache<String, SitePermissionMappings> cache;
 
-    public AvailableActionsResolverImpl(StudioConfiguration studioConfiguration,
-                                        ConfigurationService configurationService,
-                                        UserServiceInternal userServiceInternal,
-                                        Cache<String, SitePermissionMappings> cache) {
-        this.studioConfiguration = studioConfiguration;
-        this.configurationService = configurationService;
-        this.userServiceInternal = userServiceInternal;
-        this.cache = cache;
-    }
+	public AvailableActionsResolverImpl(StudioConfiguration studioConfiguration,
+					    ConfigurationService configurationService,
+					    UserServiceInternal userServiceInternal,
+					    Cache<String, SitePermissionMappings> cache) {
+		this.studioConfiguration = studioConfiguration;
+		this.configurationService = configurationService;
+		this.userServiceInternal = userServiceInternal;
+		this.cache = cache;
+	}
 
-    private SitePermissionMappings fetchSitePermissionMappings(String site) throws ServiceLayerException {
-        SitePermissionMappings sitePermissionMappings = new SitePermissionMappings();
-        sitePermissionMappings.setSiteId(site);
+	private SitePermissionMappings fetchSitePermissionMappings(String site) throws ServiceLayerException {
+		SitePermissionMappings sitePermissionMappings = new SitePermissionMappings();
+		sitePermissionMappings.setSiteId(site);
 
-        String globalRolesConfigPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) +
-                FILE_SEPARATOR + studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
-        Document globalRoleMappingsDocument =
-                configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
+		String globalRolesConfigPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) +
+			FILE_SEPARATOR + studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
+		Document globalRoleMappingsDocument =
+			configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
 
-        String globalPermissionsConfigPath =
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
-                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
-        Document globalPermissionMappingsDocument =
-                configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
+		String globalPermissionsConfigPath =
+			studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
+				studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
+		Document globalPermissionMappingsDocument =
+			configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
 
-        loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
-        loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
+		loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
+		loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
 
-        if (!StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-            Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
-                    studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
-                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            Document permissionsMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
-                    studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME),
-                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            loadRoles(roleMappingsDocument, sitePermissionMappings);
-            loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
-        }
-        return sitePermissionMappings;
-    }
+		if (!StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+			Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
+				studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
+				studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+			Document permissionsMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
+				studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME),
+				studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+			loadRoles(roleMappingsDocument, sitePermissionMappings);
+			loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
+		}
+		return sitePermissionMappings;
+	}
 
-    private SitePermissionMappings loadRoles(Document document, SitePermissionMappings sitePermissionMappings) {
-        Element root = document.getRootElement();
-        if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
-            Map<NormalizedGroup, List<NormalizedRole>> rolesMap = new HashMap<>();
+	private SitePermissionMappings loadRoles(Document document, SitePermissionMappings sitePermissionMappings) {
+		Element root = document.getRootElement();
+		if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
+			Map<NormalizedGroup, List<NormalizedRole>> rolesMap = new HashMap<>();
 
-            List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
-            rolesMap = getRoles(userNodes, rolesMap);
+			List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
+			rolesMap = getRoles(userNodes, rolesMap);
 
-            List<Node> groupNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE);
-            rolesMap = getRoles(groupNodes, rolesMap);
+			List<Node> groupNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE);
+			rolesMap = getRoles(groupNodes, rolesMap);
 
-            rolesMap.forEach(sitePermissionMappings::addGroupToRolesMapping);
-        }
-        return sitePermissionMappings;
-    }
+			rolesMap.forEach(sitePermissionMappings::addGroupToRolesMapping);
+		}
+		return sitePermissionMappings;
+	}
 
-    private Map<NormalizedGroup, List<NormalizedRole>> getRoles(List<Node> nodes, Map<NormalizedGroup,
-            List<NormalizedRole>> rolesMap) {
-        for (Node node : nodes) {
-            String groupName = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
-            if (!StringUtils.isEmpty(groupName)) {
-                List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                List<NormalizedRole> roles = new ArrayList<>();
-                for (Node roleNode : roleNodes) {
-                    roles.add(new NormalizedRole(roleNode.getText()));
-                }
-                rolesMap.put(new NormalizedGroup(groupName), roles);
-            }
-        }
-        return rolesMap;
-    }
+	private Map<NormalizedGroup, List<NormalizedRole>> getRoles(List<Node> nodes, Map<NormalizedGroup,
+		List<NormalizedRole>> rolesMap) {
+		for (Node node : nodes) {
+			String groupName = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+			if (!StringUtils.isEmpty(groupName)) {
+				List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+				List<NormalizedRole> roles = new ArrayList<>();
+				for (Node roleNode : roleNodes) {
+					roles.add(new NormalizedRole(roleNode.getText()));
+				}
+				rolesMap.put(new NormalizedGroup(groupName), roles);
+			}
+		}
+		return rolesMap;
+	}
 
-    private SitePermissionMappings loadPermissions(Document document, SitePermissionMappings sitePermissionMappings) {
-        Element permissionsRoot = document.getRootElement();
-        if (permissionsRoot.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
-            Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
-            if(siteNode != null) {
-                permissionsRoot = siteNode;
-            }
+	private SitePermissionMappings loadPermissions(Document document, SitePermissionMappings sitePermissionMappings) {
+		Element permissionsRoot = document.getRootElement();
+		if (permissionsRoot.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
+			Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
+			if (siteNode != null) {
+				permissionsRoot = siteNode;
+			}
 
-            List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-            for (Node roleNode : roleNodes) {
-                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
-                RolePermissionMappings rolePermissionMappings = new RolePermissionMappings();
-                rolePermissionMappings.setRole(roleName);
-                List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
-                ruleNodes.forEach(r -> {
-                    String regex = r.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
-                    List<Node> permissionNodes = r.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
-                    List<String> permissions = new ArrayList<>();
-                    permissionNodes.forEach(pn -> {
-                        permissions.add(pn.getText().toLowerCase());
-                    });
-                    long availableActions = mapPermissionsToContentItemAvailableActions(permissions);
-                    rolePermissionMappings.addRuleContentItemPermissionsMapping(regex, availableActions);
-                });
-                sitePermissionMappings.addRolePermissionMapping(roleName, rolePermissionMappings);
-            }
-        }
-        return sitePermissionMappings;
-    }
+			List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+			for (Node roleNode : roleNodes) {
+				String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+				RolePermissionMappings rolePermissionMappings = new RolePermissionMappings();
+				rolePermissionMappings.setRole(roleName);
+				List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
+				ruleNodes.forEach(r -> {
+					String regex = r.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
+					List<Node> permissionNodes = r.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+					List<String> permissions = new ArrayList<>();
+					permissionNodes.forEach(pn -> {
+						permissions.add(pn.getText().toLowerCase());
+					});
+					long availableActions = mapPermissionsToContentItemAvailableActions(permissions);
+					rolePermissionMappings.addRuleContentItemPermissionsMapping(regex, availableActions);
+				});
+				sitePermissionMappings.addRolePermissionMapping(roleName, rolePermissionMappings);
+			}
+		}
+		return sitePermissionMappings;
+	}
 
-    @Override
-    public long getContentItemAvailableActions(String username, String siteId, String path)
-            throws ServiceLayerException, UserNotFoundException {
-        SitePermissionMappings sitePermissionMappings = findSitePermissionMappings(siteId);
-        return calculateAvailableActions(username, path, sitePermissionMappings);
-    }
+	@Override
+	public long getContentItemAvailableActions(String username, String siteId, String path)
+		throws ServiceLayerException, UserNotFoundException {
+		SitePermissionMappings sitePermissionMappings = findSitePermissionMappings(siteId);
+		return calculateAvailableActions(username, path, sitePermissionMappings);
+	}
 
-    private SitePermissionMappings findSitePermissionMappings(final String site) throws ServiceLayerException {
-        var cacheKey = site + CACHE_KEY;
-        SitePermissionMappings mappings = cache.getIfPresent(cacheKey);
-        if (mappings == null) {
-            logger.debug("Cache miss for site '{}' cache key '{}'", site, cacheKey);
-            mappings = fetchSitePermissionMappings(site);
-            cache.put(cacheKey, mappings);
-        }
-        return mappings;
-    }
+	private SitePermissionMappings findSitePermissionMappings(final String site) throws ServiceLayerException {
+		var cacheKey = site + CACHE_KEY;
+		SitePermissionMappings mappings = cache.getIfPresent(cacheKey);
+		if (mappings == null) {
+			logger.debug("Cache miss for site '{}' cache key '{}'", site, cacheKey);
+			mappings = fetchSitePermissionMappings(site);
+			cache.put(cacheKey, mappings);
+		}
+		return mappings;
+	}
 
-    private long calculateAvailableActions(String username, String path,
-                                           SitePermissionMappings sitePermissionMappings)
-            throws ServiceLayerException, UserNotFoundException {
-        long toReturn = 0L;
-        List<Group> groups = userServiceInternal.getUserGroups(-1, username);
-        if (CollectionUtils.isNotEmpty(groups)) {
-            toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
-        }
-        return toReturn;
-    }
+	private long calculateAvailableActions(String username, String path,
+					       SitePermissionMappings sitePermissionMappings)
+		throws ServiceLayerException, UserNotFoundException {
+		long toReturn = 0L;
+		List<Group> groups = userServiceInternal.getUserGroups(-1, username);
+		if (CollectionUtils.isNotEmpty(groups)) {
+			toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
+		}
+		return toReturn;
+	}
 
 }

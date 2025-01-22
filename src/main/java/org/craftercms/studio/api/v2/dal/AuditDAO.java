@@ -25,43 +25,43 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface AuditDAO {
 
-    List<AuditLog> getAuditLog(Map params);
+	List<AuditLog> getAuditLog(Map params);
 
-    int getAuditLogTotal(Map params);
+	int getAuditLogTotal(Map params);
 
-    AuditLog getAuditLogEntry(Map params);
+	AuditLog getAuditLogEntry(Map params);
 
-    int insertAuditLog(AuditLog auditLog);
+	int insertAuditLog(AuditLog auditLog);
 
-    void insertAuditLogParams(Map params);
+	void insertAuditLogParams(Map params);
 
-    List<AuditLog> selectUserFeedEntriesHideLive(Map params);
+	List<AuditLog> selectUserFeedEntriesHideLive(Map params);
 
-    List<AuditLog> selectUserFeedEntries(Map params);
+	List<AuditLog> selectUserFeedEntries(Map params);
 
-    /**
-     * Gets commit authors from a list of commit ids.
-     * This will retrieve a {@link CommitAuthor} object from the database when
-     * the commit was created by Studio, meaning the following conditions are met:
-     * <ul>
-     *     <li>There is an audit entry for the given commit id</li>
-     *     <li>AND the audit entry origin is API</li>
-     *     <li>AND the audit entry primary_target_value is the given path</li>
-     * </ul>
-     *
-     * @param siteId site id
-     * @param commitIds the commit ids
-     * @param path the path (to match primary_target_value)
-     * @return the List of {@link CommitAuthor} if found
-     */
-    List<CommitAuthor> getCommitAuthors(@Param(SITE_ID) long siteId, @Param(COMMIT_IDS) List<String> commitIds, @Param(PATH) String path);
+	/**
+	 * Gets commit authors from a list of commit ids.
+	 * This will retrieve a {@link CommitAuthor} object from the database when
+	 * the commit was created by Studio, meaning the following conditions are met:
+	 * <ul>
+	 *     <li>There is an audit entry for the given commit id</li>
+	 *     <li>AND the audit entry origin is API</li>
+	 *     <li>AND the audit entry primary_target_value is the given path</li>
+	 * </ul>
+	 *
+	 * @param siteId    site id
+	 * @param commitIds the commit ids
+	 * @param path      the path (to match primary_target_value)
+	 * @return the List of {@link CommitAuthor} if found
+	 */
+	List<CommitAuthor> getCommitAuthors(@Param(SITE_ID) long siteId, @Param(COMMIT_IDS) List<String> commitIds, @Param(PATH) String path);
 
-    /**
-     * Checks if a commit has been audited.
-     *
-     * @param siteId   site id
-     * @param commitId commit id
-     * @return true if an entry exists in audit table for the given commit id, false otherwise.
-     */
-    boolean isAudited(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
+	/**
+	 * Checks if a commit has been audited.
+	 *
+	 * @param siteId   site id
+	 * @param commitId commit id
+	 * @return true if an entry exists in audit table for the given commit id, false otherwise.
+	 */
+	boolean isAudited(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
 }

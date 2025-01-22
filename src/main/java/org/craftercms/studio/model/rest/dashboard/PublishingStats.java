@@ -18,31 +18,31 @@ package org.craftercms.studio.model.rest.dashboard;
 
 public class PublishingStats {
 
-    private int numberOfPublishes;
-    private int numberOfNewAndPublishedItems;
-    private int numberOfEditedAndPublishedItems;
+	private int numberOfPublishes;
+	private int numberOfNewAndPublishedItems;
+	private int numberOfEditedAndPublishedItems;
 
-    public int getNumberOfPublishes() {
-        return numberOfPublishes;
-    }
+	public int getNumberOfPublishes() {
+		return numberOfPublishes;
+	}
 
-    public void setNumberOfPublishes(int numberOfPublishes) {
-        this.numberOfPublishes = numberOfPublishes;
-    }
+	public void setNumberOfPublishes(int numberOfPublishes) {
+		this.numberOfPublishes = numberOfPublishes;
+	}
 
-    public int getNumberOfNewAndPublishedItems() {
-        return numberOfNewAndPublishedItems;
-    }
+	public int getNumberOfNewAndPublishedItems() {
+		return numberOfNewAndPublishedItems;
+	}
 
-    public void setNumberOfNewAndPublishedItems(int numberOfNewAndPublishedItems) {
-        this.numberOfNewAndPublishedItems = numberOfNewAndPublishedItems;
-    }
+	public void setNumberOfNewAndPublishedItems(int numberOfNewAndPublishedItems) {
+		this.numberOfNewAndPublishedItems = numberOfNewAndPublishedItems;
+	}
 
-    public int getNumberOfEditedAndPublishedItems() {
-        return numberOfEditedAndPublishedItems;
-    }
+	public int getNumberOfEditedAndPublishedItems() {
+		return numberOfEditedAndPublishedItems;
+	}
 
-    public void setNumberOfEditedAndPublishedItems(int numberOfEditedAndPublishedItems) {
-        this.numberOfEditedAndPublishedItems = numberOfEditedAndPublishedItems;
-    }
+	public void setNumberOfEditedAndPublishedItems(int numberOfEditedAndPublishedItems) {
+		this.numberOfEditedAndPublishedItems = numberOfEditedAndPublishedItems;
+	}
 }

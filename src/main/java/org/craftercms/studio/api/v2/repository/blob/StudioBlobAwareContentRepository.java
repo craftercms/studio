@@ -26,12 +26,12 @@ import org.craftercms.studio.api.v2.repository.PublishCapableRepository;
  */
 public interface StudioBlobAwareContentRepository extends GitContentRepository, PublishCapableRepository {
 
-    /**
-     * Extract every blob from the source site and store it in the target site in the blob store matching its path
-     *
-     * @param sourceSiteId the source site
-     * @param siteId       the target site
-     * @throws ServiceLayerException if an error occurs during the operation
-     */
-    void duplicateBlobs(String sourceSiteId, String siteId) throws ServiceLayerException;
+	/**
+	 * Extract every blob from the source site and store it in the target site in the blob store matching its path
+	 *
+	 * @param sourceSiteId the source site
+	 * @param siteId       the target site
+	 * @throws ServiceLayerException if an error occurs during the operation
+	 */
+	void duplicateBlobs(String sourceSiteId, String siteId) throws ServiceLayerException;
 }

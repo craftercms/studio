@@ -25,25 +25,25 @@ import org.springframework.lang.NonNull;
  * @param <K> type of the task id
  */
 public abstract class Task<K extends TaskId> {
-    private final String type;
-    private final K taskId;
+	private final String type;
+	private final K taskId;
 
-    public Task(@NonNull final String type, K taskId) {
-        this.type = type;
-        this.taskId = taskId;
-    }
+	public Task(@NonNull final String type, K taskId) {
+		this.type = type;
+		this.taskId = taskId;
+	}
 
-    @NonNull
-    public String getType() {
-        return type;
-    }
+	@NonNull
+	public String getType() {
+		return type;
+	}
 
-    /**
-     * Get the task id
-     *
-     * @return the task id
-     */
-    public K getTaskId() {
-        return taskId;
-    }
+	/**
+	 * Get the task id
+	 *
+	 * @return the task id
+	 */
+	public K getTaskId() {
+		return taskId;
+	}
 }

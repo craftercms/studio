@@ -27,20 +27,20 @@ import java.util.Collections;
  */
 public class ContentInPublishQueueException extends ServiceLayerException {
 
-    private final Collection<PublishPackage> publishPackages;
+	private final Collection<PublishPackage> publishPackages;
 
-    /**
-     * Constructor.
-     *
-     * @param message         The exception message.
-     * @param publishPackages The publish packages the item is in workflow for.
-     */
-    public ContentInPublishQueueException(final String message, final Collection<PublishPackage> publishPackages) {
-        super(message);
-        this.publishPackages = Collections.unmodifiableCollection(publishPackages);
-    }
+	/**
+	 * Constructor.
+	 *
+	 * @param message         The exception message.
+	 * @param publishPackages The publish packages the item is in workflow for.
+	 */
+	public ContentInPublishQueueException(final String message, final Collection<PublishPackage> publishPackages) {
+		super(message);
+		this.publishPackages = Collections.unmodifiableCollection(publishPackages);
+	}
 
-    public Collection<PublishPackage> getPublishPackages() {
-        return publishPackages;
-    }
+	public Collection<PublishPackage> getPublishPackages() {
+		return publishPackages;
+	}
 }

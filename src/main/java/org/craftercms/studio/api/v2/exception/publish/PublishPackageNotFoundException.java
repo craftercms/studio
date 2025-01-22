@@ -25,33 +25,33 @@ import static java.lang.String.format;
  */
 public class PublishPackageNotFoundException extends ServiceLayerException {
 
-    private final String siteId;
+	private final String siteId;
 
-    private final Long packageId;
+	private final Long packageId;
 
-    public PublishPackageNotFoundException(final String siteId, final Long packageId) {
-        this(format("Unable to find package with id '%s' for site '%s'", packageId, siteId), siteId, packageId);
-    }
+	public PublishPackageNotFoundException(final String siteId, final Long packageId) {
+		this(format("Unable to find package with id '%s' for site '%s'", packageId, siteId), siteId, packageId);
+	}
 
-    public PublishPackageNotFoundException(final String message, final String siteId, final Long packageId) {
-        super(message);
-        this.packageId = packageId;
-        this.siteId = siteId;
-    }
+	public PublishPackageNotFoundException(final String message, final String siteId, final Long packageId) {
+		super(message);
+		this.packageId = packageId;
+		this.siteId = siteId;
+	}
 
-    public Long getPackageId() {
-        return packageId;
-    }
+	public Long getPackageId() {
+		return packageId;
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    @Override
-    public String toString() {
-        return "PublishPackageNotFoundException{" +
-                "packageId=" + packageId +
-                ", siteId='" + siteId + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "PublishPackageNotFoundException{" +
+			"packageId=" + packageId +
+			", siteId='" + siteId + '\'' +
+			'}';
+	}
 }

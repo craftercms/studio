@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v1.service.fsm;
 // Not an api
 public enum TransitionEvent {
 
-    SCHEDULED_DEPLOYMENT,
-    DEPLOYMENT,
-    DELETE
+	SCHEDULED_DEPLOYMENT,
+	DEPLOYMENT,
+	DELETE
 }

@@ -22,7 +22,8 @@
 	<imageThumbnail>component-feature.png</imageThumbnail>
 	<quickCreate>false</quickCreate>
 	<quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/feature.ftl</value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Component - Feature Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -289,12 +291,12 @@
 				<property>
 					<name>dataType</name>
 					<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
-						<type>undefined</type>
+					<type>undefined</type>
 				</property>
 				<property>
 					<name>componentPath</name>
 					<value>/site/taxonomy/feature-icons.xml</value>
-						<type>undefined</type>
+					<type>undefined</type>
 				</property>
 			</properties>
 		</datasource>

@@ -17,6 +17,7 @@ package org.craftercms.studio.model.policy;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
@@ -29,111 +30,112 @@ import static java.util.Collections.emptyMap;
  */
 public class Action {
 
-    public static final String METADATA_FILE_SIZE = "fileSize";
-    public static final String METADATA_CONTENT_TYPE = "contentType";
+	public static final String METADATA_FILE_SIZE = "fileSize";
+	public static final String METADATA_CONTENT_TYPE = "contentType";
 
-    /**
-     * The type of action
-     */
-    @NotNull
-    protected Type type;
+	/**
+	 * The type of action
+	 */
+	@NotNull
+	protected Type type;
 
-    /**
-     * The source of the action
-     */
-    protected String source;
+	/**
+	 * The source of the action
+	 */
+	protected String source;
 
-    /**
-     * The target of the action
-     */
-    @NotEmpty
-    protected String target;
+	/**
+	 * The target of the action
+	 */
+	@NotEmpty
+	protected String target;
 
-    /**
-     * Part of the target path to be created
-     */
-    protected String newPath;
+	/**
+	 * Part of the target path to be created
+	 */
+	protected String newPath;
 
-    /**
-     * Indicates if the action is recursive
-     */
-    protected boolean recursive = false;
+	/**
+	 * Indicates if the action is recursive
+	 */
+	protected boolean recursive = false;
 
-    protected Map<String, Object> contentMetadata = emptyMap();
+	protected Map<String, Object> contentMetadata = emptyMap();
 
-    public Type getType() {
-        return type;
-    }
+	public Type getType() {
+		return type;
+	}
 
-    public void setType(Type type) {
-        this.type = type;
-    }
+	public void setType(Type type) {
+		this.type = type;
+	}
 
-    public String getSource() {
-        return source;
-    }
+	public String getSource() {
+		return source;
+	}
 
-    public void setSource(String source) {
-        this.source = source;
-    }
+	public void setSource(String source) {
+		this.source = source;
+	}
 
-    public String getTarget() {
-        return target;
-    }
+	public String getTarget() {
+		return target;
+	}
 
-    public void setTarget(String target) {
-        this.target = target;
-    }
+	public void setTarget(String target) {
+		this.target = target;
+	}
 
-    public String getNewPath() {
-        return newPath;
-    }
+	public String getNewPath() {
+		return newPath;
+	}
 
-    public void setNewPath(String newPath) {
-        this.newPath = newPath;
-    }
+	public void setNewPath(String newPath) {
+		this.newPath = newPath;
+	}
 
-    public boolean isRecursive() {
-        return recursive;
-    }
+	public boolean isRecursive() {
+		return recursive;
+	}
 
-    public void setRecursive(boolean recursive) {
-        this.recursive = recursive;
-    }
+	public void setRecursive(boolean recursive) {
+		this.recursive = recursive;
+	}
 
-    public Map<String, Object> getContentMetadata() {
-        return contentMetadata;
-    }
+	public Map<String, Object> getContentMetadata() {
+		return contentMetadata;
+	}
 
-    public void setContentMetadata(Map<String, Object> contentMetadata) {
-        this.contentMetadata = contentMetadata;
-    }
+	public void setContentMetadata(Map<String, Object> contentMetadata) {
+		this.contentMetadata = contentMetadata;
+	}
 
-    @SuppressWarnings("unchecked")
-    public <T> T getMetadata(String key) {
-        return (T) contentMetadata.get(key);
-    }
+	@SuppressWarnings("unchecked")
+	public <T> T getMetadata(String key) {
+		return (T) contentMetadata.get(key);
+	}
 
-    public boolean containsMetadata(String key) {
-        return contentMetadata.containsKey(key);
-    }
+	public boolean containsMetadata(String key) {
+		return contentMetadata.containsKey(key);
+	}
 
-    /**
-     * Check if the action type has a change in name
-     * @return true if of type CREATE or RENAME, false otherwise
-     */
-    public boolean createOrRenameType() {
-        return type == Type.CREATE || type == Type.RENAME;
-    }
+	/**
+	 * Check if the action type has a change in name
+	 *
+	 * @return true if of type CREATE or RENAME, false otherwise
+	 */
+	public boolean createOrRenameType() {
+		return type == Type.CREATE || type == Type.RENAME;
+	}
 
-    @Override
-    public String toString() {
-        return "Action{" +
-                "type=" + type +
-                ", source='" + source + '\'' +
-                ", target='" + target + '\'' +
-                ", recursive=" + recursive +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "Action{" +
+			"type=" + type +
+			", source='" + source + '\'' +
+			", target='" + target + '\'' +
+			", recursive=" + recursive +
+			'}';
+	}
 
 }

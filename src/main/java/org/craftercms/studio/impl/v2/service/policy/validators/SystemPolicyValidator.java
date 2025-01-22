@@ -35,46 +35,46 @@ import static java.lang.String.format;
  */
 public class SystemPolicyValidator implements PolicyValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(SystemPolicyValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(SystemPolicyValidator.class);
 
-    protected int filenameMaxSize;
+	protected int filenameMaxSize;
 
-    protected int fullPathMaxSize;
+	protected int fullPathMaxSize;
 
-    @ConstructorProperties({"filenameMaxSize", "fullPathMaxSize"})
-    public SystemPolicyValidator(int filenameMaxSize, int fullPathMaxSize) {
-        this.filenameMaxSize = filenameMaxSize;
-        this.fullPathMaxSize = fullPathMaxSize;
-    }
+	@ConstructorProperties({"filenameMaxSize", "fullPathMaxSize"})
+	public SystemPolicyValidator(int filenameMaxSize, int fullPathMaxSize) {
+		this.filenameMaxSize = filenameMaxSize;
+		this.fullPathMaxSize = fullPathMaxSize;
+	}
 
-    private void validateSystem(Action action, ValidationResult result) {
-        // Check if the full path exceeds the limit
-        String fullPath = action.getTarget();
-        if (fullPath.length() >= fullPathMaxSize) {
-            String message = format("Full path should not exceed '%s'", fullPathMaxSize);
-            logger.error(message);
-            result.setAllowed(false);
-            result.setMessage(message);
-            return;
-        }
+	private void validateSystem(Action action, ValidationResult result) {
+		// Check if the full path exceeds the limit
+		String fullPath = action.getTarget();
+		if (fullPath.length() >= fullPathMaxSize) {
+			String message = format("Full path should not exceed '%s'", fullPathMaxSize);
+			logger.error(message);
+			result.setAllowed(false);
+			result.setMessage(message);
+			return;
+		}
 
-        // Check if any folder in the path exceeds the limit
-        Path path = Path.of(fullPath);
-        while (path != null && path.getFileName() != null) {
-            String filename = path.getFileName().toString();
-            if (filename.length() >= filenameMaxSize) {
-                String message = format("Folder names in path should not exceed '%s'", filenameMaxSize);
-                logger.error(message);
-                result.setAllowed(false);
-                result.setMessage(message);
-            }
-            path = path.getParent();
-        }
-    }
+		// Check if any folder in the path exceeds the limit
+		Path path = Path.of(fullPath);
+		while (path != null && path.getFileName() != null) {
+			String filename = path.getFileName().toString();
+			if (filename.length() >= filenameMaxSize) {
+				String message = format("Folder names in path should not exceed '%s'", filenameMaxSize);
+				logger.error(message);
+				result.setAllowed(false);
+				result.setMessage(message);
+			}
+			path = path.getParent();
+		}
+	}
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
-        validateSystem(action, result);
-    }
+	@Override
+	public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
+		validateSystem(action, result);
+	}
 
 }

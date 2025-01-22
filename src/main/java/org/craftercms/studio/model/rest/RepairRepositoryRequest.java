@@ -26,26 +26,26 @@ import jakarta.validation.constraints.NotNull;
  * Repository Repair Request
  */
 public class RepairRepositoryRequest {
-    @NotEmpty
-    @ValidSiteId
-    protected String siteId;
+	@NotEmpty
+	@ValidSiteId
+	protected String siteId;
 
-    @NotNull
-    protected GitRepositories repositoryType;
+	@NotNull
+	protected GitRepositories repositoryType;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(final String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(final String siteId) {
+		this.siteId = siteId;
+	}
 
-    public GitRepositories getRepositoryType() {
-        return repositoryType;
-    }
+	public GitRepositories getRepositoryType() {
+		return repositoryType;
+	}
 
-    public void setRepositoryType(final GitRepositories repositoryType) {
-        this.repositoryType = repositoryType;
-    }
+	public void setRepositoryType(final GitRepositories repositoryType) {
+		this.repositoryType = repositoryType;
+	}
 }

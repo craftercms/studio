@@ -26,16 +26,15 @@ import java.io.StringWriter;
 
 /**
  * This class provides common methods for handling XML
- * 
+ *
  * @author hyanghee
- * 
  */
 public class XmlUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
 
 	/**
 	 * convert document to string
-	 * 
+	 *
 	 * @param document
 	 * @return XML as String
 	 * @throws java.io.IOException

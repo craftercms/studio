@@ -22,74 +22,74 @@ import java.util.List;
  * Blob store configuration details.
  */
 public class BlobStoreDetails {
-    private String id;
-    private String type;
-    private String pattern;
-    List<Mapping> mappings;
-    private boolean readOnly;
+	private String id;
+	private String type;
+	private String pattern;
+	List<Mapping> mappings;
+	private boolean readOnly;
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public String getPattern() {
-        return pattern;
-    }
+	public String getPattern() {
+		return pattern;
+	}
 
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
 
-    public List<Mapping> getMappings() {
-        return mappings;
-    }
+	public List<Mapping> getMappings() {
+		return mappings;
+	}
 
-    public void setMappings(List<Mapping> mappings) {
-        this.mappings = mappings;
-    }
+	public void setMappings(List<Mapping> mappings) {
+		this.mappings = mappings;
+	}
 
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-    }
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
+	}
 
-    public boolean isReadOnly() {
-        return readOnly;
-    }
+	public boolean isReadOnly() {
+		return readOnly;
+	}
 
-    public static class Mapping {
-        private final String publishingTarget;
-        private final String storeTarget;
-        private final String prefix;
+	public static class Mapping {
+		private final String publishingTarget;
+		private final String storeTarget;
+		private final String prefix;
 
-        public Mapping(String publishingTarget, String storeTarget, String prefix) {
-            this.publishingTarget = publishingTarget;
-            this.storeTarget = storeTarget;
-            this.prefix = prefix;
-        }
+		public Mapping(String publishingTarget, String storeTarget, String prefix) {
+			this.publishingTarget = publishingTarget;
+			this.storeTarget = storeTarget;
+			this.prefix = prefix;
+		}
 
-        public String getPublishingTarget() {
-            return publishingTarget;
-        }
+		public String getPublishingTarget() {
+			return publishingTarget;
+		}
 
-        public String getStoreTarget() {
-            return storeTarget;
-        }
+		public String getStoreTarget() {
+			return storeTarget;
+		}
 
-        public String getPrefix() {
-            return prefix;
-        }
-    }
+		public String getPrefix() {
+			return prefix;
+		}
+	}
 
 }

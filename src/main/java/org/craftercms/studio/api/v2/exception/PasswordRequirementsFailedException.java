@@ -20,20 +20,20 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 public class PasswordRequirementsFailedException extends ServiceLayerException {
 
-    private static final long serialVersionUID = -8223803465399743846L;
+	private static final long serialVersionUID = -8223803465399743846L;
 
-    public PasswordRequirementsFailedException() {
-    }
+	public PasswordRequirementsFailedException() {
+	}
 
-    public PasswordRequirementsFailedException(Throwable e) {
-        super(e);
-    }
+	public PasswordRequirementsFailedException(Throwable e) {
+		super(e);
+	}
 
-    public PasswordRequirementsFailedException(String message) {
-        super(message);
-    }
+	public PasswordRequirementsFailedException(String message) {
+		super(message);
+	}
 
-    public PasswordRequirementsFailedException(String message, Exception e) {
-        super(message, e);
-    }
+	public PasswordRequirementsFailedException(String message, Exception e) {
+		super(message, e);
+	}
 }
