@@ -15,6 +15,7 @@
  */
 
 ALTER TABLE `item`
-    ADD INDEX `item_i_path` (`path` ASC) ;
+    ADD INDEX `item_i_path` (`path` ASC);
 
-UPDATE `_meta` SET `version` = '4.0.1.1' ;
+UPDATE `_meta`
+SET `version` = '4.0.1.1';

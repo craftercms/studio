@@ -32,62 +32,62 @@ import jakarta.validation.constraints.NotNull;
  */
 public class PasteRequest {
 
-    /**
-     * The id of the site
-     */
-    @NotEmpty
-    @ValidSiteId
-    protected String siteId;
+	/**
+	 * The id of the site
+	 */
+	@NotEmpty
+	@ValidSiteId
+	protected String siteId;
 
-    /**
-     * The operation to perform
-     */
-    @NotNull
-    protected Operation operation;
+	/**
+	 * The operation to perform
+	 */
+	@NotNull
+	protected Operation operation;
 
-    /**
-     * The target path
-     */
-    @ValidNewContentPath
-    protected String targetPath;
+	/**
+	 * The target path
+	 */
+	@ValidNewContentPath
+	protected String targetPath;
 
-    /**
-     * The item to be copied/moved
-     */
-    @Valid
-    @NotNull
-    protected PasteItem item;
+	/**
+	 * The item to be copied/moved
+	 */
+	@Valid
+	@NotNull
+	protected PasteItem item;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public Operation getOperation() {
-        return operation;
-    }
+	public Operation getOperation() {
+		return operation;
+	}
 
-    public void setOperation(Operation operation) {
-        this.operation = operation;
-    }
+	public void setOperation(Operation operation) {
+		this.operation = operation;
+	}
 
-    public String getTargetPath() {
-        return targetPath;
-    }
+	public String getTargetPath() {
+		return targetPath;
+	}
 
-    public void setTargetPath(String targetPath) {
-        this.targetPath = targetPath;
-    }
+	public void setTargetPath(String targetPath) {
+		this.targetPath = targetPath;
+	}
 
-    public PasteItem getItem() {
-        return item;
-    }
+	public PasteItem getItem() {
+		return item;
+	}
 
-    public void setItem(PasteItem item) {
-        this.item = item;
-    }
+	public void setItem(PasteItem item) {
+		this.item = item;
+	}
 
 }

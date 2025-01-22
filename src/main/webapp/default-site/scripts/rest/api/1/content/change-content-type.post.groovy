@@ -27,25 +27,25 @@ def paramsList = []
 
 // site_id
 try {
-    if (StringUtils.isEmpty(site)) {
-        site = request.getParameter("site")
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
+	if (StringUtils.isEmpty(site)) {
+		site = request.getParameter("site")
+		if (StringUtils.isEmpty(site)) {
+			invalidParams = true
+			paramsList.add("site_id")
+		}
+	}
 } catch (Exception e) {
-    invalidParams = true
-    paramsList.add("site_id")
+	invalidParams = true
+	paramsList.add("site_id")
 }
 
 if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
+	response.setStatus(400)
+	result.message = "Invalid parameter(s): " + paramsList
 } else {
-    def context = ContentTypeServices.createContext(applicationContext, request)
+	def context = ContentTypeServices.createContext(applicationContext, request)
 
-    result = ContentTypeServices.changeContentType(context, site, path, type)
+	result = ContentTypeServices.changeContentType(context, site, path, type)
 
 }
 return result

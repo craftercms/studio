@@ -18,9 +18,10 @@ package org.craftercms.studio.api.v1.exception;
 public class SiteCreationException extends ServiceLayerException {
 
 
-    private static final long serialVersionUID = 6422788452443045182L;
+	private static final long serialVersionUID = 6422788452443045182L;
 
-    public SiteCreationException() {}
+	public SiteCreationException() {
+	}
 
 	public SiteCreationException(Exception e) {
 		super(e);

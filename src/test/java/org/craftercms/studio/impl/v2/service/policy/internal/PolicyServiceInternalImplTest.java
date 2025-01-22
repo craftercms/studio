@@ -52,431 +52,430 @@ import static org.testng.Assert.*;
  */
 public class PolicyServiceInternalImplTest {
 
-    public static final String SITE_ID = "mySite";
-
-    public static final Resource CONFIG = new ClassPathResource("crafter/studio/config/policy.xml");
-
-    public static final String CONFIG_PATH = "/studio/config/policy-config.xml";
-
-    public static final String STATIC_ASSETS = "/static-assets";
-
-    public static final String DOC1_FILENAME = "doc1.pdf";
-    public static final String DOC2_FILENAME = "doc2.pdf";
-    public static final String DOC3_FILENAME = "doc3.pdf";
-    public static final String DOCS_FOLDER_PATH = "/static-assets/docs";
-    public static final String SUB_FOLDER_NAME = "folder";
-
-    public static final String PIC_FILENAME = "pic.png";
-    public static final String PICS_FOLDER_PATH = "/static-assets/pics";
-
-    public static final String FOOTER_CONTENT_TYPE = "/component/footer";
-    public static final String HEADER_CONTENT_TYPE = "/component/header";
-
-    public static final String UNRESTRICTED_FOLDER = "/static-assets/secret";
-    public static final String SIZE_RESTRICTED_FOLDER = "/static-assets/small";
-    public static final String TYPE_RESTRICTED_FOLDER = "/static-assets/images";
-    public static final String SIMPLE_PATH_RESTRICTED_FOLDER = "/static-assets/no-numbers";
-    public static final String CASE_PATH_RESTRICTED_FOLDER = "/static-assets/only-lowercase";
-    public static final String REMOVE_PATH_RESTRICTED_FOLDER = "/static-assets/remove-numbers";
-    public static final String CONTENT_TYPE_RESTRICTED_FOLDER = "/site/components/headers";
-
-    public static final String PIC_SVG_FILENAME = "pic.svg";
-    public static final String RESTRICTED_MIME_TYPE = "image/svg+xml";
-
-    public static final String CONTENT_TYPE_FOOTER_ONLY_FOLDER = "/site/components/footers";
-
-    @Mock
-    private GitContentRepository contentRepository;
-
-    @Mock
-    private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
-
-    @Mock
-    private ConfigurationService configurationService;
-
-    private PolicyServiceInternalImpl policyService;
-
-    @BeforeClass
-    public static void setUpLogger() {
-        var provider = LoggerFactory.getLogger(PolicyServiceInternalImplTest.class);
-    }
-
-    @BeforeMethod
-    public void setUp() throws IOException,
-            org.apache.commons.configuration2.ex.ConfigurationException, ConfigurationException {
-        initMocks(this);
-
-        var systemValidator = new SystemPolicyValidator(255, 1024);
-        var policyValidators = List.of(
-                new FileSizePolicyValidator(),
-                new MimeTypePolicyValidator(),
-                new PathPolicyValidator(),
-                new ContentTypePolicyValidator());
-
-        policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, configurationService,
-                systemValidator, policyValidators, CONFIG_PATH);
-
-        var config = new XMLConfiguration();
-        config.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
-        try (var is = CONFIG.getInputStream()) {
-            var fh = new FileHandler(config);
-            fh.load(is);
-        }
-
-        when(configurationService.getXmlConfiguration(SITE_ID, CONFIG_PATH)).thenAnswer(i -> config);
-
-        setUpRepository();
-    }
-
-    /**
-     * Setup a mock repository with the following structure:
-     *
-     * config
-     *   studio
-     *      policy-config.xml (content from test resources)
-     *
-     * static-assets
-     *   docs
-     *      folder
-     *          doc1.pdf (20 kb)
-     *          doc2.pdf (5 kb)
-     *          doc3.pdf (30 kb)
-     *   pics
-     *      folder
-     *          pic.png (1 kb)
-     *
-     */
-    protected void setUpRepository() {
-        when(contentRepository.getContentChildren(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
-            var item = new RepositoryItem();
-            item.path = concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME);
-            item.name = PIC_FILENAME;
-
-            return new RepositoryItem[] { item };
-        });
-
-        when(contentRepository.getContentChildren(SITE_ID, PICS_FOLDER_PATH)).thenAnswer(i -> {
-            var item = new RepositoryItem();
-            item.isFolder = true;
-            item.path = PICS_FOLDER_PATH;
-            item.name = SUB_FOLDER_NAME;
+	public static final String SITE_ID = "mySite";
+
+	public static final Resource CONFIG = new ClassPathResource("crafter/studio/config/policy.xml");
+
+	public static final String CONFIG_PATH = "/studio/config/policy-config.xml";
+
+	public static final String STATIC_ASSETS = "/static-assets";
+
+	public static final String DOC1_FILENAME = "doc1.pdf";
+	public static final String DOC2_FILENAME = "doc2.pdf";
+	public static final String DOC3_FILENAME = "doc3.pdf";
+	public static final String DOCS_FOLDER_PATH = "/static-assets/docs";
+	public static final String SUB_FOLDER_NAME = "folder";
+
+	public static final String PIC_FILENAME = "pic.png";
+	public static final String PICS_FOLDER_PATH = "/static-assets/pics";
+
+	public static final String FOOTER_CONTENT_TYPE = "/component/footer";
+	public static final String HEADER_CONTENT_TYPE = "/component/header";
+
+	public static final String UNRESTRICTED_FOLDER = "/static-assets/secret";
+	public static final String SIZE_RESTRICTED_FOLDER = "/static-assets/small";
+	public static final String TYPE_RESTRICTED_FOLDER = "/static-assets/images";
+	public static final String SIMPLE_PATH_RESTRICTED_FOLDER = "/static-assets/no-numbers";
+	public static final String CASE_PATH_RESTRICTED_FOLDER = "/static-assets/only-lowercase";
+	public static final String REMOVE_PATH_RESTRICTED_FOLDER = "/static-assets/remove-numbers";
+	public static final String CONTENT_TYPE_RESTRICTED_FOLDER = "/site/components/headers";
+
+	public static final String PIC_SVG_FILENAME = "pic.svg";
+	public static final String RESTRICTED_MIME_TYPE = "image/svg+xml";
+
+	public static final String CONTENT_TYPE_FOOTER_ONLY_FOLDER = "/site/components/footers";
+
+	@Mock
+	private GitContentRepository contentRepository;
+
+	@Mock
+	private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+
+	@Mock
+	private ConfigurationService configurationService;
+
+	private PolicyServiceInternalImpl policyService;
+
+	@BeforeClass
+	public static void setUpLogger() {
+		var provider = LoggerFactory.getLogger(PolicyServiceInternalImplTest.class);
+	}
+
+	@BeforeMethod
+	public void setUp() throws IOException,
+		org.apache.commons.configuration2.ex.ConfigurationException, ConfigurationException {
+		initMocks(this);
+
+		var systemValidator = new SystemPolicyValidator(255, 1024);
+		var policyValidators = List.of(
+			new FileSizePolicyValidator(),
+			new MimeTypePolicyValidator(),
+			new PathPolicyValidator(),
+			new ContentTypePolicyValidator());
+
+		policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, configurationService,
+			systemValidator, policyValidators, CONFIG_PATH);
+
+		var config = new XMLConfiguration();
+		config.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
+		try (var is = CONFIG.getInputStream()) {
+			var fh = new FileHandler(config);
+			fh.load(is);
+		}
+
+		when(configurationService.getXmlConfiguration(SITE_ID, CONFIG_PATH)).thenAnswer(i -> config);
+
+		setUpRepository();
+	}
+
+	/**
+	 * Setup a mock repository with the following structure:
+	 * <p>
+	 * config
+	 * studio
+	 * policy-config.xml (content from test resources)
+	 * <p>
+	 * static-assets
+	 * docs
+	 * folder
+	 * doc1.pdf (20 kb)
+	 * doc2.pdf (5 kb)
+	 * doc3.pdf (30 kb)
+	 * pics
+	 * folder
+	 * pic.png (1 kb)
+	 */
+	protected void setUpRepository() {
+		when(contentRepository.getContentChildren(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
+			var item = new RepositoryItem();
+			item.path = concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME);
+			item.name = PIC_FILENAME;
+
+			return new RepositoryItem[]{item};
+		});
+
+		when(contentRepository.getContentChildren(SITE_ID, PICS_FOLDER_PATH)).thenAnswer(i -> {
+			var item = new RepositoryItem();
+			item.isFolder = true;
+			item.path = PICS_FOLDER_PATH;
+			item.name = SUB_FOLDER_NAME;
 
-            return new RepositoryItem[] { item };
-        });
+			return new RepositoryItem[]{item};
+		});
 
-        when(contentRepository.getContentChildren(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
-            var item1 = new RepositoryItem();
-            item1.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
-            item1.name = DOC1_FILENAME;
+		when(contentRepository.getContentChildren(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
+			var item1 = new RepositoryItem();
+			item1.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
+			item1.name = DOC1_FILENAME;
 
-            var item2 = new RepositoryItem();
-            item2.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
-            item2.name = DOC2_FILENAME;
+			var item2 = new RepositoryItem();
+			item2.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
+			item2.name = DOC2_FILENAME;
 
-            var item3 = new RepositoryItem();
-            item3.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
-            item3.name = DOC3_FILENAME;
+			var item3 = new RepositoryItem();
+			item3.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
+			item3.name = DOC3_FILENAME;
 
-            return new RepositoryItem[] { item1, item2, item3 };
-        });
+			return new RepositoryItem[]{item1, item2, item3};
+		});
 
-        when(contentRepository.getContentChildren(SITE_ID, DOCS_FOLDER_PATH)).thenAnswer(i -> {
-            var item = new RepositoryItem();
-            item.isFolder = true;
-            item.path = DOCS_FOLDER_PATH;
-            item.name = SUB_FOLDER_NAME;
-
-            return new RepositoryItem[] { item };
-        });
+		when(contentRepository.getContentChildren(SITE_ID, DOCS_FOLDER_PATH)).thenAnswer(i -> {
+			var item = new RepositoryItem();
+			item.isFolder = true;
+			item.path = DOCS_FOLDER_PATH;
+			item.name = SUB_FOLDER_NAME;
 
-        when(contentRepository.contentExists(SITE_ID, STATIC_ASSETS)).thenAnswer(i -> {
-            return true;
-        });
+			return new RepositoryItem[]{item};
+		});
 
-        when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC1_FILENAME)))
-                .thenReturn(20000L);
-        when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC2_FILENAME)))
-                .thenReturn(5000L);
-        when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC3_FILENAME)))
-                .thenReturn(30000L);
+		when(contentRepository.contentExists(SITE_ID, STATIC_ASSETS)).thenAnswer(i -> {
+			return true;
+		});
 
-        when(contentRepositoryV2.getContentSize(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME, PIC_FILENAME)))
-                .thenReturn(1000L);
-    }
+		when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC1_FILENAME)))
+			.thenReturn(20000L);
+		when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC2_FILENAME)))
+			.thenReturn(5000L);
+		when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC3_FILENAME)))
+			.thenReturn(30000L);
 
-    protected String concat(String... args) {
-        return String.join("/", args);
-    }
+		when(contentRepositoryV2.getContentSize(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME, PIC_FILENAME)))
+			.thenReturn(1000L);
+	}
 
-    @Test
-    public void systemPolicyTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(UNRESTRICTED_FOLDER + "/" + RandomStringUtils.randomAlphabetic(255) + ".pdf");
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+	protected String concat(String... args) {
+		return String.join("/", args);
+	}
 
-        var results= policyService.validate(SITE_ID, List.of(action));
+	@Test
+	public void systemPolicyTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(UNRESTRICTED_FOLDER + "/" + RandomStringUtils.randomAlphabetic(255) + ".pdf");
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
-        checkSingleResult(results, false);
+		var results = policyService.validate(SITE_ID, List.of(action));
 
-        action.setTarget(RandomStringUtils.randomAlphabetic(1024) + "/" + DOC1_FILENAME);
+		checkSingleResult(results, false);
 
-        results= policyService.validate(SITE_ID, List.of(action));
+		action.setTarget(RandomStringUtils.randomAlphabetic(1024) + "/" + DOC1_FILENAME);
 
-        checkSingleResult(results, false);
-    }
+		results = policyService.validate(SITE_ID, List.of(action));
 
-    @Test
-    public void noConfigTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        policyService.configPath = "/config/studio/policy.xml";
+		checkSingleResult(results, false);
+	}
 
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(SIZE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+	@Test
+	public void noConfigTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		policyService.configPath = "/config/studio/policy.xml";
 
-        var results = policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(SIZE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
-    @Test
-    public void noMatchesTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(UNRESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
 
-        var results= policyService.validate(SITE_ID, List.of(action));
+	@Test
+	public void noMatchesTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(UNRESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
-        checkSingleResult(results, true);
-    }
+		var results = policyService.validate(SITE_ID, List.of(action));
 
-    @Test
-    public void bulkUploadTest() throws ConfigurationException {
-        var longName = StringUtils.repeat("longName", 100);
+		checkSingleResult(results, true);
+	}
 
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget("/static-assets/" + longName + "/" + DOC1_FILENAME);
+	@Test
+	public void bulkUploadTest() throws ConfigurationException {
+		var longName = StringUtils.repeat("longName", 100);
 
-        var results = policyService.validate(SITE_ID, List.of(action));
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget("/static-assets/" + longName + "/" + DOC1_FILENAME);
 
-        checkSingleResult(results, false);
-    }
+		var results = policyService.validate(SITE_ID, List.of(action));
 
-    @Test
-    public void maxSizeTest() throws IOException, ContentNotFoundException, ConfigurationException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(SIZE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, 1000));
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void mimeTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-
-        action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + PIC_FILENAME);
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-
-        action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + PIC_SVG_FILENAME);
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-    }
-
-    @Test
-    public void simplePathTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(SIMPLE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-
-        action.setTarget(SIMPLE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME.replaceAll("\\d", ""));
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void lowerCasePathTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME.toUpperCase());
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true, CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-
-        action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void removeNumbersPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
-        var expectedFilename = DOC1_FILENAME.replaceAll("\\d", "");
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true, REMOVE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
-
-        action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void createFolderPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER);
-
-        when(contentRepository.contentExists(SITE_ID, REMOVE_PATH_RESTRICTED_FOLDER)).thenAnswer(i -> {
-            return false;
-        });
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void contentTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        // Check that validation fails if the content-type is not included in the metadata
-        var action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget(CONTENT_TYPE_RESTRICTED_FOLDER + "/component.xml");
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-
-        // Check that validation fails if the content-type is not allowed
-        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, FOOTER_CONTENT_TYPE));
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-
-        // Check that validation is ok with an allowed content-type
-        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-
-        // Check denied content-type
-        action.setTarget(CONTENT_TYPE_FOOTER_ONLY_FOLDER + "/component.xml");
-        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, false);
-    }
-
-    @Test
-    public void recursiveSizeTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.COPY);
-        action.setSource(DOCS_FOLDER_PATH);
-        action.setTarget(SIZE_RESTRICTED_FOLDER);
-        action.setRecursive(true);
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkMultipleResults(results, false);
-
-        action.setSource(PICS_FOLDER_PATH);
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void recursiveMimeTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.COPY);
-        action.setSource(DOCS_FOLDER_PATH);
-        action.setTarget(TYPE_RESTRICTED_FOLDER + "/docs");
-        action.setRecursive(true);
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkMultipleResults(results, false);
-
-        action.setSource(PICS_FOLDER_PATH);
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
-    public void multipleTransformationTest() throws ConfigurationException {
-        Action action = new Action();
-        action.setType(Type.CREATE);
-        action.setTarget("/static-assets/test/paren(thesis)in_name.png");
-
-        when(contentRepository.contentExists(SITE_ID, "/static-assets/test")).thenAnswer(i -> {
-            return true;
-        });
-
-        when(contentRepository.contentExists(SITE_ID, "/static-assets/test/paren(thesis)in_name.png")).thenAnswer(i -> {
-            return false;
-        });
-
-        when(contentRepository.contentExists(SITE_ID, "/static-assets/test/paren(thesis)in-name.png")).thenAnswer(i -> {
-            return false;
-        });
-
-        List<ValidationResult> results = policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true, "/static-assets/test/paren-thesis-in-name.png");
-    }
-
-    protected void checkSingleResult(List<ValidationResult> results, boolean allowed) {
-        checkSingleResult(results, allowed, null);
-    }
-
-    protected void checkSingleResult(List<ValidationResult> results, boolean allowed, String modified) {
-        assertNotNull(results);
-        assertEquals(results.size(), 1);
-        assertNotNull(results.get(0));
-        assertEquals(results.get(0).isAllowed(), allowed);
-
-        if (modified != null) {
-            assertEquals(results.get(0).getModifiedValue(), modified);
-        }
-    }
-
-    protected void checkSingleResultNotModified(List<ValidationResult> results) {
-        assertNotNull(results);
-        assertEquals(results.size(), 1);
-        assertNotNull(results.get(0));
-        assertTrue(results.get(0).isAllowed());
-        assertNull(results.get(0).getModifiedValue());
-    }
-
-    protected void checkMultipleResults(List<ValidationResult> results, boolean allAllowed) {
-        assertNotNull(results);
-        assertTrue(results.size() > 1);
-        if (allAllowed) {
-            assertTrue(results.stream().allMatch(ValidationResult::isAllowed));
-        } else {
-            assertTrue(results.stream().anyMatch(result -> !result.isAllowed()));
-        }
-    }
+		checkSingleResult(results, false);
+	}
+
+	@Test
+	public void maxSizeTest() throws IOException, ContentNotFoundException, ConfigurationException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(SIZE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, 1000));
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void mimeTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+
+		action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + PIC_FILENAME);
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+
+		action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + PIC_SVG_FILENAME);
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+	}
+
+	@Test
+	public void simplePathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(SIMPLE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+
+		action.setTarget(SIMPLE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME.replaceAll("\\d", ""));
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void lowerCasePathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME.toUpperCase());
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true, CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+
+		action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void removeNumbersPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+		action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+		var expectedFilename = DOC1_FILENAME.replaceAll("\\d", "");
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true, REMOVE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
+
+		action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void createFolderPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER);
+
+		when(contentRepository.contentExists(SITE_ID, REMOVE_PATH_RESTRICTED_FOLDER)).thenAnswer(i -> {
+			return false;
+		});
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void contentTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		// Check that validation fails if the content-type is not included in the metadata
+		var action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget(CONTENT_TYPE_RESTRICTED_FOLDER + "/component.xml");
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+
+		// Check that validation fails if the content-type is not allowed
+		action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, FOOTER_CONTENT_TYPE));
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+
+		// Check that validation is ok with an allowed content-type
+		action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+
+		// Check denied content-type
+		action.setTarget(CONTENT_TYPE_FOOTER_ONLY_FOLDER + "/component.xml");
+		action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, false);
+	}
+
+	@Test
+	public void recursiveSizeTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.COPY);
+		action.setSource(DOCS_FOLDER_PATH);
+		action.setTarget(SIZE_RESTRICTED_FOLDER);
+		action.setRecursive(true);
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkMultipleResults(results, false);
+
+		action.setSource(PICS_FOLDER_PATH);
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void recursiveMimeTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
+		var action = new Action();
+		action.setType(Type.COPY);
+		action.setSource(DOCS_FOLDER_PATH);
+		action.setTarget(TYPE_RESTRICTED_FOLDER + "/docs");
+		action.setRecursive(true);
+
+		var results = policyService.validate(SITE_ID, List.of(action));
+		checkMultipleResults(results, false);
+
+		action.setSource(PICS_FOLDER_PATH);
+
+		results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true);
+	}
+
+	@Test
+	public void multipleTransformationTest() throws ConfigurationException {
+		Action action = new Action();
+		action.setType(Type.CREATE);
+		action.setTarget("/static-assets/test/paren(thesis)in_name.png");
+
+		when(contentRepository.contentExists(SITE_ID, "/static-assets/test")).thenAnswer(i -> {
+			return true;
+		});
+
+		when(contentRepository.contentExists(SITE_ID, "/static-assets/test/paren(thesis)in_name.png")).thenAnswer(i -> {
+			return false;
+		});
+
+		when(contentRepository.contentExists(SITE_ID, "/static-assets/test/paren(thesis)in-name.png")).thenAnswer(i -> {
+			return false;
+		});
+
+		List<ValidationResult> results = policyService.validate(SITE_ID, List.of(action));
+		checkSingleResult(results, true, "/static-assets/test/paren-thesis-in-name.png");
+	}
+
+	protected void checkSingleResult(List<ValidationResult> results, boolean allowed) {
+		checkSingleResult(results, allowed, null);
+	}
+
+	protected void checkSingleResult(List<ValidationResult> results, boolean allowed, String modified) {
+		assertNotNull(results);
+		assertEquals(results.size(), 1);
+		assertNotNull(results.get(0));
+		assertEquals(results.get(0).isAllowed(), allowed);
+
+		if (modified != null) {
+			assertEquals(results.get(0).getModifiedValue(), modified);
+		}
+	}
+
+	protected void checkSingleResultNotModified(List<ValidationResult> results) {
+		assertNotNull(results);
+		assertEquals(results.size(), 1);
+		assertNotNull(results.get(0));
+		assertTrue(results.get(0).isAllowed());
+		assertNull(results.get(0).getModifiedValue());
+	}
+
+	protected void checkMultipleResults(List<ValidationResult> results, boolean allAllowed) {
+		assertNotNull(results);
+		assertTrue(results.size() > 1);
+		if (allAllowed) {
+			assertTrue(results.stream().allMatch(ValidationResult::isAllowed));
+		} else {
+			assertTrue(results.stream().anyMatch(result -> !result.isAllowed()));
+		}
+	}
 
 }

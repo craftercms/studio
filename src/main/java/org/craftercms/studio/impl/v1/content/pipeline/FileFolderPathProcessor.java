@@ -33,49 +33,48 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
  *
  * @author hyanghee
  * @author Dejan Brkic
- *
  */
 public class FileFolderPathProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileFolderPathProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(FileFolderPathProcessor.class);
 
-    public static final String NAME = "FileFolderPathProcessor";
+	public static final String NAME = "FileFolderPathProcessor";
 
-    /**
-     * default constructor
-     */
-    public FileFolderPathProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public FileFolderPathProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public FileFolderPathProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public FileFolderPathProcessor(String name) {
+		super(name);
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        Map<String, String> params = content.getProperties();
-        String path = params.get(DmConstants.KEY_PATH);
-        String fileName = params.get(DmConstants.KEY_FILE_NAME);
-        String folderPath = path;
-        if (!StringUtils.isEmpty(fileName)) {
-            if (path.endsWith(fileName)) {
-                folderPath = path.replace(FILE_SEPARATOR + fileName, "");
-            } else {
-                if (path.endsWith(DmConstants.INDEX_FILE)) {
-                    folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
-                } else {
-                    // path could be a file path to indicate creating a leaf underneath a leaf node
-                    if (path.endsWith(DmConstants.XML_PATTERN)) {
-                        folderPath = path.replace(DmConstants.XML_PATTERN, "");
-                    }
-                }
-            }
-        }
-        params.put(DmConstants.KEY_FOLDER_PATH, folderPath);
-    }
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		Map<String, String> params = content.getProperties();
+		String path = params.get(DmConstants.KEY_PATH);
+		String fileName = params.get(DmConstants.KEY_FILE_NAME);
+		String folderPath = path;
+		if (!StringUtils.isEmpty(fileName)) {
+			if (path.endsWith(fileName)) {
+				folderPath = path.replace(FILE_SEPARATOR + fileName, "");
+			} else {
+				if (path.endsWith(DmConstants.INDEX_FILE)) {
+					folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+				} else {
+					// path could be a file path to indicate creating a leaf underneath a leaf node
+					if (path.endsWith(DmConstants.XML_PATTERN)) {
+						folderPath = path.replace(DmConstants.XML_PATTERN, "");
+					}
+				}
+			}
+		}
+		params.put(DmConstants.KEY_FOLDER_PATH, folderPath);
+	}
 }

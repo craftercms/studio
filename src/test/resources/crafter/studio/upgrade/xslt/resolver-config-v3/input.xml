@@ -15,43 +15,43 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <dependency-resolver>
-    <item-types>
-        <item-type>
-            <!-- name of type -->
-            <name>page</name>
-            <!-- how to identify items of this type -->
-            <includes>
-                <!-- path pattern regexes (multiple) -->
-                <path-pattern>/site/website/.*\.xml</path-pattern>
-            </includes>
-            <!-- how to find dependencies in these items -->
-            <dependency-types>
-                <dependency-type>
-                    <name>page</name>
-                    <includes>
-                        <pattern>
-                            <find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
-                        </pattern>
-                    </includes>
-                </dependency-type>
-            </dependency-types>
-        </item-type>
+	<item-types>
+		<item-type>
+			<!-- name of type -->
+			<name>page</name>
+			<!-- how to identify items of this type -->
+			<includes>
+				<!-- path pattern regexes (multiple) -->
+				<path-pattern>/site/website/.*\.xml</path-pattern>
+			</includes>
+			<!-- how to find dependencies in these items -->
+			<dependency-types>
+				<dependency-type>
+					<name>page</name>
+					<includes>
+						<pattern>
+							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
+						</pattern>
+					</includes>
+				</dependency-type>
+			</dependency-types>
+		</item-type>
 
-        <item-type>
-            <name>rendering-template</name>
-            <includes>
-                <path-pattern>/templates/([^&lt;"]+)\.ftl</path-pattern>
-            </includes>
-            <dependency-types>
-                <dependency-type>
-                    <name>asset</name>
-                    <includes>
-                        <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
-                        </pattern>
-                    </includes>
-                </dependency-type>
-            </dependency-types>
-        </item-type>
-    </item-types>
+		<item-type>
+			<name>rendering-template</name>
+			<includes>
+				<path-pattern>/templates/([^&lt;"]+)\.ftl</path-pattern>
+			</includes>
+			<dependency-types>
+				<dependency-type>
+					<name>asset</name>
+					<includes>
+						<pattern>
+							<find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+						</pattern>
+					</includes>
+				</dependency-type>
+			</dependency-types>
+		</item-type>
+	</item-types>
 </dependency-resolver>

@@ -21,32 +21,36 @@ import org.apache.http.HttpStatus;
 
 /**
  * Service call result object to be used in javascript API
- * 
+ *
  * @author hyanghee
- * 
  */
 public class ResultTO implements Serializable {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = 235517104847909394L;
-	
-	/** is the call success? **/
-	protected boolean _success = false;
-	protected int status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-	/** success or failure message **/
-	protected String _message = "";
-	/** response item **/
-	protected Serializable _item;
-
-    protected boolean _invalidateCache = false;
-
-    protected String commitId = null;
 
 	/**
-	 * @param success
-	 *            the success to set
+	 * is the call success?
+	 **/
+	protected boolean _success = false;
+	protected int status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+	/**
+	 * success or failure message
+	 **/
+	protected String _message = "";
+	/**
+	 * response item
+	 **/
+	protected Serializable _item;
+
+	protected boolean _invalidateCache = false;
+
+	protected String commitId = null;
+
+	/**
+	 * @param success the success to set
 	 */
 	public void setSuccess(final boolean success) {
 		this._success = success;
@@ -60,8 +64,7 @@ public class ResultTO implements Serializable {
 	}
 
 	/**
-	 * @param message
-	 *            the message to set
+	 * @param message the message to set
 	 */
 	public void setMessage(final String message) {
 		this._message = message;
@@ -102,14 +105,19 @@ public class ResultTO implements Serializable {
 		return _item;
 	}
 
-    public boolean isInvalidateCache() {
-        return _invalidateCache;
-    }
+	public boolean isInvalidateCache() {
+		return _invalidateCache;
+	}
 
-    public void setInvalidateCache(boolean _invalidateCache) {
-        this._invalidateCache = _invalidateCache;
-    }
+	public void setInvalidateCache(boolean _invalidateCache) {
+		this._invalidateCache = _invalidateCache;
+	}
 
-    public String getCommitId() { return commitId; }
-    public void setCommitId(String commitId) { this.commitId = commitId; }
+	public String getCommitId() {
+		return commitId;
+	}
+
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
+	}
 }

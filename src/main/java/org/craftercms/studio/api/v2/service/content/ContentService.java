@@ -39,174 +39,180 @@ import java.util.Optional;
 
 public interface ContentService {
 
-    /**
-     * Check the existent of a content path
-     * @param siteId site identifier
-     * @param path content path
-     * @return true if the content exists, false otherwise
-     * @throws SiteNotFoundException if site is not found
-     */
-    boolean contentExists(String siteId, String path) throws SiteNotFoundException;
+	/**
+	 * Check the existent of a content path
+	 *
+	 * @param siteId site identifier
+	 * @param path   content path
+	 * @return true if the content exists, false otherwise
+	 * @throws SiteNotFoundException if site is not found
+	 */
+	boolean contentExists(String siteId, String path) throws SiteNotFoundException;
 
-    /**
-     * This is a faster, but less accurate, version of contentExists. This prioritizes
-     * performance over checking the actual underlying repository if the content is actually in the store
-     * or we simply hold a reference to the object in the actual store.
-     *
-     * @return true if site has content object at path
-     */
-    boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
+	/**
+	 * This is a faster, but less accurate, version of contentExists. This prioritizes
+	 * performance over checking the actual underlying repository if the content is actually in the store
+	 * or we simply hold a reference to the object in the actual store.
+	 *
+	 * @return true if site has content object at path
+	 */
+	boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
 
-    /**
-     * Get list of content types marked as quick creatable for given site
-     *
-     * @param siteId site id to use
-     * @return list of content types
-     */
-    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
+	/**
+	 * Get list of content types marked as quick creatable for given site
+	 *
+	 * @param siteId site id to use
+	 * @return list of content types
+	 */
+	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
 
-    /**
-     * Get child items for given paths. Child item is
-     *  - belongs to item subtree
-     *  - is item specific dependency
-     *
-     * @param siteId site identifier
-     * @param paths list of paths to get child items for
-     * @return list of paths of child items
-     */
-    List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
+	/**
+	 * Get child items for given paths. Child item is
+	 * - belongs to item subtree
+	 * - is item specific dependency
+	 *
+	 * @param siteId site identifier
+	 * @param paths  list of paths to get child items for
+	 * @return list of paths of child items
+	 */
+	List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
 
-    /**
-     * Delete content for given paths. Following content will be deleted:
-     * - given paths
-     * - child items for given paths
-     *
-     * @param siteId         site identifier
-     * @param paths          content to be deleted
-     * @param publishTitle   title of the publish package
-     * @param publishComment submitter comment of the publish package
-     * @return id of publish package, or 0 if no package was created (if the site has not been published)
-     * @throws ServiceLayerException   general service error
-     * @throws AuthenticationException authentication error
-     */
-    long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
+	/**
+	 * Delete content for given paths. Following content will be deleted:
+	 * - given paths
+	 * - child items for given paths
+	 *
+	 * @param siteId         site identifier
+	 * @param paths          content to be deleted
+	 * @param publishTitle   title of the publish package
+	 * @param publishComment submitter comment of the publish package
+	 * @return id of publish package, or 0 if no package was created (if the site has not been published)
+	 * @throws ServiceLayerException   general service error
+	 * @throws AuthenticationException authentication error
+	 */
+	long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
+		throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
-    /**
-     * Get list of children for given path
-     *
-     * @param siteId       site identifier
-     * @param path         item path to children for
-     * @param locale       filter children by locale
-     * @param keyword      filter children by keyword
-     * @param types        filter children by type
-     * @param excludes     exclude items by path
-     * @param sortStrategy sort order
-     * @param order        ascending or descending
-     * @param offset       offset of the first child in the result
-     * @param limit        number of children to return
-     * @return list of children
-     */
-    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword, List<String> types,
-                                        List<String> excludes, String sortStrategy, String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get list of children for given path
+	 *
+	 * @param siteId       site identifier
+	 * @param path         item path to children for
+	 * @param locale       filter children by locale
+	 * @param keyword      filter children by keyword
+	 * @param types        filter children by type
+	 * @param excludes     exclude items by path
+	 * @param sortStrategy sort order
+	 * @param order        ascending or descending
+	 * @param offset       offset of the first child in the result
+	 * @param limit        number of children to return
+	 * @return list of children
+	 */
+	GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword, List<String> types,
+					    List<String> excludes, String sortStrategy, String order, int offset, int limit)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get children for paths bulk.
-     * This method will return children for a list of paths. Result items will also
-     * include a {@link SandboxItem} object for the item itself.
-     *
-     * @param siteId     the site id
-     * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
-     *                   validate permissions.
-     * @param pathParams Map of extra parameters for each path
-     * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
-     * @throws ServiceLayerException general service error
-     * @throws UserNotFoundException user not found (when calculating available actions)
-     */
-    GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get children for paths bulk.
+	 * This method will return children for a list of paths. Result items will also
+	 * include a {@link SandboxItem} object for the item itself.
+	 *
+	 * @param siteId     the site id
+	 * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
+	 *                   validate permissions.
+	 * @param pathParams Map of extra parameters for each path
+	 * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found (when calculating available actions)
+	 */
+	GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
+		throws ServiceLayerException, UserNotFoundException;
 
-    Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
+	Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
-    Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
+	Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
-    /**
-     * Get detailed item for given path
-     *
-     * @param siteId site identifier
-     * @param path item path
-     * @param preferContent if true return content item if available
-     * @return detailed item
-     */
-    DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get detailed item for given path
+	 *
+	 * @param siteId        site identifier
+	 * @param path          item path
+	 * @param preferContent if true return content item if available
+	 * @return detailed item
+	 */
+	DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get sandbox items for given list of paths
-     * @param siteId site identifier
-     * @param paths list of paths to get sandbox items
-     * @param preferContent if true return content items if available
-     * @return list of sandbox items
-     */
-    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get sandbox items for given list of paths
+	 *
+	 * @param siteId        site identifier
+	 * @param paths         list of paths to get sandbox items
+	 * @param preferContent if true return content items if available
+	 * @return list of sandbox items
+	 */
+	List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Lock item by path for given site
-     * @param siteId site identifier
-     * @param path path to lock
-     */
-    void lockContent(String siteId, String path) throws UserNotFoundException, ServiceLayerException;
+	/**
+	 * Lock item by path for given site
+	 *
+	 * @param siteId site identifier
+	 * @param path   path to lock
+	 */
+	void lockContent(String siteId, String path) throws UserNotFoundException, ServiceLayerException;
 
-    /**
-     * Unlock item by path for given site
-     * @param siteId site identifier
-     * @param path item path
-     */
-    void unlockContent(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException;
+	/**
+	 * Unlock item by path for given site
+	 *
+	 * @param siteId site identifier
+	 * @param path   item path
+	 */
+	void unlockContent(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException;
 
-    /**
-     * Get content for commit id
-     * @param siteId  site identifier
-     * @param path path of the content
-     * @param commitId commit id of the content version
-     * @return the content if available
-     */
-    Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-            throws ContentNotFoundException;
+	/**
+	 * Get content for commit id
+	 *
+	 * @param siteId   site identifier
+	 * @param path     path of the content
+	 * @param commitId commit id of the content version
+	 * @return the content if available
+	 */
+	Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
+		throws ContentNotFoundException;
 
-    /**
-     * Rename content for given path
-     * @param site  site identifier
-     * @param path path of the content
-     * @param name new name of the content
-     * @return true if success, otherwise false
-     *
-     * @throws ServiceLayerException general service error
-     * @throws UserNotFoundException user not found error
-     * @throws ValidationException validation exception
-    */
-    boolean renameContent( String site, String path, String name)
-            throws ServiceLayerException, UserNotFoundException, ValidationException;
+	/**
+	 * Rename content for given path
+	 *
+	 * @param site site identifier
+	 * @param path path of the content
+	 * @param name new name of the content
+	 * @return true if success, otherwise false
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found error
+	 * @throws ValidationException   validation exception
+	 */
+	boolean renameContent(String site, String path, String name)
+		throws ServiceLayerException, UserNotFoundException, ValidationException;
 
-    /**
-     * Returns content wrapped as a {@link Resource} instance
-     * @param site the site id
-     * @param path the path of the content
-     * @return the resource object
-     * @throws ContentNotFoundException if there is no content at the given path
-     */
-    Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
+	/**
+	 * Returns content wrapped as a {@link Resource} instance
+	 *
+	 * @param site the site id
+	 * @param path the path of the content
+	 * @return the resource object
+	 * @throws ContentNotFoundException if there is no content at the given path
+	 */
+	Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
 
-    /**
-     * Get the version history for a given content item.
-     *
-     * @param siteId the site id
-     * @param path   the content path
-     * @return the list of versions
-     * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
-     */
-    List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+	/**
+	 * Get the version history for a given content item.
+	 *
+	 * @param siteId the site id
+	 * @param path   the content path
+	 * @return the list of versions
+	 * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
+	 */
+	List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
 }

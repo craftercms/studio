@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call dropColumnIfExists('crafter', 'site', 'publishing_status_message') ;
+call dropColumnIfExists('crafter', 'site', 'publishing_status_message');
 
-UPDATE _meta SET version = '4.0.0.30' ;
+UPDATE _meta
+SET version = '4.0.0.30';

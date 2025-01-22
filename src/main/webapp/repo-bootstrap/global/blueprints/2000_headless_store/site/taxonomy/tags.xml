@@ -16,18 +16,24 @@
   -->
 
 <component>
-	<content-type>/taxonomy</content-type>	<display-template/>
+	<content-type>/taxonomy</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>b69b</objectGroupId>
 	<objectId>b69b526b-de7b-accd-8a64-bd25eda3ce5c</objectId>
 	<file-name>tags.xml</file-name>
 	<folder-name/>
 	<internal-name>Tags</internal-name>
-	<items>	<item>	<key>learning</key>
-	<value>Learning</value>
-	</item>	<item>	<key>groups</key>
-	<value>Groups</value>
-	</item></items>
+	<items>
+		<item>
+			<key>learning</key>
+			<value>Learning</value>
+		</item>
+		<item>
+			<key>groups</key>
+			<value>Groups</value>
+		</item>
+	</items>
 	<createdDate>2017-05-11T17:34:47.000Z</createdDate>
 	<createdDate_dt>2017-05-11T17:34:47.000Z</createdDate_dt>
 	<lastModifiedDate>2017-05-15T17:26:14.000Z</lastModifiedDate>

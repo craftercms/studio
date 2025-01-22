@@ -25,17 +25,19 @@ import org.craftercms.core.service.Context;
  */
 public interface ContextManager {
 
-    /**
-     * Returns the context for the given site, creating it if needed
-     * @param siteId the id of the site
-     * @return the context
-     */
-    Context getContext(String siteId);
+	/**
+	 * Returns the context for the given site, creating it if needed
+	 *
+	 * @param siteId the id of the site
+	 * @return the context
+	 */
+	Context getContext(String siteId);
 
-    /**
-     * Destroys the context for the given site
-     * @param siteId the id of the site
-     */
-    void destroyContext(String siteId);
+	/**
+	 * Destroys the context for the given site
+	 *
+	 * @param siteId the id of the site
+	 */
+	void destroyContext(String siteId);
 
 }

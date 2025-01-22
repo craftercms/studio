@@ -22,26 +22,26 @@ import jakarta.validation.constraints.NotBlank;
 
 public class SetPasswordRequest {
 
-    @NotBlank
-    private String token;
-    @NotBlank
-    private String newPassword;
+	@NotBlank
+	private String token;
+	@NotBlank
+	private String newPassword;
 
-    public String getToken() {
-        return token;
-    }
+	public String getToken() {
+		return token;
+	}
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+	public void setToken(String token) {
+		this.token = token;
+	}
 
-    @JsonProperty("new")
-    public String getNewPassword() {
-        return newPassword;
-    }
+	@JsonProperty("new")
+	public String getNewPassword() {
+		return newPassword;
+	}
 
-    @JsonProperty("new")
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
+	@JsonProperty("new")
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
+	}
 }

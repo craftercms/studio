@@ -25,31 +25,31 @@ import jakarta.validation.constraints.Size;
  */
 public class UpdateSiteRequest {
 
-    /**
-     * The name of the site
-     */
-    @Size(max = 255)
-    private String name;
+	/**
+	 * The name of the site
+	 */
+	@Size(max = 255)
+	private String name;
 
-    /**
-     * The description of the site
-     */
-    private String description;
+	/**
+	 * The description of the site
+	 */
+	private String description;
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
 }

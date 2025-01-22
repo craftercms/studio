@@ -30,92 +30,91 @@ import java.io.InputStream;
  */
 public interface ContentRepository {
 
-    /**
-     * Determine if content exists in the repository at a given path
-     *
-     * @param site site id where the operation will be executed
-     * @param path path to check if content exists
-     * @return true if site has content object at path
-     */
-    boolean contentExists(String site, String path);
+	/**
+	 * Determine if content exists in the repository at a given path
+	 *
+	 * @param site site id where the operation will be executed
+	 * @param path path to check if content exists
+	 * @return true if site has content object at path
+	 */
+	boolean contentExists(String site, String path);
 
-    /**
-     * This is a faster, but less accurate, version of contentExists. This prioritizes
-     * performance over checking the actual underlying repository if the content is actually in the store
-     * or we simply hold a reference to the object in the actual store.
-     *
-     * @return true if site has content object at path
-     */
-    boolean shallowContentExists(String site, String path);
+	/**
+	 * This is a faster, but less accurate, version of contentExists. This prioritizes
+	 * performance over checking the actual underlying repository if the content is actually in the store
+	 * or we simply hold a reference to the object in the actual store.
+	 *
+	 * @return true if site has content object at path
+	 */
+	boolean shallowContentExists(String site, String path);
 
-    /**
-     * get document from wcm content
-     *
-     * @param site site id where the operation will be executed
-     * @param path path of the content
-     * @return document
-     *
-     * @throws ContentNotFoundException content not found at given path
-     */
-    default InputStream getContent(String site, String path) throws ContentNotFoundException {
-        return getContent(site, path, false);
-    }
+	/**
+	 * get document from wcm content
+	 *
+	 * @param site site id where the operation will be executed
+	 * @param path path of the content
+	 * @return document
+	 * @throws ContentNotFoundException content not found at given path
+	 */
+	default InputStream getContent(String site, String path) throws ContentNotFoundException {
+		return getContent(site, path, false);
+	}
 
-    /**
-     * Get content from the repository
-     * @param site the site id
-     * @param path the path of the content
-     * @param shallow if true, it will load the file from disk directly, instead of retrieving it from git repository
-     * @return InputStream to read the content
-     * @throws ContentNotFoundException if the content is not found
-     */
-    InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
+	/**
+	 * Get content from the repository
+	 *
+	 * @param site    the site id
+	 * @param path    the path of the content
+	 * @param shallow if true, it will load the file from disk directly, instead of retrieving it from git repository
+	 * @return InputStream to read the content
+	 * @throws ContentNotFoundException if the content is not found
+	 */
+	InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
 
-    /**
-     * write content
-     *
-     * @param site    site id where the operation will be executed
-     * @param path    path to content
-     * @param content stream of content to write
-     * @return Commit Id if successful, null otherwise
-     *
-	 * @throws ServiceLayerException general service exception
+	/**
+	 * write content
+	 *
+	 * @param site    site id where the operation will be executed
+	 * @param path    path to content
+	 * @param content stream of content to write
+	 * @return Commit Id if successful, null otherwise
+	 * @throws ServiceLayerException if error happens during write
 	 * @throws UserNotFoundException user not found exception
-     */
-    String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
+	 */
+	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * create a folder
-     *
-     * @param site site id where the operation will be executed
-     * @param path path to create a folder in
-     * @param name a folder name to create
-     * @return Commit Id if successful, null otherwise
-     */
-    String createFolder(String site, String path, String name) throws ServiceLayerException;
+	/**
+	 * create a folder
+	 *
+	 * @param site site id where the operation will be executed
+	 * @param path path to create a folder in
+	 * @param name a folder name to create
+	 * @return Commit Id if successful, null otherwise
+	 */
+	String createFolder(String site, String path, String name) throws ServiceLayerException;
 
-    /**
-     * move content from PathA to pathB
-     *
-     * @param site     site id where the operation will be executed
-     * @param fromPath source content
-     * @param toPath   target path
-     * @return Commit ID if successful, null otherwise
-     */
-    default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
-        return moveContent(site, fromPath, toPath, null);
-    }
+	/**
+	 * move content from PathA to pathB
+	 *
+	 * @param site     site id where the operation will be executed
+	 * @param fromPath source content
+	 * @param toPath   target path
+	 * @return Commit ID if successful, null otherwise
+	 */
+	default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+		return moveContent(site, fromPath, toPath, null);
+	}
 
-    /**
-     * move content from PathA to pathB
-     *
-     * @param site     site id where the operation will be executed
-     * @param fromPath source content
-     * @param toPath   target path
-     * @param newName  new file name for rename
-     * @return Commit ID if successful, empty string otherwise
-     */
-    // TODO: SJ: Should refactor to be from path to path without the newName param
-    String moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException;
+	/**
+	 * move content from PathA to pathB
+	 *
+	 * @param site     site id where the operation will be executed
+	 * @param fromPath source content
+	 * @param toPath   target path
+	 * @param newName  new file name for rename
+	 * @return Commit ID if successful, empty string otherwise
+	 */
+	// TODO: SJ: Should refactor to be from path to path without the newName param
+	String moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException;
 
 }

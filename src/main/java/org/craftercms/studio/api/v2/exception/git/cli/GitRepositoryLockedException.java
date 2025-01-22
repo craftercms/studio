@@ -23,8 +23,8 @@ package org.craftercms.studio.api.v2.exception.git.cli;
  */
 public class GitRepositoryLockedException extends GitCliOutputException {
 
-    public GitRepositoryLockedException(int exitValue, String msg) {
-        super(exitValue, msg);
-    }
+	public GitRepositoryLockedException(int exitValue, String msg) {
+		super(exitValue, msg);
+	}
 
 }

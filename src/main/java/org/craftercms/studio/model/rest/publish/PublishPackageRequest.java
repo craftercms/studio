@@ -32,82 +32,82 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  * Request to publish a package
  */
 public class PublishPackageRequest {
-    @NotEmpty
-    @Size(max = 20)
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String publishingTarget;
-    private List<@Valid PublishRequestPath> paths;
-    private List<@NotEmpty String> commitIds;
-    private Instant schedule;
-    private boolean requestApproval;
-    private boolean publishAll;
-    @NotEmpty
-    private String comment;
-    @NotEmpty
-    @Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
-    private String title;
+	@NotEmpty
+	@Size(max = 20)
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	private String publishingTarget;
+	private List<@Valid PublishRequestPath> paths;
+	private List<@NotEmpty String> commitIds;
+	private Instant schedule;
+	private boolean requestApproval;
+	private boolean publishAll;
+	@NotEmpty
+	private String comment;
+	@NotEmpty
+	@Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
+	private String title;
 
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
+	public String getPublishingTarget() {
+		return publishingTarget;
+	}
 
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
+	public void setPublishingTarget(String publishingTarget) {
+		this.publishingTarget = publishingTarget;
+	}
 
-    public List<PublishRequestPath> getPaths() {
-        return paths;
-    }
+	public List<PublishRequestPath> getPaths() {
+		return paths;
+	}
 
-    public void setPaths(List<PublishRequestPath> paths) {
-        this.paths = paths;
-    }
+	public void setPaths(List<PublishRequestPath> paths) {
+		this.paths = paths;
+	}
 
-    public List<String> getCommitIds() {
-        return commitIds;
-    }
+	public List<String> getCommitIds() {
+		return commitIds;
+	}
 
-    public void setCommitIds(List<String> commitIds) {
-        this.commitIds = commitIds;
-    }
+	public void setCommitIds(List<String> commitIds) {
+		this.commitIds = commitIds;
+	}
 
-    public Instant getSchedule() {
-        return schedule;
-    }
+	public Instant getSchedule() {
+		return schedule;
+	}
 
-    public void setSchedule(Instant schedule) {
-        this.schedule = schedule;
-    }
+	public void setSchedule(Instant schedule) {
+		this.schedule = schedule;
+	}
 
-    public boolean isRequestApproval() {
-        return requestApproval;
-    }
+	public boolean isRequestApproval() {
+		return requestApproval;
+	}
 
-    public void setRequestApproval(boolean requestApproval) {
-        this.requestApproval = requestApproval;
-    }
+	public void setRequestApproval(boolean requestApproval) {
+		this.requestApproval = requestApproval;
+	}
 
-    public boolean isPublishAll() {
-        return publishAll;
-    }
+	public boolean isPublishAll() {
+		return publishAll;
+	}
 
-    public void setPublishAll(boolean publishAll) {
-        this.publishAll = publishAll;
-    }
+	public void setPublishAll(boolean publishAll) {
+		this.publishAll = publishAll;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getComment() {
+		return comment;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    public void setTitle(final String title) {
-        this.title = title;
-    }
+	public void setTitle(final String title) {
+		this.title = title;
+	}
 }

@@ -31,109 +31,109 @@ import static java.lang.String.format;
 
 public class GeneralLockServiceImpl implements GeneralLockService {
 
-    private static final Logger logger = LoggerFactory.getLogger(GeneralLockServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(GeneralLockServiceImpl.class);
 
-    private static final String KEY_FORMAT_CONTENT_ITEM = "CONTENT_ITEM_%s_%s";
+	private static final String KEY_FORMAT_CONTENT_ITEM = "CONTENT_ITEM_%s_%s";
 
-    protected Map<String, ReentrantLock> nodeLocks = new HashMap<>();
+	protected Map<String, ReentrantLock> nodeLocks = new HashMap<>();
 
-    @Override
-    @Valid
-    public void lock(@ValidateStringParam String objectId) {
-        ReentrantLock nodeLock;
-        if (logger.isDebugEnabled()) {
-            logger.debug("Thread '{}' will attempt to lock object '{}'", Thread.currentThread().getName(), objectId);
-        }
-        if (nodeLocks.containsKey(objectId)) {
-            // No need to synchronize if the lock already exists
-            nodeLock = nodeLocks.get(objectId);
-        } else {
-            synchronized (this) {
-                nodeLock = nodeLocks.computeIfAbsent(objectId, id -> new ReentrantLock());
-            }
-        }
-        if (logger.isTraceEnabled()) {
-            logger.trace("Thread '{}' will attempt to lock object '{}' using nodeLock '{}' with holdCount '{}'",
-                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
-        }
-        nodeLock.lock();
-        if (logger.isTraceEnabled()) {
-            logger.trace("Thread '{}' has locked object '{}' using nodeLock '{}' with holdCount '{}'",
-                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
-        }
-    }
+	@Override
+	@Valid
+	public void lock(@ValidateStringParam String objectId) {
+		ReentrantLock nodeLock;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Thread '{}' will attempt to lock object '{}'", Thread.currentThread().getName(), objectId);
+		}
+		if (nodeLocks.containsKey(objectId)) {
+			// No need to synchronize if the lock already exists
+			nodeLock = nodeLocks.get(objectId);
+		} else {
+			synchronized (this) {
+				nodeLock = nodeLocks.computeIfAbsent(objectId, id -> new ReentrantLock());
+			}
+		}
+		if (logger.isTraceEnabled()) {
+			logger.trace("Thread '{}' will attempt to lock object '{}' using nodeLock '{}' with holdCount '{}'",
+				Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+		}
+		nodeLock.lock();
+		if (logger.isTraceEnabled()) {
+			logger.trace("Thread '{}' has locked object '{}' using nodeLock '{}' with holdCount '{}'",
+				Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+		}
+	}
 
-    @Override
-    @Valid
-    public boolean tryLock(@ValidateStringParam String objectId) {
-        ReentrantLock nodeLock;
-        if (logger.isDebugEnabled()) {
-            logger.debug("Thread '{}' will attempt to tryLock object '{}'", Thread.currentThread().getName(), objectId);
-        }
-        synchronized (this) {
-            if (nodeLocks.containsKey(objectId)) {
-                nodeLock = nodeLocks.get(objectId);
-            } else {
-                nodeLock = new ReentrantLock();
-                nodeLocks.put(objectId, nodeLock);
-            }
-        }
-        if (logger.isTraceEnabled()) {
-            logger.trace("Thread '{}' will attempt to tryLock object '{}' using nodeLock '{}' with holdCount '{}'",
-                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
-        }
-        boolean toRet = nodeLock.tryLock();
-        if (logger.isTraceEnabled()) {
-            logger.trace("Thread '{}' has completed tryLock on object '{}' using nodeLock '{}' with holdCount '{}'",
-                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
-        }
-        return toRet;
-    }
+	@Override
+	@Valid
+	public boolean tryLock(@ValidateStringParam String objectId) {
+		ReentrantLock nodeLock;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Thread '{}' will attempt to tryLock object '{}'", Thread.currentThread().getName(), objectId);
+		}
+		synchronized (this) {
+			if (nodeLocks.containsKey(objectId)) {
+				nodeLock = nodeLocks.get(objectId);
+			} else {
+				nodeLock = new ReentrantLock();
+				nodeLocks.put(objectId, nodeLock);
+			}
+		}
+		if (logger.isTraceEnabled()) {
+			logger.trace("Thread '{}' will attempt to tryLock object '{}' using nodeLock '{}' with holdCount '{}'",
+				Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+		}
+		boolean toRet = nodeLock.tryLock();
+		if (logger.isTraceEnabled()) {
+			logger.trace("Thread '{}' has completed tryLock on object '{}' using nodeLock '{}' with holdCount '{}'",
+				Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+		}
+		return toRet;
+	}
 
-    @Override
-    @Valid
-    public void unlock(@ValidateStringParam String objectId) {
-        ReentrantLock nodeLock;
-        if (logger.isDebugEnabled()) {
-            logger.debug("Thread '{}' will attempt to unlock object '{}'", Thread.currentThread().getName(), objectId);
-        }
-        synchronized (this) {
-            nodeLock = nodeLocks.get(objectId);
-        }
-        if (nodeLock != null) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("Thread '{}' will attempt to unlock object '{}' using nodeLock '{}' with holdCount '{}'",
-                        Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
-            }
-            nodeLock.unlock();
-            if (logger.isTraceEnabled()) {
-                logger.trace("Thread '{}' has completed unlock on object '{}' using nodeLock '{}' with holdCount '{}'",
-                        Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
-            }
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.error("Thread '{}' is unable to unlock object '{}' since the nodeLock was not found",
-                        Thread.currentThread().getName(), objectId);
-            }
-        }
-    }
+	@Override
+	@Valid
+	public void unlock(@ValidateStringParam String objectId) {
+		ReentrantLock nodeLock;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Thread '{}' will attempt to unlock object '{}'", Thread.currentThread().getName(), objectId);
+		}
+		synchronized (this) {
+			nodeLock = nodeLocks.get(objectId);
+		}
+		if (nodeLock != null) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Thread '{}' will attempt to unlock object '{}' using nodeLock '{}' with holdCount '{}'",
+					Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+			}
+			nodeLock.unlock();
+			if (logger.isTraceEnabled()) {
+				logger.trace("Thread '{}' has completed unlock on object '{}' using nodeLock '{}' with holdCount '{}'",
+					Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+			}
+		} else {
+			if (logger.isDebugEnabled()) {
+				logger.error("Thread '{}' is unable to unlock object '{}' since the nodeLock was not found",
+					Thread.currentThread().getName(), objectId);
+			}
+		}
+	}
 
-    @Override
-    public void lockContentItem(String siteId, String path) {
-        lock(generateContentItemKey(siteId, path));
-    }
+	@Override
+	public void lockContentItem(String siteId, String path) {
+		lock(generateContentItemKey(siteId, path));
+	}
 
-    @Override
-    public boolean tryLockContentItem(String siteId, String path) {
-        return tryLock(generateContentItemKey(siteId, path));
-    }
+	@Override
+	public boolean tryLockContentItem(String siteId, String path) {
+		return tryLock(generateContentItemKey(siteId, path));
+	}
 
-    @Override
-    public void unlockContentItem(String siteId, String path) {
-        unlock(generateContentItemKey(siteId, path));
-    }
+	@Override
+	public void unlockContentItem(String siteId, String path) {
+		unlock(generateContentItemKey(siteId, path));
+	}
 
-    private String generateContentItemKey(String siteId, String path) {
-        return format(KEY_FORMAT_CONTENT_ITEM, siteId, path);
-    }
+	private String generateContentItemKey(String siteId, String path) {
+		return format(KEY_FORMAT_CONTENT_ITEM, siteId, path);
+	}
 }

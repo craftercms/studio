@@ -25,11 +25,11 @@ import org.craftercms.studio.api.v1.to.ResultTO;
  */
 public interface ContentProcessorPipeline {
 
-    /**
-     * process the given content through the executors chain
-     *
-     * @param content
-     * @param result
-     */
-    void processContent(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * process the given content through the executors chain
+	 *
+	 * @param content
+	 * @param result
+	 */
+	void processContent(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException;
 }

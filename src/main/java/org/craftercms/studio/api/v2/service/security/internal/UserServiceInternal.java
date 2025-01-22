@@ -29,123 +29,133 @@ import java.util.Map;
 
 public interface UserServiceInternal {
 
-    @NonNull
-    User getUserByIdOrUsername(long userId, String username) throws UserNotFoundException, ServiceLayerException;
+	@NonNull
+	User getUserByIdOrUsername(long userId, String username) throws UserNotFoundException, ServiceLayerException;
 
-    List<User> getUsersByIdOrUsername(List<Long> userIds,
-                                      List<String> usernames) throws ServiceLayerException, UserNotFoundException;
+	List<User> getUsersByIdOrUsername(List<Long> userIds,
+					  List<String> usernames) throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get paginated list of all users for site filtered by keyword
-     * @param orgId organization identifier
-     * @param groupNames group names for site
-     * @param keyword keyword to filter users
-     * @param offset pagination offset
-     * @param limit limit number of users to return per page
-     * @param sort sort order
-     * @return requested page of list of users
-     * @throws ServiceLayerException
-     */
-    List<User> getAllUsersForSite(long orgId, List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
-                                  String sort) throws ServiceLayerException;
+	/**
+	 * Get paginated list of all users for site filtered by keyword
+	 *
+	 * @param orgId      organization identifier
+	 * @param groupNames group names for site
+	 * @param keyword    keyword to filter users
+	 * @param offset     pagination offset
+	 * @param limit      limit number of users to return per page
+	 * @param sort       sort order
+	 * @return requested page of list of users
+	 * @throws ServiceLayerException
+	 */
+	List<User> getAllUsersForSite(long orgId, List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
+				      String sort) throws ServiceLayerException;
 
-    /**
-     * Get paginated list of all users filtered by keyword
-     * @param keyword keyword to filter users
-     * @param offset offset for pagination
-     * @param limit limit number of users per page
-     * @param sort sort order
-     * @return requested page of list of users
-     * @throws ServiceLayerException
-     */
-    List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
+	/**
+	 * Get paginated list of all users filtered by keyword
+	 *
+	 * @param keyword keyword to filter users
+	 * @param offset  offset for pagination
+	 * @param limit   limit number of users per page
+	 * @param sort    sort order
+	 * @return requested page of list of users
+	 * @throws ServiceLayerException
+	 */
+	List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
 
-    /**
-     * Get total number of users for site filtered by keyword
-     * @param orgId organization identifier
-     * @param siteId site identifier
-     * @param keyword keyword to filter users
-     * @return total number of users for site filtered by keyword
-     * @throws ServiceLayerException
-     */
-    int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException;
+	/**
+	 * Get total number of users for site filtered by keyword
+	 *
+	 * @param orgId   organization identifier
+	 * @param siteId  site identifier
+	 * @param keyword keyword to filter users
+	 * @return total number of users for site filtered by keyword
+	 * @throws ServiceLayerException
+	 */
+	int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException;
 
-    /**
-     * Get total number of users filtered by keyword
-     * @param keyword keyword to filter user
-     * @return total number of users filtered by keyword
-     * @throws ServiceLayerException
-     */
-    int getAllUsersTotal(String keyword) throws ServiceLayerException;
+	/**
+	 * Get total number of users filtered by keyword
+	 *
+	 * @param keyword keyword to filter user
+	 * @return total number of users filtered by keyword
+	 * @throws ServiceLayerException
+	 */
+	int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
-    User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
+	User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
 
-    boolean userExists(long userId, String username) throws ServiceLayerException;
+	boolean userExists(long userId, String username) throws ServiceLayerException;
 
-    void updateUser(User user) throws UserNotFoundException, ServiceLayerException;
+	void updateUser(User user) throws UserNotFoundException, ServiceLayerException;
 
-    void deleteUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, ServiceLayerException;
+	void deleteUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, ServiceLayerException;
 
-    List<User> enableUsers(List<Long> userIds, List<String> usernames,
-                           boolean enabled) throws UserNotFoundException, ServiceLayerException;
+	List<User> enableUsers(List<Long> userIds, List<String> usernames,
+			       boolean enabled) throws UserNotFoundException, ServiceLayerException;
 
-    List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException;
+	List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException;
 
-    boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException, ServiceLayerException;
+	boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException, ServiceLayerException;
 
-    boolean changePassword(String username, String current, String newPassword)
-            throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
+	boolean changePassword(String username, String current, String newPassword)
+		throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
-    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
-            ServiceLayerException;
+	boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
+		ServiceLayerException;
 
-    /**
-     * Get user by git name.
-     * Special use case because git stores user as string of first and last name separated by ' '
-     * @param gitName first and last name separated with ' '
-     * @return user
-     */
-    User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get user by git name.
+	 * Special use case because git stores user as string of first and last name separated by ' '
+	 *
+	 * @param gitName first and last name separated with ' '
+	 * @return user
+	 */
+	User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get the properties for the given site &amp; the current user
-     * @param siteId the id of the site
-     * @return the current properties
-     * @throws ServiceLayerException if there is any error fetching the properties
-     */
-    Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException;
+	/**
+	 * Get the properties for the given site &amp; the current user
+	 *
+	 * @param siteId the id of the site
+	 * @return the current properties
+	 * @throws ServiceLayerException if there is any error fetching the properties
+	 */
+	Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException;
 
-    /**
-     * Update or add properties for the given site &amp; the current user
-     * @param siteId the id of the site
-     * @param propertiesToUpdate the properties to update or add
-     * @return the updated properties
-     * @throws ServiceLayerException if there is any error updating or fetching the properties
-     */
-    Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
-            throws ServiceLayerException;
+	/**
+	 * Update or add properties for the given site &amp; the current user
+	 *
+	 * @param siteId             the id of the site
+	 * @param propertiesToUpdate the properties to update or add
+	 * @return the updated properties
+	 * @throws ServiceLayerException if there is any error updating or fetching the properties
+	 */
+	Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
+		throws ServiceLayerException;
 
-    /**
-     * Delete properties for the given site &amp; current user
-     * @param siteId the id of the site
-     * @param propertiesToDelete the list of keys to delete
-     * @return the updated properties
-     * @throws ServiceLayerException if there is any error deleting or fetching the properties
-     */
-    Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
-            throws ServiceLayerException;
+	/**
+	 * Delete properties for the given site &amp; current user
+	 *
+	 * @param siteId             the id of the site
+	 * @param propertiesToDelete the list of keys to delete
+	 * @return the updated properties
+	 * @throws ServiceLayerException if there is any error deleting or fetching the properties
+	 */
+	Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
+		throws ServiceLayerException;
 
-    /**
-     * Returns the current authenticated user
-     * @return the user if present
-     * @throws AuthenticationException if there is no user authenticated
-     */
-    AuthenticatedUser getCurrentUser() throws AuthenticationException;
+	/**
+	 * Returns the current authenticated user
+	 *
+	 * @return the user if present
+	 * @throws AuthenticationException if there is no user authenticated
+	 */
+	AuthenticatedUser getCurrentUser() throws AuthenticationException;
 
-    /**
-     * Check if given user has system_admin role
-     * @param username user
-     * @return true if user is system_admin, false otherwise
-     */
-    boolean isSystemAdmin(String username);
+	/**
+	 * Check if given user has system_admin role
+	 *
+	 * @param username user
+	 * @return true if user is system_admin, false otherwise
+	 */
+	boolean isSystemAdmin(String username);
 }

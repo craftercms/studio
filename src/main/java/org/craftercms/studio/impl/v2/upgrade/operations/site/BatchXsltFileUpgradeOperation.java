@@ -48,50 +48,50 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryF
  */
 public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(BatchXsltFileUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(BatchXsltFileUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_REGEX = "regex";
+	public static final String CONFIG_KEY_REGEX = "regex";
 
-    protected String regex;
+	protected String regex;
 
-    public BatchXsltFileUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
-        super(studioConfiguration);
-    }
+	public BatchXsltFileUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+		super(studioConfiguration);
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        super.doInit(config);
-        regex = config.getString(CONFIG_KEY_REGEX);
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		super.doInit(config);
+		regex = config.getString(CONFIG_KEY_REGEX);
+	}
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        logger.debug("Find files that match the regex '{}' in site '{}'", regex, site);
-        Path repository = context.getRepositoryPath();
-        try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
-            (path, attrs) -> repository.relativize(path).toString().matches(regex) )) {
-            paths.forEach(path -> {
-                logger.debug("Execute the XSLT template against site '{}' path '{}'", site, path);
-                try {
-                    Path temp = Files.createTempFile(getStudioTemporaryFilesRoot(), "upgrade-manager", "xslt");
-                    try {
-                        OutputStream os = Files.newOutputStream(temp);
-                        executeTemplate(context, repository.relativize(path).toString(), os);
-                        os.close();
-                        if (Files.size(temp) > 0) {
-                            Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
-                        }
-                    } finally {
-                        Files.deleteIfExists(temp);
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to upgrade site '{}' path '{}'", site, path, e);
-                }
-            });
-        } catch (IOException e) {
-            throw new UpgradeException("Error searching for files in site " + site, e);
-        }
-    }
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		logger.debug("Find files that match the regex '{}' in site '{}'", regex, site);
+		Path repository = context.getRepositoryPath();
+		try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
+			(path, attrs) -> repository.relativize(path).toString().matches(regex))) {
+			paths.forEach(path -> {
+				logger.debug("Execute the XSLT template against site '{}' path '{}'", site, path);
+				try {
+					Path temp = Files.createTempFile(getStudioTemporaryFilesRoot(), "upgrade-manager", "xslt");
+					try {
+						OutputStream os = Files.newOutputStream(temp);
+						executeTemplate(context, repository.relativize(path).toString(), os);
+						os.close();
+						if (Files.size(temp) > 0) {
+							Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
+						}
+					} finally {
+						Files.deleteIfExists(temp);
+					}
+				} catch (Exception e) {
+					logger.error("Failed to upgrade site '{}' path '{}'", site, path, e);
+				}
+			});
+		} catch (IOException e) {
+			throw new UpgradeException("Error searching for files in site " + site, e);
+		}
+	}
 
 }

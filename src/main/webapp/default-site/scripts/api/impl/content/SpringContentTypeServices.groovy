@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
@@ -25,36 +24,36 @@ package scripts.api.impl.content;
  */
 class SpringContentTypeServices {
 
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
+	static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
 
-    def context = null
+	def context = null
 
-    def SpringContentTypeServices(context) {
-        this.context = context
-    }
+	def SpringContentTypeServices(context) {
+		this.context = context
+	}
 
-    def getContentTypes(site, searchable) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getAllContentTypes(site, searchable)
-    }
+	def getContentTypes(site, searchable) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
+		return springBackedService.getAllContentTypes(site, searchable)
+	}
 
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
-    }
+	def getContentType(site, type) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
+		return springBackedService.getContentType(site, type)
+	}
 
-    def changeContentType(site, path, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.changeContentType(site, path, type)
-    }
+	def changeContentType(site, path, type) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
+		return springBackedService.changeContentType(site, path, type)
+	}
 
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
-    }
+	def getContentTypeByPath(site, path) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
+		return springBackedService.getContentTypeByRelativePath(site, path)
+	}
 
-    def getAllowedContentTypesForPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getAllowedContentTypesForPath(site, path);
-    }
+	def getAllowedContentTypesForPath(site, path) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
+		return springBackedService.getAllowedContentTypesForPath(site, path);
+	}
 }

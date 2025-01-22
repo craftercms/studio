@@ -29,23 +29,21 @@ import java.util.List;
  */
 public interface UiService {
 
-    /**
-     * Returns the global menu items available to the current user.
-     *
-     * @return the list of menu items
-     *
-     * @throws AuthenticationException if not user is logged in
-     * @throws ServiceLayerException if another error occurs
-     */
-    List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException;
+	/**
+	 * Returns the global menu items available to the current user.
+	 *
+	 * @return the list of menu items
+	 * @throws AuthenticationException if not user is logged in
+	 * @throws ServiceLayerException   if another error occurs
+	 */
+	List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException;
 
-    /**
-     * Returns the active environment.
-     *
-     * @return active environment
-     *
-     * @throws AuthenticationException authentication error
-     */
-    String getActiveEnvironment() throws AuthenticationException;
+	/**
+	 * Returns the active environment.
+	 *
+	 * @return active environment
+	 * @throws AuthenticationException authentication error
+	 */
+	String getActiveEnvironment() throws AuthenticationException;
 
 }

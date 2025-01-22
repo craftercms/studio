@@ -19,10 +19,14 @@ import java.io.Serializable;
 
 public class EmailMessageTemplateTO implements Serializable {
 
-    private static final long serialVersionUID = 5222897831966329668L;
-    /** message title **/
+	private static final long serialVersionUID = 5222897831966329668L;
+	/**
+	 * message title
+	 **/
 	protected String _subject;
-	/** message body **/
+	/**
+	 * message body
+	 **/
 	protected String _message;
 
 
@@ -42,8 +46,7 @@ public class EmailMessageTemplateTO implements Serializable {
 	}
 
 	/**
-	 * @param subject
-	 *            the title to set
+	 * @param subject the title to set
 	 */
 	public void setSubject(final String subject) {
 		this._subject = subject;
@@ -57,11 +60,10 @@ public class EmailMessageTemplateTO implements Serializable {
 	}
 
 	/**
-	 * @param message
-	 *            the body to set
+	 * @param message the body to set
 	 */
 	public void setMessage(final String message) {
 		this._message = message;
 	}
-	
+
 }

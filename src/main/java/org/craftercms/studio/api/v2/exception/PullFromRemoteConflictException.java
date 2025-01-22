@@ -19,20 +19,20 @@ package org.craftercms.studio.api.v2.exception;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 public class PullFromRemoteConflictException extends ServiceLayerException {
-    private static final long serialVersionUID = -8157042893150586431L;
+	private static final long serialVersionUID = -8157042893150586431L;
 
-    public PullFromRemoteConflictException() {
-    }
+	public PullFromRemoteConflictException() {
+	}
 
-    public PullFromRemoteConflictException(Throwable e) {
-        super(e);
-    }
+	public PullFromRemoteConflictException(Throwable e) {
+		super(e);
+	}
 
-    public PullFromRemoteConflictException(String message) {
-        super(message);
-    }
+	public PullFromRemoteConflictException(String message) {
+		super(message);
+	}
 
-    public PullFromRemoteConflictException(String message, Exception e) {
-        super(message, e);
-    }
+	public PullFromRemoteConflictException(String message, Exception e) {
+		super(message, e);
+	}
 }

@@ -21,5 +21,5 @@ package org.craftercms.studio.api.v2.utils.function;
  */
 @FunctionalInterface
 public interface ThrowingRunnable {
-    void run() throws Exception;
+	void run() throws Exception;
 }

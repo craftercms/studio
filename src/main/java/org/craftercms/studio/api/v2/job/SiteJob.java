@@ -18,5 +18,5 @@ package org.craftercms.studio.api.v2.job;
 
 public interface SiteJob {
 
-    void execute(String site);
+	void execute(String site);
 }

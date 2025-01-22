@@ -22,7 +22,8 @@ import javax.transaction.UserTransaction;
 
 
 /**
- * Provide different types of transactions to the site 
+ * Provide different types of transactions to the site
+ *
  * @author russdanner
  */
 public class TransactionServiceImpl implements TransactionService {
@@ -31,13 +32,22 @@ public class TransactionServiceImpl implements TransactionService {
 	 * get a standard user transaction
 	 */
 	public UserTransaction getTransaction() {
- 		return null;
+		return null;
 	}
-	
-	/** getter for content repository */
-	public ContentRepository getContentRepository() { return _contentRepository; }
-	/** setter for content repository */
-	public void setContentRepository(ContentRepository repo) { _contentRepository = repo; }
-	
+
+	/**
+	 * getter for content repository
+	 */
+	public ContentRepository getContentRepository() {
+		return _contentRepository;
+	}
+
+	/**
+	 * setter for content repository
+	 */
+	public void setContentRepository(ContentRepository repo) {
+		_contentRepository = repo;
+	}
+
 	protected ContentRepository _contentRepository;
 }

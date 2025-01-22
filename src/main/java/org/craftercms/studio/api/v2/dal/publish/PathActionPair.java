@@ -20,22 +20,22 @@ package org.craftercms.studio.api.v2.dal.publish;
  * Simplified Publish item path-action pair.
  */
 public class PathActionPair {
-    private String path;
-    private PublishItem.Action action;
+	private String path;
+	private PublishItem.Action action;
 
-    public PublishItem.Action getAction() {
-        return action;
-    }
+	public PublishItem.Action getAction() {
+		return action;
+	}
 
-    public void setAction(PublishItem.Action action) {
-        this.action = action;
-    }
+	public void setAction(PublishItem.Action action) {
+		this.action = action;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 }

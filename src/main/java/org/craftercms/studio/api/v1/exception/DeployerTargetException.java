@@ -17,9 +17,10 @@ package org.craftercms.studio.api.v1.exception;
 
 public class DeployerTargetException extends ServiceLayerException {
 
-    private static final long serialVersionUID = 6422788562443045181L;
+	private static final long serialVersionUID = 6422788562443045181L;
 
-    public DeployerTargetException() {}
+	public DeployerTargetException() {
+	}
 
 	public DeployerTargetException(Exception e) {
 		super(e);

@@ -35,53 +35,53 @@ import static java.lang.String.format;
 @Order(1)
 public class RetryingDatabaseOperationAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RetryingDatabaseOperationAnnotationHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(RetryingDatabaseOperationAnnotationHandler.class);
 
-    private static final int DEFAULT_MAX_RETRIES = 50;
+	private static final int DEFAULT_MAX_RETRIES = 50;
 
-    private int maxRetries = DEFAULT_MAX_RETRIES;
-    private int maxSleep = 0;
+	private int maxRetries = DEFAULT_MAX_RETRIES;
+	private int maxSleep = 0;
 
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
+	public void setMaxRetries(int maxRetries) {
+		this.maxRetries = maxRetries;
+	}
 
-    public void setMaxSleep(int maxSleep) {
-        this.maxSleep = maxSleep;
-    }
+	public void setMaxSleep(int maxSleep) {
+		this.maxSleep = maxSleep;
+	}
 
-    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation) || " +
-            "@annotation(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation)")
-    // TODO: AV - This has the same problem as the old RetryingRepositoryOperationAnnotationHandler. We can just copy
-    // the fixed code or consolidate the code
-    public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = AopUtils.getActualMethod(pjp);
-        logger.debug("Execute retrying operation '{}.{}'", method.getDeclaringClass(), method.getName());
-        int numAttempts = 0;
-        do {
-            numAttempts++;
-            try {
-				 // Execute the business code again
-                if (numAttempts > 1) {
-                    logger.debug("Retrying operation attempt '{}'", (numAttempts - 1));
-                }
-                return pjp.proceed();
-            } catch (DeadlockLoserDataAccessException | JGitInternalException e) {
-                logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
-                if (numAttempts > maxRetries) {
-                    // Log failure information, and throw exception
-                    // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
-                    throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%s' attempts",
-                            method.getName(), numAttempts), e);
-                } else {
-					 // The maximum number of retries has not been reached, try again
-                    long sleep = (long)(Math.random() * maxSleep);
-                    logger.debug("Sleep for '{}' before the next retry of '{}'", sleep, method.getName());
-                    Thread.sleep(sleep);
-                }
-            }
-        } while (numAttempts < this.maxRetries);
+	@Around("@within(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation) || " +
+		"@annotation(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation)")
+	// TODO: AV - This has the same problem as the old RetryingRepositoryOperationAnnotationHandler. We can just copy
+	// the fixed code or consolidate the code
+	public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
+		Method method = AopUtils.getActualMethod(pjp);
+		logger.debug("Execute retrying operation '{}.{}'", method.getDeclaringClass(), method.getName());
+		int numAttempts = 0;
+		do {
+			numAttempts++;
+			try {
+				// Execute the business code again
+				if (numAttempts > 1) {
+					logger.debug("Retrying operation attempt '{}'", (numAttempts - 1));
+				}
+				return pjp.proceed();
+			} catch (DeadlockLoserDataAccessException | JGitInternalException e) {
+				logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
+				if (numAttempts > maxRetries) {
+					// Log failure information, and throw exception
+					// If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
+					throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%s' attempts",
+						method.getName(), numAttempts), e);
+				} else {
+					// The maximum number of retries has not been reached, try again
+					long sleep = (long) (Math.random() * maxSleep);
+					logger.debug("Sleep for '{}' before the next retry of '{}'", sleep, method.getName());
+					Thread.sleep(sleep);
+				}
+			}
+		} while (numAttempts < this.maxRetries);
 
-        return null;
-    }
+		return null;
+	}
 }

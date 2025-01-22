@@ -22,7 +22,8 @@
 	<imageThumbnail>component-contact-widget.png</imageThumbnail>
 	<quickCreate>false</quickCreate>
 	<quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/contact-widget.ftl</value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Component - Contact Widget Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -102,7 +104,7 @@
 						</constraint>
 					</constraints>
 				</field>
-        <field>
+				<field>
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>

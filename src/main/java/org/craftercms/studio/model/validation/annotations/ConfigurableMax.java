@@ -19,6 +19,7 @@ import org.craftercms.studio.model.validation.validators.ConfigurableMaxValidato
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -34,16 +35,16 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = {ConfigurableMaxValidator.class})
 public @interface ConfigurableMax {
 
-    /**
-     * The name of the Studio configuration property to use as the maximum size
-     *
-     * @return the name of the property to use as the maximum size
-     */
-    String value();
+	/**
+	 * The name of the Studio configuration property to use as the maximum size
+	 *
+	 * @return the name of the property to use as the maximum size
+	 */
+	String value();
 
-    String message() default "";
+	String message() default "";
 
-    Class<?>[] groups() default {};
+	Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+	Class<? extends Payload>[] payload() default {};
 }

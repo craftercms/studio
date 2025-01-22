@@ -46,52 +46,52 @@ import org.springframework.core.io.Resource;
  */
 public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(AddFileUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(AddFileUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_PATH = "path";
-    public static final String CONFIG_KEY_FILE = "file";
+	public static final String CONFIG_KEY_PATH = "path";
+	public static final String CONFIG_KEY_FILE = "file";
 
-    /**
-     * The path to write the file.
-     */
-    protected String path;
+	/**
+	 * The path to write the file.
+	 */
+	protected String path;
 
-    /**
-     * The file to copy from the classpath.
-     */
-    protected Resource file;
+	/**
+	 * The file to copy from the classpath.
+	 */
+	protected Resource file;
 
-    public AddFileUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public AddFileUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doInit(final HierarchicalConfiguration config) {
-        path = config.getString(CONFIG_KEY_PATH);
-        file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doInit(final HierarchicalConfiguration config) {
+		path = config.getString(CONFIG_KEY_PATH);
+		file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        var newFile = context.getFile(path);
-        if(Files.exists(newFile)) {
-            logger.info("File '{}' already exist in site '{}' and it will not be changed", path, site);
-        } else {
-            try(InputStream in = file.getInputStream();
-                OutputStream out = Files.newOutputStream(newFile)) {
-                IOUtils.copy(in, out);
-                trackChangedFiles(path);
-            } catch (IOException e) {
-                throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);
-            }
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		var newFile = context.getFile(path);
+		if (Files.exists(newFile)) {
+			logger.info("File '{}' already exist in site '{}' and it will not be changed", path, site);
+		} else {
+			try (InputStream in = file.getInputStream();
+			     OutputStream out = Files.newOutputStream(newFile)) {
+				IOUtils.copy(in, out);
+				trackChangedFiles(path);
+			} catch (IOException e) {
+				throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);
+			}
+		}
+	}
 
 }

@@ -23,19 +23,19 @@ import javax.sql.DataSource;
 
 public class StudioDBScriptRunnerFactoryImpl implements StudioDBScriptRunnerFactory {
 
-    protected DataSource dataSource;
-    protected int scriptLinesBufferSize = 10000;
+	protected DataSource dataSource;
+	protected int scriptLinesBufferSize = 10000;
 
-    @Override
-    public StudioDBScriptRunner getDBScriptRunner() {
-        return new StudioDBScriptRunnerImpl(dataSource, scriptLinesBufferSize);
-    }
+	@Override
+	public StudioDBScriptRunner getDBScriptRunner() {
+		return new StudioDBScriptRunnerImpl(dataSource, scriptLinesBufferSize);
+	}
 
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
 
-    public void setScriptLinesBufferSize(int scriptLinesBufferSize) {
-        this.scriptLinesBufferSize = scriptLinesBufferSize;
-    }
+	public void setScriptLinesBufferSize(int scriptLinesBufferSize) {
+		this.scriptLinesBufferSize = scriptLinesBufferSize;
+	}
 }

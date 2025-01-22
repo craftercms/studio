@@ -26,54 +26,54 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 
 public class WriteConfigurationRequest {
 
-    @ValidSiteId
-    private String siteId;
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String module;
-    @ValidConfigurationPath
-    private String path;
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String environment;
-    @ConfigurableMax(CONFIGURATION_MAX_CONFIGURATION_LENGTH)
-    private String content;
+	@ValidSiteId
+	private String siteId;
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	private String module;
+	@ValidConfigurationPath
+	private String path;
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	private String environment;
+	@ConfigurableMax(CONFIGURATION_MAX_CONFIGURATION_LENGTH)
+	private String content;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getModule() {
-        return module;
-    }
+	public String getModule() {
+		return module;
+	}
 
-    public void setModule(String module) {
-        this.module = module;
-    }
+	public void setModule(String module) {
+		this.module = module;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public String getEnvironment() {
-        return environment;
-    }
+	public String getEnvironment() {
+		return environment;
+	}
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
+	public void setEnvironment(String environment) {
+		this.environment = environment;
+	}
 
-    public String getContent() {
-        return content;
-    }
+	public String getContent() {
+		return content;
+	}
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+	public void setContent(String content) {
+		this.content = content;
+	}
 }

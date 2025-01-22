@@ -20,30 +20,39 @@ import java.io.Serializable;
 
 /**
  * This class contains content asset information that exists in the repository
- * 
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public class ContentAssetInfoTO implements Serializable {
 
 	public static final String FILE_SIZE_KB = "KB";
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = -8114663374929132828L;
 
-	/** asset file name **/
+	/**
+	 * asset file name
+	 **/
 	protected String fileName;
-	/** asset file extension **/
+	/**
+	 * asset file extension
+	 **/
 	protected String fileExtension;
-	/** asset file size in KB **/
+	/**
+	 * asset file size in KB
+	 **/
 	protected double size;
-	/** the image width if the asset is an image **/
+	/**
+	 * the image width if the asset is an image
+	 **/
 	protected int width = -1;
-	/** the image height if the asset is an image **/
+	/**
+	 * the image height if the asset is an image
+	 **/
 	protected int height = -1;
-	
+
 	protected String sizeUnit = FILE_SIZE_KB;
 
 	public String getSizeUnit() {
@@ -63,8 +72,7 @@ public class ContentAssetInfoTO implements Serializable {
 	}
 
 	/**
-	 * @param fileName
-	 *            the fileName to set
+	 * @param fileName the fileName to set
 	 */
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
@@ -78,8 +86,7 @@ public class ContentAssetInfoTO implements Serializable {
 	}
 
 	/**
-	 * @param fileExtension
-	 *            the fileExtension to set
+	 * @param fileExtension the fileExtension to set
 	 */
 	public void setFileExtension(String fileExtension) {
 		this.fileExtension = fileExtension;
@@ -93,8 +100,7 @@ public class ContentAssetInfoTO implements Serializable {
 	}
 
 	/**
-	 * @param size
-	 *            the size to set
+	 * @param size the size to set
 	 */
 	public void setSize(double size) {
 		this.size = size;

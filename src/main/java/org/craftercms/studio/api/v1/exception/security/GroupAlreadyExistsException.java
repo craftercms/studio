@@ -17,24 +17,24 @@
 package org.craftercms.studio.api.v1.exception.security;
 
 public class GroupAlreadyExistsException extends Exception {
-    private static final long serialVersionUID = 5510295023051460726L;
+	private static final long serialVersionUID = 5510295023051460726L;
 
-    public GroupAlreadyExistsException() {
-    }
+	public GroupAlreadyExistsException() {
+	}
 
-    public GroupAlreadyExistsException(String message) {
-        super(message);
-    }
+	public GroupAlreadyExistsException(String message) {
+		super(message);
+	}
 
-    public GroupAlreadyExistsException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public GroupAlreadyExistsException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public GroupAlreadyExistsException(Throwable cause) {
-        super(cause);
-    }
+	public GroupAlreadyExistsException(Throwable cause) {
+		super(cause);
+	}
 
-    public GroupAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public GroupAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

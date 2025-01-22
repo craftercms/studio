@@ -36,57 +36,57 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 /**
  * Created by Sumer Jabri
  */
-public class TreeCopier  implements FileVisitor<Path> {
-    private static final Logger logger = LoggerFactory.getLogger(TreeCopier.class);
-    protected final Path source;
-    protected final Path target;
+public class TreeCopier implements FileVisitor<Path> {
+	private static final Logger logger = LoggerFactory.getLogger(TreeCopier.class);
+	protected final Path source;
+	protected final Path target;
 
-    public TreeCopier(Path source, Path target) {
-        this.source = source;
-        this.target = target;
-    }
+	public TreeCopier(Path source, Path target) {
+		this.source = source;
+		this.target = target;
+	}
 
-    @Override
-    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-        // TODO: SJ: What does this method actually do?
-        CopyOption[] options = new CopyOption[0];
+	@Override
+	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+		// TODO: SJ: What does this method actually do?
+		CopyOption[] options = new CopyOption[0];
 
-        Path newDir = target.resolve(source.relativize(dir));
-        try {
-            Files.copy(dir, newDir, options);
-        } catch (FileAlreadyExistsException e) {
-            // ignore
-        } catch (IOException e) {
-            logger.error("Failed to copy files from '{}' to '{}' with options '{}'", dir, newDir, options, e);
-            return SKIP_SUBTREE;
-        }
-        return CONTINUE;
-    }
+		Path newDir = target.resolve(source.relativize(dir));
+		try {
+			Files.copy(dir, newDir, options);
+		} catch (FileAlreadyExistsException e) {
+			// ignore
+		} catch (IOException e) {
+			logger.error("Failed to copy files from '{}' to '{}' with options '{}'", dir, newDir, options, e);
+			return SKIP_SUBTREE;
+		}
+		return CONTINUE;
+	}
 
-    @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        CopyOption[] options = new CopyOption[] { REPLACE_EXISTING };
-        try {
-            Files.copy(file, target.resolve(source.relativize(file)), options);
-        } catch (IOException e) {
-            logger.error("Failed to copy '{}' to '{}' with options '{}'",
-                    source, target.resolve(source.relativize(file)), options, e);
-        }
-        return CONTINUE;
-    }
+	@Override
+	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+		CopyOption[] options = new CopyOption[]{REPLACE_EXISTING};
+		try {
+			Files.copy(file, target.resolve(source.relativize(file)), options);
+		} catch (IOException e) {
+			logger.error("Failed to copy '{}' to '{}' with options '{}'",
+				source, target.resolve(source.relativize(file)), options, e);
+		}
+		return CONTINUE;
+	}
 
-    @Override
-    public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
-        if (e instanceof FileSystemLoopException) {
-            logger.error("File system loop detected for file '{}'", file, e);
-        } else {
-            logger.error("Failed to copy file '{}'", file, e);
-        }
-        return CONTINUE;
-    }
+	@Override
+	public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
+		if (e instanceof FileSystemLoopException) {
+			logger.error("File system loop detected for file '{}'", file, e);
+		} else {
+			logger.error("Failed to copy file '{}'", file, e);
+		}
+		return CONTINUE;
+	}
 
-    @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        return CONTINUE;
-    }
+	@Override
+	public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+		return CONTINUE;
+	}
 }

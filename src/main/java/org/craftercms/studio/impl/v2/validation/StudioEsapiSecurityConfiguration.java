@@ -30,41 +30,41 @@ import static java.lang.String.format;
  */
 public class StudioEsapiSecurityConfiguration extends DefaultSecurityConfiguration {
 
-    public static final String STUDIO_VALIDATION_REGEX_OVERRIDE_FORMAT = "studio.validation.regex.%s";
+	public static final String STUDIO_VALIDATION_REGEX_OVERRIDE_FORMAT = "studio.validation.regex.%s";
 
-    private static volatile SecurityConfiguration singletonInstance = null;
+	private static volatile SecurityConfiguration singletonInstance = null;
 
-    private final StudioConfiguration studioConfiguration;
+	private final StudioConfiguration studioConfiguration;
 
-    public StudioEsapiSecurityConfiguration(final StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public StudioEsapiSecurityConfiguration(final StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    static void setInstance(final StudioEsapiSecurityConfiguration instance) {
-        singletonInstance = instance;
-    }
+	static void setInstance(final StudioEsapiSecurityConfiguration instance) {
+		singletonInstance = instance;
+	}
 
-    public static SecurityConfiguration getInstance() {
-        return singletonInstance;
-    }
+	public static SecurityConfiguration getInstance() {
+		return singletonInstance;
+	}
 
-    /**
-     * Returns a single pattern based upon key.
-     * It first tries to get the value from studio configuration, using the key
-     * prefix 'studio.validation.regex.%s'. If value is not found in studio configuration,
-     * it invokes the super class (DefaultSecurityConfiguration) method to get default configured
-     * value.
-     *
-     * @param key validation pattern name you'd like
-     * @return if key exists, the associated validation pattern, null otherwise
-     */
-    @Override
-    public Pattern getValidationPattern(String key) {
-        String studioConfigurationKey = format(STUDIO_VALIDATION_REGEX_OVERRIDE_FORMAT, key);
-        String patternOverride = studioConfiguration.getProperty(studioConfigurationKey);
-        if (patternOverride == null) {
-            return super.getValidationPattern(key);
-        }
-        return Pattern.compile(patternOverride);
-    }
+	/**
+	 * Returns a single pattern based upon key.
+	 * It first tries to get the value from studio configuration, using the key
+	 * prefix 'studio.validation.regex.%s'. If value is not found in studio configuration,
+	 * it invokes the super class (DefaultSecurityConfiguration) method to get default configured
+	 * value.
+	 *
+	 * @param key validation pattern name you'd like
+	 * @return if key exists, the associated validation pattern, null otherwise
+	 */
+	@Override
+	public Pattern getValidationPattern(String key) {
+		String studioConfigurationKey = format(STUDIO_VALIDATION_REGEX_OVERRIDE_FORMAT, key);
+		String patternOverride = studioConfiguration.getProperty(studioConfigurationKey);
+		if (patternOverride == null) {
+			return super.getValidationPattern(key);
+		}
+		return Pattern.compile(patternOverride);
+	}
 }

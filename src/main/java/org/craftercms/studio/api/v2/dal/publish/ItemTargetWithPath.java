@@ -20,13 +20,13 @@ package org.craftercms.studio.api.v2.dal.publish;
  * Extension to ItemTarget, to allow retrieving the ItemTarget data along with the item path
  */
 public class ItemTargetWithPath extends ItemTarget {
-    private String path;
+	private String path;
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 }

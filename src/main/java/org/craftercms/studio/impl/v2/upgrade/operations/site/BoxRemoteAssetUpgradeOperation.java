@@ -59,164 +59,166 @@ import static org.apache.commons.text.StringSubstitutor.replace;
  */
 public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(BoxRemoteAssetUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(BoxRemoteAssetUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_FIELD_XPATH = "fieldNameXpath";
-    public static final String CONFIG_KEY_PROFILE_XPATH = "profileIdXpath";
-    public static final String CONFIG_KEY_ITEM_XPATH = "itemXpath";
-    public static final String CONFIG_KEY_ITEM_ID_XPATH = "itemIdXpath";
-    public static final String CONFIG_KEY_ITEM_NAME_XPATH = "itemNameXpath";
-    public static final String CONFIG_KEY_URL_NAME = "urlElementName";
-    public static final String CONFIG_KEY_URL_TEMPLATE = "urlTemplate";
+	public static final String CONFIG_KEY_FIELD_XPATH = "fieldNameXpath";
+	public static final String CONFIG_KEY_PROFILE_XPATH = "profileIdXpath";
+	public static final String CONFIG_KEY_ITEM_XPATH = "itemXpath";
+	public static final String CONFIG_KEY_ITEM_ID_XPATH = "itemIdXpath";
+	public static final String CONFIG_KEY_ITEM_NAME_XPATH = "itemNameXpath";
+	public static final String CONFIG_KEY_URL_NAME = "urlElementName";
+	public static final String CONFIG_KEY_URL_TEMPLATE = "urlTemplate";
 
-    public static final String PLACEHOLDER_PROFILE = "profile";
-    public static final String PLACEHOLDER_ID = "id";
-    public static final String PLACEHOLDER_EXTENSION = "extension";
+	public static final String PLACEHOLDER_PROFILE = "profile";
+	public static final String PLACEHOLDER_ID = "id";
+	public static final String PLACEHOLDER_EXTENSION = "extension";
 
-    /**
-     * XPath selector to find the name of the field that uses the Box control
-     */
-    protected String fieldNameXpath;
+	/**
+	 * XPath selector to find the name of the field that uses the Box control
+	 */
+	protected String fieldNameXpath;
 
-    /**
-     * XPath selector to find the profile id configured for the Box control
-     */
-    protected String profileIdXpath;
+	/**
+	 * XPath selector to find the profile id configured for the Box control
+	 */
+	protected String profileIdXpath;
 
-    /**
-     * XPath selector to find the value of the field that uses the Box control
-     */
-    protected String itemXpath;
+	/**
+	 * XPath selector to find the value of the field that uses the Box control
+	 */
+	protected String itemXpath;
 
-    /**
-     * XPath selector to find the Box file id
-     */
-    protected String itemIdXpath;
+	/**
+	 * XPath selector to find the Box file id
+	 */
+	protected String itemIdXpath;
 
-    /**
-     * XPath selector to find the Box file name
-     */
-    protected String itemNameXpath;
+	/**
+	 * XPath selector to find the Box file name
+	 */
+	protected String itemNameXpath;
 
-    /**
-     * Name for the new XML tag to add to the field
-     */
-    protected String urlElementName;
+	/**
+	 * Name for the new XML tag to add to the field
+	 */
+	protected String urlElementName;
 
-    /**
-     * URL template to generate the new value for the Box file
-     */
-    protected String urlTemplate;
+	/**
+	 * URL template to generate the new value for the Box file
+	 */
+	protected String urlTemplate;
 
-    @ConstructorProperties({"studioConfiguration", "contentTypeXpath", "formDefinitionTemplate"})
-    public BoxRemoteAssetUpgradeOperation(StudioConfiguration studioConfiguration, String contentTypeXpath,
-                                          String formDefinitionTemplate) {
-        super(studioConfiguration, contentTypeXpath, formDefinitionTemplate);
-    }
+	@ConstructorProperties({"studioConfiguration", "contentTypeXpath", "formDefinitionTemplate"})
+	public BoxRemoteAssetUpgradeOperation(StudioConfiguration studioConfiguration, String contentTypeXpath,
+					      String formDefinitionTemplate) {
+		super(studioConfiguration, contentTypeXpath, formDefinitionTemplate);
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        super.doInit(config);
-        fieldNameXpath = config.getString(CONFIG_KEY_FIELD_XPATH);
-        profileIdXpath = config.getString(CONFIG_KEY_PROFILE_XPATH);
-        itemXpath = config.getString(CONFIG_KEY_ITEM_XPATH);
-        itemIdXpath = config.getString(CONFIG_KEY_ITEM_ID_XPATH);
-        itemNameXpath = config.getString(CONFIG_KEY_ITEM_NAME_XPATH);
-        urlElementName = config.getString(CONFIG_KEY_URL_NAME);
-        urlTemplate = config.getString(CONFIG_KEY_URL_TEMPLATE);
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		super.doInit(config);
+		fieldNameXpath = config.getString(CONFIG_KEY_FIELD_XPATH);
+		profileIdXpath = config.getString(CONFIG_KEY_PROFILE_XPATH);
+		itemXpath = config.getString(CONFIG_KEY_ITEM_XPATH);
+		itemIdXpath = config.getString(CONFIG_KEY_ITEM_ID_XPATH);
+		itemNameXpath = config.getString(CONFIG_KEY_ITEM_NAME_XPATH);
+		urlElementName = config.getString(CONFIG_KEY_URL_NAME);
+		urlTemplate = config.getString(CONFIG_KEY_URL_TEMPLATE);
+	}
 
-    @Override
-    protected void updateFile(StudioUpgradeContext context, Path file) throws UpgradeException {
-        try {
-            Document descriptor = loadDocument(file);
-            String contentTypeName = (String) select(descriptor, contentTypeXpath, XPathConstants.STRING);
-            Path formDefinition = getFormDefinition(context, contentTypeName);
-            Document definition = loadDocument(formDefinition);
-            NodeList formFields = (NodeList) select(definition, fieldNameXpath, XPathConstants.NODESET);
-            logger.debug("Found '{}' Box controls for content-type '{}'", formFields.getLength(), contentTypeName);
-            boolean updated = false;
-            for(int i = 0; i < formFields.getLength(); i++) {
-                Node formField = formFields.item(i);
-                updated = findFields(file, definition, descriptor, formField) || updated;
-            }
-            if(updated) {
-                logger.info("Update the file '{}'", file);
-                writeFile(file, descriptor);
-            }
+	@Override
+	protected void updateFile(StudioUpgradeContext context, Path file) throws UpgradeException {
+		try {
+			Document descriptor = loadDocument(file);
+			String contentTypeName = (String) select(descriptor, contentTypeXpath, XPathConstants.STRING);
+			Path formDefinition = getFormDefinition(context, contentTypeName);
+			Document definition = loadDocument(formDefinition);
+			NodeList formFields = (NodeList) select(definition, fieldNameXpath, XPathConstants.NODESET);
+			logger.debug("Found '{}' Box controls for content-type '{}'", formFields.getLength(), contentTypeName);
+			boolean updated = false;
+			for (int i = 0; i < formFields.getLength(); i++) {
+				Node formField = formFields.item(i);
+				updated = findFields(file, definition, descriptor, formField) || updated;
+			}
+			if (updated) {
+				logger.info("Update the file '{}'", file);
+				writeFile(file, descriptor);
+			}
 
-        } catch (Exception e) {
-            throw new UpgradeException("Error updating descriptor for file " + file, e);
-        }
-    }
+		} catch (Exception e) {
+			throw new UpgradeException("Error updating descriptor for file " + file, e);
+		}
+	}
 
-    /**
-     * Find all fields in the given descriptor that use the Box control
-     * @param file the XML file
-     * @param definition the form definition of the content-type
-     * @param descriptor the item descriptor
-     * @param formField the form field
-     * @return true if any field was updated
-     * @throws XPathExpressionException if there is an error evaluating a XPath selector
-     */
-    protected boolean findFields(Path file, Document definition, Document descriptor, Node formField)
-        throws XPathExpressionException {
+	/**
+	 * Find all fields in the given descriptor that use the Box control
+	 *
+	 * @param file       the XML file
+	 * @param definition the form definition of the content-type
+	 * @param descriptor the item descriptor
+	 * @param formField  the form field
+	 * @return true if any field was updated
+	 * @throws XPathExpressionException if there is an error evaluating a XPath selector
+	 */
+	protected boolean findFields(Path file, Document definition, Document descriptor, Node formField)
+		throws XPathExpressionException {
 
-        String fieldName = formField.getTextContent();
+		String fieldName = formField.getTextContent();
 
-        Map<String, String> idValue = singletonMap(PLACEHOLDER_ID, fieldName);
+		Map<String, String> idValue = singletonMap(PLACEHOLDER_ID, fieldName);
 
-        String profileId = (String) select(definition, replace(profileIdXpath, idValue), XPathConstants.STRING);
+		String profileId = (String) select(definition, replace(profileIdXpath, idValue), XPathConstants.STRING);
 
-        NodeList items = (NodeList) select(descriptor, replace(itemXpath, idValue), XPathConstants.NODESET);
+		NodeList items = (NodeList) select(descriptor, replace(itemXpath, idValue), XPathConstants.NODESET);
 
-        logger.debug("Found '{}' Box fields in the file '{}'", items.getLength(), file);
+		logger.debug("Found '{}' Box fields in the file '{}'", items.getLength(), file);
 
-        boolean updated = false;
+		boolean updated = false;
 
-        for(int j = 0; j < items.getLength(); j++) {
-            Node item = items.item(j);
-            updated = updateField(descriptor, item, profileId, fieldName) || updated;
-        }
+		for (int j = 0; j < items.getLength(); j++) {
+			Node item = items.item(j);
+			updated = updateField(descriptor, item, profileId, fieldName) || updated;
+		}
 
-        return updated;
-    }
+		return updated;
+	}
 
-    /**
-     * Updates the given field to add the new element if needed
-     * @param descriptor the item descriptor
-     * @param item the field item
-     * @param profileId the profile id
-     * @param fieldName the field name
-     * @return true if any field was updated
-     * @throws XPathExpressionException if there is an error evaluating a XPath selector
-     */
-    protected boolean updateField(Document descriptor, Node item, String profileId, String fieldName)
-        throws XPathExpressionException {
-        String fileId = (String) select(item, itemIdXpath, XPathConstants.STRING);
-        String fileName = (String) select(item, itemNameXpath, XPathConstants.STRING);
+	/**
+	 * Updates the given field to add the new element if needed
+	 *
+	 * @param descriptor the item descriptor
+	 * @param item       the field item
+	 * @param profileId  the profile id
+	 * @param fieldName  the field name
+	 * @return true if any field was updated
+	 * @throws XPathExpressionException if there is an error evaluating a XPath selector
+	 */
+	protected boolean updateField(Document descriptor, Node item, String profileId, String fieldName)
+		throws XPathExpressionException {
+		String fileId = (String) select(item, itemIdXpath, XPathConstants.STRING);
+		String fileName = (String) select(item, itemNameXpath, XPathConstants.STRING);
 
-        if((Boolean) select(item, urlElementName, XPathConstants.BOOLEAN)) {
-            logger.info("Field '{}'/'{}' already has a '{}' element, it will not be updated",
-                fieldName, fileId, urlElementName);
-        } else {
-            Map<String, String> values = new HashMap<>();
-            values.put(PLACEHOLDER_PROFILE, profileId);
-            values.put(PLACEHOLDER_ID, fileId);
-            values.put(PLACEHOLDER_EXTENSION, FilenameUtils.getExtension(fileName));
+		if ((Boolean) select(item, urlElementName, XPathConstants.BOOLEAN)) {
+			logger.info("Field '{}'/'{}' already has a '{}' element, it will not be updated",
+				fieldName, fileId, urlElementName);
+		} else {
+			Map<String, String> values = new HashMap<>();
+			values.put(PLACEHOLDER_PROFILE, profileId);
+			values.put(PLACEHOLDER_ID, fileId);
+			values.put(PLACEHOLDER_EXTENSION, FilenameUtils.getExtension(fileName));
 
-            String urlValue = replace(urlTemplate, values);
-            logger.debug("Add the URL element for field '{}'/'{}' with value '{}'",
-                fieldName, fileId, urlValue);
+			String urlValue = replace(urlTemplate, values);
+			logger.debug("Add the URL element for field '{}'/'{}' with value '{}'",
+				fieldName, fileId, urlValue);
 
-            Element urlNode = descriptor.createElement(urlElementName);
-            urlNode.setTextContent(urlValue);
-            item.appendChild(urlNode);
+			Element urlNode = descriptor.createElement(urlElementName);
+			urlNode.setTextContent(urlValue);
+			item.appendChild(urlNode);
 
-            return true;
-        }
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 }

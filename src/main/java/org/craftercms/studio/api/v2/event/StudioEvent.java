@@ -26,35 +26,35 @@ import org.springframework.security.core.Authentication;
  */
 public abstract class StudioEvent {
 
-    /**
-     * The current time in ms when the event was triggered
-     */
-    protected final long timestamp;
+	/**
+	 * The current time in ms when the event was triggered
+	 */
+	protected final long timestamp;
 
-    /**
-     * The user that triggered the event, may be null for system events
-     */
-    protected final Person user;
+	/**
+	 * The user that triggered the event, may be null for system events
+	 */
+	protected final Person user;
 
-    public StudioEvent(Authentication authentication) {
-        this(Person.from(authentication));
-    }
+	public StudioEvent(Authentication authentication) {
+		this(Person.from(authentication));
+	}
 
-    public StudioEvent(Person person) {
-        timestamp = System.currentTimeMillis();
-        this.user = person;
-    }
+	public StudioEvent(Person person) {
+		timestamp = System.currentTimeMillis();
+		this.user = person;
+	}
 
-    public StudioEvent() {
-        this((Person) null);
-    }
+	public StudioEvent() {
+		this((Person) null);
+	}
 
-    public long getTimestamp() {
-        return timestamp;
-    }
+	public long getTimestamp() {
+		return timestamp;
+	}
 
-    public Person getUser() {
-        return user;
-    }
+	public Person getUser() {
+		return user;
+	}
 
 }

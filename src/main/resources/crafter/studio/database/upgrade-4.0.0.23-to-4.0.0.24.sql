@@ -14,8 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `site` DROP COLUMN `search_engine` ;
+ALTER TABLE `site` DROP COLUMN `search_engine`;
 
-CALL dropColumnIfExists('crafter', 'site', 'search_engine') ;
+CALL dropColumnIfExists('crafter', 'site', 'search_engine');
 
-UPDATE _meta SET version = '4.0.0.24' ;
+UPDATE _meta
+SET version = '4.0.0.24';

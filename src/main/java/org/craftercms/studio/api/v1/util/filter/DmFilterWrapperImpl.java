@@ -28,77 +28,88 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 
 public class DmFilterWrapperImpl implements DmFilterWrapper {
 
-    protected Map<String, Filter> _filterMap;
-    public Map<String, Filter> getFilterMap() {
-        return _filterMap;
-    }
-    public void setFilterMap(Map<String, Filter> filterMap) {
-        this._filterMap = filterMap;
-    }
-    protected Filter _defaultFilter;
-    public Filter getDefaultFilter() {
-        return _defaultFilter;
-    }
-    public void setDefaultFilter(Filter defaultFilter) {
-        this._defaultFilter = defaultFilter;
-    }
+	protected Map<String, Filter> _filterMap;
 
-    protected ServicesManager servicesManager;
-    public void setServicesManager(ServicesManager servicesManager) {
-        this.servicesManager = servicesManager;
-    }
+	public Map<String, Filter> getFilterMap() {
+		return _filterMap;
+	}
 
-    protected ServicesConfig servicesConfig;
+	public void setFilterMap(Map<String, Filter> filterMap) {
+		this._filterMap = filterMap;
+	}
 
-    public ServicesConfig getServicesConfig() { return servicesConfig; }
-    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+	protected Filter _defaultFilter;
 
-    @Override
-    public boolean accept(ContentItemTO item, String filterType) {
-        if(item != null) {
-            Filter filter = getFilter(filterType);
-            return filter.filter(item);
-        }
-        return false;
-    }
+	public Filter getDefaultFilter() {
+		return _defaultFilter;
+	}
 
-    @Override
-    public boolean accept(String site, ContentItemTO item, String filterType) {
-    	 if(item != null) {
-    		 return accept(site, item.uri, filterType);
-    	 }
-    	 return false;
-    }
+	public void setDefaultFilter(Filter defaultFilter) {
+		this._defaultFilter = defaultFilter;
+	}
 
-    protected Filter getFilter(String filterType) {
-        Filter filter = _defaultFilter;
-        if(filterType != null && _filterMap.get(filterType.toLowerCase()) != null) {
-            filter = _filterMap.get(filterType.toLowerCase());
-        }
-        return filter;
-    }
+	protected ServicesManager servicesManager;
 
-    protected List<String> getFilterPatterns(String site, String filterType) {
-        if (CONTENT_TYPE_COMPONENT.equalsIgnoreCase(filterType)) {
-            List<String> toRet = servicesConfig.getComponentPatterns(site);
-            List<String> levelConfig = servicesConfig.getLevelDescriptorPatterns(site);
-            if(levelConfig!=null)
-            	toRet.addAll(levelConfig);
-            return toRet;
-        } else if (CONTENT_TYPE_ASSET.equalsIgnoreCase(filterType)) {
-            return servicesConfig.getAssetPatterns(site);
-        }  else if (CONTENT_TYPE_RENDERING_TEMPLATE.equalsIgnoreCase(filterType)) {
-            return servicesConfig.getRenderingTemplatePatterns(site);
-        } else if (CONTENT_TYPE_DOCUMENT.equalsIgnoreCase(filterType)) {
-            return servicesConfig.getDocumentPatterns(site);
-        } else if (CONTENT_TYPE_ALL.equalsIgnoreCase(filterType)) {
-            return Arrays.asList(".*");
-        } else if (CONTENT_TYPE_PAGE.equalsIgnoreCase(filterType)) {
-            return servicesConfig.getPagePatterns(site);
-        } else {
-            return null;
-        }
-    }
+	public void setServicesManager(ServicesManager servicesManager) {
+		this.servicesManager = servicesManager;
+	}
+
+	protected ServicesConfig servicesConfig;
+
+	public ServicesConfig getServicesConfig() {
+		return servicesConfig;
+	}
+
+	public void setServicesConfig(ServicesConfig servicesConfig) {
+		this.servicesConfig = servicesConfig;
+	}
+
+	@Override
+	public boolean accept(ContentItemTO item, String filterType) {
+		if (item != null) {
+			Filter filter = getFilter(filterType);
+			return filter.filter(item);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean accept(String site, ContentItemTO item, String filterType) {
+		if (item != null) {
+			return accept(site, item.uri, filterType);
+		}
+		return false;
+	}
+
+	protected Filter getFilter(String filterType) {
+		Filter filter = _defaultFilter;
+		if (filterType != null && _filterMap.get(filterType.toLowerCase()) != null) {
+			filter = _filterMap.get(filterType.toLowerCase());
+		}
+		return filter;
+	}
+
+	protected List<String> getFilterPatterns(String site, String filterType) {
+		if (CONTENT_TYPE_COMPONENT.equalsIgnoreCase(filterType)) {
+			List<String> toRet = servicesConfig.getComponentPatterns(site);
+			List<String> levelConfig = servicesConfig.getLevelDescriptorPatterns(site);
+			if (levelConfig != null)
+				toRet.addAll(levelConfig);
+			return toRet;
+		} else if (CONTENT_TYPE_ASSET.equalsIgnoreCase(filterType)) {
+			return servicesConfig.getAssetPatterns(site);
+		} else if (CONTENT_TYPE_RENDERING_TEMPLATE.equalsIgnoreCase(filterType)) {
+			return servicesConfig.getRenderingTemplatePatterns(site);
+		} else if (CONTENT_TYPE_DOCUMENT.equalsIgnoreCase(filterType)) {
+			return servicesConfig.getDocumentPatterns(site);
+		} else if (CONTENT_TYPE_ALL.equalsIgnoreCase(filterType)) {
+			return Arrays.asList(".*");
+		} else if (CONTENT_TYPE_PAGE.equalsIgnoreCase(filterType)) {
+			return servicesConfig.getPagePatterns(site);
+		} else {
+			return null;
+		}
+	}
 
 	@Override
 	public boolean accept(String site, String relativePath, String filterType) {

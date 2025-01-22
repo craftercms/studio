@@ -21,14 +21,14 @@ import org.craftercms.studio.api.v2.service.system.InstanceService;
 
 public class InstanceServiceImpl implements InstanceService {
 
-    protected MetaDAO metaDAO;
+	protected MetaDAO metaDAO;
 
-    @Override
-    public String getInstanceId() {
-        return metaDAO.getInstanceId();
-    }
+	@Override
+	public String getInstanceId() {
+		return metaDAO.getInstanceId();
+	}
 
-    public void setMetaDAO(MetaDAO metaDAO) {
-        this.metaDAO = metaDAO;
-    }
+	public void setMetaDAO(MetaDAO metaDAO) {
+		this.metaDAO = metaDAO;
+	}
 }

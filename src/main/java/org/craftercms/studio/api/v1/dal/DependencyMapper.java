@@ -24,16 +24,16 @@ import java.util.Map;
  */
 public interface DependencyMapper {
 
-    String SITE_PARAM = "site";
-    String PATHS_PARAM = "paths";
-    String REGEX_PARAM = "regex";
+	String SITE_PARAM = "site";
+	String PATHS_PARAM = "paths";
+	String REGEX_PARAM = "regex";
 
-    void deleteDependenciesForSite(Map params);
+	void deleteDependenciesForSite(Map params);
 
-    List<String> getDependenciesForList(Map params);
+	List<String> getDependenciesForList(Map params);
 
-    List<String> getItemSpecificDependenciesForList(Map params);
+	List<String> getItemSpecificDependenciesForList(Map params);
 
-    @Deprecated
-    List<String> getItemsDependingOn(Map params);
+	@Deprecated
+	List<String> getItemsDependingOn(Map params);
 }

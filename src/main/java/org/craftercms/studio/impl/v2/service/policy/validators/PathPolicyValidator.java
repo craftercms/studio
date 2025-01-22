@@ -33,74 +33,74 @@ import static org.apache.commons.lang3.StringUtils.*;
  */
 public class PathPolicyValidator implements PolicyValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(PathPolicyValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(PathPolicyValidator.class);
 
-    public static final String CONFIG_KEY_SOURCE_REGEX = "path.source-regex";
-    public static final String CONFIG_KEY_TARGET_REGEX = "path.target-regex";
-    public static final String CONFIG_KEY_CASE_TRANSFORM = "path.target-regex[@caseTransform]";
+	public static final String CONFIG_KEY_SOURCE_REGEX = "path.source-regex";
+	public static final String CONFIG_KEY_TARGET_REGEX = "path.target-regex";
+	public static final String CONFIG_KEY_CASE_TRANSFORM = "path.target-regex[@caseTransform]";
 
-    private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
-        if (!config.containsKey(CONFIG_KEY_SOURCE_REGEX)) {
-            logger.debug("No path restrictions found, skip action '{}'", action);
-            return;
-        }
+	private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
+		if (!config.containsKey(CONFIG_KEY_SOURCE_REGEX)) {
+			logger.debug("No path restrictions found, skip action '{}'", action);
+			return;
+		}
 
-        if (!action.createOrRenameType()) {
-            logger.debug("Path policy is only applied to an action type CREATE or RENAME, skip action '{}'", action);
-            return;
-        }
+		if (!action.createOrRenameType()) {
+			logger.debug("Path policy is only applied to an action type CREATE or RENAME, skip action '{}'", action);
+			return;
+		}
 
-        if (isEmpty(action.getNewPath())) {
-            logger.debug("No path restrictions found, skip action '{}'", action);
-            return;
-        }
+		if (isEmpty(action.getNewPath())) {
+			logger.debug("No path restrictions found, skip action '{}'", action);
+			return;
+		}
 
-        String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
-        String item = action.getNewPath();
-        var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
-        if (!item.matches(sourceRegex)) {
-            String modifiedItem = null;
-            var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
-            if (targetRegex != null) {
-                modifiedItem = item.replaceAll(sourceRegex, targetRegex);
-                var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
-                if (isNotEmpty(caseTransform)) {
-                    switch (caseTransform.toLowerCase()) {
-                        case "uppercase":
-                            modifiedItem = modifiedItem.toUpperCase();
-                            break;
-                        case "lowercase":
-                            modifiedItem = modifiedItem.toLowerCase();
-                            break;
-                        default:
-                            logger.warn("Unsupported case transformation '{}' for action '{}'",
-                                    caseTransform, action);
-                    }
-                }
+		String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
+		String item = action.getNewPath();
+		var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
+		if (!item.matches(sourceRegex)) {
+			String modifiedItem = null;
+			var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
+			if (targetRegex != null) {
+				modifiedItem = item.replaceAll(sourceRegex, targetRegex);
+				var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
+				if (isNotEmpty(caseTransform)) {
+					switch (caseTransform.toLowerCase()) {
+						case "uppercase":
+							modifiedItem = modifiedItem.toUpperCase();
+							break;
+						case "lowercase":
+							modifiedItem = modifiedItem.toLowerCase();
+							break;
+						default:
+							logger.warn("Unsupported case transformation '{}' for action '{}'",
+								caseTransform, action);
+					}
+				}
 
-                // special case when creating the folder used in the configuration
-                if (item.equals(modifiedItem)) {
-                    return;
-                }
-            }
+				// special case when creating the folder used in the configuration
+				if (item.equals(modifiedItem)) {
+					return;
+				}
+			}
 
-            result.setAllowed(modifiedItem != null);
-            if (isNotEmpty(modifiedItem)) {
-                String modifiedValue = removeEnd(target, item) + modifiedItem;
-                result.setModifiedValue(modifiedValue);
-                result.setMessage(format("Path '%s' was transformed to '%s' per the project file name policy.", item, modifiedItem));
-            }
-            if (!result.isAllowed()) {
-                logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
-            }
-        }
-    }
+			result.setAllowed(modifiedItem != null);
+			if (isNotEmpty(modifiedItem)) {
+				String modifiedValue = removeEnd(target, item) + modifiedItem;
+				result.setModifiedValue(modifiedValue);
+				result.setMessage(format("Path '%s' was transformed to '%s' per the project file name policy.", item, modifiedItem));
+			}
+			if (!result.isAllowed()) {
+				logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
+			}
+		}
+	}
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult validationResult) {
-        if (permittedConfig != null) {
-            validatePermitted(permittedConfig, action, validationResult);
-        }
-    }
+	@Override
+	public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult validationResult) {
+		if (permittedConfig != null) {
+			validatePermitted(permittedConfig, action, validationResult);
+		}
+	}
 
 }

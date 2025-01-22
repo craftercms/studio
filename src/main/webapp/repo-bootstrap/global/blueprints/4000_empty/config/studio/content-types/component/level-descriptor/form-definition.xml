@@ -20,9 +20,10 @@
 	<objectType>component</objectType>
 	<content-type>/component/level-descriptor</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value></value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Section Defaults Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -77,5 +79,5 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>	</datasources>
+	<datasources></datasources>
 </form>

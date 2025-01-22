@@ -24,39 +24,39 @@ import org.craftercms.studio.api.v2.task.TaskProgress;
  * Event triggered when a task is state changes
  */
 public class TaskEvent extends StudioEvent implements BroadcastEvent {
-    public static final String EVENT_TYPE_TASK_COMPLETED = "TASK_COMPLETED";
-    public static final String EVENT_TYPE_TASK_STARTED = "TASK_STARTED";
-    public static final String EVENT_TYPE_TASK_PROGRESS = "TASK_PROGRESS";
+	public static final String EVENT_TYPE_TASK_COMPLETED = "TASK_COMPLETED";
+	public static final String EVENT_TYPE_TASK_STARTED = "TASK_STARTED";
+	public static final String EVENT_TYPE_TASK_PROGRESS = "TASK_PROGRESS";
 
-    private final TaskProgress<?, ?> progress;
-    private final String eventType;
+	private final TaskProgress<?, ?> progress;
+	private final String eventType;
 
-    public TaskEvent(final TaskProgress<?, ?> progress, final String eventType) {
-        this.progress = progress;
-        this.eventType = eventType;
-    }
+	public TaskEvent(final TaskProgress<?, ?> progress, final String eventType) {
+		this.progress = progress;
+		this.eventType = eventType;
+	}
 
-    /**
-     * Get the {@link TaskProgress} associated with this event
-     *
-     * @return the task progress
-     */
-    public TaskProgress<?, ?> getProgress() {
-        return progress;
-    }
+	/**
+	 * Get the {@link TaskProgress} associated with this event
+	 *
+	 * @return the task progress
+	 */
+	public TaskProgress<?, ?> getProgress() {
+		return progress;
+	}
 
-    @Override
-    public String getEventType() {
-        return eventType;
-    }
+	@Override
+	public String getEventType() {
+		return eventType;
+	}
 
-    @Override
-    public String toString() {
-        return """
-                TaskEvent {taskId=%s, timestamp=%s, eventType=%s, progress=%s}
-                """.formatted(progress.getTask().getTaskId(),
-                timestamp,
-                getEventType(),
-                progress);
-    }
+	@Override
+	public String toString() {
+		return """
+			TaskEvent {taskId=%s, timestamp=%s, eventType=%s, progress=%s}
+			""".formatted(progress.getTask().getTaskId(),
+			timestamp,
+			getEventType(),
+			progress);
+	}
 }

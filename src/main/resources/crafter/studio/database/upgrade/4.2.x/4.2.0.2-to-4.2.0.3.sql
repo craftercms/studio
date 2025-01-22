@@ -15,6 +15,8 @@
  */
 
 
-ALTER TABLE dependency ADD COLUMN valid BIT NOT NULL DEFAULT 1 ;
+ALTER TABLE dependency
+    ADD COLUMN valid BIT NOT NULL DEFAULT 1;
 
-UPDATE `_meta` SET `version` = '4.2.0.3' ;
+UPDATE `_meta`
+SET `version` = '4.2.0.3';

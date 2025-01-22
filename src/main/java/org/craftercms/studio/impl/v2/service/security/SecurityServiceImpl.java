@@ -49,167 +49,167 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SecurityServiceImpl implements SecurityService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
-    private ConfigurationService configurationService;
-    private StudioConfiguration studioConfiguration;
-    private Cache<String, Object> configurationCache;
+	private ConfigurationService configurationService;
+	private StudioConfiguration studioConfiguration;
+	private Cache<String, Object> configurationCache;
 
-    protected UserServiceInternal userServiceInternal;
-    protected GroupServiceInternal groupServiceInternal;
+	protected UserServiceInternal userServiceInternal;
+	protected GroupServiceInternal groupServiceInternal;
 
-    private static final String CACHE_KEY = "user-permissions";
+	private static final String CACHE_KEY = "user-permissions";
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) {
-        String key = siteId + ":" + CACHE_KEY + username;
-        List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
-        if (isEmpty(permissions)) {
-            logger.debug("Cache miss for key '{}'", key);
-            permissions = loadUserPermission(siteId, roles);
-            configurationCache.put(key, permissions);
-        }
-        return permissions;
-    }
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) {
+		String key = siteId + ":" + CACHE_KEY + username;
+		List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
+		if (isEmpty(permissions)) {
+			logger.debug("Cache miss for key '{}'", key);
+			permissions = loadUserPermission(siteId, roles);
+			configurationCache.put(key, permissions);
+		}
+		return permissions;
+	}
 
-    private List<String> loadUserPermission(String siteId, List<NormalizedRole> roles) {
-        Set<String> permissions;
-        String configPath;
-        List<String> toRet = new ArrayList<>();
-        if (StringUtils.isNotEmpty(siteId)) {
-            configPath = studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME);
-            permissions = getPermissionsFromConfig(siteId, configPath, roles);
-            if (CollectionUtils.isNotEmpty(permissions)) {
-                toRet.addAll(permissions);
-            }
-        }
-        configPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
-                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
-        permissions = getPermissionsFromConfig(StringUtils.EMPTY, configPath, roles);
-        if (CollectionUtils.isNotEmpty(permissions)) {
-            toRet.addAll(permissions);
-        }
-        return toRet;
-    }
+	private List<String> loadUserPermission(String siteId, List<NormalizedRole> roles) {
+		Set<String> permissions;
+		String configPath;
+		List<String> toRet = new ArrayList<>();
+		if (StringUtils.isNotEmpty(siteId)) {
+			configPath = studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME);
+			permissions = getPermissionsFromConfig(siteId, configPath, roles);
+			if (CollectionUtils.isNotEmpty(permissions)) {
+				toRet.addAll(permissions);
+			}
+		}
+		configPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
+			studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
+		permissions = getPermissionsFromConfig(StringUtils.EMPTY, configPath, roles);
+		if (CollectionUtils.isNotEmpty(permissions)) {
+			toRet.addAll(permissions);
+		}
+		return toRet;
+	}
 
-    private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<NormalizedRole> roles) {
-        Document document = null;
-        Set<String> permissions = new HashSet<>();
-        try {
-            if (StringUtils.isEmpty(siteId)) {
-                document = configurationService.getGlobalConfigurationAsDocument(configPath);
-            } else {
-                document = configurationService.getConfigurationAsDocument(siteId, MODULE_STUDIO, configPath,
-                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            }
-        } catch (ServiceLayerException e) {
-            logger.error("Permission mapping not found in site '{}' path '{}'", siteId, configPath);
-        }
-        if (Objects.nonNull(document)) {
-            Element root = document.getRootElement();
-            if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
-                //backwards compatibility for nested <site>
-                Element permissionsRoot = root;
-                Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
-                if (siteNode != null) {
-                    permissionsRoot = siteNode;
-                }
+	private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<NormalizedRole> roles) {
+		Document document = null;
+		Set<String> permissions = new HashSet<>();
+		try {
+			if (StringUtils.isEmpty(siteId)) {
+				document = configurationService.getGlobalConfigurationAsDocument(configPath);
+			} else {
+				document = configurationService.getConfigurationAsDocument(siteId, MODULE_STUDIO, configPath,
+					studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+			}
+		} catch (ServiceLayerException e) {
+			logger.error("Permission mapping not found in site '{}' path '{}'", siteId, configPath);
+		}
+		if (Objects.nonNull(document)) {
+			Element root = document.getRootElement();
+			if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
+				//backwards compatibility for nested <site>
+				Element permissionsRoot = root;
+				Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
+				if (siteNode != null) {
+					permissionsRoot = siteNode;
+				}
 
-                List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                for (Node roleNode : roleNodes) {
-                    String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
-                    if (roles.contains(new NormalizedRole(roleName))) {
-                        List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
+				List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+				for (Node roleNode : roleNodes) {
+					String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+					if (roles.contains(new NormalizedRole(roleName))) {
+						List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
 
-                        for (Node ruleNode : ruleNodes) {
-                            List<Node> permissionNodes = ruleNode.selectNodes(
-                                    StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
-                            for (Node permissionNode : permissionNodes) {
-                                String permission = permissionNode.getText().toLowerCase();
-                                permissions.add(permission);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return permissions;
-    }
+						for (Node ruleNode : ruleNodes) {
+							List<Node> permissionNodes = ruleNode.selectNodes(
+								StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+							for (Node permissionNode : permissionNodes) {
+								String permission = permissionNode.getText().toLowerCase();
+								permissions.add(permission);
+							}
+						}
+					}
+				}
+			}
+		}
+		return permissions;
+	}
 
-    @Override
-    public String getCurrentUser() {
-        String username = null;
-        var context = SecurityContextHolder.getContext();
+	@Override
+	public String getCurrentUser() {
+		String username = null;
+		var context = SecurityContextHolder.getContext();
 
-        if (context != null) {
-            var auth = context.getAuthentication();
+		if (context != null) {
+			var auth = context.getAuthentication();
 
-            if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
-                username = auth.getName();
-            }
-        } else {
-            CronJobContext cronJobContext = CronJobContext.getCurrent();
+			if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
+				username = auth.getName();
+			}
+		} else {
+			CronJobContext cronJobContext = CronJobContext.getCurrent();
 
-            if (cronJobContext != null) {
-                username = cronJobContext.getCurrentUser();
-            }
-        }
+			if (cronJobContext != null) {
+				username = cronJobContext.getCurrentUser();
+			}
+		}
 
-        return username;
-    }
+		return username;
+	}
 
-    @Override
-    public Authentication getAuthentication() {
-        var context = SecurityContextHolder.getContext();
-        if (context != null) {
-            return context.getAuthentication();
-        }
-        return null;
-    }
+	@Override
+	public Authentication getAuthentication() {
+		var context = SecurityContextHolder.getContext();
+		if (context != null) {
+			return context.getAuthentication();
+		}
+		return null;
+	}
 
-    @Override
-    public boolean isSiteMember(String username, String siteId) {
-        try {
-            if (isSystemAdmin(username)) {
-                return true;
-            }
+	@Override
+	public boolean isSiteMember(String username, String siteId) {
+		try {
+			if (isSystemAdmin(username)) {
+				return true;
+			}
 
-            List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
-            List<NormalizedGroup> siteGroups = groupServiceInternal.getSiteGroups(siteId);
-            return userGroups.stream()
-                    .map(group -> new NormalizedGroup((group.getGroupName())))
-                    .anyMatch(siteGroups::contains);
-        } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
-        }
-        return false;
-    }
+			List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
+			List<NormalizedGroup> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+			return userGroups.stream()
+				.map(group -> new NormalizedGroup((group.getGroupName())))
+				.anyMatch(siteGroups::contains);
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
+		}
+		return false;
+	}
 
-    @Override
-    public boolean isSystemAdmin(String username) {
-        return userServiceInternal.isSystemAdmin(username);
-    }
+	@Override
+	public boolean isSystemAdmin(String username) {
+		return userServiceInternal.isSystemAdmin(username);
+	}
 
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @SuppressWarnings("unused")
-    public void setConfigurationCache(Cache<String, Object> configurationCache) {
-        this.configurationCache = configurationCache;
-    }
+	@SuppressWarnings("unused")
+	public void setConfigurationCache(Cache<String, Object> configurationCache) {
+		this.configurationCache = configurationCache;
+	}
 
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
+	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+		this.userServiceInternal = userServiceInternal;
+	}
 
-    @SuppressWarnings("unused")
-    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-        this.groupServiceInternal = groupServiceInternal;
-    }
+	@SuppressWarnings("unused")
+	public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+		this.groupServiceInternal = groupServiceInternal;
+	}
 }

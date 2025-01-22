@@ -26,6 +26,7 @@ import org.craftercms.studio.model.rest.logging.LoggerConfigRequest;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
 import java.beans.ConstructorProperties;
 
 import static org.craftercms.studio.controller.rest.v2.LoggerController.ROOT_URL;
@@ -42,31 +43,31 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2" + ROOT_URL)
 public class LoggerController {
 
-    public final static String ROOT_URL = "/loggers";
-    public final static String LOGGER_LEVEL = "/logger_level";
+	public final static String ROOT_URL = "/loggers";
+	public final static String LOGGER_LEVEL = "/logger_level";
 
-    private final LoggerService loggerService;
+	private final LoggerService loggerService;
 
-    @ConstructorProperties({"logService"})
-    public LoggerController(final LoggerService logService) {
-        this.loggerService = logService;
-    }
+	@ConstructorProperties({"logService"})
+	public LoggerController(final LoggerService logService) {
+		this.loggerService = logService;
+	}
 
-    @GetMapping
-    public ResultList<LoggerConfig> getLoggers() throws ServiceLayerException {
-        ResultList<LoggerConfig> result = new ResultList<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_RESULTS, loggerService.getLoggerConfigs());
-        return result;
-    }
+	@GetMapping
+	public ResultList<LoggerConfig> getLoggers() throws ServiceLayerException {
+		ResultList<LoggerConfig> result = new ResultList<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntities(RESULT_KEY_RESULTS, loggerService.getLoggerConfigs());
+		return result;
+	}
 
-    @Valid
-    @PostMapping(value = LOGGER_LEVEL)
-    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
-        ResultOne<LoggerConfig> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        loggerService.setLoggerLevel(loggerConfig.getName(), loggerConfig.getLevel(), loggerConfig.isCreateIfAbsent());
-        result.setEntity(RESULT_KEY_RESULT, loggerService.getLoggerConfig(loggerConfig.getName()));
-        return result;
-    }
+	@Valid
+	@PostMapping(value = LOGGER_LEVEL)
+	public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
+		ResultOne<LoggerConfig> result = new ResultOne<>();
+		result.setResponse(ApiResponse.OK);
+		loggerService.setLoggerLevel(loggerConfig.getName(), loggerConfig.getLevel(), loggerConfig.isCreateIfAbsent());
+		result.setEntity(RESULT_KEY_RESULT, loggerService.getLoggerConfig(loggerConfig.getName()));
+		return result;
+	}
 }

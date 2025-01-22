@@ -44,173 +44,173 @@ import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 
 public class StudioConfigurationImpl implements StudioConfiguration {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioConfigurationImpl.class);
+	private final static Logger logger = LoggerFactory.getLogger(StudioConfigurationImpl.class);
 
-    protected HierarchicalConfiguration<ImmutableNode> systemConfig;
+	protected HierarchicalConfiguration<ImmutableNode> systemConfig;
 
-    protected Cache<String, HierarchicalConfiguration<ImmutableNode>> configurationCache;
+	protected Cache<String, HierarchicalConfiguration<ImmutableNode>> configurationCache;
 
-    protected String configLocation;
+	protected String configLocation;
 
-    @ConstructorProperties({"configurationCache", "configLocation"})
-    public StudioConfigurationImpl(Cache<String, HierarchicalConfiguration<ImmutableNode>> configurationCache,
-                                   String configLocation) {
-        this.configurationCache = configurationCache;
-        this.configLocation = configLocation;
-    }
+	@ConstructorProperties({"configurationCache", "configLocation"})
+	public StudioConfigurationImpl(Cache<String, HierarchicalConfiguration<ImmutableNode>> configurationCache,
+				       String configLocation) {
+		this.configurationCache = configurationCache;
+		this.configLocation = configLocation;
+	}
 
-    public void init() {
-        loadConfig();
-    }
+	public void init() {
+		loadConfig();
+	}
 
-    @Override
-    public void loadConfig() {
-        YamlConfiguration baseConfig = new YamlConfiguration();
-        YamlConfiguration overrideConfig = new YamlConfiguration();
+	@Override
+	public void loadConfig() {
+		YamlConfiguration baseConfig = new YamlConfiguration();
+		YamlConfiguration overrideConfig = new YamlConfiguration();
 
-        Resource resource = new ClassPathResource(configLocation);
-        try (InputStream in = resource.getInputStream()) {
-            baseConfig.setExpressionEngine(getExpressionEngine());
-            baseConfig.read(in);
+		Resource resource = new ClassPathResource(configLocation);
+		try (InputStream in = resource.getInputStream()) {
+			baseConfig.setExpressionEngine(getExpressionEngine());
+			baseConfig.read(in);
 
-            logger.debug("Load configuration from '{}'\n'{}'}", configLocation, baseConfig);
-        } catch (IOException | ConfigurationException e) {
-            logger.error("Failed to load Studio configuration from '{}'", configLocation, e);
-        }
+			logger.debug("Load configuration from '{}'\n'{}'}", configLocation, baseConfig);
+		} catch (IOException | ConfigurationException e) {
+			logger.error("Failed to load Studio configuration from '{}'", configLocation, e);
+		}
 
-        if (baseConfig.containsKey(STUDIO_CONFIG_OVERRIDE_CONFIG)) {
-            String overrideConfigLocation = baseConfig.getString(STUDIO_CONFIG_OVERRIDE_CONFIG);
-            resource = new ClassPathResource(overrideConfigLocation);
+		if (baseConfig.containsKey(STUDIO_CONFIG_OVERRIDE_CONFIG)) {
+			String overrideConfigLocation = baseConfig.getString(STUDIO_CONFIG_OVERRIDE_CONFIG);
+			resource = new ClassPathResource(overrideConfigLocation);
 
-            try (InputStream in = resource.getInputStream()) {
-                overrideConfig.setExpressionEngine(getExpressionEngine());
-                overrideConfig.read(in);
+			try (InputStream in = resource.getInputStream()) {
+				overrideConfig.setExpressionEngine(getExpressionEngine());
+				overrideConfig.read(in);
 
-                if (!overrideConfig.isEmpty()) {
-                    logger.debug("Load additional configuration from '{}'\n'{}'",
-                        overrideConfigLocation, overrideConfig);
-                }
-            } catch (IOException | ConfigurationException e) {
-                logger.error("Failed to load Studio configuration from '{}'", overrideConfigLocation, e);
-            }
-        }
+				if (!overrideConfig.isEmpty()) {
+					logger.debug("Load additional configuration from '{}'\n'{}'",
+						overrideConfigLocation, overrideConfig);
+				}
+			} catch (IOException | ConfigurationException e) {
+				logger.error("Failed to load Studio configuration from '{}'", overrideConfigLocation, e);
+			}
+		}
 
-        // Merge the base properties and additional properties
-        if(!overrideConfig.isEmpty()) {
-            CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
-            combinedConfig.setExpressionEngine(getExpressionEngine());
-            combinedConfig.addConfiguration(overrideConfig);
-            combinedConfig.addConfiguration(baseConfig);
+		// Merge the base properties and additional properties
+		if (!overrideConfig.isEmpty()) {
+			CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+			combinedConfig.setExpressionEngine(getExpressionEngine());
+			combinedConfig.addConfiguration(overrideConfig);
+			combinedConfig.addConfiguration(baseConfig);
 
-            systemConfig = combinedConfig;
-        } else {
-            systemConfig = baseConfig;
-        }
-    }
+			systemConfig = combinedConfig;
+		} else {
+			systemConfig = baseConfig;
+		}
+	}
 
-    private HierarchicalConfiguration<ImmutableNode> loadGlobalRepoConfig() {
-        String cacheKey = prependIfMissing(systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG), "/");
-        try {
-            HierarchicalConfiguration<ImmutableNode> config = configurationCache.getIfPresent(cacheKey);
-            if (config == null) {
-                config = systemConfig;
-                Path globalRepoOverrideConfigLocation = Paths.get(
-                        systemConfig.getString(REPO_BASE_PATH),
-                        systemConfig.getString(GLOBAL_REPO_PATH),
-                        systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
-                if (systemConfig.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
-                    FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
-                    if (fsr.exists()) {
-                        try {
-                            YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
-                            try (InputStream in = fsr.getInputStream()) {
-                                globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
-                                globalRepoOverrideConfig.read(in);
+	private HierarchicalConfiguration<ImmutableNode> loadGlobalRepoConfig() {
+		String cacheKey = prependIfMissing(systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG), "/");
+		try {
+			HierarchicalConfiguration<ImmutableNode> config = configurationCache.getIfPresent(cacheKey);
+			if (config == null) {
+				config = systemConfig;
+				Path globalRepoOverrideConfigLocation = Paths.get(
+					systemConfig.getString(REPO_BASE_PATH),
+					systemConfig.getString(GLOBAL_REPO_PATH),
+					systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
+				if (systemConfig.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
+					FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
+					if (fsr.exists()) {
+						try {
+							YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
+							try (InputStream in = fsr.getInputStream()) {
+								globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
+								globalRepoOverrideConfig.read(in);
 
-                                if (!globalRepoOverrideConfig.isEmpty()) {
-                                    logger.debug("Load additional configuration from '{}'\n'{}'",
-                                            fsr.getPath(), globalRepoOverrideConfig);
+								if (!globalRepoOverrideConfig.isEmpty()) {
+									logger.debug("Load additional configuration from '{}'\n'{}'",
+										fsr.getPath(), globalRepoOverrideConfig);
 
-                                    CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
-                                    combinedConfig.setExpressionEngine(getExpressionEngine());
-                                    combinedConfig.addConfiguration(globalRepoOverrideConfig);
-                                    combinedConfig.addConfiguration(systemConfig);
+									CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+									combinedConfig.setExpressionEngine(getExpressionEngine());
+									combinedConfig.addConfiguration(globalRepoOverrideConfig);
+									combinedConfig.addConfiguration(systemConfig);
 
-                                    config = combinedConfig;
-                                }
-                            }
-                        } catch (IOException | ConfigurationException e) {
-                            logger.error("Failed to load Studio configuration from '{}'", fsr.getPath(), e);
-                        }
-                    }
-                }
-                configurationCache.put(cacheKey, config);
-            }
-            return config;
-        } catch (Exception e) {
-            logger.error("Failed to load configuration from the global repository", e);
-            return systemConfig;
-        }
-    }
+									config = combinedConfig;
+								}
+							}
+						} catch (IOException | ConfigurationException e) {
+							logger.error("Failed to load Studio configuration from '{}'", fsr.getPath(), e);
+						}
+					}
+				}
+				configurationCache.put(cacheKey, config);
+			}
+			return config;
+		} catch (Exception e) {
+			logger.error("Failed to load configuration from the global repository", e);
+			return systemConfig;
+		}
+	}
 
-    protected ExpressionEngine getExpressionEngine() {
-        DefaultExpressionEngineSymbols symbols =
-            new DefaultExpressionEngineSymbols.Builder(DefaultExpressionEngineSymbols.DEFAULT_SYMBOLS)
-                // Use a slash as property delimiter
-                .setPropertyDelimiter("/")
-                // A Backslash is used for escaping property delimiters
-                .setEscapedDelimiter("\\/").create();
-        return new DefaultExpressionEngine(symbols);
-    }
+	protected ExpressionEngine getExpressionEngine() {
+		DefaultExpressionEngineSymbols symbols =
+			new DefaultExpressionEngineSymbols.Builder(DefaultExpressionEngineSymbols.DEFAULT_SYMBOLS)
+				// Use a slash as property delimiter
+				.setPropertyDelimiter("/")
+				// A Backslash is used for escaping property delimiters
+				.setEscapedDelimiter("\\/").create();
+		return new DefaultExpressionEngine(symbols);
+	}
 
-    protected HierarchicalConfiguration<ImmutableNode> getConfig() {
-        return loadGlobalRepoConfig();
-    }
+	protected HierarchicalConfiguration<ImmutableNode> getConfig() {
+		return loadGlobalRepoConfig();
+	}
 
-    @Override
-    public String getProperty(String key) {
-        return getConfig().getString(key);
-    }
+	@Override
+	public String getProperty(String key) {
+		return getConfig().getString(key);
+	}
 
-    @Override
-    public <T> T getProperty(String key, Class<T> clazz) {
-        return getConfig().get(clazz, key);
-    }
+	@Override
+	public <T> T getProperty(String key, Class<T> clazz) {
+		return getConfig().get(clazz, key);
+	}
 
-    @Override
-    public <T> T getProperty(String key, Class<T> clazz, T defaultVal) {
-        return getConfig().get(clazz, key, defaultVal);
-    }
+	@Override
+	public <T> T getProperty(String key, Class<T> clazz, T defaultVal) {
+		return getConfig().get(clazz, key, defaultVal);
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T[] getArray(String key, Class<T> clazz) {
-        return (T[]) getConfig().getArray(clazz, key);
-    }
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T[] getArray(String key, Class<T> clazz) {
+		return (T[]) getConfig().getArray(clazz, key);
+	}
 
-    @Override
-    public <T> List<T> getList(String key, Class<T> clazz) {
-        return getConfig().getList(clazz, key);
-    }
+	@Override
+	public <T> List<T> getList(String key, Class<T> clazz) {
+		return getConfig().getList(clazz, key);
+	}
 
-    @Override
-    public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
-        try {
-            return getConfig().configurationAt(key);
-        } catch (Exception e) {
-            logger.debug("Failed to load the configuration value for key '{}'. Returning null.", key);
-        }
-        return null;
-    }
+	@Override
+	public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
+		try {
+			return getConfig().configurationAt(key);
+		} catch (Exception e) {
+			logger.debug("Failed to load the configuration value for key '{}'. Returning null.", key);
+		}
+		return null;
+	}
 
-    @Override
-    public List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key) {
-        try {
-            return getConfig().configurationsAt(key);
-        } catch (Exception e) {
-            logger.error("Failed to load values for key '{}'", key);
-            return null;
-        }
-    }
+	@Override
+	public List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key) {
+		try {
+			return getConfig().configurationsAt(key);
+		} catch (Exception e) {
+			logger.error("Failed to load values for key '{}'", key);
+			return null;
+		}
+	}
 
 }

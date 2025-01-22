@@ -30,16 +30,16 @@ import org.craftercms.studio.api.v1.image.transformation.ImageTransformer;
  */
 public class ImageTransformingProcessor extends AbstractAssetProcessor {
 
-    private ImageTransformer transformer;
+	private ImageTransformer transformer;
 
-    @ConstructorProperties({"transformer"})
-    public ImageTransformingProcessor(ImageTransformer transformer) {
-        this.transformer = transformer;
-    }
+	@ConstructorProperties({"transformer"})
+	public ImageTransformingProcessor(ImageTransformer transformer) {
+		this.transformer = transformer;
+	}
 
-    @Override
-    protected void doProcessAsset(Path inputFile, Path outputFile, Map<String, String> params) throws ImageTransformationException {
-        transformer.transform(inputFile, outputFile, params);
-    }
+	@Override
+	protected void doProcessAsset(Path inputFile, Path outputFile, Map<String, String> params) throws ImageTransformationException {
+		transformer.transform(inputFile, outputFile, params);
+	}
 
 }

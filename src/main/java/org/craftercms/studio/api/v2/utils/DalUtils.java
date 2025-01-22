@@ -27,25 +27,25 @@ import java.util.stream.Collectors;
  */
 public class DalUtils {
 
-    /**
-     * Batch size to split params list for MyBatis queries.
-     */
-    public final static int MY_BATIS_QUERY_BATCH_SIZE = 1000;
+	/**
+	 * Batch size to split params list for MyBatis queries.
+	 */
+	public final static int MY_BATIS_QUERY_BATCH_SIZE = 1000;
 
-    /**
-     * Map the field names from a SortFields list base on provided name mapping.
-     * This is meant to be used to map from API field names to database column names.
-     *
-     * @param sortFields list of SortField objects
-     * @param fieldsMap  API to database field name mapping
-     * @return list of SortField objects with mapped field names
-     */
-    public static List<SortField> mapSortFields(Collection<SortField> sortFields, Map<String, String> fieldsMap) {
-        if (CollectionUtils.isEmpty(sortFields) || CollectionUtils.isEmpty(fieldsMap)) {
-            return Collections.emptyList();
-        }
-        return sortFields.stream()
-                .map(sf -> new SortField(fieldsMap.get(sf.getField()), sf.getOrder()))
-                .collect(Collectors.toList());
-    }
+	/**
+	 * Map the field names from a SortFields list base on provided name mapping.
+	 * This is meant to be used to map from API field names to database column names.
+	 *
+	 * @param sortFields list of SortField objects
+	 * @param fieldsMap  API to database field name mapping
+	 * @return list of SortField objects with mapped field names
+	 */
+	public static List<SortField> mapSortFields(Collection<SortField> sortFields, Map<String, String> fieldsMap) {
+		if (CollectionUtils.isEmpty(sortFields) || CollectionUtils.isEmpty(fieldsMap)) {
+			return Collections.emptyList();
+		}
+		return sortFields.stream()
+			.map(sf -> new SortField(fieldsMap.get(sf.getField()), sf.getOrder()))
+			.collect(Collectors.toList());
+	}
 }

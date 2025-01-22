@@ -37,80 +37,80 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
  */
 public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
 
-    /**
-     * Current instance of {@link SiteService}.
-     */
-    protected SiteService siteService;
-    protected UserServiceInternal userServiceInternal;
-    protected ItemServiceInternal itemServiceInternal;
+	/**
+	 * Current instance of {@link SiteService}.
+	 */
+	protected SiteService siteService;
+	protected UserServiceInternal userServiceInternal;
+	protected ItemServiceInternal itemServiceInternal;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Module getModule() {
-        return STUDIO;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Module getModule() {
+		return STUDIO;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<EntitlementType> getSupportedEntitlements() {
-        return Arrays.asList(EntitlementType.SITE, EntitlementType.USER, EntitlementType.ITEM);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<EntitlementType> getSupportedEntitlements() {
+		return Arrays.asList(EntitlementType.SITE, EntitlementType.USER, EntitlementType.ITEM);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int doGetEntitlementUsage(final EntitlementType type) throws UnsupportedEntitlementException,
-        ServiceLayerException {
-        switch (type) {
-            case SITE:
-                return countSites();
-            case USER:
-                return countUsers();
-            case ITEM:
-                return countItems();
-            default:
-                throw new UnsupportedEntitlementException(STUDIO, type);
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int doGetEntitlementUsage(final EntitlementType type) throws UnsupportedEntitlementException,
+		ServiceLayerException {
+		switch (type) {
+			case SITE:
+				return countSites();
+			case USER:
+				return countUsers();
+			case ITEM:
+				return countItems();
+			default:
+				throw new UnsupportedEntitlementException(STUDIO, type);
+		}
+	}
 
-    protected int countSites() {
-        return siteService.countSites();
-    }
+	protected int countSites() {
+		return siteService.countSites();
+	}
 
-    protected int countUsers() throws ServiceLayerException {
-        return userServiceInternal.getAllUsersTotal(null);
-    }
+	protected int countUsers() throws ServiceLayerException {
+		return userServiceInternal.getAllUsersTotal(null);
+	}
 
-    protected int countItems() {
-        return itemServiceInternal.countAllContentItems();
-    }
+	protected int countItems() {
+		return itemServiceInternal.countAllContentItems();
+	}
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
+	public SiteService getSiteService() {
+		return siteService;
+	}
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
+	public void setSiteService(SiteService siteService) {
+		this.siteService = siteService;
+	}
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
+	public UserServiceInternal getUserServiceInternal() {
+		return userServiceInternal;
+	}
 
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
+	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+		this.userServiceInternal = userServiceInternal;
+	}
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
+	public ItemServiceInternal getItemServiceInternal() {
+		return itemServiceInternal;
+	}
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
+	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+		this.itemServiceInternal = itemServiceInternal;
+	}
 }

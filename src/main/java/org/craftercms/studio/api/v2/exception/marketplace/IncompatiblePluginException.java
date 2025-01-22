@@ -24,12 +24,12 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class IncompatiblePluginException extends MarketplaceException {
 
-    public IncompatiblePluginException(final String message) {
-        super(message);
-    }
+	public IncompatiblePluginException(final String message) {
+		super(message);
+	}
 
-    public IncompatiblePluginException(final String message, final Exception e) {
-        super(message, e);
-    }
+	public IncompatiblePluginException(final String message, final Exception e) {
+		super(message, e);
+	}
 
 }

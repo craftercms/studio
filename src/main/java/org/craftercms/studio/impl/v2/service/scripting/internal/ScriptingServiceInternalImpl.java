@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.util.regex.Matcher;
@@ -56,159 +57,159 @@ import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigura
  * @since 4.0
  */
 public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, ApplicationContextAware,
-        InitializingBean {
+	InitializingBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScriptingServiceInternalImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ScriptingServiceInternalImpl.class);
 
-    public static final String KEY_SITE_ID = "siteId";
+	public static final String KEY_SITE_ID = "siteId";
 
-    public static final String KEY_PARAMS = "params";
+	public static final String KEY_PARAMS = "params";
 
-    public static final String KEY_PLUGIN_ID = "pluginId";
+	public static final String KEY_PLUGIN_ID = "pluginId";
 
-    public static final String KEY_PLUGIN_CONFIG = "pluginConfig";
+	public static final String KEY_PLUGIN_CONFIG = "pluginConfig";
 
-    public static final String KEY_REQUEST = "request";
+	public static final String KEY_REQUEST = "request";
 
-    public static final String KEY_RESPONSE = "response";
+	public static final String KEY_RESPONSE = "response";
 
-    public static final String KEY_LOGGER = "logger";
+	public static final String KEY_LOGGER = "logger";
 
-    public static final String KEY_APP_CONTEXT = "applicationContext";
+	public static final String KEY_APP_CONTEXT = "applicationContext";
 
-    protected Pattern pattern = Pattern.compile(".*plugins/(.+)");
+	protected Pattern pattern = Pattern.compile(".*plugins/(.+)");
 
-    protected ScriptEngineManager scriptEngineManager;
+	protected ScriptEngineManager scriptEngineManager;
 
-    protected SandboxInterceptor sandboxInterceptor;
+	protected SandboxInterceptor sandboxInterceptor;
 
-    protected String scriptExtension;
+	protected String scriptExtension;
 
-    protected String scriptPathFormat;
+	protected String scriptPathFormat;
 
-    protected boolean enableVariableRestrictions;
+	protected boolean enableVariableRestrictions;
 
-    protected String[] allowedBeans;
+	protected String[] allowedBeans;
 
-    protected ApplicationContext applicationContext;
+	protected ApplicationContext applicationContext;
 
-    protected ApplicationContextAccessor applicationContextAccessor;
+	protected ApplicationContextAccessor applicationContextAccessor;
 
-    protected MarketplaceService marketplaceService;
+	protected MarketplaceService marketplaceService;
 
-    protected ContentService contentService;
+	protected ContentService contentService;
 
-    protected StudioConfiguration studioConfiguration;
+	protected StudioConfiguration studioConfiguration;
 
-    @ConstructorProperties({"scriptEngineManager", "sandboxInterceptor", "scriptExtension", "scriptPathFormat",
-            "enableVariableRestrictions", "allowedBeans", "marketplaceService", "contentService",
-            "studioConfiguration"})
-    public ScriptingServiceInternalImpl(ScriptEngineManager scriptEngineManager, SandboxInterceptor sandboxInterceptor,
-                                        String scriptExtension, String scriptPathFormat,
-                                        boolean enableVariableRestrictions, String[] allowedBeans,
-                                        MarketplaceService marketplaceService, ContentService contentService,
-                                        StudioConfiguration studioConfiguration) {
-        this.scriptEngineManager = scriptEngineManager;
-        this.sandboxInterceptor = sandboxInterceptor;
-        this.scriptExtension = scriptExtension;
-        this.scriptPathFormat = scriptPathFormat;
-        this.enableVariableRestrictions = enableVariableRestrictions;
-        this.allowedBeans = allowedBeans;
-        this.marketplaceService = marketplaceService;
-        this.contentService = contentService;
-        this.studioConfiguration = studioConfiguration;
-    }
+	@ConstructorProperties({"scriptEngineManager", "sandboxInterceptor", "scriptExtension", "scriptPathFormat",
+		"enableVariableRestrictions", "allowedBeans", "marketplaceService", "contentService",
+		"studioConfiguration"})
+	public ScriptingServiceInternalImpl(ScriptEngineManager scriptEngineManager, SandboxInterceptor sandboxInterceptor,
+					    String scriptExtension, String scriptPathFormat,
+					    boolean enableVariableRestrictions, String[] allowedBeans,
+					    MarketplaceService marketplaceService, ContentService contentService,
+					    StudioConfiguration studioConfiguration) {
+		this.scriptEngineManager = scriptEngineManager;
+		this.sandboxInterceptor = sandboxInterceptor;
+		this.scriptExtension = scriptExtension;
+		this.scriptPathFormat = scriptPathFormat;
+		this.enableVariableRestrictions = enableVariableRestrictions;
+		this.allowedBeans = allowedBeans;
+		this.marketplaceService = marketplaceService;
+		this.contentService = contentService;
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 
-    @Override
-    public void afterPropertiesSet() {
-        if (enableVariableRestrictions) {
-            applicationContextAccessor = new ApplicationContextAccessor(
-                    new RestrictedApplicationContext(applicationContext, allowedBeans));
-        } else {
-            applicationContextAccessor = new ApplicationContextAccessor(applicationContext);
-        }
-    }
+	@Override
+	public void afterPropertiesSet() {
+		if (enableVariableRestrictions) {
+			applicationContextAccessor = new ApplicationContextAccessor(
+				new RestrictedApplicationContext(applicationContext, allowedBeans));
+		} else {
+			applicationContextAccessor = new ApplicationContextAccessor(applicationContext);
+		}
+	}
 
-    @Override
-    public Object executeRestScript(String siteId, String scriptUrl, HttpServletRequest request,
-                                    HttpServletResponse response) throws ResourceException, ScriptException,
-                                                                         ConfigurationException {
+	@Override
+	public Object executeRestScript(String siteId, String scriptUrl, HttpServletRequest request,
+					HttpServletResponse response) throws ResourceException, ScriptException,
+		ConfigurationException {
 
-        // Get the method of the request
-        var requestMethod = request.getMethod().toLowerCase();
+		// Get the method of the request
+		var requestMethod = request.getMethod().toLowerCase();
 
-        var scriptPath = format(scriptPathFormat, scriptUrl, requestMethod, scriptExtension);
+		var scriptPath = format(scriptPathFormat, scriptUrl, requestMethod, scriptExtension);
 
-        // Get the script engine for this site
-        var scriptEngine = scriptEngineManager.getScriptEngine(siteId);
+		// Get the script engine for this site
+		var scriptEngine = scriptEngineManager.getScriptEngine(siteId);
 
-        // Enable the sandbox if needed
-        if (sandboxInterceptor != null) {
-            sandboxInterceptor.register();
-        }
-        try {
-            // Execute the script and return the result
-            return scriptEngine.run(scriptPath, createBinding(siteId, scriptPath, request, response));
-        } finally {
-            if (sandboxInterceptor != null) {
-                sandboxInterceptor.unregister();
-            }
-        }
+		// Enable the sandbox if needed
+		if (sandboxInterceptor != null) {
+			sandboxInterceptor.register();
+		}
+		try {
+			// Execute the script and return the result
+			return scriptEngine.run(scriptPath, createBinding(siteId, scriptPath, request, response));
+		} finally {
+			if (sandboxInterceptor != null) {
+				sandboxInterceptor.unregister();
+			}
+		}
 
-    }
+	}
 
-    protected Binding createBinding(String siteId, String scriptUrl, HttpServletRequest request,
-                                    HttpServletResponse response) throws ConfigurationException {
-        Binding binding = new Binding();
-        binding.setVariable(KEY_SITE_ID, siteId);
-        binding.setVariable(KEY_PARAMS, HttpUtils.createRequestParamsMap(request));
-        binding.setVariable(KEY_REQUEST, request);
-        binding.setVariable(KEY_RESPONSE, response);
-        binding.setVariable(KEY_LOGGER, logger);
-        binding.setVariable(KEY_APP_CONTEXT, applicationContextAccessor);
+	protected Binding createBinding(String siteId, String scriptUrl, HttpServletRequest request,
+					HttpServletResponse response) throws ConfigurationException {
+		Binding binding = new Binding();
+		binding.setVariable(KEY_SITE_ID, siteId);
+		binding.setVariable(KEY_PARAMS, HttpUtils.createRequestParamsMap(request));
+		binding.setVariable(KEY_REQUEST, request);
+		binding.setVariable(KEY_RESPONSE, response);
+		binding.setVariable(KEY_LOGGER, logger);
+		binding.setVariable(KEY_APP_CONTEXT, applicationContextAccessor);
 
-        String pluginId = getPluginId(siteId, scriptUrl);
-        binding.setVariable(KEY_PLUGIN_ID, pluginId);
+		String pluginId = getPluginId(siteId, scriptUrl);
+		binding.setVariable(KEY_PLUGIN_ID, pluginId);
 
-        Configuration pluginConfig = getPluginConfiguration(siteId, pluginId);
-        binding.setVariable(KEY_PLUGIN_CONFIG,  pluginConfig);
+		Configuration pluginConfig = getPluginConfiguration(siteId, pluginId);
+		binding.setVariable(KEY_PLUGIN_CONFIG, pluginConfig);
 
-        return binding;
-    }
+		return binding;
+	}
 
-    @Override
-    public void reload(String siteId) {
-        scriptEngineManager.reloadScriptEngine(siteId);
-    }
+	@Override
+	public void reload(String siteId) {
+		scriptEngineManager.reloadScriptEngine(siteId);
+	}
 
-    protected String getPluginId(String siteId, String scriptUrl) {
-        Matcher matcher = pattern.matcher(scriptUrl);
-        if (!matcher.matches()) {
-            return null;
-        }
+	protected String getPluginId(String siteId, String scriptUrl) {
+		Matcher matcher = pattern.matcher(scriptUrl);
+		if (!matcher.matches()) {
+			return null;
+		}
 
-        String pluginId = null;
-        String path = matcher.group(1);
-        boolean idFound = false;
-        while (!idFound && StringUtils.isNotEmpty(path)) {
-            path = FilenameUtils.getPathNoEndSeparator(path);
-            pluginId = RegExUtils.replaceAll(path, File.separator, ".");
-            idFound = contentService.contentExists(siteId, getPluginConfigurationPath(studioConfiguration, pluginId));
-        }
-        if (idFound) {
-            return pluginId;
-        }
+		String pluginId = null;
+		String path = matcher.group(1);
+		boolean idFound = false;
+		while (!idFound && StringUtils.isNotEmpty(path)) {
+			path = FilenameUtils.getPathNoEndSeparator(path);
+			pluginId = RegExUtils.replaceAll(path, File.separator, ".");
+			idFound = contentService.contentExists(siteId, getPluginConfigurationPath(studioConfiguration, pluginId));
+		}
+		if (idFound) {
+			return pluginId;
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    protected Configuration getPluginConfiguration(String siteId, String pluginId) throws ConfigurationException {
-        return marketplaceService.getPluginConfiguration(siteId, pluginId);
-    }
+	protected Configuration getPluginConfiguration(String siteId, String pluginId) throws ConfigurationException {
+		return marketplaceService.getPluginConfiguration(siteId, pluginId);
+	}
 
 }

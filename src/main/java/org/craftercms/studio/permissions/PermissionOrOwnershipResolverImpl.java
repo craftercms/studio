@@ -36,69 +36,68 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
  * {@link SecurityService} and content ownership.
-
  */
 public class PermissionOrOwnershipResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
-    private SecurityService securityService;
-    private StudioConfiguration studioConfiguration;
-    private ItemServiceInternal itemServiceInternal;
+	private SecurityService securityService;
+	private StudioConfiguration studioConfiguration;
+	private ItemServiceInternal itemServiceInternal;
 
-    @Override
-    public Permission getGlobalPermission(String username) throws PermissionException {
-       return getPermission(username, Collections.emptyMap());
-    }
+	@Override
+	public Permission getGlobalPermission(String username) throws PermissionException {
+		return getPermission(username, Collections.emptyMap());
+	}
 
-    @Override
-    public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
-        String siteName = StringUtils.EMPTY;
-        String path = DEFAULT_PATH_RESOURCE_VALUE;
+	@Override
+	public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
+		String siteName = StringUtils.EMPTY;
+		String path = DEFAULT_PATH_RESOURCE_VALUE;
 
-        if (MapUtils.isNotEmpty(resourceIds)) {
-            if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
-                siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
-                if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-                    siteName = StringUtils.EMPTY;
-                }
-            }
-            if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
-                path = (String) resourceIds.get(PATH_RESOURCE_ID);
-            }
-        }
+		if (MapUtils.isNotEmpty(resourceIds)) {
+			if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
+				siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
+				if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+					siteName = StringUtils.EMPTY;
+				}
+			}
+			if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
+				path = (String) resourceIds.get(PATH_RESOURCE_ID);
+			}
+		}
 
-        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
-        Item item = itemServiceInternal.getItem(siteName, path);
+		Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
+		Item item = itemServiceInternal.getItem(siteName, path);
 
-        PermissionOrOwnership permission = new PermissionOrOwnership();
-        permission.setAllowedActions(allowedActions);
-        if (Objects.nonNull(item) && Objects.nonNull(item.getLockOwner())) {
-            permission.setOwner(username.equals(item.getLockOwner().getUsername()));
-        }
+		PermissionOrOwnership permission = new PermissionOrOwnership();
+		permission.setAllowedActions(allowedActions);
+		if (Objects.nonNull(item) && Objects.nonNull(item.getLockOwner())) {
+			permission.setOwner(username.equals(item.getLockOwner().getUsername()));
+		}
 
-        return permission;
-    }
+		return permission;
+	}
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
+	public SecurityService getSecurityService() {
+		return securityService;
+	}
 
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public void setSecurityService(SecurityService securityService) {
+		this.securityService = securityService;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
+	public ItemServiceInternal getItemServiceInternal() {
+		return itemServiceInternal;
+	}
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
+	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+		this.itemServiceInternal = itemServiceInternal;
+	}
 }

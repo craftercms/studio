@@ -26,36 +26,36 @@ import org.springframework.security.core.Authentication;
 
 public class MoveContentEvent extends ContentEvent {
 
-    protected final String sourcePath;
+	protected final String sourcePath;
 
-    public MoveContentEvent(Authentication authentication, String siteId, String sourcePath, String targetPath, boolean waitForCompletion) {
-        super(authentication, siteId, targetPath, waitForCompletion);
-        this.sourcePath = sourcePath;
-    }
+	public MoveContentEvent(Authentication authentication, String siteId, String sourcePath, String targetPath, boolean waitForCompletion) {
+		super(authentication, siteId, targetPath, waitForCompletion);
+		this.sourcePath = sourcePath;
+	}
 
-    public MoveContentEvent(Authentication authentication, String siteId, String sourcePath, String targetPath) {
-        this(authentication, siteId, sourcePath, targetPath, false);
-    }
+	public MoveContentEvent(Authentication authentication, String siteId, String sourcePath, String targetPath) {
+		this(authentication, siteId, sourcePath, targetPath, false);
+	}
 
-    public String getSourcePath() {
-        return sourcePath;
-    }
+	public String getSourcePath() {
+		return sourcePath;
+	}
 
-    @Override
-    public String getEventType() {
-        return "MOVE_CONTENT_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "MOVE_CONTENT_EVENT";
+	}
 
-    @Override
-    public String toString() {
-        return "MoveContentEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                ", sourcePath='" + sourcePath + '\'' +
-                ", targetPath='" + targetPath + '\'' +
-                ", waitForCompletion=" + waitForCompletion +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "MoveContentEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			", sourcePath='" + sourcePath + '\'' +
+			", targetPath='" + targetPath + '\'' +
+			", waitForCompletion=" + waitForCompletion +
+			'}';
+	}
 
 }

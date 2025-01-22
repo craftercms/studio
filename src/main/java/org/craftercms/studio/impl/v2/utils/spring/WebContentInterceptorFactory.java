@@ -33,46 +33,46 @@ import java.util.concurrent.TimeUnit;
  */
 public class WebContentInterceptorFactory extends AbstractFactoryBean<WebContentInterceptor> {
 
-    // Set the default to max-age=0 so it always has to revalidate
-    private static final CacheControl ALWAYS_REVALIDATE = CacheControl.maxAge(0, TimeUnit.SECONDS).mustRevalidate();
+	// Set the default to max-age=0 so it always has to revalidate
+	private static final CacheControl ALWAYS_REVALIDATE = CacheControl.maxAge(0, TimeUnit.SECONDS).mustRevalidate();
 
-    /**
-     * {@link CacheControl} instance used when request matches cachedPaths
-     */
-    private final CacheControl cacheControl;
-    /**
-     * Path patterns that should include cacheControl
-     */
-    private final String[] cachedPaths;
-    /**
-     * Path patterns that should included must-revalidate Cache-Control
-     */
-    private final String[] alwaysRevalidatePaths;
+	/**
+	 * {@link CacheControl} instance used when request matches cachedPaths
+	 */
+	private final CacheControl cacheControl;
+	/**
+	 * Path patterns that should include cacheControl
+	 */
+	private final String[] cachedPaths;
+	/**
+	 * Path patterns that should included must-revalidate Cache-Control
+	 */
+	private final String[] alwaysRevalidatePaths;
 
 
-    @ConstructorProperties({"cacheControl", "cachedPaths", "alwaysRevalidatePaths"})
-    public WebContentInterceptorFactory(final CacheControl cacheControl, final String[] cachedPaths,
-                                        final String[] alwaysRevalidatePaths) {
-        this.cacheControl = cacheControl;
-        this.cachedPaths = cachedPaths;
-        this.alwaysRevalidatePaths = alwaysRevalidatePaths;
-    }
+	@ConstructorProperties({"cacheControl", "cachedPaths", "alwaysRevalidatePaths"})
+	public WebContentInterceptorFactory(final CacheControl cacheControl, final String[] cachedPaths,
+					    final String[] alwaysRevalidatePaths) {
+		this.cacheControl = cacheControl;
+		this.cachedPaths = cachedPaths;
+		this.alwaysRevalidatePaths = alwaysRevalidatePaths;
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return WebContentInterceptor.class;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return WebContentInterceptor.class;
+	}
 
-    @Override
-    @NonNull
-    protected WebContentInterceptor createInstance() throws Exception {
-        WebContentInterceptor interceptor = new WebContentInterceptor();
-        for (String alwaysRevalidatePath : alwaysRevalidatePaths) {
-            interceptor.addCacheMapping(ALWAYS_REVALIDATE, alwaysRevalidatePath);
-        }
-        for (String cachedPath : this.cachedPaths) {
-            interceptor.addCacheMapping(cacheControl, cachedPath);
-        }
-        return interceptor;
-    }
+	@Override
+	@NonNull
+	protected WebContentInterceptor createInstance() throws Exception {
+		WebContentInterceptor interceptor = new WebContentInterceptor();
+		for (String alwaysRevalidatePath : alwaysRevalidatePaths) {
+			interceptor.addCacheMapping(ALWAYS_REVALIDATE, alwaysRevalidatePath);
+		}
+		for (String cachedPath : this.cachedPaths) {
+			interceptor.addCacheMapping(cacheControl, cachedPath);
+		}
+		return interceptor;
+	}
 }

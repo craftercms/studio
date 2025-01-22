@@ -19,15 +19,15 @@ package scripts.libs
 import org.slf4j.LoggerFactory
 
 class ExtractMetadataApi {
-    static logger = LoggerFactory.getLogger(ExtractMetadataApi.class)
-    def extractMetadataParams
+	static logger = LoggerFactory.getLogger(ExtractMetadataApi.class)
+	def extractMetadataParams
 
-    ExtractMetadataApi(params) {
-        extractMetadataParams = params
-    }
+	ExtractMetadataApi(params) {
+		extractMetadataParams = params
+	}
 
-    def execute () {
-        logger.info("Run extract metadata on site '{}' path '{}'",
-                extractMetadataParams.site, extractMetadataParams.path)
-    }
+	def execute() {
+		logger.info("Run extract metadata on site '{}' path '{}'",
+			extractMetadataParams.site, extractMetadataParams.path)
+	}
 }

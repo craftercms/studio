@@ -27,15 +27,14 @@ import org.craftercms.studio.api.v1.exception.ImageTransformationException;
  */
 public interface ImageTransformer {
 
-    /**
-     * Transforms the image at {@code sourcePath} and saves it into {@code targetPath}.
-     *
-     * @param sourcePath    the source image path
-     * @param targetPath    the target path where to put the transformed image.
-     * @param parameters    additional parameters needed by the transformer
-     *
-     * @throws ImageTransformationException if an error occurred
-     */
-    void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException;
+	/**
+	 * Transforms the image at {@code sourcePath} and saves it into {@code targetPath}.
+	 *
+	 * @param sourcePath the source image path
+	 * @param targetPath the target path where to put the transformed image.
+	 * @param parameters additional parameters needed by the transformer
+	 * @throws ImageTransformationException if an error occurred
+	 */
+	void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException;
 
 }

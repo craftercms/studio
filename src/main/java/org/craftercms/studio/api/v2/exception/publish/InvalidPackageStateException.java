@@ -22,7 +22,7 @@ package org.craftercms.studio.api.v2.exception.publish;
  */
 public class InvalidPackageStateException extends PackageException {
 
-    public InvalidPackageStateException(final String message, final String siteId, final Long packageId) {
-        super(message, siteId, packageId);
-    }
+	public InvalidPackageStateException(final String message, final String siteId, final Long packageId) {
+		super(message, siteId, packageId);
+	}
 }

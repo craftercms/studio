@@ -25,9 +25,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IsActionAllowedParameter {
 
-    String SITE = "site";
-    String PATH = "path";
-    String PATHS = "paths";
+	String SITE = "site";
+	String PATH = "path";
+	String PATHS = "paths";
 
-    String value();
+	String value();
 }

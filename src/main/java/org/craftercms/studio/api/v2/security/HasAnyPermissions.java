@@ -32,14 +32,14 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HasAnyPermissions {
 
-    /**
-     * The permission type, which indicates the {@link org.craftercms.commons.security.permissions.PermissionEvaluator}
-     * to use for permission evaluation.
-     */
-    Class<? extends Permission> type();
+	/**
+	 * The permission type, which indicates the {@link org.craftercms.commons.security.permissions.PermissionEvaluator}
+	 * to use for permission evaluation.
+	 */
+	Class<? extends Permission> type();
 
-    /**
-     * Actions the current subject is trying to execute.
-     */
-    String[] actions();
+	/**
+	 * Actions the current subject is trying to execute.
+	 */
+	String[] actions();
 }

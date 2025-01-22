@@ -18,29 +18,29 @@ package scripts.api.impl.security
 
 class SpringSecurityServices {
 
-    def context = null
+	def context = null
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringSecurityServices(context) {
-        this.context = context
-    }
+	/**
+	 * constructor
+	 *
+	 * @param context - service context
+	 */
+	def SpringSecurityServices(context) {
+		this.context = context
+	}
 
-    def getCurrentUser(user) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getCurrentUser()
-    }
+	def getCurrentUser(user) {
+		def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+		return springBackedService.getCurrentUser()
+	}
 
-    def getUserProfile(user) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserProfile(user)
-    }
+	def getUserProfile(user) {
+		def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+		return springBackedService.getUserProfile(user)
+	}
 
-    def getUserRoles(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserRoles(site)
-    }
+	def getUserRoles(site) {
+		def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+		return springBackedService.getUserRoles(site)
+	}
 }

@@ -31,17 +31,17 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_
  */
 public class DeploymentServiceImpl implements DeploymentService {
 
-    private SitesService siteService;
+	private SitesService siteService;
 
-    // TODO: remove. Replace with V2
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-    public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled)
-            throws SiteNotFoundException, AuthenticationException {
-        siteService.enablePublishing(siteId, enabled);
-    }
+	// TODO: remove. Replace with V2
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
+	public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled)
+		throws SiteNotFoundException, AuthenticationException {
+		siteService.enablePublishing(siteId, enabled);
+	}
 
-    public void setSiteService(final SitesService siteService) {
-        this.siteService = siteService;
-    }
+	public void setSiteService(final SitesService siteService) {
+		this.siteService = siteService;
+	}
 }

@@ -32,51 +32,51 @@ import java.util.List;
  */
 public class CompositeDeployer implements Deployer {
 
-    private final static Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
+	private final static Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
-    private final List<Deployer> deployers;
+	private final List<Deployer> deployers;
 
-    public CompositeDeployer(final List<Deployer> deployers) {
-        this.deployers = deployers;
-    }
+	public CompositeDeployer(final List<Deployer> deployers) {
+		this.deployers = deployers;
+	}
 
-    @Override
-    public void createTargets(String site) throws RestClientException {
-        if (CollectionUtils.isNotEmpty(deployers)) {
-            try {
-                for (Deployer deployer : deployers) {
-                    deployer.createTargets(site);
-                }
-            } catch (Exception e) {
-                // Rollback any created targets if one of them fails
-                for (Deployer deployer : deployers) {
-                    try {
-                        deployer.deleteTargets(site);
-                    } catch (Exception e2) {
-                        logger.debug("Failed to rollback targets for site '{}'", site, e2);
-                    }
-                }
+	@Override
+	public void createTargets(String site) throws RestClientException {
+		if (CollectionUtils.isNotEmpty(deployers)) {
+			try {
+				for (Deployer deployer : deployers) {
+					deployer.createTargets(site);
+				}
+			} catch (Exception e) {
+				// Rollback any created targets if one of them fails
+				for (Deployer deployer : deployers) {
+					try {
+						deployer.deleteTargets(site);
+					} catch (Exception e2) {
+						logger.debug("Failed to rollback targets for site '{}'", site, e2);
+					}
+				}
 
-                throw e;
-            }
-        }
-    }
+				throw e;
+			}
+		}
+	}
 
-    @Override
-    public void deleteTargets(String site) throws RestClientException {
-        if (CollectionUtils.isNotEmpty(deployers)) {
-            for (Deployer deployer : deployers) {
-                deployer.deleteTargets(site);
-            }
-        }
-    }
+	@Override
+	public void deleteTargets(String site) throws RestClientException {
+		if (CollectionUtils.isNotEmpty(deployers)) {
+			for (Deployer deployer : deployers) {
+				deployer.deleteTargets(site);
+			}
+		}
+	}
 
-    @Override
-    public void duplicateTargets(String sourceSiteId, String siteId) {
-        if (CollectionUtils.isNotEmpty(deployers)) {
-            for (Deployer deployer : deployers) {
-                deployer.duplicateTargets(sourceSiteId, siteId);
-            }
-        }
-    }
+	@Override
+	public void duplicateTargets(String sourceSiteId, String siteId) {
+		if (CollectionUtils.isNotEmpty(deployers)) {
+			for (Deployer deployer : deployers) {
+				deployer.duplicateTargets(sourceSiteId, siteId);
+			}
+		}
+	}
 }

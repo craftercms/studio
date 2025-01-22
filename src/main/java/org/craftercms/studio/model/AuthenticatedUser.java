@@ -19,36 +19,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.User;
 
 /**
- Represents a {@link User} that has been authenticated.
+ * Represents a {@link User} that has been authenticated.
  *
  * @author avasquez
  */
 public class AuthenticatedUser extends User {
 
-    private static final long serialVersionUID = -4678834461080865934L;
+	private static final long serialVersionUID = -4678834461080865934L;
 
-    @JsonProperty("authenticationType")
-    private AuthenticationType authenticationType;
+	@JsonProperty("authenticationType")
+	private AuthenticationType authenticationType;
 
-    public AuthenticatedUser(User user) {
-        setId(user.getId());
-        setUsername(user.getUsername());
-        setEmail(user.getEmail());
-        setFirstName(user.getFirstName());
-        setLastName(user.getLastName());
-        setEnabled(user.isEnabled());
-        setDeleted(user.isDeleted());
-        setExternallyManaged(user.isExternallyManaged());
-        setTimezone(user.getTimezone());
-        setLocale(user.getLocale());
-    }
+	public AuthenticatedUser(User user) {
+		setId(user.getId());
+		setUsername(user.getUsername());
+		setEmail(user.getEmail());
+		setFirstName(user.getFirstName());
+		setLastName(user.getLastName());
+		setEnabled(user.isEnabled());
+		setDeleted(user.isDeleted());
+		setExternallyManaged(user.isExternallyManaged());
+		setTimezone(user.getTimezone());
+		setLocale(user.getLocale());
+	}
 
-    public AuthenticationType getAuthenticationType() {
-        return authenticationType;
-    }
+	public AuthenticationType getAuthenticationType() {
+		return authenticationType;
+	}
 
-    public void setAuthenticationType(AuthenticationType authenticationType) {
-        this.authenticationType = authenticationType;
-    }
+	public void setAuthenticationType(AuthenticationType authenticationType) {
+		this.authenticationType = authenticationType;
+	}
 
 }

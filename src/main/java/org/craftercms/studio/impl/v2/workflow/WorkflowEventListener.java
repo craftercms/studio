@@ -44,61 +44,61 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_NO
  */
 public class WorkflowEventListener {
 
-    private final Logger logger = LoggerFactory.getLogger(WorkflowEventListener.class);
+	private final Logger logger = LoggerFactory.getLogger(WorkflowEventListener.class);
 
-    private static final int DEFAULT_MAX_ITEM_COUNT = 10;
+	private static final int DEFAULT_MAX_ITEM_COUNT = 10;
 
-    private final NotificationService notificationService;
-    private final StudioConfiguration studioConfiguration;
-    private final PublishService publishService;
+	private final NotificationService notificationService;
+	private final StudioConfiguration studioConfiguration;
+	private final PublishService publishService;
 
-    @ConstructorProperties({"notificationService", "studioConfiguration", "publishService"})
-    public WorkflowEventListener(final NotificationService notificationService, final StudioConfiguration studioConfiguration,
-                                 final PublishService publishService) {
-        this.notificationService = notificationService;
-        this.studioConfiguration = studioConfiguration;
-        this.publishService = publishService;
-    }
+	@ConstructorProperties({"notificationService", "studioConfiguration", "publishService"})
+	public WorkflowEventListener(final NotificationService notificationService, final StudioConfiguration studioConfiguration,
+				     final PublishService publishService) {
+		this.notificationService = notificationService;
+		this.studioConfiguration = studioConfiguration;
+		this.publishService = publishService;
+	}
 
-    /**
-     * Check if notifications are enabled
-     */
-    private boolean notificationsEnabled() {
-        return studioConfiguration.getProperty(WORKFLOW_NOTIFICATION_ENABLED, Boolean.class, true);
-    }
+	/**
+	 * Check if notifications are enabled
+	 */
+	private boolean notificationsEnabled() {
+		return studioConfiguration.getProperty(WORKFLOW_NOTIFICATION_ENABLED, Boolean.class, true);
+	}
 
-    /**
-     * Get the maximum number of items to include in the notification message
-     */
-    private int getMaxPublishItems() {
-        return studioConfiguration.getProperty(WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT, Integer.class, DEFAULT_MAX_ITEM_COUNT);
-    }
+	/**
+	 * Get the maximum number of items to include in the notification message
+	 */
+	private int getMaxPublishItems() {
+		return studioConfiguration.getProperty(WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT, Integer.class, DEFAULT_MAX_ITEM_COUNT);
+	}
 
-    @Async
-    @EventListener
-    @LogExecutionTime
-    public void handleEvent(final WorkflowEvent event) throws ServiceLayerException {
-        if (!notificationsEnabled()) {
-            logger.debug("Workflow notifications are disabled, ignoring workflow event: {}", event);
-            return;
-        }
-        PublishPackage publishPackage = publishService.getPackage(event.getSiteId(), event.getPackageId());
-        switch (event.getWorkflowEventType()) {
-            case SUBMIT -> notificationService.notifyPackageSubmission(publishPackage, getPackagePaths(publishPackage));
-            case APPROVE -> notificationService.notifyPackageApproval(publishPackage, getPackagePaths(publishPackage));
-            case REJECT -> notificationService.notifyPackageRejection(publishPackage, getPackagePaths(publishPackage));
-        }
-    }
+	@Async
+	@EventListener
+	@LogExecutionTime
+	public void handleEvent(final WorkflowEvent event) throws ServiceLayerException {
+		if (!notificationsEnabled()) {
+			logger.debug("Workflow notifications are disabled, ignoring workflow event: {}", event);
+			return;
+		}
+		PublishPackage publishPackage = publishService.getPackage(event.getSiteId(), event.getPackageId());
+		switch (event.getWorkflowEventType()) {
+			case SUBMIT -> notificationService.notifyPackageSubmission(publishPackage, getPackagePaths(publishPackage));
+			case APPROVE -> notificationService.notifyPackageApproval(publishPackage, getPackagePaths(publishPackage));
+			case REJECT -> notificationService.notifyPackageRejection(publishPackage, getPackagePaths(publishPackage));
+		}
+	}
 
-    /**
-     * Get the paths of the first {@link #getMaxPublishItems()} items in the package
-     *
-     * @param publishPackage the package
-     * @return list of paths of the first {@link #getMaxPublishItems()} items in the package
-     */
-    private Collection<String> getPackagePaths(final PublishPackage publishPackage) throws PublishPackageNotFoundException, SiteNotFoundException {
-        Collection<PublishItem> publishItems = publishService.getPublishItems(publishPackage.getSite().getSiteId(),
-                publishPackage.getId(), 0, getMaxPublishItems());
-        return publishItems.stream().map(PublishItem::getPath).toList();
-    }
+	/**
+	 * Get the paths of the first {@link #getMaxPublishItems()} items in the package
+	 *
+	 * @param publishPackage the package
+	 * @return list of paths of the first {@link #getMaxPublishItems()} items in the package
+	 */
+	private Collection<String> getPackagePaths(final PublishPackage publishPackage) throws PublishPackageNotFoundException, SiteNotFoundException {
+		Collection<PublishItem> publishItems = publishService.getPublishItems(publishPackage.getSite().getSiteId(),
+			publishPackage.getId(), 0, getMaxPublishItems());
+		return publishItems.stream().map(PublishItem::getPath).toList();
+	}
 }

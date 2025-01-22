@@ -31,71 +31,71 @@ import java.util.Map;
 
 public abstract class StudioClockTask implements SiteJob, ApplicationContextAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(StudioClockTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(StudioClockTask.class);
 
-    protected int executeEveryNCycles;
-    protected Map<String, Integer> counters = new HashMap<>();
-    protected int offset;
-    protected StudioConfiguration studioConfiguration;
-    protected SitesService siteService;
-    protected ContentRepository contentRepository;
-    protected ApplicationContext applicationContext;
+	protected int executeEveryNCycles;
+	protected Map<String, Integer> counters = new HashMap<>();
+	protected int offset;
+	protected StudioConfiguration studioConfiguration;
+	protected SitesService siteService;
+	protected ContentRepository contentRepository;
+	protected ApplicationContext applicationContext;
 
-    protected synchronized boolean checkCycleCounter(String site) {
-        if (!counters.containsKey(site)) {
-            setCycleCounter(site, executeEveryNCycles);
-        }
+	protected synchronized boolean checkCycleCounter(String site) {
+		if (!counters.containsKey(site)) {
+			setCycleCounter(site, executeEveryNCycles);
+		}
 
-        int counter = counters.get(site);
-        setCycleCounter(site, --counter);
+		int counter = counters.get(site);
+		setCycleCounter(site, --counter);
 
-        return (counter <= 0); // Trigger if <= 0
-    }
+		return (counter <= 0); // Trigger if <= 0
+	}
 
-    protected synchronized void setCycleCounter(String site, int counter) {
-        counters.put(site, counter);
-    }
+	protected synchronized void setCycleCounter(String site, int counter) {
+		counters.put(site, counter);
+	}
 
-    protected abstract void executeInternal(String site);
+	protected abstract void executeInternal(String site);
 
-    @Override
-    public final void execute(String site) {
-        logger.debug("Clock Task '{}' for site '{}' with counter '{}' execute ever '{}' cycles", this.getClass().getName(), site, counters.get(site), executeEveryNCycles);
-        if (checkCycleCounter(site)) {
-            try {
-                long sleepTime = (long) (Math.random() * offset);
-                logger.debug("Sleep for an offset of '{}' milliseconds in site '{}'", sleepTime, site);
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException e) {
-                logger.debug("Woke up from the random offset in site '{}'", site);
-            }
-            executeInternal(site);
-            setCycleCounter(site, executeEveryNCycles);
-        }
-    }
+	@Override
+	public final void execute(String site) {
+		logger.debug("Clock Task '{}' for site '{}' with counter '{}' execute ever '{}' cycles", this.getClass().getName(), site, counters.get(site), executeEveryNCycles);
+		if (checkCycleCounter(site)) {
+			try {
+				long sleepTime = (long) (Math.random() * offset);
+				logger.debug("Sleep for an offset of '{}' milliseconds in site '{}'", sleepTime, site);
+				Thread.sleep(sleepTime);
+			} catch (InterruptedException e) {
+				logger.debug("Woke up from the random offset in site '{}'", site);
+			}
+			executeInternal(site);
+			setCycleCounter(site, executeEveryNCycles);
+		}
+	}
 
-    public void setExecuteEveryNCycles(int executeEveryNCycles) {
-        this.executeEveryNCycles = executeEveryNCycles;
-    }
+	public void setExecuteEveryNCycles(int executeEveryNCycles) {
+		this.executeEveryNCycles = executeEveryNCycles;
+	}
 
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public void setSiteService(SitesService siteService) {
-        this.siteService = siteService;
-    }
+	public void setSiteService(SitesService siteService) {
+		this.siteService = siteService;
+	}
 
-    public void setContentRepository(final ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
+	public void setContentRepository(final ContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
+	}
 
-    @Override
-    public void setApplicationContext(final @NonNull ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(final @NonNull ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
 }

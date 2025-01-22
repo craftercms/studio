@@ -25,14 +25,14 @@ import java.util.function.Supplier;
 @SuppressWarnings("rawtypes")
 public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOperationFacade {
 
-    @Override
-    public void retry(final Runnable op) {
-        op.run();
-    }
+	@Override
+	public void retry(final Runnable op) {
+		op.run();
+	}
 
-    @Override
-    public <T> T retry(final Supplier<T> op) {
-        return op.get();
-    }
+	@Override
+	public <T> T retry(final Supplier<T> op) {
+		return op.get();
+	}
 }
 

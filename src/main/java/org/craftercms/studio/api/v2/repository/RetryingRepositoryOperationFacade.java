@@ -23,10 +23,10 @@ import java.util.concurrent.Callable;
 
 public interface RetryingRepositoryOperationFacade {
 
-    // For JGit
-    <T> T call(GitCommand<T> gitCommand) throws GitAPIException;
+	// For JGit
+	<T> T call(GitCommand<T> gitCommand) throws GitAPIException;
 
-    // For Git CLI
-    <T> T call(Callable<T> gitCommand) throws Exception;
+	// For Git CLI
+	<T> T call(Callable<T> gitCommand) throws Exception;
 
 }

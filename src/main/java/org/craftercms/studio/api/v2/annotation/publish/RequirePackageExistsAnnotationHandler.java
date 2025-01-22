@@ -38,37 +38,37 @@ import java.lang.reflect.Method;
 @Aspect
 @Order(10)
 public class RequirePackageExistsAnnotationHandler {
-    private static final Logger logger = LoggerFactory.getLogger(RequirePackageExistsAnnotationHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequirePackageExistsAnnotationHandler.class);
 
-    private final PublishDAO publishDao;
+	private final PublishDAO publishDao;
 
-    @ConstructorProperties({"publishDao"})
-    public RequirePackageExistsAnnotationHandler(final PublishDAO publishDao) {
-        this.publishDao = publishDao;
-    }
+	@ConstructorProperties({"publishDao"})
+	public RequirePackageExistsAnnotationHandler(final PublishDAO publishDao) {
+		this.publishDao = publishDao;
+	}
 
-    // This method matches:
-    // - methods declared on classes annotated with RequirePackageExists
-    // - methods declared on classes meta-annotated with RequirePackageExists (only one level deep). e.g.: @RequirePackageExists, which is annotated with @RequirePackageExists
-    // - methods annotated with RequirePackageExists
-    // - methods meta-annotated with RequirePackageExists (only one level deep)
-    @Around("@within(RequirePackageExists) || " +
-            "within(@RequirePackageExists *) || " +
-            "within(@(@RequirePackageExists *) *) || " +
-            "@annotation(RequirePackageExists) || " +
-            "execution(@(@RequirePackageExists *) * *(..))")
-    public Object requirePackageExists(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = AopUtils.getActualMethod(pjp);
-        String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
-        Long packageId = StudioAnnotationUtils.getAnnotationValue(pjp, method, PackageId.class, Long.class);
+	// This method matches:
+	// - methods declared on classes annotated with RequirePackageExists
+	// - methods declared on classes meta-annotated with RequirePackageExists (only one level deep). e.g.: @RequirePackageExists, which is annotated with @RequirePackageExists
+	// - methods annotated with RequirePackageExists
+	// - methods meta-annotated with RequirePackageExists (only one level deep)
+	@Around("@within(RequirePackageExists) || " +
+		"within(@RequirePackageExists *) || " +
+		"within(@(@RequirePackageExists *) *) || " +
+		"@annotation(RequirePackageExists) || " +
+		"execution(@(@RequirePackageExists *) * *(..))")
+	public Object requirePackageExists(ProceedingJoinPoint pjp) throws Throwable {
+		Method method = AopUtils.getActualMethod(pjp);
+		String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
+		Long packageId = StudioAnnotationUtils.getAnnotationValue(pjp, method, PackageId.class, Long.class);
 
-        if (packageId == null) {
-            logger.debug("Method '{}.{}' is annotated with @RequirePackageExists but does not have a @PackageId parameter. " +
-                    "This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
-        } else if (!publishDao.packageExists(siteId, packageId)) {
-            throw new PublishPackageNotFoundException(siteId, packageId);
-        }
-        return pjp.proceed();
-    }
+		if (packageId == null) {
+			logger.debug("Method '{}.{}' is annotated with @RequirePackageExists but does not have a @PackageId parameter. " +
+				"This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
+		} else if (!publishDao.packageExists(siteId, packageId)) {
+			throw new PublishPackageNotFoundException(siteId, packageId);
+		}
+		return pjp.proceed();
+	}
 
 }

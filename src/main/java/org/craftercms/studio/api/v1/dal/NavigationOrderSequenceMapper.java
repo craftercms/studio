@@ -20,11 +20,11 @@ import java.util.Map;
 
 public interface NavigationOrderSequenceMapper {
 
-    void insert(NavigationOrderSequence navigationOrderSequence);
+	void insert(NavigationOrderSequence navigationOrderSequence);
 
-    void update(NavigationOrderSequence navigationOrderSequence);
+	void update(NavigationOrderSequence navigationOrderSequence);
 
-    NavigationOrderSequence getPageNavigationOrderForSiteAndPath(Map params);
+	NavigationOrderSequence getPageNavigationOrderForSiteAndPath(Map params);
 
-    void deleteSequencesForSite(Map params);
+	void deleteSequencesForSite(Map params);
 }

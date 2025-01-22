@@ -25,23 +25,23 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 
 public class AddGroupMembers {
 
-    @EsapiValidatedParam(type = USERNAME)
-    private List<String> usernames = Collections.emptyList();
-    private List<Long> ids = Collections.emptyList();
+	@EsapiValidatedParam(type = USERNAME)
+	private List<String> usernames = Collections.emptyList();
+	private List<Long> ids = Collections.emptyList();
 
-    public List<String> getUsernames() {
-        return usernames;
-    }
+	public List<String> getUsernames() {
+		return usernames;
+	}
 
-    public void setUsernames(List<String> usernames) {
-        this.usernames = usernames;
-    }
+	public void setUsernames(List<String> usernames) {
+		this.usernames = usernames;
+	}
 
-    public List<Long> getIds() {
-        return ids;
-    }
+	public List<Long> getIds() {
+		return ids;
+	}
 
-    public void setIds(List<Long> ids) {
-        this.ids = ids;
-    }
+	public void setIds(List<Long> ids) {
+		this.ids = ids;
+	}
 }

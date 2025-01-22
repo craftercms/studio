@@ -40,61 +40,61 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
  */
 public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
 
-    private AssetProcessorResolver processorFactory;
+	private AssetProcessorResolver processorFactory;
 
-    public AssetProcessorPipelineImpl(AssetProcessorResolver processorFactory) {
-        this.processorFactory = processorFactory;
-    }
+	public AssetProcessorPipelineImpl(AssetProcessorResolver processorFactory) {
+		this.processorFactory = processorFactory;
+	}
 
-    @Override
-    public List<Asset> processAsset(ProcessorPipelineConfiguration config, Asset input) throws AssetProcessingException {
-        Matcher inputPatMatcher = matchForProcessing(config, input);
-        if (inputPatMatcher != null) {
-            Set<Asset> outputs = new LinkedHashSet<>();
-            Asset originalInput = input;
-            Map<ProcessorConfiguration, AssetProcessor> processors = getProcessors(config);
+	@Override
+	public List<Asset> processAsset(ProcessorPipelineConfiguration config, Asset input) throws AssetProcessingException {
+		Matcher inputPatMatcher = matchForProcessing(config, input);
+		if (inputPatMatcher != null) {
+			Set<Asset> outputs = new LinkedHashSet<>();
+			Asset originalInput = input;
+			Map<ProcessorConfiguration, AssetProcessor> processors = getProcessors(config);
 
-            if (config.isKeepOriginal()) {
-                outputs.add(originalInput);
-            }
+			if (config.isKeepOriginal()) {
+				outputs.add(originalInput);
+			}
 
-            for (Map.Entry<ProcessorConfiguration, AssetProcessor> entry : processors.entrySet()) {
-                Asset output = entry.getValue().processAsset(entry.getKey(), inputPatMatcher, input);
-                outputs.add(output);
+			for (Map.Entry<ProcessorConfiguration, AssetProcessor> entry : processors.entrySet()) {
+				Asset output = entry.getValue().processAsset(entry.getKey(), inputPatMatcher, input);
+				outputs.add(output);
 
-                input = output;
-            }
+				input = output;
+			}
 
-            if (!config.isKeepOriginal() && outputs.contains(originalInput)) {
-                outputs.remove(originalInput);
-            }
+			if (!config.isKeepOriginal() && outputs.contains(originalInput)) {
+				outputs.remove(originalInput);
+			}
 
-            return new ArrayList<>(outputs);
-        } else {
-            return Collections.emptyList();
-        }
-    }
+			return new ArrayList<>(outputs);
+		} else {
+			return Collections.emptyList();
+		}
+	}
 
-    private Matcher matchForProcessing(ProcessorPipelineConfiguration config, Asset input) {
-        Pattern inputPathPattern = Pattern.compile(config.getInputPathPattern());
-        Matcher inputPathMatcher = inputPathPattern.matcher(input.getRepoPath());
+	private Matcher matchForProcessing(ProcessorPipelineConfiguration config, Asset input) {
+		Pattern inputPathPattern = Pattern.compile(config.getInputPathPattern());
+		Matcher inputPathMatcher = inputPathPattern.matcher(input.getRepoPath());
 
-        if (inputPathMatcher.matches()) {
-            return inputPathMatcher;
-        } else {
-            return null;
-        }
-    }
+		if (inputPathMatcher.matches()) {
+			return inputPathMatcher;
+		} else {
+			return null;
+		}
+	}
 
-    private Map<ProcessorConfiguration, AssetProcessor> getProcessors(ProcessorPipelineConfiguration config)
-        throws AssetProcessingException {
-        Map<ProcessorConfiguration, AssetProcessor> processors = new LinkedHashMap<>(config.getProcessorsConfig().size());
+	private Map<ProcessorConfiguration, AssetProcessor> getProcessors(ProcessorPipelineConfiguration config)
+		throws AssetProcessingException {
+		Map<ProcessorConfiguration, AssetProcessor> processors = new LinkedHashMap<>(config.getProcessorsConfig().size());
 
-        for (ProcessorConfiguration processorConfig : config.getProcessorsConfig()) {
-            processors.put(processorConfig, processorFactory.getProcessor(processorConfig));
-        }
+		for (ProcessorConfiguration processorConfig : config.getProcessorsConfig()) {
+			processors.put(processorConfig, processorFactory.getProcessor(processorConfig));
+		}
 
-        return processors;
-    }
+		return processors;
+	}
 
 }

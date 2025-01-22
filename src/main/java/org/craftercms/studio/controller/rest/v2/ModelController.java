@@ -37,20 +37,20 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping("/api/2/model")
 public class ModelController {
 
-    @SuppressWarnings("unused")
-    private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
-    private final ContentTypeService contentTypeService;
+	@SuppressWarnings("unused")
+	private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
+	private final ContentTypeService contentTypeService;
 
-    @ConstructorProperties({"contentTypeService"})
-    public ModelController(ContentTypeService contentTypeService) {
-        this.contentTypeService = contentTypeService;
-    }
+	@ConstructorProperties({"contentTypeService"})
+	public ModelController(ContentTypeService contentTypeService) {
+		this.contentTypeService = contentTypeService;
+	}
 
-    @PostMapping("/{siteId}/definitions")
-    @LogExecutionTime
-    public ModelDefinitions getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
-        ModelDefinitions result = new ModelDefinitions(contentTypeService.getAllModelDefinitions(siteId));
-        result.setResponse(OK);
-        return result;
-    }
+	@PostMapping("/{siteId}/definitions")
+	@LogExecutionTime
+	public ModelDefinitions getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
+		ModelDefinitions result = new ModelDefinitions(contentTypeService.getAllModelDefinitions(siteId));
+		result.setResponse(OK);
+		return result;
+	}
 }

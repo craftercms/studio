@@ -23,6 +23,7 @@ import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -31,72 +32,72 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 @JsonIgnoreProperties
 public class PublishRequestBody {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    private List<@ValidExistingContentPath @NotBlank String> items;
-    private List<@ValidExistingContentPath @NotBlank String> optionalDependencies;
-    @NotEmpty
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String publishingTarget;
-    private ZonedDateTime schedule;
-    private String comment;
-    private boolean sendEmailNotifications;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	private List<@ValidExistingContentPath @NotBlank String> items;
+	private List<@ValidExistingContentPath @NotBlank String> optionalDependencies;
+	@NotEmpty
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	private String publishingTarget;
+	private ZonedDateTime schedule;
+	private String comment;
+	private boolean sendEmailNotifications;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public List<String> getItems() {
-        return items;
-    }
+	public List<String> getItems() {
+		return items;
+	}
 
-    public void setItems(List<String> items) {
-        this.items = items;
-    }
+	public void setItems(List<String> items) {
+		this.items = items;
+	}
 
-    public List<String> getOptionalDependencies() {
-        return optionalDependencies;
-    }
+	public List<String> getOptionalDependencies() {
+		return optionalDependencies;
+	}
 
-    public void setOptionalDependencies(List<String> optionalDependencies) {
-        this.optionalDependencies = optionalDependencies;
-    }
+	public void setOptionalDependencies(List<String> optionalDependencies) {
+		this.optionalDependencies = optionalDependencies;
+	}
 
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
+	public String getPublishingTarget() {
+		return publishingTarget;
+	}
 
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
+	public void setPublishingTarget(String publishingTarget) {
+		this.publishingTarget = publishingTarget;
+	}
 
-    public ZonedDateTime getSchedule() {
-        return schedule;
-    }
+	public ZonedDateTime getSchedule() {
+		return schedule;
+	}
 
-    public void setSchedule(ZonedDateTime schedule) {
-        this.schedule = schedule;
-    }
+	public void setSchedule(ZonedDateTime schedule) {
+		this.schedule = schedule;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getComment() {
+		return comment;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 
-    public boolean isSendEmailNotifications() {
-        return sendEmailNotifications;
-    }
+	public boolean isSendEmailNotifications() {
+		return sendEmailNotifications;
+	}
 
-    public void setSendEmailNotifications(boolean sendEmailNotifications) {
-        this.sendEmailNotifications = sendEmailNotifications;
-    }
+	public void setSendEmailNotifications(boolean sendEmailNotifications) {
+		this.sendEmailNotifications = sendEmailNotifications;
+	}
 }

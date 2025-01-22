@@ -23,17 +23,17 @@ import groovy.util.logging.Log
 @Log
 class DeploymentServices {
 
-    /**
-     * create the context object
-     * @param applicationContext - studio application's contect (spring container etc)
-     * @param request - web request if in web request context
-     */
-    static createContext(applicationContext, request) {
-        return ServiceFactory.createContext(applicationContext, request)
-    }
+	/**
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc)
+	 * @param request - web request if in web request context
+	 */
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
+	}
 
-    static enablePublishing(context, siteId, enabled) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.enablePublishing(siteId, enabled)
-    }
+	static enablePublishing(context, siteId, enabled) {
+		def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+		return deploymentServicesImpl.enablePublishing(siteId, enabled)
+	}
 }

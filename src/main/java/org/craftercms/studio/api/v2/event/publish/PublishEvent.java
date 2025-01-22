@@ -29,26 +29,26 @@ import org.springframework.security.core.Authentication;
  */
 public class PublishEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    public PublishEvent(String siteId) {
-        super(siteId);
-    }
+	public PublishEvent(String siteId) {
+		super(siteId);
+	}
 
-    public PublishEvent(Authentication authentication, String siteId) {
-        super(authentication, siteId);
-    }
+	public PublishEvent(Authentication authentication, String siteId) {
+		super(authentication, siteId);
+	}
 
-    @Override
-    public String getEventType() {
-        return "PUBLISH_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "PUBLISH_EVENT";
+	}
 
-    @Override
-    public String toString() {
-        return "PublishEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "PublishEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			'}';
+	}
 
 }

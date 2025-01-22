@@ -29,43 +29,42 @@ import java.util.Set;
  */
 public interface ContentTypeService {
 
-    /**
-     * get a content type by the given site and the content path
-     *
-     * @param site site identifier
-     * @param path path of the content
-     * @return content type
-     *
-     * @throws ServiceLayerException general service error
-     */
-    ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceLayerException;
+	/**
+	 * get a content type by the given site and the content path
+	 *
+	 * @param site site identifier
+	 * @param path path of the content
+	 * @return content type
+	 * @throws ServiceLayerException general service error
+	 */
+	ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceLayerException;
 
-    /**
-     * check if the user is allowed to access the content type with the given user roles
-     *
-     * @param userRoles user roles
-     * @param item content type
-     * @return true if user has permissions to access the content type
-     */
-    boolean isUserAllowed(Set<NormalizedRole> userRoles, ContentTypeConfigTO item);
+	/**
+	 * check if the user is allowed to access the content type with the given user roles
+	 *
+	 * @param userRoles user roles
+	 * @param item      content type
+	 * @return true if user has permissions to access the content type
+	 */
+	boolean isUserAllowed(Set<NormalizedRole> userRoles, ContentTypeConfigTO item);
 
-    /**
-     * get a content type by the given site and type name
-     *
-     * @param site site identifier
-     * @param type content type name
-     * @return content type
-     */
-    ContentTypeConfigTO getContentType(String site, String type);
+	/**
+	 * get a content type by the given site and type name
+	 *
+	 * @param site site identifier
+	 * @param type content type name
+	 * @return content type
+	 */
+	ContentTypeConfigTO getContentType(String site, String type);
 
-    ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceLayerException;
+	ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceLayerException;
 
-    List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
+	List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
 
-    List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath);
+	List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath);
 
-    boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException, UserNotFoundException;
+	boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException, UserNotFoundException;
 
-    String getConfigPath();
+	String getConfigPath();
 }
 

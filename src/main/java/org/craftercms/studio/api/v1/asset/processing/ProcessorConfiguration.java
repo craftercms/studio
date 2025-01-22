@@ -24,55 +24,55 @@ import java.util.Map;
  */
 public class ProcessorConfiguration {
 
-    private String type;
-    private Map<String, String> params;
-    private String outputPathFormat;
+	private String type;
+	private Map<String, String> params;
+	private String outputPathFormat;
 
-    /**
-     * Returns the processor type.
-     */
-    public String getType() {
-        return type;
-    }
+	/**
+	 * Returns the processor type.
+	 */
+	public String getType() {
+		return type;
+	}
 
-    /**
-     * Sets the processor type.
-     */
-    public void setType(String type) {
-        this.type = type;
-    }
+	/**
+	 * Sets the processor type.
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    /**
-     * Returns the processor parameters.
-     */
-    public Map<String, String> getParams() {
-        return params;
-    }
+	/**
+	 * Returns the processor parameters.
+	 */
+	public Map<String, String> getParams() {
+		return params;
+	}
 
-    /**
-     * Sets the processor parameters.
-     */
-    public void setParams(Map<String, String> params) {
-        this.params = params;
-    }
+	/**
+	 * Sets the processor parameters.
+	 */
+	public void setParams(Map<String, String> params) {
+		this.params = params;
+	}
 
-    /**
-     * Returns the output path format. Variables that have a dollar sign ($) and an index are later replaced by groups that resulted
-     * during input path matching, to form the final output path. E.g for path /static-assets/image/logo.jpg, if pipeline input path
-     * pattern = /static-assets/image/(.+)\.jpg and output path format = /static-assets/image/processed/$1.jpg, then the final output
-     * path of the processed asset will be /static-assets/image/processed/logo.jpg
-     *
-     * @return output path format
-     */
-    public String getOutputPathFormat() {
-        return outputPathFormat;
-    }
+	/**
+	 * Returns the output path format. Variables that have a dollar sign ($) and an index are later replaced by groups that resulted
+	 * during input path matching, to form the final output path. E.g for path /static-assets/image/logo.jpg, if pipeline input path
+	 * pattern = /static-assets/image/(.+)\.jpg and output path format = /static-assets/image/processed/$1.jpg, then the final output
+	 * path of the processed asset will be /static-assets/image/processed/logo.jpg
+	 *
+	 * @return output path format
+	 */
+	public String getOutputPathFormat() {
+		return outputPathFormat;
+	}
 
-    /**
-     * Sets the output path format.
-     */
-    public void setOutputPathFormat(String outputPathFormat) {
-        this.outputPathFormat = outputPathFormat;
-    }
+	/**
+	 * Sets the output path format.
+	 */
+	public void setOutputPathFormat(String outputPathFormat) {
+		this.outputPathFormat = outputPathFormat;
+	}
 
 }

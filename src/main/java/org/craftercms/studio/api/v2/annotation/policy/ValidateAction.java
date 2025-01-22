@@ -32,14 +32,14 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidateAction {
 
-    /**
-     * The type of the action
-     */
-    Type type();
+	/**
+	 * The type of the action
+	 */
+	Type type();
 
-    /**
-     * Indicates if the action is recursive
-     */
-    boolean recursive() default false;
+	/**
+	 * Indicates if the action is recursive
+	 */
+	boolean recursive() default false;
 
 }

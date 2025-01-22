@@ -25,12 +25,12 @@ import java.io.IOException;
  */
 public class GitCliException extends IOException {
 
-    public GitCliException(String msg) {
-        super(msg);
-    }
+	public GitCliException(String msg) {
+		super(msg);
+	}
 
-    public GitCliException(String msg, Throwable throwable) {
-        super(msg, throwable);
-    }
+	public GitCliException(String msg, Throwable throwable) {
+		super(msg, throwable);
+	}
 
 }

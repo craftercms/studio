@@ -20,7 +20,7 @@ import org.craftercms.sites.editorial.ProfileUtils
 def segment = null
 
 if (authToken) {
-    segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
+	segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
 }
 
 def searchHelper = new SearchHelper(searchClient, urlTransformationService)

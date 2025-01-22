@@ -14,20 +14,20 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <!DOCTYPE configuration
-        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
-    <settings>
-        <setting name="cacheEnabled" value="false"/>
-        <setting name="jdbcTypeForNull" value="VARCHAR"/>
-        <setting name="mapUnderscoreToCamelCase" value="true"/>
-    </settings>
+	<settings>
+		<setting name="cacheEnabled" value="false"/>
+		<setting name="jdbcTypeForNull" value="VARCHAR"/>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
 
-    <typeAliases>
-        <typeAlias type="org.craftercms.studio.api.v2.dal.User" alias="User"/>
-        <typeAlias type="org.craftercms.studio.api.v2.dal.Group" alias="Group"/>
-        <typeAlias type="org.craftercms.studio.api.v1.dal.Role" alias="Role"/>
-        <typeAlias type="org.craftercms.studio.api.v1.dal.Permission" alias="Permission"/>
-    </typeAliases>
+	<typeAliases>
+		<typeAlias type="org.craftercms.studio.api.v2.dal.User" alias="User"/>
+		<typeAlias type="org.craftercms.studio.api.v2.dal.Group" alias="Group"/>
+		<typeAlias type="org.craftercms.studio.api.v1.dal.Role" alias="Role"/>
+		<typeAlias type="org.craftercms.studio.api.v1.dal.Permission" alias="Permission"/>
+	</typeAliases>
 
 </configuration>

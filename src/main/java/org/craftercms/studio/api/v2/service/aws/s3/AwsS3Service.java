@@ -31,34 +31,36 @@ import org.craftercms.studio.model.aws.s3.S3Item;
  */
 public interface AwsS3Service {
 
-    /**
-     * Uploads a file to an S3 bucket.
-     * @param siteId the site id
-     * @param profileId the profile id
-     * @param path the path to upload the file (will be used as part of the S3 key)
-     * @param filename the filename (will be used as part of the S3 key)
-     * @param content a stream providing the content of the file
-     * @return the uploaded item
-     * @throws AwsException if there is any error connection to S3
-     * @throws SiteNotFoundException if the site is not found
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    S3Item uploadItem(String siteId, String profileId, String path, String filename, InputStream content)
-            throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException;
+	/**
+	 * Uploads a file to an S3 bucket.
+	 *
+	 * @param siteId    the site id
+	 * @param profileId the profile id
+	 * @param path      the path to upload the file (will be used as part of the S3 key)
+	 * @param filename  the filename (will be used as part of the S3 key)
+	 * @param content   a stream providing the content of the file
+	 * @return the uploaded item
+	 * @throws AwsException                          if there is any error connection to S3
+	 * @throws SiteNotFoundException                 if the site is not found
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	S3Item uploadItem(String siteId, String profileId, String path, String filename, InputStream content)
+		throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException;
 
-    /**
-     * Lists items in an S3 bucket.
-     * @param siteId the site id
-     * @param profileId the profile id
-     * @param path the path to list
-     * @param type the type of items to list
-     * @param maxKeys the maximum number of keys
-     * @return the list of items
-     * @throws AwsException if there is any error connection to S3
-     * @throws SiteNotFoundException if the site is not found
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    List<S3Item> listItems(String siteId, String profileId, String path, String type, int maxKeys)
-            throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException;
+	/**
+	 * Lists items in an S3 bucket.
+	 *
+	 * @param siteId    the site id
+	 * @param profileId the profile id
+	 * @param path      the path to list
+	 * @param type      the type of items to list
+	 * @param maxKeys   the maximum number of keys
+	 * @return the list of items
+	 * @throws AwsException                          if there is any error connection to S3
+	 * @throws SiteNotFoundException                 if the site is not found
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	List<S3Item> listItems(String siteId, String profileId, String path, String type, int maxKeys)
+		throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException;
 
 }

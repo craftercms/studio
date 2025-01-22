@@ -36,18 +36,18 @@ import java.util.List;
  */
 public class PolicyServiceImpl implements PolicyService {
 
-    protected PolicyServiceInternal policyServiceInternal;
+	protected PolicyServiceInternal policyServiceInternal;
 
-    @ConstructorProperties({"policyServiceInternal"})
-    public PolicyServiceImpl(PolicyServiceInternal policyServiceInternal) {
-        this.policyServiceInternal = policyServiceInternal;
-    }
+	@ConstructorProperties({"policyServiceInternal"})
+	public PolicyServiceImpl(PolicyServiceInternal policyServiceInternal) {
+		this.policyServiceInternal = policyServiceInternal;
+	}
 
-    @Override
-    @RequireSiteReady
-    public List<ValidationResult> validate(@SiteId String siteId, List<Action> actions)
-            throws ConfigurationException, IOException, ContentNotFoundException {
-        return policyServiceInternal.validate(siteId, actions);
-    }
+	@Override
+	@RequireSiteReady
+	public List<ValidationResult> validate(@SiteId String siteId, List<Action> actions)
+		throws ConfigurationException, IOException, ContentNotFoundException {
+		return policyServiceInternal.validate(siteId, actions);
+	}
 
 }

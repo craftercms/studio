@@ -34,86 +34,88 @@ import static java.util.Collections.emptyList;
 
 /**
  * Implementation of {@link org.craftercms.search.opensearch.OpenSearchWrapper} specific for authoring indexes
+ *
  * @author joseross
  */
 public class PermissionAwareSearchService extends AbstractOpenSearchClientWrapper {
 
-    /**
-     * The suffix to append to the site name
-     */
-    protected String indexSuffix;
+	/**
+	 * The suffix to append to the site name
+	 */
+	protected String indexSuffix;
 
-    /**
-     * The name of the field to filter paths
-     */
-    protected String pathFieldName;
+	/**
+	 * The name of the field to filter paths
+	 */
+	protected String pathFieldName;
 
-    @ConstructorProperties({"client", "indexSuffix", "pathFieldName"})
-    public PermissionAwareSearchService(OpenSearchClient client, String indexSuffix, String pathFieldName) {
-        super(client);
-        this.indexSuffix = indexSuffix;
-        this.pathFieldName = pathFieldName;
-    }
+	@ConstructorProperties({"client", "indexSuffix", "pathFieldName"})
+	public PermissionAwareSearchService(OpenSearchClient client, String indexSuffix, String pathFieldName) {
+		super(client);
+		this.indexSuffix = indexSuffix;
+		this.pathFieldName = pathFieldName;
+	}
 
-    /**
-     * Perform a search operation for the given site
-     * @param siteId the site id
-     * @param request the search request
-     * @return the search response
-     */
-    public <T> SearchResponse<T> search(String siteId, SearchRequest request,
-                                        Class<T> documentClass) throws IOException, ServiceLayerException {
-        // TODO: Get allowed paths from the security service
-        List<String> allowedPaths = emptyList();
-        return super.search(request, documentClass, Map.of("siteId", siteId, "allowedPaths", allowedPaths));
-    }
+	/**
+	 * Perform a search operation for the given site
+	 *
+	 * @param siteId  the site id
+	 * @param request the search request
+	 * @return the search response
+	 */
+	public <T> SearchResponse<T> search(String siteId, SearchRequest request,
+					    Class<T> documentClass) throws IOException, ServiceLayerException {
+		// TODO: Get allowed paths from the security service
+		List<String> allowedPaths = emptyList();
+		return super.search(request, documentClass, Map.of("siteId", siteId, "allowedPaths", allowedPaths));
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    protected RequestUpdates getRequestUpdates(SearchRequest request, Map<String, Object> parameters) {
-        RequestUpdates updates = new RequestUpdates();
-        String siteId = (String) parameters.get("siteId");
-        List<String> allowedPaths = (List<String>) parameters.get("allowedPaths");
+	@Override
+	@SuppressWarnings("unchecked")
+	protected RequestUpdates getRequestUpdates(SearchRequest request, Map<String, Object> parameters) {
+		RequestUpdates updates = new RequestUpdates();
+		String siteId = (String) parameters.get("siteId");
+		List<String> allowedPaths = (List<String>) parameters.get("allowedPaths");
 
-        //TODO: Implement locale in Studio too? for now just query all existing aliases
-        updates.setIndex(List.of(siteId + indexSuffix + "*"));
+		//TODO: Implement locale in Studio too? for now just query all existing aliases
+		updates.setIndex(List.of(siteId + indexSuffix + "*"));
 
-        //TODO: Prevent running the search without allowedPaths
-        if(CollectionUtils.isNotEmpty(allowedPaths)) {
-            addFilters(request, allowedPaths, updates);
-        }
+		//TODO: Prevent running the search without allowedPaths
+		if (CollectionUtils.isNotEmpty(allowedPaths)) {
+			addFilters(request, allowedPaths, updates);
+		}
 
-        return updates;
-    }
+		return updates;
+	}
 
-    protected void addFilters(SearchRequest request, List<String> allowedPaths, RequestUpdates updates) {
-        Query originalQuery = request.query();
-        BoolQuery.Builder updatedQuery = new BoolQuery.Builder();
-        if(originalQuery.isBool()) {
-            copyQuery(originalQuery.bool(),updatedQuery);
-        } else {
-            updatedQuery.must(originalQuery);
-        }
+	protected void addFilters(SearchRequest request, List<String> allowedPaths, RequestUpdates updates) {
+		Query originalQuery = request.query();
+		BoolQuery.Builder updatedQuery = new BoolQuery.Builder();
+		if (originalQuery.isBool()) {
+			copyQuery(originalQuery.bool(), updatedQuery);
+		} else {
+			updatedQuery.must(originalQuery);
+		}
 
-        //TODO: Check if allowedPaths will be regexes already
-        allowedPaths.forEach(path -> updatedQuery.filter(f -> f
-            .regexp(r -> r
-                .field(pathFieldName)
-                .value(path + ".*")
-            )
-        ));
+		//TODO: Check if allowedPaths will be regexes already
+		allowedPaths.forEach(path -> updatedQuery.filter(f -> f
+			.regexp(r -> r
+				.field(pathFieldName)
+				.value(path + ".*")
+			)
+		));
 
-        updates.setQuery(updatedQuery.build()._toQuery());
-    }
+		updates.setQuery(updatedQuery.build()._toQuery());
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public <T> SearchResponse<T> search(SearchRequest request, Class<T> docClass, Map<String, Object> parameters)
-            throws IOException {
-        // Prevent execution of requests without permission filters
-        throw new UnsupportedOperationException();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public <T> SearchResponse<T> search(SearchRequest request, Class<T> docClass, Map<String, Object> parameters)
+		throws IOException {
+		// Prevent execution of requests without permission filters
+		throw new UnsupportedOperationException();
+	}
 
 }

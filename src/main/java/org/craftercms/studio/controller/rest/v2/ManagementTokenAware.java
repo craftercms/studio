@@ -33,26 +33,26 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public abstract class ManagementTokenAware {
 
-    protected final StudioConfiguration studioConfiguration;
-    protected final SecurityService securityService;
+	protected final StudioConfiguration studioConfiguration;
+	protected final SecurityService securityService;
 
-    public ManagementTokenAware(StudioConfiguration studioConfiguration, SecurityService securityService) {
-        this.studioConfiguration = studioConfiguration;
-        this.securityService = securityService;
-    }
+	public ManagementTokenAware(StudioConfiguration studioConfiguration, SecurityService securityService) {
+		this.studioConfiguration = studioConfiguration;
+		this.securityService = securityService;
+	}
 
-    protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
-        if (StringUtils.isEmpty(securityService.getCurrentUser())) {
-            if (Objects.isNull(token)) {
-                throw new InvalidParametersException("Missing parameter: 'token'");
-            } else if(!StringUtils.equals(token, getConfiguredToken())) {
-                throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
-            }
-        }
-    }
+	protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
+		if (StringUtils.isEmpty(securityService.getCurrentUser())) {
+			if (Objects.isNull(token)) {
+				throw new InvalidParametersException("Missing parameter: 'token'");
+			} else if (!StringUtils.equals(token, getConfiguredToken())) {
+				throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+			}
+		}
+	}
 
-    protected String getConfiguredToken() {
-        return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
-    }
+	protected String getConfiguredToken() {
+		return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
+	}
 
 }

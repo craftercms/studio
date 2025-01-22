@@ -29,28 +29,27 @@ import java.util.stream.Stream;
  */
 public class PaginationUtils {
 
-    private PaginationUtils() {
-    }
+	private PaginationUtils() {
+	}
 
-    /**
-     * Performs pagination on the {@code list}, returning from the specified {@code offset} to the specified
-     * {@code limit}. The list can also be sorted by the {@code sortBy} (optional).
-     *
-     * @param list      the list to paginate
-     * @param offset    the offset from where to start
-     * @param limit     the max number of elements that the paginated list should include
-     * @param sortBy    the property used for sorting
-     *
-     * @return the paginated list
-     */
-    public static <T> List<T> paginate(List<T> list, int offset, int limit, String sortBy) {
-        Stream<T> stream = list.stream();
+	/**
+	 * Performs pagination on the {@code list}, returning from the specified {@code offset} to the specified
+	 * {@code limit}. The list can also be sorted by the {@code sortBy} (optional).
+	 *
+	 * @param list   the list to paginate
+	 * @param offset the offset from where to start
+	 * @param limit  the max number of elements that the paginated list should include
+	 * @param sortBy the property used for sorting
+	 * @return the paginated list
+	 */
+	public static <T> List<T> paginate(List<T> list, int offset, int limit, String sortBy) {
+		Stream<T> stream = list.stream();
 
-        if (StringUtils.isNotEmpty(sortBy)) {
-            stream = stream.sorted(new BeanComparator<>(sortBy));
-        }
+		if (StringUtils.isNotEmpty(sortBy)) {
+			stream = stream.sorted(new BeanComparator<>(sortBy));
+		}
 
-        return stream.skip(offset).limit(limit).collect(Collectors.toList());
-    }
+		return stream.skip(offset).limit(limit).collect(Collectors.toList());
+	}
 
 }
