@@ -28,12 +28,12 @@ import org.springframework.security.core.userdetails.UserDetails;
  */
 public class DeletedUserDetailsChecker extends AccountStatusUserDetailsChecker {
 
-    @Override
-    public void check(UserDetails user) {
-        super.check(user);
-        if (((User) user).isDeleted()) {
-            throw new DeletedException("User has been deleted");
-        }
-    }
+	@Override
+	public void check(UserDetails user) {
+		super.check(user);
+		if (((User) user).isDeleted()) {
+			throw new DeletedException("User has been deleted");
+		}
+	}
 
 }

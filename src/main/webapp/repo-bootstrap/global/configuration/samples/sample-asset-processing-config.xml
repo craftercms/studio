@@ -44,40 +44,40 @@
 
 -->
 <assetProcessing>
-    <pipelines>
+	<pipelines>
 
-        <!-- Web transformer pipeline -->
-        <pipeline>
-            <inputPathPattern>^/static-assets/images/upload/(.+)\.jpg$</inputPathPattern>
-            <keepOriginal>false</keepOriginal>
-            <processors>
-                <processor>
-                    <type>ImageMagickTransformer</type>
-                    <params>
-                        <options>-level 0,100%,1.3 -gaussian-blur 0.05 -quality 20% -strip</options>
-                    </params>
-                    <outputPathFormat>/static-assets/images/compressed/web/$1-compressed.jpg</outputPathFormat>
-                </processor>
-            </processors>
-        </pipeline>
+		<!-- Web transformer pipeline -->
+		<pipeline>
+			<inputPathPattern>^/static-assets/images/upload/(.+)\.jpg$</inputPathPattern>
+			<keepOriginal>false</keepOriginal>
+			<processors>
+				<processor>
+					<type>ImageMagickTransformer</type>
+					<params>
+						<options>-level 0,100%,1.3 -gaussian-blur 0.05 -quality 20% -strip</options>
+					</params>
+					<outputPathFormat>/static-assets/images/compressed/web/$1-compressed.jpg</outputPathFormat>
+				</processor>
+			</processors>
+		</pipeline>
 
-        <!-- Mobile transformer pipeline -->
-        <pipeline>
-            <inputPathPattern>^/static-assets/images/upload/(.+)\.jpg$</inputPathPattern>
-            <keepOriginal>false</keepOriginal>
-            <processors>
-                <processor>
-                    <type>ImageMagickTransformer</type>
-                    <params>
-                        <options>-level 0,100%,1.3 -gaussian-blur 0.05 -quality 20% -strip -resize 226x164</options>
-                    </params>
-                    <outputPathFormat>/static-assets/images/compressed/mobile/$1-compressed.png</outputPathFormat>
-                </processor>
-                <processor>
-                    <type>TinifyTransformer</type>
-                </processor>
-            </processors>
-        </pipeline>
+		<!-- Mobile transformer pipeline -->
+		<pipeline>
+			<inputPathPattern>^/static-assets/images/upload/(.+)\.jpg$</inputPathPattern>
+			<keepOriginal>false</keepOriginal>
+			<processors>
+				<processor>
+					<type>ImageMagickTransformer</type>
+					<params>
+						<options>-level 0,100%,1.3 -gaussian-blur 0.05 -quality 20% -strip -resize 226x164</options>
+					</params>
+					<outputPathFormat>/static-assets/images/compressed/mobile/$1-compressed.png</outputPathFormat>
+				</processor>
+				<processor>
+					<type>TinifyTransformer</type>
+				</processor>
+			</processors>
+		</pipeline>
 
-    </pipelines>
+	</pipelines>
 </assetProcessing>

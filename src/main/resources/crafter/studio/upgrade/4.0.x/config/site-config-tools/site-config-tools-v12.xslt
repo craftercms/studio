@@ -17,47 +17,47 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Add the new tool -->
-    <xsl:template match="config/tools">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
-            <xsl:if test="not(tool/name = 'plugin-management')">
-                <xsl:element name="tool">
-                    <xsl:element name="name">
-                        <xsl:text>plugin-management</xsl:text>
-                    </xsl:element>
-                    <xsl:element name="label">
-                        <xsl:text>Plugin Management</xsl:text>
-                    </xsl:element>
-                    <xsl:element name="icon">
-                        <xsl:element name="class">
-                            <xsl:text>fa-puzzle-piece</xsl:text>
-                        </xsl:element>
-                    </xsl:element>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Add the new tool -->
+	<xsl:template match="config/tools">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
+			<xsl:if test="not(tool/name = 'plugin-management')">
+				<xsl:element name="tool">
+					<xsl:element name="name">
+						<xsl:text>plugin-management</xsl:text>
+					</xsl:element>
+					<xsl:element name="label">
+						<xsl:text>Plugin Management</xsl:text>
+					</xsl:element>
+					<xsl:element name="icon">
+						<xsl:element name="class">
+							<xsl:text>fa-puzzle-piece</xsl:text>
+						</xsl:element>
+					</xsl:element>
+				</xsl:element>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

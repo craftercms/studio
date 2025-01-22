@@ -60,127 +60,127 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @RequestMapping(API_2 + WORKFLOW)
 public class WorkflowController {
 
-    public static final String DEFAULT_QUERY_BY_PATH_REGEX = ".*";
+	public static final String DEFAULT_QUERY_BY_PATH_REGEX = ".*";
 
-    private final WorkflowService workflowService;
-    private final PublishService publishService;
+	private final WorkflowService workflowService;
+	private final PublishService publishService;
 
-    @ConstructorProperties({"workflowService", "publishService"})
-    public WorkflowController(final WorkflowService workflowService, final PublishService publishService) {
-        this.workflowService = workflowService;
-        this.publishService = publishService;
-    }
+	@ConstructorProperties({"workflowService", "publishService"})
+	public WorkflowController(final WorkflowService workflowService, final PublishService publishService) {
+		this.workflowService = workflowService;
+		this.publishService = publishService;
+	}
 
-    @GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
-    public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-                                                          @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
-                                                          @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
-                                                          @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
-                                                          int offset,
-                                                          @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
-                                                          int limit) throws SiteNotFoundException, InvalidParametersException {
-        if (!isPathRegexValid(path)) {
-            throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
-        }
-        int total = workflowService.getItemStatesTotal(siteId, path, states);
-        List<SandboxItem> items = new ArrayList<>();
+	@GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
+	public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+							      @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
+							      @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
+							      @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
+							      int offset,
+							      @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
+							      int limit) throws SiteNotFoundException, InvalidParametersException {
+		if (!isPathRegexValid(path)) {
+			throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
+		}
+		int total = workflowService.getItemStatesTotal(siteId, path, states);
+		List<SandboxItem> items = new ArrayList<>();
 
-        if (total > offset) {
-            items = workflowService.getItemStates(siteId, path, states, offset, limit);
-        }
+		if (total > offset) {
+			items = workflowService.getItemStates(siteId, path, states, offset, limit);
+		}
 
-        PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();
-        result.setTotal(total);
-        result.setOffset(offset);
-        result.setLimit(isEmpty(items) ? 0 : items.size());
-        result.setResponse(OK);
-        result.setEntities(RESULT_KEY_ITEMS, items);
-        return result;
-    }
+		PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();
+		result.setTotal(total);
+		result.setOffset(offset);
+		result.setLimit(isEmpty(items) ? 0 : items.size());
+		result.setResponse(OK);
+		result.setEntities(RESULT_KEY_ITEMS, items);
+		return result;
+	}
 
-    private boolean isPathRegexValid(String pathRegex) {
-        boolean toRet = true;
-        try {
-            Pattern.compile(pathRegex);
-        } catch (Exception e) {
-            toRet = false;
-        }
-        return toRet;
-    }
+	private boolean isPathRegexValid(String pathRegex) {
+		boolean toRet = true;
+		try {
+			Pattern.compile(pathRegex);
+		} catch (Exception e) {
+			toRet = false;
+		}
+		return toRet;
+	}
 
-    @PostMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
-    public Result updateItemStates(@Valid @RequestBody ItemStatesPostRequestBody requestBody)
-            throws SiteNotFoundException {
-        ItemStatesUpdate update = requestBody.getUpdate();
-        workflowService.updateItemStates(requestBody.getSiteId(), requestBody.getItems(),
-                update.isClearSystemProcessing(), update.isClearUserLocked(), update.getLive(),
-                update.getStaged(), update.getNew(), update.getModified());
+	@PostMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
+	public Result updateItemStates(@Valid @RequestBody ItemStatesPostRequestBody requestBody)
+		throws SiteNotFoundException {
+		ItemStatesUpdate update = requestBody.getUpdate();
+		workflowService.updateItemStates(requestBody.getSiteId(), requestBody.getItems(),
+			update.isClearSystemProcessing(), update.isClearUserLocked(), update.getLive(),
+			update.getStaged(), update.getNew(), update.getModified());
 
-        Result result = new Result();
-        result.setResponse(OK);
-        return result;
-    }
+		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(value = UPDATE_ITEM_STATES_BY_QUERY, produces = APPLICATION_JSON_VALUE)
-    public Result updateItemStatesByQuery(@Valid @RequestBody UpdateItemStatesByQueryRequestBody requestBody)
-            throws SiteNotFoundException, InvalidParametersException {
-        UpdateItemStatesByQueryRequestBody.Query query = requestBody.getQuery();
-        ItemStatesUpdate update = requestBody.getUpdate();
-        String resolvedPathRegex = StringUtils.isNotEmpty(query.getPath()) ? query.getPath() : DEFAULT_QUERY_BY_PATH_REGEX;
-        if (!isPathRegexValid(resolvedPathRegex)) {
-            throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
-        }
-        workflowService.updateItemStatesByQuery(query.getSiteId(), resolvedPathRegex,
-                query.getStates(), update.isClearSystemProcessing(),
-                update.isClearUserLocked(), update.getLive(),
-                update.getStaged(), update.getNew(), update.getModified());
+	@PostMapping(value = UPDATE_ITEM_STATES_BY_QUERY, produces = APPLICATION_JSON_VALUE)
+	public Result updateItemStatesByQuery(@Valid @RequestBody UpdateItemStatesByQueryRequestBody requestBody)
+		throws SiteNotFoundException, InvalidParametersException {
+		UpdateItemStatesByQueryRequestBody.Query query = requestBody.getQuery();
+		ItemStatesUpdate update = requestBody.getUpdate();
+		String resolvedPathRegex = StringUtils.isNotEmpty(query.getPath()) ? query.getPath() : DEFAULT_QUERY_BY_PATH_REGEX;
+		if (!isPathRegexValid(resolvedPathRegex)) {
+			throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
+		}
+		workflowService.updateItemStatesByQuery(query.getSiteId(), resolvedPathRegex,
+			query.getStates(), update.isClearSystemProcessing(),
+			update.isClearUserLocked(), update.getLive(),
+			update.getStaged(), update.getNew(), update.getModified());
 
-        Result result = new Result();
-        result.setResponse(OK);
-        return result;
-    }
+		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
 
-    @GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
-    public ResultList<PublishPackage> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
-                                                                  @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-                                                                  @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
-        Collection<PublishPackage> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren));
-        ResultList<PublishPackage> result = new ResultList<>();
-        result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);
-        result.setResponse(OK);
-        return result;
-    }
+	@GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
+	public ResultList<PublishPackage> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
+								      @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+								      @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
+		Collection<PublishPackage> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren));
+		ResultList<PublishPackage> result = new ResultList<>();
+		result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + APPROVE, consumes = APPLICATION_JSON_VALUE)
-    public Result approve(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
-                          @Valid @RequestBody ApproveRequestBody request)
-            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-        workflowService.approvePackage(site, packageId,
-                request.getSchedule(), request.isUpdateSchedule(), request.getComment());
+	@PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + APPROVE, consumes = APPLICATION_JSON_VALUE)
+	public Result approve(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+			      @Valid @RequestBody ApproveRequestBody request)
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+		workflowService.approvePackage(site, packageId,
+			request.getSchedule(), request.isUpdateSchedule(), request.getComment());
 
-        Result result = new Result();
-        result.setResponse(OK);
-        return result;
-    }
+		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + REJECT, consumes = APPLICATION_JSON_VALUE)
-    public Result reject(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
-                         @Valid @RequestBody ReviewPackageRequestBody rejectRequestBody)
-            throws ServiceLayerException, AuthenticationException {
-        workflowService.rejectPackage(site, packageId,
-                rejectRequestBody.getComment());
-        Result result = new Result();
-        result.setResponse(OK);
-        return result;
-    }
+	@PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + REJECT, consumes = APPLICATION_JSON_VALUE)
+	public Result reject(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
+			     @Valid @RequestBody ReviewPackageRequestBody rejectRequestBody)
+		throws ServiceLayerException, AuthenticationException {
+		workflowService.rejectPackage(site, packageId,
+			rejectRequestBody.getComment());
+		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(PATH_PARAM_SITE + CANCEL)
-    public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
-                         @Valid @RequestBody CancelPackageRequestBody cancelPackageRequest)
-            throws ServiceLayerException, AuthenticationException {
-        workflowService.cancelPackages(site, cancelPackageRequest.getPackageIds(), cancelPackageRequest.getComment());
-        Result result = new Result();
-        result.setResponse(OK);
-        return result;
-    }
+	@PostMapping(PATH_PARAM_SITE + CANCEL)
+	public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
+			     @Valid @RequestBody CancelPackageRequestBody cancelPackageRequest)
+		throws ServiceLayerException, AuthenticationException {
+		workflowService.cancelPackages(site, cancelPackageRequest.getPackageIds(), cancelPackageRequest.getComment());
+		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
 }

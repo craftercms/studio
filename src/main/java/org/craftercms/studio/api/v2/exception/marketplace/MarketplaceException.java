@@ -26,12 +26,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public abstract class MarketplaceException extends ServiceLayerException {
 
-    public MarketplaceException(final String message) {
-        super(message);
-    }
+	public MarketplaceException(final String message) {
+		super(message);
+	}
 
-    public MarketplaceException(final String message, final Exception e) {
-        super(message, e);
-    }
+	public MarketplaceException(final String message, final Exception e) {
+		super(message, e);
+	}
 
 }

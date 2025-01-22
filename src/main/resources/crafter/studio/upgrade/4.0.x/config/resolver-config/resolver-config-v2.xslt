@@ -16,33 +16,33 @@
   -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0"
-                xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
+		xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="body content subject"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="body content subject"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <xsl:variable name="regex">/static-assets/([^&lt;"'\)\?\#]+)</xsl:variable>
+	<xsl:variable name="regex">/static-assets/([^&lt;"'\)\?\#]+)</xsl:variable>
 
-    <xsl:template
-            match="/dependency-resolver/item-types/item-type/dependency-types/dependency-type/includes/pattern/find-regex[contains(text(), $regex)]">
-        <xsl:element name="find-regex">
-            <xsl:text>/static-assets/([^&lt;"'\)\?\]\#]+)</xsl:text>
-        </xsl:element>
-    </xsl:template>
+	<xsl:template
+		match="/dependency-resolver/item-types/item-type/dependency-types/dependency-type/includes/pattern/find-regex[contains(text(), $regex)]">
+		<xsl:element name="find-regex">
+			<xsl:text>/static-assets/([^&lt;"'\)\?\]\#]+)</xsl:text>
+		</xsl:element>
+	</xsl:template>
 </xsl:stylesheet>

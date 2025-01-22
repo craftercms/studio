@@ -21,7 +21,7 @@ import org.craftercms.commons.security.exception.PermissionException
 def result = [:]
 def site = params.site_id
 def path = params.path
-def edit = (params.edit == "true")?true:false
+def edit = (params.edit == "true") ? true : false
 def encoding = params.encoding
 
 /** Validate Parameters */
@@ -30,29 +30,29 @@ def paramsList = []
 
 // site_id
 try {
-    if (StringUtils.isEmpty(site)) {
-        site = params.site
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
+	if (StringUtils.isEmpty(site)) {
+		site = params.site
+		if (StringUtils.isEmpty(site)) {
+			invalidParams = true
+			paramsList.add("site_id")
+		}
+	}
 } catch (Exception e) {
-    invalidParams = true
-    paramsList.add("site_id")
+	invalidParams = true
+	paramsList.add("site_id")
 }
 
 if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
+	response.setStatus(400)
+	result.message = "Invalid parameter(s): " + paramsList
 } else {
-    def context = ContentServices.createContext(applicationContext, request)
+	def context = ContentServices.createContext(applicationContext, request)
 
-    try {
-        result.content = ContentServices.getContent(site, path, edit, encoding, context)
-    } catch (PermissionException e) {
-        response.setStatus(403)
-        result.message = "Access denied"
-    }
+	try {
+		result.content = ContentServices.getContent(site, path, edit, encoding, context)
+	} catch (PermissionException e) {
+		response.setStatus(403)
+		result.message = "Access denied"
+	}
 }
 return result

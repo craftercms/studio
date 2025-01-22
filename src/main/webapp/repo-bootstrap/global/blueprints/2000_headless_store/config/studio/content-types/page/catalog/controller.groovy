@@ -16,7 +16,7 @@
 
 import scripts.libs.CommonLifecycleApi
 
-def contentLifecycleParams =[:]
+def contentLifecycleParams = [:]
 contentLifecycleParams.site = site
 contentLifecycleParams.path = path
 contentLifecycleParams.user = user

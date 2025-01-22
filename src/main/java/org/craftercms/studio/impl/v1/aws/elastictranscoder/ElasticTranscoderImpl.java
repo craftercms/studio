@@ -45,111 +45,111 @@ import software.amazon.awssdk.services.s3.S3Client;
  */
 public class ElasticTranscoderImpl implements ElasticTranscoder {
 
-    protected int partSize;
+	protected int partSize;
 
-    public ElasticTranscoderImpl() {
-        partSize = AwsUtils.MIN_PART_SIZE;
-    }
+	public ElasticTranscoderImpl() {
+		partSize = AwsUtils.MIN_PART_SIZE;
+	}
 
-    public void setPartSize(final int partSize) {
-        this.partSize = partSize;
-    }
+	public void setPartSize(final int partSize) {
+		this.partSize = partSize;
+	}
 
-    @Override
-    public TranscoderJob startJob(String filename, InputStream content, TranscoderProfile profile) throws AwsException {
-        try {
-            S3Client s3Client = getS3Client(profile);
-            ElasticTranscoderClient transcoderClient = getTranscoderClient(profile);
-            Pipeline pipeline = getPipeline(profile.getPipelineId(), transcoderClient);
-            String baseKey = FilenameUtils.removeExtension(filename) + "/" + UUID.randomUUID().toString();
-            String inputKey = baseKey + "." + FilenameUtils.getExtension(filename);
+	@Override
+	public TranscoderJob startJob(String filename, InputStream content, TranscoderProfile profile) throws AwsException {
+		try {
+			S3Client s3Client = getS3Client(profile);
+			ElasticTranscoderClient transcoderClient = getTranscoderClient(profile);
+			Pipeline pipeline = getPipeline(profile.getPipelineId(), transcoderClient);
+			String baseKey = FilenameUtils.removeExtension(filename) + "/" + UUID.randomUUID().toString();
+			String inputKey = baseKey + "." + FilenameUtils.getExtension(filename);
 
-            uploadInput(inputKey, filename, content, pipeline, s3Client);
+			uploadInput(inputKey, filename, content, pipeline, s3Client);
 
-            CreateJobResponse jobResult = createJob(inputKey, baseKey, profile, transcoderClient);
+			CreateJobResponse jobResult = createJob(inputKey, baseKey, profile, transcoderClient);
 
-            return createResult(baseKey, jobResult, pipeline);
-        } catch (Exception e) {
-            throw new AwsException("Error while attempting to start an AWS Elastic Transcoder job for file " + filename, e);
-        }
-    }
+			return createResult(baseKey, jobResult, pipeline);
+		} catch (Exception e) {
+			throw new AwsException("Error while attempting to start an AWS Elastic Transcoder job for file " + filename, e);
+		}
+	}
 
-    protected Pipeline getPipeline(String pipelineId, ElasticTranscoderClient client) {
-        ReadPipelineRequest readPipelineRequest = ReadPipelineRequest.builder()
-                .id(pipelineId)
-                .build();
+	protected Pipeline getPipeline(String pipelineId, ElasticTranscoderClient client) {
+		ReadPipelineRequest readPipelineRequest = ReadPipelineRequest.builder()
+			.id(pipelineId)
+			.build();
 
-        ReadPipelineResponse response = client.readPipeline(readPipelineRequest);
+		ReadPipelineResponse response = client.readPipeline(readPipelineRequest);
 
-        return response.pipeline();
-    }
+		return response.pipeline();
+	}
 
-    protected void uploadInput(String inputKey, String filename, InputStream content, Pipeline pipeline,
-                               S3Client s3Client) throws AwsException {
-        String inputBucket = pipeline.inputBucket();
+	protected void uploadInput(String inputKey, String filename, InputStream content, Pipeline pipeline,
+				   S3Client s3Client) throws AwsException {
+		String inputBucket = pipeline.inputBucket();
 
-        AwsUtils.uploadStream(inputBucket, inputKey, s3Client, partSize, filename, content);
-    }
+		AwsUtils.uploadStream(inputBucket, inputKey, s3Client, partSize, filename, content);
+	}
 
-    protected CreateJobResponse createJob(String inputKey, String baseKey, TranscoderProfile profile,
-                                        ElasticTranscoderClient transcoderClient) {
-        CreateJobRequest jobRequest = getCreateJobRequest(inputKey, baseKey, profile);
-        CreateJobResponse jobResponse = transcoderClient.createJob(jobRequest);
+	protected CreateJobResponse createJob(String inputKey, String baseKey, TranscoderProfile profile,
+					      ElasticTranscoderClient transcoderClient) {
+		CreateJobRequest jobRequest = getCreateJobRequest(inputKey, baseKey, profile);
+		CreateJobResponse jobResponse = transcoderClient.createJob(jobRequest);
 
-        return jobResponse;
-    }
+		return jobResponse;
+	}
 
-    protected TranscoderJob createResult(String baseKey, CreateJobResponse jobResponse, Pipeline pipeline) {
-        TranscoderJob job = new TranscoderJob();
-        job.setId(jobResponse.job().id());
-        job.setOutputBucket(pipeline.outputBucket());
-        job.setBaseKey(baseKey);
+	protected TranscoderJob createResult(String baseKey, CreateJobResponse jobResponse, Pipeline pipeline) {
+		TranscoderJob job = new TranscoderJob();
+		job.setId(jobResponse.job().id());
+		job.setOutputBucket(pipeline.outputBucket());
+		job.setBaseKey(baseKey);
 
-        return job;
-    }
+		return job;
+	}
 
-    protected S3Client getS3Client(TranscoderProfile profile) {
-        return S3Utils.createClient(profile);
-    }
+	protected S3Client getS3Client(TranscoderProfile profile) {
+		return S3Utils.createClient(profile);
+	}
 
-    protected ElasticTranscoderClient getTranscoderClient(TranscoderProfile profile) {
-        return ElasticTranscoderClient.builder()
-            .credentialsProvider(profile.getCredentialsProvider())
-            .region(Region.of(profile.getRegion()))
-            .build();
-    }
+	protected ElasticTranscoderClient getTranscoderClient(TranscoderProfile profile) {
+		return ElasticTranscoderClient.builder()
+			.credentialsProvider(profile.getCredentialsProvider())
+			.region(Region.of(profile.getRegion()))
+			.build();
+	}
 
-    protected CreateJobRequest getCreateJobRequest(String inputKey, String baseKey, TranscoderProfile profile) {
-        JobInput jobInput = JobInput.builder()
-                .key(inputKey)
-                .build();
+	protected CreateJobRequest getCreateJobRequest(String inputKey, String baseKey, TranscoderProfile profile) {
+		JobInput jobInput = JobInput.builder()
+			.key(inputKey)
+			.build();
 
-        List<CreateJobOutput> jobOutputs = new ArrayList<>(profile.getOutputs().size());
+		List<CreateJobOutput> jobOutputs = new ArrayList<>(profile.getOutputs().size());
 
-        for (TranscoderOutput output : profile.getOutputs()) {
-            jobOutputs.add(getCreateJobOutput(baseKey, output));
-        }
+		for (TranscoderOutput output : profile.getOutputs()) {
+			jobOutputs.add(getCreateJobOutput(baseKey, output));
+		}
 
-        CreateJobRequest jobRequest = CreateJobRequest.builder()
-                .pipelineId(profile.getPipelineId())
-                .input(jobInput)
-                .outputs(jobOutputs)
-                .build();
+		CreateJobRequest jobRequest = CreateJobRequest.builder()
+			.pipelineId(profile.getPipelineId())
+			.input(jobInput)
+			.outputs(jobOutputs)
+			.build();
 
-        return jobRequest;
-    }
+		return jobRequest;
+	}
 
-    protected CreateJobOutput getCreateJobOutput(String baseKey, TranscoderOutput output) {
-        CreateJobOutput.Builder builder = CreateJobOutput.builder()
-                .presetId(output.getPresetId())
-                .key(baseKey + output.getOutputKeySuffix());
+	protected CreateJobOutput getCreateJobOutput(String baseKey, TranscoderOutput output) {
+		CreateJobOutput.Builder builder = CreateJobOutput.builder()
+			.presetId(output.getPresetId())
+			.key(baseKey + output.getOutputKeySuffix());
 
-        if (StringUtils.isNotEmpty(output.getThumbnailSuffixFormat())) {
-            builder.thumbnailPattern(baseKey + output.getThumbnailSuffixFormat());
-        }
+		if (StringUtils.isNotEmpty(output.getThumbnailSuffixFormat())) {
+			builder.thumbnailPattern(baseKey + output.getThumbnailSuffixFormat());
+		}
 
-        return builder.build();
-    }
+		return builder.build();
+	}
 
 }
 

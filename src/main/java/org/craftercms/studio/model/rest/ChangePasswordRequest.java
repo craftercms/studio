@@ -25,37 +25,37 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 
 public class ChangePasswordRequest {
 
-    @NotBlank
-    @EsapiValidatedParam(type = USERNAME)
-    private String username;
-    @NotBlank
-    private String current;
-    @NotBlank
-    private String newPassword;
+	@NotBlank
+	@EsapiValidatedParam(type = USERNAME)
+	private String username;
+	@NotBlank
+	private String current;
+	@NotBlank
+	private String newPassword;
 
-    public String getUsername() {
-        return username;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-    public String getCurrent() {
-        return current;
-    }
+	public String getCurrent() {
+		return current;
+	}
 
-    public void setCurrent(String current) {
-        this.current = current;
-    }
+	public void setCurrent(String current) {
+		this.current = current;
+	}
 
-    @JsonProperty("new")
-    public String getNewPassword() {
-        return newPassword;
-    }
+	@JsonProperty("new")
+	public String getNewPassword() {
+		return newPassword;
+	}
 
-    @JsonProperty("new")
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
+	@JsonProperty("new")
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
+	}
 }

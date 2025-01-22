@@ -40,12 +40,12 @@
     Please note that valid types are limited to: dropdown, checkboxes, input.
 -->
 <targeting>
-    <property>
-        <name>name</name>
-        <label>Name</label>
-        <description>User's first and last name.</description>
-        <type>input</type> <!-- valid types: dropdown, checkboxes, input -->
-        <default_value>Joe Bloggs</default_value>
-        <hint>Enter user's first and last name.</hint>
-    </property>
+	<property>
+		<name>name</name>
+		<label>Name</label>
+		<description>User's first and last name.</description>
+		<type>input</type> <!-- valid types: dropdown, checkboxes, input -->
+		<default_value>Joe Bloggs</default_value>
+		<hint>Enter user's first and last name.</hint>
+	</property>
 </targeting>

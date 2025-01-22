@@ -31,25 +31,25 @@ import java.util.List;
  * Task to probe the publishing queue and trigger events for each site.
  */
 public class PublishingQueueProbeTask implements Job, ApplicationEventPublisherAware {
-    private final PublishDAO publishDAO;
-    private ApplicationEventPublisher eventPublisher;
+	private final PublishDAO publishDAO;
+	private ApplicationEventPublisher eventPublisher;
 
-    @ConstructorProperties({"publishDAO"})
-    public PublishingQueueProbeTask(final PublishDAO publishDAO) {
-        this.publishDAO = publishDAO;
-    }
+	@ConstructorProperties({"publishDAO"})
+	public PublishingQueueProbeTask(final PublishDAO publishDAO) {
+		this.publishDAO = publishDAO;
+	}
 
-    @Override
-    public void execute() {
-        publishDAO.getNextPublishPackages().forEach((siteId, packages) -> {
-            List<Long> packageIds = packages.stream()
-                    .map(PublishPackageId::packageId).toList();
-            eventPublisher.publishEvent(new RequestPublishEvent(siteId, packageIds));
-        });
-    }
+	@Override
+	public void execute() {
+		publishDAO.getNextPublishPackages().forEach((siteId, packages) -> {
+			List<Long> packageIds = packages.stream()
+				.map(PublishPackageId::packageId).toList();
+			eventPublisher.publishEvent(new RequestPublishEvent(siteId, packageIds));
+		});
+	}
 
-    @Override
-    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
-        this.eventPublisher = applicationEventPublisher;
-    }
+	@Override
+	public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+		this.eventPublisher = applicationEventPublisher;
+	}
 }

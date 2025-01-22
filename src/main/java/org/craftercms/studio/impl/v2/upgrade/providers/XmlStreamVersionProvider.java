@@ -32,35 +32,35 @@ import static java.lang.String.format;
  * in order to stop reading the XML once the version tag has been found.
  */
 public class XmlStreamVersionProvider extends XmlFileVersionProvider {
-    private final String versionElementName;
+	private final String versionElementName;
 
-    @ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository", "versionElementName"})
-    public XmlStreamVersionProvider(String path, String xpath, String defaultVersion,
-                                    GitContentRepository contentRepository, String versionElementName) {
-        super(path, xpath, defaultVersion, contentRepository);
-        this.versionElementName = versionElementName;
-    }
+	@ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository", "versionElementName"})
+	public XmlStreamVersionProvider(String path, String xpath, String defaultVersion,
+					GitContentRepository contentRepository, String versionElementName) {
+		super(path, xpath, defaultVersion, contentRepository);
+		this.versionElementName = versionElementName;
+	}
 
-    @Override
-    protected String getVersionFromFile(String site, String filePath) throws Exception {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
+	@Override
+	protected String getVersionFromFile(String site, String filePath) throws Exception {
+		XMLInputFactory factory = XMLInputFactory.newInstance();
 
-        XMLEventReader reader = null;
-        try (InputStream is = contentRepository.getContent(site, filePath)) {
-            reader = factory.createXMLEventReader(is);
-            while (reader.hasNext()) {
-                XMLEvent event = reader.nextEvent();
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(versionElementName)) {
-                    return reader.getElementText();
-                }
-            }
-        } catch (Exception e) {
-            throw new UpgradeException(format("Error reading version from file '%s' in site '%s'", filePath, site), e);
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-        }
-        return defaultVersion;
-    }
+		XMLEventReader reader = null;
+		try (InputStream is = contentRepository.getContent(site, filePath)) {
+			reader = factory.createXMLEventReader(is);
+			while (reader.hasNext()) {
+				XMLEvent event = reader.nextEvent();
+				if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(versionElementName)) {
+					return reader.getElementText();
+				}
+			}
+		} catch (Exception e) {
+			throw new UpgradeException(format("Error reading version from file '%s' in site '%s'", filePath, site), e);
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+		}
+		return defaultVersion;
+	}
 }

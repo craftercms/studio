@@ -22,138 +22,139 @@ import java.util.Map;
 
 /**
  * Holds the data of a single search result
+ *
  * @author joseross
  */
 public class SearchResultItem {
 
-    /**
-     * The path of the file
-     */
-    protected String path;
+	/**
+	 * The path of the file
+	 */
+	protected String path;
 
-    /**
-     * The name of the item
-     */
-    protected String name;
+	/**
+	 * The name of the item
+	 */
+	protected String name;
 
-    /**
-     * The type of the file
-     */
-    protected String type;
+	/**
+	 * The type of the file
+	 */
+	protected String type;
 
-    /**
-     * The mime type of the file
-     */
-    protected String mimeType;
+	/**
+	 * The mime type of the file
+	 */
+	protected String mimeType;
 
-    /**
-     * The preview URL of the file
-     */
-    protected String previewUrl;
+	/**
+	 * The preview URL of the file
+	 */
+	protected String previewUrl;
 
-    /**
-     * The last user that modified the file
-     */
-    protected String lastModifier;
+	/**
+	 * The last user that modified the file
+	 */
+	protected String lastModifier;
 
-    /**
-     * The last date that the file was modified
-     */
-    protected Instant lastModified;
+	/**
+	 * The last date that the file was modified
+	 */
+	protected Instant lastModified;
 
-    /**
-     * The size of the file, in bytes
-     */
-    protected long size;
+	/**
+	 * The size of the file, in bytes
+	 */
+	protected long size;
 
-    /**
-     * Snippets relevant to the search query
-     */
-    protected List<String> snippets;
+	/**
+	 * Snippets relevant to the search query
+	 */
+	protected List<String> snippets;
 
-    /**
-     * Additional fields requested
-     */
-    protected Map<String, Object> additionalFields;
+	/**
+	 * Additional fields requested
+	 */
+	protected Map<String, Object> additionalFields;
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(final String path) {
-        this.path = path;
-    }
+	public void setPath(final String path) {
+		this.path = path;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+	public void setName(final String name) {
+		this.name = name;
+	}
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setType(final String type) {
-        this.type = type;
-    }
+	public void setType(final String type) {
+		this.type = type;
+	}
 
-    public String getMimeType() {
-        return mimeType;
-    }
+	public String getMimeType() {
+		return mimeType;
+	}
 
-    public void setMimeType(final String mimeType) {
-        this.mimeType = mimeType;
-    }
+	public void setMimeType(final String mimeType) {
+		this.mimeType = mimeType;
+	}
 
-    public String getPreviewUrl() {
-        return previewUrl;
-    }
+	public String getPreviewUrl() {
+		return previewUrl;
+	}
 
-    public void setPreviewUrl(final String previewUrl) {
-        this.previewUrl = previewUrl;
-    }
+	public void setPreviewUrl(final String previewUrl) {
+		this.previewUrl = previewUrl;
+	}
 
-    public String getLastModifier() {
-        return lastModifier;
-    }
+	public String getLastModifier() {
+		return lastModifier;
+	}
 
-    public void setLastModifier(final String lastModifier) {
-        this.lastModifier = lastModifier;
-    }
+	public void setLastModifier(final String lastModifier) {
+		this.lastModifier = lastModifier;
+	}
 
-    public Instant getLastModified() {
-        return lastModified;
-    }
+	public Instant getLastModified() {
+		return lastModified;
+	}
 
-    public void setLastModified(final Instant lastModified) {
-        this.lastModified = lastModified;
-    }
+	public void setLastModified(final Instant lastModified) {
+		this.lastModified = lastModified;
+	}
 
-    public long getSize() {
-        return size;
-    }
+	public long getSize() {
+		return size;
+	}
 
-    public void setSize(final long size) {
-        this.size = size;
-    }
+	public void setSize(final long size) {
+		this.size = size;
+	}
 
-    public List<String> getSnippets() {
-        return snippets;
-    }
+	public List<String> getSnippets() {
+		return snippets;
+	}
 
-    public void setSnippets(final List<String> snippets) {
-        this.snippets = snippets;
-    }
+	public void setSnippets(final List<String> snippets) {
+		this.snippets = snippets;
+	}
 
-    public Map<String, Object> getAdditionalFields() {
-        return additionalFields;
-    }
+	public Map<String, Object> getAdditionalFields() {
+		return additionalFields;
+	}
 
-    public void setAdditionalFields(Map<String, Object> additionalFields) {
-        this.additionalFields = additionalFields;
-    }
+	public void setAdditionalFields(Map<String, Object> additionalFields) {
+		this.additionalFields = additionalFields;
+	}
 
 }

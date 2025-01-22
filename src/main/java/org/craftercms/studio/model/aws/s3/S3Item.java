@@ -18,80 +18,81 @@ package org.craftercms.studio.model.aws.s3;
 
 /**
  * Holds the data for an S3 item.
+ *
  * @author joseross
  */
 public class S3Item {
 
-    /**
-     * Name of the item.
-     */
-    protected String name;
+	/**
+	 * Name of the item.
+	 */
+	protected String name;
 
-    /**
-     * URL of the item.
-     */
-    protected String url;
+	/**
+	 * URL of the item.
+	 */
+	protected String url;
 
-    /**
-     * Indicates if the item is a folder.
-     */
-    protected boolean folder;
+	/**
+	 * Indicates if the item is a folder.
+	 */
+	protected boolean folder;
 
-    /**
-     * The bucket name holding the S3 item (if any).
-     */
-    protected String bucketName;
+	/**
+	 * The bucket name holding the S3 item (if any).
+	 */
+	protected String bucketName;
 
-    /**
-     * The prefix of the S3 bucket (if any).
-     */
-    protected String prefix;
+	/**
+	 * The prefix of the S3 bucket (if any).
+	 */
+	protected String prefix;
 
-    public S3Item(final String name, final String url, final boolean folder, final String bucketName, final String prefix) {
-        this.name = name;
-        this.url = url;
-        this.folder = folder;
-        this.bucketName = bucketName;
-        this.prefix = prefix;
-    }
+	public S3Item(final String name, final String url, final boolean folder, final String bucketName, final String prefix) {
+		this.name = name;
+		this.url = url;
+		this.folder = folder;
+		this.bucketName = bucketName;
+		this.prefix = prefix;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+	public void setName(final String name) {
+		this.name = name;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setUrl(final String url) {
-        this.url = url;
-    }
+	public void setUrl(final String url) {
+		this.url = url;
+	}
 
-    public boolean isFolder() {
-        return folder;
-    }
+	public boolean isFolder() {
+		return folder;
+	}
 
-    public void setFolder(final boolean folder) {
-        this.folder = folder;
-    }
+	public void setFolder(final boolean folder) {
+		this.folder = folder;
+	}
 
-    public String getBucketName() {
-        return bucketName;
-    }
+	public String getBucketName() {
+		return bucketName;
+	}
 
-    public void setBucketName(final String bucketName) {
-        this.bucketName = bucketName;
-    }
+	public void setBucketName(final String bucketName) {
+		this.bucketName = bucketName;
+	}
 
-    public String getPrefix() {
-            return prefix;
-    }
+	public String getPrefix() {
+		return prefix;
+	}
 
-    public void setPrefix(final String prefix) {
-            this.prefix = prefix;
-    }
+	public void setPrefix(final String prefix) {
+		this.prefix = prefix;
+	}
 }

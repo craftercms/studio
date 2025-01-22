@@ -41,60 +41,60 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
  * @author avasquez
  */
 public class CompositePermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
-    public static final String PATH_LIST_RESOURCE_ID = "pathList";
+	public static final String PATH_LIST_RESOURCE_ID = "pathList";
 
-    private final SecurityService securityService;
-    private final StudioConfiguration studioConfiguration;
+	private final SecurityService securityService;
+	private final StudioConfiguration studioConfiguration;
 
-    public CompositePermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
-        this.securityService = securityService;
-        this.studioConfiguration = studioConfiguration;
-    }
+	public CompositePermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
+		this.securityService = securityService;
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    @Override
-    public Permission getGlobalPermission(String username) throws PermissionException {
-       return getPermission(username, Collections.emptyMap());
-    }
+	@Override
+	public Permission getGlobalPermission(String username) throws PermissionException {
+		return getPermission(username, Collections.emptyMap());
+	}
 
-    @Override
-    public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
-        String siteName = "";
-        List<String> paths = new ArrayList<>();
+	@Override
+	public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
+		String siteName = "";
+		List<String> paths = new ArrayList<>();
 
 
-        if (MapUtils.isNotEmpty(resourceIds)) {
-            if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
-                siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
-                if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-                    siteName = StringUtils.EMPTY;
-                }
-            }
-            if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
-                paths.add((String) resourceIds.get(PATH_RESOURCE_ID));
-            }
+		if (MapUtils.isNotEmpty(resourceIds)) {
+			if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
+				siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
+				if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+					siteName = StringUtils.EMPTY;
+				}
+			}
+			if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
+				paths.add((String) resourceIds.get(PATH_RESOURCE_ID));
+			}
 
-            if (resourceIds.containsKey(PATH_LIST_RESOURCE_ID)) {
-                paths = (List<String>) resourceIds.get(PATH_LIST_RESOURCE_ID);
-            }
-        }
+			if (resourceIds.containsKey(PATH_LIST_RESOURCE_ID)) {
+				paths = (List<String>) resourceIds.get(PATH_LIST_RESOURCE_ID);
+			}
+		}
 
-        if (CollectionUtils.isEmpty(paths)) {
-            paths.add(DEFAULT_PATH_RESOURCE_VALUE);
-        }
+		if (CollectionUtils.isEmpty(paths)) {
+			paths.add(DEFAULT_PATH_RESOURCE_VALUE);
+		}
 
-        String finalSiteName = siteName;
-        CompositePermission permission = paths.stream().map(x -> {
-           DefaultPermission dp = new DefaultPermission();
-            Set<String> allowedActions = securityService.getUserPermissions(finalSiteName, x, username);
-            dp.setAllowedActions(allowedActions);
-            return dp;
-        }).collect(CompositePermission::new, CompositePermission::addPermission, CompositePermission::addPermission);
+		String finalSiteName = siteName;
+		CompositePermission permission = paths.stream().map(x -> {
+			DefaultPermission dp = new DefaultPermission();
+			Set<String> allowedActions = securityService.getUserPermissions(finalSiteName, x, username);
+			dp.setAllowedActions(allowedActions);
+			return dp;
+		}).collect(CompositePermission::new, CompositePermission::addPermission, CompositePermission::addPermission);
 
-        return permission;
-    }
+		return permission;
+	}
 
 }

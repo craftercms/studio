@@ -18,26 +18,26 @@ package scripts.api.impl.deployment
 
 class SpringDeploymentServices {
 
-    static DEPLOYMENT_SERVICES_BEAN = "cstudioDeploymentService"
+	static DEPLOYMENT_SERVICES_BEAN = "cstudioDeploymentService"
 
-    def context = null
+	def context = null
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringDeploymentServices(context) {
-        this.context = context
-    }
+	/**
+	 * constructor
+	 *
+	 * @param context - service context
+	 */
+	def SpringDeploymentServices(context) {
+		this.context = context
+	}
 
-    def syncAllContentToPreview(site) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.syncAllContentToPreview(site, false)
-    }
+	def syncAllContentToPreview(site) {
+		def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
+		return springBackedService.syncAllContentToPreview(site, false)
+	}
 
-    def enablePublishing(siteId, enabled) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.enablePublishing(siteId, enabled)
-    }
+	def enablePublishing(siteId, enabled) {
+		def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
+		return springBackedService.enablePublishing(siteId, enabled)
+	}
 }

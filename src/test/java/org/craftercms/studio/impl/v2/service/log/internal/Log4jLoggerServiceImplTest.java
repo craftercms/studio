@@ -34,77 +34,77 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class Log4jLoggerServiceImplTest {
 
-    private static final String LOGGER_1 = "LOGGER_1";
-    private static final String LOGGER_2 = "LOGGER_2";
-    private static final String LOGGER_3 = "LOGGER_3";
-    private static final String LOGGER_4 = "LOGGER_4";
-    private static final String[] LOGGER_NAMES = {LOGGER_1, LOGGER_2, LOGGER_3, LOGGER_4};
+	private static final String LOGGER_1 = "LOGGER_1";
+	private static final String LOGGER_2 = "LOGGER_2";
+	private static final String LOGGER_3 = "LOGGER_3";
+	private static final String LOGGER_4 = "LOGGER_4";
+	private static final String[] LOGGER_NAMES = {LOGGER_1, LOGGER_2, LOGGER_3, LOGGER_4};
 
-    @Autowired
-    private Log4jLoggerServiceImpl log4jLoggerService;
+	@Autowired
+	private Log4jLoggerServiceImpl log4jLoggerService;
 
-    @Before
-    public void setup() {
-        for (String loggerName : LOGGER_NAMES) {
-            LoggerFactory.getLogger(loggerName);
-        }
-        log4jLoggerService = new Log4jLoggerServiceImpl();
-    }
+	@Before
+	public void setup() {
+		for (String loggerName : LOGGER_NAMES) {
+			LoggerFactory.getLogger(loggerName);
+		}
+		log4jLoggerService = new Log4jLoggerServiceImpl();
+	}
 
-    @Test
-    public void getLoggersTest() {
-        List<LoggerConfig> loggerConfigs = log4jLoggerService.getLoggerConfigs();
-        assertNotNull(loggerConfigs);
+	@Test
+	public void getLoggersTest() {
+		List<LoggerConfig> loggerConfigs = log4jLoggerService.getLoggerConfigs();
+		assertNotNull(loggerConfigs);
 
-        assertTrue(loggerConfigs.stream()
-                .map(LoggerConfig::getName)
-                .collect(Collectors.toList())
-                .containsAll(List.of(LOGGER_NAMES)), "Not all logger names were found in the list returned by the service");
-    }
+		assertTrue(loggerConfigs.stream()
+			.map(LoggerConfig::getName)
+			.collect(Collectors.toList())
+			.containsAll(List.of(LOGGER_NAMES)), "Not all logger names were found in the list returned by the service");
+	}
 
-    @Test
-    public void setLoggerLevelTest() throws ServiceLayerException {
-        String warn = Level.WARN.toString().toLowerCase();
-        log4jLoggerService.setLoggerLevel(LOGGER_1, warn, true);
-        LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(LOGGER_1);
-        assertEquals(warn, loggerConfig.getLevel(), "Configured logger level does not match after setLoggerLevel");
-    }
+	@Test
+	public void setLoggerLevelTest() throws ServiceLayerException {
+		String warn = Level.WARN.toString().toLowerCase();
+		log4jLoggerService.setLoggerLevel(LOGGER_1, warn, true);
+		LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(LOGGER_1);
+		assertEquals(warn, loggerConfig.getLevel(), "Configured logger level does not match after setLoggerLevel");
+	}
 
-    @Test(expected = LoggerNotFoundException.class)
-    public void setAbsentLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
-        String level = Level.WARN.toString().toLowerCase();
-        String loggerName = DateTime.now().toString();
-        log4jLoggerService.setLoggerLevel(loggerName, level, false);
-    }
+	@Test(expected = LoggerNotFoundException.class)
+	public void setAbsentLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
+		String level = Level.WARN.toString().toLowerCase();
+		String loggerName = DateTime.now().toString();
+		log4jLoggerService.setLoggerLevel(loggerName, level, false);
+	}
 
-    @Test
-    public void setAbsentLoggerLevelWithCreateIfAbsentTrueTest() throws ServiceLayerException {
-        String level = Level.WARN.toString().toLowerCase();
-        String loggerName = DateTime.now().toString();
-        log4jLoggerService.setLoggerLevel(loggerName, level, true);
-        LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(loggerName);
-        assertEquals(level, loggerConfig.getLevel(), "Configured logger level does not match after setLoggerLevel");
-    }
+	@Test
+	public void setAbsentLoggerLevelWithCreateIfAbsentTrueTest() throws ServiceLayerException {
+		String level = Level.WARN.toString().toLowerCase();
+		String loggerName = DateTime.now().toString();
+		log4jLoggerService.setLoggerLevel(loggerName, level, true);
+		LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(loggerName);
+		assertEquals(level, loggerConfig.getLevel(), "Configured logger level does not match after setLoggerLevel");
+	}
 
-    @Test
-    public void getAbsentLoggerLevelWithCreateIfAbsentTrueTest() throws ServiceLayerException {
-        String loggerName = DateTime.now().toString();
-        LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(loggerName, true);
-        assertNotNull(loggerConfig);
-        assertEquals(loggerName, loggerConfig.getName(), "Configured logger name does not match after getLoggerLevel");
-    }
+	@Test
+	public void getAbsentLoggerLevelWithCreateIfAbsentTrueTest() throws ServiceLayerException {
+		String loggerName = DateTime.now().toString();
+		LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(loggerName, true);
+		assertNotNull(loggerConfig);
+		assertEquals(loggerName, loggerConfig.getName(), "Configured logger name does not match after getLoggerLevel");
+	}
 
-    @Test(expected = LoggerNotFoundException.class)
-    public void getAbsentLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
-        String loggerName = UUID.randomUUID().toString();
-        log4jLoggerService.getLoggerConfig(loggerName, false);
-    }
+	@Test(expected = LoggerNotFoundException.class)
+	public void getAbsentLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
+		String loggerName = UUID.randomUUID().toString();
+		log4jLoggerService.getLoggerConfig(loggerName, false);
+	}
 
-    @Test
-    public void getExistingLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
-        LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(LOGGER_1, false);
-        assertNotNull(loggerConfig);
-        assertEquals(LOGGER_1, loggerConfig.getName(), "Configured logger name does not match after getLoggerLevel");
-    }
+	@Test
+	public void getExistingLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
+		LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(LOGGER_1, false);
+		assertNotNull(loggerConfig);
+		assertEquals(LOGGER_1, loggerConfig.getName(), "Configured logger name does not match after getLoggerLevel");
+	}
 
 }

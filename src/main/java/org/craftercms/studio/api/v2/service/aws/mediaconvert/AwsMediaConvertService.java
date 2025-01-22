@@ -31,19 +31,20 @@ import org.craftercms.studio.model.aws.mediaconvert.MediaConvertResult;
  */
 public interface AwsMediaConvertService {
 
-    /**
-     * Uploads a file to S3 and creates a transcoding job using the specified profile.
-     * @param site name of the site
-     * @param inputProfileId id of the profile for uploads
-     * @param outputProfileId id of the s3 profile for downloads
-     * @param filename name of the file
-     * @param content content of the file
-     * @throws AwsException if the upload or transcoding job creation fails
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     * @throws SiteNotFoundException if the site is not found
-     * @return the result of the transcoding job
-     */
-    MediaConvertResult uploadVideo(final String site, final String inputProfileId, final String outputProfileId,
-                                   final String filename, final InputStream content) throws AwsException, ConfigurationProfileNotFoundException, SiteNotFoundException;
+	/**
+	 * Uploads a file to S3 and creates a transcoding job using the specified profile.
+	 *
+	 * @param site            name of the site
+	 * @param inputProfileId  id of the profile for uploads
+	 * @param outputProfileId id of the s3 profile for downloads
+	 * @param filename        name of the file
+	 * @param content         content of the file
+	 * @return the result of the transcoding job
+	 * @throws AwsException                          if the upload or transcoding job creation fails
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 * @throws SiteNotFoundException                 if the site is not found
+	 */
+	MediaConvertResult uploadVideo(final String site, final String inputProfileId, final String outputProfileId,
+				       final String filename, final InputStream content) throws AwsException, ConfigurationProfileNotFoundException, SiteNotFoundException;
 
 }

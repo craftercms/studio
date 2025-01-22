@@ -28,34 +28,34 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MarketplacePlugin extends Plugin {
 
-    protected String source;
+	protected String source;
 
-    protected String url;
+	protected String url;
 
-    protected String ref;
+	protected String ref;
 
-    public String getSource() {
-        return source;
-    }
+	public String getSource() {
+		return source;
+	}
 
-    public void setSource(final String source) {
-        this.source = source;
-    }
+	public void setSource(final String source) {
+		this.source = source;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setUrl(final String url) {
-        this.url = url;
-    }
+	public void setUrl(final String url) {
+		this.url = url;
+	}
 
-    public String getRef() {
-        return ref;
-    }
+	public String getRef() {
+		return ref;
+	}
 
-    public void setRef(final String ref) {
-        this.ref = ref;
-    }
+	public void setRef(final String ref) {
+		this.ref = ref;
+	}
 
 }

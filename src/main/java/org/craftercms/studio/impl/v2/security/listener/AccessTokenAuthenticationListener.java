@@ -28,6 +28,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.beans.ConstructorProperties;
 
 /**
@@ -38,40 +39,40 @@ import java.beans.ConstructorProperties;
  */
 public class AccessTokenAuthenticationListener {
 
-    protected AccessTokenService accessTokenService;
+	protected AccessTokenService accessTokenService;
 
-    @ConstructorProperties({"accessTokenService"})
-    public AccessTokenAuthenticationListener(AccessTokenService accessTokenService) {
-        this.accessTokenService = accessTokenService;
-    }
+	@ConstructorProperties({"accessTokenService"})
+	public AccessTokenAuthenticationListener(AccessTokenService accessTokenService) {
+		this.accessTokenService = accessTokenService;
+	}
 
-    @EventListener
-    public void refreshAuthCookies(AuthenticationSuccessEvent event) throws ServiceLayerException {
-        Authentication authentication = event.getAuthentication();
-        // Don't change any tokens for pre-authenticated events
-        if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-            return;
-        }
-        HttpServletRequest request = RequestContext.getCurrent().getRequest();
-        HttpServletResponse response = RequestContext.getCurrent().getResponse();
-        accessTokenService.updateRefreshToken(authentication, response);
-        accessTokenService.refreshPreviewCookie(authentication, request, response);
-    }
+	@EventListener
+	public void refreshAuthCookies(AuthenticationSuccessEvent event) throws ServiceLayerException {
+		Authentication authentication = event.getAuthentication();
+		// Don't change any tokens for pre-authenticated events
+		if (authentication instanceof PreAuthenticatedAuthenticationToken) {
+			return;
+		}
+		HttpServletRequest request = RequestContext.getCurrent().getRequest();
+		HttpServletResponse response = RequestContext.getCurrent().getResponse();
+		accessTokenService.updateRefreshToken(authentication, response);
+		accessTokenService.refreshPreviewCookie(authentication, request, response);
+	}
 
-    @EventListener
-    public void deleteTokens(LogoutSuccessEvent event) {
-        // Don't change any tokens for pre-authenticated events
-        if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
-            return;
-        }
-        long userId = ((User) event.getAuthentication().getPrincipal()).getId();
-        accessTokenService.deleteRefreshToken(userId);
-        accessTokenService.deletePreviewCookie(RequestContext.getCurrent().getResponse());
-    }
+	@EventListener
+	public void deleteTokens(LogoutSuccessEvent event) {
+		// Don't change any tokens for pre-authenticated events
+		if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
+			return;
+		}
+		long userId = ((User) event.getAuthentication().getPrincipal()).getId();
+		accessTokenService.deleteRefreshToken(userId);
+		accessTokenService.deletePreviewCookie(RequestContext.getCurrent().getResponse());
+	}
 
-    @EventListener
-    public void onUserUpdated(UserUpdatedEvent event) {
-        accessTokenService.deleteRefreshToken(event.getUserId());
-    }
+	@EventListener
+	public void onUserUpdated(UserUpdatedEvent event) {
+		accessTokenService.deleteRefreshToken(event.getUserId());
+	}
 
 }

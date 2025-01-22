@@ -38,13 +38,13 @@
     preemptiveAuth: Indicates if the client should use preemptiveAuth, defaults to false
 -->
 <webdav>
-    <webdav>
-        <profile>
-            <id>webdav-default</id>
-            <baseUrl>...</baseUrl>
-            <username>...</username>
-            <password>...</password>
-            <preemptiveAuth>...</preemptiveAuth>
-        </profile>
-    </webdav>
+	<webdav>
+		<profile>
+			<id>webdav-default</id>
+			<baseUrl>...</baseUrl>
+			<username>...</username>
+			<password>...</password>
+			<preemptiveAuth>...</preemptiveAuth>
+		</profile>
+	</webdav>
 </webdav>

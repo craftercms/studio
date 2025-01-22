@@ -26,6 +26,6 @@ package org.craftercms.studio.api.v2.event;
  */
 public interface BroadcastEvent {
 
-    String getEventType();
+	String getEventType();
 
 }

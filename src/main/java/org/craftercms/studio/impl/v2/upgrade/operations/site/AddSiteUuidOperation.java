@@ -42,42 +42,42 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
 
 public class AddSiteUuidOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(AddSiteUuidOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(AddSiteUuidOperation.class);
 
-    private final SiteFeedMapper siteFeedMapper;
+	private final SiteFeedMapper siteFeedMapper;
 
-    @ConstructorProperties({"studioConfiguration", "siteFeedMapper"})
-    public AddSiteUuidOperation(StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
-        super(studioConfiguration);
-        this.siteFeedMapper = siteFeedMapper;
-    }
+	@ConstructorProperties({"studioConfiguration", "siteFeedMapper"})
+	public AddSiteUuidOperation(StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
+		super(studioConfiguration);
+		this.siteFeedMapper = siteFeedMapper;
+	}
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        logger.debug("Get the site data from the database for site '{}'", site);
-        Map<String, String> params = new HashMap<>();
-        params.put(SITE_ID, site);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        if (siteFeed != null) {
-            try {
-                logger.debug("Add a UUID file to site '{}'", site);
-                addSiteUuidFile(site, siteFeed.getSiteUuid());
-            } catch (IOException e) {
-                throw new UpgradeException(format("Failed to add a UUID file to site '%s'", site), e);
-            }
-        }
-    }
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		logger.debug("Get the site data from the database for site '{}'", site);
+		Map<String, String> params = new HashMap<>();
+		params.put(SITE_ID, site);
+		SiteFeed siteFeed = siteFeedMapper.getSite(params);
+		if (siteFeed != null) {
+			try {
+				logger.debug("Add a UUID file to site '{}'", site);
+				addSiteUuidFile(site, siteFeed.getSiteUuid());
+			} catch (IOException e) {
+				throw new UpgradeException(format("Failed to add a UUID file to site '%s'", site), e);
+			}
+		}
+	}
 
-    private void addSiteUuidFile(String site, String siteUuid) throws IOException {
-        if (StringUtils.isNotEmpty(siteUuid)) {
-            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH), site,
-                    StudioConstants.SITE_UUID_FILENAME);
-            String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
-            logger.debug("Write UUID '{}' to the file '{}' in site '{}'", siteUuid, path, site);
-            Files.write(path, toWrite.getBytes());
-        }
-    }
+	private void addSiteUuidFile(String site, String siteUuid) throws IOException {
+		if (StringUtils.isNotEmpty(siteUuid)) {
+			Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+				studioConfiguration.getProperty(SITES_REPOS_PATH), site,
+				StudioConstants.SITE_UUID_FILENAME);
+			String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+			logger.debug("Write UUID '{}' to the file '{}' in site '{}'", siteUuid, path, site);
+			Files.write(path, toWrite.getBytes());
+		}
+	}
 
 }

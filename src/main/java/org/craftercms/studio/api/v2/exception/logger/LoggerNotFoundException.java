@@ -27,14 +27,14 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class LoggerNotFoundException extends ServiceLayerException {
 
-    public LoggerNotFoundException() {
-    }
+	public LoggerNotFoundException() {
+	}
 
-    public LoggerNotFoundException(String name) {
-        super(name);
-    }
+	public LoggerNotFoundException(String name) {
+		super(name);
+	}
 
-    public LoggerNotFoundException(String message, Exception e) {
-        super(message, e);
-    }
+	public LoggerNotFoundException(String message, Exception e) {
+		super(message, e);
+	}
 }

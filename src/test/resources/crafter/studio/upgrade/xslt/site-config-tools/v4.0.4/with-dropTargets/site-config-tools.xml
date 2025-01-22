@@ -15,22 +15,22 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <config>
-    <tools>
-        <tool>
-            <datasources>
-                <datasource>
-                    <name>dropTargets</name>
-                    <icon>
-                        <class>fa-object-group</class>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>site-component</name>
-                    <icon>
-                        <class>fa-puzzle-piece</class>
-                    </icon>
-                </datasource>
-            </datasources>
-        </tool>
-    </tools>
+	<tools>
+		<tool>
+			<datasources>
+				<datasource>
+					<name>dropTargets</name>
+					<icon>
+						<class>fa-object-group</class>
+					</icon>
+				</datasource>
+				<datasource>
+					<name>site-component</name>
+					<icon>
+						<class>fa-puzzle-piece</class>
+					</icon>
+				</datasource>
+			</datasources>
+		</tool>
+	</tools>
 </config>

@@ -37,45 +37,45 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
  */
 public class ContextManagerImpl implements ContextManager {
 
-    public static final String SITE_NAME_CONFIG_VARIABLE = "siteName";
-    public static final String SITE_ID_CONFIG_VARIABLE = "siteId";
+	public static final String SITE_NAME_CONFIG_VARIABLE = "siteName";
+	public static final String SITE_ID_CONFIG_VARIABLE = "siteId";
 
-    public static final String TAG = ContextManagerImpl.class.getName();
+	public static final String TAG = ContextManagerImpl.class.getName();
 
-    protected StudioConfiguration studioConfiguration;
-    protected ContentStoreService contentStoreService;
+	protected StudioConfiguration studioConfiguration;
+	protected ContentStoreService contentStoreService;
 
-    protected Map<String, Context> contexts = new ConcurrentHashMap<>();
+	protected Map<String, Context> contexts = new ConcurrentHashMap<>();
 
-    @ConstructorProperties({"studioConfiguration", "contentStoreService"})
-    public ContextManagerImpl(StudioConfiguration studioConfiguration, ContentStoreService contentStoreService) {
-        this.studioConfiguration = studioConfiguration;
-        this.contentStoreService = contentStoreService;
-    }
+	@ConstructorProperties({"studioConfiguration", "contentStoreService"})
+	public ContextManagerImpl(StudioConfiguration studioConfiguration, ContentStoreService contentStoreService) {
+		this.studioConfiguration = studioConfiguration;
+		this.contentStoreService = contentStoreService;
+	}
 
-    @Override
-    public Context getContext(String siteId) {
-        if (!contexts.containsKey(siteId)) {
-            var rootFolder =  "file://" + Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId,
-                    studioConfiguration.getProperty(SANDBOX_PATH))
-                    .toAbsolutePath().toString();
+	@Override
+	public Context getContext(String siteId) {
+		if (!contexts.containsKey(siteId)) {
+			var rootFolder = "file://" + Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+					studioConfiguration.getProperty(SITES_REPOS_PATH), siteId,
+					studioConfiguration.getProperty(SANDBOX_PATH))
+				.toAbsolutePath().toString();
 
-            Map<String, String> configVariables =
-                    Map.of(SITE_ID_CONFIG_VARIABLE, siteId,
-                            SITE_NAME_CONFIG_VARIABLE, siteId);
-            contexts.put(siteId, contentStoreService.getContext(TAG, STORE_TYPE, rootFolder, true,
-                    false, 0, true, configVariables));
-        }
-        return contexts.get(siteId);
-    }
+			Map<String, String> configVariables =
+				Map.of(SITE_ID_CONFIG_VARIABLE, siteId,
+					SITE_NAME_CONFIG_VARIABLE, siteId);
+			contexts.put(siteId, contentStoreService.getContext(TAG, STORE_TYPE, rootFolder, true,
+				false, 0, true, configVariables));
+		}
+		return contexts.get(siteId);
+	}
 
-    @Override
-    public void destroyContext(String siteId) {
-        var context = contexts.remove(siteId);
-        if (context != null) {
-            contentStoreService.destroyContext(context);
-        }
-    }
+	@Override
+	public void destroyContext(String siteId) {
+		var context = contexts.remove(siteId);
+		if (context != null) {
+			contentStoreService.destroyContext(context);
+		}
+	}
 
 }

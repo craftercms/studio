@@ -49,122 +49,122 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 public class RepositoryManagementServiceInternalImplTest {
 
-    private static final String SITE_ID = "testSite";
-    private static final String COMMIT_MESSAGE = "Test commit message";
-    private static final String GIT_LOCK_KEY = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, SITE_ID);
+	private static final String SITE_ID = "testSite";
+	private static final String COMMIT_MESSAGE = "Test commit message";
+	private static final String GIT_LOCK_KEY = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, SITE_ID);
 
-    @Mock
-    private GitRepositoryHelper gitRepositoryHelper;
+	@Mock
+	private GitRepositoryHelper gitRepositoryHelper;
 
-    @Mock
-    private GeneralLockService generalLockService;
+	@Mock
+	private GeneralLockService generalLockService;
 
-    @Mock
-    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+	@Mock
+	private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    @Mock
-    private SecurityService securityService;
+	@Mock
+	private SecurityService securityService;
 
-    @Mock
-    private UserServiceInternal userServiceInternal;
+	@Mock
+	private UserServiceInternal userServiceInternal;
 
-    @Mock
-    private StudioConfiguration studioConfiguration;
+	@Mock
+	private StudioConfiguration studioConfiguration;
 
-    @Mock
-    private Repository repository;
+	@Mock
+	private Repository repository;
 
-    @Mock
-    private StatusCommand statusCommand;
+	@Mock
+	private StatusCommand statusCommand;
 
-    @Mock
-    private RmCommand rmCommand;
+	@Mock
+	private RmCommand rmCommand;
 
-    @Mock
-    private AddCommand addCommand;
+	@Mock
+	private AddCommand addCommand;
 
-    @Mock
-    private CommitCommand commitCommand;
+	@Mock
+	private CommitCommand commitCommand;
 
-    @Mock
-    private Status status;
+	@Mock
+	private Status status;
 
-    @Mock
-    private User user;
+	@Mock
+	private User user;
 
-    @Mock
-    private PersonIdent personIdent;
+	@Mock
+	private PersonIdent personIdent;
 
-    @InjectMocks
-    private RepositoryManagementServiceInternalImpl repositoryManagementServiceInternal;
+	@InjectMocks
+	private RepositoryManagementServiceInternalImpl repositoryManagementServiceInternal;
 
-    private MockedConstruction<Git> git;
+	private MockedConstruction<Git> git;
 
-    private AutoCloseable mocks;
+	private AutoCloseable mocks;
 
-    @Before
-    public void setUp() throws Exception {
-        mocks = openMocks(this);
-        when(gitRepositoryHelper.getRepository(SITE_ID, GitRepositories.SANDBOX)).thenReturn(repository);
-        when(retryingRepositoryOperationFacade.call(statusCommand)).thenReturn(status);
-        when(commitCommand.setCommitter(personIdent)).thenReturn(commitCommand);
-        when(commitCommand.setAuthor(personIdent)).thenReturn(commitCommand);
+	@Before
+	public void setUp() throws Exception {
+		mocks = openMocks(this);
+		when(gitRepositoryHelper.getRepository(SITE_ID, GitRepositories.SANDBOX)).thenReturn(repository);
+		when(retryingRepositoryOperationFacade.call(statusCommand)).thenReturn(status);
+		when(commitCommand.setCommitter(personIdent)).thenReturn(commitCommand);
+		when(commitCommand.setAuthor(personIdent)).thenReturn(commitCommand);
 
-        git = mockConstruction(Git.class, (mock, context) -> {
-            when(mock.status()).thenReturn(statusCommand);
-            when(mock.rm()).thenReturn(rmCommand);
-            when(mock.add()).thenReturn(addCommand);
-            when(mock.commit()).thenReturn(commitCommand);
-        });
-    }
+		git = mockConstruction(Git.class, (mock, context) -> {
+			when(mock.status()).thenReturn(statusCommand);
+			when(mock.rm()).thenReturn(rmCommand);
+			when(mock.add()).thenReturn(addCommand);
+			when(mock.commit()).thenReturn(commitCommand);
+		});
+	}
 
-    @After
-    public void tearDown() throws Exception {
-        mocks.close();
-        git.close();
-    }
+	@After
+	public void tearDown() throws Exception {
+		mocks.close();
+		git.close();
+	}
 
-    @Test
-    public void testCommitResolutionNoUncommittedChanges() throws Exception {
-        when(status.hasUncommittedChanges()).thenReturn(false);
+	@Test
+	public void testCommitResolutionNoUncommittedChanges() throws Exception {
+		when(status.hasUncommittedChanges()).thenReturn(false);
 
-        boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
+		boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
 
-        assertTrue(result);
-        verify(generalLockService).lock(GIT_LOCK_KEY);
-        verify(generalLockService).unlock(GIT_LOCK_KEY);
-    }
+		assertTrue(result);
+		verify(generalLockService).lock(GIT_LOCK_KEY);
+		verify(generalLockService).unlock(GIT_LOCK_KEY);
+	}
 
-    @Test
-    public void testCommitResolutionWithUncommittedChanges() throws Exception {
-        when(status.hasUncommittedChanges()).thenReturn(true);
-        when(status.getMissing()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1, file_missing_2")));
-        when(status.getUncommittedChanges()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1", "file_missing_2", "file1", "file2")));
-        when(securityService.getCurrentUser()).thenReturn("testUser");
-        when(userServiceInternal.getUserByIdOrUsername(-1, "testUser")).thenReturn(user);
-        when(gitRepositoryHelper.getAuthorIdent(user)).thenReturn(personIdent);
-        when(studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE)).thenReturn("");
-        when(studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT)).thenReturn("");
+	@Test
+	public void testCommitResolutionWithUncommittedChanges() throws Exception {
+		when(status.hasUncommittedChanges()).thenReturn(true);
+		when(status.getMissing()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1, file_missing_2")));
+		when(status.getUncommittedChanges()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1", "file_missing_2", "file1", "file2")));
+		when(securityService.getCurrentUser()).thenReturn("testUser");
+		when(userServiceInternal.getUserByIdOrUsername(-1, "testUser")).thenReturn(user);
+		when(gitRepositoryHelper.getAuthorIdent(user)).thenReturn(personIdent);
+		when(studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE)).thenReturn("");
+		when(studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT)).thenReturn("");
 
-        boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
+		boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
 
-        assertTrue(result);
-        verify(generalLockService).lock(GIT_LOCK_KEY);
-        verify(generalLockService).unlock(GIT_LOCK_KEY);
-        verify(retryingRepositoryOperationFacade).call(rmCommand);
-        verify(retryingRepositoryOperationFacade).call(addCommand);
-        verify(retryingRepositoryOperationFacade).call(commitCommand);
-    }
+		assertTrue(result);
+		verify(generalLockService).lock(GIT_LOCK_KEY);
+		verify(generalLockService).unlock(GIT_LOCK_KEY);
+		verify(retryingRepositoryOperationFacade).call(rmCommand);
+		verify(retryingRepositoryOperationFacade).call(addCommand);
+		verify(retryingRepositoryOperationFacade).call(commitCommand);
+	}
 
-    @Test
-    public void testCommitResolutionExceptionThrown() throws UserNotFoundException, ServiceLayerException {
-        when(status.hasUncommittedChanges()).thenReturn(true);
-        when(securityService.getCurrentUser()).thenReturn("not_exist_user");
-        when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
+	@Test
+	public void testCommitResolutionExceptionThrown() throws UserNotFoundException, ServiceLayerException {
+		when(status.hasUncommittedChanges()).thenReturn(true);
+		when(securityService.getCurrentUser()).thenReturn("not_exist_user");
+		when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
 
-        assertThrows(ServiceLayerException.class, () -> repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE));
+		assertThrows(ServiceLayerException.class, () -> repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE));
 
-        verify(generalLockService).lock(GIT_LOCK_KEY);
-        verify(generalLockService).unlock(GIT_LOCK_KEY);
-    }
+		verify(generalLockService).lock(GIT_LOCK_KEY);
+		verify(generalLockService).unlock(GIT_LOCK_KEY);
+	}
 }

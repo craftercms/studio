@@ -30,66 +30,66 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public abstract class BaseRepositoryTestCase extends RepositoryTestCase {
-    protected static final String ORIGINAL_FILE_NAME = "test.txt";
-    protected static final String RENAMED_1_FILE_NAME = "test2.txt";
-    protected static final String RENAMED_2_FILE_NAME = "test3.txt";
-    protected static final String NON_EXISTENT_FILE_NAME = "non-existent.txt";
-    protected static final String HEAD = "HEAD";
-    protected static final String MASTER = "master";
+	protected static final String ORIGINAL_FILE_NAME = "test.txt";
+	protected static final String RENAMED_1_FILE_NAME = "test2.txt";
+	protected static final String RENAMED_2_FILE_NAME = "test3.txt";
+	protected static final String NON_EXISTENT_FILE_NAME = "non-existent.txt";
+	protected static final String HEAD = "HEAD";
+	protected static final String MASTER = "master";
 
-    @Mock
-    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+	@Mock
+	protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    @InjectMocks
-    protected GitRepositoryHelper helper = Mockito.spy(GitRepositoryHelper.class);
+	@InjectMocks
+	protected GitRepositoryHelper helper = Mockito.spy(GitRepositoryHelper.class);
 
-    private AutoCloseable mocks;
+	private AutoCloseable mocks;
 
-    protected RevCommit firstCommit;
+	protected RevCommit firstCommit;
 
-    @Before
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        mocks = initMocks();
-        when(retryingRepositoryOperationFacade.call(any(GitCommand.class))).thenAnswer(invocation -> {
-            GitCommand<?> gitCommand = invocation.getArgument(0);
-            return gitCommand.call();
-        });
-        firstCommit = commitNewVersion(ORIGINAL_FILE_NAME, "v1");
-        commitNewVersion(ORIGINAL_FILE_NAME, "v2");
-        commitNewVersion(ORIGINAL_FILE_NAME, "v3");
-        rename(ORIGINAL_FILE_NAME, RENAMED_1_FILE_NAME, "v3");
-        commitNewVersion(RENAMED_1_FILE_NAME, "v4");
-        commitNewVersion(RENAMED_1_FILE_NAME, "v5");
-        rename(RENAMED_1_FILE_NAME, RENAMED_2_FILE_NAME, "v5");
-        commitNewVersion(RENAMED_2_FILE_NAME, "v6");
-    }
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+		mocks = initMocks();
+		when(retryingRepositoryOperationFacade.call(any(GitCommand.class))).thenAnswer(invocation -> {
+			GitCommand<?> gitCommand = invocation.getArgument(0);
+			return gitCommand.call();
+		});
+		firstCommit = commitNewVersion(ORIGINAL_FILE_NAME, "v1");
+		commitNewVersion(ORIGINAL_FILE_NAME, "v2");
+		commitNewVersion(ORIGINAL_FILE_NAME, "v3");
+		rename(ORIGINAL_FILE_NAME, RENAMED_1_FILE_NAME, "v3");
+		commitNewVersion(RENAMED_1_FILE_NAME, "v4");
+		commitNewVersion(RENAMED_1_FILE_NAME, "v5");
+		rename(RENAMED_1_FILE_NAME, RENAMED_2_FILE_NAME, "v5");
+		commitNewVersion(RENAMED_2_FILE_NAME, "v6");
+	}
 
-    @After
-    @Override
-    public void tearDown() throws Exception {
-        super.tearDown();
-        mocks.close();
-    }
+	@After
+	@Override
+	public void tearDown() throws Exception {
+		super.tearDown();
+		mocks.close();
+	}
 
-    private void rename(String oldName, String newName, String version) throws Exception {
-        writeTrashFile(newName, "This is a test file " + version);
-        deleteTrashFile(oldName);
-        try (Git git = new Git(db)) {
-            git.add().addFilepattern(newName).call();
-            git.rm().addFilepattern(oldName).call();
-            git.commit()
-                    .setMessage("Renamed " + oldName + " to " + newName)
-                    .call();
-        }
-    }
+	private void rename(String oldName, String newName, String version) throws Exception {
+		writeTrashFile(newName, "This is a test file " + version);
+		deleteTrashFile(oldName);
+		try (Git git = new Git(db)) {
+			git.add().addFilepattern(newName).call();
+			git.rm().addFilepattern(oldName).call();
+			git.commit()
+				.setMessage("Renamed " + oldName + " to " + newName)
+				.call();
+		}
+	}
 
-    private RevCommit commitNewVersion(String path, String version) {
-        tick();
-        RevCommit commit = commitFile(path, "This is a test file " + version, MASTER);
-        return commit;
-    }
+	private RevCommit commitNewVersion(String path, String version) {
+		tick();
+		RevCommit commit = commitFile(path, "This is a test file " + version, MASTER);
+		return commit;
+	}
 
-    protected abstract AutoCloseable initMocks();
+	protected abstract AutoCloseable initMocks();
 }

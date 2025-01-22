@@ -20,14 +20,14 @@ package org.craftercms.studio.model.rest.publish;
  * Request to enable/disable the publisher task for a site
  */
 public class EnablePublisherRequest {
-    private boolean enable;
+	private boolean enable;
 
-    public boolean isEnable() {
-        return enable;
-    }
+	public boolean isEnable() {
+		return enable;
+	}
 
-    public void setEnable(boolean enable) {
-        this.enable = enable;
-    }
+	public void setEnable(boolean enable) {
+		this.enable = enable;
+	}
 
 }

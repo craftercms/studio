@@ -23,73 +23,68 @@ import java.io.Serializable;
  *
  * @author hyanghee
  * @author Dejan Brkic
- *
  */
 public class DmFolderConfigTO implements Serializable {
 
-    private static final long serialVersionUID = 8918826498122949858L;
-    protected boolean _attachRootPrefix;
-    protected boolean _readDirectChildren;
-    protected String _path;
-    protected String _name;
+	private static final long serialVersionUID = 8918826498122949858L;
+	protected boolean _attachRootPrefix;
+	protected boolean _readDirectChildren;
+	protected String _path;
+	protected String _name;
 
-    /**
-     * @return the attachRootPrefix
-     */
-    public boolean isAttachRootPrefix() {
-        return _attachRootPrefix;
-    }
+	/**
+	 * @return the attachRootPrefix
+	 */
+	public boolean isAttachRootPrefix() {
+		return _attachRootPrefix;
+	}
 
-    /**
-     * @param attachRootPrefix
-     *            the attachRootPrefix to set
-     */
-    public void setAttachRootPrefix(boolean attachRootPrefix) {
-        this._attachRootPrefix = attachRootPrefix;
-    }
+	/**
+	 * @param attachRootPrefix the attachRootPrefix to set
+	 */
+	public void setAttachRootPrefix(boolean attachRootPrefix) {
+		this._attachRootPrefix = attachRootPrefix;
+	}
 
-    /**
-     * @return the readDirectChildren
-     */
-    public boolean isReadDirectChildren() {
-        return _readDirectChildren;
-    }
+	/**
+	 * @return the readDirectChildren
+	 */
+	public boolean isReadDirectChildren() {
+		return _readDirectChildren;
+	}
 
-    /**
-     * @param readDirectChildren
-     *            the readDirectChildren to set
-     */
-    public void setReadDirectChildren(boolean readDirectChildren) {
-        this._readDirectChildren = readDirectChildren;
-    }
+	/**
+	 * @param readDirectChildren the readDirectChildren to set
+	 */
+	public void setReadDirectChildren(boolean readDirectChildren) {
+		this._readDirectChildren = readDirectChildren;
+	}
 
-    /**
-     * @return the path
-     */
-    public String getPath() {
-        return _path;
-    }
+	/**
+	 * @return the path
+	 */
+	public String getPath() {
+		return _path;
+	}
 
-    /**
-     * @param path
-     *            the path to set
-     */
-    public void setPath(String path) {
-        this._path = path;
-    }
+	/**
+	 * @param path the path to set
+	 */
+	public void setPath(String path) {
+		this._path = path;
+	}
 
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return _name;
-    }
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return _name;
+	}
 
-    /**
-     * @param name
-     *            the name to set
-     */
-    public void setName(String name) {
-        this._name = name;
-    }
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this._name = name;
+	}
 }

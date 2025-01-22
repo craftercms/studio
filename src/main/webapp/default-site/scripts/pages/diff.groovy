@@ -34,19 +34,18 @@ String revised = "UNSET"
 model.version = version
 model.versionTO = versionTO
 
-if(![Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } && !versionTO) {
+if (![Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } && !versionTO) {
 	original = ContentServices.getContent(site, path, false, null, context)
 	revised = ContentServices.getContentVersionAtPath(site, path, version, context)
-}
-else {
+} else {
 	original = ContentServices.getContentVersionAtPath(site, path, version, context)
 	revised = ContentServices.getContentVersionAtPath(site, oldPath, versionTO, context)
 }
 
-if(!escaped){
+if (!escaped) {
 	model.variantA = HTMLCompareTools.xmlAsStringToHtml(revised)
 	model.variantB = HTMLCompareTools.xmlAsStringToHtml(original)
-}else{
+} else {
 	model.revisedEscaped = HTMLCompareTools.xmlEscapedFormatted(revised)
 	model.variantA = '<?xml version="1.0" encoding="UTF-8"?><html><body>' + model.revisedEscaped + '</body></html>'
 	model.originalEscaped = HTMLCompareTools.xmlEscapedFormatted(original)

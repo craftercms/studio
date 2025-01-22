@@ -15,20 +15,20 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <ui>
-    <widget id="craftercms.components.ICEToolsPanel">
-        <configuration>
-            <widgets>
-                <widget id="craftercms.components.ToolsPanelPageButton">
-                    <configuration>
-                        <target id="icePanel"/>
-                        <title id="previewSearchPanel.title" defaultMessage="Search"/>
-                        <icon id="@mui/icons-material/SearchRounded"/>
-                        <widgets>
-                            <widget id="craftercms.components.PreviewSearchPanel"/>
-                        </widgets>
-                    </configuration>
-                </widget>
-            </widgets>
-        </configuration>
-    </widget>
+	<widget id="craftercms.components.ICEToolsPanel">
+		<configuration>
+			<widgets>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="previewSearchPanel.title" defaultMessage="Search"/>
+						<icon id="@mui/icons-material/SearchRounded"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewSearchPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
+			</widgets>
+		</configuration>
+	</widget>
 </ui>

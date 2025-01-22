@@ -28,8 +28,8 @@ import java.util.Map;
  */
 public interface AssetProcessingService {
 
-    Map<String, Object> processAsset(String site, String path, String assetName, InputStream in, String isImage,
-                                     String allowedWidth, String allowedHeight, String allowLessSize, String draft,
-                                     String unlock, String systemAsset) throws ValidationException;
+	Map<String, Object> processAsset(String site, String path, String assetName, InputStream in, String isImage,
+					 String allowedWidth, String allowedHeight, String allowLessSize, String draft,
+					 String unlock, String systemAsset) throws ValidationException;
 
 }

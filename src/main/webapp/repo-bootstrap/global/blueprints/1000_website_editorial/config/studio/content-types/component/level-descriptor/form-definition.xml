@@ -22,7 +22,8 @@
 	<imageThumbnail>section-defaults.png</imageThumbnail>
 	<quickCreate>false</quickCreate>
 	<quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value></value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Section Defaults Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -173,51 +175,52 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>shared-content</type>
-					<id>components-header</id>
-					<title>Components Header</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/site/components/headers/</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>browsePath</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>type</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-				<datasource>
-					<type>shared-content</type>
-					<id>components-left-rail</id>
-					<title>Components Left Rail</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/site/components/left-rails/</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>browsePath</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>type</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
+	<datasources>
+		<datasource>
+			<type>shared-content</type>
+			<id>components-header</id>
+			<title>Components Header</title>
+			<interface>item</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/site/components/headers/</value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>browsePath</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>type</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+			</properties>
+		</datasource>
+		<datasource>
+			<type>shared-content</type>
+			<id>components-left-rail</id>
+			<title>Components Left Rail</title>
+			<interface>item</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/site/components/left-rails/</value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>browsePath</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>type</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+			</properties>
+		</datasource>
 	</datasources>
 </form>

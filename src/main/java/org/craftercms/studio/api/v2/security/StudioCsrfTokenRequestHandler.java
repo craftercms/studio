@@ -29,27 +29,27 @@ import java.util.function.Supplier;
  * It uses an instance of XorCsrfTokenRequestAttributeHandler as a delegate to handle requests and resolve token values.
  */
 public class StudioCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
-    /**
-     * Raw Csrf token length
-     */
-    private static final int CSRF_RAW_STRING_LENGTH = 36;
+	/**
+	 * Raw Csrf token length
+	 */
+	private static final int CSRF_RAW_STRING_LENGTH = 36;
 
-    /**
-     * delegate to use as the request handler
-     */
-    private final XorCsrfTokenRequestAttributeHandler delegate = new XorCsrfTokenRequestAttributeHandler();
+	/**
+	 * delegate to use as the request handler
+	 */
+	private final XorCsrfTokenRequestAttributeHandler delegate = new XorCsrfTokenRequestAttributeHandler();
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
-        delegate.handle(request, response, csrfToken);
-    }
+	@Override
+	public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
+		delegate.handle(request, response, csrfToken);
+	}
 
-    @Override
-    public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
-        String tokenValue = CsrfTokenRequestHandler.super.resolveCsrfTokenValue(request, csrfToken);
-        if (tokenValue.length() == CSRF_RAW_STRING_LENGTH) {
-            return tokenValue;
-        }
-        return delegate.resolveCsrfTokenValue(request, csrfToken);
-    }
+	@Override
+	public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+		String tokenValue = CsrfTokenRequestHandler.super.resolveCsrfTokenValue(request, csrfToken);
+		if (tokenValue.length() == CSRF_RAW_STRING_LENGTH) {
+			return tokenValue;
+		}
+		return delegate.resolveCsrfTokenValue(request, csrfToken);
+	}
 }

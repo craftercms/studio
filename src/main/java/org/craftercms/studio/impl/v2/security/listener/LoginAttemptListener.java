@@ -34,27 +34,27 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
  */
 public class LoginAttemptListener {
 
-    Logger logger = LoggerFactory.getLogger(LoginAttemptListener.class);
-    private final LoginAttemptManager loginAttemptManager;
+	Logger logger = LoggerFactory.getLogger(LoginAttemptListener.class);
+	private final LoginAttemptManager loginAttemptManager;
 
-    public LoginAttemptListener(final LoginAttemptManager loginAttemptManager) {
-        this.loginAttemptManager = loginAttemptManager;
-    }
+	public LoginAttemptListener(final LoginAttemptManager loginAttemptManager) {
+		this.loginAttemptManager = loginAttemptManager;
+	}
 
-    @EventListener
-    public void handleSuccessfulAttempt(AuthenticationSuccessEvent event) {
-        logger.debug("Login success for user {}", event.getAuthentication().getPrincipal());
-        if (!(event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {
-            AuthenticatedUser user = (AuthenticatedUser) event.getAuthentication().getPrincipal();
-            loginAttemptManager.loginSucceeded(user.getUsername());
-        }
-    }
+	@EventListener
+	public void handleSuccessfulAttempt(AuthenticationSuccessEvent event) {
+		logger.debug("Login success for user {}", event.getAuthentication().getPrincipal());
+		if (!(event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {
+			AuthenticatedUser user = (AuthenticatedUser) event.getAuthentication().getPrincipal();
+			loginAttemptManager.loginSucceeded(user.getUsername());
+		}
+	}
 
-    @EventListener
-    public void handleFailedAttempt(AuthenticationFailureBadCredentialsEvent event) {
-        logger.debug("Login failed for user {}", event.getAuthentication().getPrincipal().toString());
-        String username = event.getAuthentication().getPrincipal().toString();
-        loginAttemptManager.loginFailed(username);
-    }
+	@EventListener
+	public void handleFailedAttempt(AuthenticationFailureBadCredentialsEvent event) {
+		logger.debug("Login failed for user {}", event.getAuthentication().getPrincipal().toString());
+		String username = event.getAuthentication().getPrincipal().toString();
+		loginAttemptManager.loginFailed(username);
+	}
 
 }

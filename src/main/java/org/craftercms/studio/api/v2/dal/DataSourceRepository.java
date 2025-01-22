@@ -18,40 +18,80 @@ package org.craftercms.studio.api.v2.dal;
 
 import java.io.Serializable;
 
-public class DataSourceRepository implements Serializable{
+public class DataSourceRepository implements Serializable {
 
-    private static final long serialVersionUID = -5566456509245127201L;
+	private static final long serialVersionUID = -5566456509245127201L;
 
-    protected String id;
-    protected String type;
-    protected String url;
-    protected String username;
-    protected String password;
-    protected String basePath;
-    protected String downloadUrlRegex;
-    protected boolean useSsl;
+	protected String id;
+	protected String type;
+	protected String url;
+	protected String username;
+	protected String password;
+	protected String basePath;
+	protected String downloadUrlRegex;
+	protected boolean useSsl;
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+	public String getId() {
+		return id;
+	}
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+	public String getType() {
+		return type;
+	}
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+	public String getUrl() {
+		return url;
+	}
 
-    public String getBasePath() { return basePath; }
-    public void setBasePath(String basePath) { this.basePath = basePath; }
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
-    public String getDownloadUrlRegex() { return downloadUrlRegex; }
-    public void setDownloadUrlRegex(String downloadUrlRegex) { this.downloadUrlRegex = downloadUrlRegex; }
+	public String getUsername() {
+		return username;
+	}
 
-    public boolean isUseSsl() { return useSsl; }
-    public void setUseSsl(boolean useSsl) { this.useSsl = useSsl; }
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getBasePath() {
+		return basePath;
+	}
+
+	public void setBasePath(String basePath) {
+		this.basePath = basePath;
+	}
+
+	public String getDownloadUrlRegex() {
+		return downloadUrlRegex;
+	}
+
+	public void setDownloadUrlRegex(String downloadUrlRegex) {
+		this.downloadUrlRegex = downloadUrlRegex;
+	}
+
+	public boolean isUseSsl() {
+		return useSsl;
+	}
+
+	public void setUseSsl(boolean useSsl) {
+		this.useSsl = useSsl;
+	}
 }

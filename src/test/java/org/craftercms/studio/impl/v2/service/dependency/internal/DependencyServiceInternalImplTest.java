@@ -37,43 +37,43 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DependencyServiceInternalImplTest {
-    private static final String SITE_ID = "sample-site";
-    private static final String PATH = "/sample/path";
-    private static final String DEPENDENT_ITEM_1 = "/sample/dependent-item-1";
-    private static final String DEPENDENT_ITEM_2 = "/sample/dependent-item-2";
-    @Mock
-    protected ItemServiceInternal itemServiceInternal;
-    @Mock
-    protected DependencyDAO dependencyDAO;
+	private static final String SITE_ID = "sample-site";
+	private static final String PATH = "/sample/path";
+	private static final String DEPENDENT_ITEM_1 = "/sample/dependent-item-1";
+	private static final String DEPENDENT_ITEM_2 = "/sample/dependent-item-2";
+	@Mock
+	protected ItemServiceInternal itemServiceInternal;
+	@Mock
+	protected DependencyDAO dependencyDAO;
 
-    @Spy
-    @InjectMocks
-    protected DependencyServiceInternalImpl serviceInternal;
+	@Spy
+	@InjectMocks
+	protected DependencyServiceInternalImpl serviceInternal;
 
-    @Before
-    public void setUp() {
-        when(dependencyDAO.getDependentItems(SITE_ID, Collections.singletonList(PATH))).thenReturn(
-                Arrays.asList(DEPENDENT_ITEM_1, DEPENDENT_ITEM_2)
-        );
+	@Before
+	public void setUp() {
+		when(dependencyDAO.getDependentItems(SITE_ID, Collections.singletonList(PATH))).thenReturn(
+			Arrays.asList(DEPENDENT_ITEM_1, DEPENDENT_ITEM_2)
+		);
 
-        when(itemServiceInternal.getItem(SITE_ID, DEPENDENT_ITEM_1)).thenReturn(
-                new Item.Builder().withPath(DEPENDENT_ITEM_1).withAvailableActions(0).build()
-        );
+		when(itemServiceInternal.getItem(SITE_ID, DEPENDENT_ITEM_1)).thenReturn(
+			new Item.Builder().withPath(DEPENDENT_ITEM_1).withAvailableActions(0).build()
+		);
 
-        when(itemServiceInternal.getItem(SITE_ID, DEPENDENT_ITEM_2)).thenReturn(
-                new Item.Builder().withPath(DEPENDENT_ITEM_2).withAvailableActions(0).build()
-        );
-    }
+		when(itemServiceInternal.getItem(SITE_ID, DEPENDENT_ITEM_2)).thenReturn(
+			new Item.Builder().withPath(DEPENDENT_ITEM_2).withAvailableActions(0).build()
+		);
+	}
 
-    @Test
-    public void getDependentItemsTest() {
-        List<DependencyItem> items = serviceInternal.getDependentItems(SITE_ID, PATH);
+	@Test
+	public void getDependentItemsTest() {
+		List<DependencyItem> items = serviceInternal.getDependentItems(SITE_ID, PATH);
 
-        verify(dependencyDAO, times(1)).getDependentItems(SITE_ID, Collections.singletonList(PATH));
-        verify(itemServiceInternal, times(1)).getItem(SITE_ID, DEPENDENT_ITEM_1);
-        verify(itemServiceInternal, times(1)).getItem(SITE_ID, DEPENDENT_ITEM_2);
-        assertEquals(2, items.size());
-        assertEquals(DEPENDENT_ITEM_1, items.get(0).getPath());
-        assertEquals(DEPENDENT_ITEM_2, items.get(1).getPath());
-    }
+		verify(dependencyDAO, times(1)).getDependentItems(SITE_ID, Collections.singletonList(PATH));
+		verify(itemServiceInternal, times(1)).getItem(SITE_ID, DEPENDENT_ITEM_1);
+		verify(itemServiceInternal, times(1)).getItem(SITE_ID, DEPENDENT_ITEM_2);
+		assertEquals(2, items.size());
+		assertEquals(DEPENDENT_ITEM_1, items.get(0).getPath());
+		assertEquals(DEPENDENT_ITEM_2, items.get(1).getPath());
+	}
 }

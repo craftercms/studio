@@ -36,67 +36,66 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TaskManagerImpl implements TaskManager, ApplicationContextAware {
 
-    // By site and then by task id
-    private final Map<String, Map<TaskId.SiteTaskId, TaskProgress<? extends TaskId.SiteTaskId, ?>>> tasks;
-    private final Map<TaskId, TaskProgress<? extends TaskId, ?>> globalTasks;
-    private ApplicationContext applicationContext;
+	// By site and then by task id
+	private final Map<String, Map<TaskId.SiteTaskId, TaskProgress<? extends TaskId.SiteTaskId, ?>>> tasks;
+	private final Map<TaskId, TaskProgress<? extends TaskId, ?>> globalTasks;
+	private ApplicationContext applicationContext;
 
-    public TaskManagerImpl() {
-        tasks = new ConcurrentHashMap<>();
-        globalTasks = new ConcurrentHashMap<>();
-    }
+	public TaskManagerImpl() {
+		tasks = new ConcurrentHashMap<>();
+		globalTasks = new ConcurrentHashMap<>();
+	}
 
-    /**
-     * Get the map of tasks for a site
-     */
-    private Map<TaskId.SiteTaskId, TaskProgress<? extends TaskId.SiteTaskId, ?>> bySite(final String site) {
-        return tasks.computeIfAbsent(site, k -> new ConcurrentHashMap<>());
-    }
+	/**
+	 * Get the map of tasks for a site
+	 */
+	private Map<TaskId.SiteTaskId, TaskProgress<? extends TaskId.SiteTaskId, ?>> bySite(final String site) {
+		return tasks.computeIfAbsent(site, k -> new ConcurrentHashMap<>());
+	}
 
-    @Override
-    public <K extends TaskId, R> TaskProgress<K, R> registerTask(final Task<K> task) {
-        TaskProgressImpl<K, R> progress = applicationContext.getBean(TaskProgressImpl.class, task, this);
-        switch (task.getTaskId()) {
-            case TaskId.SiteTaskId siteTaskId ->
-                    bySite(siteTaskId.getSiteId()).put(siteTaskId, (TaskProgress<? extends TaskId.SiteTaskId, ?>) progress);
-            case TaskId.GlobalTaskId globalTaskId -> globalTasks.put(globalTaskId, progress);
-        }
-        return progress;
-    }
+	@Override
+	public <K extends TaskId, R> TaskProgress<K, R> registerTask(final Task<K> task) {
+		TaskProgressImpl<K, R> progress = applicationContext.getBean(TaskProgressImpl.class, task, this);
+		switch (task.getTaskId()) {
+			case TaskId.SiteTaskId siteTaskId -> bySite(siteTaskId.getSiteId()).put(siteTaskId, (TaskProgress<? extends TaskId.SiteTaskId, ?>) progress);
+			case TaskId.GlobalTaskId globalTaskId -> globalTasks.put(globalTaskId, progress);
+		}
+		return progress;
+	}
 
-    @Override
-    public <K extends TaskId, R> TaskProgress<K, R> getTask(final K taskId) {
-        return switch (taskId) {
-            case TaskId.SiteTaskId siteTaskId -> (TaskProgress<K, R>) bySite(siteTaskId.getSiteId()).get(taskId);
-            case TaskId.GlobalTaskId __ -> (TaskProgress<K, R>) globalTasks.get(taskId);
-        };
-    }
+	@Override
+	public <K extends TaskId, R> TaskProgress<K, R> getTask(final K taskId) {
+		return switch (taskId) {
+			case TaskId.SiteTaskId siteTaskId -> (TaskProgress<K, R>) bySite(siteTaskId.getSiteId()).get(taskId);
+			case TaskId.GlobalTaskId __ -> (TaskProgress<K, R>) globalTasks.get(taskId);
+		};
+	}
 
-    @Override
-    @NonNull
-    public <K extends TaskId.SiteTaskId, R> List<TaskProgress<K, R>> getSiteTasksByType(final String siteId, final String type) {
-        return bySite(siteId).values()
-                .stream()
-                .filter(task -> task.getTask().getType().equals(type))
-                .map(task -> (TaskProgress<K, R>) task)
-                .toList();
-    }
+	@Override
+	@NonNull
+	public <K extends TaskId.SiteTaskId, R> List<TaskProgress<K, R>> getSiteTasksByType(final String siteId, final String type) {
+		return bySite(siteId).values()
+			.stream()
+			.filter(task -> task.getTask().getType().equals(type))
+			.map(task -> (TaskProgress<K, R>) task)
+			.toList();
+	}
 
-    @Override
-    public Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> getSiteTasks(final String siteId) {
-        return bySite(siteId).values();
-    }
+	@Override
+	public Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> getSiteTasks(final String siteId) {
+		return bySite(siteId).values();
+	}
 
-    @Override
-    public <K extends TaskId> void removeTask(final K taskId) {
-        switch (taskId) {
-            case TaskId.SiteTaskId siteTaskId -> bySite(siteTaskId.getSiteId()).remove(taskId);
-            case TaskId.GlobalTaskId __ -> globalTasks.remove(taskId);
-        }
-    }
+	@Override
+	public <K extends TaskId> void removeTask(final K taskId) {
+		switch (taskId) {
+			case TaskId.SiteTaskId siteTaskId -> bySite(siteTaskId.getSiteId()).remove(taskId);
+			case TaskId.GlobalTaskId __ -> globalTasks.remove(taskId);
+		}
+	}
 
-    @Override
-    public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 }

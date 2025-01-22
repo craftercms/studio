@@ -39,180 +39,182 @@ import java.util.Optional;
 
 public interface ContentServiceInternal extends ContentService {
 
-    /**
-     * Check the existent of a content path
-     * @param siteId site identifier
-     * @param path content path
-     * @return true if the content exists, false otherwise
-     */
-    boolean contentExists(String siteId, String path);
+	/**
+	 * Check the existent of a content path
+	 *
+	 * @param siteId site identifier
+	 * @param path   content path
+	 * @return true if the content exists, false otherwise
+	 */
+	boolean contentExists(String siteId, String path);
 
-    /**
-     * This is a faster, but less accurate, version of contentExists. This prioritizes
-     * performance over checking the actual underlying repository if the content is actually in the store
-     * or we simply hold a reference to the object in the actual store.
-     *
-     * @return true if site has content object at path
-     */
-    boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
+	/**
+	 * This is a faster, but less accurate, version of contentExists. This prioritizes
+	 * performance over checking the actual underlying repository if the content is actually in the store
+	 * or we simply hold a reference to the object in the actual store.
+	 *
+	 * @return true if site has content object at path
+	 */
+	boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
 
-    /**
-     * Get subtree items for given path.
-     *
-     * @param siteId site identifier
-     * @param path   path to get subtree items for
-     * @return list of paths of subtree items
-     */
-    List<String> getSubtreeItems(String siteId, String path);
+	/**
+	 * Get subtree items for given path.
+	 *
+	 * @param siteId site identifier
+	 * @param path   path to get subtree items for
+	 * @return list of paths of subtree items
+	 */
+	List<String> getSubtreeItems(String siteId, String path);
 
-    /**
-     * Get subtree items for given paths.
-     *
-     * @param siteId site identifier
-     * @param path   list of paths to get subtree items for
-     * @return list of paths of subtree items
-     */
-    List<String> getSubtreeItems(String siteId, List<String> path);
+	/**
+	 * Get subtree items for given paths.
+	 *
+	 * @param siteId site identifier
+	 * @param path   list of paths to get subtree items for
+	 * @return list of paths of subtree items
+	 */
+	List<String> getSubtreeItems(String siteId, List<String> path);
 
-    /**
-     * Get list of children for given path
-     *
-     * @param siteId       site identifier
-     * @param path         item path to children for
-     * @param locale       filter children by locale
-     * @param keyword      filter children by keyword
-     * @param systemTypes  filter children by type
-     * @param excludes     exclude items by path
-     * @param sortStrategy sort order
-     * @param order        ascending or descending
-     * @param offset       offset of the first child in the result
-     * @param limit        number of children to return
-     * @return list of children
-     */
-    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-                                        List<String> systemTypes, List<String> excludes, String sortStrategy,
-                                        String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get list of children for given path
+	 *
+	 * @param siteId       site identifier
+	 * @param path         item path to children for
+	 * @param locale       filter children by locale
+	 * @param keyword      filter children by keyword
+	 * @param systemTypes  filter children by type
+	 * @param excludes     exclude items by path
+	 * @param sortStrategy sort order
+	 * @param order        ascending or descending
+	 * @param offset       offset of the first child in the result
+	 * @param limit        number of children to return
+	 * @return list of children
+	 */
+	GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
+					    List<String> systemTypes, List<String> excludes, String sortStrategy,
+					    String order, int offset, int limit)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get children for paths bulk.
-     * This method will return children for a list of paths. Result items will also
-     * include a {@link SandboxItem} object for the item itself.
-     *
-     * @param siteId     the site id
-     * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
-     *                   validate permissions.
-     * @param pathParams Map of extra parameters for each path
-     * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
-     * @throws ServiceLayerException general service error
-     * @throws UserNotFoundException user not found (when calculating available actions)
-     */
-    GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get children for paths bulk.
+	 * This method will return children for a list of paths. Result items will also
+	 * include a {@link SandboxItem} object for the item itself.
+	 *
+	 * @param siteId     the site id
+	 * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
+	 *                   validate permissions.
+	 * @param pathParams Map of extra parameters for each path
+	 * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found (when calculating available actions)
+	 */
+	GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
+		throws ServiceLayerException, UserNotFoundException;
 
-    Item getItem(String siteId, String path, boolean flatten);
+	Item getItem(String siteId, String path, boolean flatten);
 
-    /**
-     * Get content size
-     *
-     * @param siteId site identifier
-     * @param path   content path
-     * @return size in bytes
-     */
-    long getContentSize(String siteId, String path);
+	/**
+	 * Get content size
+	 *
+	 * @param siteId site identifier
+	 * @param path   content path
+	 * @return size in bytes
+	 */
+	long getContentSize(String siteId, String path);
 
-    /**
-     * Get detailed for given path
-     *
-     * @param siteId        site identifier
-     * @param path          item for path
-     * @param preferContent if true return content item if available
-     * @return detailed item
-     */
-    DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get detailed for given path
+	 *
+	 * @param siteId        site identifier
+	 * @param path          item for path
+	 * @param preferContent if true return content item if available
+	 * @return detailed item
+	 */
+	DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get sandbox items for given list of paths
-     *
-     * @param siteId        site identifier
-     * @param ids           list of ids to get sandbox items
-     * @param sortFields
-     * @param preferContent if true return content items if available
-     * @return list of sandbox items
-     */
-    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get sandbox items for given list of paths
+	 *
+	 * @param siteId        site identifier
+	 * @param ids           list of ids to get sandbox items
+	 * @param sortFields
+	 * @param preferContent if true return content items if available
+	 * @return list of sandbox items
+	 */
+	List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Check if item is editable
-     *
-     * @param itemPath     item path
-     * @param itemMimeType item mime type
-     * @return true if item is editable
-     */
-    boolean isEditable(String itemPath, String itemMimeType);
+	/**
+	 * Check if item is editable
+	 *
+	 * @param itemPath     item path
+	 * @param itemMimeType item mime type
+	 * @return true if item is editable
+	 */
+	boolean isEditable(String itemPath, String itemMimeType);
 
-    /**
-     * Lock item by path for given site
-     *
-     * @param siteId site identifier
-     * @param path   item path to lock
-     */
-    void itemLockByPath(String siteId, String path);
+	/**
+	 * Lock item by path for given site
+	 *
+	 * @param siteId site identifier
+	 * @param path   item path to lock
+	 */
+	void itemLockByPath(String siteId, String path);
 
-    /**
-     * Unlock item by path for given site
-     *
-     * @param siteId site identifier
-     * @param path   item path
-     */
-    void itemUnlockByPath(String siteId, String path);
+	/**
+	 * Unlock item by path for given site
+	 *
+	 * @param siteId site identifier
+	 * @param path   item path
+	 */
+	void itemUnlockByPath(String siteId, String path);
 
-    /**
-     * Get content for commit id
-     *
-     * @param siteId   site identifier
-     * @param path     path of the content
-     * @param commitId commit id of the content version
-     * @return the resource if available
-     */
-    Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-            throws ContentNotFoundException;
+	/**
+	 * Get content for commit id
+	 *
+	 * @param siteId   site identifier
+	 * @param path     path of the content
+	 * @param commitId commit id of the content version
+	 * @return the resource if available
+	 */
+	Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
+		throws ContentNotFoundException;
 
-    /**
-     * Get a list of items by state and system types.
-     * @param siteId site identifier
-     * @param statesBitMap mask of the states to filter by
-     * @param systemTypes list of system types to filter by
-     * @param sortFields list of sort fields
-     * @param offset number of items to skip
-     * @param limit number of items to return
-     * @return list of items
-     * @throws UserNotFoundException
-     * @throws ServiceLayerException
-     */
-    List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
-                                        List<String> systemTypes, List<SortField> sortFields,
-                                        int offset, int limit) throws UserNotFoundException, ServiceLayerException;
+	/**
+	 * Get a list of items by state and system types.
+	 *
+	 * @param siteId       site identifier
+	 * @param statesBitMap mask of the states to filter by
+	 * @param systemTypes  list of system types to filter by
+	 * @param sortFields   list of sort fields
+	 * @param offset       number of items to skip
+	 * @param limit        number of items to return
+	 * @return list of items
+	 * @throws UserNotFoundException
+	 * @throws ServiceLayerException
+	 */
+	List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
+					    List<String> systemTypes, List<SortField> sortFields,
+					    int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 
-    /**
-     * Get the version history for a given content item.
-     *
-     * @param siteId the site id
-     * @param path   the content path
-     * @return the list of versions
-     * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
-     */
-    List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+	/**
+	 * Get the version history for a given content item.
+	 *
+	 * @param siteId the site id
+	 * @param path   the content path
+	 * @return the list of versions
+	 * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
+	 */
+	List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
 
-    /**
-     * Check if the content is part of any ready/processing publish package and fail if it is
-     *
-     * @param siteId          the site id
-     * @param paths           the paths to check
-     * @param includeChildren if true, check if any children of the paths are part of a publish package
-     * @throws ContentInPublishQueueException if the content is part of a publish package
-     */
-    void assertNotInWorkflow(String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
+	/**
+	 * Check if the content is part of any ready/processing publish package and fail if it is
+	 *
+	 * @param siteId          the site id
+	 * @param paths           the paths to check
+	 * @param includeChildren if true, check if any children of the paths are part of a publish package
+	 * @throws ContentInPublishQueueException if the content is part of a publish package
+	 */
+	void assertNotInWorkflow(String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
 }

@@ -20,49 +20,49 @@ import java.time.ZonedDateTime;
 
 public class PublishingHistoryItem {
 
-    private String siteId;
-    private String environment;
-    private String path;
-    private String publisher;
-    private ZonedDateTime publishedDate;
+	private String siteId;
+	private String environment;
+	private String path;
+	private String publisher;
+	private ZonedDateTime publishedDate;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getEnvironment() {
-        return environment;
-    }
+	public String getEnvironment() {
+		return environment;
+	}
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
+	public void setEnvironment(String environment) {
+		this.environment = environment;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public String getPublisher() {
-        return publisher;
-    }
+	public String getPublisher() {
+		return publisher;
+	}
 
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
-    }
+	public void setPublisher(String publisher) {
+		this.publisher = publisher;
+	}
 
-    public ZonedDateTime getPublishedDate() {
-        return publishedDate;
-    }
+	public ZonedDateTime getPublishedDate() {
+		return publishedDate;
+	}
 
-    public void setPublishedDate(ZonedDateTime publishedDate) {
-        this.publishedDate = publishedDate;
-    }
+	public void setPublishedDate(ZonedDateTime publishedDate) {
+		this.publishedDate = publishedDate;
+	}
 }

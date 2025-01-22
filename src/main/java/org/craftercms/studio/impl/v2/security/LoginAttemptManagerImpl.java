@@ -51,75 +51,75 @@ import static java.time.LocalDateTime.now;
  * @since 4.1.2
  */
 public class LoginAttemptManagerImpl implements LoginAttemptManager {
-    private static final Logger logger = LoggerFactory.getLogger(LoginAttemptManagerImpl.class);
-    private final Map<String, LoginFailure> loginFailures;
-    private final int baseTimeSeconds;
-    private final long maxTimeSeconds;
-    private final boolean enabled;
+	private static final Logger logger = LoggerFactory.getLogger(LoginAttemptManagerImpl.class);
+	private final Map<String, LoginFailure> loginFailures;
+	private final int baseTimeSeconds;
+	private final long maxTimeSeconds;
+	private final boolean enabled;
 
-    /**
-     * Creates a new instance of {@link LoginAttemptManagerImpl}.
-     *
-     * @param maxTrackedUsernames The maximum number of usernames to track. When this number is reached, the least recently used usernames will be removed from the map.
-     * @param baseTimeSeconds     The base time in seconds to use for exponential backoff.
-     * @param maxTimeSeconds      The maximum time in seconds to use for exponential backoff.
-     * @param enabled             Whether this manager is enabled or not.
-     */
-    public LoginAttemptManagerImpl(final int maxTrackedUsernames, final int baseTimeSeconds, final long maxTimeSeconds, final boolean enabled) {
-        this.baseTimeSeconds = baseTimeSeconds;
-        this.maxTimeSeconds = maxTimeSeconds;
-        this.enabled = enabled;
-        this.loginFailures = enabled ? Collections.synchronizedMap(new LRUMap(maxTrackedUsernames)) : null;
-    }
+	/**
+	 * Creates a new instance of {@link LoginAttemptManagerImpl}.
+	 *
+	 * @param maxTrackedUsernames The maximum number of usernames to track. When this number is reached, the least recently used usernames will be removed from the map.
+	 * @param baseTimeSeconds     The base time in seconds to use for exponential backoff.
+	 * @param maxTimeSeconds      The maximum time in seconds to use for exponential backoff.
+	 * @param enabled             Whether this manager is enabled or not.
+	 */
+	public LoginAttemptManagerImpl(final int maxTrackedUsernames, final int baseTimeSeconds, final long maxTimeSeconds, final boolean enabled) {
+		this.baseTimeSeconds = baseTimeSeconds;
+		this.maxTimeSeconds = maxTimeSeconds;
+		this.enabled = enabled;
+		this.loginFailures = enabled ? Collections.synchronizedMap(new LRUMap(maxTrackedUsernames)) : null;
+	}
 
-    @Override
-    public boolean isUserLocked(final String username) {
-        if (!enabled) {
-            return false;
-        }
-        LoginFailure loginFailure = loginFailures.get(username);
-        return loginFailure != null && now().isBefore(loginFailure.lockedUntil);
-    }
+	@Override
+	public boolean isUserLocked(final String username) {
+		if (!enabled) {
+			return false;
+		}
+		LoginFailure loginFailure = loginFailures.get(username);
+		return loginFailure != null && now().isBefore(loginFailure.lockedUntil);
+	}
 
-    @Override
-    public long getUserLockTimeLeftSeconds(final String username) {
-        if (!enabled) {
-            return 0;
-        }
-        LoginFailure loginFailure = loginFailures.get(username);
-        if (loginFailure != null) {
-            return max(now().until(loginFailure.lockedUntil, ChronoUnit.SECONDS), 0);
-        }
-        return 0;
-    }
+	@Override
+	public long getUserLockTimeLeftSeconds(final String username) {
+		if (!enabled) {
+			return 0;
+		}
+		LoginFailure loginFailure = loginFailures.get(username);
+		if (loginFailure != null) {
+			return max(now().until(loginFailure.lockedUntil, ChronoUnit.SECONDS), 0);
+		}
+		return 0;
+	}
 
-    @Override
-    public void loginSucceeded(final String username) {
-        if (enabled) {
-            logger.debug("User '{}' logged in successfully, will remove from login failures map", username);
-            loginFailures.remove(username);
-        }
-    }
+	@Override
+	public void loginSucceeded(final String username) {
+		if (enabled) {
+			logger.debug("User '{}' logged in successfully, will remove from login failures map", username);
+			loginFailures.remove(username);
+		}
+	}
 
-    @Override
-    public void loginFailed(final String username) {
-        if (!enabled) {
-            return;
-        }
-        LoginFailure failure = loginFailures.computeIfAbsent(username, k -> new LoginFailure());
-        // Exponential backoff
-        long lockTimeSeconds = (long) min(Math.pow(baseTimeSeconds, failure.attempts), maxTimeSeconds);
-        failure.lockedUntil = now().plusSeconds(lockTimeSeconds);
-        logger.warn("User '{}' login has failed. Locked for {} seconds until '{}'", username, lockTimeSeconds, failure.lockedUntil);
-        failure.attempts++;
-    }
+	@Override
+	public void loginFailed(final String username) {
+		if (!enabled) {
+			return;
+		}
+		LoginFailure failure = loginFailures.computeIfAbsent(username, k -> new LoginFailure());
+		// Exponential backoff
+		long lockTimeSeconds = (long) min(Math.pow(baseTimeSeconds, failure.attempts), maxTimeSeconds);
+		failure.lockedUntil = now().plusSeconds(lockTimeSeconds);
+		logger.warn("User '{}' login has failed. Locked for {} seconds until '{}'", username, lockTimeSeconds, failure.lockedUntil);
+		failure.attempts++;
+	}
 
-    /**
-     * Keep track of login attempts and lock expiration time.
-     */
-    private static class LoginFailure {
-        @NonNull
-        private LocalDateTime lockedUntil = now();
-        private int attempts = 0;
-    }
+	/**
+	 * Keep track of login attempts and lock expiration time.
+	 */
+	private static class LoginFailure {
+		@NonNull
+		private LocalDateTime lockedUntil = now();
+		private int attempts = 0;
+	}
 }

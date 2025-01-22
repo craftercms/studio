@@ -20,5 +20,5 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 
 public interface DataSourceInitializer {
 
-    void initDataSource() throws EntitlementException;
+	void initDataSource() throws EntitlementException;
 }

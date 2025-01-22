@@ -21,24 +21,24 @@ import java.time.ZonedDateTime;
 
 public class UserGroup implements Serializable {
 
-    private static final long serialVersionUID = -1030917735504714929L;
+	private static final long serialVersionUID = -1030917735504714929L;
 
-    private Group group;
-    private ZonedDateTime recordLastUpdated;
+	private Group group;
+	private ZonedDateTime recordLastUpdated;
 
-    public Group getGroup() {
-        return group;
-    }
+	public Group getGroup() {
+		return group;
+	}
 
-    public void setGroup(Group group) {
-        this.group = group;
-    }
+	public void setGroup(Group group) {
+		this.group = group;
+	}
 
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
-    }
+	public ZonedDateTime getRecordLastUpdated() {
+		return recordLastUpdated;
+	}
 
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
-    }
+	public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
+		this.recordLastUpdated = recordLastUpdated;
+	}
 }

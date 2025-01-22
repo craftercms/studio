@@ -38,106 +38,106 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class DependencyServiceImpl implements DependencyService {
 
-    private final DependencyService dependencyServiceInternal;
+	private final DependencyService dependencyServiceInternal;
 
-    @ConstructorProperties({"dependencyServiceInternal"})
-    public DependencyServiceImpl(final DependencyService dependencyServiceInternal) {
-        this.dependencyServiceInternal = dependencyServiceInternal;
-    }
+	@ConstructorProperties({"dependencyServiceInternal"})
+	public DependencyServiceImpl(final DependencyService dependencyServiceInternal) {
+		this.dependencyServiceInternal = dependencyServiceInternal;
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Collection<String> getSoftDependencies(@SiteId String siteId,
-                                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths) {
-        return dependencyServiceInternal.getSoftDependencies(siteId, paths);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<String> getSoftDependencies(@SiteId String siteId,
+						      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths) {
+		return dependencyServiceInternal.getSoftDependencies(siteId, paths);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Collection<String> getPublishingSoftDependencies(@SiteId String siteId,
-                                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths) {
-        return dependencyServiceInternal.getPublishingSoftDependencies(siteId, paths);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<String> getPublishingSoftDependencies(@SiteId String siteId,
+								@ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths) {
+		return dependencyServiceInternal.getPublishingSoftDependencies(siteId, paths);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public List<String> getDependentPaths(@SiteId String siteId,
-                                          @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
-        return dependencyServiceInternal.getDependentPaths(siteId, paths);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+	public List<String> getDependentPaths(@SiteId String siteId,
+					      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
+		return dependencyServiceInternal.getDependentPaths(siteId, paths);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget,
-                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws ServiceLayerException {
-        return dependencyServiceInternal.getHardDependencies(site, publishingTarget, paths);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget,
+						      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws ServiceLayerException {
+		return dependencyServiceInternal.getHardDependencies(site, publishingTarget, paths);
+	}
 
-    @Override
-    public Collection<String> getHardDependencies(String site, Collection<String> paths) {
-        return dependencyServiceInternal.getHardDependencies(site, paths);
-    }
+	@Override
+	public Collection<String> getHardDependencies(String site, Collection<String> paths) {
+		return dependencyServiceInternal.getHardDependencies(site, paths);
+	}
 
 
-    @RequireContentExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DependencyItem> getDependentItems(@SiteId String siteId,
-                                                  @ContentPath String path) {
-        return dependencyServiceInternal.getDependentItems(siteId, path);
-    }
+	@RequireContentExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<DependencyItem> getDependentItems(@SiteId String siteId,
+						      @ContentPath String path) {
+		return dependencyServiceInternal.getDependentItems(siteId, path);
+	}
 
-    @Override
-    @RequireContentExists
-    public void upsertDependencies(@SiteId String site, @ContentPath String path) throws ServiceLayerException {
-        dependencyServiceInternal.upsertDependencies(site, path);
-    }
+	@Override
+	@RequireContentExists
+	public void upsertDependencies(@SiteId String site, @ContentPath String path) throws ServiceLayerException {
+		dependencyServiceInternal.upsertDependencies(site, path);
+	}
 
-    @Override
-    @RequireContentExists
-    public void deleteItemDependencies(@SiteId String site, @ContentPath String sourcePath) throws ServiceLayerException {
-        dependencyServiceInternal.deleteItemDependencies(site, sourcePath);
-    }
+	@Override
+	@RequireContentExists
+	public void deleteItemDependencies(@SiteId String site, @ContentPath String sourcePath) throws ServiceLayerException {
+		dependencyServiceInternal.deleteItemDependencies(site, sourcePath);
+	}
 
-    @Override
-    @RequireSiteExists
-    public void invalidateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
-        dependencyServiceInternal.invalidateDependencies(siteId, targetPath);
-    }
+	@Override
+	@RequireSiteExists
+	public void invalidateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
+		dependencyServiceInternal.invalidateDependencies(siteId, targetPath);
+	}
 
-    @Override
-    @RequireSiteExists
-    public void validateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
-        dependencyServiceInternal.validateDependencies(siteId, targetPath);
-    }
+	@Override
+	@RequireSiteExists
+	public void validateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
+		dependencyServiceInternal.validateDependencies(siteId, targetPath);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean isValidDependencySource(final String siteId, final String path) {
-        return dependencyServiceInternal.isValidDependencySource(siteId, path);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public boolean isValidDependencySource(final String siteId, final String path) {
+		return dependencyServiceInternal.isValidDependencySource(siteId, path);
+	}
 
-    @Override
-    @RequireSiteExists
-    public void validateDependencies(String siteId) {
-        dependencyServiceInternal.validateDependencies(siteId);
-    }
+	@Override
+	@RequireSiteExists
+	public void validateDependencies(String siteId) {
+		dependencyServiceInternal.validateDependencies(siteId);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<String> getItemSpecificDependencies(@SiteId String siteId, List<String> paths) {
-        return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<String> getItemSpecificDependencies(@SiteId String siteId, List<String> paths) {
+		return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) {
-        return dependencyServiceInternal.resolveDependencies(site, sourcePath);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) {
+		return dependencyServiceInternal.resolveDependencies(site, sourcePath);
+	}
 }

@@ -26,15 +26,15 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
  */
 public class SubjectResolverImpl implements SubjectResolver<String> {
 
-    private SecurityService securityService;
+	private SecurityService securityService;
 
-    public SubjectResolverImpl(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public SubjectResolverImpl(SecurityService securityService) {
+		this.securityService = securityService;
+	}
 
-    @Override
-    public String getCurrentSubject() {
-        return securityService.getCurrentUser();
-    }
+	@Override
+	public String getCurrentSubject() {
+		return securityService.getCurrentUser();
+	}
 
 }

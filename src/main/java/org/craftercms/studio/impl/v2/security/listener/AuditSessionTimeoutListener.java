@@ -30,19 +30,19 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_SESSI
 /**
  * Listener for Spring session destroyed event to record session timeout
  */
-public class AuditSessionTimeoutListener extends AbstractAuditListener{
+public class AuditSessionTimeoutListener extends AbstractAuditListener {
 
-    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
-    public AuditSessionTimeoutListener(StudioConfiguration studioConfiguration, SiteService siteService, AuditServiceInternal auditServiceInternal) {
-        super(studioConfiguration, siteService, auditServiceInternal);
-    }
+	@ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
+	public AuditSessionTimeoutListener(StudioConfiguration studioConfiguration, SiteService siteService, AuditServiceInternal auditServiceInternal) {
+		super(studioConfiguration, siteService, auditServiceInternal);
+	}
 
-    @EventListener
-    public void recordSessionTimeout(HttpSessionDestroyedEvent event) {
-        List<SecurityContext> contexts = event.getSecurityContexts();
-        for (SecurityContext context : contexts) {
-            logger.debug("Session destroyed for the security context '{}'", context);
-            recordSessionTimeoutEvent(OPERATION_SESSION_TIMEOUT, context, "Session timeout for user '{}'");
-        }
-    }
+	@EventListener
+	public void recordSessionTimeout(HttpSessionDestroyedEvent event) {
+		List<SecurityContext> contexts = event.getSecurityContexts();
+		for (SecurityContext context : contexts) {
+			logger.debug("Session destroyed for the security context '{}'", context);
+			recordSessionTimeoutEvent(OPERATION_SESSION_TIMEOUT, context, "Session timeout for user '{}'");
+		}
+	}
 }

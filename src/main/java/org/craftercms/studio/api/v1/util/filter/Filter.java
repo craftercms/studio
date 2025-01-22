@@ -18,5 +18,5 @@ package org.craftercms.studio.api.v1.util.filter;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 public interface Filter {
-    public boolean filter(ContentItemTO item);
+	public boolean filter(ContentItemTO item);
 }

@@ -26,11 +26,11 @@ import java.util.Map;
  */
 public interface MonitorService {
 
-    /**
-     * Retrieves a list of global events logged since the timestamp indicated by {@code since} parameter
-     *
-     * @param since  timestamp. Events before this value will not be included.
-     * @return a list of log events
-     */
-    List<Map<String, Object>> getLogEvents(final String siteId, final long since);
+	/**
+	 * Retrieves a list of global events logged since the timestamp indicated by {@code since} parameter
+	 *
+	 * @param since timestamp. Events before this value will not be included.
+	 * @return a list of log events
+	 */
+	List<Map<String, Object>> getLogEvents(final String siteId, final long since);
 }

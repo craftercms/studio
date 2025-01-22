@@ -1,31 +1,31 @@
 version: "~> 1.0"
 git:
-  depth: 1
-  quiet: true
+    depth: 1
+    quiet: true
 dist: jammy
 language: java
 jdk:
-  - openjdk21
+    - openjdk21
 branches:
-  only:
-    - develop
-    - support/4.1.x
-    - support/4.0.x
-    - master
+    only:
+        - develop
+        - support/4.1.x
+        - support/4.0.x
+        - master
 cache:
-  directories:
-    - "$HOME/.m2"
-    - "$HOME/downloads"
+    directories:
+        - "$HOME/.m2"
+        - "$HOME/downloads"
 notifications:
-  slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
+    slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 before_install:
-  - mkdir -p $HOME/.m2
-  - cp .travis-settings.xml $HOME/.m2/settings.xml
+    - mkdir -p $HOME/.m2
+    - cp .travis-settings.xml $HOME/.m2/settings.xml
 install: skip
 script:
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; fi
-  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true; fi
+    - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; fi
+    - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true; fi
 env:
-  global:
-    - secure: "RPNjkSNJs0bfPqjPO19cpHC4vWyOAnQ0foCvbBXGfxdgI3kXcCfM18ldjHRGFnpri+2qgkS1bK1FnX4/lwC8mFLm18CWjDnQy2/aKSrmjSM64ggFtQIAiZ6MwNlvO7tYUnB+BiRSfiN/j/Yp37P9ItHHlwfN2e5Q0wDySlWy7Po="
-    - secure: "YfLGVNuxsV9tXamZQ313qeV/n2lA1oIlY0x6ZEeQha8VD3UIio+c6gf4oRMwv6deRNq/fgz8PAHbolLvVIU/wZ01NDJMNev0HbIdTfeH0GbdAfsvnyp9ZxF9Gk0LKZRU3cRdDJ/sakAh7r1j0nup/ylRkLK6rSGL81qQCfWcjsg="
+    global:
+        -   secure: "RPNjkSNJs0bfPqjPO19cpHC4vWyOAnQ0foCvbBXGfxdgI3kXcCfM18ldjHRGFnpri+2qgkS1bK1FnX4/lwC8mFLm18CWjDnQy2/aKSrmjSM64ggFtQIAiZ6MwNlvO7tYUnB+BiRSfiN/j/Yp37P9ItHHlwfN2e5Q0wDySlWy7Po="
+        -   secure: "YfLGVNuxsV9tXamZQ313qeV/n2lA1oIlY0x6ZEeQha8VD3UIio+c6gf4oRMwv6deRNq/fgz8PAHbolLvVIU/wZ01NDJMNev0HbIdTfeH0GbdAfsvnyp9ZxF9Gk0LKZRU3cRdDJ/sakAh7r1j0nup/ylRkLK6rSGL81qQCfWcjsg="

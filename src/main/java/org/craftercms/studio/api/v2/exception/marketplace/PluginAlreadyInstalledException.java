@@ -23,12 +23,12 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class PluginAlreadyInstalledException extends PluginInstallationException {
 
-    public PluginAlreadyInstalledException(String message) {
-        super(message);
-    }
+	public PluginAlreadyInstalledException(String message) {
+		super(message);
+	}
 
-    public PluginAlreadyInstalledException(String message, Exception e) {
-        super(message, e);
-    }
+	public PluginAlreadyInstalledException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

@@ -27,48 +27,48 @@ import java.util.List;
  */
 public interface TaskManager {
 
-    /**
-     * Register a new task and create a {@link TaskProgress} object for it
-     *
-     * @param task the task to register
-     * @param <K>  the type of the task id
-     * @return a {@link TaskProgress} for the task
-     */
-    <K extends TaskId, R> TaskProgress<K, R> registerTask(Task<K> task);
+	/**
+	 * Register a new task and create a {@link TaskProgress} object for it
+	 *
+	 * @param task the task to register
+	 * @param <K>  the type of the task id
+	 * @return a {@link TaskProgress} for the task
+	 */
+	<K extends TaskId, R> TaskProgress<K, R> registerTask(Task<K> task);
 
-    /**
-     * Get the running tasks for a site
-     *
-     * @param siteId the site id
-     * @return a collection of {@link TaskProgress} items for the site
-     */
-    Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> getSiteTasks(String siteId);
+	/**
+	 * Get the running tasks for a site
+	 *
+	 * @param siteId the site id
+	 * @return a collection of {@link TaskProgress} items for the site
+	 */
+	Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> getSiteTasks(String siteId);
 
-    /**
-     * Get the running tasks for a site and a specific type
-     *
-     * @param siteId the site id
-     * @param type   the type of the task
-     * @return a collection of {@link TaskProgress} items for the site and type
-     */
-    @NonNull
-    <K extends TaskId.SiteTaskId, R> List<TaskProgress<K, R>> getSiteTasksByType(String siteId, String type);
+	/**
+	 * Get the running tasks for a site and a specific type
+	 *
+	 * @param siteId the site id
+	 * @param type   the type of the task
+	 * @return a collection of {@link TaskProgress} items for the site and type
+	 */
+	@NonNull
+	<K extends TaskId.SiteTaskId, R> List<TaskProgress<K, R>> getSiteTasksByType(String siteId, String type);
 
-    /**
-     * Get a task by its id
-     *
-     * @param taskId the task id
-     * @param <K>    the type of the task id
-     * @return the {@link TaskProgress} for the task, if it exists
-     */
-    <K extends TaskId, R> TaskProgress<K, R> getTask(final K taskId);
+	/**
+	 * Get a task by its id
+	 *
+	 * @param taskId the task id
+	 * @param <K>    the type of the task id
+	 * @return the {@link TaskProgress} for the task, if it exists
+	 */
+	<K extends TaskId, R> TaskProgress<K, R> getTask(final K taskId);
 
-    /**
-     * Remove a task from the manager
-     *
-     * @param taskId the task id
-     * @param <K>    the type of the task id
-     */
-    <K extends TaskId> void removeTask(K taskId);
+	/**
+	 * Remove a task from the manager
+	 *
+	 * @param taskId the task id
+	 * @param <K>    the type of the task id
+	 */
+	<K extends TaskId> void removeTask(K taskId);
 
 }

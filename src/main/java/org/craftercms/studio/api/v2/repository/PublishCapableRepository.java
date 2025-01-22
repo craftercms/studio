@@ -29,38 +29,38 @@ import java.util.Map;
  * Interface for content repositories that support publishing
  */
 public interface PublishCapableRepository {
-    /**
-     * Execute initial publish for given site
-     *
-     * @param publishPackage the package to publish
-     * @return commit id of the initial publish.
-     * After this method runs, the returned value is the last
-     * commit in the published repository for the target branch
-     */
-    InitialPublishChangeSet initialPublish(PublishPackage publishPackage, String target) throws ServiceLayerException;
+	/**
+	 * Execute initial publish for given site
+	 *
+	 * @param publishPackage the package to publish
+	 * @return commit id of the initial publish.
+	 * After this method runs, the returned value is the last
+	 * commit in the published repository for the target branch
+	 */
+	InitialPublishChangeSet initialPublish(PublishPackage publishPackage, String target) throws ServiceLayerException;
 
-    /**
-     * Publishes the given items to the given target
-     *
-     * @param publishPackage   the publish package
-     * @param publishingTarget the publishing target
-     * @param publishItems     the items to publish
-     * @param <T>              the type of the {@link PublishItemTO} objects
-     * @return the change set listing the affected paths and new commit id
-     * @throws ServiceLayerException if there is any error while publishing or publishItems is null or empty
-     */
-    <T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
-                                                             String publishingTarget,
-                                                             Collection<T> publishItems) throws ServiceLayerException, IOException;
+	/**
+	 * Publishes the given items to the given target
+	 *
+	 * @param publishPackage   the publish package
+	 * @param publishingTarget the publishing target
+	 * @param publishItems     the items to publish
+	 * @param <T>              the type of the {@link PublishItemTO} objects
+	 * @return the change set listing the affected paths and new commit id
+	 * @throws ServiceLayerException if there is any error while publishing or publishItems is null or empty
+	 */
+	<T extends PublishItemTO> GitPublishChangeSet<T> publish(PublishPackage publishPackage,
+								 String publishingTarget,
+								 Collection<T> publishItems) throws ServiceLayerException, IOException;
 
-    record InitialPublishChangeSet(String commitId, Map<String, Integer> failedItems) {
-        /**
-         * Check if there are failed items
-         *
-         * @return true if failed items list contains items, false otherwise
-         */
-        public boolean hasFailedItems() {
-            return !ObjectUtils.isEmpty(failedItems);
-        }
-    }
+	record InitialPublishChangeSet(String commitId, Map<String, Integer> failedItems) {
+		/**
+		 * Check if there are failed items
+		 *
+		 * @return true if failed items list contains items, false otherwise
+		 */
+		public boolean hasFailedItems() {
+			return !ObjectUtils.isEmpty(failedItems);
+		}
+	}
 }

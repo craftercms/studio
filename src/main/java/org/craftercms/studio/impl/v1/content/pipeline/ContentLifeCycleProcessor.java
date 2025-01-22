@@ -28,21 +28,19 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 
 /**
- * 
  * @author hyanghee
  * @author Dejan Brkic
- *
  */
 public class ContentLifeCycleProcessor extends PathMatchProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ContentLifeCycleProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContentLifeCycleProcessor.class);
 
 
-    @Override
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-    	String preview = content.getProperty(DmConstants.KEY_IS_PREVIEW);
-    	// do not run on preview write
-    	if (StringUtils.isEmpty(preview) || !preview.equalsIgnoreCase("true")) {
+	@Override
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		String preview = content.getProperty(DmConstants.KEY_IS_PREVIEW);
+		// do not run on preview write
+		if (StringUtils.isEmpty(preview) || !preview.equalsIgnoreCase("true")) {
 			String site = content.getProperty(DmConstants.KEY_SITE);
 			String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
 			String contentType = content.getProperty(DmConstants.KEY_CONTENT_TYPE);
@@ -54,14 +52,19 @@ public class ContentLifeCycleProcessor extends PathMatchProcessor {
 			if (operation == null) {
 				String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
 				operation = (OPERATION_CREATE.equals(type)) ? DmContentLifeCycleService.ContentLifeCycleOperation.NEW :
-                        DmContentLifeCycleService.ContentLifeCycleOperation.UPDATE;
+					DmContentLifeCycleService.ContentLifeCycleOperation.UPDATE;
 			}
-	    	dmContentLifeCycleService.process(site, user, path, contentType, operation, null);
-    	}
-    }
+			dmContentLifeCycleService.process(site, user, path, contentType, operation, null);
+		}
+	}
 
-	public DmContentLifeCycleService getDmContentLifeCycleService() {return dmContentLifeCycleService; }
-	public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
+	public DmContentLifeCycleService getDmContentLifeCycleService() {
+		return dmContentLifeCycleService;
+	}
+
+	public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) {
+		this.dmContentLifeCycleService = dmContentLifeCycleService;
+	}
 
 	protected DmContentLifeCycleService dmContentLifeCycleService;
 }

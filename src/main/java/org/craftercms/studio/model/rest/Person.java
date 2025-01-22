@@ -28,75 +28,75 @@ import org.springframework.security.core.Authentication;
  */
 public class Person {
 
-    protected long id;
-    protected String username;
-    protected String firstName;
-    protected String lastName;
-    protected String avatar;
+	protected long id;
+	protected String username;
+	protected String firstName;
+	protected String lastName;
+	protected String avatar;
 
-    public static Person from(Authentication authentication) {
-        // This is needed for operations that can be executed in the background like delete content during publishing
-        if (authentication == null) {
-            return null;
-        }
-        AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
-        Person person = new Person();
-        person.setId(user.getId());
-        person.setUsername(user.getUsername());
-        person.setFirstName(user.getFirstName());
-        person.setLastName(user.getLastName());
-        return person;
-    }
+	public static Person from(Authentication authentication) {
+		// This is needed for operations that can be executed in the background like delete content during publishing
+		if (authentication == null) {
+			return null;
+		}
+		AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+		Person person = new Person();
+		person.setId(user.getId());
+		person.setUsername(user.getUsername());
+		person.setFirstName(user.getFirstName());
+		person.setLastName(user.getLastName());
+		return person;
+	}
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getUsername() {
-        return username;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-    public String getFirstName() {
-        return firstName;
-    }
+	public String getFirstName() {
+		return firstName;
+	}
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
 
-    public String getLastName() {
-        return lastName;
-    }
+	public String getLastName() {
+		return lastName;
+	}
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
 
-    public String getAvatar() {
-        return avatar;
-    }
+	public String getAvatar() {
+		return avatar;
+	}
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
+	}
 
-    @Override
-    public String toString() {
-        return "Person{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", avatar='" + avatar + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "Person{" +
+			"id=" + id +
+			", username='" + username + '\'' +
+			", firstName='" + firstName + '\'' +
+			", lastName='" + lastName + '\'' +
+			", avatar='" + avatar + '\'' +
+			'}';
+	}
 
 }

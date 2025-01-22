@@ -31,19 +31,19 @@ import static org.testng.AssertJUnit.assertTrue;
 @WebAppConfiguration
 @ContextConfiguration(locations = {"classpath*:crafter/engine/services/main-services-context.xml"})
 @TestPropertySource(locations = "classpath:crafter/studio/test-application.yaml")
-public class SpringContextTest extends AbstractTestNGSpringContextTests{
+public class SpringContextTest extends AbstractTestNGSpringContextTests {
 
-    @AfterTest
-    public static void afterTest(){
-        System.clearProperty("crafter.engine.extension.base");
-    }
+	@AfterTest
+	public static void afterTest() {
+		System.clearProperty("crafter.engine.extension.base");
+	}
 
-    @Autowired
-    SiteItemServiceImpl siteItemServiceImpl;
+	@Autowired
+	SiteItemServiceImpl siteItemServiceImpl;
 
-    @Test
-    public void TestOk(){
-        assertTrue(true);
-        assertNotNull(siteItemServiceImpl);
-    }
+	@Test
+	public void TestOk() {
+		assertTrue(true);
+		assertNotNull(siteItemServiceImpl);
+	}
 }

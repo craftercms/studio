@@ -22,15 +22,16 @@ import static java.util.Objects.requireNonNullElse;
 
 /**
  * Normalized group to deal with case-insensitive while working with roles/permissions mappings
+ *
  * @param name name of the group
  */
 public record NormalizedGroup(String name) {
-    public NormalizedGroup(String name) {
-        this.name = requireNonNullElse(name, StringUtils.EMPTY).toLowerCase();
-    }
+	public NormalizedGroup(String name) {
+		this.name = requireNonNullElse(name, StringUtils.EMPTY).toLowerCase();
+	}
 
-    @Override
-    public String toString() {
-        return name;
-    }
+	@Override
+	public String toString() {
+		return name;
+	}
 }

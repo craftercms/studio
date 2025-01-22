@@ -56,155 +56,155 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/marketplace")
 public class MarketplaceController {
 
-    protected final MarketplaceService marketplaceService;
+	protected final MarketplaceService marketplaceService;
 
-    @ConstructorProperties({"marketplaceService"})
-    public MarketplaceController(final MarketplaceService marketplaceService) {
-        this.marketplaceService = marketplaceService;
-    }
+	@ConstructorProperties({"marketplaceService"})
+	public MarketplaceController(final MarketplaceService marketplaceService) {
+		this.marketplaceService = marketplaceService;
+	}
 
-    @SuppressWarnings("unchecked")
-    @GetMapping("/search")
-    public PaginatedResultList<Map<String, Object>> searchPlugins(@RequestParam(required = false) String type,
-                                      @EsapiValidatedParam(type = SEARCH_KEYWORDS)
-                                      @RequestParam(required = false) String keywords,
-                                      @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
-                                      @PositiveOrZero @RequestParam(required = false, defaultValue = "0") long offset,
-                                      @PositiveOrZero @RequestParam(required = false, defaultValue = "10") long limit)
-            throws MarketplaceException {
-        Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, showIncompatible, offset, limit);
+	@SuppressWarnings("unchecked")
+	@GetMapping("/search")
+	public PaginatedResultList<Map<String, Object>> searchPlugins(@RequestParam(required = false) String type,
+								      @EsapiValidatedParam(type = SEARCH_KEYWORDS)
+								      @RequestParam(required = false) String keywords,
+								      @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
+								      @PositiveOrZero @RequestParam(required = false, defaultValue = "0") long offset,
+								      @PositiveOrZero @RequestParam(required = false, defaultValue = "10") long limit)
+		throws MarketplaceException {
+		Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, showIncompatible, offset, limit);
 
-        PaginatedResultList<Map<String, Object>> result = new PaginatedResultList<>();
+		PaginatedResultList<Map<String, Object>> result = new PaginatedResultList<>();
 
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_PLUGINS, (List<Map<String, Object>>) page.get(Constants.RESULT_ITEMS));
-        result.setTotal((int) page.get(Constants.RESULT_TOTAL));
-        result.setOffset((int) offset);
-        result.setLimit((int) limit);
+		result.setResponse(ApiResponse.OK);
+		result.setEntities(RESULT_KEY_PLUGINS, (List<Map<String, Object>>) page.get(Constants.RESULT_ITEMS));
+		result.setTotal((int) page.get(Constants.RESULT_TOTAL));
+		result.setOffset((int) offset);
+		result.setLimit((int) limit);
 
-        return result;
-    }
+		return result;
+	}
 
-    @GetMapping("/installed")
-    public ResultList<PluginRecord> getInstalledPlugins(@RequestParam @ValidSiteId String siteId) throws MarketplaceException {
-        ResultList<PluginRecord> result = new ResultList<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_PLUGINS, marketplaceService.getInstalledPlugins(siteId));
-        return result;
-    }
+	@GetMapping("/installed")
+	public ResultList<PluginRecord> getInstalledPlugins(@RequestParam @ValidSiteId String siteId) throws MarketplaceException {
+		ResultList<PluginRecord> result = new ResultList<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntities(RESULT_KEY_PLUGINS, marketplaceService.getInstalledPlugins(siteId));
+		return result;
+	}
 
-    @PostMapping("/install")
-    public Result installPlugin(@Valid @RequestBody InstallPluginRequest request) throws MarketplaceException {
-        marketplaceService.installPlugin(request.getSiteId(), request.getPluginId(), request.getPluginVersion(),
-                request.getParameters());
+	@PostMapping("/install")
+	public Result installPlugin(@Valid @RequestBody InstallPluginRequest request) throws MarketplaceException {
+		marketplaceService.installPlugin(request.getSiteId(), request.getPluginId(), request.getPluginVersion(),
+			request.getParameters());
 
-        Result result = new Result();
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+		Result result = new Result();
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @GetMapping("/usage")
-    public ResultList<String> getDependantItems(@RequestParam @ValidSiteId String siteId, @RequestParam String pluginId)
-            throws ServiceLayerException {
-        ResultList<String> result = new ResultList<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_ITEMS, marketplaceService.getPluginUsage(siteId, pluginId));
-        return result;
-    }
+	@GetMapping("/usage")
+	public ResultList<String> getDependantItems(@RequestParam @ValidSiteId String siteId, @RequestParam String pluginId)
+		throws ServiceLayerException {
+		ResultList<String> result = new ResultList<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntities(RESULT_KEY_ITEMS, marketplaceService.getPluginUsage(siteId, pluginId));
+		return result;
+	}
 
-    @PostMapping("/remove")
-    public Result removePlugin(@Valid @RequestBody RemovePluginRequest request) throws ServiceLayerException {
-        marketplaceService.removePlugin(request.getSiteId(), request.getPluginId(), request.isForce());
+	@PostMapping("/remove")
+	public Result removePlugin(@Valid @RequestBody RemovePluginRequest request) throws ServiceLayerException {
+		marketplaceService.removePlugin(request.getSiteId(), request.getPluginId(), request.isForce());
 
-        Result result = new Result();
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+		Result result = new Result();
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    protected static class RemovePluginRequest {
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	protected static class RemovePluginRequest {
 
-        @NotEmpty
-        @ValidSiteId
-        protected String siteId;
+		@NotEmpty
+		@ValidSiteId
+		protected String siteId;
 
-        @NotEmpty
-        protected String pluginId;
+		@NotEmpty
+		protected String pluginId;
 
-        protected boolean force;
+		protected boolean force;
 
-        public String getSiteId() {
-            return siteId;
-        }
+		public String getSiteId() {
+			return siteId;
+		}
 
-        public void setSiteId(String siteId) {
-            this.siteId = siteId;
-        }
+		public void setSiteId(String siteId) {
+			this.siteId = siteId;
+		}
 
-        public String getPluginId() {
-            return pluginId;
-        }
+		public String getPluginId() {
+			return pluginId;
+		}
 
-        public void setPluginId(String pluginId) {
-            this.pluginId = pluginId;
-        }
+		public void setPluginId(String pluginId) {
+			this.pluginId = pluginId;
+		}
 
-        public boolean isForce() {
-            return force;
-        }
+		public boolean isForce() {
+			return force;
+		}
 
-        public void setForce(boolean force) {
-            this.force = force;
-        }
+		public void setForce(boolean force) {
+			this.force = force;
+		}
 
-    }
+	}
 
-    @PostMapping("copy")
-    public Result copyPlugin(@Valid @RequestBody CopyPluginRequest request) throws MarketplaceException {
-        marketplaceService.copyPlugin(request.getSiteId(), request.getPath(), request.getParameters());
+	@PostMapping("copy")
+	public Result copyPlugin(@Valid @RequestBody CopyPluginRequest request) throws MarketplaceException {
+		marketplaceService.copyPlugin(request.getSiteId(), request.getPath(), request.getParameters());
 
-        Result result = new Result();
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+		Result result = new Result();
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    protected static class CopyPluginRequest {
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	protected static class CopyPluginRequest {
 
-        @NotEmpty
-        @ValidSiteId
-        protected String siteId;
+		@NotEmpty
+		@ValidSiteId
+		protected String siteId;
 
-        @NotEmpty
-        @ValidExistingContentPath
-        protected String path;
+		@NotEmpty
+		@ValidExistingContentPath
+		protected String path;
 
-        protected Map<String, String> parameters = new HashMap<>();
+		protected Map<String, String> parameters = new HashMap<>();
 
-        public String getSiteId() {
-            return siteId;
-        }
+		public String getSiteId() {
+			return siteId;
+		}
 
-        public void setSiteId(String siteId) {
-            this.siteId = siteId;
-        }
+		public void setSiteId(String siteId) {
+			this.siteId = siteId;
+		}
 
-        public String getPath() {
-            return path;
-        }
+		public String getPath() {
+			return path;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public void setPath(String path) {
+			this.path = path;
+		}
 
-        public Map<String, String> getParameters() {
-            return parameters;
-        }
+		public Map<String, String> getParameters() {
+			return parameters;
+		}
 
-        public void setParameters(Map<String, String> parameters) {
-            this.parameters = parameters;
-        }
+		public void setParameters(Map<String, String> parameters) {
+			this.parameters = parameters;
+		}
 
-    }
+	}
 
 }

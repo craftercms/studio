@@ -38,30 +38,30 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 @EnableWebSocketMessageBroker
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    protected StudioConfiguration studioConfiguration;
+	protected StudioConfiguration studioConfiguration;
 
-    @Autowired
-    public WebsocketConfig(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	@Autowired
+	public WebsocketConfig(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String allowedOrigins = studioConfiguration.getProperty(CONFIGURATION_CORS_ALLOWED_ORIGINS);
-        registry
-            // The STOMP controller URL
-            .addEndpoint("/events")
-            // Use the same allowed origins from the configuration to match the HTTP filter
-            .setAllowedOriginPatterns(getOrigins(allowedOrigins).toArray(String[]::new));
-    }
+	@Override
+	public void registerStompEndpoints(StompEndpointRegistry registry) {
+		String allowedOrigins = studioConfiguration.getProperty(CONFIGURATION_CORS_ALLOWED_ORIGINS);
+		registry
+			// The STOMP controller URL
+			.addEndpoint("/events")
+			// Use the same allowed origins from the configuration to match the HTTP filter
+			.setAllowedOriginPatterns(getOrigins(allowedOrigins).toArray(String[]::new));
+	}
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry
-            // The accepted prefixes for sending messages to the app (not used for now)
-            .setApplicationDestinationPrefixes("/app")
-            // The accepted prefixes for sending messages to the clients
-            .enableSimpleBroker("/topic");
-    }
+	@Override
+	public void configureMessageBroker(MessageBrokerRegistry registry) {
+		registry
+			// The accepted prefixes for sending messages to the app (not used for now)
+			.setApplicationDestinationPrefixes("/app")
+			// The accepted prefixes for sending messages to the clients
+			.enableSimpleBroker("/topic");
+	}
 
 }

@@ -27,269 +27,269 @@ import java.time.Instant;
  */
 public class PublishPackage {
 
-    protected long id;
-    protected long siteId;
-    protected Site site;
-    protected String title;
-    protected String target;
-    protected Instant schedule;
-    protected ApprovalState approvalState;
-    protected long packageState;
-    protected int liveError;
-    protected int stagingError;
-    protected long submitterId;
-    protected String submitterComment;
-    protected Instant submittedOn;
-    protected Long reviewerId;
-    protected String reviewerComment;
-    protected Instant reviewedOn;
-    protected Instant publishedOn;
-    protected PackageType packageType;
-    protected String commitId;
-    protected String publishedStagingCommitId;
-    protected String publishedLiveCommitId;
-    protected int itemCount;
+	protected long id;
+	protected long siteId;
+	protected Site site;
+	protected String title;
+	protected String target;
+	protected Instant schedule;
+	protected ApprovalState approvalState;
+	protected long packageState;
+	protected int liveError;
+	protected int stagingError;
+	protected long submitterId;
+	protected String submitterComment;
+	protected Instant submittedOn;
+	protected Long reviewerId;
+	protected String reviewerComment;
+	protected Instant reviewedOn;
+	protected Instant publishedOn;
+	protected PackageType packageType;
+	protected String commitId;
+	protected String publishedStagingCommitId;
+	protected String publishedLiveCommitId;
+	protected int itemCount;
 
-    protected Person submitter;
-    protected Person reviewer;
+	protected Person submitter;
+	protected Person reviewer;
 
-    public PublishPackage() {
-    }
+	public PublishPackage() {
+	}
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(final long id) {
-        this.id = id;
-    }
+	public void setId(final long id) {
+		this.id = id;
+	}
 
-    public long getSiteId() {
-        return siteId;
-    }
+	public long getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(final long siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(final long siteId) {
+		this.siteId = siteId;
+	}
 
-    @JsonIgnore
-    public Site getSite() {
-        return site;
-    }
+	@JsonIgnore
+	public Site getSite() {
+		return site;
+	}
 
-    public void setSite(Site site) {
-        this.site = site;
-    }
+	public void setSite(Site site) {
+		this.site = site;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    public void setTitle(final String title) {
-        this.title = title;
-    }
+	public void setTitle(final String title) {
+		this.title = title;
+	}
 
-    public String getTarget() {
-        return target;
-    }
+	public String getTarget() {
+		return target;
+	}
 
-    public void setTarget(final String target) {
-        this.target = target;
-    }
+	public void setTarget(final String target) {
+		this.target = target;
+	}
 
-    public String getCommitId() {
-        return commitId;
-    }
+	public String getCommitId() {
+		return commitId;
+	}
 
-    public void setCommitId(final String commitId) {
-        this.commitId = commitId;
-    }
+	public void setCommitId(final String commitId) {
+		this.commitId = commitId;
+	}
 
-    public String getSubmitterComment() {
-        return submitterComment;
-    }
+	public String getSubmitterComment() {
+		return submitterComment;
+	}
 
-    public void setSubmitterComment(final String comment) {
-        this.submitterComment = comment;
-    }
+	public void setSubmitterComment(final String comment) {
+		this.submitterComment = comment;
+	}
 
-    public long getSubmitterId() {
-        return submitterId;
-    }
+	public long getSubmitterId() {
+		return submitterId;
+	}
 
-    public void setSubmitterId(final long submitterId) {
-        this.submitterId = submitterId;
-    }
+	public void setSubmitterId(final long submitterId) {
+		this.submitterId = submitterId;
+	}
 
-    public Instant getSchedule() {
-        return schedule;
-    }
+	public Instant getSchedule() {
+		return schedule;
+	}
 
-    public void setSchedule(Instant schedule) {
-        this.schedule = schedule;
-    }
+	public void setSchedule(Instant schedule) {
+		this.schedule = schedule;
+	}
 
-    public ApprovalState getApprovalState() {
-        return approvalState;
-    }
+	public ApprovalState getApprovalState() {
+		return approvalState;
+	}
 
-    public void setApprovalState(ApprovalState approvalState) {
-        this.approvalState = approvalState;
-    }
+	public void setApprovalState(ApprovalState approvalState) {
+		this.approvalState = approvalState;
+	}
 
-    public long getPackageState() {
-        return packageState;
-    }
+	public long getPackageState() {
+		return packageState;
+	}
 
-    public void setPackageState(long packageState) {
-        this.packageState = packageState;
-    }
+	public void setPackageState(long packageState) {
+		this.packageState = packageState;
+	}
 
-    public void updatePackageState(final long onBits, final long offBits) {
-        this.packageState = (this.packageState | onBits) & ~offBits;
-    }
+	public void updatePackageState(final long onBits, final long offBits) {
+		this.packageState = (this.packageState | onBits) & ~offBits;
+	}
 
-    public PackageType getPackageType() {
-        return packageType;
-    }
+	public PackageType getPackageType() {
+		return packageType;
+	}
 
-    public void setPackageType(PackageType packageType) {
-        this.packageType = packageType;
-    }
+	public void setPackageType(PackageType packageType) {
+		this.packageType = packageType;
+	}
 
-    public String getPublishedStagingCommitId() {
-        return publishedStagingCommitId;
-    }
+	public String getPublishedStagingCommitId() {
+		return publishedStagingCommitId;
+	}
 
-    public void setPublishedStagingCommitId(String publishedStagingCommitId) {
-        this.publishedStagingCommitId = publishedStagingCommitId;
-    }
+	public void setPublishedStagingCommitId(String publishedStagingCommitId) {
+		this.publishedStagingCommitId = publishedStagingCommitId;
+	}
 
-    public String getPublishedLiveCommitId() {
-        return publishedLiveCommitId;
-    }
+	public String getPublishedLiveCommitId() {
+		return publishedLiveCommitId;
+	}
 
-    public void setPublishedLiveCommitId(String publishedLiveCommitId) {
-        this.publishedLiveCommitId = publishedLiveCommitId;
-    }
+	public void setPublishedLiveCommitId(String publishedLiveCommitId) {
+		this.publishedLiveCommitId = publishedLiveCommitId;
+	}
 
-    public int getLiveError() {
-        return liveError;
-    }
+	public int getLiveError() {
+		return liveError;
+	}
 
-    public void setLiveError(int liveError) {
-        this.liveError = liveError;
-    }
+	public void setLiveError(int liveError) {
+		this.liveError = liveError;
+	}
 
-    public int getStagingError() {
-        return stagingError;
-    }
+	public int getStagingError() {
+		return stagingError;
+	}
 
-    public void setStagingError(int stagingError) {
-        this.stagingError = stagingError;
-    }
+	public void setStagingError(int stagingError) {
+		this.stagingError = stagingError;
+	}
 
-    public Instant getSubmittedOn() {
-        return submittedOn;
-    }
+	public Instant getSubmittedOn() {
+		return submittedOn;
+	}
 
-    public void setSubmittedOn(Instant submittedOn) {
-        this.submittedOn = submittedOn;
-    }
+	public void setSubmittedOn(Instant submittedOn) {
+		this.submittedOn = submittedOn;
+	}
 
-    public Long getReviewerId() {
-        return reviewerId;
-    }
+	public Long getReviewerId() {
+		return reviewerId;
+	}
 
-    public void setReviewerId(Long reviewerId) {
-        this.reviewerId = reviewerId;
-    }
+	public void setReviewerId(Long reviewerId) {
+		this.reviewerId = reviewerId;
+	}
 
-    public String getReviewerComment() {
-        return reviewerComment;
-    }
+	public String getReviewerComment() {
+		return reviewerComment;
+	}
 
-    public void setReviewerComment(String reviewerComment) {
-        this.reviewerComment = reviewerComment;
-    }
+	public void setReviewerComment(String reviewerComment) {
+		this.reviewerComment = reviewerComment;
+	}
 
-    public Instant getReviewedOn() {
-        return reviewedOn;
-    }
+	public Instant getReviewedOn() {
+		return reviewedOn;
+	}
 
-    public void setReviewedOn(Instant reviewedOn) {
-        this.reviewedOn = reviewedOn;
-    }
+	public void setReviewedOn(Instant reviewedOn) {
+		this.reviewedOn = reviewedOn;
+	}
 
-    public Instant getPublishedOn() {
-        return publishedOn;
-    }
+	public Instant getPublishedOn() {
+		return publishedOn;
+	}
 
-    public void setPublishedOn(Instant publishedOn) {
-        this.publishedOn = publishedOn;
-    }
+	public void setPublishedOn(Instant publishedOn) {
+		this.publishedOn = publishedOn;
+	}
 
-    public Person getSubmitter() {
-        return submitter;
-    }
+	public Person getSubmitter() {
+		return submitter;
+	}
 
-    public void setSubmitter(final Person submitter) {
-        this.submitter = submitter;
-    }
+	public void setSubmitter(final Person submitter) {
+		this.submitter = submitter;
+	}
 
-    public Person getReviewer() {
-        return reviewer;
-    }
+	public Person getReviewer() {
+		return reviewer;
+	}
 
-    public void setReviewer(final Person reviewer) {
-        this.reviewer = reviewer;
-    }
+	public void setReviewer(final Person reviewer) {
+		this.reviewer = reviewer;
+	}
 
-    public int getItemCount() {
-        return itemCount;
-    }
+	public int getItemCount() {
+		return itemCount;
+	}
 
-    public void setItemCount(int itemCount) {
-        this.itemCount = itemCount;
-    }
+	public void setItemCount(int itemCount) {
+		this.itemCount = itemCount;
+	}
 
-    /**
-     * Possible values for the package approval state
-     */
-    public enum ApprovalState {
-        SUBMITTED,
-        APPROVED,
-        REJECTED
-    }
+	/**
+	 * Possible values for the package approval state
+	 */
+	public enum ApprovalState {
+		SUBMITTED,
+		APPROVED,
+		REJECTED
+	}
 
-    /**
-     * Possible values for the package processing state
-     */
-    public enum PackageState {
-        READY(0),
-        PROCESSING(1),
-        LIVE_SUCCESS(2),
-        LIVE_COMPLETED_WITH_ERRORS(3),
-        LIVE_FAILED(4),
-        STAGING_SUCCESS(5),
-        STAGING_COMPLETED_WITH_ERRORS(6),
-        STAGING_FAILED(7),
-        COMPLETED(8),
-        CANCELLED(9);
+	/**
+	 * Possible values for the package processing state
+	 */
+	public enum PackageState {
+		READY(0),
+		PROCESSING(1),
+		LIVE_SUCCESS(2),
+		LIVE_COMPLETED_WITH_ERRORS(3),
+		LIVE_FAILED(4),
+		STAGING_SUCCESS(5),
+		STAGING_COMPLETED_WITH_ERRORS(6),
+		STAGING_FAILED(7),
+		COMPLETED(8),
+		CANCELLED(9);
 
-        public final long value;
+		public final long value;
 
-        PackageState(final long exponent) {
-            this.value = Math.round(Math.pow(2, exponent));
-        }
-    }
+		PackageState(final long exponent) {
+			this.value = Math.round(Math.pow(2, exponent));
+		}
+	}
 
-    /**
-     * Possible values for the package type
-     */
-    public enum PackageType {
-        INITIAL_PUBLISH,
-        PUBLISH_ALL,
-        ITEM_LIST
-    }
+	/**
+	 * Possible values for the package type
+	 */
+	public enum PackageType {
+		INITIAL_PUBLISH,
+		PUBLISH_ALL,
+		ITEM_LIST
+	}
 }

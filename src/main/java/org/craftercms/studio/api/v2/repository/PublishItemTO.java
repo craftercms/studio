@@ -22,13 +22,13 @@ import org.craftercms.studio.api.v2.dal.publish.PublishItem;
  * Represents a publish item to be processed
  */
 public interface PublishItemTO {
-    String getPath();
+	String getPath();
 
-    PublishItem.Action getAction();
+	PublishItem.Action getAction();
 
-    int getError();
+	int getError();
 
-    void setFailed(int error);
+	void setFailed(int error);
 
-    void setCompleted();
+	void setCompleted();
 }

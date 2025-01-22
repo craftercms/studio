@@ -20,16 +20,16 @@ package org.craftercms.studio.api.v2.task;
  * Represents the id of a {@link org.craftercms.studio.model.task.Task}
  */
 public sealed interface TaskId {
-    /**
-     * A task id that is associated with a site
-     */
-    non-sealed interface SiteTaskId extends TaskId {
-        String getSiteId();
-    }
+	/**
+	 * A task id that is associated with a site
+	 */
+	non-sealed interface SiteTaskId extends TaskId {
+		String getSiteId();
+	}
 
-    /**
-     * A global (not site-dependant) {@link TaskId}
-     */
-    non-sealed interface GlobalTaskId extends TaskId {
-    }
+	/**
+	 * A global (not site-dependant) {@link TaskId}
+	 */
+	non-sealed interface GlobalTaskId extends TaskId {
+	}
 }

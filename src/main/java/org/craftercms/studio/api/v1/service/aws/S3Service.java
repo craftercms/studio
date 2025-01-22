@@ -31,17 +31,17 @@ import org.craftercms.studio.api.v1.exception.AwsException;
 @Deprecated
 public interface S3Service {
 
-    /**
-     * Requests the file upload using the specified {@link org.craftercms.commons.config.profiles.aws.S3Profile}.
-     *
-     * @param site       the site
-     * @param profileId  the id of the {@link org.craftercms.commons.config.profiles.aws.S3Profile} to use.
-     * @param filename   the name of the file to upload
-     * @param content    the file itself
-     * @return metadata of an AWS S3 upload
-     * @throws AwsException if an error occurs
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    S3Output uploadFile(String site, String profileId, String filename, InputStream content) throws AwsException, ConfigurationProfileNotFoundException;
+	/**
+	 * Requests the file upload using the specified {@link org.craftercms.commons.config.profiles.aws.S3Profile}.
+	 *
+	 * @param site      the site
+	 * @param profileId the id of the {@link org.craftercms.commons.config.profiles.aws.S3Profile} to use.
+	 * @param filename  the name of the file to upload
+	 * @param content   the file itself
+	 * @return metadata of an AWS S3 upload
+	 * @throws AwsException                          if an error occurs
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	S3Output uploadFile(String site, String profileId, String filename, InputStream content) throws AwsException, ConfigurationProfileNotFoundException;
 
 }

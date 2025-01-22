@@ -23,15 +23,15 @@ import jakarta.validation.constraints.NotBlank;
  */
 public class ReviewPackageRequestBody {
 
-    @NotBlank
-    private String comment;
+	@NotBlank
+	private String comment;
 
-    public @NotBlank String getComment() {
-        return comment;
-    }
+	public @NotBlank String getComment() {
+		return comment;
+	}
 
-    public void setComment(@NotBlank String comment) {
-        this.comment = comment;
-    }
+	public void setComment(@NotBlank String comment) {
+		this.comment = comment;
+	}
 
 }

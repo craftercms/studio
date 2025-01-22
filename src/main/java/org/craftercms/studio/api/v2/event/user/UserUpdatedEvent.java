@@ -22,13 +22,13 @@ import org.craftercms.studio.api.v2.event.StudioEvent;
  * Event fired when a user is updated.
  */
 public class UserUpdatedEvent extends StudioEvent {
-    private final long userId;
+	private final long userId;
 
-    public UserUpdatedEvent(long userId) {
-        this.userId = userId;
-    }
+	public UserUpdatedEvent(long userId) {
+		this.userId = userId;
+	}
 
-    public long getUserId() {
-        return userId;
-    }
+	public long getUserId() {
+		return userId;
+	}
 }

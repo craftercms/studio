@@ -25,13 +25,13 @@ import org.springframework.security.core.Authentication;
  */
 public class DeleteContentEvent extends ContentEvent {
 
-    public DeleteContentEvent(Authentication authentication, String siteId, String targetPath) {
-        super(authentication, siteId, targetPath);
-    }
+	public DeleteContentEvent(Authentication authentication, String siteId, String targetPath) {
+		super(authentication, siteId, targetPath);
+	}
 
-    @Override
-    public String getEventType() {
-        return "DELETE_CONTENT_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "DELETE_CONTENT_EVENT";
+	}
 
 }

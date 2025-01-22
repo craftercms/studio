@@ -24,28 +24,29 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Triggers a cleanup for all repositories on all existing sites.
+ *
  * @author joseross
  */
 public class RepositoryCleanupJob {
 
-    protected static final Logger logger = LoggerFactory.getLogger(RepositoryCleanupJob.class);
+	protected static final Logger logger = LoggerFactory.getLogger(RepositoryCleanupJob.class);
 
-    protected SiteService siteService;
-    protected GitContentRepository contentRepository;
+	protected SiteService siteService;
+	protected GitContentRepository contentRepository;
 
-    public RepositoryCleanupJob(final SiteService siteService, final GitContentRepository contentRepository) {
-        this.siteService = siteService;
-        this.contentRepository = contentRepository;
-    }
+	public RepositoryCleanupJob(final SiteService siteService, final GitContentRepository contentRepository) {
+		this.siteService = siteService;
+		this.contentRepository = contentRepository;
+	}
 
-    /**
-     * Performs a cleanup for all repositories on all existing sites.
-     */
-    public void cleanupAllRepositories() {
-        logger.info("Started git garbage collection for the global repo");
-        contentRepository.cleanupRepositories(StringUtils.EMPTY);
-        logger.info("Started git garbage collection for all sites");
-        siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
-    }
-    
+	/**
+	 * Performs a cleanup for all repositories on all existing sites.
+	 */
+	public void cleanupAllRepositories() {
+		logger.info("Started git garbage collection for the global repo");
+		contentRepository.cleanupRepositories(StringUtils.EMPTY);
+		logger.info("Started git garbage collection for all sites");
+		siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
+	}
+
 }

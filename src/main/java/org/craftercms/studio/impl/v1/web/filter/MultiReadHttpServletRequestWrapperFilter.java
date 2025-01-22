@@ -21,18 +21,21 @@ import org.craftercms.studio.impl.v1.web.http.MultiReadHttpServletRequestWrapper
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 
 public class MultiReadHttpServletRequestWrapperFilter implements Filter {
-    public void init ( FilterConfig fc ) throws ServletException { }
+	public void init(FilterConfig fc) throws ServletException {
+	}
 
-    public void doFilter (ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException,	ServletException {
-        if (!JakartaServletFileUpload.isMultipartContent((HttpServletRequest)request)) {
-            chain.doFilter(new MultiReadHttpServletRequestWrapper((HttpServletRequest) request), response);
-        } else {
-            chain.doFilter(request, response);
-        }
-    }
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		if (!JakartaServletFileUpload.isMultipartContent((HttpServletRequest) request)) {
+			chain.doFilter(new MultiReadHttpServletRequestWrapper((HttpServletRequest) request), response);
+		} else {
+			chain.doFilter(request, response);
+		}
+	}
 
-    public void destroy () { }
+	public void destroy() {
+	}
 }

@@ -35,33 +35,33 @@ import static org.craftercms.core.util.ExceptionUtils.getThrowableOfType;
  */
 public class ClausesLimitAwareSearchService implements SearchService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClausesLimitAwareSearchService.class);
+	private static final Logger logger = LoggerFactory.getLogger(ClausesLimitAwareSearchService.class);
 
-    protected final SearchService actualSearchService;
+	protected final SearchService actualSearchService;
 
-    @ConstructorProperties({"actualSearchService"})
-    public ClausesLimitAwareSearchService(final SearchService actualSearchService) {
-        this.actualSearchService = actualSearchService;
-    }
+	@ConstructorProperties({"actualSearchService"})
+	public ClausesLimitAwareSearchService(final SearchService actualSearchService) {
+		this.actualSearchService = actualSearchService;
+	}
 
-    @Override
-    public SearchResult search(final String siteId, final SearchParams params, final int initialMaxExpansions) throws ServiceLayerException {
-        int maxExpansions = initialMaxExpansions;
-        TooManyNestedClausesSearchException lastException;
-        do {
-            try {
-                return actualSearchService.search(siteId, params, maxExpansions);
-            } catch (Exception e) {
-                TooManyNestedClausesSearchException tooManyClausesException = getThrowableOfType(e, TooManyNestedClausesSearchException.class);
-                if (tooManyClausesException == null) {
-                    throw e;
-                }
-                lastException = tooManyClausesException;
-                logger.warn("Search query for site '{}' with max_expansions '{}' contains too many nested clauses, " +
-                        ((maxExpansions > 1) ? "retrying with a lower number of max_expansions" : ""), siteId, maxExpansions);
-                maxExpansions = maxExpansions / 2;
-            }
-        } while (maxExpansions >= 1);
-        throw new ServiceLayerException(format("Search query for site '%s' contains too many nested clauses", siteId), lastException);
-    }
+	@Override
+	public SearchResult search(final String siteId, final SearchParams params, final int initialMaxExpansions) throws ServiceLayerException {
+		int maxExpansions = initialMaxExpansions;
+		TooManyNestedClausesSearchException lastException;
+		do {
+			try {
+				return actualSearchService.search(siteId, params, maxExpansions);
+			} catch (Exception e) {
+				TooManyNestedClausesSearchException tooManyClausesException = getThrowableOfType(e, TooManyNestedClausesSearchException.class);
+				if (tooManyClausesException == null) {
+					throw e;
+				}
+				lastException = tooManyClausesException;
+				logger.warn("Search query for site '{}' with max_expansions '{}' contains too many nested clauses, " +
+					((maxExpansions > 1) ? "retrying with a lower number of max_expansions" : ""), siteId, maxExpansions);
+				maxExpansions = maxExpansions / 2;
+			}
+		} while (maxExpansions >= 1);
+		throw new ServiceLayerException(format("Search query for site '%s' contains too many nested clauses", siteId), lastException);
+	}
 }

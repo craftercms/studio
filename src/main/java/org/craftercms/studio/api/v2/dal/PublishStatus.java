@@ -21,35 +21,35 @@ import org.craftercms.studio.model.task.PublishTask;
 
 public class PublishStatus {
 
-    // TODO: remove this and publishing_status column when implementing the
-    // UM for the publisher refactor
-    public static final String READY = "ready";
+	// TODO: remove this and publishing_status column when implementing the
+	// UM for the publisher refactor
+	public static final String READY = "ready";
 
-    private boolean enabled;
-    private boolean published;
-    private TaskProgress<PublishTask.PublishTaskId, Long> currentTask;
+	private boolean enabled;
+	private boolean published;
+	private TaskProgress<PublishTask.PublishTaskId, Long> currentTask;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    public boolean isPublished() {
-        return published;
-    }
+	public boolean isPublished() {
+		return published;
+	}
 
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
+	public void setPublished(boolean published) {
+		this.published = published;
+	}
 
-    public void setCurrentTask(final TaskProgress<PublishTask.PublishTaskId, Long> currentTask) {
-        this.currentTask = currentTask;
-    }
+	public void setCurrentTask(final TaskProgress<PublishTask.PublishTaskId, Long> currentTask) {
+		this.currentTask = currentTask;
+	}
 
-    public TaskProgress<PublishTask.PublishTaskId, Long> getCurrentTask() {
-        return currentTask;
-    }
+	public TaskProgress<PublishTask.PublishTaskId, Long> getCurrentTask() {
+		return currentTask;
+	}
 }

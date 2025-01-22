@@ -25,18 +25,18 @@ import java.util.List;
  */
 public class RequestPublishEvent extends SiteAwareEvent {
 
-    private final Collection<Long> packageIds;
+	private final Collection<Long> packageIds;
 
-    public RequestPublishEvent(final String siteId, final Long packageId) {
-        this(siteId, List.of(packageId));
-    }
+	public RequestPublishEvent(final String siteId, final Long packageId) {
+		this(siteId, List.of(packageId));
+	}
 
-    public RequestPublishEvent(final String siteId, final Collection<Long> packageIds) {
-        super(siteId);
-        this.packageIds = packageIds;
-    }
+	public RequestPublishEvent(final String siteId, final Collection<Long> packageIds) {
+		super(siteId);
+		this.packageIds = packageIds;
+	}
 
-    public Collection<Long> getPackageIds() {
-        return packageIds;
-    }
+	public Collection<Long> getPackageIds() {
+		return packageIds;
+	}
 }

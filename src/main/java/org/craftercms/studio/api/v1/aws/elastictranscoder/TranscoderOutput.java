@@ -23,60 +23,60 @@ package org.craftercms.studio.api.v1.aws.elastictranscoder;
  */
 public class TranscoderOutput {
 
-    private String presetId;
-    private String outputKeySuffix;
-    private String thumbnailSuffixFormat;
+	private String presetId;
+	private String outputKeySuffix;
+	private String thumbnailSuffixFormat;
 
-    /**
-     * Returns the ID of the preset with the transcoding configuration.
-     */
-    public String getPresetId() {
-        return presetId;
-    }
+	/**
+	 * Returns the ID of the preset with the transcoding configuration.
+	 */
+	public String getPresetId() {
+		return presetId;
+	}
 
-    /**
-     * Sets the ID of the preset with the transcoding configuration.
-     */
-    public void setPresetId(String presetId) {
-        this.presetId = presetId;
-    }
+	/**
+	 * Sets the ID of the preset with the transcoding configuration.
+	 */
+	public void setPresetId(String presetId) {
+		this.presetId = presetId;
+	}
 
-    /**
-     * Returns the key suffix for files generated for this output (e.g. -small, -medium, -large)
-     *
-     * @return output key suffix
-     */
-    public String getOutputKeySuffix() {
-        return outputKeySuffix;
-    }
+	/**
+	 * Returns the key suffix for files generated for this output (e.g. -small, -medium, -large)
+	 *
+	 * @return output key suffix
+	 */
+	public String getOutputKeySuffix() {
+		return outputKeySuffix;
+	}
 
-    /**
-     * Sets the key suffix for files generated for this output (e.g. -small, -medium, -large)
-     *
-     * @param outputKeySuffix output key suffix
-     */
-    public void setOutputKeySuffix(String outputKeySuffix) {
-        this.outputKeySuffix = outputKeySuffix;
-    }
+	/**
+	 * Sets the key suffix for files generated for this output (e.g. -small, -medium, -large)
+	 *
+	 * @param outputKeySuffix output key suffix
+	 */
+	public void setOutputKeySuffix(String outputKeySuffix) {
+		this.outputKeySuffix = outputKeySuffix;
+	}
 
-    /**
-     * Returns the thumbnail suffix format for this output. If nothing is specified, no thumbnails will be generated. The format should
-     * at least contain the macro {count} (required by AWS). {resolution} can also be specified. E.g. -{resolution}-{count}.jpg
-     *
-     * @return thumbnail suffix format
-     */
-    public String getThumbnailSuffixFormat() {
-        return thumbnailSuffixFormat;
-    }
+	/**
+	 * Returns the thumbnail suffix format for this output. If nothing is specified, no thumbnails will be generated. The format should
+	 * at least contain the macro {count} (required by AWS). {resolution} can also be specified. E.g. -{resolution}-{count}.jpg
+	 *
+	 * @return thumbnail suffix format
+	 */
+	public String getThumbnailSuffixFormat() {
+		return thumbnailSuffixFormat;
+	}
 
-    /**
-     * Sets the thumbnail suffix format for this output. If nothing is specified, no thumbnails will be generated. The format should
-     * at least contain the macro {count} (required by AWS). {resolution} can also be specified. E.g. -{resolution}-{count}.jpg
-     *
-     * @param thumbnailSuffixFormat thumbnail suffix format
-     */
-    public void setThumbnailSuffixFormat(String thumbnailSuffixFormat) {
-        this.thumbnailSuffixFormat = thumbnailSuffixFormat;
-    }
+	/**
+	 * Sets the thumbnail suffix format for this output. If nothing is specified, no thumbnails will be generated. The format should
+	 * at least contain the macro {count} (required by AWS). {resolution} can also be specified. E.g. -{resolution}-{count}.jpg
+	 *
+	 * @param thumbnailSuffixFormat thumbnail suffix format
+	 */
+	public void setThumbnailSuffixFormat(String thumbnailSuffixFormat) {
+		this.thumbnailSuffixFormat = thumbnailSuffixFormat;
+	}
 
 }

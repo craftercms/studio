@@ -40,70 +40,70 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryF
  */
 public abstract class AbstractAssetProcessor implements AssetProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractAssetProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractAssetProcessor.class);
 
-    @Override
-    public Asset processAsset(ProcessorConfiguration config, Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
-        try {
-            String outputRepoPath = getOutputRepoPath(config, inputPathMatcher);
-            if (StringUtils.isEmpty(outputRepoPath)) {
-                // No output repo path means write to the same input. So move the original file to a tmp location
-                // and make the output file be the input file
-                Path inputFilePath = moveToTmpFile(input.getRepoPath(), input.getFilePath());
-                Path outputFilePath = input.getFilePath();
-                Asset output = new Asset(input.getRepoPath(), outputFilePath);
+	@Override
+	public Asset processAsset(ProcessorConfiguration config, Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
+		try {
+			String outputRepoPath = getOutputRepoPath(config, inputPathMatcher);
+			if (StringUtils.isEmpty(outputRepoPath)) {
+				// No output repo path means write to the same input. So move the original file to a tmp location
+				// and make the output file be the input file
+				Path inputFilePath = moveToTmpFile(input.getRepoPath(), input.getFilePath());
+				Path outputFilePath = input.getFilePath();
+				Asset output = new Asset(input.getRepoPath(), outputFilePath);
 
-                logger.debug("Processing asset type '{}' input '{}' output '{}'",
-                        config.getType(), input, output);
-                try {
-                    doProcessAsset(inputFilePath, outputFilePath, config.getParams());
-                } finally {
-                    Files.delete(inputFilePath);
-                }
+				logger.debug("Processing asset type '{}' input '{}' output '{}'",
+					config.getType(), input, output);
+				try {
+					doProcessAsset(inputFilePath, outputFilePath, config.getParams());
+				} finally {
+					Files.delete(inputFilePath);
+				}
 
-                return output;
-            } else {
-                Path inputFilePath = input.getFilePath();
-                Path outputFilePath = createTmpFile(outputRepoPath);
-                Asset output = new Asset(outputRepoPath, outputFilePath);
+				return output;
+			} else {
+				Path inputFilePath = input.getFilePath();
+				Path outputFilePath = createTmpFile(outputRepoPath);
+				Asset output = new Asset(outputRepoPath, outputFilePath);
 
-                logger.debug("Processing asset type '{}' input '{}' output '{}'",
-                        config.getType(), input, output);
+				logger.debug("Processing asset type '{}' input '{}' output '{}'",
+					config.getType(), input, output);
 
-                doProcessAsset(inputFilePath, outputFilePath, config.getParams());
+				doProcessAsset(inputFilePath, outputFilePath, config.getParams());
 
-                return output;
-            }
-        } catch (Exception e) {
-            throw new AssetProcessingException("Error while executing asset processor of type '" + config.getType() + "'", e);
-        }
-    }
+				return output;
+			}
+		} catch (Exception e) {
+			throw new AssetProcessingException("Error while executing asset processor of type '" + config.getType() + "'", e);
+		}
+	}
 
-    private Path moveToTmpFile(String repoPath, Path filePath) throws IOException {
-        Path tmpFilePath = createTmpFile(repoPath);
+	private Path moveToTmpFile(String repoPath, Path filePath) throws IOException {
+		Path tmpFilePath = createTmpFile(repoPath);
 
-        return Files.move(filePath, tmpFilePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-    }
+		return Files.move(filePath, tmpFilePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+	}
 
-    private Path createTmpFile(String repoPath) throws IOException {
-        return Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(repoPath), "." + FilenameUtils.getExtension(repoPath));
-    }
+	private Path createTmpFile(String repoPath) throws IOException {
+		return Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(repoPath), "." + FilenameUtils.getExtension(repoPath));
+	}
 
-    protected String getOutputRepoPath(ProcessorConfiguration config, Matcher inputPathMatcher) {
-        if (StringUtils.isNotEmpty(config.getOutputPathFormat())) {
-            int groupCount = inputPathMatcher.groupCount();
-            String outputPath = config.getOutputPathFormat();
+	protected String getOutputRepoPath(ProcessorConfiguration config, Matcher inputPathMatcher) {
+		if (StringUtils.isNotEmpty(config.getOutputPathFormat())) {
+			int groupCount = inputPathMatcher.groupCount();
+			String outputPath = config.getOutputPathFormat();
 
-            for (int i = 1; i <= groupCount; i++) {
-                outputPath = outputPath.replace("$" + i, inputPathMatcher.group(i));
-            }
+			for (int i = 1; i <= groupCount; i++) {
+				outputPath = outputPath.replace("$" + i, inputPathMatcher.group(i));
+			}
 
-            return outputPath;
-        } else {
-            return null;
-        }
-    }
+			return outputPath;
+		} else {
+			return null;
+		}
+	}
 
-    protected abstract void doProcessAsset(Path inputFile, Path outputFile, Map<String, String> params) throws Exception;
+	protected abstract void doProcessAsset(Path inputFile, Path outputFile, Map<String, String> params) throws Exception;
 
 }

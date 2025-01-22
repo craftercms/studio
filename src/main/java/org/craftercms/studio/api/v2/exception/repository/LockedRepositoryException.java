@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  * already locked repository. e.g.: trying to publish while performing a pull from remote
  */
 public class LockedRepositoryException extends ServiceLayerException {
-    public LockedRepositoryException(final String message) {
-        super(message);
-    }
+	public LockedRepositoryException(final String message) {
+		super(message);
+	}
 }

@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v1.job;
 
 /**
  * Simple interface for performing a task (scheduled or unscheduled)
+ *
  * @author russdanner
  */
 public interface Job {

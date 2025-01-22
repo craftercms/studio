@@ -23,30 +23,30 @@ package org.craftercms.studio.api.v2.dal;
  */
 public class UserProperty {
 
-    /**
-     * The key of the property
-     */
-    protected String key;
+	/**
+	 * The key of the property
+	 */
+	protected String key;
 
-    /**
-     * The value of the property
-     */
-    protected String value;
+	/**
+	 * The value of the property
+	 */
+	protected String value;
 
-    public String getKey() {
-        return key;
-    }
+	public String getKey() {
+		return key;
+	}
 
-    public void setKey(String key) {
-        this.key = key;
-    }
+	public void setKey(String key) {
+		this.key = key;
+	}
 
-    public String getValue() {
-        return value;
-    }
+	public String getValue() {
+		return value;
+	}
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+	public void setValue(String value) {
+		this.value = value;
+	}
 
 }

@@ -21,30 +21,31 @@ import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 import java.util.Set;
 
 public class GetSoftDependenciesRequestBody {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    private Set<@ValidExistingContentPath @NotBlank String> paths;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	private Set<@ValidExistingContentPath @NotBlank String> paths;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public Set<String> getPaths() {
-        return paths;
-    }
+	public Set<String> getPaths() {
+		return paths;
+	}
 
-    public void setPaths(Set<String> paths) {
-        this.paths = paths;
-    }
+	public void setPaths(Set<String> paths) {
+		this.paths = paths;
+	}
 }

@@ -16,15 +16,21 @@
   -->
 
 <component>
-	<content-type>/taxonomy</content-type>	<display-template/>
+	<content-type>/taxonomy</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>8686</objectGroupId>
 	<objectId>868672ef-1b5e-7846-5c25-ac2929d2ff6e</objectId>
-	<items>	<item>	<key>guy</key>
-	<value>Guy</value>
-	</item>	<item>	<key>gal</key>
-	<value>Gal</value>
-	</item></items>
+	<items>
+		<item>
+			<key>guy</key>
+			<value>Guy</value>
+		</item>
+		<item>
+			<key>gal</key>
+			<value>Gal</value>
+		</item>
+	</items>
 	<file-name>segments.xml</file-name>
 	<folder-name/>
 	<internal-name>Segments</internal-name>

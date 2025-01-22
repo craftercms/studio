@@ -29,43 +29,43 @@ import java.util.List;
  */
 public interface LoggerService {
 
-    String VALID_LEVEL_PATTERN = "(?i)(off|error|warn|info|debug|trace|all)";
+	String VALID_LEVEL_PATTERN = "(?i)(off|error|warn|info|debug|trace|all)";
 
-    /**
-     * Get all loggers and their configured priority levels
-     *
-     * @return list of {@link LoggerConfig}
-     */
-    List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException;
+	/**
+	 * Get all loggers and their configured priority levels
+	 *
+	 * @return list of {@link LoggerConfig}
+	 */
+	List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException;
 
-    /**
-     * Get the logger with the given name. The logger will be created in case it does not exist
-     *
-     * @param name logger name
-     * @return a {@link LoggerConfig} object
-     * @throws ServiceLayerException
-     */
-    default LoggerConfig getLoggerConfig(String name) throws ServiceLayerException {
-        return getLoggerConfig(name, true);
-    }
+	/**
+	 * Get the logger with the given name. The logger will be created in case it does not exist
+	 *
+	 * @param name logger name
+	 * @return a {@link LoggerConfig} object
+	 * @throws ServiceLayerException
+	 */
+	default LoggerConfig getLoggerConfig(String name) throws ServiceLayerException {
+		return getLoggerConfig(name, true);
+	}
 
-    /**
-     * Get the logger with the given name and its configured priority level
-     *
-     * @param name           logger name
-     * @param createIfAbsent if true, the logger will be created in case it does not exist yet
-     *                       if false, a LoggerNotFoundException will be thrown if logger is not in the registry
-     * @return a {@link LoggerConfig} object
-     */
-    LoggerConfig getLoggerConfig(String name, boolean createIfAbsent) throws ServiceLayerException;
+	/**
+	 * Get the logger with the given name and its configured priority level
+	 *
+	 * @param name           logger name
+	 * @param createIfAbsent if true, the logger will be created in case it does not exist yet
+	 *                       if false, a LoggerNotFoundException will be thrown if logger is not in the registry
+	 * @return a {@link LoggerConfig} object
+	 */
+	LoggerConfig getLoggerConfig(String name, boolean createIfAbsent) throws ServiceLayerException;
 
-    /**
-     * Updates a logger with a given name to have a given priority level
-     *
-     * @param name           logger name
-     * @param level          the priority level
-     * @param createIfAbsent if true, the logger will be created in case it does not exist yet
-     *                       if false, a LoggerNotFoundException will be thrown if logger is not in the registry
-     */
-    void setLoggerLevel(String name, String level, boolean createIfAbsent) throws ServiceLayerException;
+	/**
+	 * Updates a logger with a given name to have a given priority level
+	 *
+	 * @param name           logger name
+	 * @param level          the priority level
+	 * @param createIfAbsent if true, the logger will be created in case it does not exist yet
+	 *                       if false, a LoggerNotFoundException will be thrown if logger is not in the registry
+	 */
+	void setLoggerLevel(String name, String level, boolean createIfAbsent) throws ServiceLayerException;
 }

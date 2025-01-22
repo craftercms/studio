@@ -21,10 +21,10 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
  * @author Dejan Brkic
  */
 public interface DmFilterWrapper {
-    public boolean accept(ContentItemTO item, String filterType);
+	public boolean accept(ContentItemTO item, String filterType);
 
-    public boolean accept(String site, ContentItemTO item, String filterType);
-    
-    public boolean accept(String site, String relativePath, String filterType);
-    
+	public boolean accept(String site, ContentItemTO item, String filterType);
+
+	public boolean accept(String site, String relativePath, String filterType);
+
 }

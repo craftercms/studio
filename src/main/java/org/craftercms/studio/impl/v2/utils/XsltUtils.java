@@ -47,44 +47,44 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
  */
 public abstract class XsltUtils {
 
-    public static final String SAXON_CLASS = "net.sf.saxon.TransformerFactoryImpl";
+	public static final String SAXON_CLASS = "net.sf.saxon.TransformerFactoryImpl";
 
-    public static final Pattern CDATA_PATTERN = Pattern.compile("<(\\w+).*?>\\s*<!\\[CDATA");
+	public static final Pattern CDATA_PATTERN = Pattern.compile("<(\\w+).*?>\\s*<!\\[CDATA");
 
-    public static final String CDATA_KEY = "cdataElements";
+	public static final String CDATA_KEY = "cdataElements";
 
-    public static void executeTemplate(InputStream template, Map<String, Object> params, URIResolver uriResolver,
-                                       InputStream content, OutputStream output)
-            throws TransformerException, IOException {
-        // load the template & content into memory, no other way to find & replace
-        String templateString = IOUtils.toString(template, UTF_8);
-        String contentString = IOUtils.toString(content, UTF_8);
+	public static void executeTemplate(InputStream template, Map<String, Object> params, URIResolver uriResolver,
+					   InputStream content, OutputStream output)
+		throws TransformerException, IOException {
+		// load the template & content into memory, no other way to find & replace
+		String templateString = IOUtils.toString(template, UTF_8);
+		String contentString = IOUtils.toString(content, UTF_8);
 
-        // find all elements that include CDATA
-        Set<String> elements = new HashSet<>();
-        Matcher matcher = CDATA_PATTERN.matcher(contentString);
-        while (matcher.find()) {
-            elements.add(matcher.group(1));
-        }
+		// find all elements that include CDATA
+		Set<String> elements = new HashSet<>();
+		Matcher matcher = CDATA_PATTERN.matcher(contentString);
+		while (matcher.find()) {
+			elements.add(matcher.group(1));
+		}
 
-        // inject the cdata info into the template
-        templateString = replace(templateString, Map.of(CDATA_KEY, join(SPACE, elements)));
+		// inject the cdata info into the template
+		templateString = replace(templateString, Map.of(CDATA_KEY, join(SPACE, elements)));
 
-        // execute the template
+		// execute the template
 
-        // Saxon is used to support XSLT 2.0
-        Transformer transformer = TransformerFactory.newInstance(SAXON_CLASS, null)
-                .newTransformer(new StreamSource(new StringReader(templateString)));
+		// Saxon is used to support XSLT 2.0
+		Transformer transformer = TransformerFactory.newInstance(SAXON_CLASS, null)
+			.newTransformer(new StreamSource(new StringReader(templateString)));
 
-        if (MapUtils.isNotEmpty(params)) {
-            params.forEach(transformer::setParameter);
-        }
+		if (MapUtils.isNotEmpty(params)) {
+			params.forEach(transformer::setParameter);
+		}
 
-        if (uriResolver != null) {
-            transformer.setURIResolver(uriResolver);
-        }
+		if (uriResolver != null) {
+			transformer.setURIResolver(uriResolver);
+		}
 
-        transformer.transform(new StreamSource(new StringReader(contentString)), new StreamResult(output));
-    }
+		transformer.transform(new StreamSource(new StringReader(contentString)), new StreamResult(output));
+	}
 
 }

@@ -28,16 +28,16 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_
  */
 public class BlueprintsVersionProvider extends AbstractVersionProvider<String> {
 
-    @Override
-    protected String doGetVersion(UpgradeContext<String> context) throws Exception {
-        // The version is fixed for now so bp are always updated, in the future this should be replaced with
-        // a proper implementation
-        return VERSION_3_0_0;
-    }
+	@Override
+	protected String doGetVersion(UpgradeContext<String> context) throws Exception {
+		// The version is fixed for now so bp are always updated, in the future this should be replaced with
+		// a proper implementation
+		return VERSION_3_0_0;
+	}
 
-    @Override
-    protected void doSetVersion(UpgradeContext<String> context, String newVersion) throws Exception {
-        // do nothing for now
-    }
+	@Override
+	protected void doSetVersion(UpgradeContext<String> context, String newVersion) throws Exception {
+		// do nothing for now
+	}
 
 }

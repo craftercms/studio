@@ -18,16 +18,16 @@ package scripts.api.impl.content
 
 class SpringPageNavigationOrderServices {
 
-    static PAGENAVORDER_SERVICES_BEAN = "cstudioPageNavOrderService"
+	static PAGENAVORDER_SERVICES_BEAN = "cstudioPageNavOrderService"
 
-    def context = null
+	def context = null
 
-    def SpringPageNavigationOrderServices(context) {
-        this.context = context
-    }
+	def SpringPageNavigationOrderServices(context) {
+		this.context = context
+	}
 
-    def getNewNavOrder(site, path) {
-        def springBackedService = this.context.applicationContext.get(PAGENAVORDER_SERVICES_BEAN);
-        return springBackedService.getNewNavOrder(site, path);
-    }
+	def getNewNavOrder(site, path) {
+		def springBackedService = this.context.applicationContext.get(PAGENAVORDER_SERVICES_BEAN);
+		return springBackedService.getNewNavOrder(site, path);
+	}
 }

@@ -22,6 +22,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
 import jakarta.validation.Valid;
+
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
@@ -33,102 +34,102 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 @JsonIgnoreProperties
 public class GetChildrenBulkRequest {
-    private List<@Valid PathParams> paths;
+	private List<@Valid PathParams> paths;
 
-    public List<PathParams> getPaths() {
-        return paths;
-    }
+	public List<PathParams> getPaths() {
+		return paths;
+	}
 
-    public void setPaths(List<PathParams> paths) {
-        this.paths = paths;
-    }
+	public void setPaths(List<PathParams> paths) {
+		this.paths = paths;
+	}
 
-    public static class PathParams {
-        @ValidExistingContentPath
-        private String path;
-        @ValidateNoTagsParam
-        private String localeCode;
-        @ValidateNoTagsParam
-        private String keyword;
-        private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
-        private List<@ValidExistingContentPath String> excludes;
-        @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst|lastUpdate")
-        private String sortStrategy;
-        @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
-        private String order = "ASC";
-        private int offset = 0;
-        private int limit = 10;
+	public static class PathParams {
+		@ValidExistingContentPath
+		private String path;
+		@ValidateNoTagsParam
+		private String localeCode;
+		@ValidateNoTagsParam
+		private String keyword;
+		private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
+		private List<@ValidExistingContentPath String> excludes;
+		@ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst|lastUpdate")
+		private String sortStrategy;
+		@ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
+		private String order = "ASC";
+		private int offset = 0;
+		private int limit = 10;
 
-        public String getPath() {
-            return path;
-        }
+		public String getPath() {
+			return path;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public void setPath(String path) {
+			this.path = path;
+		}
 
-        public String getLocaleCode() {
-            return localeCode;
-        }
+		public String getLocaleCode() {
+			return localeCode;
+		}
 
-        public void setLocaleCode(String localeCode) {
-            this.localeCode = localeCode;
-        }
+		public void setLocaleCode(String localeCode) {
+			this.localeCode = localeCode;
+		}
 
-        public String getKeyword() {
-            return keyword;
-        }
+		public String getKeyword() {
+			return keyword;
+		}
 
-        public void setKeyword(String keyword) {
-            this.keyword = keyword;
-        }
+		public void setKeyword(String keyword) {
+			this.keyword = keyword;
+		}
 
-        public List<String> getSystemTypes() {
-            return systemTypes;
-        }
+		public List<String> getSystemTypes() {
+			return systemTypes;
+		}
 
-        public void setSystemTypes(List<String> systemTypes) {
-            this.systemTypes = systemTypes;
-        }
+		public void setSystemTypes(List<String> systemTypes) {
+			this.systemTypes = systemTypes;
+		}
 
-        public List<String> getExcludes() {
-            return excludes;
-        }
+		public List<String> getExcludes() {
+			return excludes;
+		}
 
-        public void setExcludes(List<String> excludes) {
-            this.excludes = excludes;
-        }
+		public void setExcludes(List<String> excludes) {
+			this.excludes = excludes;
+		}
 
-        public String getSortStrategy() {
-            return sortStrategy;
-        }
+		public String getSortStrategy() {
+			return sortStrategy;
+		}
 
-        public void setSortStrategy(String sortStrategy) {
-            this.sortStrategy = sortStrategy;
-        }
+		public void setSortStrategy(String sortStrategy) {
+			this.sortStrategy = sortStrategy;
+		}
 
-        public String getOrder() {
-            return order;
-        }
+		public String getOrder() {
+			return order;
+		}
 
-        public void setOrder(String order) {
-            this.order = order;
-        }
+		public void setOrder(String order) {
+			this.order = order;
+		}
 
-        public int getOffset() {
-            return offset;
-        }
+		public int getOffset() {
+			return offset;
+		}
 
-        public void setOffset(int offset) {
-            this.offset = offset;
-        }
+		public void setOffset(int offset) {
+			this.offset = offset;
+		}
 
-        public int getLimit() {
-            return limit;
-        }
+		public int getLimit() {
+			return limit;
+		}
 
-        public void setLimit(int limit) {
-            this.limit = limit;
-        }
-    }
+		public void setLimit(int limit) {
+			this.limit = limit;
+		}
+	}
 }

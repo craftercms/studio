@@ -28,22 +28,22 @@ import java.util.Map;
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class DuplicateTargetRequest {
-    private final String siteName;
-    @JsonUnwrapped
-    private final Map<String, Object> templateParams;
+	private final String siteName;
+	@JsonUnwrapped
+	private final Map<String, Object> templateParams;
 
-    public DuplicateTargetRequest(final String siteId, final Map<String, Object> templateParams) {
-        this.siteName = siteId;
-        this.templateParams = templateParams;
-    }
+	public DuplicateTargetRequest(final String siteId, final Map<String, Object> templateParams) {
+		this.siteName = siteId;
+		this.templateParams = templateParams;
+	}
 
-    public String getSiteName() {
-        return siteName;
-    }
+	public String getSiteName() {
+		return siteName;
+	}
 
-    @JsonUnwrapped
-    @JsonAnyGetter
-    public Map<String, Object> getTemplateParams() {
-        return templateParams;
-    }
+	@JsonUnwrapped
+	@JsonAnyGetter
+	public Map<String, Object> getTemplateParams() {
+		return templateParams;
+	}
 }

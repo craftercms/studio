@@ -44,199 +44,199 @@ import static org.craftercms.studio.api.v2.event.task.TaskEvent.*;
  */
 class TaskProgressImpl<K extends TaskId, R> implements TaskProgress<K, R>, ApplicationEventPublisherAware {
 
-    private final SequencedCollection<Stage> stages = synchronizedList(new LinkedList<>());
-    private TaskState state = TaskState.READY;
-    private final Task<K> task;
-    private final TaskManager taskManager;
-    private Instant startTime;
-    private Instant endTime;
-    private TaskResult<R> taskResult;
+	private final SequencedCollection<Stage> stages = synchronizedList(new LinkedList<>());
+	private TaskState state = TaskState.READY;
+	private final Task<K> task;
+	private final TaskManager taskManager;
+	private Instant startTime;
+	private Instant endTime;
+	private TaskResult<R> taskResult;
 
-    private ApplicationEventPublisher eventPublisher;
+	private ApplicationEventPublisher eventPublisher;
 
-    public TaskProgressImpl(final Task<K> task, final TaskManager taskManager) {
-        this.task = task;
-        this.taskManager = taskManager;
-    }
+	public TaskProgressImpl(final Task<K> task, final TaskManager taskManager) {
+		this.task = task;
+		this.taskManager = taskManager;
+	}
 
-    @Override
-    public SequencedCollection<TaskProgress.Stage> getStages() {
-        return unmodifiableSequencedCollection(stages);
-    }
+	@Override
+	public SequencedCollection<TaskProgress.Stage> getStages() {
+		return unmodifiableSequencedCollection(stages);
+	}
 
-    @Override
-    public Stage startStage(final String name, final int total) {
-        Stage stage = new StageImpl(name);
-        stage.setTotal(total);
-        stage.start();
-        stages.add(stage);
-        notifyProgress();
-        return stage;
-    }
+	@Override
+	public Stage startStage(final String name, final int total) {
+		Stage stage = new StageImpl(name);
+		stage.setTotal(total);
+		stage.start();
+		stages.add(stage);
+		notifyProgress();
+		return stage;
+	}
 
-    @Override
-    public void complete(final R result) {
-        complete(true, result, null);
-    }
+	@Override
+	public void complete(final R result) {
+		complete(true, result, null);
+	}
 
-    @Override
-    public void completeWithErrors(final R result, final String errorMessage) {
-        complete(false, result, errorMessage);
-    }
+	@Override
+	public void completeWithErrors(final R result, final String errorMessage) {
+		complete(false, result, errorMessage);
+	}
 
-    /**
-     * Mark the task as completed
-     *
-     * @param success      true if the task was successful
-     * @param errorMessage the error message if the task failed
-     */
-    private void complete(final boolean success, final R result, final String errorMessage) {
-        state = TaskState.COMPLETED;
-        endTime = Instant.now();
-        taskResult = new TaskResult<>(success, errorMessage, result);
-        notifyComplete();
-        taskManager.removeTask(getTask().getTaskId());
-    }
+	/**
+	 * Mark the task as completed
+	 *
+	 * @param success      true if the task was successful
+	 * @param errorMessage the error message if the task failed
+	 */
+	private void complete(final boolean success, final R result, final String errorMessage) {
+		state = TaskState.COMPLETED;
+		endTime = Instant.now();
+		taskResult = new TaskResult<>(success, errorMessage, result);
+		notifyComplete();
+		taskManager.removeTask(getTask().getTaskId());
+	}
 
-    @Override
-    public void start() {
-        state = TaskState.IN_PROGRESS;
-        startTime = Instant.now();
-        notifyStart();
-    }
+	@Override
+	public void start() {
+		state = TaskState.IN_PROGRESS;
+		startTime = Instant.now();
+		notifyStart();
+	}
 
-    @Override
-    public TaskState getState() {
-        return state;
-    }
+	@Override
+	public TaskState getState() {
+		return state;
+	}
 
-    @Override
-    public Instant getEndTime() {
-        return startTime;
-    }
+	@Override
+	public Instant getEndTime() {
+		return startTime;
+	}
 
-    @Override
-    public Instant getStartTime() {
-        return endTime;
-    }
+	@Override
+	public Instant getStartTime() {
+		return endTime;
+	}
 
-    @Override
-    public TaskResult<R> getResult() {
-        return taskResult;
-    }
+	@Override
+	public TaskResult<R> getResult() {
+		return taskResult;
+	}
 
-    @Override
-    @JsonUnwrapped
-    @NonNull
-    public Task<K> getTask() {
-        return task;
-    }
+	@Override
+	@JsonUnwrapped
+	@NonNull
+	public Task<K> getTask() {
+		return task;
+	}
 
-    private void notifyStart() {
-        eventPublisher.publishEvent(new TaskEvent(this, EVENT_TYPE_TASK_STARTED));
-    }
+	private void notifyStart() {
+		eventPublisher.publishEvent(new TaskEvent(this, EVENT_TYPE_TASK_STARTED));
+	}
 
-    private void notifyProgress() {
-        eventPublisher.publishEvent(new TaskEvent(this, EVENT_TYPE_TASK_PROGRESS));
-    }
+	private void notifyProgress() {
+		eventPublisher.publishEvent(new TaskEvent(this, EVENT_TYPE_TASK_PROGRESS));
+	}
 
-    private void notifyComplete() {
-        eventPublisher.publishEvent(new TaskEvent(this, EVENT_TYPE_TASK_COMPLETED));
-    }
+	private void notifyComplete() {
+		eventPublisher.publishEvent(new TaskEvent(this, EVENT_TYPE_TASK_COMPLETED));
+	}
 
-    @Override
-    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
-        this.eventPublisher = applicationEventPublisher;
-    }
+	@Override
+	public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+		this.eventPublisher = applicationEventPublisher;
+	}
 
-    @Override
-    public String toString() {
-        return """
-                TaskProgressImpl {task=%s, startTime="%s", endTime="%s", state=%s, result=%s, stages=%s}"""
-                .formatted(task, startTime, endTime, state, taskResult, stages);
-    }
+	@Override
+	public String toString() {
+		return """
+			TaskProgressImpl {task=%s, startTime="%s", endTime="%s", state=%s, result=%s, stages=%s}"""
+			.formatted(task, startTime, endTime, state, taskResult, stages);
+	}
 
-    /**
-     * Default {@link TaskProgress.Stage} implementation
-     */
-    private class StageImpl implements TaskProgress.Stage {
-        private final String name;
-        private int total;
-        private final AtomicInteger processed = new AtomicInteger(0);
-        private TaskState state = TaskState.READY;
-        private boolean errors;
+	/**
+	 * Default {@link TaskProgress.Stage} implementation
+	 */
+	private class StageImpl implements TaskProgress.Stage {
+		private final String name;
+		private int total;
+		private final AtomicInteger processed = new AtomicInteger(0);
+		private TaskState state = TaskState.READY;
+		private boolean errors;
 
-        public StageImpl(String name) {
-            this.name = name;
-        }
+		public StageImpl(String name) {
+			this.name = name;
+		}
 
-        @Override
-        public boolean getErrors() {
-            return errors;
-        }
+		@Override
+		public boolean getErrors() {
+			return errors;
+		}
 
-        @Override
-        public void setErrors() {
-            this.errors = true;
-        }
+		@Override
+		public void setErrors() {
+			this.errors = true;
+		}
 
-        @Override
-        public String getName() {
-            return name;
-        }
+		@Override
+		public String getName() {
+			return name;
+		}
 
-        @Override
-        public int getProcessed() {
-            return processed.get();
-        }
+		@Override
+		public int getProcessed() {
+			return processed.get();
+		}
 
-        @Override
-        public void advance(final int increase) {
-            this.processed.addAndGet(increase);
-            notifyProgress();
-        }
+		@Override
+		public void advance(final int increase) {
+			this.processed.addAndGet(increase);
+			notifyProgress();
+		}
 
-        @Override
-        public Stage start() {
-            state = TaskState.IN_PROGRESS;
-            notifyProgress();
-            return this;
-        }
+		@Override
+		public Stage start() {
+			state = TaskState.IN_PROGRESS;
+			notifyProgress();
+			return this;
+		}
 
-        @Override
-        public void complete() {
-            this.processed.set(total);
-            this.state = TaskState.COMPLETED;
-            notifyProgress();
-        }
+		@Override
+		public void complete() {
+			this.processed.set(total);
+			this.state = TaskState.COMPLETED;
+			notifyProgress();
+		}
 
-        @Override
-        public TaskState getState() {
-            return state;
-        }
+		@Override
+		public TaskState getState() {
+			return state;
+		}
 
-        @Override
-        public void setState(final TaskState state) {
-            this.state = state;
-            notifyProgress();
-        }
+		@Override
+		public void setState(final TaskState state) {
+			this.state = state;
+			notifyProgress();
+		}
 
-        @Override
-        public int getTotal() {
-            return total;
-        }
+		@Override
+		public int getTotal() {
+			return total;
+		}
 
-        @Override
-        public Stage setTotal(int total) {
-            this.total = total;
-            return this;
-        }
+		@Override
+		public Stage setTotal(int total) {
+			this.total = total;
+			return this;
+		}
 
-        @Override
-        public String toString() {
-            return """
-                    StageImpl {name="%s", state=%s, total=%s, processed=%s, errors=%s}"""
-                    .formatted(name, state, total, processed, errors);
-        }
-    }
+		@Override
+		public String toString() {
+			return """
+				StageImpl {name="%s", state=%s, total=%s, processed=%s, errors=%s}"""
+				.formatted(name, state, total, processed, errors);
+		}
+	}
 }

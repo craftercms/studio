@@ -28,193 +28,193 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageSta
  */
 public class PublishPackageTO {
 
-    private final PublishPackage publishPackage;
-    private static final TargetStrategy LIVE_STRATEGY = new LiveStrategy();
-    private static final TargetStrategy STAGING_STRATEGY = new StagingStrategy();
-    private final TargetStrategy targetStrategy;
+	private final PublishPackage publishPackage;
+	private static final TargetStrategy LIVE_STRATEGY = new LiveStrategy();
+	private static final TargetStrategy STAGING_STRATEGY = new StagingStrategy();
+	private final TargetStrategy targetStrategy;
 
-    public PublishPackageTO(final PublishPackage publishPackage, final boolean isLiveTarget) {
-        this.publishPackage = publishPackage;
-        targetStrategy = isLiveTarget ? LIVE_STRATEGY : STAGING_STRATEGY;
-    }
+	public PublishPackageTO(final PublishPackage publishPackage, final boolean isLiveTarget) {
+		this.publishPackage = publishPackage;
+		targetStrategy = isLiveTarget ? LIVE_STRATEGY : STAGING_STRATEGY;
+	}
 
-    public PublishPackage getPackage() {
-        return publishPackage;
-    }
+	public PublishPackage getPackage() {
+		return publishPackage;
+	}
 
-    public long getSuccessOnBits() {
-        return targetStrategy.getSuccessOnBits();
-    }
+	public long getSuccessOnBits() {
+		return targetStrategy.getSuccessOnBits();
+	}
 
-    public long getFailedOnBits() {
-        return targetStrategy.getFailedOnBits();
-    }
+	public long getFailedOnBits() {
+		return targetStrategy.getFailedOnBits();
+	}
 
-    public long getCompletedWithErrorsOnBits() {
-        return targetStrategy.getCompletedWithErrorsOnBits();
-    }
+	public long getCompletedWithErrorsOnBits() {
+		return targetStrategy.getCompletedWithErrorsOnBits();
+	}
 
-    public long getId() {
-        return getPackage().getId();
-    }
+	public long getId() {
+		return getPackage().getId();
+	}
 
-    public Site getSite() {
-        return getPackage().getSite();
-    }
+	public Site getSite() {
+		return getPackage().getSite();
+	}
 
-    public void setPublishedCommitId(String commitId) {
-        targetStrategy.setPublishedCommitId(publishPackage, commitId);
-    }
+	public void setPublishedCommitId(String commitId) {
+		targetStrategy.setPublishedCommitId(publishPackage, commitId);
+	}
 
-    public PublishPackage.PackageType getPackageType() {
-        return getPackage().getPackageType();
-    }
+	public PublishPackage.PackageType getPackageType() {
+		return getPackage().getPackageType();
+	}
 
-    public long getItemSuccessOnMask() {
-        return targetStrategy.getItemSuccessOnMask();
-    }
+	public long getItemSuccessOnMask() {
+		return targetStrategy.getItemSuccessOnMask();
+	}
 
-    public long getItemSuccessOffMask() {
-        return targetStrategy.getItemSuccessOffMask();
-    }
+	public long getItemSuccessOffMask() {
+		return targetStrategy.getItemSuccessOffMask();
+	}
 
-    public long getItemFailureOffMask() {
-        return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
-    }
+	public long getItemFailureOffMask() {
+		return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
+	}
 
-    public long getItemSuccessState() {
-        return targetStrategy.getItemSuccessState();
-    }
+	public long getItemSuccessState() {
+		return targetStrategy.getItemSuccessState();
+	}
 
-    public void setError(final int errorCode) {
-        targetStrategy.setError(publishPackage, errorCode);
-    }
+	public void setError(final int errorCode) {
+		targetStrategy.setError(publishPackage, errorCode);
+	}
 
-    public String getPublishedCommitId() {
-        return targetStrategy.getPublishCommitId(publishPackage);
-    }
+	public String getPublishedCommitId() {
+		return targetStrategy.getPublishCommitId(publishPackage);
+	}
 
-    /**
-     * Stategy to access the target specific fields of the {@link PublishPackage}
-     */
-    private interface TargetStrategy {
+	/**
+	 * Stategy to access the target specific fields of the {@link PublishPackage}
+	 */
+	private interface TargetStrategy {
 
-        long getSuccessOnBits();
+		long getSuccessOnBits();
 
-        long getFailedOnBits();
+		long getFailedOnBits();
 
-        void setPublishedCommitId(PublishPackage publishPackage, String commitId);
+		void setPublishedCommitId(PublishPackage publishPackage, String commitId);
 
-        long getCompletedWithErrorsOnBits();
+		long getCompletedWithErrorsOnBits();
 
-        long getItemSuccessOnMask();
+		long getItemSuccessOnMask();
 
-        long getItemSuccessOffMask();
+		long getItemSuccessOffMask();
 
-        long getItemSuccessState();
+		long getItemSuccessState();
 
-        void setError(PublishPackage publishPackage, int errorCode);
+		void setError(PublishPackage publishPackage, int errorCode);
 
-        String getPublishCommitId(PublishPackage publishPackage);
-    }
+		String getPublishCommitId(PublishPackage publishPackage);
+	}
 
-    /**
-     * Strategy for the live target
-     */
-    private static class LiveStrategy implements TargetStrategy {
-        @Override
-        public long getSuccessOnBits() {
-            return LIVE_SUCCESS.value;
-        }
+	/**
+	 * Strategy for the live target
+	 */
+	private static class LiveStrategy implements TargetStrategy {
+		@Override
+		public long getSuccessOnBits() {
+			return LIVE_SUCCESS.value;
+		}
 
-        @Override
-        public long getFailedOnBits() {
-            return LIVE_FAILED.value;
-        }
+		@Override
+		public long getFailedOnBits() {
+			return LIVE_FAILED.value;
+		}
 
-        @Override
-        public long getCompletedWithErrorsOnBits() {
-            return LIVE_COMPLETED_WITH_ERRORS.value;
-        }
+		@Override
+		public long getCompletedWithErrorsOnBits() {
+			return LIVE_COMPLETED_WITH_ERRORS.value;
+		}
 
-        @Override
-        public void setPublishedCommitId(final PublishPackage publishPackage, final String commitId) {
-            publishPackage.setPublishedLiveCommitId(commitId);
-        }
+		@Override
+		public void setPublishedCommitId(final PublishPackage publishPackage, final String commitId) {
+			publishPackage.setPublishedLiveCommitId(commitId);
+		}
 
-        @Override
-        public long getItemSuccessOnMask() {
-            return LIVE.value;
-        }
+		@Override
+		public long getItemSuccessOnMask() {
+			return LIVE.value;
+		}
 
-        @Override
-        public long getItemSuccessOffMask() {
-            return NEW.value + MODIFIED.value + USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value + DESTINATION.value;
-        }
+		@Override
+		public long getItemSuccessOffMask() {
+			return NEW.value + MODIFIED.value + USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value + DESTINATION.value;
+		}
 
-        @Override
-        public long getItemSuccessState() {
-            return PublishItem.PublishState.LIVE_SUCCESS.value;
-        }
+		@Override
+		public long getItemSuccessState() {
+			return PublishItem.PublishState.LIVE_SUCCESS.value;
+		}
 
-        @Override
-        public void setError(PublishPackage publishPackage, int errorCode) {
-            publishPackage.setLiveError(errorCode);
-        }
+		@Override
+		public void setError(PublishPackage publishPackage, int errorCode) {
+			publishPackage.setLiveError(errorCode);
+		}
 
-        @Override
-        public String getPublishCommitId(PublishPackage publishPackage) {
-            return publishPackage.getPublishedLiveCommitId();
-        }
-    }
+		@Override
+		public String getPublishCommitId(PublishPackage publishPackage) {
+			return publishPackage.getPublishedLiveCommitId();
+		}
+	}
 
-    /**
-     * Strategy for the staging target
-     */
-    private static class StagingStrategy implements TargetStrategy {
-        @Override
-        public long getSuccessOnBits() {
-            return STAGING_SUCCESS.value;
-        }
+	/**
+	 * Strategy for the staging target
+	 */
+	private static class StagingStrategy implements TargetStrategy {
+		@Override
+		public long getSuccessOnBits() {
+			return STAGING_SUCCESS.value;
+		}
 
-        @Override
-        public long getFailedOnBits() {
-            return STAGING_FAILED.value;
-        }
+		@Override
+		public long getFailedOnBits() {
+			return STAGING_FAILED.value;
+		}
 
-        @Override
-        public long getCompletedWithErrorsOnBits() {
-            return STAGING_COMPLETED_WITH_ERRORS.value;
-        }
+		@Override
+		public long getCompletedWithErrorsOnBits() {
+			return STAGING_COMPLETED_WITH_ERRORS.value;
+		}
 
-        @Override
-        public void setPublishedCommitId(final PublishPackage publishPackage, final String commitId) {
-            publishPackage.setPublishedStagingCommitId(commitId);
-        }
+		@Override
+		public void setPublishedCommitId(final PublishPackage publishPackage, final String commitId) {
+			publishPackage.setPublishedStagingCommitId(commitId);
+		}
 
-        @Override
-        public long getItemSuccessOnMask() {
-            return STAGED.value;
-        }
+		@Override
+		public long getItemSuccessOnMask() {
+			return STAGED.value;
+		}
 
-        @Override
-        public long getItemSuccessOffMask() {
-            return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
-        }
+		@Override
+		public long getItemSuccessOffMask() {
+			return USER_LOCKED.value + IN_WORKFLOW.value + SCHEDULED.value;
+		}
 
-        @Override
-        public long getItemSuccessState() {
-            return PublishItem.PublishState.STAGING_SUCCESS.value;
-        }
+		@Override
+		public long getItemSuccessState() {
+			return PublishItem.PublishState.STAGING_SUCCESS.value;
+		}
 
-        @Override
-        public void setError(PublishPackage publishPackage, int errorCode) {
-            publishPackage.setStagingError(errorCode);
-        }
+		@Override
+		public void setError(PublishPackage publishPackage, int errorCode) {
+			publishPackage.setStagingError(errorCode);
+		}
 
-        @Override
-        public String getPublishCommitId(PublishPackage publishPackage) {
-            return publishPackage.getPublishedStagingCommitId();
-        }
-    }
+		@Override
+		public String getPublishCommitId(PublishPackage publishPackage) {
+			return publishPackage.getPublishedStagingCommitId();
+		}
+	}
 }

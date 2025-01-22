@@ -34,135 +34,135 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
  */
 public interface DependencyDAO {
 
-    String SOURCE_PATH_COLUMN_NAME = "source_path";
-    String TARGET_PATH_COLUMN_NAME = "target_path";
+	String SOURCE_PATH_COLUMN_NAME = "source_path";
+	String TARGET_PATH_COLUMN_NAME = "target_path";
 
-    /**
-     * Get soft dependencies from DB for list of content paths
-     * This query is recursive, so it will get soft deps of soft deps, filtering the
-     * non-new/non-edited items at the end.
-     *
-     * @param site                             site identifier
-     * @param paths                            list of content paths
-     * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param modifiedMask                     state bit mask for modified item
-     * @param newMask                          state bit mask for new item
-     * @return List of soft dependencies
-     */
-    List<Map<String, String>> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-                                                         @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-                                                         @Param(MODIFIED_MASK) long modifiedMask,
-                                                         @Param(NEW_MASK) long newMask);
+	/**
+	 * Get soft dependencies from DB for list of content paths
+	 * This query is recursive, so it will get soft deps of soft deps, filtering the
+	 * non-new/non-edited items at the end.
+	 *
+	 * @param site                             site identifier
+	 * @param paths                            list of content paths
+	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+	 * @param modifiedMask                     state bit mask for modified item
+	 * @param newMask                          state bit mask for new item
+	 * @return List of soft dependencies
+	 */
+	List<Map<String, String>> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+							     @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+							     @Param(MODIFIED_MASK) long modifiedMask,
+							     @Param(NEW_MASK) long newMask);
 
-    /**
-     * Get publishing soft dependencies from DB for list of content paths
-     *
-     * @param site                             site identifier
-     * @param paths                            list of content paths
-     * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param modifiedMask                     state bit mask for modified item
-     * @param newMask                          state bit mask for new item
-     * @return List of soft dependencies
-     */
-    List<Map<String, String>> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-                                                                   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-                                                                   @Param(MODIFIED_MASK) long modifiedMask,
-                                                                   @Param(NEW_MASK) long newMask);
+	/**
+	 * Get publishing soft dependencies from DB for list of content paths
+	 *
+	 * @param site                             site identifier
+	 * @param paths                            list of content paths
+	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+	 * @param modifiedMask                     state bit mask for modified item
+	 * @param newMask                          state bit mask for new item
+	 * @return List of soft dependencies
+	 */
+	List<Map<String, String>> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+								       @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+								       @Param(MODIFIED_MASK) long modifiedMask,
+								       @Param(NEW_MASK) long newMask);
 
-    /**
-     * Get hard dependencies from DB for list of content paths
-     *
-     * @param site                             site identifier
-     * @param paths                            list of content paths
-     * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param isLiveTarget true if publishing target is live, false if staging
-     * @return List of hard dependencies
-     */
-    default List<String> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
-                                                    final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
-        long newMaskOn = NEW.value;
-        long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
-        return getHardDependenciesForList(site, target, paths, itemSpecificDependenciesPatterns,
-                CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, isLiveTarget);
-    }
+	/**
+	 * Get hard dependencies from DB for list of content paths
+	 *
+	 * @param site                             site identifier
+	 * @param paths                            list of content paths
+	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+	 * @param isLiveTarget                     true if publishing target is live, false if staging
+	 * @return List of hard dependencies
+	 */
+	default List<String> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
+							final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
+		long newMaskOn = NEW.value;
+		long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
+		return getHardDependenciesForList(site, target, paths, itemSpecificDependenciesPatterns,
+			CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, isLiveTarget);
+	}
 
-    /**
-     * Get hard dependencies from DB for list of content paths
-     *
-     * @param site                             site identifier
-     * @param paths                            list of content paths
-     * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param systemTypeFolder                 system type folder
-     * @param newInTargetMaskOn                state bit mask for new item in target (e.g: never published in staging)
-     *                                         items must contain the bits in this mask
-     * @param newInTargetMaskOff               state bit mask for new item in target (e.g: never published in live)
-     *                                         items must not contain the bits in this mask
-     * @param isLiveTarget                     true if publishing target is live, false if staging
-     * @return List of hard dependencies
-     */
-    List<String> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
-                                            @Param(PATHS) Collection<String> paths,
-                                            @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-                                            @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                            @Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
-                                            @Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
-                                            @Param(IS_LIVE_TARGET) boolean isLiveTarget);
+	/**
+	 * Get hard dependencies from DB for list of content paths
+	 *
+	 * @param site                             site identifier
+	 * @param paths                            list of content paths
+	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+	 * @param systemTypeFolder                 system type folder
+	 * @param newInTargetMaskOn                state bit mask for new item in target (e.g: never published in staging)
+	 *                                         items must contain the bits in this mask
+	 * @param newInTargetMaskOff               state bit mask for new item in target (e.g: never published in live)
+	 *                                         items must not contain the bits in this mask
+	 * @param isLiveTarget                     true if publishing target is live, false if staging
+	 * @return List of hard dependencies
+	 */
+	List<String> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
+						@Param(PATHS) Collection<String> paths,
+						@Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+						@Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+						@Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
+						@Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
+						@Param(IS_LIVE_TARGET) boolean isLiveTarget);
 
-    /**
-     * Get items depending on given paths
-     *
-     * @param siteId site identifier
-     * @param paths  list of content paths
-     * @return List of items depending on given paths
-     */
-    List<String> getDependentItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
+	/**
+	 * Get items depending on given paths
+	 *
+	 * @param siteId site identifier
+	 * @param paths  list of content paths
+	 * @return List of items depending on given paths
+	 */
+	List<String> getDependentItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
 
-    /**
-     * Get item specific dependencies for given paths
-     *
-     * @param siteId site identifier
-     * @param paths  list of content paths
-     * @param regex  list of patterns that define item specific dependencies
-     * @return list of item specific dependencies
-     */
-    List<String> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
-                                             @Param(REGEX) List<String> regex);
+	/**
+	 * Get item specific dependencies for given paths
+	 *
+	 * @param siteId site identifier
+	 * @param paths  list of content paths
+	 * @param regex  list of patterns that define item specific dependencies
+	 * @return list of item specific dependencies
+	 */
+	List<String> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+						 @Param(REGEX) List<String> regex);
 
-    /**
-     * Delete the dependencies of sourcePath
-     *
-     * @param site       the site id
-     * @param sourcePath the source path of the dependencies to delete
-     */
-    void deleteItemDependencies(@Param(SITE_ID) String site, @Param(PATH) String sourcePath);
+	/**
+	 * Delete the dependencies of sourcePath
+	 *
+	 * @param site       the site id
+	 * @param sourcePath the source path of the dependencies to delete
+	 */
+	void deleteItemDependencies(@Param(SITE_ID) String site, @Param(PATH) String sourcePath);
 
-    /**
-     * Insert a list of dependency records
-     *
-     * @param dependencies the list of dependencies to insert
-     */
-    void insertItemDependencies(@Param(DEPENDENCIES) List<Dependency> dependencies);
+	/**
+	 * Insert a list of dependency records
+	 *
+	 * @param dependencies the list of dependencies to insert
+	 */
+	void insertItemDependencies(@Param(DEPENDENCIES) List<Dependency> dependencies);
 
-    /**
-     * Mark as invalid the dependency records with the given target path
-     *
-     * @param siteId     the site id
-     * @param targetPath the target path of the dependencies to invalidate
-     */
-    void invalidateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
+	/**
+	 * Mark as invalid the dependency records with the given target path
+	 *
+	 * @param siteId     the site id
+	 * @param targetPath the target path of the dependencies to invalidate
+	 */
+	void invalidateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
 
-    /**
-     * Mark as valid the dependency records with the given target path
-     *
-     * @param siteId     the site id
-     * @param targetPath the target path of the dependencies to validate
-     */
-    void validateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
+	/**
+	 * Mark as valid the dependency records with the given target path
+	 *
+	 * @param siteId     the site id
+	 * @param targetPath the target path of the dependencies to validate
+	 */
+	void validateDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String targetPath);
 
-    /**
-     * Mark as valid/invalid all site dependencies depending on the existence of the target_path in the site
-     *
-     * @param siteId the site id
-     */
-    void validateDependenciesForSite(@Param(SITE_ID) String siteId);
+	/**
+	 * Mark as valid/invalid all site dependencies depending on the existence of the target_path in the site
+	 *
+	 * @param siteId the site id
+	 */
+	void validateDependenciesForSite(@Param(SITE_ID) String siteId);
 }

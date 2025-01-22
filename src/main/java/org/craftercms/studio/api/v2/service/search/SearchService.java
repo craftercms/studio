@@ -26,32 +26,32 @@ import org.craftercms.studio.model.search.SearchResult;
  * @author joseross
  */
 public interface SearchService {
-    /**
-     * The default maximum number of terms for fuzzy queries expands to.
-     */
-    int DEFAULT_MAX_EXPANSIONS = 50;
+	/**
+	 * The default maximum number of terms for fuzzy queries expands to.
+	 */
+	int DEFAULT_MAX_EXPANSIONS = 50;
 
-    /**
-     * Performs a search operation for a given site
-     *
-     * @param siteId        the id of the site
-     * @param params        the parameters for the search
-     * @param maxExpansions Specifies the maximum number of terms for fuzzy queries expands to.
-     * @return the search results
-     * @throws ServiceLayerException if there is any error executing the search in OpenSearch
-     */
-    SearchResult search(String siteId, SearchParams params, int maxExpansions) throws ServiceLayerException;
+	/**
+	 * Performs a search operation for a given site
+	 *
+	 * @param siteId        the id of the site
+	 * @param params        the parameters for the search
+	 * @param maxExpansions Specifies the maximum number of terms for fuzzy queries expands to.
+	 * @return the search results
+	 * @throws ServiceLayerException if there is any error executing the search in OpenSearch
+	 */
+	SearchResult search(String siteId, SearchParams params, int maxExpansions) throws ServiceLayerException;
 
-    /**
-     * Performs a search operation for a given site
-     *
-     * @param siteId the id of the site
-     * @param params the parameters for the search
-     * @return the search results
-     * @throws ServiceLayerException if there is any error executing the search in OpenSearch
-     */
-    default SearchResult search(String siteId, SearchParams params) throws ServiceLayerException {
-        return search(siteId, params, DEFAULT_MAX_EXPANSIONS);
-    }
+	/**
+	 * Performs a search operation for a given site
+	 *
+	 * @param siteId the id of the site
+	 * @param params the parameters for the search
+	 * @return the search results
+	 * @throws ServiceLayerException if there is any error executing the search in OpenSearch
+	 */
+	default SearchResult search(String siteId, SearchParams params) throws ServiceLayerException {
+		return search(siteId, params, DEFAULT_MAX_EXPANSIONS);
+	}
 
 }

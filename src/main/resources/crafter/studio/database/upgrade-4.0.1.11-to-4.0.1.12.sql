@@ -15,9 +15,10 @@
  */
 
 -- Drop unused table
-DROP TABLE IF EXISTS `cluster_remote_repository` ;
+DROP TABLE IF EXISTS `cluster_remote_repository`;
 
 -- Drop unused procedure
-DROP PROCEDURE IF EXISTS tryLockPublishingForSite ;
+DROP PROCEDURE IF EXISTS tryLockPublishingForSite;
 
-UPDATE `_meta` SET `version` = '4.0.1.12' ;
+UPDATE `_meta`
+SET `version` = '4.0.1.12';

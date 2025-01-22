@@ -15,6 +15,7 @@
  */
 
 ALTER TABLE `workflow`
-ADD COLUMN `submitted_on` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `submitter_comment` ;
+    ADD COLUMN `submitted_on` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `submitter_comment`;
 
-UPDATE `_meta` SET `version` = '4.1.4' ;
+UPDATE `_meta`
+SET `version` = '4.1.4';

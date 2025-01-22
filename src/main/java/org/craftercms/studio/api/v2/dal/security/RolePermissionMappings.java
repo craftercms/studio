@@ -21,26 +21,26 @@ import java.util.Map;
 
 public class RolePermissionMappings {
 
-    private String role;
-    private Map<String, Long> ruleContentItemPermissions = new HashMap<>();
+	private String role;
+	private Map<String, Long> ruleContentItemPermissions = new HashMap<>();
 
-    public void addRuleContentItemPermissionsMapping(String rule, Long contentItemAvailableActions) {
-        ruleContentItemPermissions.put(rule, contentItemAvailableActions);
-    }
+	public void addRuleContentItemPermissionsMapping(String rule, Long contentItemAvailableActions) {
+		ruleContentItemPermissions.put(rule, contentItemAvailableActions);
+	}
 
-    public String getRole() {
-        return role;
-    }
+	public String getRole() {
+		return role;
+	}
 
-    public void setRole(String role) {
-        this.role = role;
-    }
+	public void setRole(String role) {
+		this.role = role;
+	}
 
-    public Map<String, Long> getRuleContentItemPermissions() {
-        return ruleContentItemPermissions;
-    }
+	public Map<String, Long> getRuleContentItemPermissions() {
+		return ruleContentItemPermissions;
+	}
 
-    public void setRuleContentItemPermissions(Map<String, Long> ruleContentItemPermissions) {
-        this.ruleContentItemPermissions = ruleContentItemPermissions;
-    }
+	public void setRuleContentItemPermissions(Map<String, Long> ruleContentItemPermissions) {
+		this.ruleContentItemPermissions = ruleContentItemPermissions;
+	}
 }

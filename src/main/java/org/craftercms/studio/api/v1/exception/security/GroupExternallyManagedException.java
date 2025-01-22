@@ -17,24 +17,24 @@
 package org.craftercms.studio.api.v1.exception.security;
 
 public class GroupExternallyManagedException extends Exception {
-    private static final long serialVersionUID = -316775558996268318L;
+	private static final long serialVersionUID = -316775558996268318L;
 
-    public GroupExternallyManagedException() {
-    }
+	public GroupExternallyManagedException() {
+	}
 
-    public GroupExternallyManagedException(String message) {
-        super(message);
-    }
+	public GroupExternallyManagedException(String message) {
+		super(message);
+	}
 
-    public GroupExternallyManagedException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public GroupExternallyManagedException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public GroupExternallyManagedException(Throwable cause) {
-        super(cause);
-    }
+	public GroupExternallyManagedException(Throwable cause) {
+		super(cause);
+	}
 
-    public GroupExternallyManagedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public GroupExternallyManagedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

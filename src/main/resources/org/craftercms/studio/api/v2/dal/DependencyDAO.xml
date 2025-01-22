@@ -16,244 +16,245 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.DependencyDAO">
 
-    <resultMap id="DependencyMap" type="org.craftercms.studio.api.v2.dal.Dependency">
-        <id property="id" column="id"/>
-        <result property="site" column="site"/>
-        <result property="sourcePath" column="source_path"/>
-        <result property="targetPath" column="target_path"/>
-        <result property="type" column="type"/>
-    </resultMap>
+	<resultMap id="DependencyMap" type="org.craftercms.studio.api.v2.dal.Dependency">
+		<id property="id" column="id"/>
+		<result property="site" column="site"/>
+		<result property="sourcePath" column="source_path"/>
+		<result property="targetPath" column="target_path"/>
+		<result property="type" column="type"/>
+	</resultMap>
 
-    <select id="getSoftDependenciesForList" resultType="java.util.Map">
-        WITH RECURSIVE CTE AS (
-                SELECT d.source_path, d.target_path, d.site
-                FROM dependency d
-                WHERE d.source_path IN
-                        <foreach item="path" index="index" collection="paths"
-                                 open="(" separator="," close=")">
-                            #{path}
-                        </foreach>
-                AND d.site = #{siteId}
-                AND d.valid = 1
-            UNION
-                SELECT d.source_path, d.target_path, d.site
-                FROM cte, dependency d
-                WHERE cte.target_path = d.source_path
-                AND d.site = #{siteId}
-                AND cte.site = #{siteId}
-                AND d.valid = 1
-        )
-        SELECT cte.source_path, cte.target_path
-        FROM cte
-            INNER JOIN site s ON s.site_id = cte.site
-            INNER JOIN item i ON i.path = cte.target_path
-            AND i.site_id = s.id
-            AND s.deleted = 0
-            AND (i.state &amp; #{modifiedMask}) > 0
-            AND (i.state &amp; #{newMask}) = 0
-            AND
-            <foreach item="pattern" index="index" collection="regex"
-                     open="(" separator=" OR " close=")">
-                cte.target_path NOT RLIKE #{pattern}
-            </foreach>
-    </select>
+	<select id="getSoftDependenciesForList" resultType="java.util.Map">
+		WITH RECURSIVE CTE AS (
+		SELECT d.source_path, d.target_path, d.site
+		FROM dependency d
+		WHERE d.source_path IN
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator="," close=")">
+			#{path}
+		</foreach>
+		AND d.site = #{siteId}
+		AND d.valid = 1
+		UNION
+		SELECT d.source_path, d.target_path, d.site
+		FROM cte, dependency d
+		WHERE cte.target_path = d.source_path
+		AND d.site = #{siteId}
+		AND cte.site = #{siteId}
+		AND d.valid = 1
+		)
+		SELECT cte.source_path, cte.target_path
+		FROM cte
+		INNER JOIN site s ON s.site_id = cte.site
+		INNER JOIN item i ON i.path = cte.target_path
+		AND i.site_id = s.id
+		AND s.deleted = 0
+		AND (i.state &amp; #{modifiedMask}) > 0
+		AND (i.state &amp; #{newMask}) = 0
+		AND
+		<foreach item="pattern" index="index" collection="regex"
+			 open="(" separator=" OR " close=")">
+			cte.target_path NOT RLIKE #{pattern}
+		</foreach>
+	</select>
 
-    <select id="getPublishingSoftDependenciesForList" resultType="java.util.Map">
-        SELECT d.source_path, d.target_path, d.site
-        FROM dependency d
-            INNER JOIN site s ON s.site_id = d.site
-            INNER JOIN item i ON i.path = d.target_path
-        WHERE d.source_path IN
-            <foreach item="path" index="index" collection="paths"
-                     open="(" separator="," close=")">
-                #{path}
-                </foreach>
-        AND d.site = #{siteId}
-        AND d.valid = 1
-        AND
-            <foreach item="pattern" index="index" collection="regex"
-                     open="(" separator=" OR " close=")">
-                d.target_path NOT RLIKE #{pattern}
-            </foreach>
-        AND i.site_id = s.id
-        AND s.deleted = 0
-        AND (i.state &amp; #{modifiedMask}) > 0
-        AND (i.state &amp; #{newMask}) = 0
-    </select>
+	<select id="getPublishingSoftDependenciesForList" resultType="java.util.Map">
+		SELECT d.source_path, d.target_path, d.site
+		FROM dependency d
+		INNER JOIN site s ON s.site_id = d.site
+		INNER JOIN item i ON i.path = d.target_path
+		WHERE d.source_path IN
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator="," close=")">
+			#{path}
+		</foreach>
+		AND d.site = #{siteId}
+		AND d.valid = 1
+		AND
+		<foreach item="pattern" index="index" collection="regex"
+			 open="(" separator=" OR " close=")">
+			d.target_path NOT RLIKE #{pattern}
+		</foreach>
+		AND i.site_id = s.id
+		AND s.deleted = 0
+		AND (i.state &amp; #{modifiedMask}) > 0
+		AND (i.state &amp; #{newMask}) = 0
+	</select>
 
-    <!-- Recursively get:
-        - Non-published ancestors
-     -->
-    <sql id="recursiveParentsForHardDeps">
-        SELECT i.id, i.path, i.parent_id, i.system_type, i.state
-        FROM item i
-            INNER JOIN site s on s.id = i.site_id
-        WHERE i.path IN
-            <foreach item="path" index="index" collection="paths"
-                     open="(" separator="," close=")">
-                #{path}
-            </foreach>
-        AND s.site_id = #{siteId}
-    UNION
-        SELECT i.id, i.path, i.parent_id, i.system_type, i.state
-        FROM item i
-            INNER JOIN parents p ON p.parent_id = i.id
-        WHERE ((i.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- New ancestors: "Not published to the given publishing target -->
-                    AND (i.state &amp; #{newInTargetMaskOff}) = 0)
-             OR EXISTS (
-                SELECT 1
-                 FROM item_target it
-                 WHERE it.item_id = i.id
-                 AND it.previous_path IS NOT NULL
-                <if test="!isLiveTarget"> <!-- If live, any record will do -->
-                 AND it.target = #{target}
-                </if>
-             ) <!-- Moved/renamed ancestors -->
-    </sql>
+	<!-- Recursively get:
+	    - Non-published ancestors
+	 -->
+	<sql id="recursiveParentsForHardDeps">
+		SELECT i.id, i.path, i.parent_id, i.system_type, i.state
+		FROM item i
+		INNER JOIN site s on s.id = i.site_id
+		WHERE i.path IN
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator="," close=")">
+			#{path}
+		</foreach>
+		AND s.site_id = #{siteId}
+		UNION
+		SELECT i.id, i.path, i.parent_id, i.system_type, i.state
+		FROM item i
+		INNER JOIN parents p ON p.parent_id = i.id
+		WHERE ((i.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- New ancestors: "Not published to the given publishing target -->
+		AND (i.state &amp; #{newInTargetMaskOff}) = 0)
+		OR EXISTS (
+		SELECT 1
+		FROM item_target it
+		WHERE it.item_id = i.id
+		AND it.previous_path IS NOT NULL
+		<if test="!isLiveTarget"> <!-- If live, any record will do -->
+			AND it.target = #{target}
+		</if>
+		) <!-- Moved/renamed ancestors -->
+	</sql>
 
-    <!-- Recursively get:
-        - Non-published (not new but not published to current path in target) descendants of renamed parents
-     -->
-    <sql id="recursiveChildrenForHardDeps">
-        SELECT id, path, parent_id, system_type
-        FROM parents p
-        WHERE p.system_type &lt;&gt; #{systemTypeFolder}
-    UNION
-        SELECT i.id, i.path, i.parent_id, i.system_type
-        FROM item i
-        INNER JOIN children c ON c.id = i.parent_id
-        WHERE (i.state &amp; #{newInTargetMaskOn}) &lt;&gt; #{newInTargetMaskOn} <!-- Get previously published descendants of renamed parents -->
-        AND (i.state &amp; #{newInTargetMaskOff}) > 0
-        AND EXISTS (
-                SELECT 1
-                 FROM item_target it
-                 WHERE it.item_id = c.id
-                 AND it.previous_path IS NOT NULL
-                <if test="!isLiveTarget"> <!-- If live, any record will do -->
-                 AND it.target = #{target}
-                </if>
-             ) <!-- Moved/renamed ancestors -->
-    </sql>
+	<!-- Recursively get:
+	    - Non-published (not new but not published to current path in target) descendants of renamed parents
+	 -->
+	<sql id="recursiveChildrenForHardDeps">
+		SELECT id, path, parent_id, system_type
+		FROM parents p
+		WHERE p.system_type &lt;&gt; #{systemTypeFolder}
+		UNION
+		SELECT i.id, i.path, i.parent_id, i.system_type
+		FROM item i
+		INNER JOIN children c ON c.id = i.parent_id
+		WHERE (i.state &amp; #{newInTargetMaskOn}) &lt;&gt; #{newInTargetMaskOn} <!-- Get previously published descendants of renamed parents -->
+		AND (i.state &amp; #{newInTargetMaskOff}) > 0
+		AND EXISTS (
+		SELECT 1
+		FROM item_target it
+		WHERE it.item_id = c.id
+		AND it.previous_path IS NOT NULL
+		<if test="!isLiveTarget"> <!-- If live, any record will do -->
+			AND it.target = #{target}
+		</if>
+		) <!-- Moved/renamed ancestors -->
+	</sql>
 
-    <select id="getHardDependenciesForList">
-        <!--
-        For each path, recursively:
-        - Get non-published ancestors
-        - Get previously-published descendants of moved ancestors
-        - Get dependencies from table where:
-            - source_path is in the list of paths
-            - target_path is new OR target_path is item-specific dependency
-            -->
-        WITH RECURSIVE parents AS (
-            <include refid="recursiveParentsForHardDeps"/>
-        ),
-        children AS (
-            <include refid="recursiveChildrenForHardDeps"/>
-        ),
-        deps AS (
-                SELECT c.path
-                FROM children c
-                WHERE system_type &lt;&gt; #{systemTypeFolder}
-            UNION
-                SELECT d.target_path AS path
-                FROM dependency d
-                INNER JOIN deps ON deps.path = d.source_path
-                INNER JOIN item targetItem ON targetItem.path = d.target_path
-                INNER JOIN site s ON s.id = targetItem.site_id
-                WHERE d.site = #{siteId}
-                    AND s.deleted = 0
-                    AND s.site_id = #{siteId}
-                    AND d.valid = 1
-                    AND (
-                        ((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
-                            AND (targetItem.state &amp; #{newInTargetMaskOff}) = 0)
-                        OR
-                            <foreach item="pattern" index="index" collection="regex"
-                                     open="(" separator=" OR " close=")">
-                                targetItem.path RLIKE #{pattern}  <!-- Item-specific dependency -->
-                            </foreach>
-                        )
-        )
-        SELECT path
-        FROM deps
-        WHERE path NOT IN
-            <foreach item="path" index="index" collection="paths"
-                     open="(" separator="," close=")">
-                #{path}
-            </foreach>
-    </select>
+	<select id="getHardDependenciesForList">
+		<!--
+		For each path, recursively:
+		- Get non-published ancestors
+		- Get previously-published descendants of moved ancestors
+		- Get dependencies from table where:
+		    - source_path is in the list of paths
+		    - target_path is new OR target_path is item-specific dependency
+		    -->
+		WITH RECURSIVE parents AS (
+		<include refid="recursiveParentsForHardDeps"/>
+		),
+		children AS (
+		<include refid="recursiveChildrenForHardDeps"/>
+		),
+		deps AS (
+		SELECT c.path
+		FROM children c
+		WHERE system_type &lt;&gt; #{systemTypeFolder}
+		UNION
+		SELECT d.target_path AS path
+		FROM dependency d
+		INNER JOIN deps ON deps.path = d.source_path
+		INNER JOIN item targetItem ON targetItem.path = d.target_path
+		INNER JOIN site s ON s.id = targetItem.site_id
+		WHERE d.site = #{siteId}
+		AND s.deleted = 0
+		AND s.site_id = #{siteId}
+		AND d.valid = 1
+		AND (
+		((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
+		AND (targetItem.state &amp; #{newInTargetMaskOff}) = 0)
+		OR
+		<foreach item="pattern" index="index" collection="regex"
+			 open="(" separator=" OR " close=")">
+			targetItem.path RLIKE #{pattern}  <!-- Item-specific dependency -->
+		</foreach>
+		)
+		)
+		SELECT path
+		FROM deps
+		WHERE path NOT IN
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator="," close=")">
+			#{path}
+		</foreach>
+	</select>
 
-    <select id="getDependentItems" resultType="String">
-        SELECT source_path
-        FROM dependency
-        WHERE site = #{siteId}
-        AND valid = 1
-        AND
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator=" OR " close=")">
-            target_path LIKE CONCAT(TRIM(TRAILING '/' FROM #{path}), '/%') or target_path = #{path}
-        </foreach>
-    </select>
+	<select id="getDependentItems" resultType="String">
+		SELECT source_path
+		FROM dependency
+		WHERE site = #{siteId}
+		AND valid = 1
+		AND
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator=" OR " close=")">
+			target_path LIKE CONCAT(TRIM(TRAILING '/' FROM #{path}), '/%') or target_path = #{path}
+		</foreach>
+	</select>
 
-    <select id="getItemSpecificDependencies" parameterType="java.util.Map"
-            resultType="String">
-        SELECT target_path
-        FROM dependency
-        WHERE site = #{siteId}
-        AND valid = 1
-        AND source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND
-        <foreach item="pattern" index="index" collection="regex"
-                 open="(" separator=" OR " close=")">
-            target_path RLIKE #{pattern}
-        </foreach>
-    </select>
+	<select id="getItemSpecificDependencies" parameterType="java.util.Map"
+		resultType="String">
+		SELECT target_path
+		FROM dependency
+		WHERE site = #{siteId}
+		AND valid = 1
+		AND source_path IN
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator="," close=")">
+			#{path}
+		</foreach>
+		AND
+		<foreach item="pattern" index="index" collection="regex"
+			 open="(" separator=" OR " close=")">
+			target_path RLIKE #{pattern}
+		</foreach>
+	</select>
 
-    <delete id="deleteItemDependencies" parameterType="java.util.Map">
-        DELETE
-        FROM dependency
-        WHERE source_path = #{path} AND site = #{siteId}
-    </delete>
+	<delete id="deleteItemDependencies" parameterType="java.util.Map">
+		DELETE
+		FROM dependency
+		WHERE source_path = #{path}
+		  AND site = #{siteId}
+	</delete>
 
-    <insert id="insertItemDependencies" parameterType="java.util.Map">
-        INSERT INTO dependency (site, source_path, target_path, type, valid)
-        VALUES
-        <foreach item="dependency" index="index" collection="dependencies"
-                 open="" separator="," close="">
-            (#{dependency.site}, #{dependency.sourcePath}, #{dependency.targetPath}, #{dependency.type}, #{dependency.valid})
-        </foreach>
-    </insert>
+	<insert id="insertItemDependencies" parameterType="java.util.Map">
+		INSERT INTO dependency (site, source_path, target_path, type, valid)
+		VALUES
+		<foreach item="dependency" index="index" collection="dependencies"
+			 open="" separator="," close="">
+			(#{dependency.site}, #{dependency.sourcePath}, #{dependency.targetPath}, #{dependency.type}, #{dependency.valid})
+		</foreach>
+	</insert>
 
-    <update id="invalidateDependencies">
-        UPDATE dependency
-        SET valid = 0
-        WHERE site = #{siteId}
-        AND target_path = #{path}
-    </update>
+	<update id="invalidateDependencies">
+		UPDATE dependency
+		SET valid = 0
+		WHERE site = #{siteId}
+		  AND target_path = #{path}
+	</update>
 
-    <update id="validateDependencies">
-        UPDATE dependency
-        SET valid = 1
-        WHERE site = #{siteId}
-        AND target_path = #{path}
-    </update>
+	<update id="validateDependencies">
+		UPDATE dependency
+		SET valid = 1
+		WHERE site = #{siteId}
+		  AND target_path = #{path}
+	</update>
 
-    <update id="validateDependenciesForSite">
-        UPDATE dependency
-        SET valid = (CASE WHEN target_path IN (
-                        SELECT path
-                        FROM item i
-                        INNER JOIN site s ON s.id = i.site_id
-                        WHERE s.site_id = #{siteId}
-                        ) THEN 1 ELSE 0 END)
-        WHERE site = #{siteId}
-    </update>
+	<update id="validateDependenciesForSite">
+		UPDATE dependency
+		SET valid = (CASE
+				     WHEN target_path IN (SELECT path
+							  FROM item i
+								       INNER JOIN site s ON s.id = i.site_id
+							  WHERE s.site_id = #{siteId}) THEN 1
+				     ELSE 0 END)
+		WHERE site = #{siteId}
+	</update>
 </mapper>

@@ -21,27 +21,52 @@ import java.util.List;
 
 public class Role implements Serializable {
 
-    private static final long serialVersionUID = -8621678155190259891L;
+	private static final long serialVersionUID = -8621678155190259891L;
 
-    private long id;
-    private String name;
-    private String description;
+	private long id;
+	private String name;
+	private String description;
 
-    private List<Long> permissionIds;
-    private List<Permission> permissions;
+	private List<Long> permissionIds;
+	private List<Permission> permissions;
 
-    public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
+	public long getId() {
+		return id;
+	}
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+	public String getName() {
+		return name;
+	}
 
-    public List<Long> getPermissionIds() { return permissionIds; }
-    public void setPermissionIds(List<Long> permissionIds) { this.permissionIds = permissionIds; }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public List<Permission> getPermissions() { return permissions; }
-    public void setPermissions(List<Permission> permissions) { this.permissions = permissions; }
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public List<Long> getPermissionIds() {
+		return permissionIds;
+	}
+
+	public void setPermissionIds(List<Long> permissionIds) {
+		this.permissionIds = permissionIds;
+	}
+
+	public List<Permission> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(List<Permission> permissions) {
+		this.permissions = permissions;
+	}
 }

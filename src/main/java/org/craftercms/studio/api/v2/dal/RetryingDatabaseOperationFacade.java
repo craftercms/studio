@@ -21,20 +21,20 @@ import java.util.function.Supplier;
 @SuppressWarnings("rawtypes")
 public interface RetryingDatabaseOperationFacade {
 
-    /**
-     * Retries the database operation {@code op} up to the configured maximum retries.
-     * See {@link org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler}
-     *
-     * @param op operation to execute
-     */
-    void retry(Runnable op);
+	/**
+	 * Retries the database operation {@code op} up to the configured maximum retries.
+	 * See {@link org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler}
+	 *
+	 * @param op operation to execute
+	 */
+	void retry(Runnable op);
 
-    /**
-     * Retries the database operation {@code op} up to the configured maximum retries.
-     * See {@link org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler}
-     *
-     * @param op operation to execute
-     */
-    <T> T retry(Supplier<T> op);
+	/**
+	 * Retries the database operation {@code op} up to the configured maximum retries.
+	 * See {@link org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler}
+	 *
+	 * @param op operation to execute
+	 */
+	<T> T retry(Supplier<T> op);
 
 }

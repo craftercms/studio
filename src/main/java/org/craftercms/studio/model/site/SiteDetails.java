@@ -27,21 +27,21 @@ import java.util.List;
  * Extra information (blob stores config) is meant to be used by the UI during duplicate site operations.
  */
 public class SiteDetails {
-    @JsonUnwrapped
-    private final SiteFeed siteFeed;
+	@JsonUnwrapped
+	private final SiteFeed siteFeed;
 
-    private final List<BlobStoreDetails> blobStores;
+	private final List<BlobStoreDetails> blobStores;
 
-    public SiteDetails(SiteFeed siteFeed, List<BlobStoreDetails> blobStores) {
-        this.siteFeed = siteFeed;
-        this.blobStores = blobStores;
-    }
+	public SiteDetails(SiteFeed siteFeed, List<BlobStoreDetails> blobStores) {
+		this.siteFeed = siteFeed;
+		this.blobStores = blobStores;
+	}
 
-    public SiteFeed getSiteFeed() {
-        return siteFeed;
-    }
+	public SiteFeed getSiteFeed() {
+		return siteFeed;
+	}
 
-    public List<BlobStoreDetails> getBlobStores() {
-        return blobStores;
-    }
+	public List<BlobStoreDetails> getBlobStores() {
+		return blobStores;
+	}
 }

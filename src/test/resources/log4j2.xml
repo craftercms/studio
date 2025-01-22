@@ -15,37 +15,37 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <Configuration>
-    <!-- Appenders -->
-    <Appenders>
-        <Console name="consoleAppender" target="SYSTEM_OUT">
-            <PatternLayout pattern="%-5p: %c - %m%n"/>
-        </Console>
-    </Appenders>
+	<!-- Appenders -->
+	<Appenders>
+		<Console name="consoleAppender" target="SYSTEM_OUT">
+			<PatternLayout pattern="%-5p: %c - %m%n"/>
+		</Console>
+	</Appenders>
 
-    <Loggers>
-        <!-- Application Loggers -->
-        <Logger name="org.craftercms.engine" level="info"/>
+	<Loggers>
+		<!-- Application Loggers -->
+		<Logger name="org.craftercms.engine" level="info"/>
 
-        <Logger name="org.craftercms.security" level="info"/>
+		<Logger name="org.craftercms.security" level="info"/>
 
-        <Logger name="org.craftercms.studio" level="debug"/>
+		<Logger name="org.craftercms.studio" level="debug"/>
 
-        <!-- 3rdparty Loggers -->
-        <Logger name="org.springframework.core" level="info"/>
+		<!-- 3rdparty Loggers -->
+		<Logger name="org.springframework.core" level="info"/>
 
-        <Logger name="org.springframework.beans" level="info"/>
+		<Logger name="org.springframework.beans" level="info"/>
 
-        <Logger name="org.springframework.context" level="info"/>
+		<Logger name="org.springframework.context" level="info"/>
 
-        <Logger name="org.springframework.web" level="info"/>
+		<Logger name="org.springframework.web" level="info"/>
 
-        <Logger name="org.mongodb.driver" level="warn"/>
+		<Logger name="org.mongodb.driver" level="warn"/>
 
-        <Logger name="org.tuckey" level="info"/>
+		<Logger name="org.tuckey" level="info"/>
 
-        <!-- Root Logger -->
-        <Root level="info">
-            <AppenderRef ref="consoleAppender"/>
-        </Root>
-    </Loggers>
+		<!-- Root Logger -->
+		<Root level="info">
+			<AppenderRef ref="consoleAppender"/>
+		</Root>
+	</Loggers>
 </Configuration>

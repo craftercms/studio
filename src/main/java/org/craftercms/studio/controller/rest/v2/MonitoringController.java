@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.constraints.Positive;
+
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Map;
@@ -51,6 +52,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Rest controller to provide monitoring information
+ *
  * @author joseross
  */
 @Validated
@@ -58,53 +60,53 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping("/api/2")
 public class MonitoringController extends ManagementTokenAware {
 
-    protected final MonitorService monitorService;
+	protected final MonitorService monitorService;
 
-    @ConstructorProperties({"studioConfiguration", "securityService", "monitorService"})
-    public MonitoringController(StudioConfiguration studioConfiguration, SecurityService securityService, MonitorService monitorService) {
-        super(studioConfiguration, securityService);
-        this.monitorService = monitorService;
-    }
+	@ConstructorProperties({"studioConfiguration", "securityService", "monitorService"})
+	public MonitoringController(StudioConfiguration studioConfiguration, SecurityService securityService, MonitorService monitorService) {
+		super(studioConfiguration, securityService);
+		this.monitorService = monitorService;
+	}
 
-    @GetMapping(value = ROOT_URL + MEMORY_URL)
-    public ResultOne<MemoryInfo> getCurrentMemory(@RequestParam(name = "token", required = false) String token)
-        throws InvalidManagementTokenException, InvalidParametersException {
-        validateToken(token);
-        ResultOne<MemoryInfo> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_MEMORY, MemoryInfo.getCurrentMemory());
-        return result;
-    }
+	@GetMapping(value = ROOT_URL + MEMORY_URL)
+	public ResultOne<MemoryInfo> getCurrentMemory(@RequestParam(name = "token", required = false) String token)
+		throws InvalidManagementTokenException, InvalidParametersException {
+		validateToken(token);
+		ResultOne<MemoryInfo> result = new ResultOne<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntity(RESULT_KEY_MEMORY, MemoryInfo.getCurrentMemory());
+		return result;
+	}
 
-    @GetMapping(value = ROOT_URL + STATUS_URL)
-    public ResultOne<StatusInfo> getCurrentStatus(@RequestParam(name = "token", required = false) String token)
-        throws InvalidManagementTokenException, InvalidParametersException {
-        validateToken(token);
-        ResultOne<StatusInfo> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_STATUS, StatusInfo.getCurrentStatus());
-        return result;
-    }
+	@GetMapping(value = ROOT_URL + STATUS_URL)
+	public ResultOne<StatusInfo> getCurrentStatus(@RequestParam(name = "token", required = false) String token)
+		throws InvalidManagementTokenException, InvalidParametersException {
+		validateToken(token);
+		ResultOne<StatusInfo> result = new ResultOne<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntity(RESULT_KEY_STATUS, StatusInfo.getCurrentStatus());
+		return result;
+	}
 
-    @GetMapping(value = ROOT_URL + VERSION_URL)
-    public ResultOne<VersionInfo> getCurrentVersion(@RequestParam(name = "token", required = false) String token)
-        throws InvalidManagementTokenException, IOException, InvalidParametersException {
-        validateToken(token);
-        ResultOne<VersionInfo> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_VERSION, VersionInfo.getVersion(getClass()));
-        return result;
-    }
+	@GetMapping(value = ROOT_URL + VERSION_URL)
+	public ResultOne<VersionInfo> getCurrentVersion(@RequestParam(name = "token", required = false) String token)
+		throws InvalidManagementTokenException, IOException, InvalidParametersException {
+		validateToken(token);
+		ResultOne<VersionInfo> result = new ResultOne<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntity(RESULT_KEY_VERSION, VersionInfo.getVersion(getClass()));
+		return result;
+	}
 
-    @GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
-    public ResultList<Map<String,Object>> getLogEvents(@Positive @RequestParam long since,
-                                                       @RequestParam(name = "token", required = false) String token)
-        throws InvalidManagementTokenException, InvalidParametersException {
-        validateToken(token);
-        ResultList<Map<String, Object>> result = new ResultList<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_EVENTS, monitorService.getLogEvents("craftercms", since));
-        return result;
-    }
+	@GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
+	public ResultList<Map<String, Object>> getLogEvents(@Positive @RequestParam long since,
+							    @RequestParam(name = "token", required = false) String token)
+		throws InvalidManagementTokenException, InvalidParametersException {
+		validateToken(token);
+		ResultList<Map<String, Object>> result = new ResultList<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntities(RESULT_KEY_EVENTS, monitorService.getLogEvents("craftercms", since));
+		return result;
+	}
 
 }
