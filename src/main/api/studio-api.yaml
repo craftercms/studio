@@ -3346,7 +3346,7 @@ paths:
                   </page>"
                             writeContentAssetForm:
                                 value: <#import "/templates/system/common/cstudio-support.ftl" as studio />
-
+                                    
                                     <!DOCTYPE HTML>
                                     <!--
                                     Editorial by HTML5 UP
@@ -3368,14 +3368,14 @@ paths:
                                     <body>
                                     <!-- Wrapper -->
                                     <div id="wrapper">
-
+                                    
                                     <!-- Main -->
                                     <div id="main">
                                     <div class="inner">
-
+                                    
                                     <!-- Header -->
                                     <@renderComponent component=contentModel.header_o.item />
-
+                                    
                                     <!-- Banner -->
                                     <section id="banner" <@studio.iceAttr iceGroup="hero"/>>
                                     <div class="content">
@@ -3386,7 +3386,7 @@ paths:
                                     <img src="${contentModel.hero_image_s !""}" alt="" />
                                     </span>
                                     </section>
-
+                                    
                                     <!-- Section -->
                                     <section <@studio.iceAttr iceGroup="features"/>>
                                     <header class="major">
@@ -3400,7 +3400,7 @@ paths:
                                     </#if>
                                     </div>
                                     </section>
-
+                                    
                                     <!-- Section -->
                                     <section>
                                     <header class="major">
@@ -3426,15 +3426,15 @@ paths:
                                     </#list>
                                     </div>
                                     </section>
-
+                                    
                                     </div>
                                     </div>
-
+                                    
                                     <!-- Left Rail -->
                                     <@renderComponent component=contentModel.left\-rail_o.item />
-
+                                    
                                     </div>
-
+                                    
                                     <!-- Scripts -->
                                     <script src="/static-assets/js/jquery.min.js"></script>
                                     <script src="/static-assets/js/jquery-ui.min.js"></script>
@@ -3442,7 +3442,7 @@ paths:
                                     <script src="/static-assets/js/util.js"></script>
                                     <!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
                                     <script src="/static-assets/js/main.js?v=${siteContext.siteName}"></script>
-
+                                    
                                     <@studio.toolSupport/>
                                     </body>
                                     </html>
@@ -9413,15 +9413,15 @@ components:
                     type: string
                     description: >-
                         Authentication type to use to access remote repository
-
+                        
                         Possible values:
-
+                        
                           - none: no authentication
-
+                        
                           - basic: username and password authentication
-
+                        
                           - token: token authentication
-
+                        
                           - key: key-based authentication
                 remoteUsername:
                     type: string
@@ -9500,11 +9500,11 @@ components:
                     description: list of added files
                     items:
                         type: string
-                    untracked:
-                        type: array
-                        description: list of files that are not ignored, and not in the index
-                        items:
-                            type: string
+                untracked:
+                    type: array
+                    description: list of files that are not ignored, and not in the index
+                    items:
+                        type: string
                 clean:
                     type: boolean
                     description: true if there are no conflicts or uncommitted changes
@@ -10369,7 +10369,7 @@ components:
                 systemTypes:
                     description: |-
                         filter children by system type
-
+                        
                         Note that this parameter does not honor "levelDescriptor" as a valid type
                     type: array
                     items:
