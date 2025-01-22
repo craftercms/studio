@@ -18,5 +18,5 @@ package org.craftercms.studio.api.v2.dal;
 
 public interface StudioDBScriptRunnerFactory {
 
-    StudioDBScriptRunner getDBScriptRunner();
+	StudioDBScriptRunner getDBScriptRunner();
 }

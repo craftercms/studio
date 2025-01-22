@@ -30,54 +30,54 @@ def paramsList = []
 
 // start
 try {
-    if (StringUtils.isNotEmpty(params.start)) {
-        start = params.start.toInteger()
-        if (start < 0) {
-            invalidParams = true
-            paramsList.add("start")
-        }
-    }
+	if (StringUtils.isNotEmpty(params.start)) {
+		start = params.start.toInteger()
+		if (start < 0) {
+			invalidParams = true
+			paramsList.add("start")
+		}
+	}
 } catch (Exception e) {
-    invalidParams = true
-    paramsList.add("start")
+	invalidParams = true
+	paramsList.add("start")
 }
 
 // number
 try {
-    if (StringUtils.isNotEmpty(params.number)) {
-        number = params.number.toInteger()
-        if (number < 0) {
-            invalidParams = true
-            paramsList.add("number")
-        }
-    }
+	if (StringUtils.isNotEmpty(params.number)) {
+		number = params.number.toInteger()
+		if (number < 0) {
+			invalidParams = true
+			paramsList.add("number")
+		}
+	}
 } catch (Exception e) {
-    invalidParams = true
-    paramsList.add("number")
+	invalidParams = true
+	paramsList.add("number")
 }
 
 if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
+	response.setStatus(400)
+	result.message = "Invalid parameter(s): " + paramsList
 } else {
 
-    def context = SiteServices.createContext(applicationContext, request)
-    try {
-        def total = SiteServices.getSitesPerUserTotal(context);
-        def sites = SiteServices.getSitesPerUser(context, start, number);
-        if (sites != null) {
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get-per-user.json?start=" + start + "&number=" + number
-            response.addHeader("Location", locationHeader)
-            result.sites = sites
-            result.total = total
-            response.setStatus(200)
-        } else {
-            response.setStatus(500)
-            result.message = "Internal server error"
-        }
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
-    }
+	def context = SiteServices.createContext(applicationContext, request)
+	try {
+		def total = SiteServices.getSitesPerUserTotal(context);
+		def sites = SiteServices.getSitesPerUser(context, start, number);
+		if (sites != null) {
+			def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get-per-user.json?start=" + start + "&number=" + number
+			response.addHeader("Location", locationHeader)
+			result.sites = sites
+			result.total = total
+			response.setStatus(200)
+		} else {
+			response.setStatus(500)
+			result.message = "Internal server error"
+		}
+	} catch (Exception e) {
+		response.setStatus(500)
+		result.message = "Internal server error: \n" + e
+	}
 }
 return result

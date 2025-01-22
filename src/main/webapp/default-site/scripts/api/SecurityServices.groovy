@@ -35,7 +35,7 @@ class SecurityServices {
 		return ServiceFactory.createContext(applicationContext, request)
 	}
 
-	/** 
+	/**
 	 * get user profile
 	 * @param username
 	 */
@@ -44,7 +44,7 @@ class SecurityServices {
 		return securityServicesImpl.getUserProfile(username)
 	}
 
-	static getCurrentUser(context) {  
+	static getCurrentUser(context) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getCurrentUser()
 	}

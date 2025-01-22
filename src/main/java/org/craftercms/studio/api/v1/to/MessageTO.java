@@ -19,15 +19,19 @@ import java.io.Serializable;
 
 public class MessageTO implements Serializable {
 
-    private static final long serialVersionUID = 2139304695120112701L;
-    /** message title **/
+	private static final long serialVersionUID = 2139304695120112701L;
+	/**
+	 * message title
+	 **/
 	protected String _title;
-	/** message body **/
+	/**
+	 * message body
+	 **/
 	protected String _body;
 
 	protected String key;
 
-	public MessageTO(final String _title, final String _body,final String key) {
+	public MessageTO(final String _title, final String _body, final String key) {
 		this._title = _title;
 		this._body = _body;
 		this.key = key;
@@ -44,8 +48,7 @@ public class MessageTO implements Serializable {
 	}
 
 	/**
-	 * @param title
-	 *            the title to set
+	 * @param title the title to set
 	 */
 	public void setTitle(final String title) {
 		this._title = title;
@@ -59,8 +62,7 @@ public class MessageTO implements Serializable {
 	}
 
 	/**
-	 * @param body
-	 *            the body to set
+	 * @param body the body to set
 	 */
 	public void setBody(final String body) {
 		this._body = body;

@@ -27,23 +27,25 @@ import java.nio.file.Path;
  */
 public interface RepositoryWatcher {
 
-    /**
-     * Register a site to be watched.
-     * @param siteId The site ID.
-     * @param sitePath The path to the site's repository.
-     */
-    void registerSite(String siteId, Path sitePath) throws SiteNotFoundException, IOException;
+	/**
+	 * Register a site to be watched.
+	 *
+	 * @param siteId   The site ID.
+	 * @param sitePath The path to the site's repository.
+	 */
+	void registerSite(String siteId, Path sitePath) throws SiteNotFoundException, IOException;
 
-    /**
-     * De-register a site from being watched.
-     * @param siteId The site ID.
-     */
-    void deregisterSite(String siteId);
+	/**
+	 * De-register a site from being watched.
+	 *
+	 * @param siteId The site ID.
+	 */
+	void deregisterSite(String siteId);
 
-    /**
-     * Start watching the registered sites.
-     * This method is here to allow async processing by Spring.
-     */
-    void startWatching();
+	/**
+	 * Start watching the registered sites.
+	 * This method is here to allow async processing by Spring.
+	 */
+	void startWatching();
 
 }

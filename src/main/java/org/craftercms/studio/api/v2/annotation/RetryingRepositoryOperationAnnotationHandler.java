@@ -38,71 +38,71 @@ import static java.lang.String.format;
 @Order(1)
 public class RetryingRepositoryOperationAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RetryingRepositoryOperationAnnotationHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(RetryingRepositoryOperationAnnotationHandler.class);
 
-    private static final int DEFAULT_MAX_RETRIES = 50;
+	private static final int DEFAULT_MAX_RETRIES = 50;
 
-    private int maxRetries = DEFAULT_MAX_RETRIES;
-    private int maxSleep = 0;
+	private int maxRetries = DEFAULT_MAX_RETRIES;
+	private int maxSleep = 0;
 
-    public int getMaxRetries() {
-        return maxRetries;
-    }
+	public int getMaxRetries() {
+		return maxRetries;
+	}
 
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
+	public void setMaxRetries(int maxRetries) {
+		this.maxRetries = maxRetries;
+	}
 
-    public int getMaxSleep() {
-        return maxSleep;
-    }
+	public int getMaxSleep() {
+		return maxSleep;
+	}
 
-    public void setMaxSleep(int maxSleep) {
-        this.maxSleep = maxSleep;
-    }
+	public void setMaxSleep(int maxSleep) {
+		this.maxSleep = maxSleep;
+	}
 
-    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation) || " +
-            "@annotation(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation)")
-    public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = AopUtils.getActualMethod(pjp);
-        Exception lastException;
+	@Around("@within(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation) || " +
+		"@annotation(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation)")
+	public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
+		Method method = AopUtils.getActualMethod(pjp);
+		Exception lastException;
 
-        int numAttempts = 0;
-        do {
-            numAttempts++;
-            try {
-                // Execute the business code again
-                if (numAttempts > 1) {
-                    logger.debug("Retrying repository operation attempt '{}'", (numAttempts - 1));
-                }
-                return pjp.proceed();
-            } catch (JGitInternalException | GitCliException e) {
-                lastException = e;
-                if (isRepositoryLocked(e)) {
-                    logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
-                    if (numAttempts < maxRetries) {
-                        // If the maximum number of retries is not reached, sleep and execute it again
-                        long sleep = (long) (Math.random() * maxSleep);
-                        logger.debug("Git repository locked, will retry the operation '{}' after '{}' milliseconds",
-                                method.getName(), sleep);
-                        Thread.sleep(sleep);
-                    }
-                } else {
-                    throw new RetryingOperationErrorException(format("Git operation '%s' has failed",
-                            method.getName()), e);
-                }
-            }
-        } while (numAttempts < maxRetries);
+		int numAttempts = 0;
+		do {
+			numAttempts++;
+			try {
+				// Execute the business code again
+				if (numAttempts > 1) {
+					logger.debug("Retrying repository operation attempt '{}'", (numAttempts - 1));
+				}
+				return pjp.proceed();
+			} catch (JGitInternalException | GitCliException e) {
+				lastException = e;
+				if (isRepositoryLocked(e)) {
+					logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
+					if (numAttempts < maxRetries) {
+						// If the maximum number of retries is not reached, sleep and execute it again
+						long sleep = (long) (Math.random() * maxSleep);
+						logger.debug("Git repository locked, will retry the operation '{}' after '{}' milliseconds",
+							method.getName(), sleep);
+						Thread.sleep(sleep);
+					}
+				} else {
+					throw new RetryingOperationErrorException(format("Git operation '%s' has failed",
+						method.getName()), e);
+				}
+			}
+		} while (numAttempts < maxRetries);
 
-        // If it gets here, numAttempts >= maxRetries, so we should fail entirely
-        throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%d' attempts " +
-                "because the git repository was locked", method.getName(), numAttempts), lastException);
-    }
+		// If it gets here, numAttempts >= maxRetries, so we should fail entirely
+		throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%d' attempts " +
+			"because the git repository was locked", method.getName(), numAttempts), lastException);
+	}
 
-    protected boolean isRepositoryLocked(Throwable ex) {
-        // Check for JGit exception first, then for CLI exception (not need to check for null with instanceof)
-        return ex.getCause() instanceof LockFailedException ||
-               ExceptionUtils.getRootCause(ex) instanceof GitRepositoryLockedException;
-    }
+	protected boolean isRepositoryLocked(Throwable ex) {
+		// Check for JGit exception first, then for CLI exception (not need to check for null with instanceof)
+		return ex.getCause() instanceof LockFailedException ||
+			ExceptionUtils.getRootCause(ex) instanceof GitRepositoryLockedException;
+	}
 
 }

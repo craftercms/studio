@@ -17,24 +17,24 @@
 package org.craftercms.studio.api.v1.exception.security;
 
 public class UserExternallyManagedException extends Exception {
-    private static final long serialVersionUID = -316775558996268318L;
+	private static final long serialVersionUID = -316775558996268318L;
 
-    public UserExternallyManagedException() {
-    }
+	public UserExternallyManagedException() {
+	}
 
-    public UserExternallyManagedException(String message) {
-        super(message);
-    }
+	public UserExternallyManagedException(String message) {
+		super(message);
+	}
 
-    public UserExternallyManagedException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public UserExternallyManagedException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public UserExternallyManagedException(Throwable cause) {
-        super(cause);
-    }
+	public UserExternallyManagedException(Throwable cause) {
+		super(cause);
+	}
 
-    public UserExternallyManagedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public UserExternallyManagedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

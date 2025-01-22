@@ -34,65 +34,65 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
+	private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
 
-    private static final String CONTENT_API_ROOT = "/api/1/services/api/1/content/";
-    private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
+	private static final String CONTENT_API_ROOT = "/api/1/services/api/1/content/";
+	private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
 
-    @Override
-    public boolean supports(ConfigAttribute configAttribute) {
-        return true;
-    }
+	@Override
+	public boolean supports(ConfigAttribute configAttribute) {
+		return true;
+	}
 
-    @Override
-    public int voteInternal(Authentication authentication, Object o, Collection collection) {
-        int toRet = ACCESS_ABSTAIN;
-        String requestUri = "";
-        if (!(o instanceof FilterInvocation filterInvocation)) {
-            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
-            return toRet;
-        }
-        HttpServletRequest request = filterInvocation.getRequest();
-        requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-        if (!startsWith(requestUri, CONTENT_API_ROOT)) {
-            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
-            return toRet;
-        }
-        String userParam = request.getParameter("username");
-        String siteParam = request.getParameter("site_id");
-        if (StringUtils.isEmpty(siteParam)) {
-            siteParam = request.getParameter("site");
-        }
-        String pathParam = request.getParameter("path");
-        pathParam = defaultIfEmpty(pathParam, DEFAULT_PERMISSION_VOTER_PATH);
-        User currentUser = (User) authentication.getPrincipal();
-        if (!siteService.exists(siteParam)) {
-            logger.trace("Site '{}' does not exist. The request with URL '{}' has access '{}'", siteParam, requestUri, toRet);
-            return toRet;
-        }
-        if (currentUser == null || !isSiteMember(siteParam, currentUser)) {
-            toRet = ACCESS_DENIED;
-            logger.trace("Current user '{}' has no access to site '{}'. The request with URL '{}' has access '{}'", currentUser, siteParam, requestUri, toRet);
-            return toRet;
-        }
-        // Need write_content permission to write operations, otherwise read_content is enough
-        String requiredPermission = PERMISSION_CONTENT_READ;
-        if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
-            requiredPermission = PERMISSION_CONTENT_WRITE;
-        }
-        if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
-            toRet = ACCESS_GRANTED;
-        } else {
-            toRet = ACCESS_DENIED;
-        }
-        logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
-        return toRet;
-    }
+	@Override
+	public int voteInternal(Authentication authentication, Object o, Collection collection) {
+		int toRet = ACCESS_ABSTAIN;
+		String requestUri = "";
+		if (!(o instanceof FilterInvocation filterInvocation)) {
+			logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+			return toRet;
+		}
+		HttpServletRequest request = filterInvocation.getRequest();
+		requestUri = request.getRequestURI().replace(request.getContextPath(), "");
+		if (!startsWith(requestUri, CONTENT_API_ROOT)) {
+			logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+			return toRet;
+		}
+		String userParam = request.getParameter("username");
+		String siteParam = request.getParameter("site_id");
+		if (StringUtils.isEmpty(siteParam)) {
+			siteParam = request.getParameter("site");
+		}
+		String pathParam = request.getParameter("path");
+		pathParam = defaultIfEmpty(pathParam, DEFAULT_PERMISSION_VOTER_PATH);
+		User currentUser = (User) authentication.getPrincipal();
+		if (!siteService.exists(siteParam)) {
+			logger.trace("Site '{}' does not exist. The request with URL '{}' has access '{}'", siteParam, requestUri, toRet);
+			return toRet;
+		}
+		if (currentUser == null || !isSiteMember(siteParam, currentUser)) {
+			toRet = ACCESS_DENIED;
+			logger.trace("Current user '{}' has no access to site '{}'. The request with URL '{}' has access '{}'", currentUser, siteParam, requestUri, toRet);
+			return toRet;
+		}
+		// Need write_content permission to write operations, otherwise read_content is enough
+		String requiredPermission = PERMISSION_CONTENT_READ;
+		if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
+			requiredPermission = PERMISSION_CONTENT_WRITE;
+		}
+		if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
+			toRet = ACCESS_GRANTED;
+		} else {
+			toRet = ACCESS_DENIED;
+		}
+		logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+		return toRet;
+	}
 
 
-    @Override
-    public boolean supports(Class aClass) {
-        return true;
-    }
+	@Override
+	public boolean supports(Class aClass) {
+		return true;
+	}
 
 }

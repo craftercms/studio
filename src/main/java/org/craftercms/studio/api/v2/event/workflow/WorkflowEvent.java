@@ -31,52 +31,52 @@ import static java.lang.String.format;
  */
 public class WorkflowEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    private final WorkFlowEventType eventType;
-    private final long packageId;
+	private final WorkFlowEventType eventType;
+	private final long packageId;
 
-    public WorkflowEvent(Authentication authentication, final String siteId, final long packageId, final WorkFlowEventType eventType) {
-        super(authentication, siteId);
-        this.eventType = eventType;
-        this.packageId = packageId;
-    }
+	public WorkflowEvent(Authentication authentication, final String siteId, final long packageId, final WorkFlowEventType eventType) {
+		super(authentication, siteId);
+		this.eventType = eventType;
+		this.packageId = packageId;
+	}
 
-    public WorkflowEvent(final String siteId, final long packageId, final WorkFlowEventType eventType) {
-        this(null, siteId, packageId, eventType);
-    }
+	public WorkflowEvent(final String siteId, final long packageId, final WorkFlowEventType eventType) {
+		this(null, siteId, packageId, eventType);
+	}
 
-    @Override
-    public String getEventType() {
-        return format("WORKFLOW_EVENT_%s", eventType.name());
-    }
+	@Override
+	public String getEventType() {
+		return format("WORKFLOW_EVENT_%s", eventType.name());
+	}
 
-    public WorkFlowEventType getWorkflowEventType() {
-        return eventType;
-    }
+	public WorkFlowEventType getWorkflowEventType() {
+		return eventType;
+	}
 
-    public long getPackageId() {
-        return packageId;
-    }
+	public long getPackageId() {
+		return packageId;
+	}
 
-    @Override
-    public String toString() {
-        return "WorkflowEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                ", type=" + eventType +
-                ", packageId=" + packageId +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "WorkflowEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			", type=" + eventType +
+			", packageId=" + packageId +
+			'}';
+	}
 
-    /**
-     * The different types of workflow events
-     */
-    public enum WorkFlowEventType {
-        SUBMIT, // When an item is submitted requesting for approval
-        DIRECT_PUBLISH, // When an item is directly published/scheduled by an user with the right permissions
-        APPROVE, // When an item is approved
-        REJECT, // When an item is rejected
-        CANCEL // When an item is canceled
-    }
+	/**
+	 * The different types of workflow events
+	 */
+	public enum WorkFlowEventType {
+		SUBMIT, // When an item is submitted requesting for approval
+		DIRECT_PUBLISH, // When an item is directly published/scheduled by an user with the right permissions
+		APPROVE, // When an item is approved
+		REJECT, // When an item is rejected
+		CANCEL // When an item is canceled
+	}
 
 }

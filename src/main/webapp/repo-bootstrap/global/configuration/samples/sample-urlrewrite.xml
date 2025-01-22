@@ -18,14 +18,14 @@
 
 <urlrewrite>
 
-    <rule>
-        <from>^/some/olddir/(.*)$</from>
-        <to type="redirect">/very/newdir/$1</to>
-    </rule>
+	<rule>
+		<from>^/some/olddir/(.*)$</from>
+		<to type="redirect">/very/newdir/$1</to>
+	</rule>
 
-    <rule match-type="wildcard">
-        <from>/blog/archive/**</from>
-        <to type="redirect">/roller/history/$1</to>
-    </rule>
+	<rule match-type="wildcard">
+		<from>/blog/archive/**</from>
+		<to type="redirect">/roller/history/$1</to>
+	</rule>
 
 </urlrewrite>

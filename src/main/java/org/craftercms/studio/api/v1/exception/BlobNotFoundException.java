@@ -22,20 +22,20 @@ package org.craftercms.studio.api.v1.exception;
  */
 public class BlobNotFoundException extends ServiceLayerException {
 
-    protected String path;
-    protected String site;
+	protected String path;
+	protected String site;
 
-    public BlobNotFoundException(final String path, final String site, final String message) {
-        super(message);
-        this.path = path;
-        this.site = site;
-    }
+	public BlobNotFoundException(final String path, final String site, final String message) {
+		super(message);
+		this.path = path;
+		this.site = site;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public String getSite() {
-        return site;
-    }
+	public String getSite() {
+		return site;
+	}
 }

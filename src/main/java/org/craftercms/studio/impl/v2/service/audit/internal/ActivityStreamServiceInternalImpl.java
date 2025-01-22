@@ -33,46 +33,46 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public class ActivityStreamServiceInternalImpl implements ActivityStreamServiceInternal {
 
-    private SiteFeedMapper siteFeedMapper;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private ActivityStreamDAO activityStreamDAO;
+	private SiteFeedMapper siteFeedMapper;
+	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+	private ActivityStreamDAO activityStreamDAO;
 
-    @Override
-    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
-                               String packageId) {
-        retryingDatabaseOperationFacade.retry(() -> activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item,
-                packageId));
-    }
+	@Override
+	public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
+				   String packageId) {
+		retryingDatabaseOperationFacade.retry(() -> activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item,
+			packageId));
+	}
 
-    @Override
-    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
-                                          ZonedDateTime dateForm, ZonedDateTime dateTo) {
-        return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, actions, dateForm, dateTo);
-    }
+	@Override
+	public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
+					      ZonedDateTime dateForm, ZonedDateTime dateTo) {
+		return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, actions, dateForm, dateTo);
+	}
 
-    @Override
-    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
-                                                ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
-        return activityStreamDAO
-                .getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
-    }
+	@Override
+	public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+						    ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
+		return activityStreamDAO
+			.getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
+	}
 
-    private long getSiteId(String site) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(SITE_ID, site);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return siteFeed.getId();
-    }
+	private long getSiteId(String site) {
+		Map<String, Object> params = new HashMap<>();
+		params.put(SITE_ID, site);
+		SiteFeed siteFeed = siteFeedMapper.getSite(params);
+		return siteFeed.getId();
+	}
 
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
-    }
+	public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+		this.siteFeedMapper = siteFeedMapper;
+	}
 
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-    }
+	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+	}
 
-    public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
-        this.activityStreamDAO = activityStreamDAO;
-    }
+	public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
+		this.activityStreamDAO = activityStreamDAO;
+	}
 }

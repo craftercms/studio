@@ -20,12 +20,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
  * Exception thrown when there is an error with the parameters received by a controller.
+ *
  * @author joseross
  */
 public class InvalidParametersException extends ServiceLayerException {
 
-    public InvalidParametersException(final String message) {
-        super(message);
-    }
+	public InvalidParametersException(final String message) {
+		super(message);
+	}
 
 }

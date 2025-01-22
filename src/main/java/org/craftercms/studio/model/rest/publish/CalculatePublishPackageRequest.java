@@ -30,34 +30,34 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  * Request for publish package calculation
  */
 public class CalculatePublishPackageRequest {
-    @NotEmpty
-    @Size(max = 20)
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String publishingTarget;
-    private List<@Valid PublishRequestPath> paths;
-    private List<@NotEmpty String> commitIds;
+	@NotEmpty
+	@Size(max = 20)
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	private String publishingTarget;
+	private List<@Valid PublishRequestPath> paths;
+	private List<@NotEmpty String> commitIds;
 
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
+	public String getPublishingTarget() {
+		return publishingTarget;
+	}
 
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
+	public void setPublishingTarget(String publishingTarget) {
+		this.publishingTarget = publishingTarget;
+	}
 
-    public List<PublishRequestPath> getPaths() {
-        return paths;
-    }
+	public List<PublishRequestPath> getPaths() {
+		return paths;
+	}
 
-    public void setPaths(List<PublishRequestPath> paths) {
-        this.paths = paths;
-    }
+	public void setPaths(List<PublishRequestPath> paths) {
+		this.paths = paths;
+	}
 
-    public List<String> getCommitIds() {
-        return commitIds;
-    }
+	public List<String> getCommitIds() {
+		return commitIds;
+	}
 
-    public void setCommitIds(List<String> commitIds) {
-        this.commitIds = commitIds;
-    }
+	public void setCommitIds(List<String> commitIds) {
+		this.commitIds = commitIds;
+	}
 }

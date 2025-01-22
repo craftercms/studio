@@ -17,44 +17,44 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- add the new section if missing -->
-    <xsl:template match="/site-config[not(cdata-escaped-field-patterns)]">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
+	<!-- add the new section if missing -->
+	<xsl:template match="/site-config[not(cdata-escaped-field-patterns)]">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
 
-            <xsl:comment>
-    Specifies the regular expression patterns to match content type field
-    names that require CDATA escaping.
-    </xsl:comment>
-            <xsl:element name="cdata-escaped-field-patterns">
-                <xsl:element name="pattern">
-                    <xsl:text>(_html|_t|_s|_smv|mvs)$</xsl:text>
-                </xsl:element>
-                <xsl:element name="pattern">
-                    <xsl:text>internal-name</xsl:text>
-                </xsl:element>
-            </xsl:element>
-        </xsl:copy>
-    </xsl:template>
+			<xsl:comment>
+				Specifies the regular expression patterns to match content type field
+				names that require CDATA escaping.
+			</xsl:comment>
+			<xsl:element name="cdata-escaped-field-patterns">
+				<xsl:element name="pattern">
+					<xsl:text>(_html|_t|_s|_smv|mvs)$</xsl:text>
+				</xsl:element>
+				<xsl:element name="pattern">
+					<xsl:text>internal-name</xsl:text>
+				</xsl:element>
+			</xsl:element>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

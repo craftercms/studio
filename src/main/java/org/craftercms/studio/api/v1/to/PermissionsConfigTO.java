@@ -33,57 +33,63 @@ import org.dom4j.Node;
  */
 public class PermissionsConfigTO implements TimeStamped, Serializable {
 
-    private static final long serialVersionUID = -8150776631439025097L;
-    /** site-filename key **/
-    protected String key = null;
-    /** mappings Document object containing either permissions or role mapping details **/
-    protected Document mapping = null;
+	private static final long serialVersionUID = -8150776631439025097L;
+	/**
+	 * site-filename key
+	 **/
+	protected String key = null;
+	/**
+	 * mappings Document object containing either permissions or role mapping details
+	 **/
+	protected Document mapping = null;
 
-    /** configuration time stamp **/
-    protected ZonedDateTime lastUpdated = null;
+	/**
+	 * configuration time stamp
+	 **/
+	protected ZonedDateTime lastUpdated = null;
 
-    protected Map<NormalizedGroup, List<NormalizedRole>> roles = null;
-    protected Map<String, Map<NormalizedRole, List<Node>>> permissions = null;
+	protected Map<NormalizedGroup, List<NormalizedRole>> roles = null;
+	protected Map<String, Map<NormalizedRole, List<Node>>> permissions = null;
 
-    @Override
-    public void setLastUpdated(ZonedDateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
+	@Override
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
+		this.lastUpdated = lastUpdated;
+	}
 
-    @Override
-    public ZonedDateTime getLastUpdated() {
-        return lastUpdated;
-    }
+	@Override
+	public ZonedDateTime getLastUpdated() {
+		return lastUpdated;
+	}
 
-    public String getKey() {
-        return key;
-    }
+	public String getKey() {
+		return key;
+	}
 
-    public void setKey(String key) {
-        this.key = key;
-    }
+	public void setKey(String key) {
+		this.key = key;
+	}
 
-    public Document getMapping() {
-        return mapping;
-    }
+	public Document getMapping() {
+		return mapping;
+	}
 
-    public Map<NormalizedGroup, List<NormalizedRole>> getRoles() {
-        return roles;
-    }
+	public Map<NormalizedGroup, List<NormalizedRole>> getRoles() {
+		return roles;
+	}
 
-    public void setMapping(Document mapping) {
-        this.mapping = mapping;
-    }
+	public void setMapping(Document mapping) {
+		this.mapping = mapping;
+	}
 
-    public void setRoles(Map<NormalizedGroup, List<NormalizedRole>> roles) {
-        this.roles = roles;
-    }
+	public void setRoles(Map<NormalizedGroup, List<NormalizedRole>> roles) {
+		this.roles = roles;
+	}
 
-    public Map<String, Map<NormalizedRole, List<Node>>> getPermissions() {
-        return permissions;
-    }
+	public Map<String, Map<NormalizedRole, List<Node>>> getPermissions() {
+		return permissions;
+	}
 
-    public void setPermissions(Map<String, Map<NormalizedRole, List<Node>>> permissions) {
-        this.permissions = permissions;
-    }
+	public void setPermissions(Map<String, Map<NormalizedRole, List<Node>>> permissions) {
+		this.permissions = permissions;
+	}
 }

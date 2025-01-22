@@ -23,23 +23,25 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 
 public interface SemanticsAvailableActionsResolver {
 
-    /**
-     * Calculate available actions for given content item
-     * @param username user name to apply permissions
-     * @param siteId site identifier
-     * @param item Item
-     * @return bitmap representing available actions
-     */
-    long calculateContentItemAvailableActions(String username, String siteId, Item item)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Calculate available actions for given content item
+	 *
+	 * @param username user name to apply permissions
+	 * @param siteId   site identifier
+	 * @param item     Item
+	 * @return bitmap representing available actions
+	 */
+	long calculateContentItemAvailableActions(String username, String siteId, Item item)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Calculate available actions for given content item
-     * @param username user name to apply permissions
-     * @param siteId site identifier
-     * @param detailedItem Item
-     * @return bitmap representing available actions
-     */
-    long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Calculate available actions for given content item
+	 *
+	 * @param username     user name to apply permissions
+	 * @param siteId       site identifier
+	 * @param detailedItem Item
+	 * @return bitmap representing available actions
+	 */
+	long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
+		throws ServiceLayerException, UserNotFoundException;
 }

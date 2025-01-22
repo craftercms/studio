@@ -41,39 +41,39 @@ import static java.lang.String.format;
  */
 public class EventBroadcaster {
 
-    public static final String DESTINATION_ROOT = "/topic/studio";
+	public static final String DESTINATION_ROOT = "/topic/studio";
 
-    private static final Logger logger = LoggerFactory.getLogger(EventBroadcaster.class);
+	private static final Logger logger = LoggerFactory.getLogger(EventBroadcaster.class);
 
-    @Autowired
-    protected SimpMessagingTemplate messagingTemplate;
+	@Autowired
+	protected SimpMessagingTemplate messagingTemplate;
 
-    @Order
-    @EventListener
-    public void publishSiteEvent(final SiteBroadcastEvent event) {
-        publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
-    }
+	@Order
+	@EventListener
+	public void publishSiteEvent(final SiteBroadcastEvent event) {
+		publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
+	}
 
-    @Order
-    @EventListener
-    public void publishGlobalEvent(final GlobalBroadcastEvent event) {
-        publishEvent(event, DESTINATION_ROOT);
-    }
+	@Order
+	@EventListener
+	public void publishGlobalEvent(final GlobalBroadcastEvent event) {
+		publishEvent(event, DESTINATION_ROOT);
+	}
 
-    @Order
-    @EventListener
-    public void publishTaskEvent(final TaskEvent taskEvent) {
-        switch (taskEvent.getProgress().getTask()) {
-            case SiteTask<?> siteTask -> publishEvent(taskEvent, DESTINATION_ROOT + "/" + siteTask.getSiteId());
-            case Task<?> __ -> publishEvent(taskEvent, DESTINATION_ROOT);
-        }
-    }
+	@Order
+	@EventListener
+	public void publishTaskEvent(final TaskEvent taskEvent) {
+		switch (taskEvent.getProgress().getTask()) {
+			case SiteTask<?> siteTask -> publishEvent(taskEvent, DESTINATION_ROOT + "/" + siteTask.getSiteId());
+			case Task<?> __ -> publishEvent(taskEvent, DESTINATION_ROOT);
+		}
+	}
 
-    private void publishEvent(final BroadcastEvent event, final String destination) {
-        TimeUtils.logExecutionTime(() -> {
-            logger.debug("Broadcast event '{}'", event);
-            messagingTemplate.convertAndSend(destination, event);
-        }, logger, format("Method 'EventBroadcaster.publishEvent(..)' with parameters %s", Arrays.asList(event, destination)));
-    }
+	private void publishEvent(final BroadcastEvent event, final String destination) {
+		TimeUtils.logExecutionTime(() -> {
+			logger.debug("Broadcast event '{}'", event);
+			messagingTemplate.convertAndSend(destination, event);
+		}, logger, format("Method 'EventBroadcaster.publishEvent(..)' with parameters %s", Arrays.asList(event, destination)));
+	}
 
 }

@@ -23,22 +23,22 @@ import java.util.List;
 
 public class AvailablePublishingTargets extends Result {
 
-    private List<PublishingTarget> publishingTargets;
-    private boolean published;
+	private List<PublishingTarget> publishingTargets;
+	private boolean published;
 
-    public List<PublishingTarget> getPublishingTargets() {
-        return publishingTargets;
-    }
+	public List<PublishingTarget> getPublishingTargets() {
+		return publishingTargets;
+	}
 
-    public void setPublishingTargets(List<PublishingTarget> publishingTargets) {
-        this.publishingTargets = publishingTargets;
-    }
+	public void setPublishingTargets(List<PublishingTarget> publishingTargets) {
+		this.publishingTargets = publishingTargets;
+	}
 
-    public boolean isPublished() {
-        return published;
-    }
+	public boolean isPublished() {
+		return published;
+	}
 
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
+	public void setPublished(boolean published) {
+		this.published = published;
+	}
 }

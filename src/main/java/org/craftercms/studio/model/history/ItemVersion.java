@@ -25,81 +25,81 @@ import java.time.ZonedDateTime;
  */
 public class ItemVersion {
 
-    private String versionNumber;
-    // Path can change between versions if the item has been renamed
-    private String path;
-    // oldPath will be the same as path, unless the item has been renamed
-    private String oldPath;
-    // Committer comes from the log command
-    private String committer;
-    // Author corresponds to the Studio user. This field is
-    // null when the commit was not made via Studio API.
-    private Person author;
-    private String comment;
-    private boolean revertible;
-    private ZonedDateTime modifiedDate;
+	private String versionNumber;
+	// Path can change between versions if the item has been renamed
+	private String path;
+	// oldPath will be the same as path, unless the item has been renamed
+	private String oldPath;
+	// Committer comes from the log command
+	private String committer;
+	// Author corresponds to the Studio user. This field is
+	// null when the commit was not made via Studio API.
+	private Person author;
+	private String comment;
+	private boolean revertible;
+	private ZonedDateTime modifiedDate;
 
-    public ZonedDateTime getModifiedDate() {
-        return modifiedDate;
-    }
+	public ZonedDateTime getModifiedDate() {
+		return modifiedDate;
+	}
 
-    public void setModifiedDate(ZonedDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
+	public void setModifiedDate(ZonedDateTime modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
 
-    public String getCommitter() {
-        return committer;
-    }
+	public String getCommitter() {
+		return committer;
+	}
 
-    public void setCommitter(String committer) {
-        this.committer = committer;
-    }
+	public void setCommitter(String committer) {
+		this.committer = committer;
+	}
 
-    public String getVersionNumber() {
-        return versionNumber;
-    }
+	public String getVersionNumber() {
+		return versionNumber;
+	}
 
-    public void setVersionNumber(String versionNumber) {
-        this.versionNumber = versionNumber;
-    }
+	public void setVersionNumber(String versionNumber) {
+		this.versionNumber = versionNumber;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getComment() {
+		return comment;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 
-    public boolean isRevertible() {
-        return revertible;
-    }
+	public boolean isRevertible() {
+		return revertible;
+	}
 
-    public void setRevertible(boolean revertible) {
-        this.revertible = revertible;
-    }
+	public void setRevertible(boolean revertible) {
+		this.revertible = revertible;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public String getOldPath() {
-        return oldPath;
-    }
+	public String getOldPath() {
+		return oldPath;
+	}
 
-    public void setOldPath(String oldPath) {
-        this.oldPath = oldPath;
-    }
+	public void setOldPath(String oldPath) {
+		this.oldPath = oldPath;
+	}
 
-    public Person getAuthor() {
-        return author;
-    }
+	public Person getAuthor() {
+		return author;
+	}
 
-    public void setAuthor(Person author) {
-        this.author = author;
-    }
+	public void setAuthor(Person author) {
+		this.author = author;
+	}
 }

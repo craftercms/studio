@@ -195,11 +195,11 @@
 											<id>name</id>
 											<name>Name</name>
 											<description>
-                                                                                            User's first and last name.
+												User's first and last name.
 											</description>
 											<type>input</type>
 											<helpText>
-                                                                                            Enter user's first and last name.
+												Enter user's first and last name.
 											</helpText>
 										</name>
 									</fields>

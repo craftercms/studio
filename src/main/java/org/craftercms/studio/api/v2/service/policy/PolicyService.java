@@ -31,17 +31,17 @@ import java.util.List;
  */
 public interface PolicyService {
 
-    /**
-     * Performs the validation of one or more actions for a given site
-     *
-     * @param siteId the id of the site
-     * @param actions the list of actions to validate
-     * @return the validation results
-     * @throws ConfigurationException if there any error parsing the configuration
-     * @throws IOException if the is any error reading the configuration
-     * @throws ContentNotFoundException if there is any error reading the site repository
-     */
-    List<ValidationResult> validate(String siteId, List<Action> actions)
-            throws ConfigurationException, IOException, ContentNotFoundException;
+	/**
+	 * Performs the validation of one or more actions for a given site
+	 *
+	 * @param siteId  the id of the site
+	 * @param actions the list of actions to validate
+	 * @return the validation results
+	 * @throws ConfigurationException   if there any error parsing the configuration
+	 * @throws IOException              if the is any error reading the configuration
+	 * @throws ContentNotFoundException if there is any error reading the site repository
+	 */
+	List<ValidationResult> validate(String siteId, List<Action> actions)
+		throws ConfigurationException, IOException, ContentNotFoundException;
 
 }

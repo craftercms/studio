@@ -39,46 +39,46 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
  */
 public class PermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
-    private final SecurityService securityService;
-    private final StudioConfiguration studioConfiguration;
+	private final SecurityService securityService;
+	private final StudioConfiguration studioConfiguration;
 
-    public PermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
-        this.securityService = securityService;
-        this.studioConfiguration = studioConfiguration;
-    }
+	public PermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
+		this.securityService = securityService;
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    @Override
-    public Permission getGlobalPermission(String username) throws PermissionException {
-       return getPermission(username, Collections.emptyMap());
-    }
+	@Override
+	public Permission getGlobalPermission(String username) throws PermissionException {
+		return getPermission(username, Collections.emptyMap());
+	}
 
-    @Override
-    public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
-        String siteName = StringUtils.EMPTY;
-        String path = DEFAULT_PATH_RESOURCE_VALUE;
+	@Override
+	public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
+		String siteName = StringUtils.EMPTY;
+		String path = DEFAULT_PATH_RESOURCE_VALUE;
 
-        if (MapUtils.isNotEmpty(resourceIds)) {
-            if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
-                siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
-                if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-                    siteName = StringUtils.EMPTY;
-                }
-            }
-            if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
-                path = (String) resourceIds.get(PATH_RESOURCE_ID);
-            }
-        }
+		if (MapUtils.isNotEmpty(resourceIds)) {
+			if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
+				siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
+				if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+					siteName = StringUtils.EMPTY;
+				}
+			}
+			if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
+				path = (String) resourceIds.get(PATH_RESOURCE_ID);
+			}
+		}
 
-        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
+		Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
 
-        DefaultPermission permission = new DefaultPermission();
-        permission.setAllowedActions(allowedActions);
+		DefaultPermission permission = new DefaultPermission();
+		permission.setAllowedActions(allowedActions);
 
-        return permission;
-    }
+		return permission;
+	}
 
 }

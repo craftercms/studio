@@ -15,11 +15,12 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <form>
-	<datasources>				<datasource>
-					<type>child-content</type>
-				</datasource>
-				<datasource>
-					<type>site-component</type>
-				</datasource>
+	<datasources>
+		<datasource>
+			<type>child-content</type>
+		</datasource>
+		<datasource>
+			<type>site-component</type>
+		</datasource>
 	</datasources>
 </form>

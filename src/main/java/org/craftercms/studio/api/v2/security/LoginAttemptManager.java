@@ -24,35 +24,35 @@ package org.craftercms.studio.api.v2.security;
  */
 public interface LoginAttemptManager {
 
-    /**
-     * Indicates if a user is currently locked. <br/>
-     * A locked user is not allowed to log in
-     *
-     * @param username the username
-     * @return true if the user is locked, false otherwise
-     */
-    boolean isUserLocked(String username);
+	/**
+	 * Indicates if a user is currently locked. <br/>
+	 * A locked user is not allowed to log in
+	 *
+	 * @param username the username
+	 * @return true if the user is locked, false otherwise
+	 */
+	boolean isUserLocked(String username);
 
-    /**
-     * Get the number of seconds left for the user to be unlocked, or 0 if the user is not locked.
-     *
-     * @param username the username
-     * @return the number of seconds left for the user to be unlocked, or 0 if the user is not locked.
-     */
-    long getUserLockTimeLeftSeconds(String username);
+	/**
+	 * Get the number of seconds left for the user to be unlocked, or 0 if the user is not locked.
+	 *
+	 * @param username the username
+	 * @return the number of seconds left for the user to be unlocked, or 0 if the user is not locked.
+	 */
+	long getUserLockTimeLeftSeconds(String username);
 
-    /**
-     * Notify this manager that a login attempt has succeeded for the given user.
-     *
-     * @param username the username
-     */
-    void loginSucceeded(String username);
+	/**
+	 * Notify this manager that a login attempt has succeeded for the given user.
+	 *
+	 * @param username the username
+	 */
+	void loginSucceeded(String username);
 
-    /**
-     * Notify this manager that a login attempt has failed for the given user.
-     *
-     * @param username the username
-     */
-    void loginFailed(String username);
+	/**
+	 * Notify this manager that a login attempt has failed for the given user.
+	 *
+	 * @param username the username
+	 */
+	void loginFailed(String username);
 
 }

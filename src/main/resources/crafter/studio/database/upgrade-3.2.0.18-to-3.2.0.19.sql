@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call addColumnIfNotExists('crafter', 'cluster', 'available', 'INT NOT NULL DEFAULT 1') ;
+call addColumnIfNotExists('crafter', 'cluster', 'available', 'INT NOT NULL DEFAULT 1');
 
-UPDATE _meta SET version = '3.2.0.19' ;
+UPDATE _meta
+SET version = '3.2.0.19';

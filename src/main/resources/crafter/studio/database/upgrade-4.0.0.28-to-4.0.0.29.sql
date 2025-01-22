@@ -14,8 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-UPDATE item SET state = ((state MOD POW(2, 11)) + (disabled * POW(2, 11)) + (state DIV POW(2,11)) * POW (2, 12)) ;
+UPDATE item
+SET state = ((state MOD POW(2, 11)) + (disabled * POW(2, 11)) + (state DIV POW(2,11)) * POW(2, 12));
 
-call dropColumnIfExists('crafter', 'item', 'disabled') ;
+call dropColumnIfExists('crafter', 'item', 'disabled');
 
-UPDATE _meta SET version = '4.0.0.29' ;
+UPDATE _meta
+SET version = '4.0.0.29';

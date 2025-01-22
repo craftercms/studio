@@ -17,14 +17,13 @@ package org.craftercms.studio.api.v1.exception;
 
 /**
  * occurs when failed to process content
- * 
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public class ContentProcessException extends ServiceLayerException {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = -2063763110705061033L;
 
@@ -42,5 +41,5 @@ public class ContentProcessException extends ServiceLayerException {
 	public ContentProcessException(String message, Exception e) {
 		super(message, e);
 	}
-	
+
 }

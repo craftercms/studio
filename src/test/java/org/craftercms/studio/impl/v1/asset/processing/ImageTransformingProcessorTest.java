@@ -38,87 +38,87 @@ import static org.mockito.Mockito.*;
 
 public class ImageTransformingProcessorTest {
 
-    private static final String INPUT_REPO_PATH = "/static-assets/images/upload/test-image.jpg";
-    private static final String OUTPUT_REPO_PATH = "/static-assets/images/transformed/test-image.jpg";
-    private static final String INPUT_PATH_PATTERN = "/static-assets/images/upload/([^/]+)\\.jpg";
-    private static final String OUTPUT_PATH_FORMAT = "/static-assets/images/transformed/$1.jpg";
+	private static final String INPUT_REPO_PATH = "/static-assets/images/upload/test-image.jpg";
+	private static final String OUTPUT_REPO_PATH = "/static-assets/images/transformed/test-image.jpg";
+	private static final String INPUT_PATH_PATTERN = "/static-assets/images/upload/([^/]+)\\.jpg";
+	private static final String OUTPUT_PATH_FORMAT = "/static-assets/images/transformed/$1.jpg";
 
-    private ImageTransformingProcessor processor;
-    private ImageTransformer transformer;
+	private ImageTransformingProcessor processor;
+	private ImageTransformer transformer;
 
-    @BeforeMethod
-    public void setUp() throws Exception {
-        transformer = createImageTransformer();
-        processor = new ImageTransformingProcessor(transformer);
-    }
+	@BeforeMethod
+	public void setUp() throws Exception {
+		transformer = createImageTransformer();
+		processor = new ImageTransformingProcessor(transformer);
+	}
 
-    @Test
-    public void testProcessWithNoOutputPathPattern() throws Exception {
-        ProcessorConfiguration config = createProcessorConfigWithNoOutputPattern();
+	@Test
+	public void testProcessWithNoOutputPathPattern() throws Exception {
+		ProcessorConfiguration config = createProcessorConfigWithNoOutputPattern();
 
-        Path inputFile = createInputFile();
-        Asset input = new Asset(INPUT_REPO_PATH, inputFile);
+		Path inputFile = createInputFile();
+		Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        Asset output = processor.processAsset(config, createInputPathMatcher(), input);
+		Asset output = processor.processAsset(config, createInputPathMatcher(), input);
 
-        assertNotNull(output);
-        assertEquals(output.getRepoPath(), input.getRepoPath());
-        assertEquals(output.getFilePath(), inputFile);
-        verify(transformer).transform(any(Path.class), eq(inputFile), eq(Collections.emptyMap()));
-    }
+		assertNotNull(output);
+		assertEquals(output.getRepoPath(), input.getRepoPath());
+		assertEquals(output.getFilePath(), inputFile);
+		verify(transformer).transform(any(Path.class), eq(inputFile), eq(Collections.emptyMap()));
+	}
 
-    @Test
-    public void testProcessWithOutputPathPattern() throws Exception {
-        ProcessorConfiguration config = createProcessorConfigWithOutputPattern();
+	@Test
+	public void testProcessWithOutputPathPattern() throws Exception {
+		ProcessorConfiguration config = createProcessorConfigWithOutputPattern();
 
-        Path inputFile = createInputFile();
-        Asset input = new Asset(INPUT_REPO_PATH, inputFile);
+		Path inputFile = createInputFile();
+		Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        Asset output = processor.processAsset(config, createInputPathMatcher(), input);
+		Asset output = processor.processAsset(config, createInputPathMatcher(), input);
 
-        assertNotNull(output);
-        assertNotEquals(output.getRepoPath(), input.getRepoPath());
-        assertEquals(output.getRepoPath(), OUTPUT_REPO_PATH);
-        verify(transformer).transform(eq(inputFile), eq(output.getFilePath()), eq(Collections.emptyMap()));
-    }
+		assertNotNull(output);
+		assertNotEquals(output.getRepoPath(), input.getRepoPath());
+		assertEquals(output.getRepoPath(), OUTPUT_REPO_PATH);
+		verify(transformer).transform(eq(inputFile), eq(output.getFilePath()), eq(Collections.emptyMap()));
+	}
 
-    private ImageTransformer createImageTransformer() {
-        return mock(ImageTransformer.class);
-    }
+	private ImageTransformer createImageTransformer() {
+		return mock(ImageTransformer.class);
+	}
 
-    private ProcessorConfiguration createProcessorConfigWithNoOutputPattern() {
-        ProcessorConfiguration configuration = new ProcessorConfiguration();
-        configuration.setType("test");
-        configuration.setParams(Collections.emptyMap());
+	private ProcessorConfiguration createProcessorConfigWithNoOutputPattern() {
+		ProcessorConfiguration configuration = new ProcessorConfiguration();
+		configuration.setType("test");
+		configuration.setParams(Collections.emptyMap());
 
-        return configuration;
-    }
+		return configuration;
+	}
 
-    private ProcessorConfiguration createProcessorConfigWithOutputPattern() {
-        ProcessorConfiguration configuration = new ProcessorConfiguration();
-        configuration.setType("test");
-        configuration.setOutputPathFormat(OUTPUT_PATH_FORMAT);
-        configuration.setParams(Collections.emptyMap());
+	private ProcessorConfiguration createProcessorConfigWithOutputPattern() {
+		ProcessorConfiguration configuration = new ProcessorConfiguration();
+		configuration.setType("test");
+		configuration.setOutputPathFormat(OUTPUT_PATH_FORMAT);
+		configuration.setParams(Collections.emptyMap());
 
-        return configuration;
-    }
+		return configuration;
+	}
 
-    private Matcher createInputPathMatcher() {
-        Pattern pattern = Pattern.compile(INPUT_PATH_PATTERN);
-        Matcher matcher = pattern.matcher(INPUT_REPO_PATH);
+	private Matcher createInputPathMatcher() {
+		Pattern pattern = Pattern.compile(INPUT_PATH_PATTERN);
+		Matcher matcher = pattern.matcher(INPUT_REPO_PATH);
 
-        matcher.matches();
+		matcher.matches();
 
-        return matcher;
-    }
+		return matcher;
+	}
 
-    private Path createInputFile() throws IOException {
-        File tmpRoot = getStudioTemporaryFilesRoot().toFile();
-        if (!tmpRoot.exists()) {
-            FileUtils.forceMkdir(tmpRoot);
-        }
-        return Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(INPUT_REPO_PATH), "." + FilenameUtils.getExtension(INPUT_REPO_PATH));
-    }
+	private Path createInputFile() throws IOException {
+		File tmpRoot = getStudioTemporaryFilesRoot().toFile();
+		if (!tmpRoot.exists()) {
+			FileUtils.forceMkdir(tmpRoot);
+		}
+		return Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(INPUT_REPO_PATH), "." + FilenameUtils.getExtension(INPUT_REPO_PATH));
+	}
 
 
 }

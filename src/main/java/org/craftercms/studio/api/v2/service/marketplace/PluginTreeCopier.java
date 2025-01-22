@@ -46,53 +46,53 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
  */
 public class PluginTreeCopier extends TreeCopier {
 
-    protected final StudioConfiguration studioConfiguration;
+	protected final StudioConfiguration studioConfiguration;
 
-    protected final String siteId;
+	protected final String siteId;
 
-    protected final List<FileRecord> files;
+	protected final List<FileRecord> files;
 
-    protected final StringSubstitutor stringSubstitutor;
+	protected final StringSubstitutor stringSubstitutor;
 
-    protected final Path repoDir;
+	protected final Path repoDir;
 
-    /**
-     * Indicates if the checksum should be populated for all files
-     */
-    protected final boolean calculateChecksum;
+	/**
+	 * Indicates if the checksum should be populated for all files
+	 */
+	protected final boolean calculateChecksum;
 
-    public PluginTreeCopier(Path source, Path target, StudioConfiguration studioConfiguration, String siteId,
-                            Map<String, String> params, List<FileRecord> files, boolean calculateChecksum) {
-        super(source, target);
-        this.studioConfiguration = studioConfiguration;
-        this.siteId = siteId;
-        this.files = files;
-        this.calculateChecksum = calculateChecksum;
-        this.stringSubstitutor = new StringSubstitutor(params, "${plugin:", "}");
-        this.repoDir = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                studioConfiguration.getProperty(SITES_REPOS_PATH), siteId,
-                studioConfiguration.getProperty(SANDBOX_PATH));
-    }
+	public PluginTreeCopier(Path source, Path target, StudioConfiguration studioConfiguration, String siteId,
+				Map<String, String> params, List<FileRecord> files, boolean calculateChecksum) {
+		super(source, target);
+		this.studioConfiguration = studioConfiguration;
+		this.siteId = siteId;
+		this.files = files;
+		this.calculateChecksum = calculateChecksum;
+		this.stringSubstitutor = new StringSubstitutor(params, "${plugin:", "}");
+		this.repoDir = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+			studioConfiguration.getProperty(SITES_REPOS_PATH), siteId,
+			studioConfiguration.getProperty(SANDBOX_PATH));
+	}
 
-    @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        byte[] content = Files.readAllBytes(file);
+	@Override
+	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+		byte[] content = Files.readAllBytes(file);
 
-        //TODO: Find a better way to do this
-        if (file.toString().endsWith(".xml")) {
-            content = stringSubstitutor.replace(new String(content, UTF_8)).getBytes(UTF_8);
-        }
+		//TODO: Find a better way to do this
+		if (file.toString().endsWith(".xml")) {
+			content = stringSubstitutor.replace(new String(content, UTF_8)).getBytes(UTF_8);
+		}
 
-        Files.write(target.resolve(source.relativize(file)), content, CREATE, TRUNCATE_EXISTING, WRITE);
+		Files.write(target.resolve(source.relativize(file)), content, CREATE, TRUNCATE_EXISTING, WRITE);
 
-        FileRecord record = new FileRecord();
-        record.setPath(repoDir.relativize(target.resolve(source.relativize(file))).toString());
-        if (calculateChecksum) {
-            record.setSha512(DigestUtils.sha512Hex(content));
-        }
-        files.add(record);
+		FileRecord record = new FileRecord();
+		record.setPath(repoDir.relativize(target.resolve(source.relativize(file))).toString());
+		if (calculateChecksum) {
+			record.setSha512(DigestUtils.sha512Hex(content));
+		}
+		files.add(record);
 
-        return FileVisitResult.CONTINUE;
-    }
+		return FileVisitResult.CONTINUE;
+	}
 
 }

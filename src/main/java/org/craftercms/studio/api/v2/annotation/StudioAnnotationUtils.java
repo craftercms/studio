@@ -23,24 +23,25 @@ import java.lang.reflect.Method;
 
 public class StudioAnnotationUtils {
 
-    /**
-     * Get annotation value from an annotation class instance
-     * @param pjp proceeding join point object
-     * @param method method to read
-     * @param annotationClass annotation class
-     * @param returnType return of annotation value type
-     * @return annotation value
-     */
-    public static <T> T getAnnotationValue(final ProceedingJoinPoint pjp, final Method method, Class<?> annotationClass, Class<T> returnType) {
-        Annotation[][] paramAnnotations = method.getParameterAnnotations();
-        Object[] params = pjp.getArgs();
-        for (int i = 0; i < paramAnnotations.length; i++) {
-            for (Annotation a : paramAnnotations[i]) {
-                if (annotationClass.isInstance(a)) {
-                    return returnType.cast(params[i]);
-                }
-            }
-        }
-        return null;
-    }
+	/**
+	 * Get annotation value from an annotation class instance
+	 *
+	 * @param pjp             proceeding join point object
+	 * @param method          method to read
+	 * @param annotationClass annotation class
+	 * @param returnType      return of annotation value type
+	 * @return annotation value
+	 */
+	public static <T> T getAnnotationValue(final ProceedingJoinPoint pjp, final Method method, Class<?> annotationClass, Class<T> returnType) {
+		Annotation[][] paramAnnotations = method.getParameterAnnotations();
+		Object[] params = pjp.getArgs();
+		for (int i = 0; i < paramAnnotations.length; i++) {
+			for (Annotation a : paramAnnotations[i]) {
+				if (annotationClass.isInstance(a)) {
+					return returnType.cast(params[i]);
+				}
+			}
+		}
+		return null;
+	}
 }

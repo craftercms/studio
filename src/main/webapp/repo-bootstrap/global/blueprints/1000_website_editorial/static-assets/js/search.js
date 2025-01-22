@@ -16,57 +16,57 @@
 
 (function ($) {
 
-  var params = {};
-  try {
-    window.location.search.replace(/^\?/, '').split('&').forEach(function (piece) {
-      const pieces = piece.split('=');
-      params[pieces[0]] = pieces[1];
-    });
-  } catch {
+	var params = {};
+	try {
+		window.location.search.replace(/^\?/, '').split('&').forEach(function (piece) {
+			const pieces = piece.split('=');
+			params[pieces[0]] = pieces[1];
+		});
+	} catch {
 
-  }
+	}
 
-  var queryParam = params.q;
-  if (queryParam) {
-    queryParam = decodeURI(queryParam).trim();
-    $('#query').val(queryParam);
-  }
+	var queryParam = params.q;
+	if (queryParam) {
+		queryParam = decodeURI(queryParam).trim();
+		$('#query').val(queryParam);
+	}
 
-  var source = $('#search-results-template').html();
-  var template = Handlebars.compile(source);
+	var source = $('#search-results-template').html();
+	var template = Handlebars.compile(source);
 
-  var doSearch = function (userTerm, categories) {
-    var params = {};
+	var doSearch = function (userTerm, categories) {
+		var params = {};
 
-    if (userTerm) {
-      params.userTerm = userTerm;
-    }
-    if (categories) {
-      params.categories = categories;
-    }
+		if (userTerm) {
+			params.userTerm = userTerm;
+		}
+		if (categories) {
+			params.categories = categories;
+		}
 
-    $.get('/api/search.json', params).done(function (data) {
-      if (data == null) {
-        data = [];
-      }
+		$.get('/api/search.json', params).done(function (data) {
+			if (data == null) {
+				data = [];
+			}
 
-      var context = { results: data };
-      var html = template(context);
+			var context = {results: data};
+			var html = template(context);
 
-      $('#search-results').html(html);
-    });
-  };
+			$('#search-results').html(html);
+		});
+	};
 
-  $('#categories input').click(function () {
-    var categories = [];
+	$('#categories input').click(function () {
+		var categories = [];
 
-    $('#categories input:checked').each(function () {
-      categories.push($(this).val());
-    });
+		$('#categories input:checked').each(function () {
+			categories.push($(this).val());
+		});
 
-    doSearch(queryParam, categories);
-  });
+		doSearch(queryParam, categories);
+	});
 
-  doSearch(queryParam);
+	doSearch(queryParam);
 
 })(jQuery);

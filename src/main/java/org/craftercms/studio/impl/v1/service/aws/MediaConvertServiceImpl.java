@@ -33,33 +33,33 @@ import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfile
  *
  * @author joseross
  * @deprecated This service has been replaced with
- *             {@link org.craftercms.studio.impl.v2.service.aws.mediaconvert.AwsMediaConvertServiceImpl}
+ * {@link org.craftercms.studio.impl.v2.service.aws.mediaconvert.AwsMediaConvertServiceImpl}
  */
 @Deprecated
 public class MediaConvertServiceImpl extends AbstractAwsService<MediaConvertProfile> implements MediaConvertService {
 
-    /**
-     * Instance of {@link MediaConvert}.
-     */
-    protected MediaConvert mediaConvert;
+	/**
+	 * Instance of {@link MediaConvert}.
+	 */
+	protected MediaConvert mediaConvert;
 
-    public MediaConvertServiceImpl(SiteAwareConfigProfileLoader<MediaConvertProfile> profileLoader, final MediaConvert mediaConvert) {
-        super(profileLoader);
-        this.mediaConvert = mediaConvert;
-    }
+	public MediaConvertServiceImpl(SiteAwareConfigProfileLoader<MediaConvertProfile> profileLoader, final MediaConvert mediaConvert) {
+		super(profileLoader);
+		this.mediaConvert = mediaConvert;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MediaConvertJob startJob(final @ValidateStringParam String site,
-                                    final @ValidateStringParam String profileId,
-                                    final @ValidateStringParam String filename,
-                                    final InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MediaConvertJob startJob(final @ValidateStringParam String site,
+					final @ValidateStringParam String profileId,
+					final @ValidateStringParam String filename,
+					final InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
 
-        MediaConvertProfile profile = getProfile(site, profileId);
+		MediaConvertProfile profile = getProfile(site, profileId);
 
-        return mediaConvert.startJob(filename, content, profile);
-    }
+		return mediaConvert.startJob(filename, content, profile);
+	}
 
 }

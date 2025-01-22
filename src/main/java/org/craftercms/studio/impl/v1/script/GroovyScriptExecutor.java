@@ -35,44 +35,44 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 
 public class GroovyScriptExecutor implements ScriptExecutor {
 
-    public static final String SCRIPT_ENGINE_SHORT_NAME = "groovy";
+	public static final String SCRIPT_ENGINE_SHORT_NAME = "groovy";
 
-    protected GitRepositoryHelper gitRepositoryHelper;
-    protected List<String> scriptsClassPath;
-    protected String pluginClassPath;
+	protected GitRepositoryHelper gitRepositoryHelper;
+	protected List<String> scriptsClassPath;
+	protected String pluginClassPath;
 
-    @ConstructorProperties({"gitRepositoryHelper", "scriptsClassPath", "pluginClassPath"})
-    GroovyScriptExecutor(final GitRepositoryHelper gitRepositoryHelper, final List<String> scriptsClassPath,
-                         final String pluginClassPath) {
-        this.gitRepositoryHelper = gitRepositoryHelper;
-        this.scriptsClassPath = scriptsClassPath;
-        this.pluginClassPath = pluginClassPath;
-    }
+	@ConstructorProperties({"gitRepositoryHelper", "scriptsClassPath", "pluginClassPath"})
+	GroovyScriptExecutor(final GitRepositoryHelper gitRepositoryHelper, final List<String> scriptsClassPath,
+			     final String pluginClassPath) {
+		this.gitRepositoryHelper = gitRepositoryHelper;
+		this.scriptsClassPath = scriptsClassPath;
+		this.pluginClassPath = pluginClassPath;
+	}
 
-    @Override
-    public void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException {
-        ScriptEngineManager factory = new ScriptEngineManager();
-        factory.setBindings(new SimpleBindings(model));
-        ScriptEngine engine = factory.getEngineByName(SCRIPT_ENGINE_SHORT_NAME);
-        GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl) engine;
+	@Override
+	public void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException {
+		ScriptEngineManager factory = new ScriptEngineManager();
+		factory.setBindings(new SimpleBindings(model));
+		ScriptEngine engine = factory.getEngineByName(SCRIPT_ENGINE_SHORT_NAME);
+		GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl) engine;
 
-        for (String classPath : scriptsClassPath) {
-            gse.getClassLoader().addClasspath(classPath);
-        }
+		for (String classPath : scriptsClassPath) {
+			gse.getClassLoader().addClasspath(classPath);
+		}
 
-        gse.getClassLoader().addClasspath(getPluginClassFullPath(siteId));
+		gse.getClassLoader().addClasspath(getPluginClassFullPath(siteId));
 
-        engine.eval(script);
-    }
+		engine.eval(script);
+	}
 
-    /**
-     * Get plugin Groovy classes full path for a given site
-     * @param siteId the site identifier
-     *
-     * @return the plugin Groovy classes full path
-     */
-    private String getPluginClassFullPath(String siteId) {
-        Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, siteId);
-        return repoRootPath.resolve(StringUtils.removeStart(pluginClassPath, FILE_SEPARATOR)).toAbsolutePath().toString();
-    }
+	/**
+	 * Get plugin Groovy classes full path for a given site
+	 *
+	 * @param siteId the site identifier
+	 * @return the plugin Groovy classes full path
+	 */
+	private String getPluginClassFullPath(String siteId) {
+		Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, siteId);
+		return repoRootPath.resolve(StringUtils.removeStart(pluginClassPath, FILE_SEPARATOR)).toAbsolutePath().toString();
+	}
 }

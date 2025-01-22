@@ -37,30 +37,30 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN
 
 public class AuditLoginListener extends AbstractAuditListener {
 
-    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
-    public AuditLoginListener(StudioConfiguration studioConfiguration, SiteService siteService,
-                              AuditServiceInternal auditServiceInternal) {
-        super(studioConfiguration, siteService, auditServiceInternal);
-    }
+	@ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
+	public AuditLoginListener(StudioConfiguration studioConfiguration, SiteService siteService,
+				  AuditServiceInternal auditServiceInternal) {
+		super(studioConfiguration, siteService, auditServiceInternal);
+	}
 
-    @EventListener
-    public void recordAuthenticationSuccess(AuthenticationSuccessEvent event) {
-        // TODO: JM: Review and cleanup
-        if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
+	@EventListener
+	public void recordAuthenticationSuccess(AuthenticationSuccessEvent event) {
+		// TODO: JM: Review and cleanup
+		if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
 //            Disabled because every request to the API triggers this event
 //            recordAuthenticationEvent(OPERATION_PRE_AUTH, event, null);
-        } else {
-            recordAuthenticationEvent(OPERATION_LOGIN, event, "User '{}' logged in from IP '{}'");
-        }
-    }
+		} else {
+			recordAuthenticationEvent(OPERATION_LOGIN, event, "User '{}' logged in from IP '{}'");
+		}
+	}
 
-    @EventListener
-    public void recordAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
-        recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
-                "Failed to authenticate user '{}' from IP '{}'. Reason: " +
-                        event.getException().getLocalizedMessage());
-        logger.debug("Failed to authenticate user '{}'",
-                event.getAuthentication().getName(), event.getException());
-    }
+	@EventListener
+	public void recordAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
+		recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
+			"Failed to authenticate user '{}' from IP '{}'. Reason: " +
+				event.getException().getLocalizedMessage());
+		logger.debug("Failed to authenticate user '{}'",
+			event.getAuthentication().getName(), event.getException());
+	}
 
 }

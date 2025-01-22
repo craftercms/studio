@@ -29,73 +29,73 @@ import java.util.regex.Pattern;
 
 public class SitePermissionMappings {
 
-    private String siteId;
-    private Map<NormalizedRole, RolePermissionMappings> rolePermissions = new HashMap<>();
-    private final Map<NormalizedGroup, List<NormalizedRole>> groupToRolesMapping = new HashMap<>();
+	private String siteId;
+	private Map<NormalizedRole, RolePermissionMappings> rolePermissions = new HashMap<>();
+	private final Map<NormalizedGroup, List<NormalizedRole>> groupToRolesMapping = new HashMap<>();
 
-    public long getAvailableActions(String username, List<Group> groups, String path) {
-        List<NormalizedRole> rolesList = new ArrayList<>();
-        List<NormalizedRole> userRoles = groupToRolesMapping.get(new NormalizedGroup(username));
-        if (CollectionUtils.isNotEmpty(userRoles)) {
-            CollectionUtils.addAll(rolesList, userRoles);
-        }
-        groups.forEach(g -> {
-            List<NormalizedRole> groupRoles = groupToRolesMapping.get(new NormalizedGroup(g.getGroupName()));
-            if (CollectionUtils.isNotEmpty(groupRoles)) {
-                CollectionUtils.addAll(rolesList, groupRoles);
-            }
-        });
+	public long getAvailableActions(String username, List<Group> groups, String path) {
+		List<NormalizedRole> rolesList = new ArrayList<>();
+		List<NormalizedRole> userRoles = groupToRolesMapping.get(new NormalizedGroup(username));
+		if (CollectionUtils.isNotEmpty(userRoles)) {
+			CollectionUtils.addAll(rolesList, userRoles);
+		}
+		groups.forEach(g -> {
+			List<NormalizedRole> groupRoles = groupToRolesMapping.get(new NormalizedGroup(g.getGroupName()));
+			if (CollectionUtils.isNotEmpty(groupRoles)) {
+				CollectionUtils.addAll(rolesList, groupRoles);
+			}
+		});
 
-        long availableActions = 0L;
-        for (NormalizedRole role : rolesList) {
-            RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
-            Map<String, Long> rulePermissions = rolePermissionMappings.getRuleContentItemPermissions();
-            for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {
-                Pattern pattern = Pattern.compile(entry.getKey());
-                Matcher matcher = pattern.matcher(path);
-                if (matcher.matches()) {
-                    availableActions = availableActions | entry.getValue();
-                }
-            }
-        }
-        return availableActions;
-    }
+		long availableActions = 0L;
+		for (NormalizedRole role : rolesList) {
+			RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
+			Map<String, Long> rulePermissions = rolePermissionMappings.getRuleContentItemPermissions();
+			for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {
+				Pattern pattern = Pattern.compile(entry.getKey());
+				Matcher matcher = pattern.matcher(path);
+				if (matcher.matches()) {
+					availableActions = availableActions | entry.getValue();
+				}
+			}
+		}
+		return availableActions;
+	}
 
-    public void addGroupToRolesMapping(NormalizedGroup group, List<NormalizedRole> roles) {
-        groupToRolesMapping.put(group, roles);
-    }
+	public void addGroupToRolesMapping(NormalizedGroup group, List<NormalizedRole> roles) {
+		groupToRolesMapping.put(group, roles);
+	}
 
-    public void addRoleToGroupMapping(String group, String role) {
-        NormalizedGroup normalizedGroup = new NormalizedGroup(group);
-        List<NormalizedRole> roles = groupToRolesMapping.get(normalizedGroup);
-        if (Objects.isNull(roles)) {
-            roles = new ArrayList<>();
-            groupToRolesMapping.put(normalizedGroup, roles);
-        }
-        roles.add(new NormalizedRole(role));
-    }
+	public void addRoleToGroupMapping(String group, String role) {
+		NormalizedGroup normalizedGroup = new NormalizedGroup(group);
+		List<NormalizedRole> roles = groupToRolesMapping.get(normalizedGroup);
+		if (Objects.isNull(roles)) {
+			roles = new ArrayList<>();
+			groupToRolesMapping.put(normalizedGroup, roles);
+		}
+		roles.add(new NormalizedRole(role));
+	}
 
-    public List<NormalizedRole> getRolesForGroup(String group) {
-        return this.groupToRolesMapping.get(new NormalizedGroup(group));
-    }
+	public List<NormalizedRole> getRolesForGroup(String group) {
+		return this.groupToRolesMapping.get(new NormalizedGroup(group));
+	}
 
-    public void addRolePermissionMapping(String role, RolePermissionMappings rolePermissionMappings) {
-        rolePermissions.put(new NormalizedRole(role), rolePermissionMappings);
-    }
+	public void addRolePermissionMapping(String role, RolePermissionMappings rolePermissionMappings) {
+		rolePermissions.put(new NormalizedRole(role), rolePermissionMappings);
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public Map<NormalizedRole, RolePermissionMappings> getRolePermissions() {
-        return rolePermissions;
-    }
+	public Map<NormalizedRole, RolePermissionMappings> getRolePermissions() {
+		return rolePermissions;
+	}
 
-    public void setRolePermissions(Map<NormalizedRole, RolePermissionMappings> rolePermissions) {
-        this.rolePermissions = rolePermissions;
-    }
+	public void setRolePermissions(Map<NormalizedRole, RolePermissionMappings> rolePermissions) {
+		this.rolePermissions = rolePermissions;
+	}
 }

@@ -48,64 +48,64 @@ import static org.craftercms.studio.api.v2.dal.Site.State.READY;
  */
 public class SandboxRepositoryListener implements ApplicationEventPublisherAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(SandboxRepositoryListener.class);
-    private final SitesService siteService;
-    private final GitRepositoryHelper repositoryHelper;
-    private final RepositoryWatcher repositoryWatcher;
-    private ApplicationEventPublisher eventPublisher;
+	private static final Logger logger = LoggerFactory.getLogger(SandboxRepositoryListener.class);
+	private final SitesService siteService;
+	private final GitRepositoryHelper repositoryHelper;
+	private final RepositoryWatcher repositoryWatcher;
+	private ApplicationEventPublisher eventPublisher;
 
-    @ConstructorProperties({"siteService", "repositoryHelper",
-            "repositoryWatcher"})
-    public SandboxRepositoryListener(final SitesService siteService, final GitRepositoryHelper repositoryHelper,
-                                     final RepositoryWatcher repositoryWatcher) {
-        this.siteService = siteService;
-        this.repositoryHelper = repositoryHelper;
-        this.repositoryWatcher = repositoryWatcher;
-    }
+	@ConstructorProperties({"siteService", "repositoryHelper",
+		"repositoryWatcher"})
+	public SandboxRepositoryListener(final SitesService siteService, final GitRepositoryHelper repositoryHelper,
+					 final RepositoryWatcher repositoryWatcher) {
+		this.siteService = siteService;
+		this.repositoryHelper = repositoryHelper;
+		this.repositoryWatcher = repositoryWatcher;
+	}
 
-    @Async
-    @EventListener(BootstrapFinishedEvent.class)
-    public void onBootstrapFinished() {
-        siteService.getSitesByState(READY).forEach(site -> {
-            logger.debug("Registering site '{}' for repository events", site);
-            Repository repo = repositoryHelper.getRepository(site.getSiteId(), GitRepositories.SANDBOX);
-            if (repo == null) {
-                // This can happen in clusters when a site is created while the replica is down
-                logger.warn("Repository not found for site '{}'", site);
-                return;
-            }
-            Path sandboxRepoPath = repo.getDirectory().toPath();
-            try {
-                repositoryWatcher.registerSite(site.getSiteId(), sandboxRepoPath);
-            } catch (SiteNotFoundException | IOException e) {
-                logger.error("Error registering site '{}' for repository events", site.getSiteId(), e);
-            }
-            eventPublisher.publishEvent(new SyncFromRepoEvent(site.getSiteId()));
-        });
-    }
+	@Async
+	@EventListener(BootstrapFinishedEvent.class)
+	public void onBootstrapFinished() {
+		siteService.getSitesByState(READY).forEach(site -> {
+			logger.debug("Registering site '{}' for repository events", site);
+			Repository repo = repositoryHelper.getRepository(site.getSiteId(), GitRepositories.SANDBOX);
+			if (repo == null) {
+				// This can happen in clusters when a site is created while the replica is down
+				logger.warn("Repository not found for site '{}'", site);
+				return;
+			}
+			Path sandboxRepoPath = repo.getDirectory().toPath();
+			try {
+				repositoryWatcher.registerSite(site.getSiteId(), sandboxRepoPath);
+			} catch (SiteNotFoundException | IOException e) {
+				logger.error("Error registering site '{}' for repository events", site.getSiteId(), e);
+			}
+			eventPublisher.publishEvent(new SyncFromRepoEvent(site.getSiteId()));
+		});
+	}
 
-    private Path getSandboxRepoPath(String site) {
-        Repository repo = repositoryHelper.getRepository(site, GitRepositories.SANDBOX);
-        return repo.getDirectory().toPath();
-    }
+	private Path getSandboxRepoPath(String site) {
+		Repository repo = repositoryHelper.getRepository(site, GitRepositories.SANDBOX);
+		return repo.getDirectory().toPath();
+	}
 
-    @Async
-    @Order(20)
-    @EventListener
-    public void onSiteReady(SiteReadyEvent event) throws SiteNotFoundException, IOException {
-        logger.debug("Site ready event received for site '{}'", event.getSiteId());
-        repositoryWatcher.registerSite(event.getSiteId(), getSandboxRepoPath(event.getSiteId()));
-    }
+	@Async
+	@Order(20)
+	@EventListener
+	public void onSiteReady(SiteReadyEvent event) throws SiteNotFoundException, IOException {
+		logger.debug("Site ready event received for site '{}'", event.getSiteId());
+		repositoryWatcher.registerSite(event.getSiteId(), getSandboxRepoPath(event.getSiteId()));
+	}
 
-    @Async
-    @EventListener
-    public void onSiteDeleting(SiteDeletingEvent event) {
-        logger.debug("Site deleting event received for site '{}'", event.getSiteId());
-        repositoryWatcher.deregisterSite(event.getSiteId());
-    }
+	@Async
+	@EventListener
+	public void onSiteDeleting(SiteDeletingEvent event) {
+		logger.debug("Site deleting event received for site '{}'", event.getSiteId());
+		repositoryWatcher.deregisterSite(event.getSiteId());
+	}
 
-    @Override
-    public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
-        this.eventPublisher = applicationEventPublisher;
-    }
+	@Override
+	public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+		this.eventPublisher = applicationEventPublisher;
+	}
 }

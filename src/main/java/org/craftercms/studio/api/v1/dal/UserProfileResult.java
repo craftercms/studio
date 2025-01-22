@@ -18,36 +18,76 @@ package org.craftercms.studio.api.v1.dal;
 
 public class UserProfileResult {
 
-    protected String username;
-    protected String lastName;
-    protected String firstName;
-    protected String email;
-    protected String groupName;
-    protected String siteId;
-    protected String siteName;
-    protected int externallyManaged;
+	protected String username;
+	protected String lastName;
+	protected String firstName;
+	protected String email;
+	protected String groupName;
+	protected String siteId;
+	protected String siteName;
+	protected int externallyManaged;
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+	public String getUsername() {
+		return username;
+	}
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+	public String getLastName() {
+		return lastName;
+	}
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
 
-    public String getGroupName() { return groupName; }
-    public void setGroupName(String groupName) { this.groupName = groupName; }
+	public String getFirstName() {
+		return firstName;
+	}
 
-    public String getSiteId() { return siteId; }
-    public void setSiteId(String siteId) { this.siteId = siteId; }
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
 
-    public String getSiteName() { return siteName; }
-    public void setSiteName(String siteName) { this.siteName = siteName; }
+	public String getEmail() {
+		return email;
+	}
 
-    public int getExternallyManaged() { return externallyManaged; }
-    public void setExternallyManaged(int externallyManaged) { this.externallyManaged = externallyManaged; }
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public String getSiteId() {
+		return siteId;
+	}
+
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
+
+	public String getSiteName() {
+		return siteName;
+	}
+
+	public void setSiteName(String siteName) {
+		this.siteName = siteName;
+	}
+
+	public int getExternallyManaged() {
+		return externallyManaged;
+	}
+
+	public void setExternallyManaged(int externallyManaged) {
+		this.externallyManaged = externallyManaged;
+	}
 }

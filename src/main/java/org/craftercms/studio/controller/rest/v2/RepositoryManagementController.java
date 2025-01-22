@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
 import java.beans.ConstructorProperties;
 import java.util.List;
 
@@ -54,182 +55,182 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(API_2 + REPOSITORY)
 public class RepositoryManagementController {
 
-    private final RepositoryManagementService repositoryManagementService;
+	private final RepositoryManagementService repositoryManagementService;
 
-    @ConstructorProperties({"repositoryManagementService"})
-    public RepositoryManagementController(final RepositoryManagementService repositoryManagementService) {
-        this.repositoryManagementService = repositoryManagementService;
-    }
+	@ConstructorProperties({"repositoryManagementService"})
+	public RepositoryManagementController(final RepositoryManagementService repositoryManagementService) {
+		this.repositoryManagementService = repositoryManagementService;
+	}
 
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(ADD_REMOTE)
-    public Result addRemote(HttpServletResponse response, @Valid @RequestBody RemoteRepository remoteRepository)
-            throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
-        boolean res = repositoryManagementService.addRemote(remoteRepository.getSiteId(), remoteRepository);
+	@ResponseStatus(HttpStatus.CREATED)
+	@PostMapping(ADD_REMOTE)
+	public Result addRemote(HttpServletResponse response, @Valid @RequestBody RemoteRepository remoteRepository)
+		throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
+		boolean res = repositoryManagementService.addRemote(remoteRepository.getSiteId(), remoteRepository);
 
-        Result result = new Result();
-        if (res) {
-            result.setResponse(CREATED);
-        } else {
-            result.setResponse(ADD_REMOTE_INVALID);
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        }
-        return result;
-    }
+		Result result = new Result();
+		if (res) {
+			result.setResponse(CREATED);
+		} else {
+			result.setResponse(ADD_REMOTE_INVALID);
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+		}
+		return result;
+	}
 
-    @GetMapping(value = LIST_REMOTES, produces = APPLICATION_JSON_VALUE)
-    public ResultList<RemoteRepositoryInfo> listRemotes(@ValidSiteId @RequestParam(name = "siteId") String siteId)
-            throws ServiceLayerException {
-        List<RemoteRepositoryInfo> remotes = repositoryManagementService.listRemotes(siteId);
+	@GetMapping(value = LIST_REMOTES, produces = APPLICATION_JSON_VALUE)
+	public ResultList<RemoteRepositoryInfo> listRemotes(@ValidSiteId @RequestParam(name = "siteId") String siteId)
+		throws ServiceLayerException {
+		List<RemoteRepositoryInfo> remotes = repositoryManagementService.listRemotes(siteId);
 
-        ResultList<RemoteRepositoryInfo> result = new ResultList<>();
-        result.setEntities(RESULT_KEY_REMOTES, remotes);
-        result.setResponse(OK);
-        return result;
-    }
+		ResultList<RemoteRepositoryInfo> result = new ResultList<>();
+		result.setEntities(RESULT_KEY_REMOTES, remotes);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(PULL_FROM_REMOTE)
-    public ResultOne<MergeResult> pullFromRemote(@Valid @RequestBody PullFromRemoteRequest pullFromRemoteRequest)
-            throws InvalidRemoteUrlException, ServiceLayerException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-        MergeResult mergeResult = repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
-                pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
-                pullFromRemoteRequest.getMergeStrategy());
+	@PostMapping(PULL_FROM_REMOTE)
+	public ResultOne<MergeResult> pullFromRemote(@Valid @RequestBody PullFromRemoteRequest pullFromRemoteRequest)
+		throws InvalidRemoteUrlException, ServiceLayerException,
+		InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+		MergeResult mergeResult = repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
+			pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
+			pullFromRemoteRequest.getMergeStrategy());
 
-        ResultOne<MergeResult> result = new ResultOne<>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_RESULT, mergeResult);
-        return result;
-    }
+		ResultOne<MergeResult> result = new ResultOne<>();
+		result.setResponse(OK);
+		result.setEntity(RESULT_KEY_RESULT, mergeResult);
+		return result;
+	}
 
-    @PostMapping(PUSH_TO_REMOTE)
-    public Result pushToRemote(HttpServletResponse response, @Valid @RequestBody PushToRemoteRequest pushToRemoteRequest)
-            throws InvalidRemoteUrlException, ServiceLayerException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-        boolean res = repositoryManagementService.pushToRemote(pushToRemoteRequest.getSiteId(),
-                pushToRemoteRequest.getRemoteName(), pushToRemoteRequest.getRemoteBranch(),
-                pushToRemoteRequest.isForce());
+	@PostMapping(PUSH_TO_REMOTE)
+	public Result pushToRemote(HttpServletResponse response, @Valid @RequestBody PushToRemoteRequest pushToRemoteRequest)
+		throws InvalidRemoteUrlException, ServiceLayerException,
+		InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+		boolean res = repositoryManagementService.pushToRemote(pushToRemoteRequest.getSiteId(),
+			pushToRemoteRequest.getRemoteName(), pushToRemoteRequest.getRemoteBranch(),
+			pushToRemoteRequest.isForce());
 
-        Result result = new Result();
-        if (res) {
-            result.setResponse(OK);
-        } else {
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            result.setResponse(PUSH_TO_REMOTE_FAILED);
-        }
-        return result;
-    }
+		Result result = new Result();
+		if (res) {
+			result.setResponse(OK);
+		} else {
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			result.setResponse(PUSH_TO_REMOTE_FAILED);
+		}
+		return result;
+	}
 
-    @PostMapping(REMOVE_REMOTE)
-    public Result removeRemote(HttpServletResponse response, @Valid @RequestBody RemoveRemoteRequest removeRemoteRequest)
-            throws SiteNotFoundException, RemoteNotRemovableException {
-        boolean res = repositoryManagementService.removeRemote(removeRemoteRequest.getSiteId(),
-                removeRemoteRequest.getRemoteName());
+	@PostMapping(REMOVE_REMOTE)
+	public Result removeRemote(HttpServletResponse response, @Valid @RequestBody RemoveRemoteRequest removeRemoteRequest)
+		throws SiteNotFoundException, RemoteNotRemovableException {
+		boolean res = repositoryManagementService.removeRemote(removeRemoteRequest.getSiteId(),
+			removeRemoteRequest.getRemoteName());
 
-        Result result = new Result();
-        if (res) {
-            result.setResponse(OK);
-        } else {
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            result.setResponse(REMOVE_REMOTE_FAILED);
-        }
-        return result;
-    }
+		Result result = new Result();
+		if (res) {
+			result.setResponse(OK);
+		} else {
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			result.setResponse(REMOVE_REMOTE_FAILED);
+		}
+		return result;
+	}
 
-    @GetMapping(STATUS)
-    public ResultOne<RepositoryStatus> getRepositoryStatus(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
-            throws ServiceLayerException {
-        RepositoryStatus status = repositoryManagementService.getRepositoryStatus(siteId);
-        ResultOne<RepositoryStatus> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
-        result.setResponse(OK);
-        return result;
-    }
+	@GetMapping(STATUS)
+	public ResultOne<RepositoryStatus> getRepositoryStatus(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
+		throws ServiceLayerException {
+		RepositoryStatus status = repositoryManagementService.getRepositoryStatus(siteId);
+		ResultOne<RepositoryStatus> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(RESOLVE_CONFLICT)
-    public ResultOne<RepositoryStatus> resolveConflict(@Valid @RequestBody ResolveConflictRequest resolveConflictRequest)
-            throws ServiceLayerException {
-        String path = resolveConflictRequest.getPath();
-        if (!path.startsWith(FILE_SEPARATOR)) {
-            path = FILE_SEPARATOR + path;
-        }
-        RepositoryStatus status = repositoryManagementService.resolveConflict(resolveConflictRequest.getSiteId(),
-                path, resolveConflictRequest.getResolution());
-        ResultOne<RepositoryStatus> result = new ResultOne<>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
-        return result;
-    }
+	@PostMapping(RESOLVE_CONFLICT)
+	public ResultOne<RepositoryStatus> resolveConflict(@Valid @RequestBody ResolveConflictRequest resolveConflictRequest)
+		throws ServiceLayerException {
+		String path = resolveConflictRequest.getPath();
+		if (!path.startsWith(FILE_SEPARATOR)) {
+			path = FILE_SEPARATOR + path;
+		}
+		RepositoryStatus status = repositoryManagementService.resolveConflict(resolveConflictRequest.getSiteId(),
+			path, resolveConflictRequest.getResolution());
+		ResultOne<RepositoryStatus> result = new ResultOne<>();
+		result.setResponse(OK);
+		result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+		return result;
+	}
 
-    @GetMapping(DIFF_CONFLICTED_FILE)
-    public ResultOne<DiffConflictedFile> getDiffForConflictedFile(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                                                  @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path)
-            throws ServiceLayerException {
-        String diffPath = path;
-        if (!diffPath.startsWith(FILE_SEPARATOR)) {
-            diffPath = FILE_SEPARATOR + diffPath;
-        }
-        DiffConflictedFile diff = repositoryManagementService.getDiffForConflictedFile(siteId, diffPath);
-        ResultOne<DiffConflictedFile> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_DIFF, diff);
-        result.setResponse(OK);
-        return result;
-    }
+	@GetMapping(DIFF_CONFLICTED_FILE)
+	public ResultOne<DiffConflictedFile> getDiffForConflictedFile(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+								      @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path)
+		throws ServiceLayerException {
+		String diffPath = path;
+		if (!diffPath.startsWith(FILE_SEPARATOR)) {
+			diffPath = FILE_SEPARATOR + diffPath;
+		}
+		DiffConflictedFile diff = repositoryManagementService.getDiffForConflictedFile(siteId, diffPath);
+		ResultOne<DiffConflictedFile> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_DIFF, diff);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(COMMIT_RESOLUTION)
-    public ResultOne<RepositoryStatus> commitConflictResolution(@Valid @RequestBody CommitResolutionRequest commitResolutionRequest)
-            throws ServiceLayerException {
-        RepositoryStatus status = repositoryManagementService.commitResolution(commitResolutionRequest.getSiteId(),
-                commitResolutionRequest.getCommitMessage());
-        ResultOne<RepositoryStatus> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
-        result.setResponse(OK);
-        return result;
-    }
+	@PostMapping(COMMIT_RESOLUTION)
+	public ResultOne<RepositoryStatus> commitConflictResolution(@Valid @RequestBody CommitResolutionRequest commitResolutionRequest)
+		throws ServiceLayerException {
+		RepositoryStatus status = repositoryManagementService.commitResolution(commitResolutionRequest.getSiteId(),
+			commitResolutionRequest.getCommitMessage());
+		ResultOne<RepositoryStatus> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(CANCEL_FAILED_PULL)
-    public ResultOne<RepositoryStatus> cancelFailedPull(@Valid @RequestBody CancelFailedPullRequest cancelFailedPullRequest)
-            throws ServiceLayerException {
-        RepositoryStatus status = repositoryManagementService.cancelFailedPull(cancelFailedPullRequest.getSiteId());
-        ResultOne<RepositoryStatus> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
-        result.setResponse(OK);
-        return result;
-    }
+	@PostMapping(CANCEL_FAILED_PULL)
+	public ResultOne<RepositoryStatus> cancelFailedPull(@Valid @RequestBody CancelFailedPullRequest cancelFailedPullRequest)
+		throws ServiceLayerException {
+		RepositoryStatus status = repositoryManagementService.cancelFailedPull(cancelFailedPullRequest.getSiteId());
+		ResultOne<RepositoryStatus> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping(UNLOCK)
-    public Result unlockRepository(@Valid @RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws SiteNotFoundException {
-        boolean success = repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(),
-                unlockRepositoryRequest.getRepositoryType());
-        Result result = new Result();
-        if (success) {
-            result.setResponse(OK);
-        } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
-        }
-        return result;
-    }
+	@PostMapping(UNLOCK)
+	public Result unlockRepository(@Valid @RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws SiteNotFoundException {
+		boolean success = repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(),
+			unlockRepositoryRequest.getRepositoryType());
+		Result result = new Result();
+		if (success) {
+			result.setResponse(OK);
+		} else {
+			result.setResponse(INTERNAL_SYSTEM_FAILURE);
+		}
+		return result;
+	}
 
-    @GetMapping(CORRUPTED)
-    public ResultOne<Boolean> isRepositoryCorrupted(@ValidSiteId @RequestParam(required = false) String siteId,
-                                                    @RequestParam GitRepositories repositoryType)
-            throws ServiceLayerException {
-        ResultOne<Boolean> result = new ResultOne<>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_CORRUPTED,
-                repositoryManagementService.isCorrupted(siteId, repositoryType));
-        return result;
-    }
+	@GetMapping(CORRUPTED)
+	public ResultOne<Boolean> isRepositoryCorrupted(@ValidSiteId @RequestParam(required = false) String siteId,
+							@RequestParam GitRepositories repositoryType)
+		throws ServiceLayerException {
+		ResultOne<Boolean> result = new ResultOne<>();
+		result.setResponse(OK);
+		result.setEntity(RESULT_KEY_CORRUPTED,
+			repositoryManagementService.isCorrupted(siteId, repositoryType));
+		return result;
+	}
 
-    @PostMapping(REPAIR)
-    public Result repairCorruptedRepository(@Valid @RequestBody RepairRepositoryRequest request)
-            throws ServiceLayerException {
-        repositoryManagementService.repairCorrupted(request.getSiteId(), request.getRepositoryType());
+	@PostMapping(REPAIR)
+	public Result repairCorruptedRepository(@Valid @RequestBody RepairRepositoryRequest request)
+		throws ServiceLayerException {
+		repositoryManagementService.repairCorrupted(request.getSiteId(), request.getRepositoryType());
 
-        Result result = new Result();
-        result.setResponse(OK);
+		Result result = new Result();
+		result.setResponse(OK);
 
-        return result;
-    }
+		return result;
+	}
 
 }

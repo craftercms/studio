@@ -38,33 +38,33 @@ import static org.testng.Assert.assertEquals;
  */
 public class StudioUpgradeContextTest {
 
-    private static final String INSTANCE_ID = "944c1a74-c2e4-4491-84db-9a0b2077b5b9";
+	private static final String INSTANCE_ID = "944c1a74-c2e4-4491-84db-9a0b2077b5b9";
 
-    private static final String ENVIRONMENT = "testEnv";
+	private static final String ENVIRONMENT = "testEnv";
 
-    @Mock
-    private StudioConfiguration studioConfiguration;
+	@Mock
+	private StudioConfiguration studioConfiguration;
 
-    @Mock
-    private InstanceService instanceService;
+	@Mock
+	private InstanceService instanceService;
 
-    @InjectMocks
-    private StudioUpgradeContext upgradeContext;
+	@InjectMocks
+	private StudioUpgradeContext upgradeContext;
 
-    @BeforeMethod
-    public void setUp() throws ConfigurationException {
-        initMocks(this);
+	@BeforeMethod
+	public void setUp() throws ConfigurationException {
+		initMocks(this);
 
-        when(instanceService.getInstanceId()).thenReturn(INSTANCE_ID);
-        when(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)).thenReturn(ENVIRONMENT);
-    }
+		when(instanceService.getInstanceId()).thenReturn(INSTANCE_ID);
+		when(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)).thenReturn(ENVIRONMENT);
+	}
 
-    @Test
-    public void testCommitIdentifier() {
-        var expectedIdentifier = Base64.getEncoder().encodeToString(format(
-                COMMIT_IDENTIFIER_FORMAT, INSTANCE_ID, ENVIRONMENT, System.getProperty("user.name")).getBytes(UTF_8));
+	@Test
+	public void testCommitIdentifier() {
+		var expectedIdentifier = Base64.getEncoder().encodeToString(format(
+			COMMIT_IDENTIFIER_FORMAT, INSTANCE_ID, ENVIRONMENT, System.getProperty("user.name")).getBytes(UTF_8));
 
-        assertEquals(upgradeContext.getIdentifier(), expectedIdentifier);
-    }
+		assertEquals(upgradeContext.getIdentifier(), expectedIdentifier);
+	}
 
 }

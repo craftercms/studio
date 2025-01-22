@@ -21,14 +21,14 @@ package org.craftercms.studio.api.v2.exception.configuration;
  * @author joseross
  * @since 3.1.13
  */
-public class InvalidConfigurationException  extends ConfigurationException {
+public class InvalidConfigurationException extends ConfigurationException {
 
-    public InvalidConfigurationException(String message) {
-        super(message);
-    }
+	public InvalidConfigurationException(String message) {
+		super(message);
+	}
 
-    public InvalidConfigurationException(String message, Exception e) {
-        super(message, e);
-    }
+	public InvalidConfigurationException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

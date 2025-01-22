@@ -16,38 +16,38 @@
   -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                version="2.0">
+		xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- insert new config pattern after /site-config/repository/patterns/pattern-group[@name='scripts'] -->
-    <xsl:template match="/site-config/repository/patterns/pattern-group[@name='scripts'][not(/site-config/repository/patterns/pattern-group[@name='config'])]">
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <xsl:element name="pattern-group">
-            <xsl:attribute name="name">config</xsl:attribute>
-            <xsl:element name="pattern">
-                <xsl:text>/config/(?!studio/content-types/)([^&lt;"']+)\.xml</xsl:text>
-            </xsl:element>
-        </xsl:element>
-    </xsl:template>
+	<!-- insert new config pattern after /site-config/repository/patterns/pattern-group[@name='scripts'] -->
+	<xsl:template match="/site-config/repository/patterns/pattern-group[@name='scripts'][not(/site-config/repository/patterns/pattern-group[@name='config'])]">
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<xsl:element name="pattern-group">
+			<xsl:attribute name="name">config</xsl:attribute>
+			<xsl:element name="pattern">
+				<xsl:text>/config/(?!studio/content-types/)([^&lt;"']+)\.xml</xsl:text>
+			</xsl:element>
+		</xsl:element>
+	</xsl:template>
 </xsl:stylesheet>

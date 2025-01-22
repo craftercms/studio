@@ -22,15 +22,15 @@ import jakarta.validation.constraints.NotEmpty;
 
 public class CancelFailedPullRequest {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 }

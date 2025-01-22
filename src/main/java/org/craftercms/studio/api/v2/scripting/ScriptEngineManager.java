@@ -25,17 +25,19 @@ import groovy.util.GroovyScriptEngine;
  */
 public interface ScriptEngineManager {
 
-    /**
-     * Returns the {@link GroovyScriptEngine} for the given site, if it doesn't exist then a new one is created
-     * @param siteId the id fo the site
-     * @return the script engine instance
-     */
-    GroovyScriptEngine getScriptEngine(String siteId);
+	/**
+	 * Returns the {@link GroovyScriptEngine} for the given site, if it doesn't exist then a new one is created
+	 *
+	 * @param siteId the id fo the site
+	 * @return the script engine instance
+	 */
+	GroovyScriptEngine getScriptEngine(String siteId);
 
-    /**
-     * Creates a new {@link GroovyScriptEngine} for the given site
-     * @param siteId the id of the site
-     */
-    void reloadScriptEngine(String siteId);
+	/**
+	 * Creates a new {@link GroovyScriptEngine} for the given site
+	 *
+	 * @param siteId the id of the site
+	 */
+	void reloadScriptEngine(String siteId);
 
 }

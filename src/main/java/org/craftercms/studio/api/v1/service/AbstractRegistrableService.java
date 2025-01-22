@@ -18,17 +18,19 @@ package org.craftercms.studio.api.v1.service;
 
 public abstract class AbstractRegistrableService {
 
-    protected ServicesManager _servicesManager;
-    public ServicesManager getServicesManager() {
-        return _servicesManager;
-    }
-    public void setServicesManager(ServicesManager servicesManager) {
-        this._servicesManager = servicesManager;
-    }
+	protected ServicesManager _servicesManager;
 
-    public abstract void register();
+	public ServicesManager getServicesManager() {
+		return _servicesManager;
+	}
 
-    public <T> T getService(Class<T> type) {
-        return this._servicesManager.getService(type);
-    }
+	public void setServicesManager(ServicesManager servicesManager) {
+		this._servicesManager = servicesManager;
+	}
+
+	public abstract void register();
+
+	public <T> T getService(Class<T> type) {
+		return this._servicesManager.getService(type);
+	}
 }

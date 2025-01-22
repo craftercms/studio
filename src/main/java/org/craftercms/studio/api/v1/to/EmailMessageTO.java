@@ -24,33 +24,33 @@ import java.util.TreeMap;
 public class EmailMessageTO implements Serializable {
 
 
-    private static final long serialVersionUID = -509714280274105998L;
-    protected String subject;
+	private static final long serialVersionUID = -509714280274105998L;
+	protected String subject;
 	protected String content;
 	protected String to;
 	protected String personalFromName;
 	protected String replyTo;
 	protected String previewBaseUrl;
 	protected String liveBaseUrl;
-    protected String authoringBaseUrl;
+	protected String authoringBaseUrl;
 	protected String browserUrl;
 	protected String adminEmail;
 	protected String rejectReason;
-	
+
 	public String getBrowserUrl() {
 		return browserUrl;
-	}	
+	}
 
 	protected String title;
-	
+
 	public String getTitle() {
 		return title;
 	}
 
 	public void setTitle(String title) {
 		this.title = title;
-		if(title != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_TITLE,title);
+		if (title != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_TITLE, title);
 	}
 
 	public String getAdminEmail() {
@@ -59,41 +59,42 @@ public class EmailMessageTO implements Serializable {
 
 	public void setAdminEmail(String adminEmail) {
 		this.adminEmail = adminEmail;
-		if(adminEmail != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_ADMINEMAIL,adminEmail);
+		if (adminEmail != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_ADMINEMAIL, adminEmail);
 	}
 
 	/**
 	 * Starts from /site
+	 *
 	 * @param browserUrl preview url
 	 */
 	public void setBrowserUrl(String browserUrl) {
-		this.browserUrl = browserUrl;		
-		String previewUrl=previewBaseUrl+browserUrl;
-		String liveUrl=liveBaseUrl+browserUrl;
-		if(previewUrl != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL,previewUrl);
-		
-		if(liveUrl != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_LIVEURL,liveUrl);
-	}
-	
-	public void setBrowserUrlForExternalDocument(String browserUrl) {
 		this.browserUrl = browserUrl;
-		if(browserUrl != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL,browserUrl);
-		
-		if(browserUrl != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_LIVEURL,browserUrl);
-		
+		String previewUrl = previewBaseUrl + browserUrl;
+		String liveUrl = liveBaseUrl + browserUrl;
+		if (previewUrl != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL, previewUrl);
+
+		if (liveUrl != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_LIVEURL, liveUrl);
 	}
 
-	protected String getRelativeUrl(String fullUrl)
-	{
-		String relativeUrl="";
-		return relativeUrl;
-		
+	public void setBrowserUrlForExternalDocument(String browserUrl) {
+		this.browserUrl = browserUrl;
+		if (browserUrl != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL, browserUrl);
+
+		if (browserUrl != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_LIVEURL, browserUrl);
+
 	}
+
+	protected String getRelativeUrl(String fullUrl) {
+		String relativeUrl = "";
+		return relativeUrl;
+
+	}
+
 	public String getPreviewBaseUrl() {
 		return previewBaseUrl;
 	}
@@ -110,18 +111,20 @@ public class EmailMessageTO implements Serializable {
 		this.liveBaseUrl = liveBaseUrl;
 	}
 
-    public String getAuthoringBaseUrl() { return authoringBaseUrl; }
+	public String getAuthoringBaseUrl() {
+		return authoringBaseUrl;
+	}
 
-    public void setAuthoringBaseUrl(String authoringBaseUrl) {
-        this.authoringBaseUrl = authoringBaseUrl;
-        if (StringUtils.isNotEmpty(authoringBaseUrl)) {
-            setValue(EMAIL_TEMPLATE_KEYWORDS_AUTHORINGURL, authoringBaseUrl);
-        }
-    }
+	public void setAuthoringBaseUrl(String authoringBaseUrl) {
+		this.authoringBaseUrl = authoringBaseUrl;
+		if (StringUtils.isNotEmpty(authoringBaseUrl)) {
+			setValue(EMAIL_TEMPLATE_KEYWORDS_AUTHORINGURL, authoringBaseUrl);
+		}
+	}
 
-    public void setRejectReason(String rejectReason) {
+	public void setRejectReason(String rejectReason) {
 		this.rejectReason = rejectReason;
-		if (rejectReason != null) 
+		if (rejectReason != null)
 			setValue(EMAIL_TEMPLATE_REJECT_REASON, rejectReason);
 	}
 
@@ -129,42 +132,40 @@ public class EmailMessageTO implements Serializable {
 		return rejectReason;
 	}
 
-	protected Map<String,String> keyValueMap;
-	protected String[] emailTemplateKeywords= {
-			"title",
-			"preview-url",
-			"live-url",
-            "authoring-url",
-			"user-name", 
-			"admin-email",
-			"reject-reason"
+	protected Map<String, String> keyValueMap;
+	protected String[] emailTemplateKeywords = {
+		"title",
+		"preview-url",
+		"live-url",
+		"authoring-url",
+		"user-name",
+		"admin-email",
+		"reject-reason"
 	};
-	public static final String EMAIL_TEMPLATE_KEYWORDS_ADMINEMAIL="admin-email";
-	public static final String EMAIL_TEMPLATE_KEYWORDS_USERNAME="user-name";
-	public static final String EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL="preview-url";
-	public static final String EMAIL_TEMPLATE_KEYWORDS_LIVEURL="live-url";
-    public static final String EMAIL_TEMPLATE_KEYWORDS_AUTHORINGURL="authoring-url";
-	public static final String EMAIL_TEMPLATE_KEYWORDS_TITLE="title";
-	public static final String EMAIL_TEMPLATE_REJECT_REASON="reject-reason";
+	public static final String EMAIL_TEMPLATE_KEYWORDS_ADMINEMAIL = "admin-email";
+	public static final String EMAIL_TEMPLATE_KEYWORDS_USERNAME = "user-name";
+	public static final String EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL = "preview-url";
+	public static final String EMAIL_TEMPLATE_KEYWORDS_LIVEURL = "live-url";
+	public static final String EMAIL_TEMPLATE_KEYWORDS_AUTHORINGURL = "authoring-url";
+	public static final String EMAIL_TEMPLATE_KEYWORDS_TITLE = "title";
+	public static final String EMAIL_TEMPLATE_REJECT_REASON = "reject-reason";
 
-	public String getValue(String key)
-	{
+	public String getValue(String key) {
 		return keyValueMap.get(key);
 	}
-	
-	public void setValue(String key,String value)
-	{
-		keyValueMap.put(key,value);
+
+	public void setValue(String key, String value) {
+		keyValueMap.put(key, value);
 	}
-	
+
 	public String getPersonalFromName() {
 		return personalFromName;
 	}
 
 	public void setPersonalFromName(String personalFromName) {
 		this.personalFromName = personalFromName;
-		if(personalFromName != null)
-			setValue(EMAIL_TEMPLATE_KEYWORDS_USERNAME,personalFromName);
+		if (personalFromName != null)
+			setValue(EMAIL_TEMPLATE_KEYWORDS_USERNAME, personalFromName);
 	}
 
 	public String getReplyTo() {
@@ -175,51 +176,53 @@ public class EmailMessageTO implements Serializable {
 		this.replyTo = replyTo;
 	}
 
-	public EmailMessageTO(String subject,String content,String to)
-	{
-		this.subject=subject;
-		this.content=content;
-		this.to=to;
-		this.keyValueMap= new TreeMap<>();
+	public EmailMessageTO(String subject, String content, String to) {
+		this.subject = subject;
+		this.content = content;
+		this.to = to;
+		this.keyValueMap = new TreeMap<>();
 	}
-	
+
 	public String getSubject() {
 		return subject;
 	}
+
 	public void setSubject(String subject) {
 		this.subject = subject;
 	}
+
 	public String getContent() {
 		return content;
 	}
+
 	public void setContent(String content) {
 		this.content = content;
 	}
+
 	public String getTo() {
 		return to;
 	}
+
 	public void setTo(String to) {
 		this.to = to;
 	}
-	public void preprocessEmail()
-	{
-		String newSubject= replaceKeywordsByValue(subject);
-		subject=newSubject;
-		
-		String newContent=replaceKeywordsByValue(content);
-		content=newContent;
+
+	public void preprocessEmail() {
+		String newSubject = replaceKeywordsByValue(subject);
+		subject = newSubject;
+
+		String newContent = replaceKeywordsByValue(content);
+		content = newContent;
 	}
-	
-	protected String replaceKeywordsByValue(String input)
-	{
-		String output=input;
-		for(int counter=0;counter<emailTemplateKeywords.length;counter++)
-		{
-			String keyword=emailTemplateKeywords[counter];
-			String value=getValue(keyword);
-			if(value != null)
-				output=output.replace("$"+keyword, value);
-			
+
+	protected String replaceKeywordsByValue(String input) {
+		String output = input;
+		for (int counter = 0; counter < emailTemplateKeywords.length; counter++) {
+			String keyword = emailTemplateKeywords[counter];
+			String value = getValue(keyword);
+			if (value != null)
+				output = output.replace("$" + keyword, value);
+
 		}
 		return output;
 	}

@@ -30,40 +30,40 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
  */
 public class BlobAwarePublishItemTOWrapper<T extends PublishItemTO> implements PublishItemTO {
 
-    private final T wrappedItem;
-    private final String path;
+	private final T wrappedItem;
+	private final String path;
 
-    public BlobAwarePublishItemTOWrapper(final T wrappedItem, final String path) {
-        this.wrappedItem = wrappedItem;
-        this.path = path;
-    }
+	public BlobAwarePublishItemTOWrapper(final T wrappedItem, final String path) {
+		this.wrappedItem = wrappedItem;
+		this.path = path;
+	}
 
-    public T getWrappedItem() {
-        return wrappedItem;
-    }
+	public T getWrappedItem() {
+		return wrappedItem;
+	}
 
-    @Override
-    public String getPath() {
-        return path;
-    }
+	@Override
+	public String getPath() {
+		return path;
+	}
 
-    @Override
-    public PublishItem.Action getAction() {
-        return wrappedItem.getAction();
-    }
+	@Override
+	public PublishItem.Action getAction() {
+		return wrappedItem.getAction();
+	}
 
-    @Override
-    public int getError() {
-        return wrappedItem.getError();
-    }
+	@Override
+	public int getError() {
+		return wrappedItem.getError();
+	}
 
-    @Override
-    public void setFailed(int error) {
-        wrappedItem.setFailed(error);
-    }
+	@Override
+	public void setFailed(int error) {
+		wrappedItem.setFailed(error);
+	}
 
-    @Override
-    public void setCompleted() {
-        wrappedItem.setCompleted();
-    }
+	@Override
+	public void setCompleted() {
+		wrappedItem.setCompleted();
+	}
 }

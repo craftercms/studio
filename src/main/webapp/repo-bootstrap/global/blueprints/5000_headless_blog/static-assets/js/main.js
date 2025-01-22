@@ -14,168 +14,170 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-(function ({ content, search, classes }, { operators }) {
-  const pathRegExp = /^\/(.*?)\.xml$/;
+(function ({content, search, classes}, {operators}) {
+	const pathRegExp = /^\/(.*?)\.xml$/;
 
-  function getCookie(name) {
-    var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-    return v ? v[2] : null;
-  }
-  function isAuthoring() {
-    const html = document.documentElement;
-    const attr = html.getAttribute('data-craftercms-preview');
+	function getCookie(name) {
+		var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+		return v ? v[2] : null;
+	}
 
-    return (
-      attr === '${modePreview?c}' || // Otherwise disable/enable if you want to see pencils in dev server.
-      attr === 'true'
-    );
-  }
-  function getICE(model, fieldId = null) {
-    return (craftercms?.xb?.getICEAttributes({
-      model,
-      fieldId,
-      isAuthoring: authoring
-    }))
-  }
+	function isAuthoring() {
+		const html = document.documentElement;
+		const attr = html.getAttribute('data-craftercms-preview');
 
-  const authoring = isAuthoring();
-  const { crafterConf } = classes;
+		return (
+			attr === '${modePreview?c}' || // Otherwise disable/enable if you want to see pencils in dev server.
+			attr === 'true'
+		);
+	}
 
-  crafterConf.configure({
-    baseUrl: '',
-    site: getCookie('crafterSite')
-  });
+	function getICE(model, fieldId = null) {
+		return (craftercms?.xb?.getICEAttributes({
+			model,
+			fieldId,
+			isAuthoring: authoring
+		}))
+	}
 
-  const { map } = operators;
-  const { createQuery } = search;
-  const searchContent = search.search;
-  const { parseDescriptor, preParseSearchResults } = content;
+	const authoring = isAuthoring();
+	const {crafterConf} = classes;
 
-  var browser = new Vue({
-    el: '#browser',
-    data: {
-      types: [
-        {
-          id: 'authors',
-          label: 'Authors',
-          labelField: 'name_s',
-          contentType: '/component/author'
-        },
-        {
-          id: 'posts',
-          label: 'Posts',
-          labelField: 'title_s',
-          contentType: '/component/post'
-        }
-      ],
-      selectedType: null,
-      items: [],
-      selectedItem: null,
-      selectedItemNumUpdates: 0,
-    },
-    methods: {
-      setType: function (type) {
-        this.selectedType = type;
-        this.selectedItem = null;
-        var self = this;
+	crafterConf.configure({
+		baseUrl: '',
+		site: getCookie('crafterSite')
+	});
 
-        searchContent(
-          createQuery('elasticsearch', {
-            'query': {
-              'bool': {
-                'filter': [
-                  {
-                    'match': {
-                      'content-type': type.contentType
-                    }
-                  }
-                ]
-              }
-            },
-            'sort': {
-              'createdDate_dt': { 'order': 'desc' }
-            }
-          })
-        ).pipe(
-          map(({ hits, ...rest }) => ({
-            ...rest,
-            hits: hits.map(({ _source }) => parseDescriptor(
-              preParseSearchResults(_source)
-            ))
-          }))
-        ).subscribe((results) => {
-          self.items = results;
-        });
-      },
-      setItem: function (item) {
-        this.selectedItem = item;
-        this.selectedItemNumUpdates = 0;
-      },
-      reRegisterItems: function() {
-        this.deregisterItems();
+	const {map} = operators;
+	const {createQuery} = search;
+	const searchContent = search.search;
+	const {parseDescriptor, preParseSearchResults} = content;
 
-        this.$nextTick(function() {
-          if (this.selectedItem) {
-            this.registerItems();
-          }
-        });
-      },
-      updateItem: function(args) {
-        const itemIndex = this.items.hits.findIndex(item => {
-          return item.craftercms.id === args.modelId
-        });
+	var browser = new Vue({
+		el: '#browser',
+		data: {
+			types: [
+				{
+					id: 'authors',
+					label: 'Authors',
+					labelField: 'name_s',
+					contentType: '/component/author'
+				},
+				{
+					id: 'posts',
+					label: 'Posts',
+					labelField: 'title_s',
+					contentType: '/component/post'
+				}
+			],
+			selectedType: null,
+			items: [],
+			selectedItem: null,
+			selectedItemNumUpdates: 0,
+		},
+		methods: {
+			setType: function (type) {
+				this.selectedType = type;
+				this.selectedItem = null;
+				var self = this;
 
-        if (this.items.hits[itemIndex][args.fieldId] !== args.value) {
-          this.items.hits[itemIndex][args.fieldId] = args.value;
-          this.reRegisterItems();
-          self.selectedItemNumUpdates++;
-        }
-      },
-      deregisterItems: function() {
-        document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
-          const record = craftercms.xb.elementRegistry.fromElement(el);
+				searchContent(
+					createQuery('elasticsearch', {
+						'query': {
+							'bool': {
+								'filter': [
+									{
+										'match': {
+											'content-type': type.contentType
+										}
+									}
+								]
+							}
+						},
+						'sort': {
+							'createdDate_dt': {'order': 'desc'}
+						}
+					})
+				).pipe(
+					map(({hits, ...rest}) => ({
+						...rest,
+						hits: hits.map(({_source}) => parseDescriptor(
+							preParseSearchResults(_source)
+						))
+					}))
+				).subscribe((results) => {
+					self.items = results;
+				});
+			},
+			setItem: function (item) {
+				this.selectedItem = item;
+				this.selectedItemNumUpdates = 0;
+			},
+			reRegisterItems: function () {
+				this.deregisterItems();
 
-          // This is supposed to be before updating DOM, but query is returning both old and new elements
-          if (record) {
-            craftercms?.xb?.elementRegistry.deregister(record.id);
-          }
-        });
-      },
-      registerItems: function() {
-        document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
-          let //
-            path = element.getAttribute('data-craftercms-model-path'),
-            modelId = element.getAttribute('data-craftercms-model-id'),
-            fieldId = element.getAttribute('data-craftercms-field-id'),
-            index = element.getAttribute('data-craftercms-index'),
-            label = element.getAttribute('data-craftercms-label');
+				this.$nextTick(function () {
+					if (this.selectedItem) {
+						this.registerItems();
+					}
+				});
+			},
+			updateItem: function (args) {
+				const itemIndex = this.items.hits.findIndex(item => {
+					return item.craftercms.id === args.modelId
+				});
 
-          if ((index !== null) && (index !== undefined) && !index.includes('.')) {
-            // Unsure if somewhere, the system relies on the index being an integer/number.
-            // Affected inventory:
-            // - Guest.moveComponent() - string type handled
-            index = parseInt(index, 10);
-          }
+				if (this.items.hits[itemIndex][args.fieldId] !== args.value) {
+					this.items.hits[itemIndex][args.fieldId] = args.value;
+					this.reRegisterItems();
+					self.selectedItemNumUpdates++;
+				}
+			},
+			deregisterItems: function () {
+				document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
+					const record = craftercms.xb.elementRegistry.fromElement(el);
 
-          craftercms?.xb?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
-        });
-      },
-      getICE
-    },
-    watch: {
-      selectedItem: function() {
-        this.reRegisterItems();
-      }
-    },
-    mounted: function() {
-      const self = this;
-      $(function () {
-        const sub = craftercms.xb?.contentController?.operations$.subscribe((op) => {
-          if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
-            self.updateItem(op.payload);
-          }
-        });
-      })
-    }
-  });
+					// This is supposed to be before updating DOM, but query is returning both old and new elements
+					if (record) {
+						craftercms?.xb?.elementRegistry.deregister(record.id);
+					}
+				});
+			},
+			registerItems: function () {
+				document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
+					let //
+						path = element.getAttribute('data-craftercms-model-path'),
+						modelId = element.getAttribute('data-craftercms-model-id'),
+						fieldId = element.getAttribute('data-craftercms-field-id'),
+						index = element.getAttribute('data-craftercms-index'),
+						label = element.getAttribute('data-craftercms-label');
+
+					if ((index !== null) && (index !== undefined) && !index.includes('.')) {
+						// Unsure if somewhere, the system relies on the index being an integer/number.
+						// Affected inventory:
+						// - Guest.moveComponent() - string type handled
+						index = parseInt(index, 10);
+					}
+
+					craftercms?.xb?.elementRegistry.register({element, modelId, fieldId, index, label, path});
+				});
+			},
+			getICE
+		},
+		watch: {
+			selectedItem: function () {
+				this.reRegisterItems();
+			}
+		},
+		mounted: function () {
+			const self = this;
+			$(function () {
+				const sub = craftercms.xb?.contentController?.operations$.subscribe((op) => {
+					if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
+						self.updateItem(op.payload);
+					}
+				});
+			})
+		}
+	});
 })(craftercms, rxjs);

@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `group` ADD COLUMN `externally_managed` INT NOT NULL DEFAULT 0 ;
+ALTER TABLE `group`
+    ADD COLUMN `externally_managed` INT NOT NULL DEFAULT 0;
 
-UPDATE `_meta` SET `version` = '4.0.1.14' ;
+UPDATE `_meta`
+SET `version` = '4.0.1.14';

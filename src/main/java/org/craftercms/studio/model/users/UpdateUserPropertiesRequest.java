@@ -21,6 +21,7 @@ import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+
 import java.util.Map;
 
 /**
@@ -32,32 +33,32 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateUserPropertiesRequest {
 
-    /**
-     * The id of the site
-     */
-    @ValidSiteId
-    protected String siteId;
+	/**
+	 * The id of the site
+	 */
+	@ValidSiteId
+	protected String siteId;
 
-    /**
-     * The properties to update or add
-     */
-    @NotEmpty
-    protected Map<@NotBlank String, @NotNull String> properties;
+	/**
+	 * The properties to update or add
+	 */
+	@NotEmpty
+	protected Map<@NotBlank String, @NotNull String> properties;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public Map<String, String> getProperties() {
-        return properties;
-    }
+	public Map<String, String> getProperties() {
+		return properties;
+	}
 
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
+	}
 
 }

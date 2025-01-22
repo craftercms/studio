@@ -28,17 +28,17 @@ import java.util.List;
  */
 public class UserDetailsCheckerList implements UserDetailsChecker {
 
-    private final List<UserDetailsChecker> userDetailsCheckers;
+	private final List<UserDetailsChecker> userDetailsCheckers;
 
-    public UserDetailsCheckerList(final List<UserDetailsChecker> userDetailsCheckers) {
-        this.userDetailsCheckers = userDetailsCheckers;
-    }
+	public UserDetailsCheckerList(final List<UserDetailsChecker> userDetailsCheckers) {
+		this.userDetailsCheckers = userDetailsCheckers;
+	}
 
-    @Override
-    public void check(UserDetails user) {
-        for (UserDetailsChecker userDetailsChecker : userDetailsCheckers) {
-            userDetailsChecker.check(user);
-        }
-    }
+	@Override
+	public void check(UserDetails user) {
+		for (UserDetailsChecker userDetailsChecker : userDetailsCheckers) {
+			userDetailsChecker.check(user);
+		}
+	}
 }
 

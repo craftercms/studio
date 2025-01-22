@@ -29,16 +29,16 @@ import java.util.regex.Pattern;
  */
 public class RepositoryLockedExceptionResolver extends PatternFindingGitCliExceptionResolver {
 
-    public static final RepositoryLockedExceptionResolver INSTANCE = new RepositoryLockedExceptionResolver();
+	public static final RepositoryLockedExceptionResolver INSTANCE = new RepositoryLockedExceptionResolver();
 
-    @Override
-    protected Pattern getErrorMessagePattern() {
-        return Pattern.compile("unable to create '[^']+/\\.git/index\\.lock': file exists", Pattern.CASE_INSENSITIVE);
-    }
+	@Override
+	protected Pattern getErrorMessagePattern() {
+		return Pattern.compile("unable to create '[^']+/\\.git/index\\.lock': file exists", Pattern.CASE_INSENSITIVE);
+	}
 
-    @Override
-    protected GitCliOutputException createException(int exitValue, String output) {
-        return new GitRepositoryLockedException(exitValue, output);
-    }
+	@Override
+	protected GitCliOutputException createException(int exitValue, String output) {
+		return new GitRepositoryLockedException(exitValue, output);
+	}
 
 }

@@ -14,8 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `refresh_token` MODIFY COLUMN `last_updated_on` TIMESTAMP ;
+ALTER TABLE `refresh_token` MODIFY COLUMN `last_updated_on` TIMESTAMP;
 
-ALTER TABLE `access_token` MODIFY COLUMN `last_updated_on` TIMESTAMP ;
+ALTER TABLE `access_token` MODIFY COLUMN `last_updated_on` TIMESTAMP;
 
-UPDATE `_meta` SET `version` = '4.2.0.9' ;
+UPDATE `_meta`
+SET `version` = '4.2.0.9';

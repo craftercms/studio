@@ -38,44 +38,44 @@ import java.lang.reflect.Method;
 @Order(10)
 public class RequireSiteExistsAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RequireSiteExistsAnnotationHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequireSiteExistsAnnotationHandler.class);
 
-    private final SitesService sitesService;
+	private final SitesService sitesService;
 
-    @ConstructorProperties({"sitesService"})
-    RequireSiteExistsAnnotationHandler(final SitesService sitesService) {
-        this.sitesService = sitesService;
-    }
+	@ConstructorProperties({"sitesService"})
+	RequireSiteExistsAnnotationHandler(final SitesService sitesService) {
+		this.sitesService = sitesService;
+	}
 
-    // This method matches:
-    // - methods declared on classes annotated with RequireSiteExists
-    // - methods declared on classes meta-annotated with RequireSiteExists (only one level deep). e.g.: @RequireSiteExists, which is annotated with @RequireSiteExists
-    // - methods annotated with RequireSiteExists
-    // - methods meta-annotated with RequireSiteExists (only one level deep)
-    @Around("@within(RequireSiteExists) || " +
-            "within(@RequireSiteExists *) || " +
-            "within(@(@RequireSiteExists *) *) || " +
-            "@annotation(RequireSiteExists) || " +
-            "execution(@(@RequireSiteExists *) * *(..))")
-    public Object requireSiteExists(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = AopUtils.getActualMethod(pjp);
-        String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
+	// This method matches:
+	// - methods declared on classes annotated with RequireSiteExists
+	// - methods declared on classes meta-annotated with RequireSiteExists (only one level deep). e.g.: @RequireSiteExists, which is annotated with @RequireSiteExists
+	// - methods annotated with RequireSiteExists
+	// - methods meta-annotated with RequireSiteExists (only one level deep)
+	@Around("@within(RequireSiteExists) || " +
+		"within(@RequireSiteExists *) || " +
+		"within(@(@RequireSiteExists *) *) || " +
+		"@annotation(RequireSiteExists) || " +
+		"execution(@(@RequireSiteExists *) * *(..))")
+	public Object requireSiteExists(ProceedingJoinPoint pjp) throws Throwable {
+		Method method = AopUtils.getActualMethod(pjp);
+		String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
 
-        if (StringUtils.isNotEmpty(siteId)) {
-            RequireSiteExists annotation = AnnotationUtils.findAnnotation(method, RequireSiteExists.class);
-            if (annotation == null) {
-                annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireSiteExists.class);
-            }
-            if (annotation != null) {
-                sitesService.checkSiteExists(siteId);
-            } else {
-                logger.debug("Unable to find RequireSiteExists annotation on method '{}.{}'. ", method.getDeclaringClass().getName(), method.getName());
-            }
-        } else {
-            logger.debug("Method '{}.{}' is annotated with @RequireSiteExists but does not have a @SiteId parameter. " +
-                    "This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
-        }
-        return pjp.proceed();
-    }
+		if (StringUtils.isNotEmpty(siteId)) {
+			RequireSiteExists annotation = AnnotationUtils.findAnnotation(method, RequireSiteExists.class);
+			if (annotation == null) {
+				annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireSiteExists.class);
+			}
+			if (annotation != null) {
+				sitesService.checkSiteExists(siteId);
+			} else {
+				logger.debug("Unable to find RequireSiteExists annotation on method '{}.{}'. ", method.getDeclaringClass().getName(), method.getName());
+			}
+		} else {
+			logger.debug("Method '{}.{}' is annotated with @RequireSiteExists but does not have a @SiteId parameter. " +
+				"This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
+		}
+		return pjp.proceed();
+	}
 
 }

@@ -23,27 +23,27 @@ import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 public class CleanPreviewContentProcessor extends BaseContentProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(CleanPreviewContentProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(CleanPreviewContentProcessor.class);
 
-    public static final String NAME = "CleanPreviewContentProcessor";
+	public static final String NAME = "CleanPreviewContentProcessor";
 
-    /**
-     * default constructor
-     */
-    public CleanPreviewContentProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public CleanPreviewContentProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public CleanPreviewContentProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public CleanPreviewContentProcessor(String name) {
+		super(name);
+	}
 
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-    }
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+	}
 }

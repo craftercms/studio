@@ -18,40 +18,40 @@ package org.craftercms.studio.api.v2.dal;
 
 public class QuickCreateItem {
 
-    private String siteId;
-    private String label;
-    private String contentTypeId;
-    private String path;
+	private String siteId;
+	private String label;
+	private String contentTypeId;
+	private String path;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
+	public void setLabel(String label) {
+		this.label = label;
+	}
 
-    public String getContentTypeId() {
-        return contentTypeId;
-    }
+	public String getContentTypeId() {
+		return contentTypeId;
+	}
 
-    public void setContentTypeId(String contentTypeId) {
-        this.contentTypeId = contentTypeId;
-    }
+	public void setContentTypeId(String contentTypeId) {
+		this.contentTypeId = contentTypeId;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 }

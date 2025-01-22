@@ -45,108 +45,108 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class TaskManagerImplTest {
 
-    private static final String SITE_1_ID = "site1";
-    private static final String SITE_2_ID = "site2";
+	private static final String SITE_1_ID = "site1";
+	private static final String SITE_2_ID = "site2";
 
-    TaskProgress<PublishTask.PublishTaskId, Long> publishTaskProgressSite1;
-    TaskProgress<PublishTask.PublishTaskId, Long> publishTaskProgressSite1_2;
-    TaskProgress<PublishTask.PublishTaskId, Long> publishTaskProgressSite2;
-    TaskProgress<?, ?> testTaskProgressSite1;
+	TaskProgress<PublishTask.PublishTaskId, Long> publishTaskProgressSite1;
+	TaskProgress<PublishTask.PublishTaskId, Long> publishTaskProgressSite1_2;
+	TaskProgress<PublishTask.PublishTaskId, Long> publishTaskProgressSite2;
+	TaskProgress<?, ?> testTaskProgressSite1;
 
-    @Mock
-    ApplicationContext applicationContext;
+	@Mock
+	ApplicationContext applicationContext;
 
-    @Spy
-    @InjectMocks
-    TaskManagerImpl taskManager;
+	@Spy
+	@InjectMocks
+	TaskManagerImpl taskManager;
 
-    @Before
-    @SuppressWarnings("unchecked")
-    public void setUp() throws SiteNotFoundException {
+	@Before
+	@SuppressWarnings("unchecked")
+	public void setUp() throws SiteNotFoundException {
 
-        when(applicationContext.getBean(eq(TaskProgressImpl.class), any(Object[].class)))
-                .thenAnswer(invocation -> {
-                    TaskProgressImpl<?, ?> taskProgress = new TaskProgressImpl<TaskId, Object>(invocation.getArgument(1, Task.class), invocation.getArgument(2, TaskManager.class));
-                    taskProgress.setApplicationEventPublisher(applicationContext);
+		when(applicationContext.getBean(eq(TaskProgressImpl.class), any(Object[].class)))
+			.thenAnswer(invocation -> {
+				TaskProgressImpl<?, ?> taskProgress = new TaskProgressImpl<TaskId, Object>(invocation.getArgument(1, Task.class), invocation.getArgument(2, TaskManager.class));
+				taskProgress.setApplicationEventPublisher(applicationContext);
 
-                    return taskProgress;
-                });
+				return taskProgress;
+			});
 
-        PublishTask publishTaskSite1 = new PublishTask(SITE_1_ID, 123);
-        PublishTask publishTaskSite1_2 = new PublishTask(SITE_1_ID, 456);
-        TestTask testTaskSite1 = new TestTask(SITE_1_ID, 234);
-        PublishTask publishTaskSite2 = new PublishTask(SITE_2_ID, 789);
-        publishTaskProgressSite1 = taskManager.registerTask(publishTaskSite1);
-        publishTaskProgressSite1_2 = taskManager.registerTask(publishTaskSite1_2);
-        testTaskProgressSite1 = taskManager.registerTask(testTaskSite1);
-        publishTaskProgressSite2 = taskManager.registerTask(publishTaskSite2);
-    }
+		PublishTask publishTaskSite1 = new PublishTask(SITE_1_ID, 123);
+		PublishTask publishTaskSite1_2 = new PublishTask(SITE_1_ID, 456);
+		TestTask testTaskSite1 = new TestTask(SITE_1_ID, 234);
+		PublishTask publishTaskSite2 = new PublishTask(SITE_2_ID, 789);
+		publishTaskProgressSite1 = taskManager.registerTask(publishTaskSite1);
+		publishTaskProgressSite1_2 = taskManager.registerTask(publishTaskSite1_2);
+		testTaskProgressSite1 = taskManager.registerTask(testTaskSite1);
+		publishTaskProgressSite2 = taskManager.registerTask(publishTaskSite2);
+	}
 
-    @Test
-    public void getSiteTasksTest() {
-        Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = taskManager.getSiteTasks(SITE_1_ID);
-        assertEquals(3, siteTasks.size());
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
-    }
+	@Test
+	public void getSiteTasksTest() {
+		Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = taskManager.getSiteTasks(SITE_1_ID);
+		assertEquals(3, siteTasks.size());
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
+	}
 
-    @Test
-    public void getTasksByTypeTest() {
-        Collection<TaskProgress<TaskId.SiteTaskId, Object>> siteTasks = taskManager.getSiteTasksByType(SITE_1_ID, PublishTask.PUBLISH_TASK_TYPE);
-        assertEquals(2, siteTasks.size());
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
-    }
+	@Test
+	public void getTasksByTypeTest() {
+		Collection<TaskProgress<TaskId.SiteTaskId, Object>> siteTasks = taskManager.getSiteTasksByType(SITE_1_ID, PublishTask.PUBLISH_TASK_TYPE);
+		assertEquals(2, siteTasks.size());
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
+	}
 
-    @Test
-    public void removeTaskTest() {
-        Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = taskManager.getSiteTasks(SITE_1_ID);
-        assertEquals(3, siteTasks.size());
-        taskManager.removeTask(publishTaskProgressSite1.getTask().getTaskId());
-        siteTasks = taskManager.getSiteTasks(SITE_1_ID);
-        assertEquals(2, siteTasks.size());
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
-    }
+	@Test
+	public void removeTaskTest() {
+		Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = taskManager.getSiteTasks(SITE_1_ID);
+		assertEquals(3, siteTasks.size());
+		taskManager.removeTask(publishTaskProgressSite1.getTask().getTaskId());
+		siteTasks = taskManager.getSiteTasks(SITE_1_ID);
+		assertEquals(2, siteTasks.size());
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
+	}
 
-    @Test
-    public void taskCompletedTest() {
-        Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = taskManager.getSiteTasks(SITE_1_ID);
-        assertEquals(3, siteTasks.size());
-        publishTaskProgressSite1.complete(PublishPackage.PackageState.LIVE_SUCCESS.value);
-        siteTasks = taskManager.getSiteTasks(SITE_1_ID);
-        assertEquals(2, siteTasks.size());
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
-        assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
-        assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
-    }
+	@Test
+	public void taskCompletedTest() {
+		Collection<TaskProgress<? extends TaskId.SiteTaskId, ?>> siteTasks = taskManager.getSiteTasks(SITE_1_ID);
+		assertEquals(3, siteTasks.size());
+		publishTaskProgressSite1.complete(PublishPackage.PackageState.LIVE_SUCCESS.value);
+		siteTasks = taskManager.getSiteTasks(SITE_1_ID);
+		assertEquals(2, siteTasks.size());
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(publishTaskProgressSite1_2.getTask())));
+		assertTrue(siteTasks.stream().anyMatch(p -> p.getTask().equals(testTaskProgressSite1.getTask())));
+		assertTrue(siteTasks.stream().noneMatch(p -> p.getTask().equals(publishTaskProgressSite2.getTask())));
+	}
 
-    static class TestTask extends SiteTask<TestTask.TestTaskId> {
+	static class TestTask extends SiteTask<TestTask.TestTaskId> {
 
-        final static String TYPE = "testTask";
+		final static String TYPE = "testTask";
 
-        public TestTask(String siteId, int taskId) {
-            super(TYPE, new TestTaskId(siteId, taskId));
-        }
+		public TestTask(String siteId, int taskId) {
+			super(TYPE, new TestTaskId(siteId, taskId));
+		}
 
-        @NotNull
-        @Override
-        public String getType() {
-            return TYPE;
-        }
+		@NotNull
+		@Override
+		public String getType() {
+			return TYPE;
+		}
 
-        record TestTaskId(String siteId, int taskId) implements TaskId.SiteTaskId {
-            @Override
-            public String getSiteId() {
-                return siteId;
-            }
-        }
-    }
+		record TestTaskId(String siteId, int taskId) implements TaskId.SiteTaskId {
+			@Override
+			public String getSiteId() {
+				return siteId;
+			}
+		}
+	}
 }

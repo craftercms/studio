@@ -18,24 +18,24 @@ package org.craftercms.studio.api.v1.exception.repository;
 
 public class RemoteRepositoryNotFoundException extends Exception {
 
-    private static final long serialVersionUID = 7366093517864056083L;
+	private static final long serialVersionUID = 7366093517864056083L;
 
-    public RemoteRepositoryNotFoundException() {
-    }
+	public RemoteRepositoryNotFoundException() {
+	}
 
-    public RemoteRepositoryNotFoundException(String message) {
-        super(message);
-    }
+	public RemoteRepositoryNotFoundException(String message) {
+		super(message);
+	}
 
-    public RemoteRepositoryNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public RemoteRepositoryNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public RemoteRepositoryNotFoundException(Throwable cause) {
-        super(cause);
-    }
+	public RemoteRepositoryNotFoundException(Throwable cause) {
+		super(cause);
+	}
 
-    public RemoteRepositoryNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public RemoteRepositoryNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

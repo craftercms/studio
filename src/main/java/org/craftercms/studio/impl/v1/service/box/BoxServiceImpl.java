@@ -32,51 +32,51 @@ import static java.lang.String.format;
  */
 public class BoxServiceImpl implements BoxService {
 
-    protected static final String URL_FORMAT = "/remote-assets/box/%s/%s.%s";
+	protected static final String URL_FORMAT = "/remote-assets/box/%s/%s.%s";
 
-    protected SiteAwareConfigProfileLoader<BoxProfile> profileLoader;
+	protected SiteAwareConfigProfileLoader<BoxProfile> profileLoader;
 
-    public BoxServiceImpl(SiteAwareConfigProfileLoader<BoxProfile> profileLoader) {
-        this.profileLoader = profileLoader;
-    }
+	public BoxServiceImpl(SiteAwareConfigProfileLoader<BoxProfile> profileLoader) {
+		this.profileLoader = profileLoader;
+	}
 
-    protected BoxProfile getProfile(String site, String profileId) throws BoxException, ConfigurationProfileNotFoundException {
-        try {
-            return profileLoader.loadProfile(site, profileId);
-        } catch (ConfigurationException e) {
-            throw new BoxException("Unable to load Box profile", e);
-        }
-    }
+	protected BoxProfile getProfile(String site, String profileId) throws BoxException, ConfigurationProfileNotFoundException {
+		try {
+			return profileLoader.loadProfile(site, profileId);
+		} catch (ConfigurationException e) {
+			throw new BoxException("Unable to load Box profile", e);
+		}
+	}
 
-    protected BoxAPIConnection getConnection(BoxProfile profile) {
-        JWTEncryptionPreferences jwtPrefs = new JWTEncryptionPreferences();
-        jwtPrefs.setPublicKeyID(profile.getPublicKeyId());
-        jwtPrefs.setPrivateKey(profile.getPrivateKey());
-        jwtPrefs.setPrivateKeyPassword(profile.getPrivateKeyPassword());
-        jwtPrefs.setEncryptionAlgorithm(EncryptionAlgorithm.RSA_SHA_256);
-        BoxConfig config = new BoxConfig(
-            profile.getClientId(), profile.getClientSecret(), profile.getEnterpriseId(), jwtPrefs);
+	protected BoxAPIConnection getConnection(BoxProfile profile) {
+		JWTEncryptionPreferences jwtPrefs = new JWTEncryptionPreferences();
+		jwtPrefs.setPublicKeyID(profile.getPublicKeyId());
+		jwtPrefs.setPrivateKey(profile.getPrivateKey());
+		jwtPrefs.setPrivateKeyPassword(profile.getPrivateKeyPassword());
+		jwtPrefs.setEncryptionAlgorithm(EncryptionAlgorithm.RSA_SHA_256);
+		BoxConfig config = new BoxConfig(
+			profile.getClientId(), profile.getClientSecret(), profile.getEnterpriseId(), jwtPrefs);
 
-        return BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(config);
-    }
+		return BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(config);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getAccessToken(final String site, final String profileId) throws BoxException, ConfigurationProfileNotFoundException {
-        BoxProfile profile = getProfile(site, profileId);
-        BoxAPIConnection api = getConnection(profile);
-        return api.getAccessToken();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getAccessToken(final String site, final String profileId) throws BoxException, ConfigurationProfileNotFoundException {
+		BoxProfile profile = getProfile(site, profileId);
+		BoxAPIConnection api = getConnection(profile);
+		return api.getAccessToken();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getUrl(final String site, final String profileId, final String fileId,
-                         final String filename) throws BoxException, ConfigurationProfileNotFoundException {
-        getProfile(site, profileId); // validate that the profileId exists in the site
-        return format(URL_FORMAT, profileId, fileId, FilenameUtils.getExtension(filename));
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getUrl(final String site, final String profileId, final String fileId,
+			     final String filename) throws BoxException, ConfigurationProfileNotFoundException {
+		getProfile(site, profileId); // validate that the profileId exists in the site
+		return format(URL_FORMAT, profileId, fileId, FilenameUtils.getExtension(filename));
+	}
 }

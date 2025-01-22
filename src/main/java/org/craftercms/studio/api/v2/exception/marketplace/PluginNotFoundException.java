@@ -24,12 +24,12 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class PluginNotFoundException extends MarketplaceException {
 
-    public PluginNotFoundException(String message) {
-        super(message);
-    }
+	public PluginNotFoundException(String message) {
+		super(message);
+	}
 
-    public PluginNotFoundException(String message, Exception e) {
-        super(message, e);
-    }
+	public PluginNotFoundException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

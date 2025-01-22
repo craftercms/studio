@@ -27,15 +27,15 @@ import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfigurat
  */
 public class AssetProcessorPipelineResolverImpl implements AssetProcessorPipelineResolver {
 
-    private AssetProcessorResolver processorResolver;
+	private AssetProcessorResolver processorResolver;
 
-    public AssetProcessorPipelineResolverImpl(AssetProcessorResolver processorResolver) {
-        this.processorResolver = processorResolver;
-    }
+	public AssetProcessorPipelineResolverImpl(AssetProcessorResolver processorResolver) {
+		this.processorResolver = processorResolver;
+	}
 
-    @Override
-    public AssetProcessorPipeline getPipeline(ProcessorPipelineConfiguration config) {
-        return new AssetProcessorPipelineImpl(processorResolver);
-    }
+	@Override
+	public AssetProcessorPipeline getPipeline(ProcessorPipelineConfiguration config) {
+		return new AssetProcessorPipelineImpl(processorResolver);
+	}
 
 }

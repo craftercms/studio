@@ -28,43 +28,43 @@ import org.springframework.security.core.Authentication;
  */
 public class ContentEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    protected final String targetPath;
+	protected final String targetPath;
 
-    @JsonIgnore
-    protected final boolean waitForCompletion;
+	@JsonIgnore
+	protected final boolean waitForCompletion;
 
-    public ContentEvent(Authentication authentication, String siteId, String targetPath, boolean waitForCompletion) {
-        super(authentication, siteId);
-        this.targetPath = targetPath;
-        this.waitForCompletion = waitForCompletion;
-    }
+	public ContentEvent(Authentication authentication, String siteId, String targetPath, boolean waitForCompletion) {
+		super(authentication, siteId);
+		this.targetPath = targetPath;
+		this.waitForCompletion = waitForCompletion;
+	}
 
-    public ContentEvent(Authentication authentication, String siteId, String targetPath) {
-        this(authentication, siteId, targetPath, false);
-    }
+	public ContentEvent(Authentication authentication, String siteId, String targetPath) {
+		this(authentication, siteId, targetPath, false);
+	}
 
-    public String getTargetPath() {
-        return targetPath;
-    }
+	public String getTargetPath() {
+		return targetPath;
+	}
 
-    public boolean isWaitForCompletion() {
-        return waitForCompletion;
-    }
+	public boolean isWaitForCompletion() {
+		return waitForCompletion;
+	}
 
-    @Override
-    public String getEventType() {
-        return "CONTENT_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "CONTENT_EVENT";
+	}
 
-    @Override
-    public String toString() {
-        return "ContentEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                ", targetPath='" + targetPath + '\'' +
-                ", waitForCompletion=" + waitForCompletion +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "ContentEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			", targetPath='" + targetPath + '\'' +
+			", waitForCompletion=" + waitForCompletion +
+			'}';
+	}
 
 }

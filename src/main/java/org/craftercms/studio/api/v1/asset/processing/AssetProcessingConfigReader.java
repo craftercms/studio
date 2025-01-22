@@ -29,26 +29,22 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationExcept
  */
 public interface AssetProcessingConfigReader {
 
-    /**
-     * Reads the configuration from the input stream and maps it to {@link ProcessorPipelineConfiguration} objects.
-     *
-     * @param in the input stream of the configuration
-     *
-     * @return the list with the pipeline configurations.
-     *
-     * @throws AssetProcessingConfigurationException if the configuration couldn't be read because of an error
-     */
-    List<ProcessorPipelineConfiguration> readConfig(InputStream in) throws AssetProcessingConfigurationException;
+	/**
+	 * Reads the configuration from the input stream and maps it to {@link ProcessorPipelineConfiguration} objects.
+	 *
+	 * @param in the input stream of the configuration
+	 * @return the list with the pipeline configurations.
+	 * @throws AssetProcessingConfigurationException if the configuration couldn't be read because of an error
+	 */
+	List<ProcessorPipelineConfiguration> readConfig(InputStream in) throws AssetProcessingConfigurationException;
 
-    /**
-     * Reads the configuration from the Apache Commons Configuration and maps it to {@link ProcessorPipelineConfiguration} objects.
-     *
-     * @param config the Apache Commons Configuration
-     *
-     * @return the list with the pipeline configurations.
-     *
-     * @throws AssetProcessingConfigurationException if the configuration couldn't be read because of an error
-     */
-    List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException;
+	/**
+	 * Reads the configuration from the Apache Commons Configuration and maps it to {@link ProcessorPipelineConfiguration} objects.
+	 *
+	 * @param config the Apache Commons Configuration
+	 * @return the list with the pipeline configurations.
+	 * @throws AssetProcessingConfigurationException if the configuration couldn't be read because of an error
+	 */
+	List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException;
 
 }

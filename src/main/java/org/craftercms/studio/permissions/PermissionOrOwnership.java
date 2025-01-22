@@ -22,41 +22,41 @@ import java.util.Objects;
 
 public class PermissionOrOwnership extends DefaultPermission {
 
-    protected boolean owner;
+	protected boolean owner;
 
-    @Override
-    public boolean isAllowed(String action) {
-        return owner || super.isAllowed(action);
-    }
+	@Override
+	public boolean isAllowed(String action) {
+		return owner || super.isAllowed(action);
+	}
 
-    public boolean isOwner() {
-        return owner;
-    }
+	public boolean isOwner() {
+		return owner;
+	}
 
-    public void setOwner(boolean owner) {
-        this.owner = owner;
-    }
+	public void setOwner(boolean owner) {
+		this.owner = owner;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
-        PermissionOrOwnership that = (PermissionOrOwnership) o;
+		PermissionOrOwnership that = (PermissionOrOwnership) o;
 
-        if (!Objects.equals(allowedActions, that.allowedActions)) {
-            return false;
-        }
+		if (!Objects.equals(allowedActions, that.allowedActions)) {
+			return false;
+		}
 
-        return owner == that.owner;
-    }
+		return owner == that.owner;
+	}
 
-    @Override
-    public int hashCode() {
-        return Boolean.hashCode(owner) + (allowedActions != null ? allowedActions.hashCode() : 0);
-    }
+	@Override
+	public int hashCode() {
+		return Boolean.hashCode(owner) + (allowedActions != null ? allowedActions.hashCode() : 0);
+	}
 }

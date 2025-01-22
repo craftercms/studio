@@ -23,13 +23,14 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public interface EncryptionServiceInternal {
 
-    /**
-     * Encrypt text
-     * @param siteId site identifier
-     * @param text text to encrypt
-     * @return encrypted text
-     * @throws ServiceLayerException general service exception
-     */
-    String encrypt(String siteId, String text) throws ServiceLayerException;
+	/**
+	 * Encrypt text
+	 *
+	 * @param siteId site identifier
+	 * @param text   text to encrypt
+	 * @return encrypted text
+	 * @throws ServiceLayerException general service exception
+	 */
+	String encrypt(String siteId, String text) throws ServiceLayerException;
 
 }

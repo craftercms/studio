@@ -30,42 +30,43 @@ import java.nio.file.Path;
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that deletes files and folders in the
  * repository
+ *
  * @author Dejan Brkic
  */
 public class DeleteUpgradeOperation extends AbstractUpgradeOperation {
 
-    public static final String CONFIG_KEY_PATHS = "paths";
+	public static final String CONFIG_KEY_PATHS = "paths";
 
-    protected String[] paths;
+	protected String[] paths;
 
-    public DeleteUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public DeleteUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doInit(final HierarchicalConfiguration config) {
-        paths = (String[]) config.getArray(String.class, CONFIG_KEY_PATHS);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doInit(final HierarchicalConfiguration config) {
+		paths = (String[]) config.getArray(String.class, CONFIG_KEY_PATHS);
+	}
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        for (String path : paths) {
-            try {
-                Path pathToDelete = context.getFile(path);
-                File f = pathToDelete.toFile();
-                if (f.exists()) {
-                    FileUtils.forceDelete(f);
-                    trackDeletedFiles(path);
-                }
-            } catch (Exception e) {
-                throw new UpgradeException("Error deleting path " + path + " to path for repo " +
-                        (StringUtils.isEmpty(site) ? "global" : site), e);
-            }
-        }
-    }
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		for (String path : paths) {
+			try {
+				Path pathToDelete = context.getFile(path);
+				File f = pathToDelete.toFile();
+				if (f.exists()) {
+					FileUtils.forceDelete(f);
+					trackDeletedFiles(path);
+				}
+			} catch (Exception e) {
+				throw new UpgradeException("Error deleting path " + path + " to path for repo " +
+					(StringUtils.isEmpty(site) ? "global" : site), e);
+			}
+		}
+	}
 
 }

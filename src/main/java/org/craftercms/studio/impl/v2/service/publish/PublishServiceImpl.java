@@ -46,154 +46,154 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 @RequireSiteReady
 public class PublishServiceImpl implements PublishService {
 
-    private PublishService publishServiceInternal;
+	private PublishService publishServiceInternal;
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public long getPublishPackagesCount(@SiteId final String siteId, final String target,
-                                        final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
-                                        final String submitter, final String reviewer, final Boolean isScheduled) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishPackagesCount(siteId, target, states, approvalStates, submitter, reviewer, isScheduled);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public long getPublishPackagesCount(@SiteId final String siteId, final String target,
+					    final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+					    final String submitter, final String reviewer, final Boolean isScheduled) throws SiteNotFoundException {
+		return publishServiceInternal.getPublishPackagesCount(siteId, target, states, approvalStates, submitter, reviewer, isScheduled);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishPackage> getPublishPackages(@SiteId final String siteId,
-                                                         final String target, final Long states,
-                                                         final Collection<PublishPackage.ApprovalState> approvalStates,
-                                                         final String submitter, final String reviewer,
-                                                         final Boolean isScheduled, final Collection<SortField> sort,
-                                                         final int offset, final int limit) throws SiteNotFoundException {
-        return publishServiceInternal.getPublishPackages(siteId, target, states,
-                approvalStates, submitter, reviewer,
-                isScheduled, sort, offset, limit);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public Collection<PublishPackage> getPublishPackages(@SiteId final String siteId,
+							     final String target, final Long states,
+							     final Collection<PublishPackage.ApprovalState> approvalStates,
+							     final String submitter, final String reviewer,
+							     final Boolean isScheduled, final Collection<SortField> sort,
+							     final int offset, final int limit) throws SiteNotFoundException {
+		return publishServiceInternal.getPublishPackages(siteId, target, states,
+			approvalStates, submitter, reviewer,
+			isScheduled, sort, offset, limit);
+	}
 
-    @Override
-    @RequirePackageExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishItemWithMetadata> getPublishPackageItems(@SiteId String siteId, @PackageId long packageId,
-                                                                     String path, Collection<String> systemTypes, String internalName,
-                                                                     int offset, int limit) {
-        return publishServiceInternal.getPublishPackageItems(siteId, packageId, path,
-                systemTypes, internalName, offset, limit);
-    }
+	@Override
+	@RequirePackageExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public Collection<PublishItemWithMetadata> getPublishPackageItems(@SiteId String siteId, @PackageId long packageId,
+									  String path, Collection<String> systemTypes, String internalName,
+									  int offset, int limit) {
+		return publishServiceInternal.getPublishPackageItems(siteId, packageId, path,
+			systemTypes, internalName, offset, limit);
+	}
 
-    @Override
-    @RequirePackageExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public int getPublishPackageItemCount(@SiteId String siteId, @PackageId long packageId, String path, List<String> systemType, String internalName)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
-        return publishServiceInternal.getPublishPackageItemCount(siteId, packageId, path, systemType, internalName);
-    }
+	@Override
+	@RequirePackageExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public int getPublishPackageItemCount(@SiteId String siteId, @PackageId long packageId, String path, List<String> systemType, String internalName)
+		throws PublishPackageNotFoundException, SiteNotFoundException {
+		return publishServiceInternal.getPublishPackageItemCount(siteId, packageId, path, systemType, internalName);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                        List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
-            throws AuthenticationException, ServiceLayerException {
-        return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
+	public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
+			    List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
+		throws AuthenticationException, ServiceLayerException {
+		return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public long requestPublish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
-                               List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
-            throws AuthenticationException, ServiceLayerException {
-        return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+	public long requestPublish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
+				   List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
+		throws AuthenticationException, ServiceLayerException {
+		return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public int getNumberOfPublishes(@SiteId String siteId, int days) {
-        return publishServiceInternal.getNumberOfPublishes(siteId, days);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+	public int getNumberOfPublishes(@SiteId String siteId, int days) {
+		return publishServiceInternal.getNumberOfPublishes(siteId, days);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getNumberOfPublishedItemsByAction(@SiteId String siteId, int days, PublishItem.Action action) {
-        return publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, action);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public int getNumberOfPublishedItemsByAction(@SiteId String siteId, int days, PublishItem.Action action) {
+		return publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, action);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public CalculatedPublishPackageResult calculatePublishPackage(@SiteId String siteId, String publishingTarget, Collection<PublishRequestPath> paths,
-                                                                  Collection<String> commitIds)
-            throws ServiceLayerException, IOException {
-        return publishServiceInternal.calculatePublishPackage(siteId, publishingTarget, paths, commitIds);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public CalculatedPublishPackageResult calculatePublishPackage(@SiteId String siteId, String publishingTarget, Collection<PublishRequestPath> paths,
+								      Collection<String> commitIds)
+		throws ServiceLayerException, IOException {
+		return publishServiceInternal.calculatePublishPackage(siteId, publishingTarget, paths, commitIds);
+	}
 
-    @Override
-    @RequirePackageExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public CalculatedPublishPackageResult recalculatePublishPackage(@SiteId String site, @PackageId long packageId, String target)
-            throws ServiceLayerException {
-        return publishServiceInternal.recalculatePublishPackage(site, packageId, target);
-    }
+	@Override
+	@RequirePackageExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public CalculatedPublishPackageResult recalculatePublishPackage(@SiteId String site, @PackageId long packageId, String target)
+		throws ServiceLayerException {
+		return publishServiceInternal.recalculatePublishPackage(site, packageId, target);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishPackage getReadyPackageForItem(@SiteId final String site, final String path, final boolean includeChildren) {
-        return publishServiceInternal.getReadyPackageForItem(site, path, includeChildren);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public PublishPackage getReadyPackageForItem(@SiteId final String site, final String path, final boolean includeChildren) {
+		return publishServiceInternal.getReadyPackageForItem(site, path, includeChildren);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishPackage> getActivePackagesForItems(@SiteId final String siteId, final Collection<String> paths,
-                                                                final boolean includeChildren) {
-        return publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public Collection<PublishPackage> getActivePackagesForItems(@SiteId final String siteId, final Collection<String> paths,
+								    final boolean includeChildren) {
+		return publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public long publishDelete(@SiteId String siteId, Collection<String> userRequestedPaths,
-                              Collection<String> dependencies, String title, String comment) throws ServiceLayerException {
-        return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, title, comment);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
+	public long publishDelete(@SiteId String siteId, Collection<String> userRequestedPaths,
+				  Collection<String> dependencies, String title, String comment) throws ServiceLayerException {
+		return publishServiceInternal.publishDelete(siteId, userRequestedPaths, dependencies, title, comment);
+	}
 
-    @Override
-    @RequirePackageExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishPackage getPackage(@SiteId String siteId, @PackageId long packageId)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
-        return publishServiceInternal.getPackage(siteId, packageId);
-    }
+	@Override
+	@RequirePackageExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public PublishPackage getPackage(@SiteId String siteId, @PackageId long packageId)
+		throws PublishPackageNotFoundException, SiteNotFoundException {
+		return publishServiceInternal.getPackage(siteId, packageId);
+	}
 
-    @Override
-    @RequirePackageExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public Collection<PublishItem> getPublishItems(@SiteId String siteId, @PackageId final long packageId,
-                                                   final int offset, final int limit)
-            throws PublishPackageNotFoundException, SiteNotFoundException {
-        return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);
-    }
+	@Override
+	@RequirePackageExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
+	public Collection<PublishItem> getPublishItems(@SiteId String siteId, @PackageId final long packageId,
+						       final int offset, final int limit)
+		throws PublishPackageNotFoundException, SiteNotFoundException {
+		return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
-    public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
-        return publishServiceInternal.getAvailablePublishingTargets(siteId);
-    }
+	@Override
+	@RequireSiteExists
+	@HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
+	public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
+		return publishServiceInternal.getAvailablePublishingTargets(siteId);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException {
-        return publishServiceInternal.isSitePublished(siteId);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException {
+		return publishServiceInternal.isSitePublished(siteId);
+	}
 
-    @SuppressWarnings("unused")
-    public void setPublishServiceInternal(final PublishService publishServiceInternal) {
-        this.publishServiceInternal = publishServiceInternal;
-    }
+	@SuppressWarnings("unused")
+	public void setPublishServiceInternal(final PublishService publishServiceInternal) {
+		this.publishServiceInternal = publishServiceInternal;
+	}
 }

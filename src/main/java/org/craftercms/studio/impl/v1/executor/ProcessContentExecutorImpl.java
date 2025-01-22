@@ -42,47 +42,58 @@ import static java.lang.String.format;
  */
 public class ProcessContentExecutorImpl implements ProcessContentExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProcessContentExecutorImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ProcessContentExecutorImpl.class);
 
-    @Override
-    public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
-                                   String chainName) throws ServiceLayerException, UserNotFoundException {
-        final ContentProcessorPipeline chain = processorChains.get(chainName);
-        try {
-            if (chain != null) {
-                if (StringUtils.isEmpty(params.get(DmConstants.KEY_USER))) {
-                    String user = securityService.getCurrentUser();
-                    params.put(DmConstants.KEY_USER, user);
-                }
+	@Override
+	public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
+				       String chainName) throws ServiceLayerException, UserNotFoundException {
+		final ContentProcessorPipeline chain = processorChains.get(chainName);
+		try {
+			if (chain != null) {
+				if (StringUtils.isEmpty(params.get(DmConstants.KEY_USER))) {
+					String user = securityService.getCurrentUser();
+					params.put(DmConstants.KEY_USER, user);
+				}
 
-                final ResultTO result = new ResultTO();
-                try {
-                    final PipelineContent content = new PipelineContentImpl(id, input, isXml, null,
-                        StudioConstants.CONTENT_ENCODING, params);
-                    chain.processContent(content, result);
-                } catch (ContentProcessException | UserNotFoundException | RuntimeException e) {
-                    logger.error("Failed to write content with ID '{}' in processor chain", id, e);
-                    throw e;
-                } finally {
-                    ContentUtils.release(input);
-                }
-                return result;
+				final ResultTO result = new ResultTO();
+				try {
+					final PipelineContent content = new PipelineContentImpl(id, input, isXml, null,
+						StudioConstants.CONTENT_ENCODING, params);
+					chain.processContent(content, result);
+				} catch (ContentProcessException | UserNotFoundException | RuntimeException e) {
+					logger.error("Failed to write content with ID '{}' in processor chain", id, e);
+					throw e;
+				} finally {
+					ContentUtils.release(input);
+				}
+				return result;
 
-            } else {
-                ContentUtils.release(input);
-                throw new ServiceLayerException(format("Chain '%s' is not defined", chainName));
-            }
-        } finally {
-            String s = params.get(DmConstants.KEY_USER);
-            //AuthenticationUtil.setFullyAuthenticatedUser(s);
-        }
-    }
+			} else {
+				ContentUtils.release(input);
+				throw new ServiceLayerException(format("Chain '%s' is not defined", chainName));
+			}
+		} finally {
+			String s = params.get(DmConstants.KEY_USER);
+			//AuthenticationUtil.setFullyAuthenticatedUser(s);
+		}
+	}
 
-    protected Map<String, ContentProcessorPipeline> processorChains;
-    protected SecurityService securityService;
-    public SecurityService getSecurityService() {return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+	protected Map<String, ContentProcessorPipeline> processorChains;
+	protected SecurityService securityService;
 
-    public Map<String, ContentProcessorPipeline> getProcessorChains() { return processorChains; }
-    public void setProcessorChains(Map<String, ContentProcessorPipeline> processorChains) { this.processorChains = processorChains; }
+	public SecurityService getSecurityService() {
+		return securityService;
+	}
+
+	public void setSecurityService(SecurityService securityService) {
+		this.securityService = securityService;
+	}
+
+	public Map<String, ContentProcessorPipeline> getProcessorChains() {
+		return processorChains;
+	}
+
+	public void setProcessorChains(Map<String, ContentProcessorPipeline> processorChains) {
+		this.processorChains = processorChains;
+	}
 }

@@ -26,18 +26,18 @@ import org.craftercms.studio.api.v2.task.TaskId;
  */
 public abstract class SiteTask<K extends TaskId.SiteTaskId> extends Task<K> {
 
-    public SiteTask(String type, K taskId) {
-        super(type, taskId);
+	public SiteTask(String type, K taskId) {
+		super(type, taskId);
 
-    }
+	}
 
-    /**
-     * Get the id of the site this task is associated with
-     *
-     * @return the site id
-     */
-    @JsonIgnore
-    public String getSiteId() {
-        return getTaskId().getSiteId();
-    }
+	/**
+	 * Get the id of the site this task is associated with
+	 *
+	 * @return the site id
+	 */
+	@JsonIgnore
+	public String getSiteId() {
+		return getTaskId().getSiteId();
+	}
 }

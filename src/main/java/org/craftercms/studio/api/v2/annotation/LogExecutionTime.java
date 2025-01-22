@@ -31,9 +31,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LogExecutionTime {
-    /**
-     * The log level to use for the execution time logging.
-     * Defaults to TRACE if not specified.
-     */
-    Level value() default Level.TRACE;
+	/**
+	 * The log level to use for the execution time logging.
+	 * Defaults to TRACE if not specified.
+	 */
+	Level value() default Level.TRACE;
 }

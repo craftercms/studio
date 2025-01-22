@@ -26,16 +26,16 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  * Request for publish package recalculation
  */
 public class RecalculatePublishPackageRequest {
-    @NotEmpty
-    @Size(max = 20)
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private String publishingTarget;
+	@NotEmpty
+	@Size(max = 20)
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	private String publishingTarget;
 
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
+	public String getPublishingTarget() {
+		return publishingTarget;
+	}
 
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
+	public void setPublishingTarget(String publishingTarget) {
+		this.publishingTarget = publishingTarget;
+	}
 }

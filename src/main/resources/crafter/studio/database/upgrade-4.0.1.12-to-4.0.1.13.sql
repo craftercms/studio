@@ -15,6 +15,7 @@
  */
 
 -- Drop unused table
-DROP TABLE IF EXISTS `cluster_status` ;
+DROP TABLE IF EXISTS `cluster_status`;
 
-UPDATE `_meta` SET `version` = '4.0.1.13' ;
+UPDATE `_meta`
+SET `version` = '4.0.1.13';

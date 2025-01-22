@@ -23,6 +23,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -38,28 +39,28 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    public static final Map<String, String> API_1_RESPONSE = Map.of("message", "Unauthorized");
+	public static final Map<String, String> API_1_RESPONSE = Map.of("message", "Unauthorized");
 
-    public static final Map<String, Object> API_2_RESPONSE = Map.of("response", ApiResponse.UNAUTHENTICATED);
+	public static final Map<String, Object> API_2_RESPONSE = Map.of("response", ApiResponse.UNAUTHENTICATED);
 
-    protected final ObjectMapper objectMapper = new ObjectMapper();
+	protected final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
+	@Override
+	public void commence(HttpServletRequest request, HttpServletResponse response,
+			     AuthenticationException authException) throws IOException {
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.setContentType(APPLICATION_JSON_VALUE);
+		response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 
-        PrintWriter out = response.getWriter();
+		PrintWriter out = response.getWriter();
 
-        if (StringUtils.startsWithIgnoreCase(request.getRequestURI(), "/api/1")) {
-            objectMapper.writeValue(out, API_1_RESPONSE);
-        } else {
-            objectMapper.writeValue(out, API_2_RESPONSE);
-        }
+		if (StringUtils.startsWithIgnoreCase(request.getRequestURI(), "/api/1")) {
+			objectMapper.writeValue(out, API_1_RESPONSE);
+		} else {
+			objectMapper.writeValue(out, API_2_RESPONSE);
+		}
 
-        out.flush();
-    }
+		out.flush();
+	}
 
 }

@@ -25,30 +25,30 @@ import java.time.Instant;
  */
 public class AccessToken {
 
-    /**
-     * The value of the token
-     */
-    protected String token;
+	/**
+	 * The value of the token
+	 */
+	protected String token;
 
-    /**
-     * The date of expiration of the token
-     */
-    protected Instant expiresAt;
+	/**
+	 * The date of expiration of the token
+	 */
+	protected Instant expiresAt;
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+	public void setToken(String token) {
+		this.token = token;
+	}
 
-    public void setExpiresAt(Instant expiresAt) {
-        this.expiresAt = expiresAt;
-    }
+	public void setExpiresAt(Instant expiresAt) {
+		this.expiresAt = expiresAt;
+	}
 
-    public String getToken() {
-        return token;
-    }
+	public String getToken() {
+		return token;
+	}
 
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
+	public Instant getExpiresAt() {
+		return expiresAt;
+	}
 
 }

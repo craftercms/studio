@@ -55,195 +55,195 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class SitesServiceInternalImplTest {
 
-    private static final String ROOT_SITE_ID = "studio_root";
-    private static final String SITE_ID = "site1";
-    private static final String USED_SITE_NAME = "already-taken";
-    private static final String SOURCE_SITE_ID = "original";
-    private static final String NEW_SITE_ID = "the-copy";
-    private static final String SOURCE_SANDBOX_BRANCH = "develop";
-    private static final String DUPLICATE_SANDBOX_BRANCH = "feature1";
+	private static final String ROOT_SITE_ID = "studio_root";
+	private static final String SITE_ID = "site1";
+	private static final String USED_SITE_NAME = "already-taken";
+	private static final String SOURCE_SITE_ID = "original";
+	private static final String NEW_SITE_ID = "the-copy";
+	private static final String SOURCE_SANDBOX_BRANCH = "develop";
+	private static final String DUPLICATE_SANDBOX_BRANCH = "feature1";
 
-    @Mock
-    SiteFeedMapper siteFeedMapper;
-    @Mock
-    Deployer deployer;
-    @Spy
-    RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
-    @Mock
-    StudioBlobAwareContentRepository contentRepository;
-    @Mock
-    ConfigurationService configurationService;
-    @Mock
-    StudioConfiguration studioConfiguration;
-    @Mock
-    SecurityService securityService;
-    @Mock
-    ApplicationContext applicationContext;
-    @Mock
-    ItemServiceInternal itemServiceInternal;
-    @Spy
-    @InjectMocks
-    SitesServiceInternalImpl sitesServiceInternal;
+	@Mock
+	SiteFeedMapper siteFeedMapper;
+	@Mock
+	Deployer deployer;
+	@Spy
+	RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
+	@Mock
+	StudioBlobAwareContentRepository contentRepository;
+	@Mock
+	ConfigurationService configurationService;
+	@Mock
+	StudioConfiguration studioConfiguration;
+	@Mock
+	SecurityService securityService;
+	@Mock
+	ApplicationContext applicationContext;
+	@Mock
+	ItemServiceInternal itemServiceInternal;
+	@Spy
+	@InjectMocks
+	SitesServiceInternalImpl sitesServiceInternal;
 
-    @Mock
-    protected SiteDAO siteDAO;
-    @Mock
-    protected AuditServiceInternal auditServiceInternal;
+	@Mock
+	protected SiteDAO siteDAO;
+	@Mock
+	protected AuditServiceInternal auditServiceInternal;
 
-    @Before
-    public void setUp() throws IOException {
-        sitesServiceInternal.setApplicationContext(applicationContext);
-        Site site = new Site();
-        site.setSiteId(SITE_ID);
-        site.setName("Site 1");
-        site.setSiteUuid(UUID.randomUUID().toString());
-        when(siteDAO.getSite(SITE_ID)).thenReturn(site);
+	@Before
+	public void setUp() throws IOException {
+		sitesServiceInternal.setApplicationContext(applicationContext);
+		Site site = new Site();
+		site.setSiteId(SITE_ID);
+		site.setName("Site 1");
+		site.setSiteUuid(UUID.randomUUID().toString());
+		when(siteDAO.getSite(SITE_ID)).thenReturn(site);
 
-        Site rootSite = new Site();
-        rootSite.setId(1);
-        when(siteDAO.getSite(ROOT_SITE_ID)).thenReturn(rootSite);
+		Site rootSite = new Site();
+		rootSite.setId(1);
+		when(siteDAO.getSite(ROOT_SITE_ID)).thenReturn(rootSite);
 
-        when(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)).thenReturn(ROOT_SITE_ID);
+		when(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)).thenReturn(ROOT_SITE_ID);
 
-        when(auditServiceInternal.createAuditLogEntry()).thenReturn(new AuditLog());
+		when(auditServiceInternal.createAuditLogEntry()).thenReturn(new AuditLog());
 
-        when(securityService.getCurrentUser()).thenReturn("admin");
+		when(securityService.getCurrentUser()).thenReturn("admin");
 
-        when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
+		when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
 
-        when(siteFeedMapper.isNameUsed(NEW_SITE_ID, USED_SITE_NAME)).thenReturn(true);
+		when(siteFeedMapper.isNameUsed(NEW_SITE_ID, USED_SITE_NAME)).thenReturn(true);
 
-        doNothing().when(sitesServiceInternal).addSiteUuidFile(anyString(), anyString());
-        doCallRealMethod().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
+		doNothing().when(sitesServiceInternal).addSiteUuidFile(anyString(), anyString());
+		doCallRealMethod().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
 
-        doNothing().when(sitesServiceInternal).auditSiteDuplicate(anyString(), anyString(), anyString());
-        sitesServiceInternal.setApplicationContext(applicationContext);
+		doNothing().when(sitesServiceInternal).auditSiteDuplicate(anyString(), anyString(), anyString());
+		sitesServiceInternal.setApplicationContext(applicationContext);
 
-        Site newSite = new Site();
-        newSite.setSiteId(NEW_SITE_ID);
-        when(siteDAO.getSite(NEW_SITE_ID)).thenReturn(newSite);
+		Site newSite = new Site();
+		newSite.setSiteId(NEW_SITE_ID);
+		when(siteDAO.getSite(NEW_SITE_ID)).thenReturn(newSite);
 
-        Site sourceSite = new Site();
-        sourceSite.setPublishingEnabled(true);
-        sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
-        when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
-    }
+		Site sourceSite = new Site();
+		sourceSite.setPublishingEnabled(true);
+		sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
+		when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
+	}
 
-    @Test
-    public void siteDeleteTest() throws ServiceLayerException {
-        doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
-        sitesServiceInternal.deleteSite(SITE_ID);
+	@Test
+	public void siteDeleteTest() throws ServiceLayerException {
+		doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
+		sitesServiceInternal.deleteSite(SITE_ID);
 
-        verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
-        verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(deployer, times(1)).deleteTargets(SITE_ID);
-        verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
-        verify(contentRepository, times(1)).deleteSite(SITE_ID);
-        verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
-        verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
-        verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(3)).insertAuditLog(any());
-    }
+		verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
+		verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
+		verify(deployer, times(1)).deleteTargets(SITE_ID);
+		verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
+		verify(contentRepository, times(1)).deleteSite(SITE_ID);
+		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
+		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
+		verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
+		verify(auditServiceInternal, times(3)).insertAuditLog(any());
+	}
 
-    @Test
-    public void deployerDownSiteDeleteTest() throws ServiceLayerException {
-        doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
-        doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
+	@Test
+	public void deployerDownSiteDeleteTest() throws ServiceLayerException {
+		doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
+		doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
 
-        assertThrows(ServiceLayerException.class, () -> sitesServiceInternal.deleteSite(SITE_ID));
+		assertThrows(ServiceLayerException.class, () -> sitesServiceInternal.deleteSite(SITE_ID));
 
-        verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
-        verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(deployer, times(1)).deleteTargets(SITE_ID);
-        verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
-        verify(contentRepository, times(1)).deleteSite(SITE_ID);
-        verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
-        verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
-        verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(2)).insertAuditLog(any());
-    }
+		verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
+		verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
+		verify(deployer, times(1)).deleteTargets(SITE_ID);
+		verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
+		verify(contentRepository, times(1)).deleteSite(SITE_ID);
+		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
+		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
+		verify(siteDAO, never()).completeSiteDelete(SITE_ID);
+		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+	}
 
-    @Test
-    public void multipleExceptionsSiteDeleteTest() throws ServiceLayerException {
-        doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
-        doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
-        doThrow(new RuntimeException("Unexpected file system error")).when(contentRepository).deleteSite(SITE_ID);
+	@Test
+	public void multipleExceptionsSiteDeleteTest() throws ServiceLayerException {
+		doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
+		doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
+		doThrow(new RuntimeException("Unexpected file system error")).when(contentRepository).deleteSite(SITE_ID);
 
-        CompositeException exception = assertThrows(CompositeException.class, () -> sitesServiceInternal.deleteSite(SITE_ID));
-        assertEquals(2, exception.getExceptions().size());
+		CompositeException exception = assertThrows(CompositeException.class, () -> sitesServiceInternal.deleteSite(SITE_ID));
+		assertEquals(2, exception.getExceptions().size());
 
-        verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
-        verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(deployer, times(1)).deleteTargets(SITE_ID);
-        verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
-        verify(contentRepository, times(1)).deleteSite(SITE_ID);
-        verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
-        verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
-        verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(2)).insertAuditLog(any());
-    }
+		verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
+		verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
+		verify(deployer, times(1)).deleteTargets(SITE_ID);
+		verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
+		verify(contentRepository, times(1)).deleteSite(SITE_ID);
+		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
+		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
+		verify(siteDAO, never()).completeSiteDelete(SITE_ID);
+		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+	}
 
-    @Test
-    public void nonCriticalErrorsSiteDeleteTest() throws ServiceLayerException {
-        doThrow(new ServiceLayerException("Failed to destroy site preview context")).when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
+	@Test
+	public void nonCriticalErrorsSiteDeleteTest() throws ServiceLayerException {
+		doThrow(new ServiceLayerException("Failed to destroy site preview context")).when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
 
-        doThrow(new RuntimeException("Unexpected db error")).when(siteDAO).enablePublishing(SITE_ID, false);
+		doThrow(new RuntimeException("Unexpected db error")).when(siteDAO).enablePublishing(SITE_ID, false);
 
-        sitesServiceInternal.deleteSite(SITE_ID);
+		sitesServiceInternal.deleteSite(SITE_ID);
 
-        verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
-        verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(deployer, times(1)).deleteTargets(SITE_ID);
-        verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
-        verify(contentRepository, times(1)).deleteSite(SITE_ID);
-        verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
-        verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
-        verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-        verify(auditServiceInternal, times(2)).insertAuditLog(any());
-    }
+		verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
+		verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
+		verify(deployer, times(1)).deleteTargets(SITE_ID);
+		verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
+		verify(contentRepository, times(1)).deleteSite(SITE_ID);
+		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
+		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
+		verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
+		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+	}
 
-    @Test
-    public void duplicateAlreadyTakenNameTest() {
-        assertThrows(SiteAlreadyExistsException.class, () ->
-                sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, USED_SITE_NAME, "The new site", "main_branch", false));
-    }
+	@Test
+	public void duplicateAlreadyTakenNameTest() {
+		assertThrows(SiteAlreadyExistsException.class, () ->
+			sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, USED_SITE_NAME, "The new site", "main_branch", false));
+	}
 
-    @Test
-    public void readOnlyOnBlobStoresTest() throws ServiceLayerException {
-        when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
-        sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", true);
+	@Test
+	public void readOnlyOnBlobStoresTest() throws ServiceLayerException {
+		when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
+		sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", true);
 
-        verify(configurationService).makeBlobStoresReadOnly(NEW_SITE_ID);
-    }
+		verify(configurationService).makeBlobStoresReadOnly(NEW_SITE_ID);
+	}
 
-    @Test
-    public void readOnlyOffBlobStoresTest() throws ServiceLayerException {
-        sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+	@Test
+	public void readOnlyOffBlobStoresTest() throws ServiceLayerException {
+		sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
 
-        verify(configurationService, never()).makeBlobStoresReadOnly(NEW_SITE_ID);
-    }
+		verify(configurationService, never()).makeBlobStoresReadOnly(NEW_SITE_ID);
+	}
 
-    @Test
-    public void duplicateSiteTest() throws ServiceLayerException, IOException {
-        sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", DUPLICATE_SANDBOX_BRANCH, false);
+	@Test
+	public void duplicateSiteTest() throws ServiceLayerException, IOException {
+		sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", DUPLICATE_SANDBOX_BRANCH, false);
 
-        verify(contentRepository).duplicateSite(SOURCE_SITE_ID, NEW_SITE_ID, SOURCE_SANDBOX_BRANCH, DUPLICATE_SANDBOX_BRANCH);
-        verify(sitesServiceInternal).addSiteUuidFile(eq(NEW_SITE_ID), any());
-        verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq(DUPLICATE_SANDBOX_BRANCH), any());
+		verify(contentRepository).duplicateSite(SOURCE_SITE_ID, NEW_SITE_ID, SOURCE_SANDBOX_BRANCH, DUPLICATE_SANDBOX_BRANCH);
+		verify(sitesServiceInternal).addSiteUuidFile(eq(NEW_SITE_ID), any());
+		verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq(DUPLICATE_SANDBOX_BRANCH), any());
 
-        verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
-        verify(sitesServiceInternal).enablePublishing(NEW_SITE_ID, true);
+		verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
+		verify(sitesServiceInternal).enablePublishing(NEW_SITE_ID, true);
 
-        verify(sitesServiceInternal).enablePublishing(SOURCE_SITE_ID, false);
-        verify(sitesServiceInternal).enablePublishing(SOURCE_SITE_ID, true);
-    }
+		verify(sitesServiceInternal).enablePublishing(SOURCE_SITE_ID, false);
+		verify(sitesServiceInternal).enablePublishing(SOURCE_SITE_ID, true);
+	}
 
-    @Test
-    public void duplicateSiteErrorTest() throws ServiceLayerException {
-        doThrow(new RestClientException("test")).when(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
+	@Test
+	public void duplicateSiteErrorTest() throws ServiceLayerException {
+		doThrow(new RestClientException("test")).when(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
 
-        assertThrows(ServiceLayerException.class, () ->
-                sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
-        verify(sitesServiceInternal).deleteSite(NEW_SITE_ID);
-    }
+		assertThrows(ServiceLayerException.class, () ->
+			sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
+		verify(sitesServiceInternal).deleteSite(NEW_SITE_ID);
+	}
 }

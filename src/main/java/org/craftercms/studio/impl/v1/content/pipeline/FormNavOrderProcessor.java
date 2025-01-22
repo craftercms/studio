@@ -25,46 +25,46 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 
 public class FormNavOrderProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FormNavOrderProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(FormNavOrderProcessor.class);
 
-    public static final String NAME = "FormNavOrderProcessor";
-
-
-
-    /**
-     * default constructor
-     */
-    public FormNavOrderProcessor() {
-        super(NAME);
-    }
-
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public FormNavOrderProcessor(String name) {
-        super(name);
-    }
-
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        boolean copiedContent = Boolean.parseBoolean(content.getProperty(DmConstants.KEY_COPIED_CONTENT));
-        String site = String.valueOf(content.getProperty(DmConstants.KEY_SITE));
-        String path = String.valueOf(content.getProperty(DmConstants.KEY_PATH));
-        if(copiedContent){
-            pageNavOrderService.addNavOrder(site, path, content.getDocument());
-        }else{
-            pageNavOrderService.updateNavOrder(site, path, content.getDocument());
-        }
-    }
+	public static final String NAME = "FormNavOrderProcessor";
 
 
-    public DmPageNavigationOrderService getPageNavOrderService() {
-        return this.pageNavOrderService;
-    }
-    public void setPageNavOrderService (DmPageNavigationOrderService pageNavigationOrderService) {
-        this.pageNavOrderService = pageNavigationOrderService;
-    }
+	/**
+	 * default constructor
+	 */
+	public FormNavOrderProcessor() {
+		super(NAME);
+	}
 
-    protected DmPageNavigationOrderService pageNavOrderService;
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public FormNavOrderProcessor(String name) {
+		super(name);
+	}
+
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		boolean copiedContent = Boolean.parseBoolean(content.getProperty(DmConstants.KEY_COPIED_CONTENT));
+		String site = String.valueOf(content.getProperty(DmConstants.KEY_SITE));
+		String path = String.valueOf(content.getProperty(DmConstants.KEY_PATH));
+		if (copiedContent) {
+			pageNavOrderService.addNavOrder(site, path, content.getDocument());
+		} else {
+			pageNavOrderService.updateNavOrder(site, path, content.getDocument());
+		}
+	}
+
+
+	public DmPageNavigationOrderService getPageNavOrderService() {
+		return this.pageNavOrderService;
+	}
+
+	public void setPageNavOrderService(DmPageNavigationOrderService pageNavigationOrderService) {
+		this.pageNavOrderService = pageNavigationOrderService;
+	}
+
+	protected DmPageNavigationOrderService pageNavOrderService;
 }

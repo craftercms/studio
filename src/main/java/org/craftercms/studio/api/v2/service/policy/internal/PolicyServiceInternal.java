@@ -29,15 +29,15 @@ import java.util.List;
  */
 public interface PolicyServiceInternal {
 
-    /**
-     * Performs the validation of one or more actions for a given site
-     *
-     * @param siteId the id of the site
-     * @param actions the list of actions to validate
-     * @return the validation results
-     * @throws ConfigurationException if there any error parsing the configuration
-     */
-    List<ValidationResult> validate(String siteId, List<Action> actions)
-            throws ConfigurationException;
+	/**
+	 * Performs the validation of one or more actions for a given site
+	 *
+	 * @param siteId  the id of the site
+	 * @param actions the list of actions to validate
+	 * @return the validation results
+	 * @throws ConfigurationException if there any error parsing the configuration
+	 */
+	List<ValidationResult> validate(String siteId, List<Action> actions)
+		throws ConfigurationException;
 
 }

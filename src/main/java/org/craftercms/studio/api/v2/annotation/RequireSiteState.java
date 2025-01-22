@@ -34,8 +34,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface RequireSiteState {
 
-    /**
-     * The required site state
-     */
-    String value();
+	/**
+	 * The required site state
+	 */
+	String value();
 }

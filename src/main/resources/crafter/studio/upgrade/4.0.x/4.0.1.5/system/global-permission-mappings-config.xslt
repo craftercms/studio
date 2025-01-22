@@ -17,35 +17,37 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+	</xsl:template>
 
-    <!-- insert line breaks before and after top level comments -->
-    <xsl:template match="/comment()">
-        <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<!-- insert line breaks before and after top level comments -->
+	<xsl:template match="/comment()">
+		<xsl:text>&#10;</xsl:text>
+		<xsl:copy-of select="."/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
 
-    <xsl:template match="permissions/role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'view_logs')">
-                <xsl:element name="permission">
-                    <xsl:text>view_logs</xsl:text>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+	<xsl:template match="permissions/role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
+			<xsl:if test="not(permission = 'view_logs')">
+				<xsl:element name="permission">
+					<xsl:text>view_logs</xsl:text>
+				</xsl:element>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

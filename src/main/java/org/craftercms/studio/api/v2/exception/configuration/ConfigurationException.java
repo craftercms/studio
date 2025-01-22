@@ -25,12 +25,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class ConfigurationException extends ServiceLayerException {
 
-    public ConfigurationException(String message) {
-        super(message);
-    }
+	public ConfigurationException(String message) {
+		super(message);
+	}
 
-    public ConfigurationException(String message, Exception e) {
-        super(message, e);
-    }
+	public ConfigurationException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

@@ -20,18 +20,18 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 public class RetryingOperationErrorException extends ServiceLayerException {
 
-    public RetryingOperationErrorException() {
-    }
+	public RetryingOperationErrorException() {
+	}
 
-    public RetryingOperationErrorException(Throwable e) {
-        super(e);
-    }
+	public RetryingOperationErrorException(Throwable e) {
+		super(e);
+	}
 
-    public RetryingOperationErrorException(String message) {
-        super(message);
-    }
+	public RetryingOperationErrorException(String message) {
+		super(message);
+	}
 
-    public RetryingOperationErrorException(String message, Exception e) {
-        super(message, e);
-    }
+	public RetryingOperationErrorException(String message, Exception e) {
+		super(message, e);
+	}
 }

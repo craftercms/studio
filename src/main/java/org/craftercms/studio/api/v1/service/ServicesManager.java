@@ -23,27 +23,29 @@ import java.util.Map;
 
 public class ServicesManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServicesManager.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServicesManager.class);
 
-    protected Map<Class, Object> _servicesMap = new HashMap<>();
-    public Map<Class, Object> getServicesMap() {
-        return _servicesMap;
-    }
-    public void setServicesMap(Map<Class, Object> servicesMap) {
-        this._servicesMap = servicesMap;
-    }
+	protected Map<Class, Object> _servicesMap = new HashMap<>();
 
-    public void registerService(Class clazz, Object service) {
-        if (_servicesMap == null) {
-            _servicesMap = new HashMap<>();
-        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Registering service: " + clazz.getName());
-        }
-        _servicesMap.put(clazz, service);
-    }
+	public Map<Class, Object> getServicesMap() {
+		return _servicesMap;
+	}
 
-    public <T> T getService(Class<T> clazz) {
-        return clazz.cast(_servicesMap.get(clazz));
-    }
+	public void setServicesMap(Map<Class, Object> servicesMap) {
+		this._servicesMap = servicesMap;
+	}
+
+	public void registerService(Class clazz, Object service) {
+		if (_servicesMap == null) {
+			_servicesMap = new HashMap<>();
+		}
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Registering service: " + clazz.getName());
+		}
+		_servicesMap.put(clazz, service);
+	}
+
+	public <T> T getService(Class<T> clazz) {
+		return clazz.cast(_servicesMap.get(clazz));
+	}
 }

@@ -21,13 +21,14 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 public interface AvailableActionsResolver {
 
-    /**
-     * Get content item available actions for given site and path
-     * @param username username of user to validate permissions
-     * @param siteId site identifier
-     * @param path path of the content
-     * @return
-     */
-    long getContentItemAvailableActions(String username, String siteId, String path)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get content item available actions for given site and path
+	 *
+	 * @param username username of user to validate permissions
+	 * @param siteId   site identifier
+	 * @param path     path of the content
+	 * @return
+	 */
+	long getContentItemAvailableActions(String username, String siteId, String path)
+		throws ServiceLayerException, UserNotFoundException;
 }

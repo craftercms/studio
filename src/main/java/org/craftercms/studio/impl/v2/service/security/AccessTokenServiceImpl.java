@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.beans.ConstructorProperties;
 import java.time.Instant;
 import java.util.List;
@@ -40,86 +41,86 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class AccessTokenServiceImpl implements AccessTokenService {
 
-    protected AccessTokenServiceInternal accessTokenServiceInternal;
+	protected AccessTokenServiceInternal accessTokenServiceInternal;
 
-    @ConstructorProperties({"accessTokenServiceInternal"})
-    public AccessTokenServiceImpl(AccessTokenServiceInternal accessTokenServiceInternal) {
-        this.accessTokenServiceInternal = accessTokenServiceInternal;
-    }
+	@ConstructorProperties({"accessTokenServiceInternal"})
+	public AccessTokenServiceImpl(AccessTokenServiceInternal accessTokenServiceInternal) {
+		this.accessTokenServiceInternal = accessTokenServiceInternal;
+	}
 
-    // Temporary tokens
+	// Temporary tokens
 
-    @Override
-    public boolean hasValidRefreshToken(Authentication auth, HttpServletRequest request, HttpServletResponse response) {
-        return accessTokenServiceInternal.hasValidRefreshToken(auth, request, response);
-    }
+	@Override
+	public boolean hasValidRefreshToken(Authentication auth, HttpServletRequest request, HttpServletResponse response) {
+		return accessTokenServiceInternal.hasValidRefreshToken(auth, request, response);
+	}
 
-    @Override
-    public void updateRefreshToken(Authentication auth, HttpServletResponse response) {
-        accessTokenServiceInternal.updateRefreshToken(auth, response);
-    }
+	@Override
+	public void updateRefreshToken(Authentication auth, HttpServletResponse response) {
+		accessTokenServiceInternal.updateRefreshToken(auth, response);
+	}
 
-    @Override
-    public AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException {
-        return accessTokenServiceInternal.createTokens(auth, request, response);
-    }
+	@Override
+	public AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException {
+		return accessTokenServiceInternal.createTokens(auth, request, response);
+	}
 
-    @Override
-    public void deleteRefreshToken(long userId) {
-        accessTokenServiceInternal.deleteRefreshToken(userId);
-    }
+	@Override
+	public void deleteRefreshToken(long userId) {
+		accessTokenServiceInternal.deleteRefreshToken(userId);
+	}
 
-    @Override
-    public void deleteExpiredRefreshTokens() {
-        accessTokenServiceInternal.deleteExpiredRefreshTokens();
-    }
+	@Override
+	public void deleteExpiredRefreshTokens() {
+		accessTokenServiceInternal.deleteExpiredRefreshTokens();
+	}
 
-    // Persistent tokens
+	// Persistent tokens
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
-    public PersistentAccessToken createAccessToken(String label, Instant expiresAt) throws ServiceLayerException {
-        return accessTokenServiceInternal.createAccessToken(label, expiresAt);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
+	public PersistentAccessToken createAccessToken(String label, Instant expiresAt) throws ServiceLayerException {
+		return accessTokenServiceInternal.createAccessToken(label, expiresAt);
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
-    public List<PersistentAccessToken> getAccessTokens() {
-        return accessTokenServiceInternal.getAccessTokens();
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
+	public List<PersistentAccessToken> getAccessTokens() {
+		return accessTokenServiceInternal.getAccessTokens();
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
-    public PersistentAccessToken updateAccessToken(long id, boolean enabled) {
-        return accessTokenServiceInternal.updateAccessToken(id, enabled);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
+	public PersistentAccessToken updateAccessToken(long id, boolean enabled) {
+		return accessTokenServiceInternal.updateAccessToken(id, enabled);
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
-    public void deleteAccessToken(long id) {
-        accessTokenServiceInternal.deleteAccessToken(id);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
+	public void deleteAccessToken(long id) {
+		accessTokenServiceInternal.deleteAccessToken(id);
+	}
 
-    // All tokens
+	// All tokens
 
-    @Override
-    public String getUsername(String token) {
-        return accessTokenServiceInternal.getUsername(token);
-    }
+	@Override
+	public String getUsername(String token) {
+		return accessTokenServiceInternal.getUsername(token);
+	}
 
-    @Override
-    public void updateUserActivity(Authentication authentication) {
-        accessTokenServiceInternal.updateUserActivity(authentication);
-    }
+	@Override
+	public void updateUserActivity(Authentication authentication) {
+		accessTokenServiceInternal.updateUserActivity(authentication);
+	}
 
-    @Override
-    public void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response, boolean silent) throws ServiceLayerException {
-        accessTokenServiceInternal.refreshPreviewCookie(authentication, request, response, silent);
-    }
+	@Override
+	public void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response, boolean silent) throws ServiceLayerException {
+		accessTokenServiceInternal.refreshPreviewCookie(authentication, request, response, silent);
+	}
 
-    @Override
-    public void deletePreviewCookie(HttpServletResponse response) {
-        accessTokenServiceInternal.deletePreviewCookie(response);
-    }
+	@Override
+	public void deletePreviewCookie(HttpServletResponse response) {
+		accessTokenServiceInternal.deletePreviewCookie(response);
+	}
 
 }

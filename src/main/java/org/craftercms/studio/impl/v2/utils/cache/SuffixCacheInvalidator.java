@@ -27,46 +27,46 @@ import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 /**
  * Implementation of {@link CacheInvalidator} that appends a suffix to the key
  *
- * @author joseross
- * @since 4.0
  * @param <K> the type for the keys
  * @param <V> the type for the values
+ * @author joseross
+ * @since 4.0
  */
 public class SuffixCacheInvalidator<K extends String, V> implements CacheInvalidator<K, V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(SuffixCacheInvalidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(SuffixCacheInvalidator.class);
 
-    /**
-     * The default separator for the suffix
-     */
-    public static final String DEFAULT_SEPARATOR = ":";
+	/**
+	 * The default separator for the suffix
+	 */
+	public static final String DEFAULT_SEPARATOR = ":";
 
-    /**
-     * The separator for the suffix
-     */
-    protected String separator = DEFAULT_SEPARATOR;
+	/**
+	 * The separator for the suffix
+	 */
+	protected String separator = DEFAULT_SEPARATOR;
 
-    /**
-     * The suffix to append
-     */
-    protected String suffix;
+	/**
+	 * The suffix to append
+	 */
+	protected String suffix;
 
-    @ConstructorProperties({"suffix"})
-    public SuffixCacheInvalidator(String suffix) {
-        this.suffix = suffix;
-    }
+	@ConstructorProperties({"suffix"})
+	public SuffixCacheInvalidator(String suffix) {
+		this.suffix = suffix;
+	}
 
-    public void setSeparator(String separator) {
-        this.separator = separator;
-    }
+	public void setSeparator(String separator) {
+		this.separator = separator;
+	}
 
-    @Override
-    public void invalidate(Cache<K, V> cache, K key) {
-        if (!endsWithIgnoreCase(key, separator + suffix)) {
-            var newKey = key + separator + suffix;
-            logger.debug("Invalidate the cache for key '{}'", newKey);
-            cache.invalidate(newKey);
-        }
-    }
+	@Override
+	public void invalidate(Cache<K, V> cache, K key) {
+		if (!endsWithIgnoreCase(key, separator + suffix)) {
+			var newKey = key + separator + suffix;
+			logger.debug("Invalidate the cache for key '{}'", newKey);
+			cache.invalidate(newKey);
+		}
+	}
 
 }

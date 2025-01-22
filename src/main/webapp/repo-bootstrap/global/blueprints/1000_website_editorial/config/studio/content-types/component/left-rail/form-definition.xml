@@ -22,7 +22,8 @@
 	<imageThumbnail>component-left-rail.png</imageThumbnail>
 	<quickCreate>false</quickCreate>
 	<quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/left-rail.ftl</value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Component - Left Rail Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -183,28 +185,29 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>shared-content</type>
-					<id>components</id>
-					<title>Components</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/site/components</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>browsePath</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>type</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
+	<datasources>
+		<datasource>
+			<type>shared-content</type>
+			<id>components</id>
+			<title>Components</title>
+			<interface>item</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/site/components</value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>browsePath</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+				<property>
+					<name>type</name>
+					<value></value>
+					<type>undefined</type>
+				</property>
+			</properties>
+		</datasource>
 	</datasources>
 </form>

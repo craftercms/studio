@@ -59,154 +59,156 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements AwsS3Service {
 
-    public static final String ITEM_FILTER = "item";
+	public static final String ITEM_FILTER = "item";
 
-    /**
-     * The S3 client factory.
-     */
-    protected S3ClientCachingFactory clientFactory;
+	/**
+	 * The S3 client factory.
+	 */
+	protected S3ClientCachingFactory clientFactory;
 
-    /**
-     * The part size used for S3 uploads
-     */
-    protected int partSize = AwsUtils.MIN_PART_SIZE;
+	/**
+	 * The part size used for S3 uploads
+	 */
+	protected int partSize = AwsUtils.MIN_PART_SIZE;
 
-    /**
-     * The delimiter for S3 paths
-     */
-    protected String delimiter;
+	/**
+	 * The delimiter for S3 paths
+	 */
+	protected String delimiter;
 
-    /**
-     * The URL pattern for the generated files
-     */
-    protected String urlPattern;
+	/**
+	 * The URL pattern for the generated files
+	 */
+	protected String urlPattern;
 
-    public AwsS3ServiceImpl(SiteAwareConfigProfileLoader<S3Profile> profileLoader, S3ClientCachingFactory clientFactory,
-                            final String delimiter, final String urlPattern) {
-        super(profileLoader);
-        this.clientFactory = clientFactory;
-        this.delimiter = delimiter;
-        this.urlPattern = urlPattern;
-    }
+	public AwsS3ServiceImpl(SiteAwareConfigProfileLoader<S3Profile> profileLoader, S3ClientCachingFactory clientFactory,
+				final String delimiter, final String urlPattern) {
+		super(profileLoader);
+		this.clientFactory = clientFactory;
+		this.delimiter = delimiter;
+		this.urlPattern = urlPattern;
+	}
 
-    public void setPartSize(final int partSize) {
-        this.partSize = partSize;
-    }
+	public void setPartSize(final int partSize) {
+		this.partSize = partSize;
+	}
 
-    protected S3Client getS3Client(S3Profile profile) {
-        return clientFactory.getClient(profile);
-    }
+	protected S3Client getS3Client(S3Profile profile) {
+		return clientFactory.getClient(profile);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_WRITE)
-    public S3Item uploadItem(@SiteId String siteId,
-                             @ValidateStringParam String profileId,
-                             @ValidateStringParam String path,
-                             @ValidateStringParam String filename,
-                             InputStream content) throws AwsException,
-            SiteNotFoundException, ConfigurationProfileNotFoundException {
-        S3Profile profile = getProfile(siteId, profileId);
-        S3Client s3Client = getS3Client(profile);
-        String inputBucket = profile.getBucketName();
-        String relativeKey = UrlUtils.concat(path, filename);
-        String fullKey = UrlUtils.concat(profile.getPrefix(), relativeKey);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_WRITE)
+	public S3Item uploadItem(@SiteId String siteId,
+				 @ValidateStringParam String profileId,
+				 @ValidateStringParam String path,
+				 @ValidateStringParam String filename,
+				 InputStream content) throws AwsException,
+		SiteNotFoundException, ConfigurationProfileNotFoundException {
+		S3Profile profile = getProfile(siteId, profileId);
+		S3Client s3Client = getS3Client(profile);
+		String inputBucket = profile.getBucketName();
+		String relativeKey = UrlUtils.concat(path, filename);
+		String fullKey = UrlUtils.concat(profile.getPrefix(), relativeKey);
 
-        AwsUtils.uploadStream(inputBucket, fullKey, s3Client, partSize, filename, content);
+		AwsUtils.uploadStream(inputBucket, fullKey, s3Client, partSize, filename, content);
 
-        return new S3Item(filename, createUrl(profileId, relativeKey), false, inputBucket, profile.getPrefix());
-    }
+		return new S3Item(filename, createUrl(profileId, relativeKey), false, inputBucket, profile.getPrefix());
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_READ)
-    public List<S3Item> listItems(@SiteId String siteId,
-                                  @ValidateStringParam String profileId,
-                                  @ValidateStringParam String path,
-                                  @ValidateStringParam String type,
-                                  int maxKeys) throws AwsException,
-            SiteNotFoundException, ConfigurationProfileNotFoundException {
-        S3Profile profile = getProfile(siteId, profileId);
-        S3Client client = getS3Client(profile);
-        List<S3Item> items = new LinkedList<>();
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_READ)
+	public List<S3Item> listItems(@SiteId String siteId,
+				      @ValidateStringParam String profileId,
+				      @ValidateStringParam String path,
+				      @ValidateStringParam String type,
+				      int maxKeys) throws AwsException,
+		SiteNotFoundException, ConfigurationProfileNotFoundException {
+		S3Profile profile = getProfile(siteId, profileId);
+		S3Client client = getS3Client(profile);
+		List<S3Item> items = new LinkedList<>();
 
-        MimeType filterType =
-            StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
-        String fullPrefix = normalizePrefix(UrlUtils.concat(profile.getPrefix(), path));
+		MimeType filterType =
+			StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER) ? MimeTypeUtils.ALL : new MimeType(type);
+		String fullPrefix = normalizePrefix(UrlUtils.concat(profile.getPrefix(), path));
 
-        ListObjectsV2Request request = ListObjectsV2Request.builder()
-                .bucket(profile.getBucketName())
-                .prefix(fullPrefix)
-                .delimiter(delimiter)
-                .build();
+		ListObjectsV2Request request = ListObjectsV2Request.builder()
+			.bucket(profile.getBucketName())
+			.prefix(fullPrefix)
+			.delimiter(delimiter)
+			.build();
 
-        ListObjectsV2Iterable response = client.listObjectsV2Paginator(request);
-        int contentsCount = 0;
-        // fetch all prefixes and fetch content key up to maxKeys
-        for (ListObjectsV2Response page : response) {
-            items.addAll(processPrefixes(page, profile));
-            if (contentsCount < maxKeys) {
-                List<S3Item> contents = processContentKeys(page, profile, fullPrefix, filterType, maxKeys - contentsCount);
-                items.addAll(contents);
-                contentsCount += contents.size();
-            }
-        }
+		ListObjectsV2Iterable response = client.listObjectsV2Paginator(request);
+		int contentsCount = 0;
+		// fetch all prefixes and fetch content key up to maxKeys
+		for (ListObjectsV2Response page : response) {
+			items.addAll(processPrefixes(page, profile));
+			if (contentsCount < maxKeys) {
+				List<S3Item> contents = processContentKeys(page, profile, fullPrefix, filterType, maxKeys - contentsCount);
+				items.addAll(contents);
+				contentsCount += contents.size();
+			}
+		}
 
-        return items;
-    }
+		return items;
+	}
 
-    /**
-     * Process S3 prefix
-     * @param page S3 response object
-     * @param profile S3 profile
-     * @return list of {@link S3Item}
-     */
-    private List<S3Item> processPrefixes(ListObjectsV2Response page, S3Profile profile) {
-        return page.commonPrefixes().stream()
-                .map(p -> {
-                    String relativeKey = StringUtils.removeStart(p.prefix(), profile.getPrefix());
-                    return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
-                })
-                .toList();
-    }
+	/**
+	 * Process S3 prefix
+	 *
+	 * @param page    S3 response object
+	 * @param profile S3 profile
+	 * @return list of {@link S3Item}
+	 */
+	private List<S3Item> processPrefixes(ListObjectsV2Response page, S3Profile profile) {
+		return page.commonPrefixes().stream()
+			.map(p -> {
+				String relativeKey = StringUtils.removeStart(p.prefix(), profile.getPrefix());
+				return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true, profile.getBucketName(), profile.getPrefix());
+			})
+			.toList();
+	}
 
-    /**
-     * Process content keys
-     * @param page S3 response object
-     * @param profile S3 profile
-     * @param fullPrefix full prefix
-     * @param filterType filter type
-     * @param maxKeys max keys
-     * @return list of {@link S3Item} up to max keys
-     */
-    private List<S3Item> processContentKeys(ListObjectsV2Response page, S3Profile profile, String fullPrefix, MimeType filterType, int maxKeys) {
-        return page.contents().stream()
-                .filter(o -> !StringUtils.equals(o.key(), fullPrefix) &&
-                        MimeType.valueOf(StudioUtils.getMimeType(o.key())).isCompatibleWith(filterType))
-                .map(o -> {
-                    String relativeKey = StringUtils.removeStart(o.key(), profile.getPrefix());
-                    return new S3Item(relativeKey, createUrl(profile.getProfileId(), relativeKey), false, profile.getBucketName(), profile.getPrefix());
-                })
-                .limit(maxKeys)
-                .toList();
-    }
+	/**
+	 * Process content keys
+	 *
+	 * @param page       S3 response object
+	 * @param profile    S3 profile
+	 * @param fullPrefix full prefix
+	 * @param filterType filter type
+	 * @param maxKeys    max keys
+	 * @return list of {@link S3Item} up to max keys
+	 */
+	private List<S3Item> processContentKeys(ListObjectsV2Response page, S3Profile profile, String fullPrefix, MimeType filterType, int maxKeys) {
+		return page.contents().stream()
+			.filter(o -> !StringUtils.equals(o.key(), fullPrefix) &&
+				MimeType.valueOf(StudioUtils.getMimeType(o.key())).isCompatibleWith(filterType))
+			.map(o -> {
+				String relativeKey = StringUtils.removeStart(o.key(), profile.getPrefix());
+				return new S3Item(relativeKey, createUrl(profile.getProfileId(), relativeKey), false, profile.getBucketName(), profile.getPrefix());
+			})
+			.limit(maxKeys)
+			.toList();
+	}
 
-    protected String createUrl(String profileId, String key) {
-        return Paths.get(format(urlPattern, profileId, key)).normalize().toString();
-    }
+	protected String createUrl(String profileId, String key) {
+		return Paths.get(format(urlPattern, profileId, key)).normalize().toString();
+	}
 
-    protected String normalizePrefix(String prefix) {
-        if (StringUtils.isEmpty(prefix)) {
-            return prefix;
-        } else {
-            return stripStart(appendIfMissing(prefix, delimiter), delimiter);
-        }
-    }
+	protected String normalizePrefix(String prefix) {
+		if (StringUtils.isEmpty(prefix)) {
+			return prefix;
+		} else {
+			return stripStart(appendIfMissing(prefix, delimiter), delimiter);
+		}
+	}
 
 }

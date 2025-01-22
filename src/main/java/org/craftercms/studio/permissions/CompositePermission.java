@@ -25,65 +25,65 @@ import java.util.stream.Collectors;
 
 public class CompositePermission implements Permission {
 
-    protected Set<Permission> permissions;
+	protected Set<Permission> permissions;
 
-    @Override
-    public boolean isAllowed(String action) {
-        return permissions.stream().allMatch(p -> p.isAllowed(action));
-    }
+	@Override
+	public boolean isAllowed(String action) {
+		return permissions.stream().allMatch(p -> p.isAllowed(action));
+	}
 
-    public Set<Permission> getPermissions() {
-        return permissions;
-    }
+	public Set<Permission> getPermissions() {
+		return permissions;
+	}
 
-    public void setPermissions(Set<Permission> permissions) {
-        this.permissions = permissions;
-    }
+	public void setPermissions(Set<Permission> permissions) {
+		this.permissions = permissions;
+	}
 
-    public CompositePermission addPermission(Permission permission) {
-        if (Objects.nonNull(permission)) {
-            if (Objects.isNull(permissions)) {
-                permissions = new HashSet<>();
-            }
-            permissions.add(permission);
-        }
-        return this;
-    }
+	public CompositePermission addPermission(Permission permission) {
+		if (Objects.nonNull(permission)) {
+			if (Objects.isNull(permissions)) {
+				permissions = new HashSet<>();
+			}
+			permissions.add(permission);
+		}
+		return this;
+	}
 
-    public CompositePermission addPermission(CompositePermission compositePermission, Permission permission) {
-        if (Objects.nonNull(compositePermission)) {
-            if (Objects.nonNull(permission)) {
-                compositePermission.addPermission(permission);
-            }
-        } else {
-            if (Objects.nonNull(permission)) {
-                CompositePermission cp = new CompositePermission();
-                return cp.addPermission(permission);
-            }
-        }
-        return compositePermission;
-    }
+	public CompositePermission addPermission(CompositePermission compositePermission, Permission permission) {
+		if (Objects.nonNull(compositePermission)) {
+			if (Objects.nonNull(permission)) {
+				compositePermission.addPermission(permission);
+			}
+		} else {
+			if (Objects.nonNull(permission)) {
+				CompositePermission cp = new CompositePermission();
+				return cp.addPermission(permission);
+			}
+		}
+		return compositePermission;
+	}
 
-    @Override
-    public String toString() {
-        return permissions.stream().map(Object::toString).collect(Collectors.joining("\n"));
-    }
+	@Override
+	public String toString() {
+		return permissions.stream().map(Object::toString).collect(Collectors.joining("\n"));
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
-        CompositePermission that = (CompositePermission) o;
-        return permissions.stream().anyMatch(p -> !that.permissions.contains(p));
-    }
+		CompositePermission that = (CompositePermission) o;
+		return permissions.stream().anyMatch(p -> !that.permissions.contains(p));
+	}
 
-    @Override
-    public int hashCode() {
-        return permissions != null? permissions.hashCode() : 0;
-    }
+	@Override
+	public int hashCode() {
+		return permissions != null ? permissions.hashCode() : 0;
+	}
 }

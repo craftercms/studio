@@ -20,12 +20,12 @@ import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundExceptio
 
 public class BlueprintNotFoundException extends PluginNotFoundException {
 
-    public BlueprintNotFoundException(String message) {
-        super(message);
-    }
+	public BlueprintNotFoundException(String message) {
+		super(message);
+	}
 
-    public BlueprintNotFoundException(String message, Exception e) {
-        super(message, e);
-    }
+	public BlueprintNotFoundException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

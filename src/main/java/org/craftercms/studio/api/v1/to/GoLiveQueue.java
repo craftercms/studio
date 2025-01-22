@@ -20,52 +20,53 @@ import java.util.*;
 
 public class GoLiveQueue implements Serializable {
 
-    private static final long serialVersionUID = 2209675182536998467L;
+	private static final long serialVersionUID = 2209675182536998467L;
 
-    protected Map<String, ContentItemTO> map = new HashMap<>();
+	protected Map<String, ContentItemTO> map = new HashMap<>();
 
-    GoLiveQueue(Set<ContentItemTO> queue) {
-        for (ContentItemTO itemTO : queue) {
-            map.put(itemTO.getUri(),itemTO);
-        }
-    }
+	GoLiveQueue(Set<ContentItemTO> queue) {
+		for (ContentItemTO itemTO : queue) {
+			map.put(itemTO.getUri(), itemTO);
+		}
+	}
 
-    public GoLiveQueue() { }
+	public GoLiveQueue() {
+	}
 
-    public Set<ContentItemTO> getQueue() {
-        Set<ContentItemTO> set = new HashSet<>();
-        Collection<ContentItemTO> itemTOCollection = map.values();
-        for (ContentItemTO to : itemTOCollection) {
-            ContentItemTO to1 = new ContentItemTO(to, false);
-            set.add(to1);
-        }
-        return set;
-    }
+	public Set<ContentItemTO> getQueue() {
+		Set<ContentItemTO> set = new HashSet<>();
+		Collection<ContentItemTO> itemTOCollection = map.values();
+		for (ContentItemTO to : itemTOCollection) {
+			ContentItemTO to1 = new ContentItemTO(to, false);
+			set.add(to1);
+		}
+		return set;
+	}
 
-    public boolean remove(String uri) {
-        ContentItemTO to = map.get(uri);
-        map.remove(uri);
-        return true;
-    }
+	public boolean remove(String uri) {
+		ContentItemTO to = map.get(uri);
+		map.remove(uri);
+		return true;
+	}
 
-    public boolean add(ContentItemTO contentItemTO) {
+	public boolean add(ContentItemTO contentItemTO) {
 
-        ContentItemTO to = new ContentItemTO(contentItemTO, false);
-        map.put(contentItemTO.getUri(), to);
-        return true;
-    }
+		ContentItemTO to = new ContentItemTO(contentItemTO, false);
+		map.put(contentItemTO.getUri(), to);
+		return true;
+	}
 
-    public boolean add(String key,ContentItemTO contentItemTO) {
-        ContentItemTO to = new ContentItemTO(contentItemTO,false);
-        map.put(key,to);
-        return true;
-    }
+	public boolean add(String key, ContentItemTO contentItemTO) {
+		ContentItemTO to = new ContentItemTO(contentItemTO, false);
+		map.put(key, to);
+		return true;
+	}
 
-    public boolean contains(ContentItemTO to) {
-        return map.containsKey(to.getUri());
-    }
+	public boolean contains(ContentItemTO to) {
+		return map.containsKey(to.getUri());
+	}
 
-    public boolean contains(String uri) {
-        return map.containsKey(uri);
-    }
+	public boolean contains(String uri) {
+		return map.containsKey(uri);
+	}
 }

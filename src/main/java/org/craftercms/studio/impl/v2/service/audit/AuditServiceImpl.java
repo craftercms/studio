@@ -40,131 +40,131 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class AuditServiceImpl implements AuditService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuditServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(AuditServiceImpl.class);
 
-    private AuditServiceInternal auditServiceInternal;
-    private ContentService contentService;
-    private SecurityService securityService;
+	private AuditServiceInternal auditServiceInternal;
+	private ContentService contentService;
+	private SecurityService securityService;
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public List<AuditLog> getAuditLog(@SiteId String siteId,
-                                      int offset, int limit,
-                                      String user,
-                                      List<String> operations,
-                                      boolean includeParameters, ZonedDateTime dateFrom,
-                                      ZonedDateTime dateTo,
-                                      String target,
-                                      String origin,
-                                      String clusterNodeId,
-                                      String sort,
-                                      String order) throws SiteNotFoundException {
-        return auditServiceInternal.getAuditLog(siteId, offset, limit, user, operations, includeParameters,
-                dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public List<AuditLog> getAuditLog(@SiteId String siteId,
+					  int offset, int limit,
+					  String user,
+					  List<String> operations,
+					  boolean includeParameters, ZonedDateTime dateFrom,
+					  ZonedDateTime dateTo,
+					  String target,
+					  String origin,
+					  String clusterNodeId,
+					  String sort,
+					  String order) throws SiteNotFoundException {
+		return auditServiceInternal.getAuditLog(siteId, offset, limit, user, operations, includeParameters,
+			dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public int getAuditLogTotal(@SiteId String siteId, String user, List<String> operations, boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                String target, String origin, String clusterNodeId) throws SiteNotFoundException {
-        return auditServiceInternal.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
-                dateTo, target, origin, clusterNodeId);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public int getAuditLogTotal(@SiteId String siteId, String user, List<String> operations, boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+				    String target, String origin, String clusterNodeId) throws SiteNotFoundException {
+		return auditServiceInternal.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
+			dateTo, target, origin, clusterNodeId);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public AuditLog getAuditLogEntry(@SiteId final String siteId, final long auditLogId) throws SiteNotFoundException {
-        return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public AuditLog getAuditLogEntry(@SiteId final String siteId, final long auditLogId) throws SiteNotFoundException {
+		return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
+	}
 
-    @Override
-    @RequireSiteReady
-    public List<ContentItemTO> getUserActivities(@SiteId String site, int limit, String sort, boolean ascending,
-                                                 boolean excludeLive, String filterType) {
-        int startPos = 0;
-        List<ContentItemTO> contentItems = new ArrayList<>();
-        boolean hasMoreItems = true;
-        String user = securityService.getCurrentUser();
+	@Override
+	@RequireSiteReady
+	public List<ContentItemTO> getUserActivities(@SiteId String site, int limit, String sort, boolean ascending,
+						     boolean excludeLive, String filterType) {
+		int startPos = 0;
+		List<ContentItemTO> contentItems = new ArrayList<>();
+		boolean hasMoreItems = true;
+		String user = securityService.getCurrentUser();
 
-        while(contentItems.size() < limit && hasMoreItems){
-            int remainingItems = limit - contentItems.size();
-            hasMoreItems = getActivityFeeds(user, site, startPos, limit , filterType, excludeLive,contentItems,
-                    remainingItems);
-            startPos = startPos + limit;
-        }
+		while (contentItems.size() < limit && hasMoreItems) {
+			int remainingItems = limit - contentItems.size();
+			hasMoreItems = getActivityFeeds(user, site, startPos, limit, filterType, excludeLive, contentItems,
+				remainingItems);
+			startPos = startPos + limit;
+		}
 
-        if(contentItems.size() > limit){
-            return contentItems.subList(0, limit);
-        }
+		if (contentItems.size() > limit) {
+			return contentItems.subList(0, limit);
+		}
 
-        return contentItems;
-    }
+		return contentItems;
+	}
 
-    protected boolean getActivityFeeds(String user, String site, int startPos, int size, String filterType,
-                                       boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
+	protected boolean getActivityFeeds(String user, String site, int startPos, int size, String filterType,
+					   boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
 
-        List<AuditLog> activityFeeds = auditServiceInternal.selectUserFeedEntries(user, site, startPos, size, filterType,
-                hideLiveItems);
+		List<AuditLog> activityFeeds = auditServiceInternal.selectUserFeedEntries(user, site, startPos, size, filterType,
+			hideLiveItems);
 
-        boolean hasMoreItems = activityFeeds.size() >= size;
+		boolean hasMoreItems = activityFeeds.size() >= size;
 
-        // If the number of items returned is less than the size, then it means that the table has no more records
+		// If the number of items returned is less than the size, then it means that the table has no more records
 
-        // TODO: SJ: Simplify the code below
-        if (CollectionUtils.isNotEmpty(activityFeeds)) {
-            for (int index = 0; index < activityFeeds.size() && remainingItem!=0; index++) {
-                AuditLog auditLog = activityFeeds.get(index);
-                String id = auditLog.getPrimaryTargetValue();
-                ContentItemTO item = createActivityItem(site, auditLog, id);
-                contentItems.add(item);
-                remainingItem--;
-            }
-        }
+		// TODO: SJ: Simplify the code below
+		if (CollectionUtils.isNotEmpty(activityFeeds)) {
+			for (int index = 0; index < activityFeeds.size() && remainingItem != 0; index++) {
+				AuditLog auditLog = activityFeeds.get(index);
+				String id = auditLog.getPrimaryTargetValue();
+				ContentItemTO item = createActivityItem(site, auditLog, id);
+				contentItems.add(item);
+				remainingItem--;
+			}
+		}
 
-        logger.debug("The total items retrieved from the activity feed in site '{}' is '{}' and hasMore is '{}'",
-                site, contentItems.size(), hasMoreItems);
+		logger.debug("The total items retrieved from the activity feed in site '{}' is '{}' and hasMore is '{}'",
+			site, contentItems.size(), hasMoreItems);
 
-        return hasMoreItems;
-    }
+		return hasMoreItems;
+	}
 
-    protected ContentItemTO createActivityItem(String site, AuditLog auditLog, String id) {
-        try {
-            ContentItemTO item = contentService.getContentItem(site, id, 0);
-            if(item == null || item.isDeleted()) {
-                item = contentService.createDummyDmContentItemForDeletedNode(site, id);
-                String modifier = auditLog.getActorId();
-                if(modifier != null && !modifier.isEmpty()) {
-                    item.user = modifier;
-                }
-                item.contentType = auditLog.getPrimaryTargetSubtype();
-                item.setLockOwner("");
-            }
-            ZonedDateTime editedDate = auditLog.getOperationTimestamp();
-            if (editedDate != null) {
-                item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
-            } else {
-                item.eventDate = null;
-            }
+	protected ContentItemTO createActivityItem(String site, AuditLog auditLog, String id) {
+		try {
+			ContentItemTO item = contentService.getContentItem(site, id, 0);
+			if (item == null || item.isDeleted()) {
+				item = contentService.createDummyDmContentItemForDeletedNode(site, id);
+				String modifier = auditLog.getActorId();
+				if (modifier != null && !modifier.isEmpty()) {
+					item.user = modifier;
+				}
+				item.contentType = auditLog.getPrimaryTargetSubtype();
+				item.setLockOwner("");
+			}
+			ZonedDateTime editedDate = auditLog.getOperationTimestamp();
+			if (editedDate != null) {
+				item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
+			} else {
+				item.eventDate = null;
+			}
 
-            return item;
-        } catch (Exception e) {
-            logger.error("Failed to fetch content item from site '{}' with ID '{}'", site, id, e);
-            return null;
-        }
-    }
+			return item;
+		} catch (Exception e) {
+			logger.error("Failed to fetch content item from site '{}' with ID '{}'", site, id, e);
+			return null;
+		}
+	}
 
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
+	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+		this.auditServiceInternal = auditServiceInternal;
+	}
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
 
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public void setSecurityService(SecurityService securityService) {
+		this.securityService = securityService;
+	}
 }

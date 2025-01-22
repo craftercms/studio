@@ -18,20 +18,21 @@ package org.craftercms.studio.api.v1.exception;
 public class SiteNotFoundException extends ServiceLayerException {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = -8066749073662392052L;
 
-	public SiteNotFoundException() {}
-	
+	public SiteNotFoundException() {
+	}
+
 	public SiteNotFoundException(Exception e) {
 		super(e);
 	}
-	
+
 	public SiteNotFoundException(String message) {
 		super(message);
 	}
-	
+
 	public SiteNotFoundException(String message, Exception e) {
 		super(message, e);
 	}

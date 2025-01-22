@@ -43,49 +43,49 @@ import javax.sql.DataSource;
  */
 public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(FindAndReplaceUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(FindAndReplaceUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_PATTERN = "pattern";
-    public static final String CONFIG_KEY_REPLACEMENT = "replacement";
+	public static final String CONFIG_KEY_PATTERN = "pattern";
+	public static final String CONFIG_KEY_REPLACEMENT = "replacement";
 
-    /**
-     * The pattern to search in the files
-     */
-    protected String pattern;
+	/**
+	 * The pattern to search in the files
+	 */
+	protected String pattern;
 
-    /**
-     * The expression to replace in the files
-     */
-    protected String replacement;
+	/**
+	 * The expression to replace in the files
+	 */
+	protected String replacement;
 
-    public FindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
-        super(studioConfiguration);
-    }
+	public FindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+		super(studioConfiguration);
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        super.doInit(config);
-        pattern = config.getString(CONFIG_KEY_PATTERN);
-        replacement = config.getString(CONFIG_KEY_REPLACEMENT);
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		super.doInit(config);
+		pattern = config.getString(CONFIG_KEY_PATTERN);
+		replacement = config.getString(CONFIG_KEY_REPLACEMENT);
+	}
 
-    @Override
-    protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
-        return true;
-    }
+	@Override
+	protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
+		return true;
+	}
 
-    @Override
-    protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
-        String content = readFile(path);
-        String updated = null;
-        if(StringUtils.isNotEmpty(content)) {
-            updated = RegExUtils.replaceAll(content, pattern, replacement);
-        }
+	@Override
+	protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
+		String content = readFile(path);
+		String updated = null;
+		if (StringUtils.isNotEmpty(content)) {
+			updated = RegExUtils.replaceAll(content, pattern, replacement);
+		}
 
-        if(StringUtils.isNotEmpty(updated) && !StringUtils.equals(content, updated)) {
-            logger.info("Update the file '{}'", path);
-            writeFile(path, updated);
-        }
-    }
+		if (StringUtils.isNotEmpty(updated) && !StringUtils.equals(content, updated)) {
+			logger.info("Update the file '{}'", path);
+			writeFile(path, updated);
+		}
+	}
 
 }

@@ -30,26 +30,26 @@ import java.util.Collection;
  */
 public class CompositeGitCliExceptionResolver implements GitCliOutputExceptionResolver {
 
-    private final Collection<GitCliOutputExceptionResolver> resolvers;
+	private final Collection<GitCliOutputExceptionResolver> resolvers;
 
-    public CompositeGitCliExceptionResolver(Collection<GitCliOutputExceptionResolver> resolvers) {
-        this.resolvers = resolvers;
-    }
+	public CompositeGitCliExceptionResolver(Collection<GitCliOutputExceptionResolver> resolvers) {
+		this.resolvers = resolvers;
+	}
 
-    public CompositeGitCliExceptionResolver(GitCliOutputExceptionResolver... resolvers) {
-        this(Arrays.asList(resolvers));
-    }
+	public CompositeGitCliExceptionResolver(GitCliOutputExceptionResolver... resolvers) {
+		this(Arrays.asList(resolvers));
+	}
 
-    @Override
-    public GitCliOutputException resolveException(int exitValue, String output) {
-        for (GitCliOutputExceptionResolver resolver : resolvers) {
-            GitCliOutputException ex = resolver.resolveException(exitValue, output);
-            if (ex != null) {
-                return ex;
-            }
-        }
+	@Override
+	public GitCliOutputException resolveException(int exitValue, String output) {
+		for (GitCliOutputExceptionResolver resolver : resolvers) {
+			GitCliOutputException ex = resolver.resolveException(exitValue, output);
+			if (ex != null) {
+				return ex;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
 }

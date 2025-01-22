@@ -31,42 +31,42 @@ import static org.apache.commons.lang3.StringUtils.startsWith;
 /**
  * Implementation of {@link CacheInvalidator} that invalidates all keys matching a pattern
  *
- * @author joseross
- * @since 4.0
  * @param <K> the type for the keys
  * @param <V> the type for the values
+ * @author joseross
+ * @since 4.0
  */
 public class PatternCacheInvalidator<K extends String, V> implements CacheInvalidator<K, V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PatternCacheInvalidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(PatternCacheInvalidator.class);
 
-    /**
-     * The pattern to match keys
-     */
-    protected String pattern;
+	/**
+	 * The pattern to match keys
+	 */
+	protected String pattern;
 
-    @ConstructorProperties({"pattern"})
-    public PatternCacheInvalidator(String pattern) {
-        this.pattern = pattern;
-    }
+	@ConstructorProperties({"pattern"})
+	public PatternCacheInvalidator(String pattern) {
+		this.pattern = pattern;
+	}
 
-    @Override
-    public void invalidate(Cache<K, V> cache, K key) {
-        var tokens = key.split(":");
-        var siteId = tokens.length > 1? tokens[0] : null;
+	@Override
+	public void invalidate(Cache<K, V> cache, K key) {
+		var tokens = key.split(":");
+		var siteId = tokens.length > 1 ? tokens[0] : null;
 
-        if (isNotEmpty(siteId)) {
-            logger.debug("The original key contains a siteId, matches will be limited to the same siteId");
-        }
+		if (isNotEmpty(siteId)) {
+			logger.debug("The original key contains a siteId, matches will be limited to the same siteId");
+		}
 
-        logger.debug("Look for keys matching the pattern '{}'", pattern);
-        var matchingKeys = cache.asMap().keySet().stream()
-                .filter(k -> k.matches(pattern)) // include keys that match the pattern
-                .filter(k -> isEmpty(siteId) || startsWith(k, siteId)) // include only keys for the same site
-                .filter(not(key::equals)) // exclude the original to avoid double invalidation
-                .collect(toList());
-        logger.debug("Invalidate the cache for keys '{}'", matchingKeys);
-        cache.invalidateAll(matchingKeys);
-    }
+		logger.debug("Look for keys matching the pattern '{}'", pattern);
+		var matchingKeys = cache.asMap().keySet().stream()
+			.filter(k -> k.matches(pattern)) // include keys that match the pattern
+			.filter(k -> isEmpty(siteId) || startsWith(k, siteId)) // include only keys for the same site
+			.filter(not(key::equals)) // exclude the original to avoid double invalidation
+			.collect(toList());
+		logger.debug("Invalidate the cache for keys '{}'", matchingKeys);
+		cache.invalidateAll(matchingKeys);
+	}
 
 }

@@ -55,174 +55,174 @@ import static org.craftercms.commons.file.blob.BlobStore.*;
 @SuppressWarnings("rawtypes, unchecked")
 public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implements StudioBlobStoreResolver {
 
-    public static final String CACHE_KEY_STORE = "blob-store";
+	public static final String CACHE_KEY_STORE = "blob-store";
 
-    protected ContentRepository contentRepository;
+	protected ContentRepository contentRepository;
 
-    protected Cache<String, Object> cache;
+	protected Cache<String, Object> cache;
 
-    protected ConfigurationService configurationService;
+	protected ConfigurationService configurationService;
 
-    protected StudioConfiguration studioConfiguration;
+	protected StudioConfiguration studioConfiguration;
 
-    /**
-     * The patterns of urls that should be handled by blob stores
-     */
-    protected String[] interceptedPaths;
-    private ContextManager contextManager;
+	/**
+	 * The patterns of urls that should be handled by blob stores
+	 */
+	protected String[] interceptedPaths;
+	private ContextManager contextManager;
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
+	public void setContentRepository(ContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
+	}
 
-    public void setCache(Cache<String, Object> cache) {
-        this.cache = cache;
-    }
+	public void setCache(Cache<String, Object> cache) {
+		this.cache = cache;
+	}
 
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public void setInterceptedPaths(String[] interceptedPaths) {
-        this.interceptedPaths = interceptedPaths;
-    }
+	public void setInterceptedPaths(String[] interceptedPaths) {
+		this.interceptedPaths = interceptedPaths;
+	}
 
-    @Override
-    protected HierarchicalConfiguration getConfiguration(ConfigurationProvider provider) throws ConfigurationException {
-        var config = super.getConfiguration(provider);
-        if (config == null) {
-            config = new XMLConfiguration();
-        }
-        return config;
-    }
+	@Override
+	protected HierarchicalConfiguration getConfiguration(ConfigurationProvider provider) throws ConfigurationException {
+		var config = super.getConfiguration(provider);
+		if (config == null) {
+			config = new XMLConfiguration();
+		}
+		return config;
+	}
 
-    protected HierarchicalConfiguration getConfiguration(String siteId) throws ExecutionException {
-        String cacheKey1 = configurationService.getCacheKey(siteId, configModule, configPath, getEnvironment());
-        return (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
-            logger.debug("Cache miss in site '{}' key '{}'", siteId, cacheKey1);
-            return getConfiguration(new ConfigurationProviderImpl(siteId));
-        });
-    }
+	protected HierarchicalConfiguration getConfiguration(String siteId) throws ExecutionException {
+		String cacheKey1 = configurationService.getCacheKey(siteId, configModule, configPath, getEnvironment());
+		return (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
+			logger.debug("Cache miss in site '{}' key '{}'", siteId, cacheKey1);
+			return getConfiguration(new ConfigurationProviderImpl(siteId));
+		});
+	}
 
-    protected StudioBlobStore getBlobStore(String siteId, String storeId, HierarchicalConfiguration config)
-            throws ExecutionException {
-        String cacheKey2 = join(":", siteId, CACHE_KEY_STORE, storeId);
-        return (StudioBlobStore) cache.get(cacheKey2, () -> {
-            logger.debug("Cache miss in site '{}' store '{}' key '{}'", siteId, storeId, cacheKey2);
-            return getById(config, storeId);
-        });
-    }
+	protected StudioBlobStore getBlobStore(String siteId, String storeId, HierarchicalConfiguration config)
+		throws ExecutionException {
+		String cacheKey2 = join(":", siteId, CACHE_KEY_STORE, storeId);
+		return (StudioBlobStore) cache.get(cacheKey2, () -> {
+			logger.debug("Cache miss in site '{}' store '{}' key '{}'", siteId, storeId, cacheKey2);
+			return getById(config, storeId);
+		});
+	}
 
-    @Override
-    public List<StudioBlobStore> getAll(String siteId) throws ServiceLayerException {
-        logger.debug("Look up all the blob stores for site '{}'", siteId);
-        List<StudioBlobStore> result = new LinkedList<>();
-        try {
-            HierarchicalConfiguration config = getConfiguration(siteId);
-            if (config == null) {
-                return result;
-            }
-            List<HierarchicalConfiguration> stores = config.configurationsAt(CONFIG_KEY_STORE);
-            for (HierarchicalConfiguration store : stores) {
-                String storeId = store.getString(CONFIG_KEY_ID);
-                result.add(getBlobStore(siteId, storeId, config));
-            }
-            return result;
-        } catch (ExecutionException e) {
-            logger.error("Failed to lookup the blob stores for site '{}'", siteId, e);
-            throw new ServiceLayerException("Error looking for blob store", e);
-        }
-    }
+	@Override
+	public List<StudioBlobStore> getAll(String siteId) throws ServiceLayerException {
+		logger.debug("Look up all the blob stores for site '{}'", siteId);
+		List<StudioBlobStore> result = new LinkedList<>();
+		try {
+			HierarchicalConfiguration config = getConfiguration(siteId);
+			if (config == null) {
+				return result;
+			}
+			List<HierarchicalConfiguration> stores = config.configurationsAt(CONFIG_KEY_STORE);
+			for (HierarchicalConfiguration store : stores) {
+				String storeId = store.getString(CONFIG_KEY_ID);
+				result.add(getBlobStore(siteId, storeId, config));
+			}
+			return result;
+		} catch (ExecutionException e) {
+			logger.error("Failed to lookup the blob stores for site '{}'", siteId, e);
+			throw new ServiceLayerException("Error looking for blob store", e);
+		}
+	}
 
-    @Override
-    public StudioBlobStore getByPaths(String site, String... paths)
-            throws ServiceLayerException {
+	@Override
+	public StudioBlobStore getByPaths(String site, String... paths)
+		throws ServiceLayerException {
 
-        if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
-            logger.debug("One of the paths '{}' in site '{}' should not be intercepted, skip",
-                    paths, site);
-            return null;
-        }
+		if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
+			logger.debug("One of the paths '{}' in site '{}' should not be intercepted, skip",
+				paths, site);
+			return null;
+		}
 
-        logger.debug("Look up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
-        try {
-            HierarchicalConfiguration config = getConfiguration(site);
-            if (config == null || config.isEmpty()) {
-                logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
-                return null;
-            }
-            String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
-            if (isNotEmpty(storeId)) {
-                StudioBlobStore blobStore = getBlobStore(site, storeId, config);
-                // We have to compare each one to know if the exception should be thrown
-                if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
-                    logger.error("Unsupported operation in site '{}' paths '{}'", site, Arrays.toString(paths));
-                    throw new ServiceLayerException(format("Unsupported operation in site '%s' paths '%s'",
-                            site, Arrays.toString(paths)));
-                }
-                return blobStore;
-            }
-            logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
-            return null;
-        } catch (ExecutionException e) {
-            logger.error("Failed to look up the blob store for site '{}'", site, e);
-            throw new ServiceLayerException(format("Failed to look up the blob store for site '%s'", site), e);
-        }
-    }
+		logger.debug("Look up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
+		try {
+			HierarchicalConfiguration config = getConfiguration(site);
+			if (config == null || config.isEmpty()) {
+				logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
+				return null;
+			}
+			String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
+			if (isNotEmpty(storeId)) {
+				StudioBlobStore blobStore = getBlobStore(site, storeId, config);
+				// We have to compare each one to know if the exception should be thrown
+				if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
+					logger.error("Unsupported operation in site '{}' paths '{}'", site, Arrays.toString(paths));
+					throw new ServiceLayerException(format("Unsupported operation in site '%s' paths '%s'",
+						site, Arrays.toString(paths)));
+				}
+				return blobStore;
+			}
+			logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
+			return null;
+		} catch (ExecutionException e) {
+			logger.error("Failed to look up the blob store for site '{}'", site, e);
+			throw new ServiceLayerException(format("Failed to look up the blob store for site '%s'", site), e);
+		}
+	}
 
-    @Override
-    public boolean isBlob(String site, String path) throws ServiceLayerException {
-        try {
-            return getByPaths(site, path) != null;
-        } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("The blob store configuration is missing or invalid in site '{}'", site, e);
-            return false;
-        }
-    }
+	@Override
+	public boolean isBlob(String site, String path) throws ServiceLayerException {
+		try {
+			return getByPaths(site, path) != null;
+		} catch (BlobStoreConfigurationMissingException e) {
+			logger.debug("The blob store configuration is missing or invalid in site '{}'", site, e);
+			return false;
+		}
+	}
 
-    protected String getEnvironment() {
-        return studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE);
-    }
+	protected String getEnvironment() {
+		return studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE);
+	}
 
-    public void setContextManager(final ContextManager contextManager) {
-        this.contextManager = contextManager;
-    }
+	public void setContextManager(final ContextManager contextManager) {
+		this.contextManager = contextManager;
+	}
 
-    /**
-     * Internal class to provide access to configuration files
-     */
-    private class ConfigurationProviderImpl implements ConfigurationProvider {
+	/**
+	 * Internal class to provide access to configuration files
+	 */
+	private class ConfigurationProviderImpl implements ConfigurationProvider {
 
-        private final String site;
-        private final Context context;
+		private final String site;
+		private final Context context;
 
-        public ConfigurationProviderImpl(String site) {
-            this.site = site;
-            this.context = contextManager.getContext(site);
-        }
+		public ConfigurationProviderImpl(String site) {
+			this.site = site;
+			this.context = contextManager.getContext(site);
+		}
 
-        @Override
-        public boolean configExists(String path) {
-            return StudioBlobStoreResolverImpl.this.contentRepository.contentExists(site, path);
-        }
+		@Override
+		public boolean configExists(String path) {
+			return StudioBlobStoreResolverImpl.this.contentRepository.contentExists(site, path);
+		}
 
-        @Override
-        public InputStream getConfig(String path) throws IOException {
-            try {
-                return StudioBlobStoreResolverImpl.this.contentRepository.getContent(site, path);
-            } catch (Exception e) {
-                throw new IOException(format("Failed to read the file '%s'", path), e);
-            }
-        }
+		@Override
+		public InputStream getConfig(String path) throws IOException {
+			try {
+				return StudioBlobStoreResolverImpl.this.contentRepository.getContent(site, path);
+			} catch (Exception e) {
+				throw new IOException(format("Failed to read the file '%s'", path), e);
+			}
+		}
 
-        @Override
-        public Map<String, String> getLookupVariables() {
-            return context.getConfigLookupVariables();
-        }
-    }
+		@Override
+		public Map<String, String> getLookupVariables() {
+			return context.getConfigLookupVariables();
+		}
+	}
 
 }

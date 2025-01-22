@@ -12,27 +12,27 @@ import jakarta.validation.ConstraintValidatorContext;
  * Notice that null values are considered valid.
  */
 public class ConfigurableMaxValidator implements ConstraintValidator<ConfigurableMax, String> {
-    public static final int DEFAULT_MAX = 512 * 1024;
+	public static final int DEFAULT_MAX = 512 * 1024;
 
-    private final StudioConfiguration studioConfiguration;
-    private String propertyName;
+	private final StudioConfiguration studioConfiguration;
+	private String propertyName;
 
-    public ConfigurableMaxValidator(final StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public ConfigurableMaxValidator(final StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @Override
-    public void initialize(ConfigurableMax constraintAnnotation) {
-        ConstraintValidator.super.initialize(constraintAnnotation);
-        propertyName = constraintAnnotation.value();
-    }
+	@Override
+	public void initialize(ConfigurableMax constraintAnnotation) {
+		ConstraintValidator.super.initialize(constraintAnnotation);
+		propertyName = constraintAnnotation.value();
+	}
 
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        int maxLength = studioConfiguration.getProperty(propertyName, Integer.class, DEFAULT_MAX);
-        if (value == null) {
-            return true;
-        }
-        return value.length() <= maxLength;
-    }
+	@Override
+	public boolean isValid(String value, ConstraintValidatorContext context) {
+		int maxLength = studioConfiguration.getProperty(propertyName, Integer.class, DEFAULT_MAX);
+		if (value == null) {
+			return true;
+		}
+		return value.length() <= maxLength;
+	}
 }

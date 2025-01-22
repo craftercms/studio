@@ -45,6 +45,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -65,110 +66,110 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/aws/s3")
 public class AwsS3Controller {
 
-    @Autowired
-    protected AwsS3Service s3Service;
+	@Autowired
+	protected AwsS3Service s3Service;
 
-    /**
-     * List items in an S3 bucket.
-     *
-     * @param siteId    the site id
-     * @param profileId the profile id
-     * @param path      the path to list
-     * @param type      the type of file to list
-     * @param maxKeys   the maximum number of keys
-     * @return the list of items
-     * @throws AwsException                          if there is any error connecting to S3
-     * @throws SiteNotFoundException                 if the site is not found
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    @GetMapping("/list")
-    public ResultList<S3Item> listItems(
-            @ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
-            @ValidateNoTagsParam @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
-            @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
-            @ValidateNoTagsParam @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type,
-            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_S3_MAX_KEYS, required = false, defaultValue = "100") int maxKeys)
-            throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException {
+	/**
+	 * List items in an S3 bucket.
+	 *
+	 * @param siteId    the site id
+	 * @param profileId the profile id
+	 * @param path      the path to list
+	 * @param type      the type of file to list
+	 * @param maxKeys   the maximum number of keys
+	 * @return the list of items
+	 * @throws AwsException                          if there is any error connecting to S3
+	 * @throws SiteNotFoundException                 if the site is not found
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	@GetMapping("/list")
+	public ResultList<S3Item> listItems(
+		@ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+		@ValidateNoTagsParam @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
+		@ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
+		@ValidateNoTagsParam @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type,
+		@PositiveOrZero @RequestParam(value = REQUEST_PARAM_S3_MAX_KEYS, required = false, defaultValue = "100") int maxKeys)
+		throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException {
 
-        ResultList<S3Item> result = new ResultList<>();
-        result.setEntities(RESULT_KEY_ITEMS, s3Service.listItems(siteId, profileId, path, type, maxKeys));
-        result.setResponse(ApiResponse.OK);
+		ResultList<S3Item> result = new ResultList<>();
+		result.setEntities(RESULT_KEY_ITEMS, s3Service.listItems(siteId, profileId, path, type, maxKeys));
+		result.setResponse(ApiResponse.OK);
 
-        return result;
-    }
+		return result;
+	}
 
-    /**
-     * Upload a file to an S3 bucket.
-     *
-     * @param request the request
-     * @return the item uploaded
-     * @throws IOException                           if there is any error reading the content of the file
-     * @throws InvalidParametersException            if there is any error parsing the request
-     * @throws AwsException                          if there is any error connecting to S3
-     * @throws SiteNotFoundException                 if the site is not found
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    @PostMapping("/upload")
-    public ResultOne<S3Item> uploadItem(HttpServletRequest request) throws IOException, InvalidParametersException,
-            AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException, ValidationException {
-        if (!JakartaServletFileUpload.isMultipartContent(request)) {
-            throw new InvalidParametersException("The request is not multipart");
-        }
-        ResultOne<S3Item> result = new ResultOne<>();
-        try {
-            JakartaServletFileUpload upload = new JakartaServletFileUpload();
-            FileItemInputIterator iterator = upload.getItemIterator(request);
-            String siteId = null;
-            String profileId = null;
-            String path = null;
-            String filename = null;
-            while (iterator.hasNext()) {
-                FileItemInput item = iterator.next();
-                String name = item.getFieldName();
-                try (InputStream stream = item.getInputStream()) {
-                    if (item.isFormField()) {
-                        switch (name) {
-                            case REQUEST_PARAM_SITEID:
-                                siteId = Streams.asString(stream);
-                                break;
-                            case REQUEST_PARAM_PROFILE_ID:
-                                profileId = Streams.asString(stream);
-                                break;
-                            case REQUEST_PARAM_PATH:
-                                path = Streams.asString(stream);
-                                break;
-                            case REQUEST_PARAM_NAME:
-                                filename = Streams.asString(stream);
-                            default:
-                                // Unknown parameter, just skip it...
-                        }
-                    } else {
-                        if (StringUtils.isEmpty(filename)) {
-                            filename = item.getName();
-                        }
-                        if (StringUtils.isNotEmpty(filename)) {
-                            filename = FilenameUtils.getName(filename);
-                        }
-                        validateUploadParams(siteId, profileId, path, filename);
-                        result.setEntity(RESULT_KEY_ITEM,
-                                s3Service.uploadItem(siteId, profileId, path, filename, stream));
-                        result.setResponse(ApiResponse.OK);
-                        return result;
-                    }
-                }
-            }
-            throw new InvalidParametersException("No file was sent in the request body");
-        } catch (FileUploadException e) {
-            throw new InvalidParametersException("The request body is invalid");
-        }
-    }
+	/**
+	 * Upload a file to an S3 bucket.
+	 *
+	 * @param request the request
+	 * @return the item uploaded
+	 * @throws IOException                           if there is any error reading the content of the file
+	 * @throws InvalidParametersException            if there is any error parsing the request
+	 * @throws AwsException                          if there is any error connecting to S3
+	 * @throws SiteNotFoundException                 if the site is not found
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	@PostMapping("/upload")
+	public ResultOne<S3Item> uploadItem(HttpServletRequest request) throws IOException, InvalidParametersException,
+		AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException, ValidationException {
+		if (!JakartaServletFileUpload.isMultipartContent(request)) {
+			throw new InvalidParametersException("The request is not multipart");
+		}
+		ResultOne<S3Item> result = new ResultOne<>();
+		try {
+			JakartaServletFileUpload upload = new JakartaServletFileUpload();
+			FileItemInputIterator iterator = upload.getItemIterator(request);
+			String siteId = null;
+			String profileId = null;
+			String path = null;
+			String filename = null;
+			while (iterator.hasNext()) {
+				FileItemInput item = iterator.next();
+				String name = item.getFieldName();
+				try (InputStream stream = item.getInputStream()) {
+					if (item.isFormField()) {
+						switch (name) {
+							case REQUEST_PARAM_SITEID:
+								siteId = Streams.asString(stream);
+								break;
+							case REQUEST_PARAM_PROFILE_ID:
+								profileId = Streams.asString(stream);
+								break;
+							case REQUEST_PARAM_PATH:
+								path = Streams.asString(stream);
+								break;
+							case REQUEST_PARAM_NAME:
+								filename = Streams.asString(stream);
+							default:
+								// Unknown parameter, just skip it...
+						}
+					} else {
+						if (StringUtils.isEmpty(filename)) {
+							filename = item.getName();
+						}
+						if (StringUtils.isNotEmpty(filename)) {
+							filename = FilenameUtils.getName(filename);
+						}
+						validateUploadParams(siteId, profileId, path, filename);
+						result.setEntity(RESULT_KEY_ITEM,
+							s3Service.uploadItem(siteId, profileId, path, filename, stream));
+						result.setResponse(ApiResponse.OK);
+						return result;
+					}
+				}
+			}
+			throw new InvalidParametersException("No file was sent in the request body");
+		} catch (FileUploadException e) {
+			throw new InvalidParametersException("The request body is invalid");
+		}
+	}
 
-    private void validateUploadParams(String siteId, String profileId, String path, String filename) throws ValidationException {
-        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-        validateValue(new EsapiValidator(SITE_ID), siteId, REQUEST_PARAM_SITE_ID);
-        validateValue(pathValidator, filename, "filename");
-        validateValue(pathValidator, path, REQUEST_PARAM_PATH);
-        validateValue(new NoTagsValidator(), profileId, REQUEST_PARAM_PROFILE_ID);
-    }
+	private void validateUploadParams(String siteId, String profileId, String path, String filename) throws ValidationException {
+		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+		validateValue(new EsapiValidator(SITE_ID), siteId, REQUEST_PARAM_SITE_ID);
+		validateValue(pathValidator, filename, "filename");
+		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
+		validateValue(new NoTagsValidator(), profileId, REQUEST_PARAM_PROFILE_ID);
+	}
 
 }

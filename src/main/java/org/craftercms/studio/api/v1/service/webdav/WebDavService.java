@@ -25,36 +25,39 @@ import org.craftercms.studio.api.v1.webdav.WebDavItem;
 
 /**
  * Defines the operations available for a WebDAV server.
+ *
  * @author joseross
  * @deprecated This service has been replaced by {@link org.craftercms.studio.api.v2.service.webdav.WebDavService}
  */
 @Deprecated
 public interface WebDavService {
 
-    /**
-     * Lists resources in the specified path.
-     * @param site the name of the site
-     * @param profileId the id of the profile
-     * @param path the relative path to list
-     * @param type mime type used for filtering
-     * @return list of resources found
-     * @throws WebDavException if there is an error connecting to the server or listing the resources
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    List<WebDavItem> list(String site, String profileId, String path, String type) throws WebDavException, ConfigurationProfileNotFoundException;
+	/**
+	 * Lists resources in the specified path.
+	 *
+	 * @param site      the name of the site
+	 * @param profileId the id of the profile
+	 * @param path      the relative path to list
+	 * @param type      mime type used for filtering
+	 * @return list of resources found
+	 * @throws WebDavException                       if there is an error connecting to the server or listing the resources
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	List<WebDavItem> list(String site, String profileId, String path, String type) throws WebDavException, ConfigurationProfileNotFoundException;
 
-    /**
-     * Uploads a file in the specified path.
-     * @param site the name of the site
-     * @param profileId the id of the profile
-     * @param path the relative path to upload the file
-     * @param filename the name of the file to upload
-     * @param content stream providing the content of the file
-     * @return the full URL of the uploaded file
-     * @throws WebDavException if there is an error connecting to the server or uploading the file
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    String upload(String site, String profileId, String path, String filename, InputStream content) throws
-            WebDavException, ConfigurationProfileNotFoundException;
+	/**
+	 * Uploads a file in the specified path.
+	 *
+	 * @param site      the name of the site
+	 * @param profileId the id of the profile
+	 * @param path      the relative path to upload the file
+	 * @param filename  the name of the file to upload
+	 * @param content   stream providing the content of the file
+	 * @return the full URL of the uploaded file
+	 * @throws WebDavException                       if there is an error connecting to the server or uploading the file
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	String upload(String site, String profileId, String path, String filename, InputStream content) throws
+		WebDavException, ConfigurationProfileNotFoundException;
 
 }

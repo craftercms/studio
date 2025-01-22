@@ -31,60 +31,60 @@ import static java.util.Collections.emptySet;
  */
 public class RepositoryChanges {
 
-    /**
-     * Indicates if an initial publish should be executed
-     */
-    protected final boolean initialPublish;
+	/**
+	 * Indicates if an initial publish should be executed
+	 */
+	protected final boolean initialPublish;
 
-    /**
-     * Set of created or updated paths
-     */
-    protected final Collection<String> updatedPaths;
+	/**
+	 * Set of created or updated paths
+	 */
+	protected final Collection<String> updatedPaths;
 
-    /**
-     * Set of deleted paths
-     */
-    protected final Collection<String> deletedPaths;
+	/**
+	 * Set of deleted paths
+	 */
+	protected final Collection<String> deletedPaths;
 
-    protected final Collection<String> failedPaths;
+	protected final Collection<String> failedPaths;
 
-    public RepositoryChanges(final boolean initialPublish, final Collection<String> updatedPaths, final Collection<String> deletedPaths, final Collection<String> failedPaths) {
-        this.initialPublish = initialPublish;
-        this.updatedPaths = updatedPaths;
-        this.deletedPaths = deletedPaths;
-        this.failedPaths = failedPaths;
-    }
+	public RepositoryChanges(final boolean initialPublish, final Collection<String> updatedPaths, final Collection<String> deletedPaths, final Collection<String> failedPaths) {
+		this.initialPublish = initialPublish;
+		this.updatedPaths = updatedPaths;
+		this.deletedPaths = deletedPaths;
+		this.failedPaths = failedPaths;
+	}
 
-    public RepositoryChanges(boolean initialPublish, Collection<String> updatedPaths, Collection<String> deletedPaths) {
-        this(initialPublish, updatedPaths, deletedPaths, new ArrayList<>());
-    }
+	public RepositoryChanges(boolean initialPublish, Collection<String> updatedPaths, Collection<String> deletedPaths) {
+		this(initialPublish, updatedPaths, deletedPaths, new ArrayList<>());
+	}
 
-    public RepositoryChanges(Collection<String> updatedPaths, Collection<String> deletedPaths) {
-        this(false, updatedPaths, deletedPaths);
-    }
+	public RepositoryChanges(Collection<String> updatedPaths, Collection<String> deletedPaths) {
+		this(false, updatedPaths, deletedPaths);
+	}
 
-    public RepositoryChanges(boolean initialPublish) {
-        this(initialPublish, emptySet(), emptySet());
-    }
+	public RepositoryChanges(boolean initialPublish) {
+		this(initialPublish, emptySet(), emptySet());
+	}
 
-    public boolean isInitialPublish() {
-        return initialPublish;
-    }
+	public boolean isInitialPublish() {
+		return initialPublish;
+	}
 
-    public Collection<String> getUpdatedPaths() {
-        return updatedPaths;
-    }
+	public Collection<String> getUpdatedPaths() {
+		return updatedPaths;
+	}
 
-    public Collection<String> getDeletedPaths() {
-        return deletedPaths;
-    }
+	public Collection<String> getDeletedPaths() {
+		return deletedPaths;
+	}
 
-    public Collection<String> getFailedPaths() {
-        return failedPaths;
-    }
+	public Collection<String> getFailedPaths() {
+		return failedPaths;
+	}
 
-    public boolean isEmpty() {
-        return CollectionUtils.isEmpty(updatedPaths) && CollectionUtils.isEmpty(deletedPaths);
-    }
+	public boolean isEmpty() {
+		return CollectionUtils.isEmpty(updatedPaths) && CollectionUtils.isEmpty(deletedPaths);
+	}
 
 }

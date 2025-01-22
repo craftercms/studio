@@ -25,14 +25,14 @@ import org.craftercms.commons.crypto.CryptoUtils;
  */
 public class PasswordEncoder implements org.springframework.security.crypto.password.PasswordEncoder {
 
-    @Override
-    public String encode(CharSequence rawPassword) {
-        return CryptoUtils.hashPassword(rawPassword.toString());
-    }
+	@Override
+	public String encode(CharSequence rawPassword) {
+		return CryptoUtils.hashPassword(rawPassword.toString());
+	}
 
-    @Override
-    public boolean matches(CharSequence rawPassword, String encodedPassword) {
-        return CryptoUtils.matchPassword(encodedPassword, rawPassword.toString());
-    }
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		return CryptoUtils.matchPassword(encodedPassword, rawPassword.toString());
+	}
 
 }

@@ -45,51 +45,51 @@
    Every store can require additional properties.
 -->
 <blobStores>
-    <!--
-      AWS S3 Store
+	<!--
+	  AWS S3 Store
 
-      Configuration properties:
+	  Configuration properties:
 
-        <credentials>
-            <accessKey/>
-            <secretKey/>
-        </credentials>
-        <region/>
-        <endpoint/>
-        <pathStyleAccess/>
+	    <credentials>
+		<accessKey/>
+		<secretKey/>
+	    </credentials>
+	    <region/>
+	    <endpoint/>
+	    <pathStyleAccess/>
 
-        credentials.accessKey: AWS access key (optional)
-        credentials.secretKey: AWS secret key (optional)
-        region: AWS region for the service (optional)
-        pathStyleAccess: indicates if path style access should be used for all requests (defaults to false)
-      -->
+	    credentials.accessKey: AWS access key (optional)
+	    credentials.secretKey: AWS secret key (optional)
+	    region: AWS region for the service (optional)
+	    pathStyleAccess: indicates if path style access should be used for all requests (defaults to false)
+	  -->
 
-    <blobStore>
-        <id>s3-store</id>
-        <type>s3BlobStore</type>
-        <pattern>^/static-assets(?!/(app|css|js|fonts|tracking|seo)/)(.*)</pattern>
-        <mappings>
-            <mapping>
-                <publishingTarget>preview</publishingTarget>
-                <storeTarget>${env:PREVIEW_BUCKET_NAME_PATTERN}</storeTarget>
-                <prefix>${env:PREVIEW_BUCKET_PREFIX_PATTERN}</prefix>
-            </mapping>
-            <mapping>
-                <publishingTarget>staging</publishingTarget>
-                <storeTarget>${env:STAGING_BUCKET_NAME_PATTERN}</storeTarget>
-                <prefix>${env:STAGING_BUCKET_PREFIX_PATTERN}</prefix>
-            </mapping>
-            <mapping>
-                <publishingTarget>live</publishingTarget>
-                <storeTarget>${env:LIVE_BUCKET_NAME_PATTERN}</storeTarget>
-                <prefix>${env:LIVE_BUCKET_PREFIX_PATTERN}</prefix>
-            </mapping>
-        </mappings>
-        <configuration>
-            <region>us-east-1</region>
-            <pathStyleAccess>${env:AWS_S3_PATH_STYLE_ACCESS}</pathStyleAccess>
-            <endpoint>${env:AWS_S3_ENDPOINT}</endpoint>
-        </configuration>
-    </blobStore>
+	<blobStore>
+		<id>s3-store</id>
+		<type>s3BlobStore</type>
+		<pattern>^/static-assets(?!/(app|css|js|fonts|tracking|seo)/)(.*)</pattern>
+		<mappings>
+			<mapping>
+				<publishingTarget>preview</publishingTarget>
+				<storeTarget>${env:PREVIEW_BUCKET_NAME_PATTERN}</storeTarget>
+				<prefix>${env:PREVIEW_BUCKET_PREFIX_PATTERN}</prefix>
+			</mapping>
+			<mapping>
+				<publishingTarget>staging</publishingTarget>
+				<storeTarget>${env:STAGING_BUCKET_NAME_PATTERN}</storeTarget>
+				<prefix>${env:STAGING_BUCKET_PREFIX_PATTERN}</prefix>
+			</mapping>
+			<mapping>
+				<publishingTarget>live</publishingTarget>
+				<storeTarget>${env:LIVE_BUCKET_NAME_PATTERN}</storeTarget>
+				<prefix>${env:LIVE_BUCKET_PREFIX_PATTERN}</prefix>
+			</mapping>
+		</mappings>
+		<configuration>
+			<region>us-east-1</region>
+			<pathStyleAccess>${env:AWS_S3_PATH_STYLE_ACCESS}</pathStyleAccess>
+			<endpoint>${env:AWS_S3_ENDPOINT}</endpoint>
+		</configuration>
+	</blobStore>
 
 </blobStores>

@@ -30,34 +30,34 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ContentServiceInternalImplTest {
-    private static final String SITE_ID = "sample-site";
-    private static final String PATH = "/sample/path";
-    private static final String NON_EXIST_CONTENT_PATH = "/sample/non-exists-content-path";
+	private static final String SITE_ID = "sample-site";
+	private static final String PATH = "/sample/path";
+	private static final String NON_EXIST_CONTENT_PATH = "/sample/non-exists-content-path";
 
-    @Mock
-    protected GitContentRepository contentRepository;
+	@Mock
+	protected GitContentRepository contentRepository;
 
-    @InjectMocks
-    protected ContentServiceInternalImpl serviceInternal;
+	@InjectMocks
+	protected ContentServiceInternalImpl serviceInternal;
 
-    @Before
-    public void setUp() {
-        when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(true);
-        when(contentRepository.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH)).thenReturn(false);
-    }
+	@Before
+	public void setUp() {
+		when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH)).thenReturn(false);
+	}
 
-    @Test
-    public void testContentExits() {
-        boolean result = serviceInternal.contentExists(SITE_ID, PATH);
-        verify(contentRepository, times(1)).contentExists(SITE_ID, PATH);
-        assertEquals(true, result);
-    }
+	@Test
+	public void testContentExits() {
+		boolean result = serviceInternal.contentExists(SITE_ID, PATH);
+		verify(contentRepository, times(1)).contentExists(SITE_ID, PATH);
+		assertEquals(true, result);
+	}
 
-    @Test
-    public void testPathNonExist() {
-        boolean result = serviceInternal.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH);
-        verify(contentRepository, times(1)).contentExists(SITE_ID, NON_EXIST_CONTENT_PATH);
-        assertEquals(false, result);
-    }
+	@Test
+	public void testPathNonExist() {
+		boolean result = serviceInternal.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH);
+		verify(contentRepository, times(1)).contentExists(SITE_ID, NON_EXIST_CONTENT_PATH);
+		assertEquals(false, result);
+	}
 
 }

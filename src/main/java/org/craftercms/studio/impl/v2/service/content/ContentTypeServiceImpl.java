@@ -41,65 +41,65 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
  */
 public class ContentTypeServiceImpl implements ContentTypeService {
 
-    protected final ContentTypeServiceInternal contentTypeServiceInternal;
+	protected final ContentTypeServiceInternal contentTypeServiceInternal;
 
-    @ConstructorProperties({"contentTypeServiceInternal"})
-    public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
-        this.contentTypeServiceInternal = contentTypeServiceInternal;
-    }
+	@ConstructorProperties({"contentTypeServiceInternal"})
+	public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
+		this.contentTypeServiceInternal = contentTypeServiceInternal;
+	}
 
-    /**
-     * Finds all items related to a given content-type
-     *
-     * @param siteId the id of the site
-     * @param contentType the id of the content-type
-     * @return the usage
-     * @throws ServiceLayerException if there is any error finding the items
-     */
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public ContentTypeUsage getContentTypeUsage(@SiteId String siteId, String contentType) throws ServiceLayerException {
-        return contentTypeServiceInternal.getContentTypeUsage(siteId, contentType);
-    }
+	/**
+	 * Finds all items related to a given content-type
+	 *
+	 * @param siteId      the id of the site
+	 * @param contentType the id of the content-type
+	 * @return the usage
+	 * @throws ServiceLayerException if there is any error finding the items
+	 */
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public ContentTypeUsage getContentTypeUsage(@SiteId String siteId, String contentType) throws ServiceLayerException {
+		return contentTypeServiceInternal.getContentTypeUsage(siteId, contentType);
+	}
 
-    /**
-     * Finds the preview image for a given content-type
-     *
-     * @param siteId the id of the site
-     * @param contentTypeId the id of the content-type
-     * @return the preview image file as a pair of path and resource
-     * @throws ServiceLayerException if there is any error finding the items
-     */
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public ImmutablePair<String, Resource> getContentTypePreviewImage(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
-        return contentTypeServiceInternal.getContentTypePreviewImage(siteId, contentTypeId);
-    }
+	/**
+	 * Finds the preview image for a given content-type
+	 *
+	 * @param siteId        the id of the site
+	 * @param contentTypeId the id of the content-type
+	 * @return the preview image file as a pair of path and resource
+	 * @throws ServiceLayerException if there is any error finding the items
+	 */
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public ImmutablePair<String, Resource> getContentTypePreviewImage(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getContentTypePreviewImage(siteId, contentTypeId);
+	}
 
-    /**
-     * Deletes all files related to a given content-type
-     *
-     * @param siteId the id of the site
-     * @param contentType the id of the content-type
-     * @param deleteDependencies indicates if all dependencies should be deleted
-     * @throws ServiceLayerException if there is any error deleting the files
-     * @throws AuthenticationException if there is any error authenticating the user
-     */
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
-    public void deleteContentType(@SiteId String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
-    }
+	/**
+	 * Deletes all files related to a given content-type
+	 *
+	 * @param siteId             the id of the site
+	 * @param contentType        the id of the content-type
+	 * @param deleteDependencies indicates if all dependencies should be deleted
+	 * @throws ServiceLayerException   if there is any error deleting the files
+	 * @throws AuthenticationException if there is any error authenticating the user
+	 */
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+	public void deleteContentType(@SiteId String siteId, String contentType, boolean deleteDependencies)
+		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+		contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type= DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
-    public Collection<String> getAllModelDefinitions(@SiteId final String site) throws ServiceLayerException {
-        return contentTypeServiceInternal.getAllModelDefinitions(site);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+	public Collection<String> getAllModelDefinitions(@SiteId final String site) throws ServiceLayerException {
+		return contentTypeServiceInternal.getAllModelDefinitions(site);
+	}
 
 }
