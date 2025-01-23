@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE item MODIFY preview_url VARCHAR (2048) NULL;
+ALTER TABLE item MODIFY preview_url VARCHAR(2048) NULL ;
 
-UPDATE _meta
-SET version = '3.2.0.22';
+UPDATE _meta SET version = '3.2.0.22' ;

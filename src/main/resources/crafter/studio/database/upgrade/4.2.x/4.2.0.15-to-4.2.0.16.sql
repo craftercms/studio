@@ -15,7 +15,6 @@
  */
 
 ALTER TABLE `audit`
-    ADD INDEX `audit_primary_target_value_idx` (`primary_target_value`);
+	ADD INDEX `audit_primary_target_value_idx` (`primary_target_value`) ;
 
-UPDATE `_meta`
-SET `version` = '4.2.0.16';
+UPDATE `_meta` SET `version` = '4.2.0.16' ;

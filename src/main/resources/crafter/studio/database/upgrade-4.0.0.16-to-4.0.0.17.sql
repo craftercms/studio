@@ -14,9 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-UPDATE item
-set ignored = 1
-where path like '%/.keep';
+UPDATE item set ignored = 1 where path like '%/.keep' ;
 
-UPDATE _meta
-SET version = '4.0.0.17';
+UPDATE _meta SET version = '4.0.0.17' ;

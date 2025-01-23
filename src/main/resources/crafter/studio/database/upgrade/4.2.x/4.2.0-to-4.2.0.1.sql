@@ -14,12 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-UPDATE `item`
-SET `system_type` = 'configuration'
-WHERE `path` LIKE '/config/%.xml'
-  AND `path` NOT LIKE '/config/studio/content-types/%'
-  AND `system_type` = 'file';
+UPDATE `item` SET `system_type` = 'configuration' WHERE `path` LIKE '/config/%.xml' AND `path` NOT LIKE '/config/studio/content-types/%' AND `system_type` = 'file' ;
 
-UPDATE `_meta`
-SET `version` = '4.2.0.1';
+UPDATE `_meta` SET `version` = '4.2.0.1' ;
 

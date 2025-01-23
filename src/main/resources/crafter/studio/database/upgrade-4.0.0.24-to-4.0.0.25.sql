@@ -13,7 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-DROP PROCEDURE IF EXISTS update_parent_id;
+DROP PROCEDURE IF EXISTS update_parent_id ;
 
-UPDATE _meta
-SET version = '4.0.0.25';
+UPDATE _meta SET version = '4.0.0.25' ;

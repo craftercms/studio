@@ -14,29 +14,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call addColumnIfNotExists('crafter', 'publish_request', 'label', 'VARCHAR(256) NULL');
+call addColumnIfNotExists('crafter', 'publish_request', 'label', 'VARCHAR(256) NULL') ;
 
-call addColumnIfNotExists('crafter', 'publish_request', 'published_on', 'TIMESTAMP NULL');
+call addColumnIfNotExists('crafter', 'publish_request', 'published_on', 'TIMESTAMP NULL') ;
 
-ALTER TABLE `audit` MODIFY COLUMN `operation_timestamp` TIMESTAMP NOT NULL;
+ALTER TABLE `audit` MODIFY COLUMN `operation_timestamp` TIMESTAMP NOT NULL ;
 
-ALTER TABLE `publish_request` MODIFY COLUMN `scheduleddate` TIMESTAMP NOT NULL;
+ALTER TABLE `publish_request` MODIFY COLUMN `scheduleddate` TIMESTAMP NOT NULL ;
 
-ALTER TABLE `site` MODIFY COLUMN `publishing_lock_heartbeat` TIMESTAMP NULL;
+ALTER TABLE `site` MODIFY COLUMN `publishing_lock_heartbeat` TIMESTAMP NULL ;
 
-ALTER TABLE `user` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `user` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-ALTER TABLE `organization` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `organization` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-ALTER TABLE `organization_user` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `organization_user` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-ALTER TABLE `group` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `group` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-ALTER TABLE `group_user` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `group_user` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-ALTER TABLE `cluster` MODIFY COLUMN `heartbeat` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `cluster` MODIFY COLUMN `heartbeat` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-ALTER TABLE `cluster_remote_repository` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `cluster_remote_repository` MODIFY COLUMN `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
-UPDATE _meta
-SET version = '4.0.0.22';
+UPDATE _meta SET version = '4.0.0.22' ;
