@@ -250,11 +250,11 @@
 	<update id="validateDependenciesForSite">
 		UPDATE dependency
 		SET valid = (CASE
-				     WHEN target_path IN (SELECT path
-							  FROM item i
-								       INNER JOIN site s ON s.id = i.site_id
-							  WHERE s.site_id = #{siteId}) THEN 1
-				     ELSE 0 END)
+			WHEN target_path IN (SELECT path
+					     FROM item i
+							  INNER JOIN site s ON s.id = i.site_id
+					     WHERE s.site_id = #{siteId}) THEN 1
+			ELSE 0 END)
 		WHERE site = #{siteId}
 	</update>
 </mapper>
