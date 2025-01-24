@@ -76,7 +76,8 @@
 			#{publishPackage.submitterId},
 			#{publishPackage.submitterComment},
 			#{publishPackage.packageType},
-			#{publishPackage.commitId});
+			#{publishPackage.commitId})
+		;
 	</insert>
 
 	<insert id="insertItems">
