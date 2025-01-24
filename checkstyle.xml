@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+	"-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+	"https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+	<!-- Enforce tabs for indentation -->
+	<module name="RegexpSingleline">
+		<property name="fileExtensions" value="java,xml,groovy,ts,js,sh,ftl,ftlx,ftlh,css,scss,xslt"/>
+		<property name="format" value="^(\t+[ ]{8,}|[ ]+[^*])"/>
+		<property name="message" value="Indent must use tab characters"/>
+	</module>
+</module>
