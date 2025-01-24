@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -145,7 +145,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_GLOBAL_CONFIGURATION)
 	public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		configurationServiceInternal.writeGlobalConfiguration(path, content);
 	}
 

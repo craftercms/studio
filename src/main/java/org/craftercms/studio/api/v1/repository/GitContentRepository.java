@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.repository;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
@@ -74,8 +75,11 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param major   flag if it is major version
 	 * @param comment add comment when committing content
 	 * @return Commit ID if successful, empty string otherwise
+	 *
+	 * @throws ServiceLayerException general service exception
+	 * @throws UserNotFoundException user not found exception
 	 */
-	String revertContent(String site, String path, String version, boolean major, String comment);
+	String revertContent(String site, String path, String version, boolean major, String comment) throws UserNotFoundException, ServiceLayerException;
 
 	/**
 	 * lock an item

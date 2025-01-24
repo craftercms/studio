@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -157,8 +157,9 @@ public interface ContentService {
 	 * @param content stream of content to write
 	 * @return return new commit id
 	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
 	 */
-	String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * write content from an input stream and notify the subscribers.
@@ -168,8 +169,9 @@ public interface ContentService {
 	 * @param content stream of content to write
 	 * @return return true if successful
 	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
 	 */
-	boolean writeContentAndNotify(String site, String path, InputStream content) throws ServiceLayerException;
+	boolean writeContentAndNotify(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Notify when there is a content update
@@ -212,6 +214,9 @@ public interface ContentService {
 	 * @param fromPath the source path
 	 * @param toPath   the target path to copy content to
 	 * @return final path if successful, null otherwise
+	 *
+	 * @throws ServiceLayerException general service exception
+	 * @throws UserNotFoundException user not found exception
 	 */
 	String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException;
 
@@ -281,7 +286,9 @@ public interface ContentService {
 	 * @param major   major version
 	 * @param comment comment for revert action
 	 * @return true if success otherwise false
-	 * @throws SiteNotFoundException site not found
+	 *
+	 * @throws ServiceLayerException general service exception
+	 * @throws UserNotFoundException user not found exception
 	 */
 	boolean revertContentItem(String site, String path, String version, boolean major, String comment)
 		throws ServiceLayerException, UserNotFoundException;
@@ -320,6 +327,8 @@ public interface ContentService {
 	 * @param edit          edit
 	 * @param unlock        unlock the content upon edit?
 	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 * @throws ValidationException validation exception
 	 */
 	void writeContent(String site, String path, String fileName, String contentType, InputStream input,
 			  String createFolders, String edit, String unlock)
@@ -338,6 +347,7 @@ public interface ContentService {
 	 * @param unlock             unlock the content upon edit?
 	 * @param skipAuditLogInsert if true do not insert audit log row, otherwise false
 	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
 	 */
 	void writeContent(String site, String path, String fileName, String contentType, InputStream input,
 			  String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
