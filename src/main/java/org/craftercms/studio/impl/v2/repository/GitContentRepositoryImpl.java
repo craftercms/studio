@@ -891,7 +891,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 			try (Git git = new Git(repo)) {
 				List<String> pathsToCommit = new ArrayList<>(paths.size());
 				for (String path : paths) {
