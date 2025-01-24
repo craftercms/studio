@@ -6,7 +6,7 @@
 	<!-- Enforce tabs for indentation -->
 	<module name="RegexpSingleline">
 		<property name="fileExtensions" value="java,xml,groovy,ts,js,sh,ftl,ftlx,ftlh,css,scss,xslt"/>
-		<property name="format" value="^(\t+[ ]{8,}|[ ]+[^*])"/>
+		<property name="format" value="^(\t+[ ]{8,}|[ ]+[^*-])"/>
 		<property name="message" value="Indent must use tab characters"/>
 	</module>
 </module>
