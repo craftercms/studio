@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -846,6 +846,8 @@
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="userServiceInternal" ref="userServiceInternal"/>
 		<property name="remoteRepositoryDAO" ref="remoteRepositoryDao"/>
+		<property name="siteDao" ref="siteDao" />
+		<property name="processedCommitsDao" ref="processedCommitsDao" />
 		<property name="encryptor" ref="internalTextEncryptor"/>
 		<property name="contextManager" ref="contextManager"/>
 		<property name="contentStoreService" ref="crafter.contentStoreService"/>

@@ -343,6 +343,11 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
+	public void createEmptyFiles(String siteId, Collection<String> paths) {
+		localRepositoryV2.createEmptyFiles(siteId, paths);
+	}
+
+	@Override
 	public String moveContent(String site, String fromPath, String toPath, String newName) {
 		logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
 		try {
