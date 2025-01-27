@@ -580,8 +580,8 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
-	public void cleanupRepositories(String siteId) {
-		localRepositoryV1.cleanupRepositories(siteId);
+	public void garbageCollectGitRepositories(String siteId) {
+		localRepositoryV2.garbageCollectGitRepositories(siteId);
 	}
 
 	// Start API 2

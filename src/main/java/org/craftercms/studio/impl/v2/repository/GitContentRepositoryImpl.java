@@ -1002,6 +1002,55 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 	}
 
 	@Override
+	public void garbageCollectGitRepositories(String siteId) {
+		if (isEmpty(siteId)) {
+			garbageCollectGlobalRepository();
+		} else {
+			garbageCollectSiteRepositories(siteId);
+		}
+	}
+
+	/**
+	 * Perform git garbage collection for global repository
+	 */
+	private void garbageCollectGlobalRepository() {
+		logger.info("Garbage collect the global repository");
+		String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
+		generalLockService.lock(gitLockKey);
+		try {
+			helper.performGitGarbageCollection(EMPTY, GLOBAL);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	/**
+	 * Perform git garbage collection for site repositories SANDBOX and PUBLISHED
+	 * @param siteId site identifier
+	 */
+	private void garbageCollectSiteRepositories(String siteId) {
+		logger.info("Garbage collect the git repositories in site '{}'", siteId);
+
+		String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
+		generalLockService.lock(gitLockKeySandbox);
+		try {
+			logger.info("Garbage collect the SANDBOX repository for site '{}'", siteId);
+			helper.performGitGarbageCollection(siteId, SANDBOX);
+		} finally {
+			generalLockService.unlock(gitLockKeySandbox);
+		}
+
+		String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
+		generalLockService.lock(gitLockKeyPublished);
+		try {
+			logger.info("Garbage collect the PUBLISHED repository for site '{}'", siteId);
+			helper.performGitGarbageCollection(siteId, PUBLISHED);
+		} finally {
+			generalLockService.unlock(gitLockKeyPublished);
+		}
+	}
+
+	@Override
 	public long getContentSize(final String site, final String path) {
 		// TODO: SJ: Reconsider this implementation for blob store backed repos
 		try {

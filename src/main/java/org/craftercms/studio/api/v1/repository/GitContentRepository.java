@@ -209,13 +209,6 @@ public interface GitContentRepository extends ContentRepository {
 	void resetStagingRepository(String siteId) throws ServiceLayerException;
 
 	/**
-	 * Performs a cleanup all repositories for the given site
-	 *
-	 * @param siteId site identifier
-	 */
-	void cleanupRepositories(String siteId);
-
-	/**
 	 * Deletes an existing site.
 	 *
 	 * @param siteId site to delete

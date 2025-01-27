@@ -1241,48 +1241,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 		}
 	}
 
-	protected void cleanup(String siteId, GitRepositories repository) {
-		// TODO: SJ: Rename this to indicate what it actually does, garbage collect git
-		Repository sandbox = helper.getRepository(siteId, repository);
-		try (Git git = new Git(sandbox)) {
-			retryingRepositoryOperationFacade.call(git.gc());
+	protected void performGitGarbageCollection(String siteId, GitRepositories gitRepository) {
+		try {
+			helper.performGitGarbageCollection(siteId, gitRepository);
 		} catch (Exception e) {
-			logger.warn("Failed to garbage collect the git repository in site '{}'", siteId, e);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void cleanupRepositories(final String siteId) {
-		// TODO: SJ: Rename to indicate what this actually does, garbage collect the git repos
-		if (StringUtils.isEmpty(siteId)) {
-			logger.info("Garbage collect the global repository");
-			String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
-			generalLockService.lock(gitLockKey);
-			try {
-				cleanup(siteId, GLOBAL);
-			} finally {
-				generalLockService.unlock(gitLockKey);
-			}
-		} else {
-			logger.info("Garbage collect the git repositories in site '{}'", siteId);
-			String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
-			String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
-			generalLockService.lock(gitLockKeySandbox);
-			// TODO: SJ: Redo the exception handling as part of refactoring this method
-			try {
-				cleanup(siteId, SANDBOX);
-			} finally {
-				generalLockService.unlock(gitLockKeySandbox);
-			}
-			generalLockService.lock(gitLockKeyPublished);
-			try {
-				cleanup(siteId, PUBLISHED);
-			} finally {
-				generalLockService.unlock(gitLockKeyPublished);
-			}
+			logger.error("Failed to garbage collect the git repository in site '{}'", siteId, e);
 		}
 	}
 

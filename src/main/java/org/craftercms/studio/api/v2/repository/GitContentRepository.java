@@ -383,4 +383,10 @@ public interface GitContentRepository extends ContentRepository {
 	 */
 	void createEmptyFiles(String siteId, Collection<String> paths);
 
+	/**
+	 * Performs a garbage collect all repositories for the given site
+	 * @param siteId site identifier
+	 */
+	void garbageCollectGitRepositories(String siteId);
+
 }

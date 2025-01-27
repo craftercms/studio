@@ -272,6 +272,19 @@ public class GitCli {
 	}
 
 	/**
+	 * Perform git gc command
+	 * @param directory git repository directory
+	 */
+	public void gc(String directory) throws GitCliException {
+		GitCommandLine command = new GitCommandLine("gc");
+		try {
+			executeGitCommand(directory, command);
+		} catch (Exception e) {
+			throw new GitCliException(format("Git gc failed on directory '%s'", directory), e);
+		}
+	}
+
+	/**
 	 * Commit a tree to the repository
 	 *
 	 * @param repoDir        the repository directory

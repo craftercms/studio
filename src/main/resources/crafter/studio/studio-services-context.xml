@@ -656,7 +656,7 @@
 	<!-- Jobs -->
 	<bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
 		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
-		<constructor-arg name="contentRepository" ref="contentRepository"/>
+		<constructor-arg name="contentRepository" ref="gitContentRepositoryV2"/>
 	</bean>
 
 	<bean id="studioClockJob" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
