@@ -714,6 +714,13 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade/4.2.x/4.2.0.16-to-4.2.0.17.sql
+      - currentVersion: 4.2.0.17
+        nextVersion: 4.2.0.18
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.2.x/system/global-permission-mappings-config-v4.2.0.18.xslt
+            commitDetails: Add new permission for site_admin
 
   # Pipeline to upgrade site repositories
   site:
