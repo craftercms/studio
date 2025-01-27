@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -226,7 +226,13 @@ public final class ContentItemPossibleActionsConstants {
 
     public static final long ITEM_STATE_TRANSLATION_IN_PROGRESS = 0L;
 
-    public static long getPossibleActionsForItemState(long itemState, boolean lockOwner) {
+	/**
+	 * Get possible actions for item state
+	 * @param itemState item state
+	 * @param hasUnlockPermission flag if user has the unlock item permission
+	 * @return a number present the possible actions
+	 */
+    public static long getPossibleActionsForItemState(long itemState, boolean hasUnlockPermission) {
         long result = 0L;
         if ((itemState & NEW.value) > 0) {
             result = result | ITEM_STATE_NEW;
@@ -269,7 +275,7 @@ public final class ContentItemPossibleActionsConstants {
         }
 
         if ((itemState & USER_LOCKED.value) > 0) {
-            if (!lockOwner) {
+            if (!hasUnlockPermission) {
                 result &= ~PUBLISH_REQUEST;
                 result &= ~CONTENT_EDIT;
                 result &= ~CONTENT_RENAME;

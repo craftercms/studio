@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,6 +40,7 @@ import org.craftercms.studio.model.rest.Person;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -50,6 +51,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.*;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
@@ -68,11 +70,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, item.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
-        Person lockOwner = item.getLockOwner();
-        boolean itemLocked = ItemState.isUserLocked(item.getState());
-        String lockOwnerUsername = itemLocked && lockOwner != null ? lockOwner.getUsername() : null;
         long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
-                StringUtils.equals(username, lockOwnerUsername));
+               hasUnlockPermission(item.getLockOwner(), item.getState(), siteId, item.getPath(), username));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
         Person modifier = item.getModifier();
@@ -86,10 +85,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
-        Person lockOwner = detailedItem.getLockOwner();
-        String lockOwnerUsername = lockOwner != null ? lockOwner.getUsername() : null;
         long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
-                StringUtils.equals(username, lockOwnerUsername));
+                hasUnlockPermission(detailedItem.getLockOwner(), detailedItem.getState(), siteId, detailedItem.getPath(), username));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
         Person modifier = detailedItem.getSandbox().getModifier();
@@ -99,6 +96,30 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 detailedItem.getState(),
                 result);
     }
+
+	/**
+	 * Determines if a user has the unlock permission for a specified path.
+	 * A user has the unlock permission if any of the following conditions are met:
+	 * 1. The user is the lock owner of the item.
+	 * 2. The user has the "item_unlock" permission assigned through the permissions mapping.
+	 *
+	 * @param lockOwner the {@link Person} to check for unlock permissions.
+	 * @param state the item state
+	 * @param siteId site identifier
+	 * @param path the path to check permission
+	 * @param username The username of the user to check.
+	 * @return {@code true} if the user has the unlock permission; {@code false} otherwise.
+	 */
+	private boolean hasUnlockPermission(Person lockOwner, long state, String siteId, String path, String username) {
+		boolean itemLocked = ItemState.isUserLocked(state);
+		String lockOwnerUsername = itemLocked && lockOwner != null ? lockOwner.getUsername() : null;
+		boolean isLockOwner = StringUtils.equals(username, lockOwnerUsername);
+
+		Set<String> userPermissions = securityServiceV1.getUserPermissions(siteId, path, username);
+		boolean hasUnlockPermission = CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(PERMISSION_ITEM_UNLOCK);
+
+		return isLockOwner || hasUnlockPermission;
+	}
 
     private long applySpecialUseCaseFilters(String username, String siteId, String itemPath, String itemMimeType,
                                             String itemSystemType, String itemContentTypeId, String itemModifier,
