@@ -846,6 +846,8 @@
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="userServiceInternal" ref="userServiceInternal"/>
 		<property name="remoteRepositoryDAO" ref="remoteRepositoryDao"/>
+		<property name="siteDao" ref="siteDao" />
+		<property name="processedCommitsDao" ref="processedCommitsDao" />
 		<property name="encryptor" ref="internalTextEncryptor"/>
 		<property name="contextManager" ref="contextManager"/>
 		<property name="contentStoreService" ref="crafter.contentStoreService"/>

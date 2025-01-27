@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -463,6 +463,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	/**
+	 * Try resetting system processing flag for the given site and path
+	 * @param site site identifier
+	 * @param path content path
+	 */
+	private void tryResetSystemProcessing(final String site, final String path) {
+		if (itemServiceInternal.isSystemProcessing(site, path)) {
+			itemServiceInternal.setSystemProcessing(site, path, false);
+		}
+	}
+
+	/**
 	 * Returns the content chain ID for the given path.
 	 * {@value DmConstants#CONTENT_CHAIN_FORM} for anything inside {@value DmConstants#SLASH_SITE},
 	 * {@value DmConstants#CONTENT_CHAIN_ASSET} otherwise.
@@ -637,7 +648,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public String writeContent(@SiteId String siteId,
 				   @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
 				   InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		boolean result;
 
 		String commitId = _contentRepository.writeContent(siteId, path, content);
@@ -655,7 +666,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public boolean writeContentAndNotify(@SiteId String site,
 					     @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
 					     InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		boolean result = isNotEmpty(writeContent(site, path, content));
 		if (result) {
 			notifyContentEvent(site, path);
@@ -2071,6 +2082,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 			return true;
 		} finally {
+			tryResetSystemProcessing(site, path);
 			contentServiceV2.unlockContent(site, path);
 		}
 	}

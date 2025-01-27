@@ -85,7 +85,8 @@
 		SET state   = 'DELETED',
 		    deleted = 1
 		WHERE site_id = #{siteId}
-		  AND deleted = 0;
+		  AND deleted = 0
+		;
 	</update>
 
 	<select id="exists" parameterType="java.lang.String" resultType="boolean">

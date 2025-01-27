@@ -16,7 +16,6 @@
 
 
 ALTER TABLE `dependency`
-    ADD INDEX `dependency_targetpath_idx` (`target_path`(1000));
+	ADD INDEX `dependency_targetpath_idx` (`target_path`(1000)) ;
 
-UPDATE `_meta`
-SET `version` = '4.2.0.14';
+UPDATE `_meta` SET `version` = '4.2.0.14' ;

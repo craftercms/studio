@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.api.v2.utils.git.cli.GitCliOutputExceptionResolver;
+import org.craftercms.studio.impl.v2.utils.git.cli.CommitterIdentityUnknownExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.CompositeGitCliExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.NoChangesToCommitExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.RepositoryLockedExceptionResolver;
@@ -73,7 +74,9 @@ public class GitCli {
 	// Exception resolvers
 	public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
 	public final GitCliOutputExceptionResolver COMMIT_EX_RESOLVER = new CompositeGitCliExceptionResolver(
-		RepositoryLockedExceptionResolver.INSTANCE, NoChangesToCommitExceptionResolver.INSTANCE);
+			RepositoryLockedExceptionResolver.INSTANCE,
+			NoChangesToCommitExceptionResolver.INSTANCE,
+			CommitterIdentityUnknownExceptionResolver.INSTANCE);
 
 	private final String gitProcName;
 	private final int gitProcWaitForTimeoutSecs;

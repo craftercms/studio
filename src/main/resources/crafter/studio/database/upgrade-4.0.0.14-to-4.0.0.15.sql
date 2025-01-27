@@ -14,16 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE site
-    ALTER COLUMN state SET DEFAULT 'INITIALIZING';
+ALTER TABLE site ALTER COLUMN state SET DEFAULT 'INITIALIZING' ;
 
-UPDATE site
-set state = 'INITIALIZING'
-WHERE state = 'CREATING';
+UPDATE site set state = 'INITIALIZING' WHERE state = 'CREATING' ;
 
-UPDATE site
-set state = 'READY'
-WHERE state = 'CREATED';
+UPDATE site set state = 'READY' WHERE state = 'CREATED' ;
 
-UPDATE _meta
-SET version = '4.0.0.15';
+UPDATE _meta SET version = '4.0.0.15' ;

@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
+import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -101,6 +102,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v2.utils.git.cli.CommitterIdentityUnknownExceptionResolver.GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.R_REMOTES;
 
@@ -1241,8 +1243,10 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @param user    author of the commit
 	 * @param paths   the paths to commit
 	 * @return commit id
+	 *
+	 * @throws ServiceLayerException general service exception
 	 */
-	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths) {
+	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths) throws ServiceLayerException {
 		if (!ArrayUtils.isNotEmpty(paths)) {
 			return null;
 		}
@@ -1291,6 +1295,9 @@ public class GitRepositoryHelper implements DisposableBean {
 				restorePaths(repo, site, paths);
 				logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
 					ArrayUtils.toString(paths), e);
+				if (cause instanceof CommitterIdentityUnknownException) {
+					throw new ServiceLayerException(GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE, e.getCause());
+				}
 			}
 		} finally {
 			generalLockService.unlock(gitLockKey);

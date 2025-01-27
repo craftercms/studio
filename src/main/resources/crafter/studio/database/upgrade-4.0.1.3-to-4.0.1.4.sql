@@ -15,17 +15,13 @@
  */
 
 -- Delete orphan audit_parameters records from deleted sites
-DELETE
-FROM audit_parameters
-WHERE audit_id NOT IN (SELECT id FROM audit);
+DELETE FROM audit_parameters
+WHERE audit_id NOT IN (SELECT id FROM audit) ;
 
 -- Add missing FK audit_parameters -> audit
 ALTER TABLE `audit_parameters`
-    ADD CONSTRAINT `audit_parameters_ix_audit_id`
-        FOREIGN KEY IF NOT EXISTS (`audit_id`) REFERENCES `audit`(`id`)
-    ON
-DELETE
-CASCADE ;
+ADD CONSTRAINT `audit_parameters_ix_audit_id`
+	FOREIGN KEY IF NOT EXISTS (`audit_id`) REFERENCES `audit`(`id`)
+ON DELETE CASCADE ;
 
-UPDATE `_meta`
-SET `version` = '4.0.1.4';
+UPDATE `_meta` SET `version` = '4.0.1.4' ;

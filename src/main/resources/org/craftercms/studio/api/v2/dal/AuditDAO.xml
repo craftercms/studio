@@ -189,7 +189,8 @@
 				   primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details, cluster_node_id, commit_id)
 		VALUES (#{organizationId}, #{siteId}, #{operation}, IFNULL(#{operationTimestamp}, CURRENT_TIMESTAMP), #{origin},
 			#{primaryTargetId}, #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId},
-			#{actorDetails}, #{clusterNodeId}, #{commitId});
+			#{actorDetails}, #{clusterNodeId}, #{commitId})
+		;
 	</insert>
 
 	<insert id="insertAuditLogParams" parameterType="java.util.Map">

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call addColumnIfNotExists('crafter', 'item', 'last_published_on', 'TIMESTAMP NULL');
+call addColumnIfNotExists('crafter', 'item', 'last_published_on', 'TIMESTAMP NULL') ;
 
-UPDATE _meta
-SET version = '4.0.0.12';
+UPDATE _meta SET version = '4.0.0.12' ;

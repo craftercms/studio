@@ -14,25 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-call addColumnIfNotExists('crafter', 'site', 'publishing_status', 'VARCHAR(20) NULL');
+call addColumnIfNotExists('crafter', 'site', 'publishing_status', 'VARCHAR(20) NULL') ;
 
-UPDATE site
-SET publishing_status = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', 1));
+UPDATE site SET publishing_status = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', 1)) ;
 
-UPDATE site
-SET publishing_status_message = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', -1));
+UPDATE site SET publishing_status_message = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', -1)) ;
 
-UPDATE site
-SET publishing_status = 'ready'
-WHERE publishing_status = 'started';
+UPDATE site SET publishing_status = 'ready' WHERE publishing_status = 'started' ;
 
-UPDATE site
-SET publishing_status = 'publishing'
-WHERE publishing_status = 'busy';
+UPDATE site SET publishing_status = 'publishing' WHERE publishing_status = 'busy' ;
 
-UPDATE site
-SET publishing_status = 'error'
-WHERE publishing_status_message LIKE 'Stopped%';
+UPDATE site SET publishing_status = 'error' WHERE publishing_status_message LIKE 'Stopped%' ;
 
-UPDATE _meta
-SET version = '4.0.0.16';
+UPDATE _meta SET version = '4.0.0.16' ;

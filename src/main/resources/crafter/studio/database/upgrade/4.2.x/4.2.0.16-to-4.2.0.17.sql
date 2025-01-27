@@ -15,7 +15,6 @@
  */
 
 ALTER TABLE `item`
-    ADD INDEX `item_i_previous_path` (`previous_path`);
+    ADD INDEX `item_i_previous_path` (`previous_path`) ;
 
-UPDATE `_meta`
-SET `version` = '4.2.0.17';
+UPDATE `_meta` SET `version` = '4.2.0.17' ;

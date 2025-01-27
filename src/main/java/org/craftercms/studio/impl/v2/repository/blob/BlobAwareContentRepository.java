@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -266,7 +267,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
-	public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
+	public String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Write content to site '{}' path '{}'", site, path);
 		try {
 			StudioBlobStore store = getBlobStore(site, path);
@@ -339,6 +340,11 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 			logger.error("Failed to delete content in site '{}' path '{}'", siteId, paths, e);
 			throw new ServiceLayerException(format("Failed to delete content in site '%s' path '%s'", siteId, paths), e);
 		}
+	}
+
+	@Override
+	public void createEmptyFiles(String siteId, Collection<String> paths) {
+		localRepositoryV2.createEmptyFiles(siteId, paths);
 	}
 
 	@Override
@@ -487,7 +493,8 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
-	public String revertContent(String site, String path, String version, boolean major, String comment) {
+	public String revertContent(String site, String path, String version, boolean major, String comment)
+			throws UserNotFoundException, ServiceLayerException {
 		return localRepositoryV1.revertContent(site, path, version, major, comment);
 	}
 

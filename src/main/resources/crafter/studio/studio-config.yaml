@@ -67,6 +67,8 @@ studio.repo.createAsOrphan.commitMessage: "Created as orphan."
 studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 # Create folder commit message
 studio.repo.createFolder.commitMessage: "Created folder site: {site} path: {path}"
+# Create file commit message
+studio.repo.createEmptyFile.commitMessage: "Created empty file site: {site} path: {path}"
 # Delete content commit message
 studio.repo.deleteContent.commitMessage: "Delete files {path}"
 # Move content commit message

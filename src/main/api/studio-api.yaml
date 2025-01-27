@@ -9500,6 +9500,11 @@ components:
                     description: list of added files
                     items:
                         type: string
+                untracked:
+                    type: array
+                    description: list of files that are not ignored, and not in the index
+                    items:
+                        type: string
                 clean:
                     type: boolean
                     description: true if there are no conflicts or uncommitted changes

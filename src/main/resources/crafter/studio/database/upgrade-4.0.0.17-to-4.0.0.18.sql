@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE item MODIFY mime_type VARCHAR (96) NULL;
+ALTER TABLE item MODIFY mime_type VARCHAR(96) NULL ;
 
-UPDATE _meta
-SET version = '4.0.0.18';
+UPDATE _meta SET version = '4.0.0.18' ;

@@ -1,9 +1,9 @@
-DROP PROCEDURE `populateItemTable`;
+DROP PROCEDURE `populateItemTable` ;
 
-DROP PROCEDURE `populateItemParentId`;
+DROP PROCEDURE `populateItemParentId` ;
 
-DROP PROCEDURE `migrateWorkflow`;
+DROP PROCEDURE `migrateWorkflow` ;
 
-DROP TABLE `item_state`;
+DROP TABLE `item_state` ;
 
-DROP TABLE `item_metadata`;
+DROP TABLE `item_metadata` ;

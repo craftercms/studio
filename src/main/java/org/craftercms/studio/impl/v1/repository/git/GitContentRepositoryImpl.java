@@ -187,7 +187,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 	}
 
 	@Override
-	public String writeContent(String siteId, String path, InputStream content) {
+	public String writeContent(String siteId, String path, InputStream content) throws UserNotFoundException, ServiceLayerException {
 		// Write content to git and commit it
 		String commitId = null;
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
@@ -213,6 +213,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 			}
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to write content to site '{}' path '{}'", siteId, path, e);
+			throw e;
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -571,7 +572,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 	}
 
 	@Override
-	public String revertContent(String site, String path, String version, boolean major, String comment) {
+	public String revertContent(String site, String path, String version, boolean major, String comment) throws UserNotFoundException, ServiceLayerException {
 		// TODO: SJ: refactor to remove the notion of a major/minor for 3.1+
 		String commitId = null;
 		String gitLockKey = helper.getSandboxRepoLockKey(site);

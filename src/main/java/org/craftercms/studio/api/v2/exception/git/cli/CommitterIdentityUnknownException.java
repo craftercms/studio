@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,8 +13,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.git.cli;
 
-ALTER TABLE `audit`
-	ADD INDEX `audit_primary_target_value_idx` (`primary_target_value`) ;
-
-UPDATE `_meta` SET `version` = '4.2.0.16' ;
+/**
+ * Exception thrown when committer identity is unknown in cases such as when there is no global git configuration provided
+ */
+public class CommitterIdentityUnknownException extends GitCliOutputException {
+	public CommitterIdentityUnknownException(int exitValue, String msg) {
+		super(exitValue, msg);
+	}
+}

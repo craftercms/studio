@@ -16,7 +16,6 @@
 
 -- Change the size column to support big files
 ALTER TABLE `item`
-    MODIFY COLUMN `size` BIGINT NULL;
+	MODIFY COLUMN `size` BIGINT NULL ;
 
-UPDATE `_meta`
-SET `version` = '4.0.0.42';
+UPDATE `_meta` SET `version` = '4.0.0.42' ;
