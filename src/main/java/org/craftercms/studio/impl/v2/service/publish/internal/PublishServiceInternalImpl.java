@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -36,6 +37,7 @@ import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -96,6 +98,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private SitesService siteService;
 	private GeneralLockService generalLockService;
 	private SecurityService securityService;
+	private PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
 
 	@Override
 	public long getPublishPackagesCount(final String siteId, final String target,
@@ -108,14 +111,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 	@Override
 	public Collection<PublishPackage> getPublishPackages(final String siteId, final String target,
-							     final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
-							     final String submitter, final String reviewer,
-							     final Boolean isScheduled, final Collection<SortField> sort,
-							     final int offset, final int limit) {
-		return publishDao.getPublishPackages(siteId, target,
+														 final Long states, final Collection<PublishPackage.ApprovalState> approvalStates,
+														 final String submitter, final String reviewer,
+														 final Boolean isScheduled, final Collection<SortField> sort,
+														 final int offset, final int limit) throws ServiceLayerException, UserNotFoundException {
+		Collection<PublishPackage> packages = publishDao.getPublishPackages(siteId, target,
 			states, approvalStates,
 			submitter, reviewer, isScheduled,
 			sort, offset, limit);
+		for (PublishPackage publishPackage : packages) {
+			calculateAvailableActions(publishPackage);
+		}
+		return packages;
 	}
 
 	@Override
@@ -243,10 +250,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public PublishPackage getPackage(final String siteId, final long packageId)
-		throws SiteNotFoundException {
+	public PublishPackage getPackage(final String siteId, final long packageId) throws ServiceLayerException, UserNotFoundException {
 		Site site = siteService.getSite(siteId);
-		return publishDao.getById(site.getId(), packageId);
+		PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+		calculateAvailableActions(publishPackage);
+		return publishPackage;
+	}
+
+	/**
+	 * Calculate and set current user available actions for the publish package.
+	 */
+	private void calculateAvailableActions(final PublishPackage publishPackage) throws ServiceLayerException, UserNotFoundException {
+		publishPackage.setAvailableActions(publishPackageAvailableActionResolver.getPublishPackageAvailableActions(publishPackage));
 	}
 
 	@Override
@@ -555,6 +570,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	@SuppressWarnings("unused")
 	public void setSecurityService(SecurityService securityService) {
 		this.securityService = securityService;
+	}
+
+	@SuppressWarnings("unused")
+	public void setPublishPackageAvailableActionResolver(final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
+		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
 	}
 
 	/**

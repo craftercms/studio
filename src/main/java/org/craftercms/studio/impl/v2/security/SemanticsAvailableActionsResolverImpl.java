@@ -177,12 +177,6 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 			result &= ~CONTENT_UPLOAD;
 		}
 
-		if (servicesConfig.isRequirePeerReview(siteId)) {
-			if (StringUtils.equals(username, itemModifier)) {
-				result &= ~PUBLISH;
-			}
-		}
-
 		// controller and template
 		if (isNotEmpty(itemContentTypeId)) {
 			String controllerPath = contentTypeServiceInternal.getContentTypeControllerPath(itemContentTypeId);

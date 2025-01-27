@@ -49,6 +49,7 @@ public class PublishPackage {
 	protected String publishedStagingCommitId;
 	protected String publishedLiveCommitId;
 	protected int itemCount;
+	protected long availableActions;
 
 	protected Person submitter;
 	protected Person reviewer;
@@ -251,6 +252,14 @@ public class PublishPackage {
 
 	public void setItemCount(int itemCount) {
 		this.itemCount = itemCount;
+	}
+
+	public long getAvailableActions() {
+		return availableActions;
+	}
+
+	public void setAvailableActions(long availableActions) {
+		this.availableActions = availableActions;
 	}
 
 	/**

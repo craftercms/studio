@@ -22,6 +22,7 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -65,7 +66,7 @@ public class PublishServiceImpl implements PublishService {
 														 final Collection<PublishPackage.ApprovalState> approvalStates,
 														 final String submitter, final String reviewer,
 														 final Boolean isScheduled, final Collection<SortField> sort,
-														 final int offset, final int limit) throws SiteNotFoundException {
+														 final int offset, final int limit) throws ServiceLayerException, UserNotFoundException {
 		return publishServiceInternal.getPublishPackages(siteId, target, states,
 				approvalStates, submitter, reviewer,
 				isScheduled, sort, offset, limit);
@@ -165,7 +166,7 @@ public class PublishServiceImpl implements PublishService {
 	@RequirePackageExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
 	public PublishPackage getPackage(@SiteId String siteId, @PackageId long packageId)
-			throws PublishPackageNotFoundException, SiteNotFoundException {
+		throws ServiceLayerException, UserNotFoundException {
 		return publishServiceInternal.getPackage(siteId, packageId);
 	}
 

@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v2.dal.Group;
 import java.util.*;
 
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapSiteWidePermissionsToItemAvailableActions;
+import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.mapSiteWidePermissionsToPackageAvailableActions;
 
 /**
  * Mapping of user groups to available actions.
@@ -62,15 +63,36 @@ public class SitePermissionMappings {
 	 * @param groups   groups the user belongs to
 	 * @return available actions bitmap
 	 */
-	public long getSiteWideAvailableActions(String username, List<Group> groups) {
+	public long getSiteWideItemAvailableActions(String username, List<Group> groups) {
+		return mapSiteWidePermissionsToItemAvailableActions(getSiteWidePermissions(username, groups));
+	}
+
+	/**
+	 * Get the actions a user has permissions to perform on publish packages
+	 *
+	 * @param username user to validate permissions for
+	 * @param groups   groups the user belongs to
+	 * @return available actions bitmap
+	 */
+	public long getPublishPackageAvailableActions(String username, List<Group> groups) {
+		return mapSiteWidePermissionsToPackageAvailableActions(getSiteWidePermissions(username, groups));
+	}
+
+	/**
+	 * Get the site-wide permissions for a given user.
+	 *
+	 * @param username the user to get the permissions for
+	 * @param groups   the groups the user belongs to
+	 * @return list of permissions
+	 */
+	private Collection<String> getSiteWidePermissions(String username, List<Group> groups) {
 		List<NormalizedRole> rolesList = getRolesForUser(username, groups);
 		Set<String> permissions = new HashSet<>();
 		for (NormalizedRole role : rolesList) {
 			RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
 			permissions.addAll(rolePermissionMappings.getSiteWidePermissions());
 		}
-
-		return mapSiteWidePermissionsToItemAvailableActions(permissions);
+		return permissions;
 	}
 
 	private List<NormalizedRole> getRolesForUser(String username, List<Group> groups) {

@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Set;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -182,8 +181,7 @@ public final class ContentItemAvailableActionsConstants {
 	public static final long BITMAP_CONTENT_DELETE =
 		CONTENT_DELETE + CONTENT_DELETE_CONTROLLER + CONTENT_DELETE_TEMPLATE;
 	// publish
-	public static final long BITMAP_PUBLISH =
-			PUBLISH;
+	public static final long BITMAP_PUBLISH = PUBLISH;
 	// item_unlock
 	public static final long BITMAP_ITEM_UNLOCK =
 		ITEM_UNLOCK;
@@ -199,7 +197,7 @@ public final class ContentItemAvailableActionsConstants {
 	 * @param permissions all site-wide permissions for the user
 	 * @return the site-wide available actions
 	 */
-	public static long mapSiteWidePermissionsToItemAvailableActions(final Set<String> permissions) {
+	public static long mapSiteWidePermissionsToItemAvailableActions(final Collection<String> permissions) {
 		long result = 0;
 		if (permissions.contains(PERMISSION_PUBLISH_REQUEST)) {
 			result |= PUBLISH_REQUEST;
@@ -212,35 +210,19 @@ public final class ContentItemAvailableActionsConstants {
 	}
 
 	public static long mapPermissionToContentItemAvailableActions(String permission) {
-		final long result;
-		switch (permission.toLowerCase()) {
-			case PERMISSION_CONTENT_READ:
-				result = BITMAP_CONTENT_READ;
-				break;
-			case PERMISSION_CONTENT_COPY:
-				result = CONTENT_COPY;
-				break;
-			case PERMISSION_CONTENT_CREATE:
-				result = BITMAP_CONTENT_CREATE;
-				break;
-			case PERMISSION_CONTENT_WRITE:
-				result = BITMAP_CONTENT_WRITE;
-				break;
-			case PERMISSION_FOLDER_CREATE:
-				result = BITMAP_FOLDER_CREATE;
-				break;
-			case PERMISSION_CONTENT_DELETE:
-				result = BITMAP_CONTENT_DELETE;
-				break;
-			case PERMISSION_ITEM_UNLOCK:
-				result = BITMAP_ITEM_UNLOCK;
-				break;
-			default:
+		return switch (permission.toLowerCase()) {
+			case PERMISSION_CONTENT_READ -> BITMAP_CONTENT_READ;
+			case PERMISSION_CONTENT_COPY -> CONTENT_COPY;
+			case PERMISSION_CONTENT_CREATE -> BITMAP_CONTENT_CREATE;
+			case PERMISSION_CONTENT_WRITE -> BITMAP_CONTENT_WRITE;
+			case PERMISSION_FOLDER_CREATE -> BITMAP_FOLDER_CREATE;
+			case PERMISSION_CONTENT_DELETE -> BITMAP_CONTENT_DELETE;
+			case PERMISSION_ITEM_UNLOCK -> BITMAP_ITEM_UNLOCK;
+			default -> {
 				logger.debug("Permission '{}' is not declared with content item available actions", permission);
-				result = BITMAP_UNDEFINED;
-				break;
-		}
-		return result;
+				yield BITMAP_UNDEFINED;
+			}
+		};
 	}
 
 	public static long mapPermissionsToContentItemAvailableActions(Collection<String> permissions) {
