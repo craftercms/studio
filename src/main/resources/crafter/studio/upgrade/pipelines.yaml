@@ -1,7 +1,7 @@
 # Crafter Studio Upgrade Configuration
 
 pipelines:
-    
+
     # Pipeline to upgrade system components (database, global repo, ...)
     system:
         requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || 3.1.30 || 3.1.31 || >=4.0'
@@ -53,7 +53,7 @@ pipelines:
                     -   type: dbScriptUpgrader
                         # There are no conflicting db changes, so we can still use the same script
                         filename: upgrade-3.1.15-to-4.0.0.32.sql
-            
+
             # Common operations for all 3.1.x versions:
             # Update Global Repo
             -   currentVersion: 4.0-t
@@ -271,7 +271,7 @@ pipelines:
                     # Cleanup DB
                     -   type: dbScriptUpgrader
                         filename: cleanup-3.1.x-to-4.0.0.32.sql
-            
+
             # 4.0 main pipeline (version older than 2 months removed for simplicity)
             -   currentVersion: 4.0.0.30
                 nextVersion: 4.0.0.31
@@ -714,7 +714,17 @@ pipelines:
                 operations:
                     -   type: dbScriptUpgrader
                         filename: upgrade/4.2.x/4.2.0.16-to-4.2.0.17.sql
-    
+            -   currentVersion: 4.2.0.17
+                nextVersion: 5.0-t
+            # Entry point for 5.0 upgrade
+            -   currentVersion: 5.0-t
+                nextVersion: 5.0.0.0
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.0.xslt
+                        commitDetails: Add new permission for site_admin
+
     # Pipeline to upgrade site repositories
     site:
         requires: '3.1.9 || 3.1.18 || >=4.0.0'
@@ -725,7 +735,7 @@ pipelines:
 
             -   currentVersion: 3.1.18
                 nextVersion: 4.0-t
-            
+
             # Common operations for all 3.1.x versions:
             -   currentVersion: 4.0-t
                 nextVersion: 4.0-t2
@@ -769,7 +779,7 @@ pipelines:
                         oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
                         newPath: config/studio/form-control-config/rte/rte-config.xml
                         commitDetails: Rename the RTE configuration
-            
+
             # 4.0 main pipeline (version older than 2 months removed for simplicity)
             -   currentVersion: 4.0.0.1
                 nextVersion: 4.0.0.2
@@ -910,7 +920,7 @@ pipelines:
                         path: /config/studio/site-policy-config.xml
                         template: crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt
                         commitDetails: Sync Studio version to 4.1.2
-    
+
     # Pipeline to upgrade blueprints
     blueprint:
         -   currentVersion: 3.0.0
@@ -946,7 +956,7 @@ pipelines:
 
 # Managed Configuration Files
 configurations:
-    
+
     studio-site-config:
         module: studio
         path: site-config.xml
@@ -992,7 +1002,7 @@ configurations:
                         -   type: xsltFileUpgrader
                             template: crafter/studio/upgrade/4.2.x/config/site-config/site-config-v4.2.0.0.xslt
                             commitDetails: Add Component type pattern
-    
+
     permission-mappings-config:
         module: studio
         path: permission-mappings-config.xml
@@ -1006,11 +1016,11 @@ configurations:
                     nextVersion: 4.0-t
                 -   currentVersion: 16 # For 3.1.23 or later
                     nextVersion: 4.0-t
-                
+
                 # Entry point for existing 4.0.x before version schema update
                 -   currentVersion: 20
                     nextVersion: 4.0-t9
-                
+
                 # Common operations for all 3.1.x versions:
                 -   currentVersion: 4.0-t
                     nextVersion: 4.0-t2
@@ -1066,7 +1076,7 @@ configurations:
                         -   type: xsltFileUpgrader
                             template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v21.xslt
                             commitDetails: Add new permission for removing plugins
-                
+
                 # Entry point for existing 4.0.x installations (before refactoring so just switch to the new version schema)
                 -   currentVersion: 21
                     nextVersion: 4.0.1
@@ -1163,7 +1173,7 @@ configurations:
                 # Update version to align with blueprints optimized version
                 -   currentVersion: 4.2.0.0
                     nextVersion: 4.2.0.1
-    
+
     role-mappings-config:
         module: studio
         path: role-mappings-config.xml
@@ -1173,7 +1183,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     config-list:
         module: studio
         path: administration/config-list.xml
@@ -1219,7 +1229,7 @@ configurations:
                         -   type: xsltFileUpgrader
                             template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.3.xslt
                             commitDetails: Remove CMIS configs
-    
+
     site-config-tools:
         module: studio
         path: administration/site-config-tools.xml
@@ -1271,7 +1281,7 @@ configurations:
                         -   type: xsltFileUpgrader
                             template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.6.xslt
                             commitDetails: Add audio datasources
-    
+
     contextual-nav:
         module: studio
         path: context-nav/contextual-nav.xml
@@ -1281,7 +1291,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     aws:
         module: studio
         path: aws/aws.xml
@@ -1291,7 +1301,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     box:
         module: studio
         path: box/box.xml
@@ -1301,7 +1311,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     webdav:
         module: studio
         path: webdav/webdav.xml
@@ -1311,7 +1321,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     notification-config:
         module: studio
         path: workflow/notification-config.xml
@@ -1346,7 +1356,7 @@ configurations:
                             pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
                             replacement: "<pre>\\$\\{deploymentError\\}</pre>"
                             commitDetails: Update deployment error template
-    
+
     code-editor-config:
         module: studio
         path: code-editor-config.xml
@@ -1356,7 +1366,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     resolver-config:
         module: studio
         path: dependency/resolver-config.xml
@@ -1382,7 +1392,7 @@ configurations:
                     -   type: xsltFileUpgrader
                         template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
                         commitDetails: Add view templates and controllers as content-type dependencies
-    
+
     engine-site-config:
         module: engine
         path: site-config.xml
@@ -1392,7 +1402,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 2
                     nextVersion: 4.0.1
-    
+
     proxy-config:
         module: engine
         path: proxy-config.xml
@@ -1402,7 +1412,7 @@ configurations:
                 # Switch to the new version schema
                 -   currentVersion: 3
                     nextVersion: 4.0.1
-    
+
     urlrewrite:
         module: engine
         path: urlrewrite.xml
@@ -1416,7 +1426,7 @@ configurations:
             # Switch to the new version schema
             -   currentVersion: 2
                 nextVersion: 4.0.1
-    
+
     ui:
         module: studio
         path: ui.xml

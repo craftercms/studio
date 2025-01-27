@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -319,7 +319,13 @@ public class XsltTest {
 				new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/4.2/4.2.0.0/input.xml"),
 				new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/4.2/4.2.0.0/expected.xml"),
 				emptyMap()
-			}
+			},
+			new Object[] {
+				new ClassPathResource("crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.0.xslt"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0.0.0/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0.0.0/expected.xml"),
+				emptyMap()
+			},
 		};
 	}
 

@@ -110,8 +110,6 @@
 		<rule regex="/.*">
 			<allowed-permissions>
 				<permission>search_plugins</permission>
-				<permission>audit_log</permission>
-				<permission>read_users</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
