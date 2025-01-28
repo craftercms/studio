@@ -71,10 +71,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 			hasUnlockPermission(item.getLockOwner(), item.getState(), siteId, item.getPath(), username));
 
 		long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-		Person modifier = item.getModifier();
-		String modifierUsername = modifier != null ? modifier.getUsername() : null;
 		return applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
-				item.getSystemType(), item.getContentTypeId(), modifierUsername, item.getState(), result);
+				item.getSystemType(), item.getContentTypeId(), item.getState(), result);
 	}
 
 	@Override
@@ -86,10 +84,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 			hasUnlockPermission(detailedItem.getLockOwner(), detailedItem.getState(), siteId, detailedItem.getPath(), username));
 
 		long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-		Person modifier = detailedItem.getSandbox().getModifier();
-		String modifierUsername = modifier != null ? modifier.getUsername() : null;
 		return applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
-				detailedItem.getSystemType(), detailedItem.getContentTypeId(), modifierUsername,
+				detailedItem.getSystemType(), detailedItem.getContentTypeId(),
 				detailedItem.getState(),
 				result);
 	}
@@ -119,7 +115,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long applySpecialUseCaseFilters(String username, String siteId, String itemPath, String itemMimeType,
-											String itemSystemType, String itemContentTypeId, String itemModifier,
+											String itemSystemType, String itemContentTypeId,
 											long itemState,
 											long availableActions)
 			throws ServiceLayerException, UserNotFoundException {
