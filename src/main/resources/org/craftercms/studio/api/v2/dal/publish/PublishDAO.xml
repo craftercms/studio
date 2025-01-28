@@ -200,6 +200,14 @@
 		  and site_id = #{siteId}
 	</select>
 
+	<select id="getByStringSiteId" resultMap="PublishPackageMap">
+		SELECT pp.*
+		FROM publish_package pp
+		INNER JOIN site s ON pp.site_id = s.id
+		WHERE pp.id = #{packageId}
+		and s.site_id = #{siteId}
+	</select>
+
 	<select id="packageExists">
 		SELECT EXISTS(SELECT 1
 			      FROM publish_package pp

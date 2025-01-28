@@ -223,6 +223,15 @@ public interface PublishDAO {
 	PublishPackage getById(@Param(SITE_ID) final long siteId, @Param(PACKAGE_ID) final long packageId);
 
 	/**
+	 * Get a package by the site id and package id
+	 *
+	 * @param siteId    the string site id
+	 * @param packageId the package id
+	 * @return the {@link PublishPackage}
+	 */
+	PublishPackage getByStringSiteId(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId);
+
+	/**
 	 * Indicate if a package exists for a site
 	 *
 	 * @param siteId    the site id
@@ -633,4 +642,5 @@ public interface PublishDAO {
 						      @Param(DAYS) int days,
 						      @Param(ACTION) PublishItem.Action action,
 						      @Param(COMPLETED_STATE) long completedState);
+
 }

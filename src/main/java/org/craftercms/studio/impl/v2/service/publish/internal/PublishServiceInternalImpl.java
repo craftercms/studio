@@ -251,8 +251,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 	@Override
 	public PublishPackage getPackage(final String siteId, final long packageId) throws ServiceLayerException, UserNotFoundException {
-		Site site = siteService.getSite(siteId);
-		PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
+		PublishPackage publishPackage = publishDao.getByStringSiteId(siteId, packageId);
 		calculateAvailableActions(publishPackage);
 		return publishPackage;
 	}

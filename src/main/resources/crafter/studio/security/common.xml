@@ -183,6 +183,12 @@
 		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
 	</bean>
 
+	<bean id="studio.peerReviewCapableAnnotationHandler" class="org.craftercms.studio.api.v2.security.publish.PeerReviewCapableAnnotationHandler">
+		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
+		<constructor-arg name="securityService" ref="studio.securityService"/>
+		<constructor-arg name="publishDao" ref="publishDao"/>
+	</bean>
+
 	<bean id="studio.requireSiteExistsAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.RequireSiteExistsAnnotationHandler">
 		<constructor-arg name="sitesService" ref="sitesService"/>
 	</bean>

@@ -25,6 +25,9 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.publish.PackageId;
+import org.craftercms.studio.api.v2.annotation.publish.RequirePackageExists;
+import org.craftercms.studio.api.v2.security.publish.PeerReviewCapable;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
@@ -82,9 +85,10 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
 	@Override
-	@RequireSiteExists
+	@RequirePackageExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_APPROVE)
-	public void approvePackage(@SiteId String siteId, long packageId, Instant schedule, boolean updateSchedule, String comment)
+	@PeerReviewCapable
+	public void approvePackage(@SiteId String siteId, @PackageId long packageId, Instant schedule, boolean updateSchedule, String comment)
 		throws AuthenticationException, ServiceLayerException {
 		workflowServiceInternal.approvePackage(siteId, packageId, schedule, updateSchedule, comment);
 	}

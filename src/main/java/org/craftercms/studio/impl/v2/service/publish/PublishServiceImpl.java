@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
+import org.craftercms.studio.api.v2.security.publish.PeerReviewCapable;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.permissions.CompositePermission;
@@ -93,6 +94,7 @@ public class PublishServiceImpl implements PublishService {
 	@Override
 	@RequireSiteReady
 	@HasAllPermissions(type = CompositePermission.class, actions = {PERMISSION_PUBLISH_REQUEST, PERMISSION_PUBLISH_APPROVE})
+	@PeerReviewCapable
 	public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
 						List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
 			throws AuthenticationException, ServiceLayerException {
