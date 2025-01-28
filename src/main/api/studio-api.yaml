@@ -8147,7 +8147,7 @@ paths:
                                     packages:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/PublishPackageStatus'
+                                            $ref: '#/components/schemas/PublishPackage'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -9456,49 +9456,100 @@ components:
             description: API v1 object
 
         PublishPackage:
-            allOf:
-                -   $ref: '#/components/schemas/PublishPackageStatus'
-                -   type: object
-                    properties:
-                        siteId:
-                            type: string
-                            description: site ID
-                        liveError:
-                            type: integer
-                            description: ApiResponse code
-                        stagingError:
-                            type: integer
-                            description: ApiResponse code
-                        publishedOn:
-                            type: string
-                            format: date-time
-                            description: date and time when package was published
-                        packageType:
-                            type: string
-                            description: package type
-                            enum:
-                                - INITIAL_PUBLISH
-                                - ITEM_LIST
-                                - PUBLISH_ALL
-                        commitId:
-                            type: string
-                            description: commit ID to be published
-                        publishedStagingCommitId:
-                            type: string
-                            description: commit ID published to staging
-                        publishedLiveCommitId:
-                            type: string
-                            description: commit ID published to live
-                        itemCount:
-                            type: integer
-                            description: number of items in the package
-                    required:
-                        - id
-                        - siteId
-                        - schedule
-                        - approver
-                        - state
-                        - publishingTarget
+            type: object
+            properties:
+                id:
+                    type: number
+                    example: 123
+                submitedOn:
+                    type: string
+                    format: date-time
+                submitterComment:
+                    type: string
+                reviewerComment:
+                    type: string
+                reviewedOn:
+                    type: string
+                    format: date-time
+                target:
+                    type: string
+                    example: live
+                approvalState:
+                    type: string
+                    enum:
+                        - SUBMITTED
+                        - APPROVED
+                        - REJECTED
+                packageState:
+                    type: number
+                    description: >-
+                        bitmap of states
+                          * `BIT ORDER (little-endian)`: 0, `FLAG`: READY, `DESCRIPTION`: The package is ready to be published (this is conditional on package approvalState)
+                          * `BIT ORDER (little-endian)`: 1: `FLAG`: PROCESSING, `DESCRIPTION`: The package is currently being processed
+                          * `BIT ORDER (little-endian)`: 2: `FLAG`: LIVE_SUCCESS, `DESCRIPTION`: The package has been published to live target
+                          * `BIT ORDER (little-endian)`: 3: `FLAG`: LIVE_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to live target due to errors
+                          * `BIT ORDER (little-endian)`: 4: `FLAG`: LIVE_FAILED, `DESCRIPTION`: The package failed to be published to live target
+                          * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The package has been published to stage
+                          * `BIT ORDER (little-endian)`: 6: `FLAG`: STAGING_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to stage target due to errors
+                          * `BIT ORDER (little-endian)`: 7: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The package failed to be published to stage target
+                          * `BIT ORDER (little-endian)`: 8: `FLAG`: COMPLETED, `DESCRIPTION`: The package has been completed in at least one target
+                          * `BIT ORDER (little-endian)`: 9: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
+                    example: 1
+                schedule:
+                    type: string
+                    format: date-time
+                submitter:
+                    $ref: '#/components/schemas/Person'
+                reviewer:
+                    $ref: '#/components/schemas/Person'
+                siteId:
+                    type: string
+                    description: site ID
+                liveError:
+                    type: integer
+                    description: ApiResponse code
+                stagingError:
+                    type: integer
+                    description: ApiResponse code
+                publishedOn:
+                    type: string
+                    format: date-time
+                    description: date and time when package was published
+                packageType:
+                    type: string
+                    description: package type
+                    enum:
+                        - INITIAL_PUBLISH
+                        - ITEM_LIST
+                        - PUBLISH_ALL
+                commitId:
+                    type: string
+                    description: commit ID to be published
+                publishedStagingCommitId:
+                    type: string
+                    description: commit ID published to staging
+                publishedLiveCommitId:
+                    type: string
+                    description: commit ID published to live
+                itemCount:
+                    type: integer
+                    description: number of items in the package
+                availableActions:
+                    type: integer
+                    format: int64
+                    description: >-
+                        available actions bitmap
+                          * `BIT ORDER (little-endian)`: 0, `FLAG`: Approve, `DESCRIPTION`: Approve the publish package
+                          * `BIT ORDER (little-endian)`: 1, `FLAG`: Reject, `DESCRIPTION`: Reject the publish package
+                          * `BIT ORDER (little-endian)`: 2, `FLAG`: Cancel, `DESCRIPTION`: Cancel the publish package
+                          * `BIT ORDER (little-endian)`: 3, `FLAG`: Resubmit, `DESCRIPTION`: Recalculate and resubmit the publish package
+            required:
+                - id
+                - siteId
+                - schedule
+                - approver
+                - state
+                - publishingTarget
 
         PublishItem:
             type: object
@@ -9897,9 +9948,9 @@ components:
                           * `BIT ORDER (little-endian)`: 18, `FLAG`: Content: Delete controller, `DESCRIPTION`: Delete content type controller
                           * `BIT ORDER (little-endian)`: 19, `FLAG`: Content: Delete template, `DESCRIPTION`: Delete rendering template
                           * `BIT ORDER (little-endian)`: 20, `FLAG`: Publish: Publish, `DESCRIPTION`: Publish content
-                          * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish: Approve, `DESCRIPTION`: Approve publish request
-                          * `BIT ORDER (little-endian)`: 22, `FLAG`: Publish: Schedule, `DESCRIPTION`: Schedule publish
-                          * `BIT ORDER (little-endian)`: 23, `FLAG`: Publish: Reject, `DESCRIPTION`: Reject publish request
+                          * `BIT ORDER (little-endian)`: 21, `FLAG`: RETIRED ACTION - Publish: Approve, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 22, `FLAG`: RETIRED ACTION - Publish: Schedule, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 23, `FLAG`: RETIRED ACTION - Publish: Reject, `DESCRIPTION`: This action is no longer used
                           * `BIT ORDER (little-endian)`: 24, `FLAG`: Content: Unlock, `DESCRIPTION`: Unlock content item
                 childrenCount:
                     type: integer
@@ -10023,9 +10074,9 @@ components:
                           * `BIT ORDER (little-endian)`: 18, `FLAG`: Content: Delete controller, `DESCRIPTION`: Delete content type controller
                           * `BIT ORDER (little-endian)`: 19, `FLAG`: Content: Delete template, `DESCRIPTION`: Delete rendering template
                           * `BIT ORDER (little-endian)`: 20, `FLAG`: Publish: Publish, `DESCRIPTION`: Publish content
-                          * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish: Approve, `DESCRIPTION`: Approve publish request
-                          * `BIT ORDER (little-endian)`: 22, `FLAG`: Publish: Schedule, `DESCRIPTION`: Schedule publish
-                          * `BIT ORDER (little-endian)`: 23, `FLAG`: Publish: Reject, `DESCRIPTION`: Reject publish request
+                          * `BIT ORDER (little-endian)`: 21, `FLAG`: RETIRED ACTION - Publish: Approve, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 22, `FLAG`: RETIRED ACTION - Publish: Schedule, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 23, `FLAG`: RETIRED ACTION - Publish: Reject, `DESCRIPTION`: This action is no longer used
                           * `BIT ORDER (little-endian)`: 24, `FLAG`: Content: Unlock, `DESCRIPTION`: Unlock content item
                 sandbox:
                     type: object
@@ -11046,54 +11097,6 @@ components:
                                 type: string
                                 description: The commit comment
 
-        PublishPackageStatus:
-            type: object
-            properties:
-                id:
-                    type: number
-                    example: 123
-                submitedOn:
-                    type: string
-                    format: date-time
-                submitterComment:
-                    type: string
-                reviewerComment:
-                    type: string
-                reviewedOn:
-                    type: string
-                    format: date-time
-                target:
-                    type: string
-                    example: live
-                approvalState:
-                    type: string
-                    enum:
-                        - SUBMITTED
-                        - APPROVED
-                        - REJECTED
-                packageState:
-                    type: number
-                    description: >-
-                        bitmap of states
-                          * `BIT ORDER (little-endian)`: 0, `FLAG`: READY, `DESCRIPTION`: The package is ready to be published (this is conditional on package approvalState)
-                          * `BIT ORDER (little-endian)`: 1: `FLAG`: PROCESSING, `DESCRIPTION`: The package is currently being processed
-                          * `BIT ORDER (little-endian)`: 2: `FLAG`: LIVE_SUCCESS, `DESCRIPTION`: The package has been published to live target
-                          * `BIT ORDER (little-endian)`: 3: `FLAG`: LIVE_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to live target due to errors
-                          * `BIT ORDER (little-endian)`: 4: `FLAG`: LIVE_FAILED, `DESCRIPTION`: The package failed to be published to live target
-                          * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The package has been published to stage
-                          * `BIT ORDER (little-endian)`: 6: `FLAG`: STAGING_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to stage target due to errors
-                          * `BIT ORDER (little-endian)`: 7: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The package failed to be published to stage target
-                          * `BIT ORDER (little-endian)`: 8: `FLAG`: COMPLETED, `DESCRIPTION`: The package has been completed in at least one target
-                          * `BIT ORDER (little-endian)`: 9: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
-                    example: 1
-                schedule:
-                    type: string
-                    format: date-time
-                submitter:
-                    $ref: '#/components/schemas/Person'
-                reviewer:
-                    $ref: '#/components/schemas/Person'
-
         PaginatedResponse:
             type: object
             description: pagination response information
@@ -11181,7 +11184,7 @@ components:
                             publishPackages:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/PublishPackageStatus'
+                                    $ref: '#/components/schemas/PublishPackage'
         InternalServerError:
             description: Internal system failure
             content:
@@ -11287,7 +11290,7 @@ components:
                             publishPackages:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/PublishPackageStatus'
+                                    $ref: '#/components/schemas/PublishPackage'
 
         api1InternalServerError:
             description: Internal system failure
