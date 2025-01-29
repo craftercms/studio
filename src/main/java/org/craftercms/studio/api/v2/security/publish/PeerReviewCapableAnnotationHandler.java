@@ -23,6 +23,7 @@ import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.StudioAnnotationUtils;
+import org.craftercms.studio.api.v2.annotation.publish.PackageId;
 import org.craftercms.studio.api.v2.annotation.publish.PackageIds;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
@@ -63,33 +64,41 @@ public class PeerReviewCapableAnnotationHandler {
 	public Object checkPeerReview(ProceedingJoinPoint pjp) throws Throwable {
 		Method method = AopUtils.getActualMethod(pjp);
 		String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
+		User user = (User) securityService.getAuthentication().getPrincipal();
 
 		if (!servicesConfig.isRequirePeerReview(siteId)) {
 			logger.debug("Peer review is not required for site '{}'", siteId);
 			return pjp.proceed();
 		}
-
 		Collection<Long> packageIds = StudioAnnotationUtils.getAnnotationValue(pjp, method, PackageIds.class, Collection.class);
-		if (packageIds == null) {
-			// package id not being provided means is a package creation, so we must reject it
-			logger.debug("Peer review is enabled for site '{}'. Users cannot publish directly. Method '{}.{}' is annotated with @PeerReviewCapable but does not have a @PackageId parameter. ",
-				siteId, method.getDeclaringClass().getName(), method.getName());
-			throw new PeerReviewCheckException("Peer review is enabled for site '%s''. Users cannot publish directly."
-				.formatted(siteId));
-		}
-
-		User user = (User) securityService.getAuthentication().getPrincipal();
-		for (Long packageId : packageIds) {
-			PublishPackage publishPackage = publishDao.getByStringSiteId(siteId, packageId);
-			if (user.getId() == publishPackage.getSubmitterId()) {
-				String message = ("User '%s' is the submitter of the package '%s'. " +
-					"Users are not allowed to approve their own packages when peer-review is enabled").formatted(user.getId(), packageId);
-				logger.debug(message);
-				throw new PeerReviewCheckException(message);
+		if (packageIds != null) {
+			for (Long packageId : packageIds) {
+				checkPeerReview(siteId, packageId, user);
 			}
+			return pjp.proceed();
 		}
 
-		return pjp.proceed();
+		long packageId = StudioAnnotationUtils.getAnnotationValue(pjp, method, PackageId.class, Long.class);
+		checkPeerReview(siteId, packageId, user);
+
+		// package id not being provided means is a package creation, so we must reject it
+		logger.debug("Peer review is enabled for site '{}'. Users cannot publish directly. Method '{}.{}' is annotated with @PeerReviewCapable but does not have a @PackageId parameter. ",
+			siteId, method.getDeclaringClass().getName(), method.getName());
+		throw new PeerReviewCheckException("Peer review is enabled for site '%s''. Users cannot publish directly."
+			.formatted(siteId));
+	}
+
+	/**
+	 * Check if the user is the submitter of the package, if so, throw a {@link PeerReviewCheckException}
+	 */
+	private void checkPeerReview(String siteId, long packageId, User user) {
+		PublishPackage publishPackage = publishDao.getByStringSiteId(siteId, packageId);
+		if (user.getId() == publishPackage.getSubmitterId()) {
+			String message = ("User '%s' is the submitter of the package '%s'. " +
+				"Users are not allowed to approve their own packages when peer-review is enabled").formatted(user.getId(), packageId);
+			logger.debug(message);
+			throw new PeerReviewCheckException(message);
+		}
 	}
 
 }
