@@ -96,19 +96,21 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	}
 
 	@Override
-	public void approvePackage(final String siteId, final long packageId,
+	public void approvePackages(final String siteId, final Collection<Long> packageIds,
 				   final Instant schedule, final boolean updateSchedule, final String comment)
 		throws AuthenticationException, ServiceLayerException {
-		doReviewPackage(siteId, packageId, p -> {
-			if (APPROVED == p.getApprovalState()) {
-				throw new PackageAlreadyApprovedException(siteId, packageId);
-			}
-			if (updateSchedule) {
-				p.setSchedule(schedule);
-			}
-			p.setApprovalState(APPROVED);
-			p.setReviewerComment(comment);
-		}, OPERATION_APPROVE, WorkflowEvent.WorkFlowEventType.APPROVE);
+		for (Long packageId : packageIds) {
+			doReviewPackage(siteId, packageId, p -> {
+				if (APPROVED == p.getApprovalState()) {
+					throw new PackageAlreadyApprovedException(siteId, packageId);
+				}
+				if (updateSchedule) {
+					p.setSchedule(schedule);
+				}
+				p.setApprovalState(APPROVED);
+				p.setReviewerComment(comment);
+			}, OPERATION_APPROVE, WorkflowEvent.WorkFlowEventType.APPROVE);
+		}
 	}
 
 	@Override
@@ -123,13 +125,15 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	}
 
 	@Override
-	public void rejectPackage(final String siteId, final long packageId, final String comment)
+	public void rejectPackages(final String siteId, final Collection<Long> packageIds, final String comment)
 		throws ServiceLayerException, AuthenticationException {
-		doReviewPackage(siteId, packageId, p -> {
-			p.setApprovalState(REJECTED);
-			p.setPackageState(CANCELLED.value);
-			p.setReviewerComment(comment);
-		}, OPERATION_REJECT_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
+		for (Long packageId : packageIds) {
+			doReviewPackage(siteId, packageId, p -> {
+				p.setApprovalState(REJECTED);
+				p.setPackageState(CANCELLED.value);
+				p.setReviewerComment(comment);
+			}, OPERATION_REJECT_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.REJECT);
+		}
 	}
 
 	/**

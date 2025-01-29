@@ -83,12 +83,12 @@ public interface WorkflowService {
 	 * Approve request for publish
 	 *
 	 * @param siteId         site identifier
-	 * @param packageId      package identifier
+	 * @param packageIds      package identifiers
 	 * @param schedule       schedule when to publish content
 	 * @param updateSchedule true to update package schedule using the schedule parameter, false to keep the current schedule
 	 * @param comment        approval comment
 	 */
-	void approvePackage(String siteId, long packageId, Instant schedule, boolean updateSchedule, String comment)
+	void approvePackages(String siteId, Collection<Long> packageIds, Instant schedule, boolean updateSchedule, String comment)
 		throws ServiceLayerException, AuthenticationException;
 
 	/**
@@ -106,10 +106,10 @@ public interface WorkflowService {
 	 * Reject publish package
 	 *
 	 * @param siteId    site identifier
-	 * @param packageId the package to reject
+	 * @param packageIds the packages to reject
 	 * @param comment   rejection comment
 	 * @throws SiteNotFoundException site not found
 	 */
-	void rejectPackage(String siteId, long packageId, String comment)
+	void rejectPackages(String siteId, Collection<Long> packageIds, String comment)
 		throws ServiceLayerException, AuthenticationException;
 }

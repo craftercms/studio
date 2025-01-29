@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.publish.PackageId;
+import org.craftercms.studio.api.v2.annotation.publish.PackageIds;
 import org.craftercms.studio.api.v2.annotation.publish.RequirePackageExists;
 import org.craftercms.studio.api.v2.security.publish.PeerReviewCapable;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -85,19 +86,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
 	@Override
-	@RequirePackageExists
+	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_APPROVE)
 	@PeerReviewCapable
-	public void approvePackage(@SiteId String siteId, @PackageId long packageId, Instant schedule, boolean updateSchedule, String comment)
+	public void approvePackages(@SiteId String siteId, @PackageIds Collection<Long> packageIds, Instant schedule, boolean updateSchedule, String comment)
 		throws AuthenticationException, ServiceLayerException {
-		workflowServiceInternal.approvePackage(siteId, packageId, schedule, updateSchedule, comment);
+		workflowServiceInternal.approvePackages(siteId, packageIds, schedule, updateSchedule, comment);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_REJECT)
-	public void rejectPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
-		workflowServiceInternal.rejectPackage(siteId, packageId, comment);
+	public void rejectPackages(@SiteId String siteId, Collection<Long> packageIds, String comment) throws ServiceLayerException, AuthenticationException {
+		workflowServiceInternal.rejectPackages(siteId, packageIds, comment);
 	}
 
 	@Override
