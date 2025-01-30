@@ -337,7 +337,8 @@ public interface ItemDAO {
     List<String> getMandatoryParentsForPublishing(@Param(SITE_ID) String siteId,
                                                   @Param(POSSIBLE_PARENTS) List<String> possibleParents,
                                                   @Param(NEW_MASK) long newMask,
-                                                  @Param(MODIFIED_MASK) long modifiedMask);
+                                                  @Param(MODIFIED_MASK) long modifiedMask,
+                                                  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(@Param(SITE_ID) String siteId,
                                                                            @Param(PARENTS) List<String> parents,

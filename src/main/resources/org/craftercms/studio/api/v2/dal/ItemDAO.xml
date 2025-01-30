@@ -1044,6 +1044,7 @@
     </update>
 
     <select id="getMandatoryParentsForPublishing" resultType="String">
+        <!-- NEW Non-folder children of "possibleParents"-->
         SELECT i3.path AS path
         FROM item i1 INNER JOIN site s ON i1.site_id = s.id INNER JOIN item i3 ON i1.parent_id = i3.id
         WHERE s.site_id = #{siteId}
@@ -1055,7 +1056,9 @@
             #{path}
         </foreach>
         AND (i3.state &amp; #{newMask}) > 0
+        AND i3.system_type &lt;&gt; #{systemTypeFolder}
         UNION
+        <!-- RENAMED (modified + previous_path) non-folder children of "possibleParents" -->
         SELECT i4.path AS path
         FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id INNER JOIN item i4 ON i2.parent_id = i4.id
         WHERE s2.site_id = #{siteId}
@@ -1067,6 +1070,7 @@
             #{path}
         </foreach>
         AND (i4.state &amp; #{modifiedMask}) > 0
+        AND i4.system_type &lt;&gt; #{systemTypeFolder}
     </select>
 
     <select id="getExistingRenamedChildrenOfMandatoryParentsForPublishing" parameterType="java.util.Map" resultType="String">
