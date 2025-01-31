@@ -418,7 +418,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths) {
-        return itemDao.getMandatoryParentsForPublishing(siteId, paths, NEW_MASK, MODIFIED_MASK);
+        return itemDao.getMandatoryParentsForPublishing(siteId, paths, NEW_MASK, MODIFIED_MASK, CONTENT_TYPE_FOLDER);
     }
 
     @Override

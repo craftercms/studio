@@ -44,8 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static java.lang.String.format;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
@@ -406,7 +405,7 @@ public class DependencyServiceImpl implements DependencyService {
         if (!possibleParents.isEmpty()) {
             List<String> pp = new ArrayList<>(possibleParents);
             List<String> result = itemDao.getMandatoryParentsForPublishing(site, pp, ItemState.NEW_MASK,
-                    ItemState.MODIFIED_MASK);
+                    ItemState.MODIFIED_MASK, CONTENT_TYPE_FOLDER);
             toRet.addAll(result);
         }
         return toRet;
