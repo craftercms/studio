@@ -100,7 +100,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     @RequireSiteExists
     public List<String> getHardDependencies(@SiteId String site, List<String> paths) {
         Map<String, String> dependencies = calculateHardDependencies(site, paths);
-        return new ArrayList<>(dependencies.keySet());
+        // Prevent returning the paths as dependencies of themselves
+        return List.copyOf(CollectionUtils.subtract(dependencies.keySet(), paths));
     }
 
     /**
@@ -134,12 +135,11 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);
         Set<String> pathsParams = new HashSet<>(paths);
         List<String> mandatoryParents = getMandatoryParents(site, paths);
-        List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<>();
         if (isNotEmpty(mandatoryParents)) {
             pathsParams.addAll(mandatoryParents);
             Set<String> existingRenamedChildrenOfMandatoryParents =
-                    getExistingRenamedChildrenOfMandatoryParents(site, mpAsList);
+                    getExistingRenamedChildrenOfMandatoryParents(site, mandatoryParents);
             for (String p3 : existingRenamedChildrenOfMandatoryParents) {
                 ancestors.put(p3, p3);
             }
