@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 3 as published by
+  * the Free Software Foundation.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <!-- permission-mappings-config.xml
 
@@ -29,7 +29,7 @@
   View the sample for a good starting point.
 -->
 <permissions>
-	<version>4.2.0.1</version>
+	<version>5.0.0.0</version>
 	<role name="author">
 		<rule regex="/site/website/.*|/site/components(/.*)?|/static-assets(/.*)?">
 			<allowed-permissions>
@@ -101,12 +101,10 @@
 				<permission>cancel_publish</permission>
 				<permission>folder_create</permission>
 				<permission>content_create</permission>
-				<permission>change_content_type</permission>
 				<permission>add_remote</permission>
 				<permission>list_remotes</permission>
 				<permission>pull_from_remote</permission>
 				<permission>push_to_remote</permission>
-				<permission>rebuild_database</permission>
 				<permission>remove_remote</permission>
 				<permission>site_status</permission>
 				<permission>resolve_conflict</permission>
@@ -149,12 +147,10 @@
 				<permission>cancel_publish</permission>
 				<permission>folder_create</permission>
 				<permission>content_create</permission>
-				<permission>change_content_type</permission>
 				<permission>add_remote</permission>
 				<permission>list_remotes</permission>
 				<permission>pull_from_remote</permission>
 				<permission>push_to_remote</permission>
-				<permission>rebuild_database</permission>
 				<permission>remove_remote</permission>
 				<permission>site_status</permission>
 				<permission>resolve_conflict</permission>
@@ -162,7 +158,6 @@
 				<permission>commit_resolution</permission>
 				<permission>cancel_failed_pull</permission>
 				<permission>encryption_tool</permission>
-				<permission>publish_clear_lock</permission>
 				<permission>unlock_repository</permission>
 				<permission>content_copy</permission>
 				<permission>repair_repository</permission>

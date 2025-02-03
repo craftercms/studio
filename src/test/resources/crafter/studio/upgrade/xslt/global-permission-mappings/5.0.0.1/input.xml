@@ -67,6 +67,7 @@
 				<permission>list_remotes</permission>
 				<permission>pull_from_remote</permission>
 				<permission>push_to_remote</permission>
+				<permission>rebuild_database</permission>
 				<permission>remove_remote</permission>
 				<permission>s3_read</permission>
 				<permission>s3_write</permission>
@@ -95,11 +96,13 @@
 				<permission>content_create</permission>
 				<permission>get_publishing_queue</permission>
 				<permission>cancel_publish</permission>
+				<permission>change_content_type</permission>
 				<permission>site_status</permission>
 				<permission>resolve_conflict</permission>
 				<permission>site_diff_conflicted_file</permission>
 				<permission>commit_resolution</permission>
 				<permission>cancel_failed_pull</permission>
+				<permission>publish_clear_lock</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
