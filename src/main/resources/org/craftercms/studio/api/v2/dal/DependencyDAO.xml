@@ -67,6 +67,7 @@
 		FROM dependency d
 		INNER JOIN site s ON s.site_id = d.site
 		INNER JOIN item i ON i.path = d.target_path
+		INNER JOIN item_target it ON it.item_id = i.id AND it.target = #{target}
 		WHERE d.source_path IN
 		<foreach item="path" index="index" collection="paths"
 			 open="(" separator="," close=")">
@@ -83,6 +84,7 @@
 		AND s.deleted = 0
 		AND (i.state &amp; #{modifiedMask}) > 0
 		AND (i.state &amp; #{newMask}) = 0
+		AND (it.previous_path IS NULL)
 	</select>
 
 	<!-- Recursively get:
@@ -146,37 +148,37 @@
 		- Get previously-published descendants of moved ancestors
 		- Get dependencies from table where:
 		    - source_path is in the list of paths
-		    - target_path is new OR target_path is item-specific dependency
+		    - target_path is new (or renamed) OR target_path is item-specific dependency
 		    -->
 		WITH RECURSIVE parents AS (
-		<include refid="recursiveParentsForHardDeps"/>
+			<include refid="recursiveParentsForHardDeps"/>
 		),
 		children AS (
-		<include refid="recursiveChildrenForHardDeps"/>
+			<include refid="recursiveChildrenForHardDeps"/>
 		),
 		deps AS (
-		SELECT c.path
-		FROM children c
-		WHERE system_type &lt;&gt; #{systemTypeFolder}
+			SELECT c.path
+			FROM children c
+			WHERE system_type &lt;&gt; #{systemTypeFolder}
 		UNION
-		SELECT d.target_path AS path
-		FROM dependency d
-		INNER JOIN deps ON deps.path = d.source_path
-		INNER JOIN item targetItem ON targetItem.path = d.target_path
-		INNER JOIN site s ON s.id = targetItem.site_id
-		WHERE d.site = #{siteId}
-		AND s.deleted = 0
-		AND s.site_id = #{siteId}
-		AND d.valid = 1
-		AND (
-		((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
-		AND (targetItem.state &amp; #{newInTargetMaskOff}) = 0)
-		OR
-		<foreach item="pattern" index="index" collection="regex"
-			 open="(" separator=" OR " close=")">
-			targetItem.path RLIKE #{pattern}  <!-- Item-specific dependency -->
-		</foreach>
-		)
+			SELECT d.target_path AS path
+			FROM dependency d
+			INNER JOIN deps ON deps.path = d.source_path
+			INNER JOIN item targetItem ON targetItem.path = d.target_path
+			INNER JOIN site s ON s.id = targetItem.site_id
+			WHERE d.site = #{siteId}
+			AND s.deleted = 0
+			AND s.site_id = #{siteId}
+			AND d.valid = 1
+			AND (
+				((targetItem.state &amp; #{newInTargetMaskOn}) = #{newInTargetMaskOn} <!-- "Not published to the given publishing target -->
+					AND (targetItem.state &amp; #{newInTargetMaskOff}) = 0)
+				OR <foreach item="pattern" index="index" collection="regex"
+					 open="(" separator=" OR " close=")">
+					targetItem.path RLIKE #{pattern}  <!-- Item-specific dependency -->
+				</foreach>
+				OR EXISTS (SELECT 1 FROM item_target it WHERE it.item_id = targetItem.id AND it.target = #{target} AND it.previous_path IS NOT NULL)
+			)
 		)
 		SELECT path
 		FROM deps

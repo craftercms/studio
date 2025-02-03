@@ -52,7 +52,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of soft dependencies
 	 */
-	Collection<String> getPublishingSoftDependencies(String site, Set<String> paths);
+	Collection<String> getPublishingSoftDependencies(String site, Set<String> paths, String target);
 
 	/**
 	 * Get then hard dependencies of an item. A hard

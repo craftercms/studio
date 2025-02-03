@@ -84,14 +84,14 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@LogExecutionTime
-	public Collection<String> getPublishingSoftDependencies(final String site, final Set<String> paths) {
+	public Collection<String> getPublishingSoftDependencies(final String site, final Set<String> paths, String target) {
 		logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
 		if (isEmpty(paths)) {
 			return emptyList();
 		}
 		Set<String> result = new HashSet<>();
 		List<Map<String, String>> deps = dependencyDao.getPublishingSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
-			MODIFIED_MASK, NEW_MASK);
+			MODIFIED_MASK, NEW_MASK, target);
 		for (Map<String, String> d : deps) {
 			String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
 			if (!paths.contains(targetPath)) {
