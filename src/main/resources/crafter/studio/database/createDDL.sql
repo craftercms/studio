@@ -215,7 +215,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.18', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.0.19', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -493,8 +493,9 @@ VALUES (6, CURRENT_TIMESTAMP, 1, 'site_reviewer', 'Site Reviewer group', 0) ;
 
 CREATE TABLE IF NOT EXISTS group_user
 (
-  `user_id`  BIGINT(20) NOT NULL,
-  `group_id`  BIGINT(20)       NOT NULL,
+  `user_id`             BIGINT(20)   NOT NULL,
+  `group_id`            BIGINT(20)   NOT NULL,
+  `externally_managed`  INT          NOT NULL DEFAULT 0,
   `record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`, `group_id`),
   FOREIGN KEY group_member_ix_user_id(`user_id`) REFERENCES `user` (`id`)
