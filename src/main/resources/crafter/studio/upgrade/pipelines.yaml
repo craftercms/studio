@@ -721,6 +721,11 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.2.x/system/global-permission-mappings-config-v4.2.0.18.xslt
             commitDetails: Add new permission for site_admin
+      - currentVersion: 4.2.0.18
+        nextVersion: 4.2.0.19
+        operations:
+            - type: dbScriptUpgrader
+              filename: upgrade/4.2.x/4.2.0.18-to-4.2.0.19.sql
 
   # Pipeline to upgrade site repositories
   site:
