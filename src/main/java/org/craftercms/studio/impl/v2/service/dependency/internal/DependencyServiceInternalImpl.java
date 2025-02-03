@@ -118,6 +118,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 			return emptyList();
 		}
 		boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site), publishingTarget);
+		// TODO: review this and see if we need to recalculate so the renamed parents/children of hard deps are included
 		return dependencyDao.getHardDependenciesForList(site, publishingTarget, paths,
 			getItemSpecificDependenciesPatterns(), isLiveTarget);
 	}

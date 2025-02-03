@@ -83,8 +83,9 @@ public interface DependencyDAO {
 													final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
 		long newMaskOn = NEW.value;
 		long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
+		long modifiedMask = MODIFIED.value;
 		return getHardDependenciesForList(site, target, paths, itemSpecificDependenciesPatterns,
-			CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, isLiveTarget);
+			CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, modifiedMask, isLiveTarget);
 	}
 
 	/**
@@ -98,6 +99,7 @@ public interface DependencyDAO {
 	 *                                         items must contain the bits in this mask
 	 * @param newInTargetMaskOff               state bit mask for new item in target (e.g: never published in live)
 	 *                                         items must not contain the bits in this mask
+	 * @param modifiedMask                     state bit mask for modified item
 	 * @param isLiveTarget                     true if publishing target is live, false if staging
 	 * @return List of hard dependencies
 	 */
@@ -107,6 +109,7 @@ public interface DependencyDAO {
 											@Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
 											@Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
 											@Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
+											@Param(MODIFIED_MASK) long modifiedMask,
 											@Param(IS_LIVE_TARGET) boolean isLiveTarget);
 
 	/**
