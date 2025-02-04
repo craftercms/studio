@@ -50,7 +50,7 @@ public class ApiResponse {
 		new ApiResponse(2000, "Unauthenticated", "Please login first", StringUtils.EMPTY);
 	public static final ApiResponse UNAUTHORIZED = new ApiResponse(2001, "Unauthorized",
 		"You don't have permission to perform this task, please contact your administrator", StringUtils.EMPTY);
-	public static final ApiResponse PEER_REVIEW_CHECK_FAILED = new ApiResponse(2002, "Unauthorized",
+	public static final ApiResponse PEER_REVIEW_CHECK_FAILED = new ApiResponse(2002, "Peer-review check failed",
 		"Users are not allowed to approve their own packages when peer-review is enabled", StringUtils.EMPTY);
 
 	// 3000 - 4000
