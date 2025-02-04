@@ -172,7 +172,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			.collect(teeing(
 				flatMapping(requestPath -> expandPublishRequestPath(site, requestPath).stream(), toSet()),
 				flatMapping(requestPath -> (requestPath.includeSoftDeps() ?
-					dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), Set.of(requestPath.path()))
+					dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), Set.of(requestPath.path()), publishingTarget)
 					: SetUtils.<String>emptySet()).stream(), toSet()),
 				SetUtils::union
 			)));
@@ -189,7 +189,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		Collection<String> deletedPaths = commitOperations.get(true);
 
-		Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths);
+		Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
 		// Get hard deps of them all
 		Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
 		return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
@@ -203,7 +203,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
 		Collection<String> deletedPaths = publishPaths.get(true);
 
-		Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths);
+		Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
 		Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
 		return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
@@ -402,7 +402,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * - Include children if requested
 	 */
 	private void createPublishItemsFromPaths(final Site site, final Collection<PublishRequestPath> publishRequestPaths,
-						 final Map<String, PublishItem> publishItemsByPath) throws InvalidParametersException {
+						 final Map<String, PublishItem> publishItemsByPath, final String target) {
 		if (isEmpty(publishRequestPaths)) {
 			return;
 		}
@@ -417,7 +417,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			}
 		}
 		if (!softDepsPaths.isEmpty()) {
-			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths));
+			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target));
 		}
 
 		if (isNotEmpty(allPaths)) {
@@ -621,7 +621,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		throws ServiceLayerException, AuthenticationException {
 		try {
 			// Combine list of paths and list of commit changes
-			Collection<PublishItem> publishItems = getPublishItemsFunction.get(site, paths, commitIds);
+			Collection<PublishItem> publishItems = getPublishItemsFunction.get(site, paths, commitIds, target);
 			PublishPackage publishPackage = submitPublishPackage(site, target, packageType, requestApproval,
 				schedule, title, comment, publishItems);
 
@@ -688,8 +688,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	@FunctionalInterface
 	protected interface GetPublishItems {
 		Collection<PublishItem> get(final Site site,
-					    final Collection<PublishRequestPath> paths,
-					    final Collection<String> commitIds)
+									final Collection<PublishRequestPath> paths,
+									final Collection<String> commitIds,
+									final String target)
 			throws ServiceLayerException, IOException;
 	}
 
@@ -704,7 +705,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 */
 	protected long buildInitialPublishPackage(Site site, String publishingTarget, boolean requestApproval, String title, String comment)
 		throws AuthenticationException, ServiceLayerException {
-		return buildPublishPackage(site, publishingTarget, INITIAL_PUBLISH, emptyList(), emptyList(), requestApproval, null, title, comment, (s, p, c) -> emptyList());
+		return buildPublishPackage(site, publishingTarget, INITIAL_PUBLISH, emptyList(), emptyList(), requestApproval, null, title, comment, (s, p, c, t) -> emptyList());
 	}
 
 	/**
@@ -743,7 +744,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 */
 	protected long buildPublishAllPackage(Site site, String publishingTarget, boolean requestApproval, String title, String comment) throws AuthenticationException, ServiceLayerException {
 		return buildPublishPackage(site, publishingTarget, PUBLISH_ALL, emptyList(), emptyList(),
-			requestApproval, null, title, comment, (siteId, __, ___) -> getPublishAllItems(siteId));
+			requestApproval, null, title, comment, (siteId, __, ___, ____) -> getPublishAllItems(siteId));
 	}
 
 	/**
@@ -756,11 +757,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 */
 	@NotNull
 	protected Collection<PublishItem> getItemListPackageItems(final Site site, final Collection<PublishRequestPath> paths,
-								  final Collection<String> commitIds) throws ServiceLayerException, IOException {
+								  final Collection<String> commitIds, final String target) throws ServiceLayerException, IOException {
 		// Combine list of paths and list of commit changes
 		Map<String, PublishItem> publishItemsByPath = new HashMap<>();
 		createPublishItemsFromCommitIds(site, commitIds, publishItemsByPath);
-		createPublishItemsFromPaths(site, paths, publishItemsByPath);
+		createPublishItemsFromPaths(site, paths, publishItemsByPath, target);
 		createPublishItemsForHardDeps(site, publishItemsByPath);
 
 		if (publishItemsByPath.isEmpty()) {

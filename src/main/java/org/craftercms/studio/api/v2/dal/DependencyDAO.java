@@ -50,9 +50,9 @@ public interface DependencyDAO {
 	 * @return List of soft dependencies
 	 */
 	List<Map<String, String>> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-							     @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-							     @Param(MODIFIED_MASK) long modifiedMask,
-							     @Param(NEW_MASK) long newMask);
+														 @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+														 @Param(MODIFIED_MASK) long modifiedMask,
+														 @Param(NEW_MASK) long newMask);
 
 	/**
 	 * Get publishing soft dependencies from DB for list of content paths
@@ -65,9 +65,10 @@ public interface DependencyDAO {
 	 * @return List of soft dependencies
 	 */
 	List<Map<String, String>> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-								       @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-								       @Param(MODIFIED_MASK) long modifiedMask,
-								       @Param(NEW_MASK) long newMask);
+																   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+																   @Param(MODIFIED_MASK) long modifiedMask,
+																   @Param(NEW_MASK) long newMask,
+																   @Param(TARGET) String target);
 
 	/**
 	 * Get hard dependencies from DB for list of content paths
@@ -79,11 +80,12 @@ public interface DependencyDAO {
 	 * @return List of hard dependencies
 	 */
 	default List<String> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
-							final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
+													final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
 		long newMaskOn = NEW.value;
 		long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
+		long modifiedMask = MODIFIED.value;
 		return getHardDependenciesForList(site, target, paths, itemSpecificDependenciesPatterns,
-			CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, isLiveTarget);
+			CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, modifiedMask, isLiveTarget);
 	}
 
 	/**
@@ -97,16 +99,18 @@ public interface DependencyDAO {
 	 *                                         items must contain the bits in this mask
 	 * @param newInTargetMaskOff               state bit mask for new item in target (e.g: never published in live)
 	 *                                         items must not contain the bits in this mask
+	 * @param modifiedMask                     state bit mask for modified item
 	 * @param isLiveTarget                     true if publishing target is live, false if staging
 	 * @return List of hard dependencies
 	 */
 	List<String> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
-						@Param(PATHS) Collection<String> paths,
-						@Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-						@Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-						@Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
-						@Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
-						@Param(IS_LIVE_TARGET) boolean isLiveTarget);
+											@Param(PATHS) Collection<String> paths,
+											@Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+											@Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+											@Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
+											@Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
+											@Param(MODIFIED_MASK) long modifiedMask,
+											@Param(IS_LIVE_TARGET) boolean isLiveTarget);
 
 	/**
 	 * Get items depending on given paths
@@ -126,7 +130,7 @@ public interface DependencyDAO {
 	 * @return list of item specific dependencies
 	 */
 	List<String> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
-						 @Param(REGEX) List<String> regex);
+											 @Param(REGEX) List<String> regex);
 
 	/**
 	 * Delete the dependencies of sourcePath

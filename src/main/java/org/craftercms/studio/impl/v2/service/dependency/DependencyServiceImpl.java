@@ -57,8 +57,8 @@ public class DependencyServiceImpl implements DependencyService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Collection<String> getPublishingSoftDependencies(@SiteId String siteId,
-								@ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths) {
-		return dependencyServiceInternal.getPublishingSoftDependencies(siteId, paths);
+								@ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths, String target) {
+		return dependencyServiceInternal.getPublishingSoftDependencies(siteId, paths, target);
 	}
 
 	@Override
