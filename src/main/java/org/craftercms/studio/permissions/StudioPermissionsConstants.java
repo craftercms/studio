@@ -33,7 +33,6 @@ public final class StudioPermissionsConstants {
 	public static final String PERMISSION_CREATE_SITE = "create_site";
 	public static final String PERMISSION_DUPLICATE_SITE = "duplicate_site";
 	public static final String PERMISSION_DELETE_SITE = "delete_site";
-	public static final String PERMISSION_DELETE_CLUSTER = "delete_cluster";
 	public static final String PERMISSION_CONTENT_DELETE = "content_delete";
 	public static final String PERMISSION_DELETE_GROUPS = "delete_groups";
 	public static final String PERMISSION_DELETE_USERS = "delete_users";
@@ -59,7 +58,6 @@ public final class StudioPermissionsConstants {
 	public static final String PERMISSION_S3_WRITE = "s3_write";
 	public static final String PERMISSION_SITE_DIFF_CONFLICTED_FILE = "site_diff_conflicted_file";
 	public static final String PERMISSION_SITE_STATUS = "site_status";
-	public static final String PERMISSION_UPDATE_CLUSTER = "update_cluster";
 	public static final String PERMISSION_UPDATE_GROUPS = "update_groups";
 	public static final String PERMISSION_UPDATE_USERS = "update_users";
 	public static final String PERMISSION_WEBDAV_READ = "webdav_read";

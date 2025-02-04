@@ -40,5 +40,7 @@
 	<xsl:template match="permissions/role/rule/allowed-permissions/permission[text()='change_content_type']"/>
 	<xsl:template match="permissions/role/rule/allowed-permissions/permission[text()='publish_clear_lock']"/>
 	<xsl:template match="permissions/role/rule/allowed-permissions/permission[text()='rebuild_database']"/>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[text()='delete_cluster']"/>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[text()='update_cluster']"/>
 
 </xsl:stylesheet>
