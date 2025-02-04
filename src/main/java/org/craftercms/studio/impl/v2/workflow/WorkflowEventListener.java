@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.workflow;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -77,7 +78,7 @@ public class WorkflowEventListener {
 	@Async
 	@EventListener
 	@LogExecutionTime
-	public void handleEvent(final WorkflowEvent event) throws ServiceLayerException {
+	public void handleEvent(final WorkflowEvent event) throws ServiceLayerException, UserNotFoundException {
 		if (!notificationsEnabled()) {
 			logger.debug("Workflow notifications are disabled, ignoring workflow event: {}", event);
 			return;

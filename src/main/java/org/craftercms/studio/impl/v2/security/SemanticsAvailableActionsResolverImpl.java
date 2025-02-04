@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,16 +24,12 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
-import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.Person;
@@ -46,12 +42,16 @@ import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.*;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
+/**
+ * Default implementation of {@link SemanticsAvailableActionsResolver}
+ */
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
 	private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
@@ -59,41 +59,35 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	private AvailableActionsResolver availableActionsResolver;
 	private ContentServiceInternal contentServiceInternal;
 	private ServicesConfig servicesConfig;
-	private UserServiceInternal userServiceInternal;
 	private StudioBlobStoreResolver studioBlobStoreResolver;
 	private ContentTypeServiceInternal contentTypeServiceInternal;
-	private PublishService publishServiceInternal;
 
 	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, Item item)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, item.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
 		long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
 			hasUnlockPermission(item.getLockOwner(), item.getState(), siteId, item.getPath(), username));
 
 		long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-		Person modifier = item.getModifier();
-		String modifierUsername = modifier != null ? modifier.getUsername() : null;
 		return applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
-			item.getSystemType(), item.getContentTypeId(), modifierUsername, item.getState(), result);
+				item.getSystemType(), item.getContentTypeId(), item.getState(), result);
 	}
 
 	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
 		long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
 			hasUnlockPermission(detailedItem.getLockOwner(), detailedItem.getState(), siteId, detailedItem.getPath(), username));
 
 		long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-		Person modifier = detailedItem.getSandbox().getModifier();
-		String modifierUsername = modifier != null ? modifier.getUsername() : null;
 		return applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
-			detailedItem.getSystemType(), detailedItem.getContentTypeId(), modifierUsername,
-			detailedItem.getState(),
-			result);
+				detailedItem.getSystemType(), detailedItem.getContentTypeId(),
+				detailedItem.getState(),
+				result);
 	}
 
 	/**
@@ -121,10 +115,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long applySpecialUseCaseFilters(String username, String siteId, String itemPath, String itemMimeType,
-						String itemSystemType, String itemContentTypeId, String itemModifier,
-						long itemState,
-						long availableActions)
-		throws ServiceLayerException, UserNotFoundException {
+											String itemSystemType, String itemContentTypeId,
+											long itemState,
+											long availableActions)
+			throws ServiceLayerException, UserNotFoundException {
 		long result = availableActions;
 
 		// The item is locked and the user is not the owner of the lock
@@ -161,7 +155,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
 		if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-			ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
+				ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
 			result &= ~CONTENT_DELETE;
 			result &= ~CONTENT_CUT;
 			result &= ~CONTENT_RENAME;
@@ -174,35 +168,23 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		}
 
 		if ((result & CONTENT_UPLOAD) > 0 &&
-			(!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
-				!StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
+				(!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
+						!StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
 			result &= ~CONTENT_UPLOAD;
-		}
-
-		if (servicesConfig.isRequirePeerReview(siteId)) {
-			if (StringUtils.equals(username, itemModifier)) {
-				result &= ~PUBLISH_SCHEDULE;
-				result &= ~PUBLISH;
-			}
-
-			if (isInWorkflow(itemState)) {
-				PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(siteId, itemPath, false);
-				User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-				if (user.getId() == publishPackage.getSubmitterId()) {
-					result &= ~PUBLISH_SCHEDULE;
-				}
-			}
 		}
 
 		// controller and template
 		if (isNotEmpty(itemContentTypeId)) {
 			String controllerPath = contentTypeServiceInternal.getContentTypeControllerPath(itemContentTypeId);
 			result = checkActionForDependency(siteId, username, controllerPath, result,
-				CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
+					CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
 			String templatePath = contentTypeServiceInternal.getContentTypeTemplatePath(siteId, itemContentTypeId);
 			result = checkActionForDependency(siteId, username, templatePath, result,
-				CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
+					CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
 		}
+
+		long siteWideActions = availableActionsResolver.getSiteWideActions(siteId, username);
+		result = result | siteWideActions;
 
 		return result;
 	}
@@ -236,9 +218,9 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long checkActionForDependency(String siteId, String username, String dependencyPath,
-					      long actions, long itemEditMask, long depEditMask,
-					      long itemDeleteMask, long depDeleteMask)
-		throws UserNotFoundException, ServiceLayerException {
+										  long actions, long itemEditMask, long depEditMask,
+										  long itemDeleteMask, long depDeleteMask)
+			throws UserNotFoundException, ServiceLayerException {
 		if (isNotEmpty(dependencyPath)) {
 			long depAvailableActions = availableActionsResolver.getContentItemAvailableActions(username, siteId, dependencyPath);
 			actions = updateForDependency(actions, depAvailableActions, itemEditMask, depEditMask);
@@ -251,7 +233,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long updateForDependency(long itemActions, long dependencyActions, long itemActionMask,
-					 long dependencyActionMask) {
+									 long dependencyActionMask) {
 		// Check if the available actions for the dependency contain the required bit
 		if ((dependencyActions & dependencyActionMask) > 0) {
 			// If so, turn on the bit for the item too
@@ -275,10 +257,6 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.servicesConfig = servicesConfig;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
 	public void setStudioBlobStoreResolver(StudioBlobStoreResolver studioBlobStoreResolver) {
 		this.studioBlobStoreResolver = studioBlobStoreResolver;
 	}
@@ -289,9 +267,5 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 	public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {
 		this.securityServiceV1 = securityServiceV1;
-	}
-
-	public void setPublishServiceInternal(final PublishService publishServiceInternal) {
-		this.publishServiceInternal = publishServiceInternal;
 	}
 }

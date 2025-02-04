@@ -3346,7 +3346,7 @@ paths:
                   </page>"
                             writeContentAssetForm:
                                 value: <#import "/templates/system/common/cstudio-support.ftl" as studio />
-                                    
+
                                     <!DOCTYPE HTML>
                                     <!--
                                     Editorial by HTML5 UP
@@ -3368,14 +3368,14 @@ paths:
                                     <body>
                                     <!-- Wrapper -->
                                     <div id="wrapper">
-                                    
+
                                     <!-- Main -->
                                     <div id="main">
                                     <div class="inner">
-                                    
+
                                     <!-- Header -->
                                     <@renderComponent component=contentModel.header_o.item />
-                                    
+
                                     <!-- Banner -->
                                     <section id="banner" <@studio.iceAttr iceGroup="hero"/>>
                                     <div class="content">
@@ -3386,7 +3386,7 @@ paths:
                                     <img src="${contentModel.hero_image_s !""}" alt="" />
                                     </span>
                                     </section>
-                                    
+
                                     <!-- Section -->
                                     <section <@studio.iceAttr iceGroup="features"/>>
                                     <header class="major">
@@ -3400,7 +3400,7 @@ paths:
                                     </#if>
                                     </div>
                                     </section>
-                                    
+
                                     <!-- Section -->
                                     <section>
                                     <header class="major">
@@ -3426,15 +3426,15 @@ paths:
                                     </#list>
                                     </div>
                                     </section>
-                                    
+
                                     </div>
                                     </div>
-                                    
+
                                     <!-- Left Rail -->
                                     <@renderComponent component=contentModel.left\-rail_o.item />
-                                    
+
                                     </div>
-                                    
+
                                     <!-- Scripts -->
                                     <script src="/static-assets/js/jquery.min.js"></script>
                                     <script src="/static-assets/js/jquery-ui.min.js"></script>
@@ -3442,7 +3442,7 @@ paths:
                                     <script src="/static-assets/js/util.js"></script>
                                     <!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
                                     <script src="/static-assets/js/main.js?v=${siteContext.siteName}"></script>
-                                    
+
                                     <@studio.toolSupport/>
                                     </body>
                                     </html>
@@ -6358,7 +6358,7 @@ paths:
             tags:
                 - publishing
             summary: Publishes the given content to the target (staging or live)
-            description: 'Required permission "publish" when requestApproval is false, "content_read" when requestApproval is true. <br />'
+            description: 'Required permission "publish_request". Additionally requires "publish_approve" when requestApproval is false. <br />'
             operationId: publish
             parameters:
                 -   name: siteId
@@ -6423,7 +6423,7 @@ paths:
             tags:
                 - publishing
             summary: Get the list of packages in the publishing queue
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: GetPublishPackages
             parameters:
                 -   name: siteId
@@ -6530,7 +6530,7 @@ paths:
             tags:
                 - publishing
             summary: Get package details
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: getPublishPackage
             parameters:
                 -   name: siteId
@@ -6574,7 +6574,7 @@ paths:
             tags:
                 - publishing
             summary: Get publish package items
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: getPublishPackageItems
             parameters:
                 -   name: siteId
@@ -6743,7 +6743,7 @@ paths:
             tags:
                 - publishing
             summary: Signal the publisher to pick the next package in the queue, if any.
-            description: 'Required permission "request_publish, publish"'
+            description: 'Required permission "publish_request, publish_approve"'
             operationId: triggerPublisher
             parameters:
                 -   name: siteId
@@ -6770,75 +6770,6 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-
-    /api/2/publish/{siteId}/package/{packageId}/clone:
-        post:
-            tags:
-                - publishing
-            summary: Clone an existing publish package
-            description: 'Required permission "request_publish, publish"'
-            operationId: clonePublishPackage
-            parameters:
-                -   name: siteId
-                    in: path
-                    description: site ID
-                    required: true
-                    schema:
-                        type: string
-                -   name: packageId
-                    in: path
-                    description: the ID of the existing package
-                    required: true
-                    schema:
-                        type: integer
-                        format: int64
-                        example: "12345"
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                schedule:
-                                    type: string
-                                    format: date-time
-                                    description: schedule the publish
-                                requestApproval:
-                                    type: boolean
-                                    description: submit the request for approval
-                                comment:
-                                    type: string
-                                    description: optional comment
-                                publishingTarget:
-                                    type: string
-                                    description: the publishing target (staging or live)
-                                    example: staging
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                                    package:
-                                        type: object
-                                        properties:
-                                            packageId:
-                                                type: string
-                                                description: the package id
-                                                example: "12346"
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
 
     /api/2/publish/{siteId}/status:
         get:
@@ -6880,7 +6811,7 @@ paths:
             tags:
                 - publishing
             summary: Get available publishing targets for site
-            description: 'Required permission "publish"'
+            description: 'Required permission "publish_request"'
             operationId: getAvailablePublishingTargets
             parameters:
                 -   name: siteId
@@ -8181,7 +8112,7 @@ paths:
             tags:
                 - workflow
             summary: Get workflow affected packages
-            description: 'Required permission "get_publishing_queue"'
+            description: 'Required permission "publish_get_queue"'
             operationId: getWorkflowAffectedPackages
             parameters:
                 -   name: site
@@ -8216,7 +8147,7 @@ paths:
                                     packages:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/PublishPackageStatus'
+                                            $ref: '#/components/schemas/PublishPackage'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -8233,7 +8164,7 @@ paths:
             tags:
                 - workflow
             summary: Approve request publish submission
-            description: 'Required permission "publish"'
+            description: 'Required permission "publish_approve"'
             operationId: workflowApprove
             parameters:
                 -   name: site
@@ -8297,7 +8228,7 @@ paths:
             tags:
                 - workflow
             summary: Reject publish package
-            description: 'Required permission "cancel_publish"'
+            description: 'Required permission "publish_cancel"'
             operationId: workflowReject
             parameters:
                 -   name: site
@@ -8354,7 +8285,7 @@ paths:
             tags:
                 - workflow
             summary: Cancel publish packages
-            description: 'Required permission "cancel_publish"'
+            description: 'Required permission "publish_cancel"'
             operationId: cancelPublishPackages
             parameters:
                 -   name: site
@@ -8478,6 +8409,7 @@ components:
                   * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
                   * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
                   * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
+                  * `CODE:` 2002, `MESSAGE:` Peer-review check failed, `REMEDIAL ACTION:` Users are not allowed to approve their own packages when peer-review is enabled
                   * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
                   * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
                   * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
@@ -9413,15 +9345,15 @@ components:
                     type: string
                     description: >-
                         Authentication type to use to access remote repository
-                        
+
                         Possible values:
-                        
+
                           - none: no authentication
-                        
+
                           - basic: username and password authentication
-                        
+
                           - token: token authentication
-                        
+
                           - key: key-based authentication
                 remoteUsername:
                     type: string
@@ -9525,49 +9457,100 @@ components:
             description: API v1 object
 
         PublishPackage:
-            allOf:
-                -   $ref: '#/components/schemas/PublishPackageStatus'
-                -   type: object
-                    properties:
-                        siteId:
-                            type: string
-                            description: site ID
-                        liveError:
-                            type: integer
-                            description: ApiResponse code
-                        stagingError:
-                            type: integer
-                            description: ApiResponse code
-                        publishedOn:
-                            type: string
-                            format: date-time
-                            description: date and time when package was published
-                        packageType:
-                            type: string
-                            description: package type
-                            enum:
-                                - INITIAL_PUBLISH
-                                - ITEM_LIST
-                                - PUBLISH_ALL
-                        commitId:
-                            type: string
-                            description: commit ID to be published
-                        publishedStagingCommitId:
-                            type: string
-                            description: commit ID published to staging
-                        publishedLiveCommitId:
-                            type: string
-                            description: commit ID published to live
-                        itemCount:
-                            type: integer
-                            description: number of items in the package
-                    required:
-                        - id
-                        - siteId
-                        - schedule
-                        - approver
-                        - state
-                        - publishingTarget
+            type: object
+            properties:
+                id:
+                    type: number
+                    example: 123
+                submitedOn:
+                    type: string
+                    format: date-time
+                submitterComment:
+                    type: string
+                reviewerComment:
+                    type: string
+                reviewedOn:
+                    type: string
+                    format: date-time
+                target:
+                    type: string
+                    example: live
+                approvalState:
+                    type: string
+                    enum:
+                        - SUBMITTED
+                        - APPROVED
+                        - REJECTED
+                packageState:
+                    type: number
+                    description: >-
+                        bitmap of states
+                          * `BIT ORDER (little-endian)`: 0, `FLAG`: READY, `DESCRIPTION`: The package is ready to be published (this is conditional on package approvalState)
+                          * `BIT ORDER (little-endian)`: 1: `FLAG`: PROCESSING, `DESCRIPTION`: The package is currently being processed
+                          * `BIT ORDER (little-endian)`: 2: `FLAG`: LIVE_SUCCESS, `DESCRIPTION`: The package has been published to live target
+                          * `BIT ORDER (little-endian)`: 3: `FLAG`: LIVE_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to live target due to errors
+                          * `BIT ORDER (little-endian)`: 4: `FLAG`: LIVE_FAILED, `DESCRIPTION`: The package failed to be published to live target
+                          * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The package has been published to stage
+                          * `BIT ORDER (little-endian)`: 6: `FLAG`: STAGING_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to stage target due to errors
+                          * `BIT ORDER (little-endian)`: 7: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The package failed to be published to stage target
+                          * `BIT ORDER (little-endian)`: 8: `FLAG`: COMPLETED, `DESCRIPTION`: The package has been completed in at least one target
+                          * `BIT ORDER (little-endian)`: 9: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
+                    example: 1
+                schedule:
+                    type: string
+                    format: date-time
+                submitter:
+                    $ref: '#/components/schemas/Person'
+                reviewer:
+                    $ref: '#/components/schemas/Person'
+                siteId:
+                    type: string
+                    description: site ID
+                liveError:
+                    type: integer
+                    description: ApiResponse code
+                stagingError:
+                    type: integer
+                    description: ApiResponse code
+                publishedOn:
+                    type: string
+                    format: date-time
+                    description: date and time when package was published
+                packageType:
+                    type: string
+                    description: package type
+                    enum:
+                        - INITIAL_PUBLISH
+                        - ITEM_LIST
+                        - PUBLISH_ALL
+                commitId:
+                    type: string
+                    description: commit ID to be published
+                publishedStagingCommitId:
+                    type: string
+                    description: commit ID published to staging
+                publishedLiveCommitId:
+                    type: string
+                    description: commit ID published to live
+                itemCount:
+                    type: integer
+                    description: number of items in the package
+                availableActions:
+                    type: integer
+                    format: int64
+                    description: >-
+                        available actions bitmap
+                          * `BIT ORDER (little-endian)`: 0, `FLAG`: Approve, `DESCRIPTION`: Approve the publish package
+                          * `BIT ORDER (little-endian)`: 1, `FLAG`: Reject, `DESCRIPTION`: Reject the publish package
+                          * `BIT ORDER (little-endian)`: 2, `FLAG`: Cancel, `DESCRIPTION`: Cancel the publish package
+                          * `BIT ORDER (little-endian)`: 3, `FLAG`: Resubmit, `DESCRIPTION`: Recalculate and resubmit the publish package
+            required:
+                - id
+                - siteId
+                - schedule
+                - approver
+                - state
+                - publishingTarget
 
         PublishItem:
             type: object
@@ -9966,9 +9949,9 @@ components:
                           * `BIT ORDER (little-endian)`: 18, `FLAG`: Content: Delete controller, `DESCRIPTION`: Delete content type controller
                           * `BIT ORDER (little-endian)`: 19, `FLAG`: Content: Delete template, `DESCRIPTION`: Delete rendering template
                           * `BIT ORDER (little-endian)`: 20, `FLAG`: Publish: Publish, `DESCRIPTION`: Publish content
-                          * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish: Approve, `DESCRIPTION`: Approve publish request
-                          * `BIT ORDER (little-endian)`: 22, `FLAG`: Publish: Schedule, `DESCRIPTION`: Schedule publish
-                          * `BIT ORDER (little-endian)`: 23, `FLAG`: Publish: Reject, `DESCRIPTION`: Reject publish request
+                          * `BIT ORDER (little-endian)`: 21, `FLAG`: RETIRED ACTION - Publish: Approve, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 22, `FLAG`: RETIRED ACTION - Publish: Schedule, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 23, `FLAG`: RETIRED ACTION - Publish: Reject, `DESCRIPTION`: This action is no longer used
                           * `BIT ORDER (little-endian)`: 24, `FLAG`: Content: Unlock, `DESCRIPTION`: Unlock content item
                 childrenCount:
                     type: integer
@@ -10092,9 +10075,9 @@ components:
                           * `BIT ORDER (little-endian)`: 18, `FLAG`: Content: Delete controller, `DESCRIPTION`: Delete content type controller
                           * `BIT ORDER (little-endian)`: 19, `FLAG`: Content: Delete template, `DESCRIPTION`: Delete rendering template
                           * `BIT ORDER (little-endian)`: 20, `FLAG`: Publish: Publish, `DESCRIPTION`: Publish content
-                          * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish: Approve, `DESCRIPTION`: Approve publish request
-                          * `BIT ORDER (little-endian)`: 22, `FLAG`: Publish: Schedule, `DESCRIPTION`: Schedule publish
-                          * `BIT ORDER (little-endian)`: 23, `FLAG`: Publish: Reject, `DESCRIPTION`: Reject publish request
+                          * `BIT ORDER (little-endian)`: 21, `FLAG`: RETIRED ACTION - Publish: Approve, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 22, `FLAG`: RETIRED ACTION - Publish: Schedule, `DESCRIPTION`: This action is no longer used
+                          * `BIT ORDER (little-endian)`: 23, `FLAG`: RETIRED ACTION - Publish: Reject, `DESCRIPTION`: This action is no longer used
                           * `BIT ORDER (little-endian)`: 24, `FLAG`: Content: Unlock, `DESCRIPTION`: Unlock content item
                 sandbox:
                     type: object
@@ -10369,7 +10352,7 @@ components:
                 systemTypes:
                     description: |-
                         filter children by system type
-                        
+
                         Note that this parameter does not honor "levelDescriptor" as a valid type
                     type: array
                     items:
@@ -11115,54 +11098,6 @@ components:
                                 type: string
                                 description: The commit comment
 
-        PublishPackageStatus:
-            type: object
-            properties:
-                id:
-                    type: number
-                    example: 123
-                submitedOn:
-                    type: string
-                    format: date-time
-                submitterComment:
-                    type: string
-                reviewerComment:
-                    type: string
-                reviewedOn:
-                    type: string
-                    format: date-time
-                target:
-                    type: string
-                    example: live
-                approvalState:
-                    type: string
-                    enum:
-                        - SUBMITTED
-                        - APPROVED
-                        - REJECTED
-                packageState:
-                    type: number
-                    description: >-
-                        bitmap of states
-                          * `BIT ORDER (little-endian)`: 0, `FLAG`: READY, `DESCRIPTION`: The package is ready to be published (this is conditional on package approvalState)
-                          * `BIT ORDER (little-endian)`: 1: `FLAG`: PROCESSING, `DESCRIPTION`: The package is currently being processed
-                          * `BIT ORDER (little-endian)`: 2: `FLAG`: LIVE_SUCCESS, `DESCRIPTION`: The package has been published to live target
-                          * `BIT ORDER (little-endian)`: 3: `FLAG`: LIVE_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to live target due to errors
-                          * `BIT ORDER (little-endian)`: 4: `FLAG`: LIVE_FAILED, `DESCRIPTION`: The package failed to be published to live target
-                          * `BIT ORDER (little-endian)`: 5: `FLAG`: STAGING_SUCCESS, `DESCRIPTION`: The package has been published to stage
-                          * `BIT ORDER (little-endian)`: 6: `FLAG`: STAGING_COMPLETED_WITH_ERRORS, `DESCRIPTION`: The package has been partially published to stage target due to errors
-                          * `BIT ORDER (little-endian)`: 7: `FLAG`: STAGING_FAILED, `DESCRIPTION`: The package failed to be published to stage target
-                          * `BIT ORDER (little-endian)`: 8: `FLAG`: COMPLETED, `DESCRIPTION`: The package has been completed in at least one target
-                          * `BIT ORDER (little-endian)`: 9: `FLAG`: CANCELLED, `DESCRIPTION`: The package has been cancelled
-                    example: 1
-                schedule:
-                    type: string
-                    format: date-time
-                submitter:
-                    $ref: '#/components/schemas/Person'
-                reviewer:
-                    $ref: '#/components/schemas/Person'
-
         PaginatedResponse:
             type: object
             description: pagination response information
@@ -11250,7 +11185,7 @@ components:
                             publishPackages:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/PublishPackageStatus'
+                                    $ref: '#/components/schemas/PublishPackage'
         InternalServerError:
             description: Internal system failure
             content:
@@ -11356,7 +11291,7 @@ components:
                             publishPackages:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/PublishPackageStatus'
+                                    $ref: '#/components/schemas/PublishPackage'
 
         api1InternalServerError:
             description: Internal system failure

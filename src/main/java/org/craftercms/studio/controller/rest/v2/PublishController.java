@@ -97,7 +97,7 @@ public class PublishController {
 									      defaultValue = "0") @PositiveOrZero int offset,
 								      @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
 									      defaultValue = "10") @PositiveOrZero int limit)
-		throws SiteNotFoundException {
+		throws ServiceLayerException, UserNotFoundException {
 		long total = publishService.getPublishPackagesCount(site, target, states, approvalStates, submitter, reviewer, isScheduled);
 		Collection<PublishPackage> packages = new ArrayList<>();
 		if (total > 0) {
@@ -116,7 +116,7 @@ public class PublishController {
 	@GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
 	public ResultOne<PublishPackage> getPublishPackage(@PathVariable @ValidSiteId String site,
 							   @PathVariable @Positive long packageId)
-		throws SiteNotFoundException, PublishPackageNotFoundException {
+		throws ServiceLayerException, UserNotFoundException {
 		PublishPackage publishPackage = publishService.getPackage(site, packageId);
 		ResultOne<PublishPackage> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_PACKAGE, publishPackage);

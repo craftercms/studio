@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,16 +19,9 @@ package org.craftercms.studio.api.v2.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_COPY;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_FOLDER_CREATE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public final class ContentItemAvailableActionsConstants {
 
@@ -78,10 +71,13 @@ public final class ContentItemAvailableActionsConstants {
 		0b0000000000000000000000000000000000000000000010000000000000000000L;
 	public static final long PUBLISH =
 		0b0000000000000000000000000000000000000000000100000000000000000000L;
+	// Approve is now a package-level action
 	public static final long RETIRED_PUBLISH_APPROVED =
 		0b0000000000000000000000000000000000000000001000000000000000000000L;
-	public static final long PUBLISH_SCHEDULE =
+	// Items can be "scheduled" (submitted to publish) at any time (it will be just PUBLISH)
+	public static final long RETIRED_PUBLISH_SCHEDULE =
 		0b0000000000000000000000000000000000000000010000000000000000000000L;
+	// Reject is now a package-level action
 	public static final long RETIRED_PUBLISH_REJECT =
 		0b0000000000000000000000000000000000000000100000000000000000000000L;
 	public static final long ITEM_UNLOCK =
@@ -170,14 +166,14 @@ public final class ContentItemAvailableActionsConstants {
 	// Map permissions to available actions
 	// content_read
 	public static final long BITMAP_CONTENT_READ =
-		CONTENT_READ + CONTENT_READ_VERSION_HISTORY + CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST;
+			CONTENT_READ + CONTENT_READ_VERSION_HISTORY + CONTENT_GET_DEPENDENCIES;
 	// content_create
 	public static final long BITMAP_CONTENT_CREATE =
 		CONTENT_CREATE + CONTENT_PASTE;
 	// content_write
 	public static final long BITMAP_CONTENT_WRITE =
 		CONTENT_EDIT + CONTENT_RENAME + CONTENT_CUT + CONTENT_UPLOAD + CONTENT_DUPLICATE + CONTENT_CHANGE_TYPE +
-			CONTENT_REVERT + CONTENT_EDIT_CONTROLLER + CONTENT_EDIT_TEMPLATE;
+		CONTENT_REVERT + CONTENT_EDIT_CONTROLLER + CONTENT_EDIT_TEMPLATE;
 	// folder_create
 	public static final long BITMAP_FOLDER_CREATE =
 		FOLDER_CREATE;
@@ -185,8 +181,7 @@ public final class ContentItemAvailableActionsConstants {
 	public static final long BITMAP_CONTENT_DELETE =
 		CONTENT_DELETE + CONTENT_DELETE_CONTROLLER + CONTENT_DELETE_TEMPLATE;
 	// publish
-	public static final long BITMAP_PUBLISH =
-		PUBLISH + PUBLISH_SCHEDULE;
+	public static final long BITMAP_PUBLISH = PUBLISH;
 	// item_unlock
 	public static final long BITMAP_ITEM_UNLOCK =
 		ITEM_UNLOCK;
@@ -196,42 +191,41 @@ public final class ContentItemAvailableActionsConstants {
 	private ContentItemAvailableActionsConstants() {
 	}
 
-	public static long mapPermissionToContentItemAvailableActions(String permission) {
-		final long result;
-		switch (permission.toLowerCase()) {
-			case PERMISSION_CONTENT_READ:
-				result = BITMAP_CONTENT_READ;
-				break;
-			case PERMISSION_CONTENT_COPY:
-				result = CONTENT_COPY;
-				break;
-			case PERMISSION_CONTENT_CREATE:
-				result = BITMAP_CONTENT_CREATE;
-				break;
-			case PERMISSION_CONTENT_WRITE:
-				result = BITMAP_CONTENT_WRITE;
-				break;
-			case PERMISSION_FOLDER_CREATE:
-				result = BITMAP_FOLDER_CREATE;
-				break;
-			case PERMISSION_CONTENT_DELETE:
-				result = BITMAP_CONTENT_DELETE;
-				break;
-			case PERMISSION_PUBLISH:
-				result = BITMAP_PUBLISH;
-				break;
-			case PERMISSION_ITEM_UNLOCK:
-				result = BITMAP_ITEM_UNLOCK;
-				break;
-			default:
-				logger.debug("Permission '{}' is not declared with content item available actions", permission);
-				result = BITMAP_UNDEFINED;
-				break;
+	/**
+	 * Map site-wide permissions to available actions
+	 *
+	 * @param permissions all site-wide permissions for the user
+	 * @return the site-wide available actions
+	 */
+	public static long mapSiteWidePermissionsToItemAvailableActions(final Collection<String> permissions) {
+		long result = 0;
+		if (permissions.contains(PERMISSION_PUBLISH_REQUEST)) {
+			result |= PUBLISH_REQUEST;
+			if (permissions.contains(PERMISSION_PUBLISH_REQUEST) && permissions.contains(PERMISSION_PUBLISH_APPROVE)) {
+				result |= PUBLISH;
+			}
 		}
+
 		return result;
 	}
 
-	public static long mapPermissionsToContentItemAvailableActions(List<String> permissions) {
+	public static long mapPermissionToContentItemAvailableActions(String permission) {
+		return switch (permission.toLowerCase()) {
+			case PERMISSION_CONTENT_READ -> BITMAP_CONTENT_READ;
+			case PERMISSION_CONTENT_COPY -> CONTENT_COPY;
+			case PERMISSION_CONTENT_CREATE -> BITMAP_CONTENT_CREATE;
+			case PERMISSION_CONTENT_WRITE -> BITMAP_CONTENT_WRITE;
+			case PERMISSION_FOLDER_CREATE -> BITMAP_FOLDER_CREATE;
+			case PERMISSION_CONTENT_DELETE -> BITMAP_CONTENT_DELETE;
+			case PERMISSION_ITEM_UNLOCK -> BITMAP_ITEM_UNLOCK;
+			default -> {
+				logger.debug("Permission '{}' is not declared with content item available actions", permission);
+				yield BITMAP_UNDEFINED;
+			}
+		};
+	}
+
+	public static long mapPermissionsToContentItemAvailableActions(Collection<String> permissions) {
 		return permissions.stream()
 			.mapToLong(ContentItemAvailableActionsConstants::mapPermissionToContentItemAvailableActions)
 			.reduce(0L, (a, b) -> a | b);

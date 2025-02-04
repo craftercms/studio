@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -29,7 +29,7 @@
   View the sample for a good starting point.
 -->
 <permissions>
-	<version>4.2.0.1</version>
+	<version>5.0.0</version>
 	<role name="author">
 		<rule regex="/site/website/.*|/site/components(/.*)?|/static-assets(/.*)?">
 			<allowed-permissions>
@@ -51,7 +51,9 @@
 				<permission>content_read</permission>
 				<permission>content_search</permission>
 				<permission>read_configuration</permission>
-				<permission>get_publishing_queue</permission>
+				<permission>publish_get_queue</permission>
+				<permission>publish_cancel</permission>
+				<permission>publish_request</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
@@ -61,8 +63,6 @@
 				<permission>content_write</permission>
 				<permission>content_create</permission>
 				<permission>folder_create</permission>
-				<permission>publish</permission>
-				<permission>cancel_publish</permission>
 				<permission>content_copy</permission>
 			</allowed-permissions>
 		</rule>
@@ -83,8 +83,11 @@
 				<permission>content_read</permission>
 				<permission>content_search</permission>
 				<permission>read_configuration</permission>
-				<permission>get_publishing_queue</permission>
-				<permission>publish_by_commits</permission>
+				<permission>publish_get_queue</permission>
+				<permission>publish_cancel</permission>
+				<permission>publish_request</permission>
+				<permission>publish_approve</permission>
+				<permission>publish_reject</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
@@ -97,8 +100,7 @@
 		<rule regex=".*">
 			<allowed-permissions>
 				<permission>content_write</permission>
-				<permission>publish</permission>
-				<permission>cancel_publish</permission>
+				<permission>publish_cancel</permission>
 				<permission>folder_create</permission>
 				<permission>content_create</permission>
 				<permission>change_content_type</permission>
@@ -106,7 +108,6 @@
 				<permission>list_remotes</permission>
 				<permission>pull_from_remote</permission>
 				<permission>push_to_remote</permission>
-				<permission>rebuild_database</permission>
 				<permission>remove_remote</permission>
 				<permission>site_status</permission>
 				<permission>resolve_conflict</permission>
@@ -131,8 +132,8 @@
 				<permission>read_configuration</permission>
 				<permission>write_configuration</permission>
 				<permission>set_item_states</permission>
-				<permission>publish_by_commits</permission>
-				<permission>get_publishing_queue</permission>
+				<permission>publish_get_queue</permission>
+				<permission>publish_request</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
@@ -145,8 +146,7 @@
 		<rule regex=".*">
 			<allowed-permissions>
 				<permission>content_write</permission>
-				<permission>publish</permission>
-				<permission>cancel_publish</permission>
+				<permission>publish_cancel</permission>
 				<permission>folder_create</permission>
 				<permission>content_create</permission>
 				<permission>change_content_type</permission>
@@ -154,7 +154,6 @@
 				<permission>list_remotes</permission>
 				<permission>pull_from_remote</permission>
 				<permission>push_to_remote</permission>
-				<permission>rebuild_database</permission>
 				<permission>remove_remote</permission>
 				<permission>site_status</permission>
 				<permission>resolve_conflict</permission>
@@ -162,7 +161,6 @@
 				<permission>commit_resolution</permission>
 				<permission>cancel_failed_pull</permission>
 				<permission>encryption_tool</permission>
-				<permission>publish_clear_lock</permission>
 				<permission>unlock_repository</permission>
 				<permission>content_copy</permission>
 				<permission>repair_repository</permission>
@@ -184,16 +182,16 @@
 				<permission>read_configuration</permission>
 				<permission>write_configuration</permission>
 				<permission>set_item_states</permission>
-				<permission>publish_by_commits</permission>
-				<permission>get_publishing_queue</permission>
+				<permission>publish_get_queue</permission>
+				<permission>publish_request</permission>
+				<permission>publish_approve</permission>
+				<permission>publish_reject</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
 	<role name="reviewer">
 		<rule regex=".*">
 			<allowed-permissions>
-				<permission>publish</permission>
-				<permission>cancel_publish</permission>
 				<permission>s3_read</permission>
 				<permission>webdav_read</permission>
 				<permission>list_plugins</permission>
@@ -202,8 +200,9 @@
 				<permission>content_read</permission>
 				<permission>content_search</permission>
 				<permission>read_configuration</permission>
-				<permission>publish_by_commits</permission>
-				<permission>get_publishing_queue</permission>
+				<permission>publish_get_queue</permission>
+				<permission>publish_approve</permission>
+				<permission>publish_reject</permission>
 			</allowed-permissions>
 		</rule>
 	</role>

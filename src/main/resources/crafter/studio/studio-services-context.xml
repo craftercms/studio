@@ -548,6 +548,7 @@
 		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<property name="itemTargetDao" ref="itemTargetDao"/>
 		<property name="securityService" ref="studio.securityService"/>
+		<property name="publishPackageAvailableActionResolver" ref="studio.publishPackageAvailableActionResolver" />
 	</bean>
 
 	<bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">

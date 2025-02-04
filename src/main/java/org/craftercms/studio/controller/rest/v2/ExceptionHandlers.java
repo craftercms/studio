@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateExcepti
 import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
+import org.craftercms.studio.api.v2.exception.security.PeerReviewCheckException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -103,6 +104,12 @@ public class ExceptionHandlers {
 	@ResponseStatus(HttpStatus.FORBIDDEN)
 	public Result handleActionDeniedException(HttpServletRequest request, ActionDeniedException e) {
 		return handleExceptionInternal(request, e, ApiResponse.UNAUTHORIZED);
+	}
+
+	@ExceptionHandler(PeerReviewCheckException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public Result handlePeerReviewException(HttpServletRequest request, PeerReviewCheckException e) {
+		return handleExceptionInternal(request, e, ApiResponse.PEER_REVIEW_CHECK_FAILED);
 	}
 
 	@ExceptionHandler(ActionsDeniedException.class)

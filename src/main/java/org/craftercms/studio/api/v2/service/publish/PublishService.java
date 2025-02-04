@@ -21,6 +21,7 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -82,7 +83,7 @@ public interface PublishService {
 						      Collection<ApprovalState> approvalStates,
 						      String submitter, String reviewer,
 						      Boolean isScheduled, Collection<SortField> sort,
-						      int offset, int limit) throws SiteNotFoundException;
+						      int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get publish package items
@@ -250,7 +251,7 @@ public interface PublishService {
 	 * @throws PublishPackageNotFoundException if the package is not found
 	 * @throws SiteNotFoundException           if the site is not found
 	 */
-	PublishPackage getPackage(String siteId, long packageId) throws PublishPackageNotFoundException, SiteNotFoundException;
+	PublishPackage getPackage(String siteId, long packageId) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get the publish items for a package

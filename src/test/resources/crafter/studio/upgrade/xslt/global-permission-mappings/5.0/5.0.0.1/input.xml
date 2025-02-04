@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 3 as published by
-  * the Free Software Foundation.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
 <!--
@@ -46,6 +46,7 @@
 				<permission>content_copy</permission>
 				<permission>content_write</permission>
 				<permission>folder_create</permission>
+				<permission>publish</permission>
 				<permission>create_site</permission>
 				<permission>duplicate_site</permission>
 				<permission>read_groups</permission>
@@ -66,6 +67,7 @@
 				<permission>list_remotes</permission>
 				<permission>pull_from_remote</permission>
 				<permission>push_to_remote</permission>
+				<permission>rebuild_database</permission>
 				<permission>remove_remote</permission>
 				<permission>s3_read</permission>
 				<permission>s3_write</permission>
@@ -92,17 +94,15 @@
 				<permission>view_log_levels</permission>
 				<permission>configure_log_levels</permission>
 				<permission>content_create</permission>
-				<permission>publish_get_queue</permission>
+				<permission>get_publishing_queue</permission>
+				<permission>cancel_publish</permission>
 				<permission>change_content_type</permission>
 				<permission>site_status</permission>
 				<permission>resolve_conflict</permission>
 				<permission>site_diff_conflicted_file</permission>
 				<permission>commit_resolution</permission>
 				<permission>cancel_failed_pull</permission>
-				<permission>publish_cancel</permission>
-				<permission>publish_request</permission>
-				<permission>publish_approve</permission>
-				<permission>publish_reject</permission>
+				<permission>publish_clear_lock</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
@@ -110,8 +110,21 @@
 		<rule regex="/.*">
 			<allowed-permissions>
 				<permission>search_plugins</permission>
-				<permission>audit_log</permission>
-				<permission>read_users</permission>
+			</allowed-permissions>
+		</rule>
+	</role>
+	<role name="custom_role">
+		<rule regex="/.*">
+			<allowed-permissions>
+				<permission>content_write</permission>
+				<permission>content_read</permission>
+			</allowed-permissions>
+		</rule>
+	</role>
+	<role name="custom_role2">
+		<rule regex="/.*">
+			<allowed-permissions>
+				<permission>publish</permission>
 			</allowed-permissions>
 		</rule>
 	</role>
