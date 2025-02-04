@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -89,7 +89,30 @@ public interface UserServiceInternal {
     List<User> enableUsers(List<Long> userIds, List<String> usernames,
                            boolean enabled) throws UserNotFoundException, ServiceLayerException;
 
+	/**
+	 * Retrieves the list of groups associated with the specified user.
+	 *
+	 * @param userId   the unique identifier of the user
+	 * @param username the username of the user
+	 * @return a list of {@link Group} objects associated with the user
+	 * @throws UserNotFoundException  if no user is found with the given userId or username
+	 * @throws ServiceLayerException  if an error occurs while accessing the service layer
+	 */
     List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException;
+
+	/**
+	 * Retrieves the list of groups associated with the specified user, optionally filtering
+	 * to include only externally managed groups.
+	 *
+	 * @param userId                        the unique identifier of the user
+	 * @param username                      the username of the user
+	 * @param filterExternallyManagedGroups if true, only externally managed groups are returned;
+	 *                                      if false, all groups are returned
+	 * @return a list of {@link Group} objects associated with the user, filtered based on the flag
+	 * @throws UserNotFoundException        if no user is found with the given userId or username
+	 * @throws ServiceLayerException        if an error occurs while accessing the service layer
+	 */
+	List<Group> getUserGroups(long userId, String username, boolean filterExternallyManagedGroups) throws UserNotFoundException, ServiceLayerException;
 
     boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException, ServiceLayerException;
 
