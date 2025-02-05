@@ -19,7 +19,6 @@ package org.craftercms.studio.controller.rest.v2;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
@@ -73,12 +72,12 @@ public class WorkflowController {
 
 	@GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
 	public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-							      @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
-							      @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
-							      @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
-							      int offset,
-							      @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
-							      int limit) throws SiteNotFoundException, InvalidParametersException {
+														  @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
+														  @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
+														  @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
+														  int offset,
+														  @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
+														  int limit) throws SiteNotFoundException, InvalidParametersException {
 		if (!isPathRegexValid(path)) {
 			throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
 		}
@@ -142,8 +141,8 @@ public class WorkflowController {
 
 	@GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
 	public ResultList<PublishPackage> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
-								      @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-								      @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
+																  @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+																  @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
 		Collection<PublishPackage> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren));
 		ResultList<PublishPackage> result = new ResultList<>();
 		result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);
@@ -151,11 +150,11 @@ public class WorkflowController {
 		return result;
 	}
 
-	@PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + APPROVE, consumes = APPLICATION_JSON_VALUE)
-	public Result approve(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
-			      @Valid @RequestBody ApproveRequestBody request)
+	@PostMapping(value = PATH_PARAM_SITE + APPROVE, consumes = APPLICATION_JSON_VALUE)
+	public Result approve(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
+						  @Valid @RequestBody ApproveRequestBody request)
 		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-		workflowService.approvePackage(site, packageId,
+		workflowService.approvePackages(site, request.getPackageIds(),
 			request.getSchedule(), request.isUpdateSchedule(), request.getComment());
 
 		Result result = new Result();
@@ -163,11 +162,11 @@ public class WorkflowController {
 		return result;
 	}
 
-	@PostMapping(value = PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + REJECT, consumes = APPLICATION_JSON_VALUE)
-	public Result reject(@Valid @PathVariable @NotEmpty @ValidSiteId String site, @Valid @PathVariable @Positive long packageId,
-			     @Valid @RequestBody ReviewPackageRequestBody rejectRequestBody)
+	@PostMapping(value = PATH_PARAM_SITE + REJECT, consumes = APPLICATION_JSON_VALUE)
+	public Result reject(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
+						 @Valid @RequestBody ReviewPackageRequestBody rejectRequestBody)
 		throws ServiceLayerException, AuthenticationException {
-		workflowService.rejectPackage(site, packageId,
+		workflowService.rejectPackages(site, rejectRequestBody.getPackageIds(),
 			rejectRequestBody.getComment());
 		Result result = new Result();
 		result.setResponse(OK);
@@ -176,7 +175,7 @@ public class WorkflowController {
 
 	@PostMapping(PATH_PARAM_SITE + CANCEL)
 	public Result cancel(@Valid @PathVariable @NotEmpty @ValidSiteId String site,
-			     @Valid @RequestBody CancelPackageRequestBody cancelPackageRequest)
+						 @Valid @RequestBody CancelPackageRequestBody cancelPackageRequest)
 		throws ServiceLayerException, AuthenticationException {
 		workflowService.cancelPackages(site, cancelPackageRequest.getPackageIds(), cancelPackageRequest.getComment());
 		Result result = new Result();
