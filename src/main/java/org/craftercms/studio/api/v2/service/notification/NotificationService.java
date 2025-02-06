@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,25 +32,14 @@ import java.util.List;
  */
 public interface NotificationService {
 
-	/** Notification Message Keys **/
-	/**
-	 * Action Completed Message Keys
-	 **/
-	String COMPLETE_GO_LIVE = "go-live";
-	String COMPLETE_REJECT = "reject";
-	String COMPLETE_SCHEDULE_GO_LIVE = "schedule-to-go-live";
-	String COMPLETE_SUBMIT_TO_GO_LIVE = "submit-to-go-live";
-	String COMPLETE_DELETE = "delete";
-
 	/**
 	 * <p>Sends a email to configured emails when a publishing package had fail</p>
 	 *
-	 * @param site           the site id
 	 * @param publishPackage the package that was being published
 	 * @param throwable      throwable error which break the deployment. (Can be null)
 	 * @param failedItems    list of publish items that where unable to publish (can be null)
 	 */
-	void notifyPublishError(String site, PublishPackage publishPackage, Throwable throwable, Collection<PublishItem> failedItems);
+	void notifyPublishError(PublishPackage publishPackage, Throwable throwable, Collection<PublishItem> failedItems);
 
 	/**
 	 * Process and Sends a generic email.

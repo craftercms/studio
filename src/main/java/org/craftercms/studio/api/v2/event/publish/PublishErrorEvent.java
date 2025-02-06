@@ -13,37 +13,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.craftercms.studio.api.v2.event.publish;
 
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 
 /**
- * Event triggered when items are published
- *
- * <p><b>Note:</b>For now this only triggered when items are processed in the publishing queue</p>
- *
- * @author joseross
- * @since 4.0.0
+ * Event triggered when an error occurs during the publishing process
  */
-public class PublishEvent extends SiteAwareEvent implements SiteBroadcastEvent {
+public class PublishErrorEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-	public PublishEvent(String siteId) {
+	private final long packageId;
+	private final Exception exception;
+
+	public PublishErrorEvent(final String siteId, final long packageId) {
+		this(siteId, packageId, null);
+	}
+
+	public PublishErrorEvent(final String siteId, final long packageId, final Exception exception) {
 		super(siteId);
+		this.packageId = packageId;
+		this.exception = exception;
+	}
+
+	public long getPackageId() {
+		return packageId;
+	}
+
+	public Exception getException() {
+		return exception;
 	}
 
 	@Override
 	public String getEventType() {
-		return "PUBLISH_EVENT";
+		return "PUBLISH_ERROR_EVENT";
 	}
-
-	@Override
-	public String toString() {
-		return "PublishEvent{" +
-			"siteId='" + siteId + '\'' +
-			", timestamp=" + timestamp +
-			", user=" + user +
-			'}';
-	}
-
 }

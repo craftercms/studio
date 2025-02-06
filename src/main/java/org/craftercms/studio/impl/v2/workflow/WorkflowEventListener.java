@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.publish.PublishErrorEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -34,6 +35,8 @@ import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT;
@@ -55,7 +58,7 @@ public class WorkflowEventListener {
 
 	@ConstructorProperties({"notificationService", "studioConfiguration", "publishService"})
 	public WorkflowEventListener(final NotificationService notificationService, final StudioConfiguration studioConfiguration,
-				     final PublishService publishService) {
+								 final PublishService publishService) {
 		this.notificationService = notificationService;
 		this.studioConfiguration = studioConfiguration;
 		this.publishService = publishService;
@@ -89,6 +92,17 @@ public class WorkflowEventListener {
 			case APPROVE -> notificationService.notifyPackageApproval(publishPackage, getPackagePaths(publishPackage));
 			case REJECT -> notificationService.notifyPackageRejection(publishPackage, getPackagePaths(publishPackage));
 		}
+	}
+
+
+	@Async
+	@EventListener
+	@LogExecutionTime
+	public void handleEvent(final PublishErrorEvent event) throws ServiceLayerException, UserNotFoundException {
+		PublishPackage publishPackage = publishService.getPackage(event.getSiteId(), event.getPackageId());
+		Collection<PublishItem> failedItems = publishService.getFailedPublishItems(publishPackage.getSite().getSiteId(),
+			publishPackage.getId(), 0, getMaxPublishItems());
+		notificationService.notifyPublishError(publishPackage, event.getException(), failedItems);
 	}
 
 	/**

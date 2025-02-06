@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState;
 import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
@@ -33,6 +34,7 @@ import org.craftercms.studio.model.publish.PublishingTarget;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -263,6 +265,18 @@ public interface PublishService {
 	 * @return the publish items
 	 */
 	Collection<PublishItem> getPublishItems(String siteId, long packageId, int offset, int limit) throws PublishPackageNotFoundException, SiteNotFoundException;
+
+	/**
+	 * Get the failed publish items for a package
+	 * Failed items are the ones matching either {@link PublishState#LIVE_FAILED} or {@link PublishState#STAGING_FAILED} states
+	 *
+	 * @param siteId    the site id
+	 * @param packageId the package id
+	 * @param offset    the offset to start from
+	 * @param limit     the max number of items to return
+	 * @return the failed publish items
+	 */
+	Collection<PublishItem> getFailedPublishItems(String siteId, long packageId, int offset, int limit);
 
 	/**
 	 * Get the total number of published items in the last <code>days</code>number of days matching the action

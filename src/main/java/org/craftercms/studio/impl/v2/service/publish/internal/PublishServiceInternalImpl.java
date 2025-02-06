@@ -261,6 +261,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
+	public Collection<PublishItem> getFailedPublishItems(String siteId, long packageId, int offset, int limit) {
+		return publishDao.getFailedPublishItems(siteId, packageId, offset, limit);
+	}
+
+	@Override
 	public int getNumberOfPublishedItemsByAction(final String siteId, final int days, final PublishItem.Action action) {
 		return publishDao.getNumberOfPublishedItemsByAction(siteId, days, action);
 	}

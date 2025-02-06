@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.PENDING;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
@@ -130,8 +131,8 @@ public interface PublishDAO {
 	 * @param offStatesBitMap the state bits to set to off
 	 */
 	void updateItemStateBits(@Param(PACKAGE_ID) long packageId,
-				 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-				 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+							 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+							 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
 	/**
 	 * Insert item_publish_item records for the publish_item's belonging to the given package.
@@ -155,7 +156,7 @@ public interface PublishDAO {
 	 * @param publishItems the failed items
 	 */
 	void insertInitialPublishItems(@Param(PACKAGE_ID) long packageId,
-				       @Param(ITEMS) Collection<PublishItem> publishItems);
+								   @Param(ITEMS) Collection<PublishItem> publishItems);
 
 	/**
 	 * Update the site item states after the initial publish
@@ -168,11 +169,11 @@ public interface PublishDAO {
 	 * @param failureOffMask   the states to flip off for failed items
 	 */
 	void updateItemStatesForInitialPublish(@Param(SITE_ID) long siteId,
-					       @Param(PACKAGE_ID) long packageId,
-					       @Param(ITEM_FAILURE_STATE) long itemFailureState,
-					       @Param(SUCCESS_ON_BIT_MAP) long successOnMask,
-					       @Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
-					       @Param(FAILURE_OFF_BIT_MAP) long failureOffMask);
+										   @Param(PACKAGE_ID) long packageId,
+										   @Param(ITEM_FAILURE_STATE) long itemFailureState,
+										   @Param(SUCCESS_ON_BIT_MAP) long successOnMask,
+										   @Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
+										   @Param(FAILURE_OFF_BIT_MAP) long failureOffMask);
 
 	/**
 	 * Insert items into a publish package
@@ -182,8 +183,8 @@ public interface PublishDAO {
 	 * @param publishState the state to set the items to
 	 */
 	void insertItems(@Param(PACKAGE_ID) long packageId,
-			 @Param(ITEMS) Collection<PublishItem> publishItems,
-			 @Param(ITEM_PUBLISHED_STATE) long publishState);
+					 @Param(ITEMS) Collection<PublishItem> publishItems,
+					 @Param(ITEM_PUBLISHED_STATE) long publishState);
 
 	/**
 	 * Get the next publish packages to process for every site matching the given states
@@ -210,8 +211,8 @@ public interface PublishDAO {
 	 * @return the next publish packages to process
 	 */
 	Collection<PublishPackageId> getNextPublishPackages(@Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
-							    @Param(READY_STATE) long readyState,
-							    @Param(SITE_STATES) List<String> siteStates);
+														@Param(READY_STATE) long readyState,
+														@Param(SITE_STATES) List<String> siteStates);
 
 	/**
 	 * Get a package by id
@@ -276,10 +277,10 @@ public interface PublishDAO {
 	 * @param approvalStates the approval states to filter by (it will match packages having any of the given flags in their approval_state)
 	 */
 	void cancelOutstandingPackages(@Param(SITE_ID) long siteId,
-				       @Param(TARGET) String target,
-				       @Param(CANCELLED_STATE) long cancelledState,
-				       @Param(PACKAGE_STATE) long stateToCancel,
-				       @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates);
+								   @Param(TARGET) String target,
+								   @Param(CANCELLED_STATE) long cancelledState,
+								   @Param(PACKAGE_STATE) long stateToCancel,
+								   @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates);
 
 	/**
 	 * Update the corresponding items' states for successful publish items in the package.
@@ -292,8 +293,8 @@ public interface PublishDAO {
 	 */
 	@Transactional
 	default void updateItemStatesForCompletePackage(final long packageId, final long successOnMask,
-							final long successOffMask, final long failureOffMask,
-							final long itemSuccessState, final String liveTarget) {
+													final long successOffMask, final long failureOffMask,
+													final long itemSuccessState, final String liveTarget) {
 		updateItemStatesForCompletePackageInternal(packageId, successOnMask, successOffMask,
 			failureOffMask, itemSuccessState);
 		recalculateItemStateBits(packageId, liveTarget);
@@ -309,10 +310,10 @@ public interface PublishDAO {
 	 * @param itemSuccessState the state of the successful items to filter
 	 */
 	void updateItemStatesForCompletePackageInternal(@Param(PACKAGE_ID) long packageId,
-							@Param(SUCCESS_ON_BIT_MAP) long successOnMask,
-							@Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
-							@Param(FAILURE_OFF_BIT_MAP) long failureOffMask,
-							@Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
+													@Param(SUCCESS_ON_BIT_MAP) long successOnMask,
+													@Param(SUCCESS_OFF_BIT_MAP) long successOffMask,
+													@Param(FAILURE_OFF_BIT_MAP) long failureOffMask,
+													@Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 
 	/**
 	 * Persist changes to a cancelled or rejected publish package.
@@ -356,11 +357,11 @@ public interface PublishDAO {
 	 * @param isScheduled    indicates if this update is for scheduled bit (true) or in_workflow bit (false)
 	 */
 	void recalculateItemStateBits(@Param(PACKAGE_ID) long packageId,
-				      @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-				      @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-				      @Param(PUBLISH_PACKAGE_STATE) long packageState,
-				      @Param(IS_SCHEDULED_BIT) boolean isScheduled,
-				      @Param(TARGET) String target);
+								  @Param(PUBLISH_PACKAGE_APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+								  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+								  @Param(PUBLISH_PACKAGE_STATE) long packageState,
+								  @Param(IS_SCHEDULED_BIT) boolean isScheduled,
+								  @Param(TARGET) String target);
 
 	/**
 	 * Get the publish items for the given package
@@ -382,8 +383,38 @@ public interface PublishDAO {
 	 * @param limit     the max number of items to return
 	 * @return PublishItem records for the package
 	 */
-	Collection<PublishItem> getPublishItems(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
-						@Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
+	default Collection<PublishItem> getPublishItems(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+													@Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit) {
+		return getPublishItemsInternal(siteId, packageId, null, offset, limit);
+	}
+
+	/**
+	 * Get the failed publish items for the given package
+	 * Failed items are the ones matching either {@link PublishState#LIVE_FAILED} or {@link PublishState#STAGING_FAILED} states
+	 *
+	 * @param siteId    the site id
+	 * @param packageId the package id
+	 * @param offset    the offset to start from
+	 * @param limit     the max number of items to return
+	 * @return failed PublishItem records for the package
+	 */
+	default Collection<PublishItem> getFailedPublishItems(String siteId, long packageId, int offset, int limit) {
+		return getPublishItemsInternal(siteId, packageId, LIVE_FAILED.value | STAGING_FAILED.value, offset, limit);
+	}
+
+	/**
+	 * Get the publish items for the given package matching the given state
+	 *
+	 * @param siteId       the site id
+	 * @param packageId    the package id
+	 * @param publishState the state to filter by
+	 * @param offset       the offset to start from
+	 * @param limit        the max number of items to return
+	 * @return matching PublishItem records for the package
+	 */
+	Collection<PublishItem> getPublishItemsInternal(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
+													@Param(STATE) Long publishState,
+													@Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
 
 	/**
@@ -423,9 +454,9 @@ public interface PublishDAO {
 	 * @return PublishItemWithMetadata paginated records for the package
 	 */
 	Collection<PublishItemWithMetadata> getPublishItemsWithMetadata(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
-									@Param(PATH) String path, @Param(SYSTEM_TYPES) Collection<String> systemTypes,
-									@Param(LABEL) String label,
-									@Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
+																	@Param(PATH) String path, @Param(SYSTEM_TYPES) Collection<String> systemTypes,
+																	@Param(LABEL) String label,
+																	@Param(OFFSET) Integer offset, @Param(LIMIT) Integer limit);
 
 	/**
 	 * Get the number of publish items matching the given filters
@@ -437,8 +468,8 @@ public interface PublishDAO {
 	 * @param label       the label to filter by
 	 */
 	int getMatchingPublishItemCount(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) long packageId,
-					@Param(PATH) String path, @Param(SYSTEM_TYPES) Collection<String> systemTypes,
-					@Param(LABEL) String label);
+									@Param(PATH) String path, @Param(SYSTEM_TYPES) Collection<String> systemTypes,
+									@Param(LABEL) String label);
 
 	/**
 	 * Update the state for all publish items in the package
@@ -448,8 +479,8 @@ public interface PublishDAO {
 	 * @param offStatesBitMap the state bits to set to off
 	 */
 	void updatePublishItemsState(@Param(PACKAGE_ID) long id,
-				     @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-				     @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+								 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+								 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
 	/**
 	 * Update the state and error (if any) for the given publish items
@@ -491,8 +522,8 @@ public interface PublishDAO {
 	 * @return the package containing the item, or null if the item is not submitted to be published
 	 */
 	default PublishPackage getPackageForItem(final String siteId,
-						 final String path,
-						 final long packageState) {
+											 final String path,
+											 final long packageState) {
 		return getPackageForItems(siteId, List.of(path), packageState, ACTIVE_APPROVAL_STATES);
 	}
 
@@ -505,9 +536,9 @@ public interface PublishDAO {
 	 * @return the package containing the items, or null if the items are not submitted to be published
 	 */
 	PublishPackage getPackageForItems(@Param(SITE_ID) String siteId,
-					  @Param(PATHS) Collection<String> paths,
-					  @Param(PACKAGE_STATE) long packageState,
-					  @Param(APPROVAL_STATES) List<ApprovalState> approvalStates);
+									  @Param(PATHS) Collection<String> paths,
+									  @Param(PACKAGE_STATE) long packageState,
+									  @Param(APPROVAL_STATES) List<ApprovalState> approvalStates);
 
 	/**
 	 * Get the packages containing the given item that match the given filters
@@ -519,11 +550,11 @@ public interface PublishDAO {
 	 * @return collection of matching packages
 	 */
 	default Collection<PublishPackage> getItemPackages(final String siteId,
-							   final String target,
-							   final Collection<String> paths,
-							   final long packageState,
-							   final List<ApprovalState> approvalStates,
-							   final boolean includeChildren) {
+													   final String target,
+													   final Collection<String> paths,
+													   final long packageState,
+													   final List<ApprovalState> approvalStates,
+													   final boolean includeChildren) {
 		return getItemPackages(siteId, target, paths, packageState, approvalStates, includeChildren, null, null);
 	}
 
@@ -540,13 +571,13 @@ public interface PublishDAO {
 	 * @return collection of matching packages
 	 */
 	Collection<PublishPackage> getItemPackages(@Param(SITE_ID) String siteId,
-						   @Param(TARGET) String target,
-						   @Param(PATHS) Collection<String> paths,
-						   @Param(PACKAGE_STATE) Long packageState,
-						   @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-						   @Param(INCLUDE_CHILDREN) boolean includeChildren,
-						   @Param(OFFSET) Integer offset,
-						   @Param(LIMIT) Integer limit);
+											   @Param(TARGET) String target,
+											   @Param(PATHS) Collection<String> paths,
+											   @Param(PACKAGE_STATE) Long packageState,
+											   @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+											   @Param(INCLUDE_CHILDREN) boolean includeChildren,
+											   @Param(OFFSET) Integer offset,
+											   @Param(LIMIT) Integer limit);
 
 	/**
 	 * Get the total number of packages matching the given filters
@@ -558,12 +589,12 @@ public interface PublishDAO {
 	 * @return the total number of packages matching the filters
 	 */
 	long getPublishPackagesCount(@Param(SITE_ID) String siteId,
-				     @Param(TARGET) String target,
-				     @Param(PACKAGE_STATE) Long packageState,
-				     @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-				     @Param(SUBMITTER) String submitter,
-				     @Param(REVIEWER) String reviewer,
-				     @Param(IS_SCHEDULED) Boolean isScheduled);
+								 @Param(TARGET) String target,
+								 @Param(PACKAGE_STATE) Long packageState,
+								 @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+								 @Param(SUBMITTER) String submitter,
+								 @Param(REVIEWER) String reviewer,
+								 @Param(IS_SCHEDULED) Boolean isScheduled);
 
 	/**
 	 * Get the publish packages matching the given filters
@@ -580,15 +611,15 @@ public interface PublishDAO {
 	 * @return the publish packages matching the filters
 	 */
 	default Collection<PublishPackage> getPublishPackages(@Param(SITE_ID) String siteId,
-							      @Param(TARGET) String target,
-							      @Param(PACKAGE_STATE) Long packageState,
-							      @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-							      @Param(SUBMITTER) String submitter,
-							      @Param(REVIEWER) String reviewer,
-							      @Param(IS_SCHEDULED) Boolean isScheduled,
-							      @Param(SORT_FIELDS) Collection<SortField> sortFields,
-							      @Param(OFFSET) Integer offset,
-							      @Param(LIMIT) Integer limit) {
+														  @Param(TARGET) String target,
+														  @Param(PACKAGE_STATE) Long packageState,
+														  @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+														  @Param(SUBMITTER) String submitter,
+														  @Param(REVIEWER) String reviewer,
+														  @Param(IS_SCHEDULED) Boolean isScheduled,
+														  @Param(SORT_FIELDS) Collection<SortField> sortFields,
+														  @Param(OFFSET) Integer offset,
+														  @Param(LIMIT) Integer limit) {
 		return getPublishPackagesInternal(siteId, target, packageState,
 			approvalStates, submitter, reviewer,
 			isScheduled, mapSortFields(sortFields, SORT_FIELD_MAP), offset, limit);
@@ -598,15 +629,15 @@ public interface PublishDAO {
 	 * Internal method so we can map the sort fields to the actual columns for getPublishPackages
 	 */
 	Collection<PublishPackage> getPublishPackagesInternal(@Param(SITE_ID) String siteId,
-							      @Param(TARGET) String target,
-							      @Param(PACKAGE_STATE) Long packageState,
-							      @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-							      @Param(SUBMITTER) String submitter,
-							      @Param(REVIEWER) String reviewer,
-							      @Param(IS_SCHEDULED) Boolean isScheduled,
-							      @Param(SORT_FIELDS) Collection<SortField> sortFields,
-							      @Param(OFFSET) Integer offset,
-							      @Param(LIMIT) Integer limit);
+														  @Param(TARGET) String target,
+														  @Param(PACKAGE_STATE) Long packageState,
+														  @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
+														  @Param(SUBMITTER) String submitter,
+														  @Param(REVIEWER) String reviewer,
+														  @Param(IS_SCHEDULED) Boolean isScheduled,
+														  @Param(SORT_FIELDS) Collection<SortField> sortFields,
+														  @Param(OFFSET) Integer offset,
+														  @Param(LIMIT) Integer limit);
 
 	/**
 	 * Get the number of publishes for a site in the last n days
@@ -639,8 +670,8 @@ public interface PublishDAO {
 	 * @return the number of published items
 	 */
 	int getNumberOfPublishedItemsByActionInternal(@Param(SITE_ID) String siteId,
-						      @Param(DAYS) int days,
-						      @Param(ACTION) PublishItem.Action action,
-						      @Param(COMPLETED_STATE) long completedState);
+												  @Param(DAYS) int days,
+												  @Param(ACTION) PublishItem.Action action,
+												  @Param(COMPLETED_STATE) long completedState);
 
 }

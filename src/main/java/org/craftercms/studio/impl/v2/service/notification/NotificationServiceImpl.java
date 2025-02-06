@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -105,18 +105,19 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public void notifyPublishError(final String site, final PublishPackage publishPackage, final Throwable throwable,
+	public void notifyPublishError(final PublishPackage publishPackage, final Throwable throwable,
 				       final Collection<PublishItem> filesUnableToPublish) {
+		String siteId = publishPackage.getSite().getSiteId();
 		try {
-			final NotificationConfigTO notificationConfig = getNotificationConfig(site);
+			final NotificationConfigTO notificationConfig = getNotificationConfig(siteId);
 			final Map<String, Object> templateModel = new HashMap<>();
 			templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
 			templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
 			templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
-			notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
+			notify(siteId, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
 				templateModel);
 		} catch (Throwable e) {
-			logger.error("Failed to send publishing error notification for site '{}'", site, e);
+			logger.error("Failed to send publishing error notification for site '{}'", siteId, e);
 		}
 	}
 

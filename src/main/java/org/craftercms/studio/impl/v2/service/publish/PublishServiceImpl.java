@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -69,8 +69,8 @@ public class PublishServiceImpl implements PublishService {
 														 final Boolean isScheduled, final Collection<SortField> sort,
 														 final int offset, final int limit) throws ServiceLayerException, UserNotFoundException {
 		return publishServiceInternal.getPublishPackages(siteId, target, states,
-				approvalStates, submitter, reviewer,
-				isScheduled, sort, offset, limit);
+			approvalStates, submitter, reviewer,
+			isScheduled, sort, offset, limit);
 	}
 
 	@Override
@@ -80,14 +80,14 @@ public class PublishServiceImpl implements PublishService {
 																	  String path, Collection<String> systemTypes, String internalName,
 																	  int offset, int limit) {
 		return publishServiceInternal.getPublishPackageItems(siteId, packageId, path,
-				systemTypes, internalName, offset, limit);
+			systemTypes, internalName, offset, limit);
 	}
 
 	@Override
 	@RequirePackageExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
 	public int getPublishPackageItemCount(@SiteId String siteId, @PackageId long packageId, String path, List<String> systemType, String internalName)
-			throws PublishPackageNotFoundException, SiteNotFoundException {
+		throws PublishPackageNotFoundException, SiteNotFoundException {
 		return publishServiceInternal.getPublishPackageItemCount(siteId, packageId, path, systemType, internalName);
 	}
 
@@ -97,7 +97,7 @@ public class PublishServiceImpl implements PublishService {
 	@PeerReviewCapable
 	public long publish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
 						List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
-			throws AuthenticationException, ServiceLayerException {
+		throws AuthenticationException, ServiceLayerException {
 		return publishServiceInternal.publish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
 	}
 
@@ -106,7 +106,7 @@ public class PublishServiceImpl implements PublishService {
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH_REQUEST)
 	public long requestPublish(@SiteId String siteId, String publishingTarget, List<PublishRequestPath> paths,
 							   List<String> commitIds, Instant schedule, String title, String comment, boolean submitAll)
-			throws AuthenticationException, ServiceLayerException {
+		throws AuthenticationException, ServiceLayerException {
 		return publishServiceInternal.requestPublish(siteId, publishingTarget, paths, commitIds, schedule, title, comment, submitAll);
 	}
 
@@ -129,7 +129,7 @@ public class PublishServiceImpl implements PublishService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_REQUEST)
 	public CalculatedPublishPackageResult calculatePublishPackage(@SiteId String siteId, String publishingTarget, Collection<PublishRequestPath> paths,
 																  Collection<String> commitIds)
-			throws ServiceLayerException, IOException {
+		throws ServiceLayerException, IOException {
 		return publishServiceInternal.calculatePublishPackage(siteId, publishingTarget, paths, commitIds);
 	}
 
@@ -137,7 +137,7 @@ public class PublishServiceImpl implements PublishService {
 	@RequirePackageExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_REQUEST)
 	public CalculatedPublishPackageResult recalculatePublishPackage(@SiteId String site, @PackageId long packageId, String target)
-			throws ServiceLayerException {
+		throws ServiceLayerException {
 		return publishServiceInternal.recalculatePublishPackage(site, packageId, target);
 	}
 
@@ -177,8 +177,15 @@ public class PublishServiceImpl implements PublishService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
 	public Collection<PublishItem> getPublishItems(@SiteId String siteId, @PackageId final long packageId,
 												   final int offset, final int limit)
-			throws PublishPackageNotFoundException, SiteNotFoundException {
+		throws PublishPackageNotFoundException, SiteNotFoundException {
 		return publishServiceInternal.getPublishItems(siteId, packageId, offset, limit);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
+	public Collection<PublishItem> getFailedPublishItems(@SiteId final String siteId, @PackageId final long packageId, int offset, int limit) {
+		return publishServiceInternal.getFailedPublishItems(siteId, packageId, offset, limit);
 	}
 
 	@Override
