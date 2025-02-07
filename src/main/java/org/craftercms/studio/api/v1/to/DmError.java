@@ -19,26 +19,26 @@ import java.io.Serializable;
 
 public class DmError implements Serializable {
 
-    private static final long serialVersionUID = -1276175491559890255L;
-    protected String _site;
-    protected String _path;
-    protected Exception _e;
+	private static final long serialVersionUID = -1276175491559890255L;
+	protected String _site;
+	protected String _path;
+	protected Exception _e;
 
-    public DmError(String site, String path, Exception e) {
-        this._site = site;
-        this._path = path;
-        this._e = e;
-    }
-    
-    public String getSite() {
-        return this._site;
-    }
-    
-    public String getPath() {
-        return this._path;
-    }
+	public DmError(String site, String path, Exception e) {
+		this._site = site;
+		this._path = path;
+		this._e = e;
+	}
 
-    public Exception getException() {
-        return this._e;
-    }
+	public String getSite() {
+		return this._site;
+	}
+
+	public String getPath() {
+		return this._path;
+	}
+
+	public Exception getException() {
+		return this._e;
+	}
 }

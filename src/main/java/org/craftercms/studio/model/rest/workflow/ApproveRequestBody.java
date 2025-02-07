@@ -23,22 +23,22 @@ import java.time.Instant;
  */
 public class ApproveRequestBody extends ReviewPackageRequestBody {
 
-    private Instant schedule;
-    private boolean updateSchedule;
+	private Instant schedule;
+	private boolean updateSchedule;
 
-    public Instant getSchedule() {
-        return schedule;
-    }
+	public Instant getSchedule() {
+		return schedule;
+	}
 
-    public void setSchedule(final Instant schedule) {
-        this.schedule = schedule;
-    }
+	public void setSchedule(final Instant schedule) {
+		this.schedule = schedule;
+	}
 
-    public boolean isUpdateSchedule() {
-        return updateSchedule;
-    }
+	public boolean isUpdateSchedule() {
+		return updateSchedule;
+	}
 
-    public void setUpdateSchedule(boolean updateSchedule) {
-        this.updateSchedule = updateSchedule;
-    }
+	public void setUpdateSchedule(boolean updateSchedule) {
+		this.updateSchedule = updateSchedule;
+	}
 }

@@ -17,42 +17,42 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Copy all existing groups and add the new one if missing -->
-    <xsl:template match="/role-mappings/groups">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
+	<!-- Copy all existing groups and add the new one if missing -->
+	<xsl:template match="/role-mappings/groups">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
 
-            <xsl:if test="not(group[@name='site_admin'])">
-                <xsl:element name="group">
-                    <xsl:attribute name="name">
-                        <xsl:text>site_admin</xsl:text>
-                    </xsl:attribute>
-                    <xsl:element name="role">
-                        <xsl:text>site_admin</xsl:text>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+			<xsl:if test="not(group[@name='site_admin'])">
+				<xsl:element name="group">
+					<xsl:attribute name="name">
+						<xsl:text>site_admin</xsl:text>
+					</xsl:attribute>
+					<xsl:element name="role">
+						<xsl:text>site_admin</xsl:text>
+					</xsl:element>
+				</xsl:element>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

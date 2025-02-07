@@ -21,24 +21,24 @@ import java.util.List;
 import java.util.Map;
 
 public class CalculateDependenciesEntityTO implements Serializable {
-    private static final long serialVersionUID = -2965831803399372182L;
+	private static final long serialVersionUID = -2965831803399372182L;
 
-    private String item;
-    private List<Map<String, String>> dependencies;
+	private String item;
+	private List<Map<String, String>> dependencies;
 
-    public String getItem() {
-        return item;
-    }
+	public String getItem() {
+		return item;
+	}
 
-    public void setItem(String item) {
-        this.item = item;
-    }
+	public void setItem(String item) {
+		this.item = item;
+	}
 
-    public List<Map<String, String>> getDependencies() {
-        return dependencies;
-    }
+	public List<Map<String, String>> getDependencies() {
+		return dependencies;
+	}
 
-    public void setDependencies(List<Map<String, String>> dependencies) {
-        this.dependencies = dependencies;
-    }
+	public void setDependencies(List<Map<String, String>> dependencies) {
+		this.dependencies = dependencies;
+	}
 }

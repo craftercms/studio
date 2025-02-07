@@ -72,170 +72,170 @@ import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 @RequireSiteReady
 public class DashboardServiceImpl implements DashboardService {
 
-    private final ActivityStreamServiceInternal activityStreamServiceInternal;
-    private final PublishService publishServiceInternal;
-    private final ContentServiceInternal contentServiceInternal;
-    private final SecurityService securityService;
-    private final WorkflowService workflowServiceInternal;
-    private final ItemServiceInternal itemServiceInternal;
-    private final SearchService searchService;
-    private final StudioConfiguration studioConfiguration;
+	private final ActivityStreamServiceInternal activityStreamServiceInternal;
+	private final PublishService publishServiceInternal;
+	private final ContentServiceInternal contentServiceInternal;
+	private final SecurityService securityService;
+	private final WorkflowService workflowServiceInternal;
+	private final ItemServiceInternal itemServiceInternal;
+	private final SearchService searchService;
+	private final StudioConfiguration studioConfiguration;
 
-    private static final String ALL_CONTENT_REGEX = ".*";
-    private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
-    private static final String DATE_TO_REGEX = "\\{dateTo\\}";
+	private static final String ALL_CONTENT_REGEX = ".*";
+	private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
+	private static final String DATE_TO_REGEX = "\\{dateTo\\}";
 
-    @ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
-            "securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
-    public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
-                                final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
-                                final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
-                                final SearchService searchService, final StudioConfiguration studioConfiguration) {
-        this.activityStreamServiceInternal = activityStreamServiceInternal;
-        this.publishServiceInternal = publishServiceInternal;
-        this.contentServiceInternal = contentServiceInternal;
-        this.securityService = securityService;
-        this.workflowServiceInternal = workflowServiceInternal;
-        this.itemServiceInternal = itemServiceInternal;
-        this.searchService = searchService;
-        this.studioConfiguration = studioConfiguration;
-    }
+	@ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
+		"securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
+	public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
+				    final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
+				    final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
+				    final SearchService searchService, final StudioConfiguration studioConfiguration) {
+		this.activityStreamServiceInternal = activityStreamServiceInternal;
+		this.publishServiceInternal = publishServiceInternal;
+		this.contentServiceInternal = contentServiceInternal;
+		this.securityService = securityService;
+		this.workflowServiceInternal = workflowServiceInternal;
+		this.itemServiceInternal = itemServiceInternal;
+		this.searchService = searchService;
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getActivitiesForUsersTotal(@SiteId String siteId, List<String> usernames, List<String> actions,
-                                          ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
-        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public int getActivitiesForUsersTotal(@SiteId String siteId, List<String> usernames, List<String> actions,
+					      ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
+		return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<Activity> getActivitiesForUsers(@SiteId String siteId, List<String> usernames, List<String> actions,
-                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-        return activityStreamServiceInternal
-                .getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<Activity> getActivitiesForUsers(@SiteId String siteId, List<String> usernames, List<String> actions,
+						    ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
+		return activityStreamServiceInternal
+			.getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getMyActivitiesTotal(@SiteId String siteId, List<String> actions,
-                                    ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
-        var username = securityService.getCurrentUser();
-        return activityStreamServiceInternal
-                .getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public int getMyActivitiesTotal(@SiteId String siteId, List<String> actions,
+					ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
+		var username = securityService.getCurrentUser();
+		return activityStreamServiceInternal
+			.getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<Activity> getMyActivities(@SiteId String siteId, List<String> actions, ZonedDateTime dateFrom,
-                                          ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-        var username = securityService.getCurrentUser();
-        return activityStreamServiceInternal
-                .getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<Activity> getMyActivities(@SiteId String siteId, List<String> actions, ZonedDateTime dateFrom,
+					      ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
+		var username = securityService.getCurrentUser();
+		return activityStreamServiceInternal
+			.getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getContentUnpublishedCount(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
-        return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public int getContentUnpublishedCount(@SiteId String siteId, List<String> systemTypes) throws SiteNotFoundException {
+		return itemServiceInternal.getItemByStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getContentUnpublished(@SiteId String siteId,
-                                                   List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
-            throws UserNotFoundException, ServiceLayerException {
-        var items =
-                itemServiceInternal.getItemByStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
-        if (items.isEmpty()) {
-            return emptyList();
-        }
-        var ids = items.stream().map(Item::getId)
-                .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, false);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<SandboxItem> getContentUnpublished(@SiteId String siteId,
+						       List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
+		throws UserNotFoundException, ServiceLayerException {
+		var items =
+			itemServiceInternal.getItemByStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
+		if (items.isEmpty()) {
+			return emptyList();
+		}
+		var ids = items.stream().map(Item::getId)
+			.collect(toList());
+		return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, false);
+	}
 
-    protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
-        searchParams.setQuery(query);
-        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
-        searchParams.setSortBy(getExpireFieldName());
-        searchParams.setSortOrder(order);
-        searchParams.setOffset(offset);
-        searchParams.setLimit(limit);
-    }
+	protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
+		searchParams.setQuery(query);
+		searchParams.setAdditionalFields(List.of(getExpireFieldName()));
+		searchParams.setSortBy(getExpireFieldName());
+		searchParams.setSortOrder(order);
+		searchParams.setOffset(offset);
+		searchParams.setLimit(limit);
+	}
 
-    @Override
-    @RequireSiteExists
-    public ExpiringContentResult getContentExpiring(@SiteId String siteId,
-                                                    ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                    int offset, int limit)
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
-        SearchParams searchParams = new SearchParams();
-        String query = getContentExpiringQuery()
-                .replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
-                .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
-        prepareSearchParams(searchParams, query, Asc.jsonValue(), offset, limit);
-        SearchResult result = searchService.search(siteId, searchParams);
-        return processResults(siteId, result);
-    }
+	@Override
+	@RequireSiteExists
+	public ExpiringContentResult getContentExpiring(@SiteId String siteId,
+							ZonedDateTime dateFrom, ZonedDateTime dateTo,
+							int offset, int limit)
+		throws AuthenticationException, ServiceLayerException, UserNotFoundException {
+		SearchParams searchParams = new SearchParams();
+		String query = getContentExpiringQuery()
+			.replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
+			.replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
+		prepareSearchParams(searchParams, query, Asc.jsonValue(), offset, limit);
+		SearchResult result = searchService.search(siteId, searchParams);
+		return processResults(siteId, result);
+	}
 
-    @Override
-    @RequireSiteExists
-    public ExpiringContentResult getContentExpired(@SiteId String siteId, int offset, int limit)
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
-        SearchParams searchParams = new SearchParams();
-        String query = getContentExpiredQuery();
-        prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
-        SearchResult result = searchService.search(siteId, searchParams);
-        return processResults(siteId, result);
-    }
+	@Override
+	@RequireSiteExists
+	public ExpiringContentResult getContentExpired(@SiteId String siteId, int offset, int limit)
+		throws AuthenticationException, ServiceLayerException, UserNotFoundException {
+		SearchParams searchParams = new SearchParams();
+		String query = getContentExpiredQuery();
+		prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
+		SearchResult result = searchService.search(siteId, searchParams);
+		return processResults(siteId, result);
+	}
 
-    protected ExpiringContentResult processResults(String siteId, SearchResult results) throws ServiceLayerException, UserNotFoundException {
-        List<ExpiringContentItem> items = new ArrayList<>();
-        for (var item : results.getItems()) {
-            SandboxItem  sandboxItem =
-                    contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
-                    .stream()
-                    .findFirst().orElse(null);
-            ExpiringContentItem contentItem = new ExpiringContentItem(
-                    item.getName(),
-                    item.getPath(),
-                    parseDateIso((String) item.getAdditionalFields().get(getExpireFieldName())),
-                    sandboxItem
-            );
-            items.add(contentItem);
-        }
-        return new ExpiringContentResult(items, results.getTotal());
-    }
+	protected ExpiringContentResult processResults(String siteId, SearchResult results) throws ServiceLayerException, UserNotFoundException {
+		List<ExpiringContentItem> items = new ArrayList<>();
+		for (var item : results.getItems()) {
+			SandboxItem sandboxItem =
+				contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+					.stream()
+					.findFirst().orElse(null);
+			ExpiringContentItem contentItem = new ExpiringContentItem(
+				item.getName(),
+				item.getPath(),
+				parseDateIso((String) item.getAdditionalFields().get(getExpireFieldName())),
+				sandboxItem
+			);
+			items.add(contentItem);
+		}
+		return new ExpiringContentResult(items, results.getTotal());
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public PublishingStats getPublishingStats(@SiteId String siteId, int days) throws SiteNotFoundException {
-        var publishingStats = new PublishingStats();
-        publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
-        publishingStats.setNumberOfNewAndPublishedItems(
-                publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, ADD));
-        publishingStats.setNumberOfEditedAndPublishedItems(
-                publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, UPDATE));
-        return publishingStats;
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public PublishingStats getPublishingStats(@SiteId String siteId, int days) throws SiteNotFoundException {
+		var publishingStats = new PublishingStats();
+		publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
+		publishingStats.setNumberOfNewAndPublishedItems(
+			publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, ADD));
+		publishingStats.setNumberOfEditedAndPublishedItems(
+			publishServiceInternal.getNumberOfPublishedItemsByAction(siteId, days, UPDATE));
+		return publishingStats;
+	}
 
-    private String getContentExpiringQuery() {
-        return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY);
-    }
+	private String getContentExpiringQuery() {
+		return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY);
+	}
 
-    private String getContentExpiredQuery() {
-        return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY);
-    }
+	private String getContentExpiredQuery() {
+		return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY);
+	}
 
-    private String getExpireFieldName() {
-        return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY);
-    }
+	private String getExpireFieldName() {
+		return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY);
+	}
 }

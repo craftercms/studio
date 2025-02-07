@@ -24,40 +24,53 @@ import java.util.Map;
 
 /**
  * site notification configuration
- * 
+ *
  * @author hyanghee
- * 
  */
 public class NotificationConfigTO implements TimeStamped, Serializable {
 
-    private static final long serialVersionUID = 5995281689437086341L;
-    /** site key **/
+	private static final long serialVersionUID = 5995281689437086341L;
+	/**
+	 * site key
+	 **/
 	protected String _site = null;
-	/** canned messages **/
+	/**
+	 * canned messages
+	 **/
 	protected Map<String, List<MessageTO>> _cannedMessages = null;
-	/** email template messages **/
+	/**
+	 * email template messages
+	 **/
 	protected Map<String, EmailMessageTemplateTO> _emailMessageTemplates = null;
-	/** complete messages used for displaying complete pop-ups **/
+	/**
+	 * complete messages used for displaying complete pop-ups
+	 **/
 	protected Map<String, String> _completeMessages = null;
 
-	/** general messages **/
+	/**
+	 * general messages
+	 **/
 	protected Map<String, String> messages = null;
 
-    /** send notice on action mapping **/
-    protected Map<String, Boolean> _sendNoticeMapping = null;
-    
-    protected Map<String, String> errorMessages = null;
-	/** configuration time stamp **/
+	/**
+	 * send notice on action mapping
+	 **/
+	protected Map<String, Boolean> _sendNoticeMapping = null;
+
+	protected Map<String, String> errorMessages = null;
+	/**
+	 * configuration time stamp
+	 **/
 	protected ZonedDateTime _lastUpdated = null;
 
-    protected Map<String, String> submitNotificationsMapping = null;
+	protected Map<String, String> submitNotificationsMapping = null;
 
-    protected List<String> deploymentFailureNotifications = null;
+	protected List<String> deploymentFailureNotifications = null;
 	protected List<String> approverEmails = null;
 
 	protected boolean isNewNotificationSystemEnable;
 
-    protected List<String> repositoryMergeConflictNotifications = null;
+	protected List<String> repositoryMergeConflictNotifications = null;
 
 	public NotificationConfigTO(final String _site) {
 		this();
@@ -65,13 +78,13 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	}
 
 	public NotificationConfigTO() {
-		_cannedMessages=new HashMap<>();
-		_emailMessageTemplates=new HashMap<>();
-		_completeMessages=new HashMap<>();
-		messages=new HashMap<>();
-		deploymentFailureNotifications=new ArrayList<>();
-		isNewNotificationSystemEnable=false;//for now!
-		approverEmails=new ArrayList<>();
+		_cannedMessages = new HashMap<>();
+		_emailMessageTemplates = new HashMap<>();
+		_completeMessages = new HashMap<>();
+		messages = new HashMap<>();
+		deploymentFailureNotifications = new ArrayList<>();
+		isNewNotificationSystemEnable = false;//for now!
+		approverEmails = new ArrayList<>();
 		repositoryMergeConflictNotifications = new ArrayList<>();
 	}
 
@@ -83,8 +96,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	}
 
 	/**
-	 * @param site
-	 *            the site to set
+	 * @param site the site to set
 	 */
 	public void setSite(String site) {
 		this._site = site;
@@ -98,8 +110,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	}
 
 	/**
-	 * @param cannedMessages
-	 *            the canned messages to set
+	 * @param cannedMessages the canned messages to set
 	 */
 	public void setCannedMessages(Map<String, List<MessageTO>> cannedMessages) {
 		this._cannedMessages = cannedMessages;
@@ -113,14 +124,13 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	}
 
 	/**
-	 * @param emailMessageTemplates
-	 *            the email message templates to set
+	 * @param emailMessageTemplates the email message templates to set
 	 */
 	public void setEmailMessageTemplates(Map<String, EmailMessageTemplateTO> emailMessageTemplates) {
 		this._emailMessageTemplates = emailMessageTemplates;
 	}
 
-	
+
 	/**
 	 * @return the lastUpdated
 	 */
@@ -129,8 +139,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	}
 
 	/**
-	 * @param lastUpdated
-	 *            the lastUpdated to set
+	 * @param lastUpdated the lastUpdated to set
 	 */
 	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this._lastUpdated = lastUpdated;
@@ -164,14 +173,14 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 		return messages;
 	}
 
-    public void setErrorMessages(Map<String, String> errorMessages) {
-        this.errorMessages=errorMessages;
-        //To change body of created methods use File | Settings | File Templates.
-    }
+	public void setErrorMessages(Map<String, String> errorMessages) {
+		this.errorMessages = errorMessages;
+		//To change body of created methods use File | Settings | File Templates.
+	}
 
-    public Map<String, String> getErrorMessages() {
-        return errorMessages;
-    }
+	public Map<String, String> getErrorMessages() {
+		return errorMessages;
+	}
 
 	/**
 	 * @return the sendNoticeMapping
@@ -198,21 +207,21 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 		this._sendNoticeMapping = sendNoticeMapping;
 	}
 
-    public Map<String, String> getSubmitNotificationsMapping() {
-        return submitNotificationsMapping;
-    }
+	public Map<String, String> getSubmitNotificationsMapping() {
+		return submitNotificationsMapping;
+	}
 
-    public void setSubmitNotificationsMapping(Map<String, String> submitNotificationsMapping) {
-        this.submitNotificationsMapping = submitNotificationsMapping;
-    }
+	public void setSubmitNotificationsMapping(Map<String, String> submitNotificationsMapping) {
+		this.submitNotificationsMapping = submitNotificationsMapping;
+	}
 
-    public List<String> getDeploymentFailureNotifications() {
-        return deploymentFailureNotifications;
-    }
+	public List<String> getDeploymentFailureNotifications() {
+		return deploymentFailureNotifications;
+	}
 
-    public void setDeploymentFailureNotifications(List<String> deploymentFailureNotifications) {
-        this.deploymentFailureNotifications = deploymentFailureNotifications;
-    }
+	public void setDeploymentFailureNotifications(List<String> deploymentFailureNotifications) {
+		this.deploymentFailureNotifications = deploymentFailureNotifications;
+	}
 
 	public List<String> getApproverEmails() {
 		return approverEmails;
@@ -222,11 +231,11 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 		this.approverEmails = approverEmails;
 	}
 
-    public List<String> getRepositoryMergeConflictNotifications() {
-        return repositoryMergeConflictNotifications;
-    }
+	public List<String> getRepositoryMergeConflictNotifications() {
+		return repositoryMergeConflictNotifications;
+	}
 
-    public void setRepositoryMergeConflictNotifications(List<String> repositoryMergeConflictNotifications) {
-        this.repositoryMergeConflictNotifications = repositoryMergeConflictNotifications;
-    }
+	public void setRepositoryMergeConflictNotifications(List<String> repositoryMergeConflictNotifications) {
+		this.repositoryMergeConflictNotifications = repositoryMergeConflictNotifications;
+	}
 }

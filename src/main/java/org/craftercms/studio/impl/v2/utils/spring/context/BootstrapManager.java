@@ -35,63 +35,63 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class BootstrapManager implements SystemStatusProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(BootstrapManager.class);
+	private static final Logger logger = LoggerFactory.getLogger(BootstrapManager.class);
 
-    /**
-     * Flag used to indicate if the bootstrap process has finished
-     */
-    private final AtomicBoolean systemReady = new AtomicBoolean(false);
+	/**
+	 * Flag used to indicate if the bootstrap process has finished
+	 */
+	private final AtomicBoolean systemReady = new AtomicBoolean(false);
 
-    @Override
-    public boolean isSystemReady() {
-        return systemReady.get();
-    }
+	@Override
+	public boolean isSystemReady() {
+		return systemReady.get();
+	}
 
-    // the condition is needed to avoid a repeated event from a child app context
-    @Order(2)
-    @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
-    public Object onContextRefresh() {
-        logger.info("Beans created and ready to be used");
-        logger.info("Start temporary files cleanup ...");
-        return new CleanupTemporaryFilesEvent(this);
-    }
+	// the condition is needed to avoid a repeated event from a child app context
+	@Order(2)
+	@EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
+	public Object onContextRefresh() {
+		logger.info("Beans created and ready to be used");
+		logger.info("Start temporary files cleanup ...");
+		return new CleanupTemporaryFilesEvent(this);
+	}
 
-    @Order
-    @EventListener(value = CleanupTemporaryFilesEvent.class)
-    public Object onCleanupTemporaryFiles() {
-        logger.info("Successfully cleaned up temporary files");
-        logger.info("Start repository cleanup ...");
-        return new CleanupRepositoriesEvent(this);
-    }
+	@Order
+	@EventListener(value = CleanupTemporaryFilesEvent.class)
+	public Object onCleanupTemporaryFiles() {
+		logger.info("Successfully cleaned up temporary files");
+		logger.info("Start repository cleanup ...");
+		return new CleanupRepositoriesEvent(this);
+	}
 
-    @Order
-    @EventListener(value = CleanupRepositoriesEvent.class)
-    public Object onCleanUpRepositories() {
-        logger.info("Successfully cleaned up repositories");
-        logger.info("Start cluster setup ...");
-        return new StartClusterSetupEvent(this);
-    }
+	@Order
+	@EventListener(value = CleanupRepositoriesEvent.class)
+	public Object onCleanUpRepositories() {
+		logger.info("Successfully cleaned up repositories");
+		logger.info("Start cluster setup ...");
+		return new StartClusterSetupEvent(this);
+	}
 
-    @Order
-    @EventListener(StartClusterSetupEvent.class)
-    public Object onStartClusterSetup() {
-        logger.info("Cluster setup complete");
-        logger.info("Start upgrade ...");
-        return new StartUpgradeEvent(this);
-    }
+	@Order
+	@EventListener(StartClusterSetupEvent.class)
+	public Object onStartClusterSetup() {
+		logger.info("Cluster setup complete");
+		logger.info("Start upgrade ...");
+		return new StartUpgradeEvent(this);
+	}
 
-    @Order
-    @EventListener(StartUpgradeEvent.class)
-    public Object onStartUpgrade() {
-        logger.info("Upgrade complete");
-        return new BootstrapFinishedEvent(this);
-    }
+	@Order
+	@EventListener(StartUpgradeEvent.class)
+	public Object onStartUpgrade() {
+		logger.info("Upgrade complete");
+		return new BootstrapFinishedEvent(this);
+	}
 
-    @Order
-    @EventListener(BootstrapFinishedEvent.class)
-    public void onBootstrapFinished() {
-        logger.info("Bootstrap process finished");
-        systemReady.set(true);
-    }
+	@Order
+	@EventListener(BootstrapFinishedEvent.class)
+	public void onBootstrapFinished() {
+		logger.info("Bootstrap process finished");
+		systemReady.set(true);
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,9 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package org.craftercms.studio.model.task;
 
-import org.apache.commons.text.StringEscapeUtils
-import scripts.libs.EnvironmentOverrides
-
-model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
-model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
+/**
+ * Enum representing the state of a task
+ */
+public enum TaskState {
+	READY,
+	IN_PROGRESS,
+	COMPLETED
+}

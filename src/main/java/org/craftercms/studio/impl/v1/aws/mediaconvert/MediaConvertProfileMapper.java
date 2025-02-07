@@ -52,37 +52,37 @@ import static org.craftercms.commons.config.ConfigUtils.*;
  */
 public class MediaConvertProfileMapper extends AbstractAwsProfileMapper<MediaConvertProfile> {
 
-    public static final String CONFIG_KEY_MEDIACONVERT = "mediaConvert";
-    public static final String CONFIG_KEY_ENDPOINT = "endpoint";
-    public static final String CONFIG_KEY_ROLE = "role";
-    public static final String CONFIG_KEY_QUEUE = "queue";
-    public static final String CONFIG_KEY_TEMPLATE = "template";
-    public static final String CONFIG_KEY_INPUT_PATH = "inputPath";
+	public static final String CONFIG_KEY_MEDIACONVERT = "mediaConvert";
+	public static final String CONFIG_KEY_ENDPOINT = "endpoint";
+	public static final String CONFIG_KEY_ROLE = "role";
+	public static final String CONFIG_KEY_QUEUE = "queue";
+	public static final String CONFIG_KEY_TEMPLATE = "template";
+	public static final String CONFIG_KEY_INPUT_PATH = "inputPath";
 
-    @ConstructorProperties({"resolver"})
-    public MediaConvertProfileMapper(final ConfigurationResolver resolver) {
-        super(CONFIG_KEY_MEDIACONVERT, resolver);
-    }
+	@ConstructorProperties({"resolver"})
+	public MediaConvertProfileMapper(final ConfigurationResolver resolver) {
+		super(CONFIG_KEY_MEDIACONVERT, resolver);
+	}
 
-    @Override
-    protected MediaConvertProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)
-            throws ConfigurationException {
-        MediaConvertProfile profile = super.mapProfile(profileConfig);
+	@Override
+	protected MediaConvertProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)
+		throws ConfigurationException {
+		MediaConvertProfile profile = super.mapProfile(profileConfig);
 
-        // For MediaConvert the endpoint is required
-        profile.setEndpoint(getRequiredStringProperty(profileConfig, CONFIG_KEY_ENDPOINT));
+		// For MediaConvert the endpoint is required
+		profile.setEndpoint(getRequiredStringProperty(profileConfig, CONFIG_KEY_ENDPOINT));
 
-        profile.setRole(getRequiredStringProperty(profileConfig, CONFIG_KEY_ROLE));
-        profile.setQueue(getRequiredStringProperty(profileConfig, CONFIG_KEY_QUEUE));
-        profile.setTemplate(getRequiredStringProperty(profileConfig, CONFIG_KEY_TEMPLATE));
-        profile.setInputPath(getRequiredStringProperty(profileConfig, CONFIG_KEY_INPUT_PATH));
+		profile.setRole(getRequiredStringProperty(profileConfig, CONFIG_KEY_ROLE));
+		profile.setQueue(getRequiredStringProperty(profileConfig, CONFIG_KEY_QUEUE));
+		profile.setTemplate(getRequiredStringProperty(profileConfig, CONFIG_KEY_TEMPLATE));
+		profile.setInputPath(getRequiredStringProperty(profileConfig, CONFIG_KEY_INPUT_PATH));
 
-        return profile;
-    }
+		return profile;
+	}
 
-    @Override
-    protected AbstractAwsProfile createProfile() {
-        return new MediaConvertProfile();
-    }
+	@Override
+	protected AbstractAwsProfile createProfile() {
+		return new MediaConvertProfile();
+	}
 
 }

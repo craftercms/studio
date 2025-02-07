@@ -16,7 +16,7 @@
 
 import scripts.libs.ExtractMetadataApi
 
-def extractMetadataParams =[:]
+def extractMetadataParams = [:]
 extractMetadataParams.site = site
 extractMetadataParams.path = path
 extractMetadataParams.user = user

@@ -84,546 +84,546 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockK
 
 public class ContentServiceInternalImpl implements ContentServiceInternal, ApplicationEventPublisherAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
-
-    private GitContentRepository contentRepository;
-    private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
-    private ItemDAO itemDao;
-    private ServicesConfig servicesConfig;
-    private SecurityService securityService;
-    private StudioConfiguration studioConfiguration;
-    private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
-    private AuditServiceInternal auditServiceInternal;
-    private DependencyService dependencyServiceInternal;
-    private ContentTypeServiceInternal contentTypeServiceInternal;
-    private UserServiceInternal userServiceInternal;
-    private SitesService siteService;
-    private ItemServiceInternal itemServiceInternal;
-    private GeneralLockService generalLockService;
-    private ApplicationEventPublisher eventPublisher;
-    private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
-    private PublishService publishServiceInternal;
-    private ProcessedCommitsDAO processedCommitsDao;
-
-    @Override
-    public boolean contentExists(String siteId, String path) {
-        return contentRepository.contentExists(siteId, path);
-    }
-
-    @Override
-    public boolean shallowContentExists(String siteId, String path) {
-        return contentRepository.shallowContentExists(siteId, path);
-    }
-
-    @Override
-    public List<String> getSubtreeItems(String siteId, String path) {
-        return contentRepository.getSubtreeItems(siteId, path);
-    }
-
-    @Override
-    public List<String> getSubtreeItems(String siteId, List<String> paths) {
-        List<String> subtreeItems = new ArrayList<>();
-        for (String path : paths) {
-            subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
-        }
-        return subtreeItems;
-    }
-
-    @Override
-    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-                                               List<String> systemTypes, List<String> excludes, String sortStrategy,
-                                               String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException {
-        if (!contentRepository.contentExists(siteId, path)) {
-            throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
-        }
-        String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
-        Site site = siteService.getSite(siteId);
-        int total = itemDao.getChildrenByPathTotal(site.getId(), parentFolderPath, locale, keyword, systemTypes,
-                List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
-        List<Item> resultSet = itemDao.getChildrenByPath(site.getId(), parentFolderPath,
-                locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
-        GetChildrenResult toRet = processResultSet(siteId, resultSet);
-        toRet.setLevelDescriptor(getLevelDescriptor(site, path, locale, keyword));
-        toRet.setOffset(offset);
-        toRet.setLimit(limit);
-        toRet.setTotal(total);
-        return toRet;
-    }
-
-    private SandboxItem getLevelDescriptor(final Site site, final String path, final String locale, final String keyword) throws UserNotFoundException, ServiceLayerException {
-        List<Item> sandboxItemsByPath = itemDao.getChildrenByPath(site.getId(), path,
-                locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
-        if (isEmpty(sandboxItemsByPath)) {
-            return null;
-        }
-        Item levelDescriptorItem = sandboxItemsByPath.getFirst();
-        String user = securityService.getCurrentUser();
-        levelDescriptorItem.setAvailableActions(
-                semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, site.getSiteId(), levelDescriptorItem));
-        return SandboxItem.getInstance(levelDescriptorItem);
-    }
-
-    @Override
-    public GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths,
-                                                           Map<String, PathParams> pathParams) throws UserNotFoundException, ServiceLayerException {
-        List<ChildrenByPathResult> resultItems = new ArrayList<>(paths.size());
-
-        Map<String, SandboxItem> sandboxItemsByPath = getSandboxItemsByPath(siteId, paths, true).stream()
-                .collect(toMap(SandboxItem::getPath, identity()));
-        List<String> missingItems = new LinkedList<>();
-        for (PathParams params : pathParams.values()) {
-            try {
-                ChildrenByPathResult resultItem = new ChildrenByPathResult();
-                resultItem.setPath(params.getPath());
-
-                GetChildrenResult children = getChildrenByPath(siteId, params.getPath(), params.getLocaleCode(),
-                        params.getKeyword(), params.getSystemTypes(), params.getExcludes(), params.getSortStrategy(),
-                        params.getOrder(), params.getOffset(), params.getLimit());
-                resultItem.setResult(children);
-                resultItem.setItem(sandboxItemsByPath.get(params.getPath()));
-                resultItems.add(resultItem);
-            } catch (ContentNotFoundException e) {
-                logger.error(format("Content not found at path %s site %s", params.getPath(), siteId), e);
-                missingItems.add(params.getPath());
-            }
-        }
-        return new GetChildrenByPathsBulkResult(resultItems, missingItems);
-    }
-
-    private GetChildrenResult processResultSet(String siteId, List<Item> resultSet)
-            throws ServiceLayerException, UserNotFoundException {
-        GetChildrenResult toRet = new GetChildrenResult();
-        List<SandboxItem> children = new ArrayList<>(resultSet.size());
-        toRet.setChildren(children);
-        if (!isNotEmpty(resultSet)) {
-            return toRet;
-        }
-        String user = securityService.getCurrentUser();
-        for (Item child : resultSet) {
-            child.setAvailableActions(
-                    semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
-            children.add(SandboxItem.getInstance(child));
-        }
-        return toRet;
-    }
-
-    @Override
-    public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
-        return contentRepository.getItem(siteId, path, flatten);
-    }
-
-    @Override
-    public long getContentSize(String siteId, String path) {
-        return contentRepository.getContentSize(siteId, path);
-    }
-
-    @Override
-    public List<DetailedItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
-        Site site = siteService.getSite(siteId);
-        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        List< org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(site.getId(), statesBitMap,
-                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
-        List<DetailedItem> result = new ArrayList<>();
-        for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
-            DetailedItem detailedItem = DetailedItem.getInstance(item);
-            populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
-            result.add(detailedItem);
-        }
-        return result;
-    }
-
-    @Override
-    public DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        if (!contentRepository.contentExists(siteId, path)) {
-            throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
-        }
-        Site site = siteService.getSite(siteId);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
-        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
-        } else {
-            item = itemDao.getItemBySiteIdAndPath(site.getId(), path, stagingEnv, liveEnv);
-        }
-        if (item == null) {
-            throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
-        }
-        DetailedItem detailedItem = DetailedItem.getInstance(item);
-        populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
-        return detailedItem;
-    }
-
-    private void populateDetailedItemPropertiesFromRepository(String siteId, DetailedItem detailedItem)
-            throws ServiceLayerException, UserNotFoundException {
-        if (Objects.nonNull(detailedItem)) {
-            String user = securityService.getCurrentUser();
-            detailedItem.setAvailableActions(
-                    semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, detailedItem));
-        }
-    }
-
-    @Override
-    public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        Site site = siteService.getSite(siteId);
-        List<Item> items = itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent);
-        return calculatePossibleActions(siteId, items);
-    }
-
-    @Override
-    public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        List<Item> items;
-        if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
-        } else {
-            items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
-        }
-        return calculatePossibleActions(siteId, items);
-    }
-
-    private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
-            throws ServiceLayerException, UserNotFoundException {
-        if (isEmpty(items)) {
-            return emptyList();
-        }
-        List<SandboxItem> toRet = new ArrayList<>();
-        String user = securityService.getCurrentUser();
-        for (Item item : items) {
-            if (!contentRepository.contentExists(siteId, item.getPath())) {
-                logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
-            } else {
-                item.setAvailableActions(
-                        semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
-                toRet.add(SandboxItem.getInstance(item));
-            }
-        }
-        return toRet;
-    }
-
-    @Override
-    public boolean isEditable(String itemPath, String mimeType) {
-        List<String> editableMimeTypes =
-                Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
-
-        MimeType itemMimeType;
-        if (StringUtils.isEmpty(mimeType)) {
-            itemMimeType = MimeType.valueOf(StudioUtils.getMimeType(itemPath));
-        } else {
-            itemMimeType = MimeType.valueOf(mimeType);
-        }
-
-        return editableMimeTypes.stream()
-                .anyMatch(type -> (MimeType.valueOf(type)).isCompatibleWith(itemMimeType));
-    }
-
-    @Override
-    public void itemLockByPath(String siteId, String path) {
-        contentRepository.lockItem(siteId, path);
-    }
-
-    @Override
-    public void itemUnlockByPath(String siteId, String path) {
-        contentRepository.itemUnlock(siteId, path);
-    }
-
-    @Override
-    public Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-            throws ContentNotFoundException {
-        return contentRepository.getContentByCommitId(siteId, path, commitId);
-    }
-
-    @Override
-    public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
-        try {
-            Site site = siteService.getSite(siteId);
-
-            List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
-
-            for (List<ItemVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
-                List<String> commitIds = batch.stream()
-                        .map(ItemVersion::getVersionNumber)
-                        .filter(Objects::nonNull)
-                        .collect(toList());
-                List<CommitAuthor> commitAuthors = auditServiceInternal.getCommitAuthors(site.getId(), commitIds, path);
-                Map<String, Person> authorsMap = commitAuthors.stream()
-                        .collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
-                for (ItemVersion itemVersion : batch) {
-                    String versionNumber = itemVersion.getVersionNumber();
-                    if (authorsMap.containsKey(versionNumber)) {
-                        itemVersion.setAuthor(authorsMap.get(versionNumber));
-                    }
-                }
-            }
-            return history;
-        } catch (IOException | GitAPIException e) {
-            throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
-        }
-    }
-
-    @Override
-    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
-        return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
-    }
-
-    @Override
-    public List<String> getChildItems(String siteId, List<String> paths) {
-        List<String> subtreeItems = getSubtreeItems(siteId, paths);
-        List<String> childItems = new ArrayList<>();
-        childItems.addAll(subtreeItems);
-        childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, paths));
-        childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
-        return childItems;
-    }
-
-    @Override
-    public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren) throws ContentInPublishQueueException {
-        // No need to check for children, as the paths collection already includes them
-        Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
-        if (isNotEmpty(packagesForItems)) {
-            throw new ContentInPublishQueueException("Unable to edit content that is part of an active publish package", packagesForItems);
-        }
-    }
-
-    @Override
-    public long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-        // Lock the sandbox repository to prevent publish packages being submitted (delete operation might conflict with submitted packages)
-        String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
-        generalLockService.lock(sandboxRepoLockKey);
-        Collection<String> allPaths = new ArrayList<>();
-        try {
-            AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
-            if (itemServiceInternal.isSystemProcessing(siteId, paths)) {
-                throw new ServiceLayerException(format("Failed to delete content at site '%s' paths '%s' " +
-                                "because some items are being processed  (Object State is system processing)",
-                        siteId, paths));
-            }
-            itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
-            allPaths.addAll(paths);
-
-            Optional<String> notFound = paths.stream().filter(path -> !contentRepository.contentExists(siteId, path)).findFirst();
-            if (notFound.isPresent()) {
-                throw new ContentNotFoundException(notFound.get(), siteId, "Content '%s' not found in site '%s'".formatted(notFound.get(), siteId));
-            }
-
-            Site site = siteService.getSite(siteId);
-            List<String> children = paths.stream()
-                    .map(path -> contentRepository.getSubtreeItems(siteId, path))
-                    .flatMap(List::stream)
-                    .toList();
-            itemServiceInternal.setSystemProcessingBulk(siteId, children, true);
-            allPaths.addAll(children);
-
-            Collection<String> userRequested = union(paths, children);
-            List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
-            itemServiceInternal.setSystemProcessingBulk(siteId, dependencies, true);
-            allPaths.addAll(dependencies);
-
-            // check and fail if any of the items is part of a publish package
-            assertNotInWorkflow(siteId, allPaths, false);
-            String commitId = contentRepository.deleteContent(siteId, allPaths, currentUser.getUsername());
-            processedCommitsDao.insertCommit(site.getId(), commitId);
-
-            long publishPackageId = 0;
-            if (contentRepository.publishedRepositoryExists(siteId)) {
-                publishPackageId = publishServiceInternal.publishDelete(siteId, userRequested,
-                        dependencies, publishTitle, publishComment);
-            }
-
-            for (String path : allPaths) {
-                dependencyServiceInternal.deleteItemDependencies(siteId, path);
-                dependencyServiceInternal.invalidateDependencies(siteId, path);
-                itemServiceInternal.deleteItem(site.getId(), path);
-            }
-
-            insertDeleteContentApprovedActivity(site, currentUser.getUsername(), allPaths);
-
-            Authentication auth = securityService.getAuthentication();
-            for (String path : paths) {
-                eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
-            }
-            return publishPackageId;
-        } finally {
-            if (!allPaths.isEmpty()) {
-                itemServiceInternal.setSystemProcessingBulk(siteId, allPaths, false);
-            }
-            generalLockService.unlock(sandboxRepoLockKey);
-        }
-    }
-
-    private void insertDeleteContentApprovedActivity(Site site, String approver, Collection<String> paths) {
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(AuditLogConstants.OPERATION_APPROVE);
-        auditLog.setActorId(approver);
-        auditLog.setSiteId(site.getId());
-        auditLog.setPrimaryTargetId(site.getSiteId());
-        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(site.getSiteId());
-        List<AuditLogParameter> auditLogParameters = new ArrayList<>();
-        for (String itemToDelete : paths) {
-            AuditLogParameter auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(site.getSiteId() + ":" + itemToDelete);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParameter.setTargetValue(itemToDelete);
-            auditLogParameters.add(auditLogParameter);
-        }
-        auditLog.setParameters(auditLogParameters);
-        auditServiceInternal.insertAuditLog(auditLog);
-    }
-
-    @Override
-    public Document getItemDescriptor(String siteId, String path, boolean flatten) throws ContentNotFoundException {
-        try {
-            org.craftercms.core.service.Item item = getItem(siteId, path, flatten);
-            Document descriptor = item.getDescriptorDom();
-            if (descriptor == null) {
-                throw new ContentNotFoundException(path, siteId, format("No descriptor found for '%s' in site '%s'", path, siteId));
-            }
-            return descriptor;
-        } catch (PathNotFoundException e) {
-            logger.error("Content not found for site '{}' at path '{}'", siteId, path, e);
-            throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'", siteId, path));
-        }
-    }
-
-    @Override
-    public void lockContent(String siteId, String path) throws UserNotFoundException, ServiceLayerException {
-        generalLockService.lockContentItem(siteId, path);
-        try {
-            var item = itemServiceInternal.getItem(siteId, path);
-            if (Objects.isNull(item)) {
-                throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'",
-                        siteId, path));
-            }
-            var username = securityService.getCurrentUser();
-            boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
-                    Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
-            if (lockedByAnotherUser) {
-                throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
-            }
-
-            itemLockByPath(siteId, path);
-            itemServiceInternal.lockItemByPath(siteId, path, username);
-            eventPublisher.publishEvent(
-                    new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
-        } finally {
-            generalLockService.unlockContentItem(siteId, path);
-        }
-    }
-
-    @Override
-    public void unlockContent(String siteId, String path) throws ContentNotFoundException {
-        logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
-        generalLockService.lockContentItem(siteId, path);
-        try {
-            var item = itemServiceInternal.getItem(siteId, path);
-            if (Objects.isNull(item)) {
-                logger.debug("Item not found in site '{}' path '{}'", siteId, path);
-                throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
-            }
-            if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
-                logger.warn("Skipping unlock operation for item in site '{}' at path '{}': Item is already unlocked.", siteId, path);
-                return;
-            }
-            itemUnlockByPath(siteId, path);
-            itemServiceInternal.unlockItemByPath(siteId, path);
-            logger.debug("Item in site '{}' path '{}' successfully unlocked", siteId, path);
-            eventPublisher.publishEvent(
-                    new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
-        } finally {
-            generalLockService.unlockContentItem(siteId, path);
-        }
-    }
-
-    @Override
-    public boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException, ValidationException {
-        logger.debug("rename path {} to new name {} for site {}", path, name, site);
-        return contentServiceV1.renameContent(site, path, name);
-    }
-
-    @Override
-    public Resource getContentAsResource(String site, String path) throws ContentNotFoundException {
-        return contentServiceV1.getContentAsResource(site, path);
-    }
-
-    public void setContentRepository(final GitContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    @SuppressWarnings("unused")
-    public void setItemDao(final ItemDAO itemDao) {
-        this.itemDao = itemDao;
-    }
-
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public void setSecurityService(final SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    @SuppressWarnings("unused")
-    public void setSemanticsAvailableActionsResolver(final SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {
-        this.semanticsAvailableActionsResolver = semanticsAvailableActionsResolver;
-    }
-
-    public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
-
-    @Override
-    public void setApplicationEventPublisher(final @NotNull ApplicationEventPublisher eventPublisher) {
-        this.eventPublisher = eventPublisher;
-    }
-
-    @SuppressWarnings("unused")
-    public void setContentTypeServiceInternal(final ContentTypeServiceInternal contentTypeServiceInternal) {
-        this.contentTypeServiceInternal = contentTypeServiceInternal;
-    }
-
-    @SuppressWarnings("unused")
-    public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
-        this.dependencyServiceInternal = dependencyServiceInternal;
-    }
-
-    public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
-    public void setSiteService(final SitesService siteService) {
-        this.siteService = siteService;
-    }
-
-    public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public void setGeneralLockService(final GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
-    @SuppressWarnings("unused")
-    public void setContentServiceV1(final org.craftercms.studio.api.v1.service.content.ContentService contentService) {
-        this.contentServiceV1 = contentService;
-    }
-
-    @SuppressWarnings("unused")
-    public void setPublishServiceInternal(final PublishService publishServiceInternal) {
-        this.publishServiceInternal = publishServiceInternal;
-    }
-
-    @SuppressWarnings("unused")
-    public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
-        this.processedCommitsDao = processedCommitsDao;
-    }
+	private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
+
+	private GitContentRepository contentRepository;
+	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
+	private ItemDAO itemDao;
+	private ServicesConfig servicesConfig;
+	private SecurityService securityService;
+	private StudioConfiguration studioConfiguration;
+	private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
+	private AuditServiceInternal auditServiceInternal;
+	private DependencyService dependencyServiceInternal;
+	private ContentTypeServiceInternal contentTypeServiceInternal;
+	private UserServiceInternal userServiceInternal;
+	private SitesService siteService;
+	private ItemServiceInternal itemServiceInternal;
+	private GeneralLockService generalLockService;
+	private ApplicationEventPublisher eventPublisher;
+	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
+	private PublishService publishServiceInternal;
+	private ProcessedCommitsDAO processedCommitsDao;
+
+	@Override
+	public boolean contentExists(String siteId, String path) {
+		return contentRepository.contentExists(siteId, path);
+	}
+
+	@Override
+	public boolean shallowContentExists(String siteId, String path) {
+		return contentRepository.shallowContentExists(siteId, path);
+	}
+
+	@Override
+	public List<String> getSubtreeItems(String siteId, String path) {
+		return contentRepository.getSubtreeItems(siteId, path);
+	}
+
+	@Override
+	public List<String> getSubtreeItems(String siteId, List<String> paths) {
+		List<String> subtreeItems = new ArrayList<>();
+		for (String path : paths) {
+			subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
+		}
+		return subtreeItems;
+	}
+
+	@Override
+	public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
+						   List<String> systemTypes, List<String> excludes, String sortStrategy,
+						   String order, int offset, int limit)
+		throws ServiceLayerException, UserNotFoundException {
+		if (!contentRepository.contentExists(siteId, path)) {
+			throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
+		}
+		String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
+		Site site = siteService.getSite(siteId);
+		int total = itemDao.getChildrenByPathTotal(site.getId(), parentFolderPath, locale, keyword, systemTypes,
+			List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
+		List<Item> resultSet = itemDao.getChildrenByPath(site.getId(), parentFolderPath,
+			locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes, sortStrategy, order, offset, limit);
+		GetChildrenResult toRet = processResultSet(siteId, resultSet);
+		toRet.setLevelDescriptor(getLevelDescriptor(site, path, locale, keyword));
+		toRet.setOffset(offset);
+		toRet.setLimit(limit);
+		toRet.setTotal(total);
+		return toRet;
+	}
+
+	private SandboxItem getLevelDescriptor(final Site site, final String path, final String locale, final String keyword) throws UserNotFoundException, ServiceLayerException {
+		List<Item> sandboxItemsByPath = itemDao.getChildrenByPath(site.getId(), path,
+			locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null, null, null, 0, 1);
+		if (isEmpty(sandboxItemsByPath)) {
+			return null;
+		}
+		Item levelDescriptorItem = sandboxItemsByPath.getFirst();
+		String user = securityService.getCurrentUser();
+		levelDescriptorItem.setAvailableActions(
+			semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, site.getSiteId(), levelDescriptorItem));
+		return SandboxItem.getInstance(levelDescriptorItem);
+	}
+
+	@Override
+	public GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths,
+							       Map<String, PathParams> pathParams) throws UserNotFoundException, ServiceLayerException {
+		List<ChildrenByPathResult> resultItems = new ArrayList<>(paths.size());
+
+		Map<String, SandboxItem> sandboxItemsByPath = getSandboxItemsByPath(siteId, paths, true).stream()
+			.collect(toMap(SandboxItem::getPath, identity()));
+		List<String> missingItems = new LinkedList<>();
+		for (PathParams params : pathParams.values()) {
+			try {
+				ChildrenByPathResult resultItem = new ChildrenByPathResult();
+				resultItem.setPath(params.getPath());
+
+				GetChildrenResult children = getChildrenByPath(siteId, params.getPath(), params.getLocaleCode(),
+					params.getKeyword(), params.getSystemTypes(), params.getExcludes(), params.getSortStrategy(),
+					params.getOrder(), params.getOffset(), params.getLimit());
+				resultItem.setResult(children);
+				resultItem.setItem(sandboxItemsByPath.get(params.getPath()));
+				resultItems.add(resultItem);
+			} catch (ContentNotFoundException e) {
+				logger.error(format("Content not found at path %s site %s", params.getPath(), siteId), e);
+				missingItems.add(params.getPath());
+			}
+		}
+		return new GetChildrenByPathsBulkResult(resultItems, missingItems);
+	}
+
+	private GetChildrenResult processResultSet(String siteId, List<Item> resultSet)
+		throws ServiceLayerException, UserNotFoundException {
+		GetChildrenResult toRet = new GetChildrenResult();
+		List<SandboxItem> children = new ArrayList<>(resultSet.size());
+		toRet.setChildren(children);
+		if (!isNotEmpty(resultSet)) {
+			return toRet;
+		}
+		String user = securityService.getCurrentUser();
+		for (Item child : resultSet) {
+			child.setAvailableActions(
+				semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
+			children.add(SandboxItem.getInstance(child));
+		}
+		return toRet;
+	}
+
+	@Override
+	public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
+		return contentRepository.getItem(siteId, path, flatten);
+	}
+
+	@Override
+	public long getContentSize(String siteId, String path) {
+		return contentRepository.getContentSize(siteId, path);
+	}
+
+	@Override
+	public List<DetailedItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+		Site site = siteService.getSite(siteId);
+		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+		List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(site.getId(), statesBitMap,
+			systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
+		List<DetailedItem> result = new ArrayList<>();
+		for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
+			DetailedItem detailedItem = DetailedItem.getInstance(item);
+			populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+			result.add(detailedItem);
+		}
+		return result;
+	}
+
+	@Override
+	public DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException {
+		if (!contentRepository.contentExists(siteId, path)) {
+			throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
+		}
+		Site site = siteService.getSite(siteId);
+		org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+		if (preferContent) {
+			item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
+		} else {
+			item = itemDao.getItemBySiteIdAndPath(site.getId(), path, stagingEnv, liveEnv);
+		}
+		if (item == null) {
+			throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
+		}
+		DetailedItem detailedItem = DetailedItem.getInstance(item);
+		populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+		return detailedItem;
+	}
+
+	private void populateDetailedItemPropertiesFromRepository(String siteId, DetailedItem detailedItem)
+		throws ServiceLayerException, UserNotFoundException {
+		if (Objects.nonNull(detailedItem)) {
+			String user = securityService.getCurrentUser();
+			detailedItem.setAvailableActions(
+				semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, detailedItem));
+		}
+	}
+
+	@Override
+	public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException {
+		Site site = siteService.getSite(siteId);
+		List<Item> items = itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent);
+		return calculatePossibleActions(siteId, items);
+	}
+
+	@Override
+	public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
+		throws ServiceLayerException, UserNotFoundException {
+		List<Item> items;
+		if (preferContent) {
+			items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+		} else {
+			items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+		}
+		return calculatePossibleActions(siteId, items);
+	}
+
+	private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
+		throws ServiceLayerException, UserNotFoundException {
+		if (isEmpty(items)) {
+			return emptyList();
+		}
+		List<SandboxItem> toRet = new ArrayList<>();
+		String user = securityService.getCurrentUser();
+		for (Item item : items) {
+			if (!contentRepository.contentExists(siteId, item.getPath())) {
+				logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
+			} else {
+				item.setAvailableActions(
+					semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+				toRet.add(SandboxItem.getInstance(item));
+			}
+		}
+		return toRet;
+	}
+
+	@Override
+	public boolean isEditable(String itemPath, String mimeType) {
+		List<String> editableMimeTypes =
+			Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
+
+		MimeType itemMimeType;
+		if (StringUtils.isEmpty(mimeType)) {
+			itemMimeType = MimeType.valueOf(StudioUtils.getMimeType(itemPath));
+		} else {
+			itemMimeType = MimeType.valueOf(mimeType);
+		}
+
+		return editableMimeTypes.stream()
+			.anyMatch(type -> (MimeType.valueOf(type)).isCompatibleWith(itemMimeType));
+	}
+
+	@Override
+	public void itemLockByPath(String siteId, String path) {
+		contentRepository.lockItem(siteId, path);
+	}
+
+	@Override
+	public void itemUnlockByPath(String siteId, String path) {
+		contentRepository.itemUnlock(siteId, path);
+	}
+
+	@Override
+	public Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
+		throws ContentNotFoundException {
+		return contentRepository.getContentByCommitId(siteId, path, commitId);
+	}
+
+	@Override
+	public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
+		try {
+			Site site = siteService.getSite(siteId);
+
+			List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
+
+			for (List<ItemVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
+				List<String> commitIds = batch.stream()
+					.map(ItemVersion::getVersionNumber)
+					.filter(Objects::nonNull)
+					.collect(toList());
+				List<CommitAuthor> commitAuthors = auditServiceInternal.getCommitAuthors(site.getId(), commitIds, path);
+				Map<String, Person> authorsMap = commitAuthors.stream()
+					.collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
+				for (ItemVersion itemVersion : batch) {
+					String versionNumber = itemVersion.getVersionNumber();
+					if (authorsMap.containsKey(versionNumber)) {
+						itemVersion.setAuthor(authorsMap.get(versionNumber));
+					}
+				}
+			}
+			return history;
+		} catch (IOException | GitAPIException e) {
+			throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
+		}
+	}
+
+	@Override
+	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
+		return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
+	}
+
+	@Override
+	public List<String> getChildItems(String siteId, List<String> paths) {
+		List<String> subtreeItems = getSubtreeItems(siteId, paths);
+		List<String> childItems = new ArrayList<>();
+		childItems.addAll(subtreeItems);
+		childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, paths));
+		childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
+		return childItems;
+	}
+
+	@Override
+	public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren) throws ContentInPublishQueueException {
+		// No need to check for children, as the paths collection already includes them
+		Collection<PublishPackage> packagesForItems = publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
+		if (isNotEmpty(packagesForItems)) {
+			throw new ContentInPublishQueueException("Unable to edit content that is part of an active publish package", packagesForItems);
+		}
+	}
+
+	@Override
+	public long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
+		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+		// Lock the sandbox repository to prevent publish packages being submitted (delete operation might conflict with submitted packages)
+		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+		generalLockService.lock(sandboxRepoLockKey);
+		Collection<String> allPaths = new ArrayList<>();
+		try {
+			AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
+			if (itemServiceInternal.isSystemProcessing(siteId, paths)) {
+				throw new ServiceLayerException(format("Failed to delete content at site '%s' paths '%s' " +
+						"because some items are being processed  (Object State is system processing)",
+					siteId, paths));
+			}
+			itemServiceInternal.setSystemProcessingBulk(siteId, paths, true);
+			allPaths.addAll(paths);
+
+			Optional<String> notFound = paths.stream().filter(path -> !contentRepository.contentExists(siteId, path)).findFirst();
+			if (notFound.isPresent()) {
+				throw new ContentNotFoundException(notFound.get(), siteId, "Content '%s' not found in site '%s'".formatted(notFound.get(), siteId));
+			}
+
+			Site site = siteService.getSite(siteId);
+			List<String> children = paths.stream()
+				.map(path -> contentRepository.getSubtreeItems(siteId, path))
+				.flatMap(List::stream)
+				.toList();
+			itemServiceInternal.setSystemProcessingBulk(siteId, children, true);
+			allPaths.addAll(children);
+
+			Collection<String> userRequested = union(paths, children);
+			List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
+			itemServiceInternal.setSystemProcessingBulk(siteId, dependencies, true);
+			allPaths.addAll(dependencies);
+
+			// check and fail if any of the items is part of a publish package
+			assertNotInWorkflow(siteId, allPaths, false);
+			String commitId = contentRepository.deleteContent(siteId, allPaths, currentUser.getUsername());
+			processedCommitsDao.insertCommit(site.getId(), commitId);
+
+			long publishPackageId = 0;
+			if (contentRepository.publishedRepositoryExists(siteId)) {
+				publishPackageId = publishServiceInternal.publishDelete(siteId, userRequested,
+					dependencies, publishTitle, publishComment);
+			}
+
+			for (String path : allPaths) {
+				dependencyServiceInternal.deleteItemDependencies(siteId, path);
+				dependencyServiceInternal.invalidateDependencies(siteId, path);
+				itemServiceInternal.deleteItem(site.getId(), path);
+			}
+
+			insertDeleteContentApprovedActivity(site, currentUser.getUsername(), allPaths);
+
+			Authentication auth = securityService.getAuthentication();
+			for (String path : paths) {
+				eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
+			}
+			return publishPackageId;
+		} finally {
+			if (!allPaths.isEmpty()) {
+				itemServiceInternal.setSystemProcessingBulk(siteId, allPaths, false);
+			}
+			generalLockService.unlock(sandboxRepoLockKey);
+		}
+	}
+
+	private void insertDeleteContentApprovedActivity(Site site, String approver, Collection<String> paths) {
+		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		auditLog.setOperation(AuditLogConstants.OPERATION_APPROVE);
+		auditLog.setActorId(approver);
+		auditLog.setSiteId(site.getId());
+		auditLog.setPrimaryTargetId(site.getSiteId());
+		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+		auditLog.setPrimaryTargetValue(site.getSiteId());
+		List<AuditLogParameter> auditLogParameters = new ArrayList<>();
+		for (String itemToDelete : paths) {
+			AuditLogParameter auditLogParameter = new AuditLogParameter();
+			auditLogParameter.setTargetId(site.getSiteId() + ":" + itemToDelete);
+			auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+			auditLogParameter.setTargetValue(itemToDelete);
+			auditLogParameters.add(auditLogParameter);
+		}
+		auditLog.setParameters(auditLogParameters);
+		auditServiceInternal.insertAuditLog(auditLog);
+	}
+
+	@Override
+	public Document getItemDescriptor(String siteId, String path, boolean flatten) throws ContentNotFoundException {
+		try {
+			org.craftercms.core.service.Item item = getItem(siteId, path, flatten);
+			Document descriptor = item.getDescriptorDom();
+			if (descriptor == null) {
+				throw new ContentNotFoundException(path, siteId, format("No descriptor found for '%s' in site '%s'", path, siteId));
+			}
+			return descriptor;
+		} catch (PathNotFoundException e) {
+			logger.error("Content not found for site '{}' at path '{}'", siteId, path, e);
+			throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'", siteId, path));
+		}
+	}
+
+	@Override
+	public void lockContent(String siteId, String path) throws UserNotFoundException, ServiceLayerException {
+		generalLockService.lockContentItem(siteId, path);
+		try {
+			var item = itemServiceInternal.getItem(siteId, path);
+			if (Objects.isNull(item)) {
+				throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'",
+					siteId, path));
+			}
+			var username = securityService.getCurrentUser();
+			boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
+				Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
+			if (lockedByAnotherUser) {
+				throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
+			}
+
+			itemLockByPath(siteId, path);
+			itemServiceInternal.lockItemByPath(siteId, path, username);
+			eventPublisher.publishEvent(
+				new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
+		} finally {
+			generalLockService.unlockContentItem(siteId, path);
+		}
+	}
+
+	@Override
+	public void unlockContent(String siteId, String path) throws ContentNotFoundException {
+		logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
+		generalLockService.lockContentItem(siteId, path);
+		try {
+			var item = itemServiceInternal.getItem(siteId, path);
+			if (Objects.isNull(item)) {
+				logger.debug("Item not found in site '{}' path '{}'", siteId, path);
+				throw new ContentNotFoundException(path, siteId, format("Item not found in site '%s' path '%s'", siteId, path));
+			}
+			if (!ItemState.isUserLocked(item.getState()) && Objects.isNull(item.getLockOwner())) {
+				logger.warn("Skipping unlock operation for item in site '{}' at path '{}': Item is already unlocked.", siteId, path);
+				return;
+			}
+			itemUnlockByPath(siteId, path);
+			itemServiceInternal.unlockItemByPath(siteId, path);
+			logger.debug("Item in site '{}' path '{}' successfully unlocked", siteId, path);
+			eventPublisher.publishEvent(
+				new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
+		} finally {
+			generalLockService.unlockContentItem(siteId, path);
+		}
+	}
+
+	@Override
+	public boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException, ValidationException {
+		logger.debug("rename path {} to new name {} for site {}", path, name, site);
+		return contentServiceV1.renameContent(site, path, name);
+	}
+
+	@Override
+	public Resource getContentAsResource(String site, String path) throws ContentNotFoundException {
+		return contentServiceV1.getContentAsResource(site, path);
+	}
+
+	public void setContentRepository(final GitContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
+	}
+
+	@SuppressWarnings("unused")
+	public void setItemDao(final ItemDAO itemDao) {
+		this.itemDao = itemDao;
+	}
+
+	public void setServicesConfig(final ServicesConfig servicesConfig) {
+		this.servicesConfig = servicesConfig;
+	}
+
+	public void setSecurityService(final SecurityService securityService) {
+		this.securityService = securityService;
+	}
+
+	public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
+
+	@SuppressWarnings("unused")
+	public void setSemanticsAvailableActionsResolver(final SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {
+		this.semanticsAvailableActionsResolver = semanticsAvailableActionsResolver;
+	}
+
+	public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
+		this.auditServiceInternal = auditServiceInternal;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(final @NotNull ApplicationEventPublisher eventPublisher) {
+		this.eventPublisher = eventPublisher;
+	}
+
+	@SuppressWarnings("unused")
+	public void setContentTypeServiceInternal(final ContentTypeServiceInternal contentTypeServiceInternal) {
+		this.contentTypeServiceInternal = contentTypeServiceInternal;
+	}
+
+	@SuppressWarnings("unused")
+	public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
+		this.dependencyServiceInternal = dependencyServiceInternal;
+	}
+
+	public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
+		this.userServiceInternal = userServiceInternal;
+	}
+
+	public void setSiteService(final SitesService siteService) {
+		this.siteService = siteService;
+	}
+
+	public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
+		this.itemServiceInternal = itemServiceInternal;
+	}
+
+	public void setGeneralLockService(final GeneralLockService generalLockService) {
+		this.generalLockService = generalLockService;
+	}
+
+	@SuppressWarnings("unused")
+	public void setContentServiceV1(final org.craftercms.studio.api.v1.service.content.ContentService contentService) {
+		this.contentServiceV1 = contentService;
+	}
+
+	@SuppressWarnings("unused")
+	public void setPublishServiceInternal(final PublishService publishServiceInternal) {
+		this.publishServiceInternal = publishServiceInternal;
+	}
+
+	@SuppressWarnings("unused")
+	public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
+		this.processedCommitsDao = processedCommitsDao;
+	}
 }

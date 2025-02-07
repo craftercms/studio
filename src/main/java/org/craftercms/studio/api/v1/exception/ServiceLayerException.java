@@ -22,16 +22,17 @@ public class ServiceLayerException extends Exception {
 	 */
 	protected static final long serialVersionUID = -7587964809295177876L;
 
-	public ServiceLayerException() {}
-	
+	public ServiceLayerException() {
+	}
+
 	public ServiceLayerException(Throwable e) {
 		super(e);
 	}
-	
+
 	public ServiceLayerException(String message) {
 		super(message);
 	}
-	
+
 	public ServiceLayerException(String message, Throwable e) {
 		super(message, e);
 	}

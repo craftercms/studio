@@ -23,8 +23,8 @@ package org.craftercms.studio.api.v2.exception.git.cli;
  */
 public class NoChangesToCommitException extends GitCliOutputException {
 
-    public NoChangesToCommitException(int exitValue, String msg) {
-        super(exitValue, msg);
-    }
+	public NoChangesToCommitException(int exitValue, String msg) {
+		super(exitValue, msg);
+	}
 
 }

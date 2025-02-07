@@ -35,19 +35,19 @@ import java.beans.ConstructorProperties;
  */
 public class ConfigurationUpgradePipelineFactoryImpl extends PrototypeUpgradePipelineFactoryImpl {
 
-    public static final String CONFIG_PIPELINE_SUFFIX = ".pipeline";
+	public static final String CONFIG_PIPELINE_SUFFIX = ".pipeline";
 
-    @ConstructorProperties({"configurationFile", "versionProvider", "pipelinePrototype"})
-    public ConfigurationUpgradePipelineFactoryImpl(UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider, VersionProvider<String> versionProvider,
-                                                   String pipelinePrototype) {
-        super(null, configurationProvider, versionProvider, pipelinePrototype);
-    }
+	@ConstructorProperties({"configurationFile", "versionProvider", "pipelinePrototype"})
+	public ConfigurationUpgradePipelineFactoryImpl(UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider, VersionProvider<String> versionProvider,
+						       String pipelinePrototype) {
+		super(null, configurationProvider, versionProvider, pipelinePrototype);
+	}
 
-    @Override
-    public UpgradePipeline<String> getPipeline(UpgradeContext<String> context)
-            throws UpgradeException, ConfigurationException {
-        var studioContext = (StudioUpgradeContext) context;
-        pipelineName = studioContext.getCurrentConfigName() + CONFIG_PIPELINE_SUFFIX;
-        return super.getPipeline(context);
-    }
+	@Override
+	public UpgradePipeline<String> getPipeline(UpgradeContext<String> context)
+		throws UpgradeException, ConfigurationException {
+		var studioContext = (StudioUpgradeContext) context;
+		pipelineName = studioContext.getCurrentConfigName() + CONFIG_PIPELINE_SUFFIX;
+		return super.getPipeline(context);
+	}
 }

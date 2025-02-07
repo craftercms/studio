@@ -37,47 +37,47 @@ import static org.mockito.Mockito.doReturn;
 
 public class GitContentRepositoryImplTest extends BaseRepositoryTestCase {
 
-    public static final String SITE_NAME = "site1";
+	public static final String SITE_NAME = "site1";
 
-    @Mock
-    protected GeneralLockService generalLockService;
-    @Mock
-    protected StudioConfiguration studioConfiguration;
+	@Mock
+	protected GeneralLockService generalLockService;
+	@Mock
+	protected StudioConfiguration studioConfiguration;
 
-    @InjectMocks
-    GitContentRepositoryImpl gitContentRepository;
+	@InjectMocks
+	GitContentRepositoryImpl gitContentRepository;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        doReturn(db).when(helper).getRepository(SITE_NAME, SANDBOX);
-    }
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+		doReturn(db).when(helper).getRepository(SITE_NAME, SANDBOX);
+	}
 
-    @Override
-    protected AutoCloseable initMocks() {
-        return MockitoAnnotations.openMocks(this);
-    }
+	@Override
+	protected AutoCloseable initMocks() {
+		return MockitoAnnotations.openMocks(this);
+	}
 
-    @Test
-    public void contentHistoryFollowsRenameTest() throws GitAPIException, IOException {
-        List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
-        assertEquals("Most recent version name must be the same as the request path", history.get(0).getPath(), "/" + RENAMED_2_FILE_NAME);
-        assertEquals("Oldest version name should be the original path", history.get(history.size() - 1).getPath(), "/" + ORIGINAL_FILE_NAME);
-    }
+	@Test
+	public void contentHistoryFollowsRenameTest() throws GitAPIException, IOException {
+		List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
+		assertEquals("Most recent version name must be the same as the request path", history.get(0).getPath(), "/" + RENAMED_2_FILE_NAME);
+		assertEquals("Oldest version name should be the original path", history.get(history.size() - 1).getPath(), "/" + ORIGINAL_FILE_NAME);
+	}
 
-    @Test
-    public void cannotRevertBeforeRenamesTest() throws GitAPIException, IOException {
-        List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
-        boolean renameFound = false;
-        for (ItemVersion itemVersion : history) {
-            if (!StringUtils.equals(itemVersion.getPath(), "/" + RENAMED_2_FILE_NAME)) {
-                renameFound = true;
-            }
-            if (renameFound) {
-                assertFalse("Revertible versions should be the ones after the rename", itemVersion.isRevertible());
-            }
-        }
-    }
+	@Test
+	public void cannotRevertBeforeRenamesTest() throws GitAPIException, IOException {
+		List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
+		boolean renameFound = false;
+		for (ItemVersion itemVersion : history) {
+			if (!StringUtils.equals(itemVersion.getPath(), "/" + RENAMED_2_FILE_NAME)) {
+				renameFound = true;
+			}
+			if (renameFound) {
+				assertFalse("Revertible versions should be the ones after the rename", itemVersion.isRevertible());
+			}
+		}
+	}
 
 
 }

@@ -19,14 +19,14 @@ import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 
 /**
  * provides content type configuration
- * 
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public interface ContentTypesConfig {
 
 	/**
 	 * get content type configuration for the given site and the content type
+	 *
 	 * @param site
 	 * @param contentType
 	 * @return content type configuration
@@ -35,13 +35,13 @@ public interface ContentTypesConfig {
 
 	/**
 	 * load configuration from the noderRef given
-	 * 
+	 *
 	 * @param site
 	 * @param contentType
 	 * @return content type configuration
 	 */
 	ContentTypeConfigTO loadConfiguration(String site, String contentType);
 
-    ContentTypeConfigTO reloadConfiguration(String site, String contentType);
+	ContentTypeConfigTO reloadConfiguration(String site, String contentType);
 
 }

@@ -19,40 +19,40 @@ package org.craftercms.studio.model.rest.content;
 import org.craftercms.studio.api.v2.dal.Item;
 
 public class DependencyItem {
-    private long id;
-    private String label;
-    private String path;
+	private long id;
+	private String label;
+	private String path;
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
+	public void setLabel(String label) {
+		this.label = label;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public static DependencyItem getInstance(Item item) {
-        DependencyItem instance = new DependencyItem();
-        instance.id = item.getId();
-        instance.label = item.getLabel();
-        instance.path = item.getPath();
+	public static DependencyItem getInstance(Item item) {
+		DependencyItem instance = new DependencyItem();
+		instance.id = item.getId();
+		instance.label = item.getLabel();
+		instance.path = item.getPath();
 
-        return instance;
-    }
+		return instance;
+	}
 }

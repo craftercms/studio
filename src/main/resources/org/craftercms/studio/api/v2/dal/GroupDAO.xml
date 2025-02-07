@@ -16,175 +16,189 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.GroupDAO">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="username" column="username"/>
-        <result property="password" column="password"/>
-        <result property="firstName" column="first_name"/>
-        <result property="lastName" column="last_name"/>
-        <result property="externallyManagedAsInt" column="externally_managed"/>
-        <result property="timezone" column="timezone"/>
-        <result property="locale" column="locale"/>
-        <result property="email" column="email"/>
-        <result property="enabledAsInt" column="enabled"/>
+	<resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
+		<id property="id" column="id"/>
+		<result property="recordLastUpdated" column="record_last_updated"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="firstName" column="first_name"/>
+		<result property="lastName" column="last_name"/>
+		<result property="externallyManagedAsInt" column="externally_managed"/>
+		<result property="timezone" column="timezone"/>
+		<result property="locale" column="locale"/>
+		<result property="email" column="email"/>
+		<result property="enabledAsInt" column="enabled"/>
 
-        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
-            <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.Group">
-                <id property="id" column="id"/>
-                <result property="groupName" column="group_name"/>
-            </association>
-        </collection>
-    </resultMap>
+		<collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
+			<result property="recordLastUpdated" column="record_last_updated"/>
+			<association property="group" javaType="org.craftercms.studio.api.v2.dal.Group">
+				<id property="id" column="id"/>
+				<result property="groupName" column="group_name"/>
+			</association>
+		</collection>
+	</resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.Group">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="groupName" column="group_name"/>
-        <result property="groupDescription" column="group_description"/>
-        <result property="externallyManagedAsInt" column="externally_managed"/>
-        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
-                     select="selectOrganizationById"/>
-    </resultMap>
+	<resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.Group">
+		<id property="id" column="id"/>
+		<result property="recordLastUpdated" column="record_last_updated"/>
+		<result property="groupName" column="group_name"/>
+		<result property="groupDescription" column="group_description"/>
+		<result property="externallyManagedAsInt" column="externally_managed"/>
+		<association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
+			     select="selectOrganizationById"/>
+	</resultMap>
 
-    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="name" column="org_name"/>
-        <result property="description" column="ord_desc"/>
-    </resultMap>
+	<resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
+		<id property="id" column="id"/>
+		<result property="recordLastUpdated" column="record_last_updated"/>
+		<result property="name" column="org_name"/>
+		<result property="description" column="ord_desc"/>
+	</resultMap>
 
-    <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
-        <id property="username" column="username"/>
-        <result property="firstName" column="firstname"/>
-        <result property="lastName" column="lastname"/>
-        <result property="email" column="email"/>
-        <result property="externallyManaged" column="externally_managed"/>
-        <result property="groupName" column="groupname"/>
-        <result property="siteId" column="siteid"/>
-        <result property="siteName" column="siteName"/>
-    </resultMap>
+	<resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
+		<id property="username" column="username"/>
+		<result property="firstName" column="firstname"/>
+		<result property="lastName" column="lastname"/>
+		<result property="email" column="email"/>
+		<result property="externallyManaged" column="externally_managed"/>
+		<result property="groupName" column="groupname"/>
+		<result property="siteId" column="siteid"/>
+		<result property="siteName" column="siteName"/>
+	</resultMap>
 
-    <resultMap id="GroupResultMap" type="org.craftercms.studio.api.v1.dal.GroupResult">
-        <result property="siteId" column="site_id"/>
-        <result property="siteName" column="site_name"/>
-        <result property="groupName" column="group_name"/>
-        <result property="groupDescription" column="group_description"/>
-    </resultMap>
+	<resultMap id="GroupResultMap" type="org.craftercms.studio.api.v1.dal.GroupResult">
+		<result property="siteId" column="site_id"/>
+		<result property="siteName" column="site_name"/>
+		<result property="groupName" column="group_name"/>
+		<result property="groupDescription" column="group_description"/>
+	</resultMap>
 
-    <resultMap id="GroupPerSiteResultMap" type="org.craftercms.studio.api.v1.dal.GroupPerSiteResult">
-        <result property="groupName" column="group_name"/>
-        <result property="groupDescription" column="group_description"/>
-        <result property="username" column="username"/>
-        <result property="firstName" column="first_name"/>
-        <result property="lastName" column="last_name"/>
-        <result property="email" column="email"/>
-        <result property="externallyManaged" column="externally_managed"/>
-    </resultMap>
+	<resultMap id="GroupPerSiteResultMap" type="org.craftercms.studio.api.v1.dal.GroupPerSiteResult">
+		<result property="groupName" column="group_name"/>
+		<result property="groupDescription" column="group_description"/>
+		<result property="username" column="username"/>
+		<result property="firstName" column="first_name"/>
+		<result property="lastName" column="last_name"/>
+		<result property="email" column="email"/>
+		<result property="externallyManaged" column="externally_managed"/>
+	</resultMap>
 
-    <select id="getAllGroupsForOrganization" resultMap="GroupMap">
-        SELECT * FROM `group`
-        WHERE org_id = #{orgId}
-        <if test="keyword != null" >
-            <bind name="pattern" value="'%' + keyword + '%'" />
-            AND group_name like #{pattern}
-        </if>
-        <if test="sort != null and sort != '' ">
-            ORDER BY ${sort}
-        </if>
-        LIMIT #{offset}, #{limit}
-    </select>
+	<select id="getAllGroupsForOrganization" resultMap="GroupMap">
+		SELECT * FROM `group`
+		WHERE org_id = #{orgId}
+		<if test="keyword != null">
+			<bind name="pattern" value="'%' + keyword + '%'"/>
+			AND group_name like #{pattern}
+		</if>
+		<if test="sort != null and sort != '' ">
+			ORDER BY ${sort}
+		</if>
+		LIMIT #{offset}, #{limit}
+	</select>
 
-    <select id="getAllGroupsForOrganizationTotal" resultType="Integer" >
-        SELECT count(1) FROM `group`
-        WHERE org_id = #{orgId}
-        <if test="keyword != null" >
-            <bind name="pattern" value="'%' + keyword + '%'" />
-            AND group_name like #{pattern}
-        </if>
-    </select>
+	<select id="getAllGroupsForOrganizationTotal" resultType="Integer">
+		SELECT count(1) FROM `group`
+		WHERE org_id = #{orgId}
+		<if test="keyword != null">
+			<bind name="pattern" value="'%' + keyword + '%'"/>
+			AND group_name like #{pattern}
+		</if>
+	</select>
 
-    <select id="selectOrganizationById" resultMap="OrganizationMap">
-            SELECT * FROM organization where id = #{id}
-    </select>
+	<select id="selectOrganizationById" resultMap="OrganizationMap">
+		SELECT *
+		FROM organization
+		where id = #{id}
+	</select>
 
-    <insert id="createGroup" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
-        INSERT IGNORE INTO `group` (record_last_updated, org_id, group_name, group_description, externally_managed)
-        VALUES (CURRENT_TIMESTAMP, #{orgId}, #{groupName}, #{groupDescription}, #{externallyManaged}) ;
-        <selectKey resultType="long" order="AFTER" keyProperty="id">
-            select LAST_INSERT_ID() as id
-        </selectKey>
-    </insert>
+	<insert id="createGroup" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
+		INSERT IGNORE INTO `group` (record_last_updated, org_id, group_name, group_description, externally_managed)
+		VALUES (CURRENT_TIMESTAMP, #{orgId}, #{groupName}, #{groupDescription}, #{externallyManaged}) ;
+		<selectKey resultType="long" order="AFTER" keyProperty="id">
+			select LAST_INSERT_ID() as id
+		</selectKey>
+	</insert>
 
-    <update id="updateGroup" parameterType="org.craftercms.studio.api.v2.dal.Group">
-        UPDATE `group`
-        SET group_description = #{groupDescription},
-            record_last_updated = CURRENT_TIMESTAMP
-        WHERE id = #{id}
-    </update>
+	<update id="updateGroup" parameterType="org.craftercms.studio.api.v2.dal.Group">
+		UPDATE `group`
+		SET group_description   = #{groupDescription},
+		    record_last_updated = CURRENT_TIMESTAMP
+		WHERE id = #{id}
+	</update>
 
-    <delete id="deleteGroup" parameterType="java.util.Map">
-        DELETE FROM `group` WHERE id = #{id}
-    </delete>
+	<delete id="deleteGroup" parameterType="java.util.Map">
+		DELETE
+		FROM `group`
+		WHERE id = #{id}
+	</delete>
 
-    <select id="getGroup" parameterType="java.util.Map" resultMap="GroupMap">
-        SELECT * FROM `group` WHERE id = #{groupId}
-    </select>
+	<select id="getGroup" parameterType="java.util.Map" resultMap="GroupMap">
+		SELECT *
+		FROM `group`
+		WHERE id = #{groupId}
+	</select>
 
-    <select id="getGroups" parameterType="java.util.Map" resultMap="GroupMap">
-        SELECT * FROM `group` WHERE id IN
-        <foreach collection="groupIds" item="groupId" index="index" separator="," open="(" close=")" >
-            #{groupId}
-        </foreach>
-    </select>
+	<select id="getGroups" parameterType="java.util.Map" resultMap="GroupMap">
+		SELECT * FROM `group` WHERE id IN
+		<foreach collection="groupIds" item="groupId" index="index" separator="," open="(" close=")">
+			#{groupId}
+		</foreach>
+	</select>
 
-    <delete id="deleteGroups" parameterType="java.util.Map">
-        DELETE FROM `group` WHERE id IN
-        <foreach collection="groupIds" item="groupId" index="index" separator="," open="(" close=")" >
-            #{groupId}
-        </foreach>
-    </delete>
+	<delete id="deleteGroups" parameterType="java.util.Map">
+		DELETE FROM `group` WHERE id IN
+		<foreach collection="groupIds" item="groupId" index="index" separator="," open="(" close=")">
+			#{groupId}
+		</foreach>
+	</delete>
 
-    <select id="getGroupMembers" parameterType="java.util.Map" resultMap="UserMap">
-        SELECT u.* FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
-        WHERE gu.group_id = #{groupId}
-        AND u.deleted = 0
-        <if test="sort != null and sort != '' ">
-            ORDER BY ${sort}
-        </if>
-        LIMIT #{offset}, #{limit}
-    </select>
+	<select id="getGroupMembers" parameterType="java.util.Map" resultMap="UserMap">
+		SELECT u.* FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
+		WHERE gu.group_id = #{groupId}
+		AND u.deleted = 0
+		<if test="sort != null and sort != '' ">
+			ORDER BY ${sort}
+		</if>
+		LIMIT #{offset}, #{limit}
+	</select>
 
-    <select id="getGroupMembersTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
-        SELECT COUNT(*) FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
-        WHERE gu.group_id = #{groupId} AND u.deleted = 0
-    </select>
+	<select id="getGroupMembersTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM `user` u
+			     INNER JOIN `group_user` gu ON u.id = gu.user_id
+		WHERE gu.group_id = #{groupId}
+		  AND u.deleted = 0
+	</select>
 
-    <insert id="addGroupMembers" parameterType="java.util.Map" >
-        INSERT IGNORE INTO `group_user` (user_id, group_id) VALUES
-        <foreach collection="userIds" item="userId" index="index" separator="," >
-            (#{userId}, #{groupId})
-        </foreach>
-    </insert>
+	<insert id="addGroupMembers" parameterType="java.util.Map">
+		INSERT IGNORE INTO `group_user` (user_id, group_id) VALUES
+		<foreach collection="userIds" item="userId" index="index" separator=",">
+			(#{userId}, #{groupId})
+		</foreach>
+	</insert>
 
-    <delete id="removeGroupMembers" parameterType="java.util.Map">
-        DELETE FROM `group_user` WHERE group_id = #{groupId} AND user_id IN
-        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
-            #{userId}
-        </foreach>
-    </delete>
+	<delete id="removeGroupMembers" parameterType="java.util.Map">
+		DELETE FROM `group_user` WHERE group_id = #{groupId} AND user_id IN
+		<foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+			#{userId}
+		</foreach>
+	</delete>
 
-    <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
-        SELECT COUNT(1) FROM `group` WHERE id = #{groupId} OR group_name = #{groupName}
-    </select>
+	<select id="groupExists" resultType="Integer" parameterType="java.util.Map">
+		SELECT COUNT(1)
+		FROM `group`
+		WHERE id = #{groupId}
+		   OR group_name = #{groupName}
+	</select>
 
-    <select id="getGroupByName" parameterType="java.util.Map" resultMap="GroupMap">
-        SELECT * FROM `group` WHERE group_name = #{groupName}
-    </select>
+	<select id="getGroupByName" parameterType="java.util.Map" resultMap="GroupMap">
+		SELECT *
+		FROM `group`
+		WHERE group_name = #{groupName}
+	</select>
 
 </mapper>

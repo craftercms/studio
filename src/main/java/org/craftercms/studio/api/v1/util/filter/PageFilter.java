@@ -22,14 +22,14 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_TYP
 
 public class PageFilter extends AbstractFilter {
 
-    @Override
-    public String getIncludePattern() {
-        return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN);
-    }
+	@Override
+	public String getIncludePattern() {
+		return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN);
+	}
 
-    @Override
-    public boolean filter(ContentItemTO item) {
-        boolean isMatched = match(item.contentType);
-        return (!item.component && !item.document && isMatched);
-    }
+	@Override
+	public boolean filter(ContentItemTO item) {
+		boolean isMatched = match(item.contentType);
+		return (!item.component && !item.document && isMatched);
+	}
 }

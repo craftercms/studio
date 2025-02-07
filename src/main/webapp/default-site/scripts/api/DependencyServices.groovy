@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
@@ -20,24 +19,24 @@ package scripts.api
  */
 class DependencyServices {
 
-    /**
-     * create the context object
-     * @param applicationContext - studio application's contect (spring container etc)
-     * @param request - web request if in web request context
-     */
-    static createContext(applicationContext, request) {
-        return ServiceFactory.createContext(applicationContext, request)
-    }
+	/**
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc)
+	 * @param request - web request if in web request context
+	 */
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
+	}
 
-    @Deprecated
-    static getDependantItems(context,site,path){
-        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
-        return dependencyServiceImpl.getDependantItems(site, path);
-    }
+	@Deprecated
+	static getDependantItems(context, site, path) {
+		def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
+		return dependencyServiceImpl.getDependantItems(site, path);
+	}
 
 
-    static getDependenciesItems(context,site,path){
-        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
-        return dependencyServiceImpl.getDependenciesItems(site, path);
-    }
+	static getDependenciesItems(context, site, path) {
+		def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
+		return dependencyServiceImpl.getDependenciesItems(site, path);
+	}
 }

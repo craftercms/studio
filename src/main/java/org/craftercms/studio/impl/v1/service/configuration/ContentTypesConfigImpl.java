@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.validation.Valid;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -56,257 +57,258 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public class ContentTypesConfigImpl implements ContentTypesConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(ContentTypesConfigImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContentTypesConfigImpl.class);
 
-    private static final String QUICK_CREATE = "quickCreate";
-    private static final String QUICK_CREATE_PATH = "quickCreatePath";
+	private static final String QUICK_CREATE = "quickCreate";
+	private static final String QUICK_CREATE_PATH = "quickCreatePath";
 
-    protected ContentService contentService;
-    protected GeneralLockService generalLockService;
-    protected StudioConfiguration studioConfiguration;
-    protected ConfigurationService configurationService;
+	protected ContentService contentService;
+	protected GeneralLockService generalLockService;
+	protected StudioConfiguration studioConfiguration;
+	protected ConfigurationService configurationService;
 
-    protected Cache<String, ContentTypeConfigTO> cache;
+	protected Cache<String, ContentTypeConfigTO> cache;
 
-    @Override
-    @Valid
-    public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam final String site,
-                                                    @ValidateStringParam final String contentType) {
-        if (StringUtils.isNotEmpty(contentType) && !StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
-            return loadConfiguration(site, contentType);
-        } else {
-            return null;
-        }
-    }
+	@Override
+	@Valid
+	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam final String site,
+							@ValidateStringParam final String contentType) {
+		if (StringUtils.isNotEmpty(contentType) && !StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
+			return loadConfiguration(site, contentType);
+		} else {
+			return null;
+		}
+	}
 
-    @Override
-    @Valid
-    public ContentTypeConfigTO loadConfiguration(@ValidateStringParam String site,
-                                                 @ValidateStringParam String contentType) {
-        String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
-                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
+	@Override
+	@Valid
+	public ContentTypeConfigTO loadConfiguration(@ValidateStringParam String site,
+						     @ValidateStringParam String contentType) {
+		String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
+			.replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
+		String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
 
-        // TODO: SJ: Add general lock service lock around this key to avoid having more than one thread do this work
-        var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath,
-                null, "object");
-        ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
-        if (contentTypeConfig == null) {
-            try {
-                logger.debug("Cache miss for key '{}'", cacheKey);
+		// TODO: SJ: Add general lock service lock around this key to avoid having more than one thread do this work
+		var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath,
+			null, "object");
+		ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
+		if (contentTypeConfig == null) {
+			try {
+				logger.debug("Cache miss for key '{}'", cacheKey);
 
-                if (contentService.contentExists(site, configFileFullPath)) {
-                    Document document = configurationService.getConfigurationAsDocument(site, null,
-                            configFileFullPath, null);
-                    Element root = document.getRootElement();
-                    String name = root.valueOf("@name");
-                    contentTypeConfig = new ContentTypeConfigTO();
-                    contentTypeConfig.setName(name);
-                    contentTypeConfig.setLabel(root.valueOf("label"));
-                    String imageThumbnail=root.valueOf("image-thumbnail");
-                    if(imageThumbnail != null)
-                        contentTypeConfig.setImageThumbnail(imageThumbnail);
-                    contentTypeConfig.setForm(root.valueOf("form"));
-                    boolean previewable = ContentFormatUtils.getBooleanValue(root.valueOf("previewable"));
-                    contentTypeConfig.setFormPath(root.valueOf("form-path"));
-                    contentTypeConfig.setPreviewable(previewable);
-                    contentTypeConfig.setModelInstancePath(root.valueOf("model-instance-path"));
-                    boolean contentAsFolder = ContentFormatUtils.getBooleanValue(root.valueOf("content-as-folder"));
-                    contentTypeConfig.setContentAsFolder(contentAsFolder);
-                    boolean useRoundedFolder = ContentFormatUtils.getBooleanValue(root.valueOf("use-rounded-folder"));
-                    contentTypeConfig.setUseRoundedFolder(useRoundedFolder);
-                    List<String> pathIncludes = getPaths(root, "paths/includes/pattern");
-                    if (pathIncludes.size() == 0) {
-                        // if no configuration, include every path
-                        pathIncludes.add(".*");
-                    }
-                    contentTypeConfig.setPathIncludes(pathIncludes);
-                    List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
-                    contentTypeConfig.setPathExcludes(pathExcludes);
-                    loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
-                    loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
-                    loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
-                    contentTypeConfig.setLastUpdated(DateUtils.getCurrentTime());
-                    contentTypeConfig.setType(getContentTypeTypeByName(name));
-                    boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
-                    contentTypeConfig.setQuickCreate(quickCreate);
-                    contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
+				if (contentService.contentExists(site, configFileFullPath)) {
+					Document document = configurationService.getConfigurationAsDocument(site, null,
+						configFileFullPath, null);
+					Element root = document.getRootElement();
+					String name = root.valueOf("@name");
+					contentTypeConfig = new ContentTypeConfigTO();
+					contentTypeConfig.setName(name);
+					contentTypeConfig.setLabel(root.valueOf("label"));
+					String imageThumbnail = root.valueOf("image-thumbnail");
+					if (imageThumbnail != null)
+						contentTypeConfig.setImageThumbnail(imageThumbnail);
+					contentTypeConfig.setForm(root.valueOf("form"));
+					boolean previewable = ContentFormatUtils.getBooleanValue(root.valueOf("previewable"));
+					contentTypeConfig.setFormPath(root.valueOf("form-path"));
+					contentTypeConfig.setPreviewable(previewable);
+					contentTypeConfig.setModelInstancePath(root.valueOf("model-instance-path"));
+					boolean contentAsFolder = ContentFormatUtils.getBooleanValue(root.valueOf("content-as-folder"));
+					contentTypeConfig.setContentAsFolder(contentAsFolder);
+					boolean useRoundedFolder = ContentFormatUtils.getBooleanValue(root.valueOf("use-rounded-folder"));
+					contentTypeConfig.setUseRoundedFolder(useRoundedFolder);
+					List<String> pathIncludes = getPaths(root, "paths/includes/pattern");
+					if (pathIncludes.size() == 0) {
+						// if no configuration, include every path
+						pathIncludes.add(".*");
+					}
+					contentTypeConfig.setPathIncludes(pathIncludes);
+					List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
+					contentTypeConfig.setPathExcludes(pathExcludes);
+					loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
+					loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
+					loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
+					contentTypeConfig.setLastUpdated(DateUtils.getCurrentTime());
+					contentTypeConfig.setType(getContentTypeTypeByName(name));
+					boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
+					contentTypeConfig.setQuickCreate(quickCreate);
+					contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
 
-                    cache.put(cacheKey, contentTypeConfig);
-                }
-            } catch (ServiceLayerException e) {
-                logger.error("No content type configuration document found in site '{}' at '{}'",
-                        site, configFileFullPath, e);
-            }
-        }
-        return contentTypeConfig;
-    }
+					cache.put(cacheKey, contentTypeConfig);
+				}
+			} catch (ServiceLayerException e) {
+				logger.error("No content type configuration document found in site '{}' at '{}'",
+					site, configFileFullPath, e);
+			}
+		}
+		return contentTypeConfig;
+	}
 
-    /**
-     * load delete dependencies mapping
-     *
-     * @param contentTypeConfig
-     * @param nodes
-     */
-    protected void loadDeleteDependencies(ContentTypeConfigTO contentTypeConfig, List<Node> nodes) {
-        List<DeleteDependencyConfigTO> deleteConfigs = new ArrayList<>();
-        if (nodes != null) {
-            for (Node node : nodes) {
-                Node patternNode = node.selectSingleNode("pattern");
-                Node removeFolderNode = node.selectSingleNode("remove-empty-folder");
-                if(patternNode!=null){
-                    String pattern = patternNode.getText();
-                    String removeEmptyFolder = removeFolderNode.getText();
-                    boolean isRemoveEmptyFolder=false;
-                    if(removeEmptyFolder!=null){
-                        isRemoveEmptyFolder = Boolean.parseBoolean(removeEmptyFolder);
-                    }
-                    if(StringUtils.isNotEmpty(pattern)){
-                        DeleteDependencyConfigTO deleteConfigTO =
-                                new DeleteDependencyConfigTO(pattern, isRemoveEmptyFolder);
-                        deleteConfigs.add(deleteConfigTO);
-                    }
-                }
-            }
-            contentTypeConfig.setDeleteDependencies(deleteConfigs);
-        }
-    }
+	/**
+	 * load delete dependencies mapping
+	 *
+	 * @param contentTypeConfig
+	 * @param nodes
+	 */
+	protected void loadDeleteDependencies(ContentTypeConfigTO contentTypeConfig, List<Node> nodes) {
+		List<DeleteDependencyConfigTO> deleteConfigs = new ArrayList<>();
+		if (nodes != null) {
+			for (Node node : nodes) {
+				Node patternNode = node.selectSingleNode("pattern");
+				Node removeFolderNode = node.selectSingleNode("remove-empty-folder");
+				if (patternNode != null) {
+					String pattern = patternNode.getText();
+					String removeEmptyFolder = removeFolderNode.getText();
+					boolean isRemoveEmptyFolder = false;
+					if (removeEmptyFolder != null) {
+						isRemoveEmptyFolder = Boolean.parseBoolean(removeEmptyFolder);
+					}
+					if (StringUtils.isNotEmpty(pattern)) {
+						DeleteDependencyConfigTO deleteConfigTO =
+							new DeleteDependencyConfigTO(pattern, isRemoveEmptyFolder);
+						deleteConfigs.add(deleteConfigTO);
+					}
+				}
+			}
+			contentTypeConfig.setDeleteDependencies(deleteConfigs);
+		}
+	}
 
-    /**
-     * Checks name for naming convention.
-     * @param name Name to be check
-     * @return <ul>
-     * <li><b>component</b> if the name matches component naming convention</li>
-     * <li><b>page</b> if the name matches page naming convention</li>
-     * <li><b>unknown</b> if name don't match any known convention</li>
-     * </ul>
-     */
-    private String getContentTypeTypeByName(String name) {
-        if (Pattern.matches("/component/.*?", name)) {
-            return "component";
-        } else if (Pattern.matches("/page/.*?", name))
-            return "page";
-        else {
-            return "unknown";
-        }
-    }
+	/**
+	 * Checks name for naming convention.
+	 *
+	 * @param name Name to be check
+	 * @return <ul>
+	 * <li><b>component</b> if the name matches component naming convention</li>
+	 * <li><b>page</b> if the name matches page naming convention</li>
+	 * <li><b>unknown</b> if name don't match any known convention</li>
+	 * </ul>
+	 */
+	private String getContentTypeTypeByName(String name) {
+		if (Pattern.matches("/component/.*?", name)) {
+			return "component";
+		} else if (Pattern.matches("/page/.*?", name))
+			return "page";
+		else {
+			return "unknown";
+		}
+	}
 
-    /**
-     * get paths
-     *
-     * @param root
-     * @param path
-     * @return get paths
-     */
-    private List<String> getPaths(Element root, String path) {
-        List<String> paths = null;
-        List<Node> nodes = root.selectNodes(path);
-        if (nodes != null && nodes.size() > 0) {
-            paths = new ArrayList<>(nodes.size());
-            for (Node node : nodes) {
-                String role = node.getText();
-                if (!StringUtils.isEmpty(role)) {
-                    paths.add(role);
-                }
-            }
-        } else {
-            paths = new ArrayList<>();
-        }
-        return paths;
-    }
+	/**
+	 * get paths
+	 *
+	 * @param root
+	 * @param path
+	 * @return get paths
+	 */
+	private List<String> getPaths(Element root, String path) {
+		List<String> paths = null;
+		List<Node> nodes = root.selectNodes(path);
+		if (nodes != null && nodes.size() > 0) {
+			paths = new ArrayList<>(nodes.size());
+			for (Node node : nodes) {
+				String role = node.getText();
+				if (!StringUtils.isEmpty(role)) {
+					paths.add(role);
+				}
+			}
+		} else {
+			paths = new ArrayList<>();
+		}
+		return paths;
+	}
 
-    /**
-     * load a list of allowed roles
-     * @param config
-     * @param nodes
-     */
-    protected void loadRoles(ContentTypeConfigTO config, List<Node> nodes) {
-        Set<NormalizedRole> roles;
-        if (!CollectionUtils.isEmpty(nodes)) {
-            roles = new HashSet<>(nodes.size());
-            for (Node node : nodes) {
-                String role = node.getText();
-                if (!StringUtils.isEmpty(role)) {
-                    roles.add(new NormalizedRole(role));
-                }
-            }
-        } else {
-            roles = new HashSet<>();
-        }
-        config.setAllowedRoles(roles);
-    }
+	/**
+	 * load a list of allowed roles
+	 *
+	 * @param config
+	 * @param nodes
+	 */
+	protected void loadRoles(ContentTypeConfigTO config, List<Node> nodes) {
+		Set<NormalizedRole> roles;
+		if (!CollectionUtils.isEmpty(nodes)) {
+			roles = new HashSet<>(nodes.size());
+			for (Node node : nodes) {
+				String role = node.getText();
+				if (!StringUtils.isEmpty(role)) {
+					roles.add(new NormalizedRole(role));
+				}
+			}
+		} else {
+			roles = new HashSet<>();
+		}
+		config.setAllowedRoles(roles);
+	}
 
-    /**
-     *
-     * @param config
-     * @param copyDependencyNodes
-     */
-    protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
-        List<CopyDependencyConfigTO> copyConfig = new ArrayList<>();
-        if (copyDependencyNodes != null) {
-            for (Node copyDependency : copyDependencyNodes) {
-                Node patternNode = copyDependency.selectSingleNode("pattern");
-                Node targetNode = copyDependency.selectSingleNode("target");
-                if(patternNode!=null && targetNode!=null){
-                    String pattern = patternNode.getText();
-                    String target = targetNode.getText();
-                    if(StringUtils.isNotEmpty(pattern) && StringUtils.isNotEmpty(target)){
-                        CopyDependencyConfigTO copyDependencyConfigTO  = new CopyDependencyConfigTO(pattern,target);
-                        copyConfig.add(copyDependencyConfigTO);
-                    }
-                }
-            }
-        }
-        config.setCopyDepedencyPattern(copyConfig);
+	/**
+	 * @param config
+	 * @param copyDependencyNodes
+	 */
+	protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
+		List<CopyDependencyConfigTO> copyConfig = new ArrayList<>();
+		if (copyDependencyNodes != null) {
+			for (Node copyDependency : copyDependencyNodes) {
+				Node patternNode = copyDependency.selectSingleNode("pattern");
+				Node targetNode = copyDependency.selectSingleNode("target");
+				if (patternNode != null && targetNode != null) {
+					String pattern = patternNode.getText();
+					String target = targetNode.getText();
+					if (StringUtils.isNotEmpty(pattern) && StringUtils.isNotEmpty(target)) {
+						CopyDependencyConfigTO copyDependencyConfigTO = new CopyDependencyConfigTO(pattern, target);
+						copyConfig.add(copyDependencyConfigTO);
+					}
+				}
+			}
+		}
+		config.setCopyDepedencyPattern(copyConfig);
 
-    }
+	}
 
 
-    @Override
-    @Valid
-    public ContentTypeConfigTO reloadConfiguration(@ValidateStringParam String site,
-                                                   @ValidateStringParam String contentType) {
-        return loadConfiguration(site, contentType);
-    }
+	@Override
+	@Valid
+	public ContentTypeConfigTO reloadConfiguration(@ValidateStringParam String site,
+						       @ValidateStringParam String contentType) {
+		return loadConfiguration(site, contentType);
+	}
 
-    public String getConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH);
-    }
+	public String getConfigPath() {
+		return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH);
+	}
 
-    public String getConfigFileName() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME);
-    }
+	public String getConfigFileName() {
+		return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME);
+	}
 
-    public ContentService getContentService() {
-        return contentService;
-    }
+	public ContentService getContentService() {
+		return contentService;
+	}
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
+	public GeneralLockService getGeneralLockService() {
+		return generalLockService;
+	}
 
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
+	public void setGeneralLockService(GeneralLockService generalLockService) {
+		this.generalLockService = generalLockService;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
 
-    public void setCache(Cache<String, ContentTypeConfigTO> cache) {
-        this.cache = cache;
-    }
+	public void setCache(Cache<String, ContentTypeConfigTO> cache) {
+		this.cache = cache;
+	}
 
 }

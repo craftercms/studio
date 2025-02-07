@@ -26,6 +26,7 @@ import org.craftercms.studio.model.rest.logging.LoggerConfig;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+
 import java.beans.ConstructorProperties;
 import java.util.List;
 
@@ -40,34 +41,34 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class LoggerServiceImpl implements LoggerService {
 
-    protected final LoggerService loggerServiceInternal;
+	protected final LoggerService loggerServiceInternal;
 
-    @ConstructorProperties({"loggerServiceInternal"})
-    public LoggerServiceImpl(final LoggerService loggerServiceInternal) {
-        this.loggerServiceInternal = loggerServiceInternal;
-    }
+	@ConstructorProperties({"loggerServiceInternal"})
+	public LoggerServiceImpl(final LoggerService loggerServiceInternal) {
+		this.loggerServiceInternal = loggerServiceInternal;
+	}
 
-    @Override
-    @HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
-    public List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException {
-        return loggerServiceInternal.getLoggerConfigs();
-    }
+	@Override
+	@HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
+	public List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException {
+		return loggerServiceInternal.getLoggerConfigs();
+	}
 
-    @Override
-    @Valid
-    @HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
-    public LoggerConfig getLoggerConfig(@ValidateStringParam final String name, boolean createIfAbsent) throws ServiceLayerException {
-        return loggerServiceInternal.getLoggerConfig(name, createIfAbsent);
-    }
+	@Override
+	@Valid
+	@HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
+	public LoggerConfig getLoggerConfig(@ValidateStringParam final String name, boolean createIfAbsent) throws ServiceLayerException {
+		return loggerServiceInternal.getLoggerConfig(name, createIfAbsent);
+	}
 
-    @Override
-    @Valid
-    @HasPermission(action = PERMISSION_CONFIGURE_LOG_LEVELS, type = DefaultPermission.class)
-    public void setLoggerLevel(@ValidateStringParam final String name,
-                               @NotEmpty
-                               @ValidateStringParam(
-                                       whitelistedPatterns = {VALID_LEVEL_PATTERN}) final String level,
-                               boolean createIfAbsent) throws ServiceLayerException {
-        loggerServiceInternal.setLoggerLevel(name, level, createIfAbsent);
-    }
+	@Override
+	@Valid
+	@HasPermission(action = PERMISSION_CONFIGURE_LOG_LEVELS, type = DefaultPermission.class)
+	public void setLoggerLevel(@ValidateStringParam final String name,
+				   @NotEmpty
+				   @ValidateStringParam(
+					   whitelistedPatterns = {VALID_LEVEL_PATTERN}) final String level,
+				   boolean createIfAbsent) throws ServiceLayerException {
+		loggerServiceInternal.setLoggerLevel(name, level, createIfAbsent);
+	}
 }

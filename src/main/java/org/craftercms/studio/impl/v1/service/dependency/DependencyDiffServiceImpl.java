@@ -27,63 +27,69 @@ import java.util.Set;
 
 public class DependencyDiffServiceImpl implements DependencyDiffService {
 
-    protected DependencyService dependencyService;
+	protected DependencyService dependencyService;
 
-    public DependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+	public DependencyService getDependencyService() {
+		return dependencyService;
+	}
 
-    /**
-     * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
-     * @param diffRequest
-     * @return diff response object
-     * @throws ServiceLayerException
-     */
-    public DiffResponse diff(DiffRequest diffRequest) throws ServiceLayerException {
+	public void setDependencyService(DependencyService dependencyService) {
+		this.dependencyService = dependencyService;
+	}
 
-        if(diffRequest == null)
-            throw new ServiceLayerException("diffcontext cannot be null");
+	/**
+	 * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
+	 *
+	 * @param diffRequest
+	 * @return diff response object
+	 * @throws ServiceLayerException
+	 */
+	public DiffResponse diff(DiffRequest diffRequest) throws ServiceLayerException {
 
-        DiffResponse response = new DiffResponse();
-        boolean recursive = diffRequest.isRecursive();
-        String site = diffRequest.getSite();
+		if (diffRequest == null)
+			throw new ServiceLayerException("diffcontext cannot be null");
 
-        String sourcePath = diffRequest.getSourcePath();
-        String destPath = diffRequest.getDestPath();
-        if(StringUtils.isEmpty(destPath)){
-            destPath = sourcePath;
-        }
+		DiffResponse response = new DiffResponse();
+		boolean recursive = diffRequest.isRecursive();
+		String site = diffRequest.getSite();
 
-        List<String> sourceDependencies = new ArrayList<>();
-        sourceDependencies = findDependencies(site,diffRequest.getSourceSandbox(),sourcePath, recursive, sourceDependencies);
-        List<String> destDependencies = new ArrayList<>();
-        destDependencies = findDependencies(site,diffRequest.getDestSandbox(),destPath, recursive, destDependencies);
+		String sourcePath = diffRequest.getSourcePath();
+		String destPath = diffRequest.getDestPath();
+		if (StringUtils.isEmpty(destPath)) {
+			destPath = sourcePath;
+		}
 
-        //Removed dependenices
-        for(String destDependency:destDependencies){
-            if(!sourceDependencies.contains(destDependency)){
-                response.getRemovedDependencies().add(destDependency);
-            }
-        }
-        //Added dependenices
-        for(String sourceDependency:sourceDependencies){
-            if(!destDependencies.contains(sourceDependency)){
-                response.getAddedDependencies().add(sourceDependency);
-            }
-        }
-        return response;
-    }
+		List<String> sourceDependencies = new ArrayList<>();
+		sourceDependencies = findDependencies(site, diffRequest.getSourceSandbox(), sourcePath, recursive, sourceDependencies);
+		List<String> destDependencies = new ArrayList<>();
+		destDependencies = findDependencies(site, diffRequest.getDestSandbox(), destPath, recursive, destDependencies);
 
-    protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive,
-                                            List<String> dependencies) throws ServiceLayerException {
-        Set<String> dependenciesFromDoc = dependencyService.getItemDependencies(site, relativePath, 1);
-        dependencies.addAll(dependenciesFromDoc);
-        if(isRecursive){
-            for(String dependency:dependenciesFromDoc){
-                if (!dependencies.contains(dependency)) {
-                    dependencies.addAll(findDependencies(site, sandbox, dependency, isRecursive, dependencies));
-                }
-            }
-        }
-        return dependencies;
-    }
+		//Removed dependenices
+		for (String destDependency : destDependencies) {
+			if (!sourceDependencies.contains(destDependency)) {
+				response.getRemovedDependencies().add(destDependency);
+			}
+		}
+		//Added dependenices
+		for (String sourceDependency : sourceDependencies) {
+			if (!destDependencies.contains(sourceDependency)) {
+				response.getAddedDependencies().add(sourceDependency);
+			}
+		}
+		return response;
+	}
+
+	protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive,
+						List<String> dependencies) throws ServiceLayerException {
+		Set<String> dependenciesFromDoc = dependencyService.getItemDependencies(site, relativePath, 1);
+		dependencies.addAll(dependenciesFromDoc);
+		if (isRecursive) {
+			for (String dependency : dependenciesFromDoc) {
+				if (!dependencies.contains(dependency)) {
+					dependencies.addAll(findDependencies(site, sandbox, dependency, isRecursive, dependencies));
+				}
+			}
+		}
+		return dependencies;
+	}
 }

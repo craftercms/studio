@@ -33,19 +33,19 @@ import java.beans.ConstructorProperties;
  * @since 4.0
  */
 public class DbAuthenticationUserDetailsService<T extends Authentication> extends AbstractCachedUserDetailsService
-        implements AuthenticationUserDetailsService<T> {
+	implements AuthenticationUserDetailsService<T> {
 
-    @ConstructorProperties({"userDao", "cache"})
-    public DbAuthenticationUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
-        super(userDao, cache);
-    }
+	@ConstructorProperties({"userDao", "cache"})
+	public DbAuthenticationUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
+		super(userDao, cache);
+	}
 
-    @Override
-    public UserDetails loadUserDetails(T auth) throws UsernameNotFoundException {
-        var user = getUser(auth.getName());
+	@Override
+	public UserDetails loadUserDetails(T auth) throws UsernameNotFoundException {
+		var user = getUser(auth.getName());
 
-        // This is only needed to avoid cast exceptions from all other services
-        return new AuthenticatedUser(user);
-    }
+		// This is only needed to avoid cast exceptions from all other services
+		return new AuthenticatedUser(user);
+	}
 
 }

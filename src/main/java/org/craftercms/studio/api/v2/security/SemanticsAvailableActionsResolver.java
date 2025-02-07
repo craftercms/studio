@@ -21,25 +21,32 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
+/**
+ * Interface to resolve available actions from user permissions
+ * The {@link SemanticsAvailableActionsResolver} consider not only permissions but
+ * also the state and metadata of a content item to calculate available actions
+ */
 public interface SemanticsAvailableActionsResolver {
 
-    /**
-     * Calculate available actions for given content item
-     * @param username user name to apply permissions
-     * @param siteId site identifier
-     * @param item Item
-     * @return bitmap representing available actions
-     */
-    long calculateContentItemAvailableActions(String username, String siteId, Item item)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Calculate available actions for given content item
+	 *
+	 * @param username user name to apply permissions
+	 * @param siteId   site identifier
+	 * @param item     Item
+	 * @return bitmap representing available actions
+	 */
+	long calculateContentItemAvailableActions(String username, String siteId, Item item)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Calculate available actions for given content item
-     * @param username user name to apply permissions
-     * @param siteId site identifier
-     * @param detailedItem Item
-     * @return bitmap representing available actions
-     */
-    long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Calculate available actions for given content item
+	 *
+	 * @param username     user name to apply permissions
+	 * @param siteId       site identifier
+	 * @param detailedItem Item
+	 * @return bitmap representing available actions
+	 */
+	long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
+		throws ServiceLayerException, UserNotFoundException;
 }

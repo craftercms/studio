@@ -16,6 +16,6 @@
   -->
 
 <levelDescriptor>
-  <merge-strategy>inherit-levels</merge-strategy>
-  <content-type>/component/level-descriptor</content-type>
- </levelDescriptor>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<content-type>/component/level-descriptor</content-type>
+</levelDescriptor>

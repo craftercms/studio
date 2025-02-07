@@ -17,33 +17,33 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Fix permissions for publisher role -->
-    <xsl:template match="permissions/role[@name='publisher']/rule[@regex='/(static-assets|templates|scripts)/.*']">
-        <xsl:copy>
-            <xsl:attribute name="regex">
-                <xsl:text>/static-assets.*</xsl:text>
-            </xsl:attribute>
-            <xsl:apply-templates/>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Fix permissions for publisher role -->
+	<xsl:template match="permissions/role[@name='publisher']/rule[@regex='/(static-assets|templates|scripts)/.*']">
+		<xsl:copy>
+			<xsl:attribute name="regex">
+				<xsl:text>/static-assets.*</xsl:text>
+			</xsl:attribute>
+			<xsl:apply-templates/>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

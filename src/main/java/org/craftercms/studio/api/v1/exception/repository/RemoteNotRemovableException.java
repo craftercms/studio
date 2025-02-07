@@ -18,24 +18,24 @@ package org.craftercms.studio.api.v1.exception.repository;
 
 public class RemoteNotRemovableException extends Exception {
 
-    private static final long serialVersionUID = 6683185301012812522L;
+	private static final long serialVersionUID = 6683185301012812522L;
 
-    public RemoteNotRemovableException() {
-    }
+	public RemoteNotRemovableException() {
+	}
 
-    public RemoteNotRemovableException(String s) {
-        super(s);
-    }
+	public RemoteNotRemovableException(String s) {
+		super(s);
+	}
 
-    public RemoteNotRemovableException(String s, Throwable throwable) {
-        super(s, throwable);
-    }
+	public RemoteNotRemovableException(String s, Throwable throwable) {
+		super(s, throwable);
+	}
 
-    public RemoteNotRemovableException(Throwable throwable) {
-        super(throwable);
-    }
+	public RemoteNotRemovableException(Throwable throwable) {
+		super(throwable);
+	}
 
-    public RemoteNotRemovableException(String s, Throwable throwable, boolean b, boolean b1) {
-        super(s, throwable, b, b1);
-    }
+	public RemoteNotRemovableException(String s, Throwable throwable, boolean b, boolean b1) {
+		super(s, throwable, b, b1);
+	}
 }

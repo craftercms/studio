@@ -21,14 +21,14 @@ package org.craftercms.studio.api.v2.dal.publish;
  */
 public class PublishItemWithMetadata extends PublishItem {
 
-    private PublishItemMetadata itemMetadata;
+	private PublishItemMetadata itemMetadata;
 
-    public PublishItemMetadata getItemMetadata() {
-        return itemMetadata;
-    }
+	public PublishItemMetadata getItemMetadata() {
+		return itemMetadata;
+	}
 
-    public void setItemMetadata(PublishItemMetadata itemMetadata) {
-        this.itemMetadata = itemMetadata;
-    }
+	public void setItemMetadata(PublishItemMetadata itemMetadata) {
+		this.itemMetadata = itemMetadata;
+	}
 }
 

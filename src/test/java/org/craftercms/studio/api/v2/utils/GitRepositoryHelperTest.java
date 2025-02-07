@@ -30,24 +30,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class GitRepositoryHelperTest extends BaseRepositoryTestCase {
 
-    @Override
-    protected AutoCloseable initMocks() {
-        return MockitoAnnotations.openMocks(this);
-    }
+	@Override
+	protected AutoCloseable initMocks() {
+		return MockitoAnnotations.openMocks(this);
+	}
 
-    @Test
-    public void testNoChangesForFile() {
-        assertThrows(NoChangesForPathException.class, () ->
-                helper.getDiffEntry(db, db.resolve(HEAD), NON_EXISTENT_FILE_NAME));
-        assertThrows(NoChangesForPathException.class, () -> helper.getDiffEntry(db, db.resolve(HEAD), RENAMED_1_FILE_NAME));
-        assertThrows(NoChangesForPathException.class, () -> helper.getDiffEntry(db, db.resolve(HEAD), ORIGINAL_FILE_NAME));
-    }
+	@Test
+	public void testNoChangesForFile() {
+		assertThrows(NoChangesForPathException.class, () ->
+			helper.getDiffEntry(db, db.resolve(HEAD), NON_EXISTENT_FILE_NAME));
+		assertThrows(NoChangesForPathException.class, () -> helper.getDiffEntry(db, db.resolve(HEAD), RENAMED_1_FILE_NAME));
+		assertThrows(NoChangesForPathException.class, () -> helper.getDiffEntry(db, db.resolve(HEAD), ORIGINAL_FILE_NAME));
+	}
 
-    @Test
-    public void testInitialCommitChanges() throws GitAPIException, NoChangesForPathException, IOException {
-        DiffEntry diffEntry = helper.getDiffEntry(db, firstCommit, ORIGINAL_FILE_NAME);
-        assertEquals(ORIGINAL_FILE_NAME, diffEntry.getNewPath(), "First commit should contain original file name");
-        assertEquals(DiffEntry.ChangeType.ADD, diffEntry.getChangeType(), "First commit should have an ADD change type");
-    }
+	@Test
+	public void testInitialCommitChanges() throws GitAPIException, NoChangesForPathException, IOException {
+		DiffEntry diffEntry = helper.getDiffEntry(db, firstCommit, ORIGINAL_FILE_NAME);
+		assertEquals(ORIGINAL_FILE_NAME, diffEntry.getNewPath(), "First commit should contain original file name");
+		assertEquals(DiffEntry.ChangeType.ADD, diffEntry.getChangeType(), "First commit should have an ADD change type");
+	}
 
 }

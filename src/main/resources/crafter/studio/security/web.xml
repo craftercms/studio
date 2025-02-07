@@ -23,39 +23,39 @@
 		http://www.springframework.org/schema/security
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
-    <bean id="logoutSuccessHandler"
-          class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler"/>
+	<bean id="logoutSuccessHandler"
+	      class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler"/>
 
-    <sec:authentication-manager id="webAuthenticationManager">
-        <sec:authentication-provider ref="dbAuthenticationProvider"/>
-    </sec:authentication-manager>
+	<sec:authentication-manager id="webAuthenticationManager">
+		<sec:authentication-provider ref="dbAuthenticationProvider"/>
+	</sec:authentication-manager>
 
-    <sec:http
-            pattern="/**"
-            use-expressions="true"
-            authentication-manager-ref="webAuthenticationManager"
-            security-context-explicit-save="false">
+	<sec:http
+		pattern="/**"
+		use-expressions="true"
+		authentication-manager-ref="webAuthenticationManager"
+		security-context-explicit-save="false">
 
-        <sec:session-management>
-            <sec:concurrency-control session-registry-alias="sessionRegistry"
-                                     expired-session-strategy-ref="sessionExpiredStrategy"/>
-        </sec:session-management>
+		<sec:session-management>
+			<sec:concurrency-control session-registry-alias="sessionRegistry"
+						 expired-session-strategy-ref="sessionExpiredStrategy"/>
+		</sec:session-management>
 
-        <sec:csrf token-repository-ref="csrfTokenRepository" request-handler-ref="csrfTokenRequestHandler"/>
-        <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
-        <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
+		<sec:csrf token-repository-ref="csrfTokenRepository" request-handler-ref="csrfTokenRequestHandler"/>
+		<sec:headers disabled="true"/> <!-- Because we have a custom filter -->
+		<sec:cors configuration-source-ref="crafter.corsConfigSource"/>
 
-        <sec:form-login login-page="/login" authentication-failure-url="/login?error=true"/>
-        <sec:logout success-handler-ref="logoutSuccessHandler"/>
+		<sec:form-login login-page="/login" authentication-failure-url="/login?error=true"/>
+		<sec:logout success-handler-ref="logoutSuccessHandler"/>
 
-        <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
-        <sec:custom-filter ref="studio.loginPageFilter" before="FORM_LOGIN_FILTER"/>
+		<sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
+		<sec:custom-filter ref="studio.loginPageFilter" before="FORM_LOGIN_FILTER"/>
 
-        <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
-        <sec:intercept-url pattern="/login" access="permitAll()"/>
-        <sec:intercept-url pattern="/refresh*" access="permitAll()"/>
-        <sec:intercept-url pattern="/authType*" access="permitAll()"/>
-        <sec:intercept-url pattern="/**" access="isAuthenticated()"/>
-    </sec:http>
+		<sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
+		<sec:intercept-url pattern="/login" access="permitAll()"/>
+		<sec:intercept-url pattern="/refresh*" access="permitAll()"/>
+		<sec:intercept-url pattern="/authType*" access="permitAll()"/>
+		<sec:intercept-url pattern="/**" access="isAuthenticated()"/>
+	</sec:http>
 
 </beans>

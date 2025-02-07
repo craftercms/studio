@@ -18,20 +18,40 @@ package org.craftercms.studio.api.v1.dal;
 
 public class GroupResult {
 
-    private String siteId;
-    private String siteName;
-    private String groupName;
-    private String groupDescription;
+	private String siteId;
+	private String siteName;
+	private String groupName;
+	private String groupDescription;
 
-    public String getSiteId() { return siteId; }
-    public void setSiteId(String siteId) { this.siteId = siteId; }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public String getSiteName() { return siteName; }
-    public void setSiteName(String siteName) { this.siteName = siteName; }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getGroupName() { return groupName; }
-    public void setGroupName(String groupName) { this.groupName = groupName; }
+	public String getSiteName() {
+		return siteName;
+	}
 
-    public String getGroupDescription() { return groupDescription; }
-    public void setGroupDescription(String groupDescription) { this.groupDescription = groupDescription; }
+	public void setSiteName(String siteName) {
+		this.siteName = siteName;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public String getGroupDescription() {
+		return groupDescription;
+	}
+
+	public void setGroupDescription(String groupDescription) {
+		this.groupDescription = groupDescription;
+	}
 }

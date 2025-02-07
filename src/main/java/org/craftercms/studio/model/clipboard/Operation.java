@@ -22,5 +22,5 @@ package org.craftercms.studio.model.clipboard;
  * @since 3.2
  */
 public enum Operation {
-    COPY, CUT
+	COPY, CUT
 }

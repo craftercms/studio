@@ -37,17 +37,17 @@ class Cookies {
 		def result = "UNSET"
 		def cookies = request.getCookies()
 		if (cookies != null) {
-            for (int i = 0; i < cookies.length; i++) {
-                def name = cookies[i].getName()
-                def value = cookies[i].getValue()
+			for (int i = 0; i < cookies.length; i++) {
+				def name = cookies[i].getName()
+				def value = cookies[i].getValue()
 
-                if(name == cookieName) {
-                    result = value
-                    break
-                }
-            }
-        }
+				if (name == cookieName) {
+					result = value
+					break
+				}
+			}
+		}
 
-    	return result
+		return result
 	}
 }

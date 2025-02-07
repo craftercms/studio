@@ -26,44 +26,46 @@ import java.util.concurrent.ExecutionException;
 
 public interface SecurityService {
 
-    /**
-     * Get user permissions for given site
-     * @param siteId crafter site Id
-     * @param username user
-     * @param roles roles the user is assigned to
-     * @return list of user permissions
-     */
-    List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) throws ExecutionException;
+	/**
+	 * Get user permissions for given site
+	 *
+	 * @param siteId   crafter site Id
+	 * @param username user
+	 * @param roles    roles the user is assigned to
+	 * @return list of user permissions
+	 */
+	List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) throws ExecutionException;
 
-    /**
-     * Returns the username of the current user
-     * @return username of the current user, or null if no user is authenticated
-     */
-    String getCurrentUser();
+	/**
+	 * Returns the username of the current user
+	 *
+	 * @return username of the current user, or null if no user is authenticated
+	 */
+	String getCurrentUser();
 
-    /**
-     * Returns the {@link Authentication} for the current user or null if not user is authenticated.
-     *
-     * @return authentication
-     */
-    Authentication getAuthentication();
+	/**
+	 * Returns the {@link Authentication} for the current user or null if not user is authenticated.
+	 *
+	 * @return authentication
+	 */
+	Authentication getAuthentication();
 
-    /**
-     * Check if a user is a member of a site
-     * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
-     * role mapping configuration file.
-     *
-     * @param username the username
-     * @param siteName the site name
-     * @return true if user is a member of the site, false otherwise
-     */
-    boolean isSiteMember(String username, String siteName);
+	/**
+	 * Check if a user is a member of a site
+	 * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
+	 * role mapping configuration file.
+	 *
+	 * @param username the username
+	 * @param siteName the site name
+	 * @return true if user is a member of the site, false otherwise
+	 */
+	boolean isSiteMember(String username, String siteName);
 
-    /**
-     * Check if given user has system_admin role
-     *
-     * @param username user
-     * @return true if user is system_admin, false otherwise
-     */
-    boolean isSystemAdmin(String username);
+	/**
+	 * Check if given user has system_admin role
+	 *
+	 * @param username user
+	 * @return true if user is system_admin, false otherwise
+	 */
+	boolean isSystemAdmin(String username);
 }

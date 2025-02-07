@@ -39,55 +39,55 @@ import java.util.Arrays;
 @Order()
 public class LogExecutionTimeAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAnnotationHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAnnotationHandler.class);
 
-    // This method matches public methods and not internal call with one of the following conditions:
-    // - methods declared on classes annotated with LogExecutionTime
-    // - methods declared on classes meta-annotated with LogExecutionTime (only one level deep). e.g.: @LogExecutionTime, which is annotated with @LogExecutionTime
-    // - methods annotated with LogExecutionTime
-    // - methods meta-annotated with LogExecutionTime (only one level deep)
-    @Around("@within(LogExecutionTime) || " +
-            "within(@LogExecutionTime *) || " +
-            "within(@(@LogExecutionTime *) *) || " +
-            "@annotation(LogExecutionTime) || " +
-            "execution(@(@LogExecutionTime *) * *(..))")
-    public Object logExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
-        MethodSignature signature = (MethodSignature) pjp.getSignature();
-        String methodName = signature.toShortString();
-        String args = Arrays.toString(pjp.getArgs());
-        Logger methodLogger = LoggerFactory.getLogger(signature.getDeclaringType());
+	// This method matches public methods and not internal call with one of the following conditions:
+	// - methods declared on classes annotated with LogExecutionTime
+	// - methods declared on classes meta-annotated with LogExecutionTime (only one level deep). e.g.: @LogExecutionTime, which is annotated with @LogExecutionTime
+	// - methods annotated with LogExecutionTime
+	// - methods meta-annotated with LogExecutionTime (only one level deep)
+	@Around("@within(LogExecutionTime) || " +
+		"within(@LogExecutionTime *) || " +
+		"within(@(@LogExecutionTime *) *) || " +
+		"@annotation(LogExecutionTime) || " +
+		"execution(@(@LogExecutionTime *) * *(..))")
+	public Object logExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
+		MethodSignature signature = (MethodSignature) pjp.getSignature();
+		String methodName = signature.toShortString();
+		String args = Arrays.toString(pjp.getArgs());
+		Logger methodLogger = LoggerFactory.getLogger(signature.getDeclaringType());
 
-        if (methodLogger == null) {
-            logger.debug("Method '{}' is annotated with @LogExecutionTime but does not have a valid logger. " +
-                    "This annotation will be ignored.", methodName);
-            return pjp.proceed();
-        }
+		if (methodLogger == null) {
+			logger.debug("Method '{}' is annotated with @LogExecutionTime but does not have a valid logger. " +
+				"This annotation will be ignored.", methodName);
+			return pjp.proceed();
+		}
 
-        Method method = AopUtils.getActualMethod(pjp);
-        LogExecutionTime annotation = AnnotationUtils.findAnnotation(method, LogExecutionTime.class);
-        if (annotation == null) {
-            annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), LogExecutionTime.class);
-        }
+		Method method = AopUtils.getActualMethod(pjp);
+		LogExecutionTime annotation = AnnotationUtils.findAnnotation(method, LogExecutionTime.class);
+		if (annotation == null) {
+			annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), LogExecutionTime.class);
+		}
 
-        if (annotation == null) {
-            logger.debug("Unable to find LogExecutionTime annotation on method '{}.{}'. ",
-                    method.getDeclaringClass().getName(), method.getName());
-            return pjp.proceed();
-        }
+		if (annotation == null) {
+			logger.debug("Unable to find LogExecutionTime annotation on method '{}.{}'. ",
+				method.getDeclaringClass().getName(), method.getName());
+			return pjp.proceed();
+		}
 
-        Level logLevel = annotation.value() != null ? annotation.value() : Level.TRACE;
+		Level logLevel = annotation.value() != null ? annotation.value() : Level.TRACE;
 
-        long startTime = 0;
-        if (methodLogger.isEnabledForLevel(logLevel)) {
-            startTime = System.currentTimeMillis();
-        }
-        Object process = pjp.proceed();
-        if (methodLogger.isEnabledForLevel(logLevel)) {
-            LoggingEventBuilder loggingEventBuilder = methodLogger.atLevel(logLevel);
-            loggingEventBuilder.log("Method '{}' with parameters '{}' executed in '{}' milliseconds",
-                    methodName, args, System.currentTimeMillis() - startTime);
-        }
+		long startTime = 0;
+		if (methodLogger.isEnabledForLevel(logLevel)) {
+			startTime = System.currentTimeMillis();
+		}
+		Object process = pjp.proceed();
+		if (methodLogger.isEnabledForLevel(logLevel)) {
+			LoggingEventBuilder loggingEventBuilder = methodLogger.atLevel(logLevel);
+			loggingEventBuilder.log("Method '{}' with parameters '{}' executed in '{}' milliseconds",
+				methodName, args, System.currentTimeMillis() - startTime);
+		}
 
-        return process;
-    }
+		return process;
+	}
 }

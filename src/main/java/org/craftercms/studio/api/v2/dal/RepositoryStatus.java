@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,31 +20,40 @@ import java.util.Set;
 
 public class RepositoryStatus {
 
-    private Set<String> conflicting;
-    private Set<String> uncommittedChanges;
-    private boolean clean;
+	private Set<String> conflicting;
+	private Set<String> uncommittedChanges;
+	private Set<String> untracked;
+	private boolean clean;
 
-    public Set<String> getConflicting() {
-        return conflicting;
-    }
+	public Set<String> getConflicting() {
+		return conflicting;
+	}
 
-    public void setConflicting(Set<String> conflicting) {
-        this.conflicting = conflicting;
-    }
+	public void setConflicting(Set<String> conflicting) {
+		this.conflicting = conflicting;
+	}
 
-    public Set<String> getUncommittedChanges() {
-        return uncommittedChanges;
-    }
+	public Set<String> getUncommittedChanges() {
+		return uncommittedChanges;
+	}
 
-    public void setUncommittedChanges(Set<String> uncommittedChanges) {
-        this.uncommittedChanges = uncommittedChanges;
-    }
+	public void setUncommittedChanges(Set<String> uncommittedChanges) {
+		this.uncommittedChanges = uncommittedChanges;
+	}
 
-    public boolean isClean() {
-        return clean;
-    }
+	public Set<String> getUntracked() {
+		return untracked;
+	}
 
-    public void setClean(boolean clean) {
-        this.clean = clean;
-    }
+	public void setUntracked(Set<String> untracked) {
+		this.untracked = untracked;
+	}
+
+	public boolean isClean() {
+		return clean;
+	}
+
+	public void setClean(boolean clean) {
+		this.clean = clean;
+	}
 }

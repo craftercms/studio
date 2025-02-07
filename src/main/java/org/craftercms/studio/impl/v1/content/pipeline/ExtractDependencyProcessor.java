@@ -28,40 +28,42 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 
 public class ExtractDependencyProcessor extends PathMatchProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExtractDependencyProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(ExtractDependencyProcessor.class);
 
-    public static final String NAME = "ExtractDependencyProcessor";
+	public static final String NAME = "ExtractDependencyProcessor";
 
-    protected DependencyService dependencyService;
+	protected DependencyService dependencyService;
 
-    /**
-     * default constructor
-     */
-    public ExtractDependencyProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public ExtractDependencyProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public ExtractDependencyProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public ExtractDependencyProcessor(String name) {
+		super(name);
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        String site = content.getProperty(DmConstants.KEY_SITE);
-        String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
-        String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
-        try {
-            dependencyService.upsertDependencies(site, path);
-            dependencyService.validateDependencies(site, path);
-        } catch (ServiceLayerException e) {
-            throw new ContentProcessException(e);
-        }
-    }
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		String site = content.getProperty(DmConstants.KEY_SITE);
+		String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
+		String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
+		String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
+		try {
+			dependencyService.upsertDependencies(site, path);
+			dependencyService.validateDependencies(site, path);
+		} catch (ServiceLayerException e) {
+			throw new ContentProcessException(e);
+		}
+	}
 
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+	public void setDependencyService(DependencyService dependencyService) {
+		this.dependencyService = dependencyService;
+	}
 }

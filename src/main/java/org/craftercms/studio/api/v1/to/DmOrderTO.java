@@ -19,15 +19,14 @@ import java.io.Serializable;
 
 /**
  * This class represents the sorting order of DM Content Item
- * 
+ *
  * @author hyanghee
  * @author Dejan Brkic
- * 
  */
 public class DmOrderTO implements Comparable<DmOrderTO>, Serializable {
 
-    private static final long serialVersionUID = -7831644335720471414L;
-    protected String _id;
+	private static final long serialVersionUID = -7831644335720471414L;
+	protected String _id;
 	protected double _order;
 	protected String _name;
 	protected String _disabled;
@@ -41,7 +40,7 @@ public class DmOrderTO implements Comparable<DmOrderTO>, Serializable {
 
 	/**
 	 * copy constructor
-	 * 
+	 *
 	 * @param order order
 	 */
 	public DmOrderTO(DmOrderTO order) {

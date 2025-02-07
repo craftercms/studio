@@ -20,18 +20,19 @@ import com.google.common.cache.Cache;
 /**
  * Defines the operations for cache invalidation
  *
- * @author joseross
- * @since 4.0
  * @param <K> the type for the keys
  * @param <V> the type for the values
+ * @author joseross
+ * @since 4.0
  */
-public interface CacheInvalidator<K,V> {
+public interface CacheInvalidator<K, V> {
 
-    /**
-     * Performs the cache invalidation based on the given key
-     * @param cache the cache instance
-     * @param key the key to invalidate
-     */
-    void invalidate(Cache<K, V> cache,  K key);
+	/**
+	 * Performs the cache invalidation based on the given key
+	 *
+	 * @param cache the cache instance
+	 * @param key   the key to invalidate
+	 */
+	void invalidate(Cache<K, V> cache, K key);
 
 }

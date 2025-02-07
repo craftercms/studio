@@ -23,10 +23,11 @@ package org.craftercms.studio.api.v2.utils.spring.context;
  */
 public interface SystemStatusProvider {
 
-    /**
-     * Indicates if the bootstrap process is completed and the system can be used.
-     * @return true if ready
-     */
-    boolean isSystemReady();
+	/**
+	 * Indicates if the bootstrap process is completed and the system can be used.
+	 *
+	 * @return true if ready
+	 */
+	boolean isSystemReady();
 
 }

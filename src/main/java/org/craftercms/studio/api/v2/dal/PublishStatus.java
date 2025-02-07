@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,107 +16,40 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.task.PublishTask;
 
 public class PublishStatus {
 
-    public static final String READY = "ready";
-    public static final String READY_WITH_ERRORS = "readyWithErrors";
-    public static final String QUEUED = "queued";
-    public static final String PROCESSING = "processing";
-    public static final String PUBLISHING = "publishing";
-    public static final String STOPPED = "stopped";
-    public static final String ERROR = "error";
+	// TODO: remove this and publishing_status column when implementing the
+	// UM for the publisher refactor
+	public static final String READY = "ready";
 
-    @JsonIgnore
-    private long id;
-    private boolean enabled;
-    @JsonIgnore
-    private int enabledAsInt;
-    private String status;
+	private boolean enabled;
+	private boolean published;
+	private TaskProgress<PublishTask.PublishTaskId, Long> currentTask;
 
-    private String publishingTarget;
-    private String submissionId;
-    private int numberOfItems;
-    private int totalItems;
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    private boolean published;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    @JsonIgnore
-    public long getId() {
-        return id;
-    }
+	public boolean isPublished() {
+		return published;
+	}
 
-    @JsonIgnore
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setPublished(boolean published) {
+		this.published = published;
+	}
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public void setCurrentTask(final TaskProgress<PublishTask.PublishTaskId, Long> currentTask) {
+		this.currentTask = currentTask;
+	}
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        this.enabledAsInt = this.enabled? 1 : 0;
-    }
-
-    @JsonIgnore
-    public int getEnabledAsInt() {
-        return enabledAsInt;
-    }
-
-    @JsonIgnore
-    public void setEnabledAsInt(int enabledAsInt) {
-        this.enabledAsInt = enabledAsInt;
-        this.enabled = enabledAsInt > 0;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
-
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
-
-    public String getSubmissionId() {
-        return submissionId;
-    }
-
-    public void setSubmissionId(String submissionId) {
-        this.submissionId = submissionId;
-    }
-
-    public int getNumberOfItems() {
-        return numberOfItems;
-    }
-
-    public void setNumberOfItems(int numberOfItems) {
-        this.numberOfItems = numberOfItems;
-    }
-
-    public int getTotalItems() {
-        return totalItems;
-    }
-
-    public void setTotalItems(int totalItems) {
-        this.totalItems = totalItems;
-    }
-
-    public boolean isPublished() {
-        return published;
-    }
-
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
+	public TaskProgress<PublishTask.PublishTaskId, Long> getCurrentTask() {
+		return currentTask;
+	}
 }

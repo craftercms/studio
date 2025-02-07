@@ -15,11 +15,12 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <form>
-	<datasources>				<datasource>
-					<type>components</type>
-				</datasource>
-				<datasource>
-					<type>simpleTaxonomy</type>
-				</datasource>
+	<datasources>
+		<datasource>
+			<type>components</type>
+		</datasource>
+		<datasource>
+			<type>simpleTaxonomy</type>
+		</datasource>
 	</datasources>
 </form>

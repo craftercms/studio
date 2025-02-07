@@ -42,52 +42,52 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  */
 public class XsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperation {
 
-    public static final String CONFIG_KEY_PATH = "path";
+	public static final String CONFIG_KEY_PATH = "path";
 
-    public static final String CONFIG_KEY_TARGET = "target";
+	public static final String CONFIG_KEY_TARGET = "target";
 
-    /**
-     * Path of the file to use as input
-     */
-    protected String path;
+	/**
+	 * Path of the file to use as input
+	 */
+	protected String path;
 
-    /**
-     * Path of the file to use as output
-     */
-    protected String target;
+	/**
+	 * Path of the file to use as output
+	 */
+	protected String target;
 
-    public XsltFileUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
-        super(studioConfiguration);
-    }
+	public XsltFileUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+		super(studioConfiguration);
+	}
 
-    public void setPath(final String path) {
-        this.path = path;
-    }
+	public void setPath(final String path) {
+		this.path = path;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doInit(final HierarchicalConfiguration config) {
-        super.doInit(config);
-        if (StringUtils.isEmpty(path)) {
-            path = config.getString(CONFIG_KEY_PATH, null);
-        }
-        target = config.getString(CONFIG_KEY_TARGET, null);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doInit(final HierarchicalConfiguration config) {
+		super.doInit(config);
+		if (StringUtils.isEmpty(path)) {
+			path = config.getString(CONFIG_KEY_PATH, null);
+		}
+		target = config.getString(CONFIG_KEY_TARGET, null);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws Exception {
-        var actualPath = context.isConfigPresent()? context.getCurrentConfigPath() : path;
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        executeTemplate(context, actualPath, os);
-        if (os.size() > 0) {
-            String targetPath = isNotEmpty(target)? target : actualPath;
-            Files.write(context.getFile(targetPath), os.toByteArray());
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws Exception {
+		var actualPath = context.isConfigPresent() ? context.getCurrentConfigPath() : path;
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		executeTemplate(context, actualPath, os);
+		if (os.size() > 0) {
+			String targetPath = isNotEmpty(target) ? target : actualPath;
+			Files.write(context.getFile(targetPath), os.toByteArray());
+		}
+	}
 
 }

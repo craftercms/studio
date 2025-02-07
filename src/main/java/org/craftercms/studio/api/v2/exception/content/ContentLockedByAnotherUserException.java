@@ -25,24 +25,24 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class ContentLockedByAnotherUserException extends ServiceLayerException {
 
-    /**
-     * The username of the user that owns the lock of the item
-     */
-    protected final String lockOwner;
+	/**
+	 * The username of the user that owns the lock of the item
+	 */
+	protected final String lockOwner;
 
-    public ContentLockedByAnotherUserException(String lockOwner) {
-        this.lockOwner = lockOwner;
-    }
+	public ContentLockedByAnotherUserException(String lockOwner) {
+		this.lockOwner = lockOwner;
+	}
 
-    public String getLockOwner() {
-        return lockOwner;
-    }
+	public String getLockOwner() {
+		return lockOwner;
+	}
 
-    @Override
-    public String toString() {
-        return "ContentLockedByAnotherUserException{" +
-                "lockOwner='" + lockOwner + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "ContentLockedByAnotherUserException{" +
+			"lockOwner='" + lockOwner + '\'' +
+			'}';
+	}
 
 }

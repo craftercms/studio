@@ -156,148 +156,148 @@
     </headerMappings>
 
     You can learn more about Crafter Engine site configuration in the docs at
-    http://docs.craftercms.org
+    http://craftercms.com/docs
 
 -->
 
 <site>
-    <!-- General properties -->
-    <indexFileName>index.xml</indexFileName>
-    <defaultLocale>en</defaultLocale>
+	<!-- General properties -->
+	<indexFileName>index.xml</indexFileName>
+	<defaultLocale>en</defaultLocale>
 
-    <!-- Navigation properties -->
-    <!--
-    <navigation>
-        <additionalFields>navIcon,componentType</additionalFields>
-    </navigation>
-    -->
+	<!-- Navigation properties -->
+	<!--
+	<navigation>
+	    <additionalFields>navIcon,componentType</additionalFields>
+	</navigation>
+	-->
 
-    <!-- Compatibility properties -->
-    <compatibility>
-        <disableFullModelTypeConversion>false</disableFullModelTypeConversion>
-    </compatibility>
+	<!-- Compatibility properties -->
+	<compatibility>
+		<disableFullModelTypeConversion>false</disableFullModelTypeConversion>
+	</compatibility>
 
 
-    <!-- Filter properties -->
-    <filters>
-        <filter>
-            <script>/scripts/filters/testFilter1.groovy</script>
-            <mapping>
-                <include>/**</include>
-            </mapping>
-        </filter>
-        <filter>
-            <script>/scripts/filters/testFilter2.groovy</script>
-            <mapping>
-                <include>/**</include>
-            </mapping>
-        </filter>
-        <filter>
-            <script>/scripts/filters/testFilter3.groovy</script>
-            <mapping>
-                <include>/**</include>
-                <exclude>/static-assets/**</exclude>
-            </mapping>
-        </filter>
-    </filters>
+	<!-- Filter properties -->
+	<filters>
+		<filter>
+			<script>/scripts/filters/testFilter1.groovy</script>
+			<mapping>
+				<include>/**</include>
+			</mapping>
+		</filter>
+		<filter>
+			<script>/scripts/filters/testFilter2.groovy</script>
+			<mapping>
+				<include>/**</include>
+			</mapping>
+		</filter>
+		<filter>
+			<script>/scripts/filters/testFilter3.groovy</script>
+			<mapping>
+				<include>/**</include>
+				<exclude>/static-assets/**</exclude>
+			</mapping>
+		</filter>
+	</filters>
 
-    <!-- CORS Properties -->
-    <cors>
-        <enable>true</enable>
-        <accessControlMaxAge>3600</accessControlMaxAge>
-        <accessControlAllowOrigin>*</accessControlAllowOrigin>
-        <accessControlAllowMethods>GET\, OPTIONS</accessControlAllowMethods>
-        <accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
-        <accessControlAllowCredentials>true</accessControlAllowCredentials>
-    </cors>
+	<!-- CORS Properties -->
+	<cors>
+		<enable>true</enable>
+		<accessControlMaxAge>3600</accessControlMaxAge>
+		<accessControlAllowOrigin>*</accessControlAllowOrigin>
+		<accessControlAllowMethods>GET\, OPTIONS</accessControlAllowMethods>
+		<accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
+		<accessControlAllowCredentials>true</accessControlAllowCredentials>
+	</cors>
 
-    <!-- Content targeting properties -->
-    <targeting>
-        <enabled>true</enabled>
-        <rootFolders>/site/website</rootFolders>
-        <excludePatterns>/site/website/index\.xml</excludePatterns>
-        <availableTargetIds>en,ja,ja_JP,ja_JP_JP</availableTargetIds>
-        <fallbackTargetId>en</fallbackTargetId>
-        <mergeFolders>true</mergeFolders>
-        <redirectToTargetedUrl>false</redirectToTargetedUrl>
-    </targeting>
+	<!-- Content targeting properties -->
+	<targeting>
+		<enabled>true</enabled>
+		<rootFolders>/site/website</rootFolders>
+		<excludePatterns>/site/website/index\.xml</excludePatterns>
+		<availableTargetIds>en,ja,ja_JP,ja_JP_JP</availableTargetIds>
+		<fallbackTargetId>en</fallbackTargetId>
+		<mergeFolders>true</mergeFolders>
+		<redirectToTargetedUrl>false</redirectToTargetedUrl>
+	</targeting>
 
-    <!-- Profile properties -->
-    <profile>
-        <api>
-            <accessTokenId>${enc:q3l5YNoKH38RldAkg6EAGjxlI7+K7Cl4iEmMJNlemNOjcuhaaQNPLwAB824QcJKCbEeLfsg+QSfHCYNcNP/yMw==}</accessTokenId>
-        </api>
-    </profile>
+	<!-- Profile properties -->
+	<profile>
+		<api>
+			<accessTokenId>${enc:q3l5YNoKH38RldAkg6EAGjxlI7+K7Cl4iEmMJNlemNOjcuhaaQNPLwAB824QcJKCbEeLfsg+QSfHCYNcNP/yMw==}</accessTokenId>
+		</api>
+	</profile>
 
-    <!-- Security properties -->
-    <security>
-        <login>
-            <formUrl>/signin</formUrl>
-            <defaultSuccessUrl>/home</defaultSuccessUrl>
-            <alwaysUseDefaultSuccessUrl>true</alwaysUseDefaultSuccessUrl>
-            <failureUrl>/signin?error=loginFailure</failureUrl>
-        </login>
-        <logout>
-            <successUrl>/home</successUrl>
-        </logout>
-        <accessDenied>
-            <errorPageUrl>/signin?error=accessDenied</errorPageUrl>
-        </accessDenied>
-        <urlRestrictions>
-            <restriction>
-                <url>/*</url>
-                <expression>hasRole('USER')</expression>
-            </restriction>
-        </urlRestrictions>
-    </security>
+	<!-- Security properties -->
+	<security>
+		<login>
+			<formUrl>/signin</formUrl>
+			<defaultSuccessUrl>/home</defaultSuccessUrl>
+			<alwaysUseDefaultSuccessUrl>true</alwaysUseDefaultSuccessUrl>
+			<failureUrl>/signin?error=loginFailure</failureUrl>
+		</login>
+		<logout>
+			<successUrl>/home</successUrl>
+		</logout>
+		<accessDenied>
+			<errorPageUrl>/signin?error=accessDenied</errorPageUrl>
+		</accessDenied>
+		<urlRestrictions>
+			<restriction>
+				<url>/*</url>
+				<expression>hasRole('USER')</expression>
+			</restriction>
+		</urlRestrictions>
+	</security>
 
-    <!-- Social properties -->
-    <socialConnections>
-        <facebookConnectionFactory>
-            <appId>${enc:Nk4ZJWGGNIf9tt0X8BudixQhHekkBbG1AJE6myeqxp8=}</appId>
-            <appSecret>${enc:JOqVSAHHPYmIO8dC5VCz4KDBbKK466zKeAEowuDRqDammJ+07XmRbB+2ob5T8mg6gAEjDs5WxMuMiMPaDr4wOg==}</appSecret>
-        </facebookConnectionFactory>
-    </socialConnections>
+	<!-- Social properties -->
+	<socialConnections>
+		<facebookConnectionFactory>
+			<appId>${enc:Nk4ZJWGGNIf9tt0X8BudixQhHekkBbG1AJE6myeqxp8=}</appId>
+			<appSecret>${enc:JOqVSAHHPYmIO8dC5VCz4KDBbKK466zKeAEowuDRqDammJ+07XmRbB+2ob5T8mg6gAEjDs5WxMuMiMPaDr4wOg==}</appSecret>
+		</facebookConnectionFactory>
+	</socialConnections>
 
-    <!-- Job properties -->
-    <jobs>
-        <jobFolder>
-            <path>/scripts/jobs/morejobs</path>
-            <cronExpression>0 0/15 * * * ?</cronExpression>
-        </jobFolder>
-        <job>
-            <path>/scripts/jobs/testJob.groovy</path>
-            <cronExpression>0 0/15 * * * ?</cronExpression>
-        </job>
-    </jobs>
+	<!-- Job properties -->
+	<jobs>
+		<jobFolder>
+			<path>/scripts/jobs/morejobs</path>
+			<cronExpression>0 0/15 * * * ?</cronExpression>
+		</jobFolder>
+		<job>
+			<path>/scripts/jobs/testJob.groovy</path>
+			<cronExpression>0 0/15 * * * ?</cronExpression>
+		</job>
+	</jobs>
 
-    <!-- Cache Warm Up properties -->
-    <cache>
-        <warmUp>
-            <descriptorFolders>/site:3</descriptorFolders>
-            <contentFolders>/scripts,/templates</contentFolders>
-        </warmUp>
-    </cache>
+	<!-- Cache Warm Up properties -->
+	<cache>
+		<warmUp>
+			<descriptorFolders>/site:3</descriptorFolders>
+			<contentFolders>/scripts,/templates</contentFolders>
+		</warmUp>
+	</cache>
 
-    <!-- Header Mappings properties-->
-    <headerMappings>
-        <mapping>
-            <urlPattern>/products/**</urlPattern>
-            <headers>
-                <header>
-                    <name>Cache-Control</name>
-                    <value>max-age=60\, s-maxage=300</value>
-                </header>
-            </headers>
-        </mapping>
-        <mapping>
-            <urlPattern>/**/*.pdf</urlPattern>
-            <headers>
-                <header>
-                    <name>X-Crafter-Document</name>
-                    <value>true</value>
-                </header>
-            </headers>
-        </mapping>
-    </headerMappings>
+	<!-- Header Mappings properties-->
+	<headerMappings>
+		<mapping>
+			<urlPattern>/products/**</urlPattern>
+			<headers>
+				<header>
+					<name>Cache-Control</name>
+					<value>max-age=60\, s-maxage=300</value>
+				</header>
+			</headers>
+		</mapping>
+		<mapping>
+			<urlPattern>/**/*.pdf</urlPattern>
+			<headers>
+				<header>
+					<name>X-Crafter-Document</name>
+					<value>true</value>
+				</header>
+			</headers>
+		</mapping>
+	</headerMappings>
 </site>

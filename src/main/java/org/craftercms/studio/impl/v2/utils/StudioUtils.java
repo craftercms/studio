@@ -28,55 +28,55 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_BULK_OPE
 
 public class StudioUtils {
 
-    private ServicesConfig servicesConfig;
-    private ContentService contentService;
-    private StudioConfiguration studioConfiguration;
+	private ServicesConfig servicesConfig;
+	private ContentService contentService;
+	private StudioConfiguration studioConfiguration;
 
-    public List<String> getEnvironmentNames(String siteId) {
-        List<String> toRet = new ArrayList<>();
-        toRet.add(servicesConfig.getLiveEnvironment(siteId));
-        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            toRet.add(servicesConfig.getStagingEnvironment(siteId));
-        }
-        return toRet;
-    }
+	public List<String> getEnvironmentNames(String siteId) {
+		List<String> toRet = new ArrayList<>();
+		toRet.add(servicesConfig.getLiveEnvironment(siteId));
+		if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+			toRet.add(servicesConfig.getStagingEnvironment(siteId));
+		}
+		return toRet;
+	}
 
-    public ContentItemTO getContentItemForDashboard(String site, String path) {
-        final ContentItemTO item;
-        if (!contentService.contentExists(site, path)) {
-            item = contentService.createDummyDmContentItemForDeletedNode(site, path);
-            item.setLockOwner("");
-        } else {
-            item = contentService.getContentItem(site, path, 0);
-        }
-        return item;
-    }
+	public ContentItemTO getContentItemForDashboard(String site, String path) {
+		final ContentItemTO item;
+		if (!contentService.contentExists(site, path)) {
+			item = contentService.createDummyDmContentItemForDeletedNode(site, path);
+			item.setLockOwner("");
+		} else {
+			item = contentService.getContentItem(site, path, 0);
+		}
+		return item;
+	}
 
-    public int getBulkOperationsBatchSize() {
-        return Integer.parseInt(studioConfiguration.getProperty(DB_BULK_OPERATIONS_BATCH_SIZE));
-    }
+	public int getBulkOperationsBatchSize() {
+		return Integer.parseInt(studioConfiguration.getProperty(DB_BULK_OPERATIONS_BATCH_SIZE));
+	}
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
+	public ServicesConfig getServicesConfig() {
+		return servicesConfig;
+	}
 
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
+	public void setServicesConfig(ServicesConfig servicesConfig) {
+		this.servicesConfig = servicesConfig;
+	}
 
-    public ContentService getContentService() {
-        return contentService;
-    }
+	public ContentService getContentService() {
+		return contentService;
+	}
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	public StudioConfiguration getStudioConfiguration() {
+		return studioConfiguration;
+	}
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 }

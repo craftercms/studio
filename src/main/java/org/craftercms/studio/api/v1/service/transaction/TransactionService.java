@@ -18,7 +18,8 @@ package org.craftercms.studio.api.v1.service.transaction;
 import javax.transaction.UserTransaction;
 
 /**
- * Provide different types of transactions to the site 
+ * Provide different types of transactions to the site
+ *
  * @author russdanner
  */
 // TODO: JM: Is this used at all? Review and remove

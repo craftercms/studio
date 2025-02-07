@@ -31,58 +31,58 @@ import java.net.ConnectException;
  */
 public class PublishUtils {
 
-    /**
-     * Translates an exception during publishing to an error code.
-     * This method will throw an exception if the error should be handled at package level.
-     *
-     * @param e the exception
-     * @return the error code
-     * @throws PublishException if the error should be handled at package level
-     */
-    public static int translateItemException(final Throwable e) throws PublishException {
-        PublishErrorCode publishErrorCode = translateExceptionInternal(e);
-        if (publishErrorCode.packageLevel) {
-            throw new PublishException("Exception should be handled at package level", e);
-        }
-        return publishErrorCode.code();
-    }
+	/**
+	 * Translates an exception during publishing to an error code.
+	 * This method will throw an exception if the error should be handled at package level.
+	 *
+	 * @param e the exception
+	 * @return the error code
+	 * @throws PublishException if the error should be handled at package level
+	 */
+	public static int translateItemException(final Throwable e) throws PublishException {
+		PublishErrorCode publishErrorCode = translateExceptionInternal(e);
+		if (publishErrorCode.packageLevel) {
+			throw new PublishException("Exception should be handled at package level", e);
+		}
+		return publishErrorCode.code();
+	}
 
-    /**
-     * Translates an exception during publishing to an error code.
-     *
-     * @param e the exception
-     * @return the error code
-     */
-    public static int translatePackageException(final Throwable e) {
-        return translateExceptionInternal(e).code;
-    }
+	/**
+	 * Translates an exception during publishing to an error code.
+	 *
+	 * @param e the exception
+	 * @return the error code
+	 */
+	public static int translatePackageException(final Throwable e) {
+		return translateExceptionInternal(e).code;
+	}
 
-    @NonNull
-    private static PublishErrorCode translateExceptionInternal(final Throwable e) {
-        // TODO: implement
-        if (ExceptionUtils.getThrowableOfType(e, ConnectException.class) != null) {
-            return new PublishErrorCode(ApiResponse.S3_UNREACHABLE.getCode(), true);
-        }
-        if (ExceptionUtils.getThrowableOfType(e, NoSuchBucketException.class) != null) {
-            return new PublishErrorCode(ApiResponse.S3_BUCKET_NOT_FOUND.getCode(), true);
-        }
-        if (ExceptionUtils.getThrowableOfType(e, NoSuchKeyException.class) != null) {
-            return new PublishErrorCode(ApiResponse.S3_KEY_NOT_FOUND.getCode(), false);
-        }
+	@NonNull
+	private static PublishErrorCode translateExceptionInternal(final Throwable e) {
+		// TODO: implement
+		if (ExceptionUtils.getThrowableOfType(e, ConnectException.class) != null) {
+			return new PublishErrorCode(ApiResponse.S3_UNREACHABLE.getCode(), true);
+		}
+		if (ExceptionUtils.getThrowableOfType(e, NoSuchBucketException.class) != null) {
+			return new PublishErrorCode(ApiResponse.S3_BUCKET_NOT_FOUND.getCode(), true);
+		}
+		if (ExceptionUtils.getThrowableOfType(e, NoSuchKeyException.class) != null) {
+			return new PublishErrorCode(ApiResponse.S3_KEY_NOT_FOUND.getCode(), false);
+		}
 
-        SdkServiceException sdkServiceException = ExceptionUtils.getThrowableOfType(e, SdkServiceException.class);
-        if (sdkServiceException != null) {
-            switch (sdkServiceException.statusCode()) {
-                case 401:
-                    return new PublishErrorCode(ApiResponse.S3_UNAUTHORIZED.getCode(), true);
-                case 403:
-                    return new PublishErrorCode(ApiResponse.S3_FORBIDDEN.getCode(), true);
-            }
-        }
+		SdkServiceException sdkServiceException = ExceptionUtils.getThrowableOfType(e, SdkServiceException.class);
+		if (sdkServiceException != null) {
+			switch (sdkServiceException.statusCode()) {
+				case 401:
+					return new PublishErrorCode(ApiResponse.S3_UNAUTHORIZED.getCode(), true);
+				case 403:
+					return new PublishErrorCode(ApiResponse.S3_FORBIDDEN.getCode(), true);
+			}
+		}
 
-        return new PublishErrorCode(ApiResponse.INTERNAL_SYSTEM_FAILURE.getCode(), false);
-    }
+		return new PublishErrorCode(ApiResponse.INTERNAL_SYSTEM_FAILURE.getCode(), false);
+	}
 
-    private record PublishErrorCode(int code, boolean packageLevel) {
-    }
+	private record PublishErrorCode(int code, boolean packageLevel) {
+	}
 }

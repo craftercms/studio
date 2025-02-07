@@ -18,6 +18,7 @@ package org.craftercms.studio.model.rest;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
+
 import java.time.Instant;
 
 /**
@@ -25,26 +26,26 @@ import java.time.Instant;
  */
 public class CreateAccessTokenRequest {
 
-    @NotBlank
-    protected String label;
+	@NotBlank
+	protected String label;
 
-    @Future
-    protected Instant expiresAt;
+	@Future
+	protected Instant expiresAt;
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
+	public void setLabel(String label) {
+		this.label = label;
+	}
 
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
+	public Instant getExpiresAt() {
+		return expiresAt;
+	}
 
-    public void setExpiresAt(Instant expiresAt) {
-        this.expiresAt = expiresAt;
-    }
+	public void setExpiresAt(Instant expiresAt) {
+		this.expiresAt = expiresAt;
+	}
 
 }

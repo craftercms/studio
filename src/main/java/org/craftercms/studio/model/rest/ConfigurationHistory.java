@@ -23,22 +23,22 @@ import java.util.List;
 
 public class ConfigurationHistory {
 
-    private ContentItemTO item;
-    private List<ItemVersion> versions;
+	private ContentItemTO item;
+	private List<ItemVersion> versions;
 
-    public ContentItemTO getItem() {
-        return item;
-    }
+	public ContentItemTO getItem() {
+		return item;
+	}
 
-    public void setItem(ContentItemTO item) {
-        this.item = item;
-    }
+	public void setItem(ContentItemTO item) {
+		this.item = item;
+	}
 
-    public List<ItemVersion> getVersions() {
-        return versions;
-    }
+	public List<ItemVersion> getVersions() {
+		return versions;
+	}
 
-    public void setVersions(List<ItemVersion> versions) {
-        this.versions = versions;
-    }
+	public void setVersions(List<ItemVersion> versions) {
+		this.versions = versions;
+	}
 }

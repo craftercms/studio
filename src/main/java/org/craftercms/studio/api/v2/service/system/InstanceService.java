@@ -21,10 +21,10 @@ package org.craftercms.studio.api.v2.service.system;
  */
 public interface InstanceService {
 
-    /**
-     * Get Studio instance ID
-     *
-     * @return studio instance ID
-     */
-    String getInstanceId();
+	/**
+	 * Get Studio instance ID
+	 *
+	 * @return studio instance ID
+	 */
+	String getInstanceId();
 }

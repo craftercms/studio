@@ -59,295 +59,295 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isUserLocked;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FormDmContentProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(FormDmContentProcessor.class);
 
-    public static final String NAME = "WriteContentToDmProcessor";
+	public static final String NAME = "WriteContentToDmProcessor";
 
-    protected ContentService contentService;
-    protected ServicesConfig servicesConfig;
-    protected GitContentRepository contentRepository;
-    protected ItemServiceInternal itemServiceInternal;
-    protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
-    private GeneralLockService generalLockService;
-    private PublishService publishService;
+	protected ContentService contentService;
+	protected ServicesConfig servicesConfig;
+	protected GitContentRepository contentRepository;
+	protected ItemServiceInternal itemServiceInternal;
+	protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+	private GeneralLockService generalLockService;
+	private PublishService publishService;
 
-    /**
-     * Default constructor
-     */
-    @SuppressWarnings("unused")
-    public FormDmContentProcessor() {
-        super(NAME);
-    }
- 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name name of this processor
-     */
-    public FormDmContentProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * Default constructor
+	 */
+	@SuppressWarnings("unused")
+	public FormDmContentProcessor() {
+		super(NAME);
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        try {
-            writeContent(content, result);
-        } catch (ServiceLayerException e) {
-            logger.error("Failed to write content '{}'", content.getId(), e);
-            throw new ContentProcessException(format("Failed to write content '%s'", content.getId()), e);
-        } finally {
-            content.closeContentStream();
-        }
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name name of this processor
+	 */
+	public FormDmContentProcessor(String name) {
+		super(name);
+	}
 
-    protected void writeContent(PipelineContent content, ResultTO result) throws ServiceLayerException {
-        String user = content.getProperty(DmConstants.KEY_USER);
-        String site = content.getProperty(DmConstants.KEY_SITE);
-        String path = content.getProperty(DmConstants.KEY_PATH);
-        String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        InputStream input = content.getContentStream();
-        boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
-        boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
-        String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
-        boolean unlock = StringUtils.isEmpty(unlockValue) || !unlockValue.equalsIgnoreCase("false");
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		try {
+			writeContent(content, result);
+		} catch (ServiceLayerException e) {
+			logger.error("Failed to write content '{}'", content.getId(), e);
+			throw new ContentProcessException(format("Failed to write content '%s'", content.getId()), e);
+		} finally {
+			content.closeContentStream();
+		}
+	}
 
-        String parentContentPath = path;
-        if (parentContentPath.endsWith(FILE_SEPARATOR + fileName)) {
-            parentContentPath = parentContentPath.replace(FILE_SEPARATOR + fileName, "");
-        } else {
-            path = path + FILE_SEPARATOR + fileName;
-        }
-        try {
-            // look up the path content first
-            ContentItemTO parentItem = contentService.getContentItem(site, parentContentPath, 0);
-            boolean parentContentExists = contentService.contentExists(site, parentContentPath);
-            if (!parentContentExists && createFolders) {
-                parentItem = createMissingFoldersInPath(site, path, isPreview);
-            }
-            if (parentItem != null) {
-                // if the parent content name is the same as the file name
-                // update the content
-                // look up the path content first
-                if (parentItem.getName().equals(fileName)) {
-                    updateFile(site, path, input, user, isPreview, unlock, result);
-                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
-                    if (unlock) {
-                        unlock(site, path);
-                    }
-                } else {
-                    // otherwise, create new one
-                    if (path.endsWith(DmConstants.XML_PATTERN) && !path.endsWith(DmConstants.INDEX_FILE)){
-                        parentContentPath = path.substring(0, path.lastIndexOf(FILE_SEPARATOR));
-                        parentItem = contentService.getContentItem(site, parentContentPath, 0);
-                    }
+	protected void writeContent(PipelineContent content, ResultTO result) throws ServiceLayerException {
+		String user = content.getProperty(DmConstants.KEY_USER);
+		String site = content.getProperty(DmConstants.KEY_SITE);
+		String path = content.getProperty(DmConstants.KEY_PATH);
+		String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
+		InputStream input = content.getContentStream();
+		boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
+		boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
+		String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
+		boolean unlock = StringUtils.isEmpty(unlockValue) || !unlockValue.equalsIgnoreCase("false");
 
-                    boolean fileExists = contentService.contentExists(site, path);
-                    if (fileExists) {
-                        updateFile(site, path, input, user, isPreview, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
-                        if (unlock) {
-                            unlock(site, path);
-                        }
-                    } else {
-                        if (parentItem == null) {
-                            throw new ContentNotFoundException(format("The parent of content item at '%s' doesn't exist in site '%s'",
-                                    parentContentPath, site));
-                        }
-                        createNewFile(site, parentItem, fileName, input, user, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
-                    }
-                }
-            } else {
-                throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
-            }
-        } catch (ServiceLayerException  e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Failed to write content site '{}' path '{}'", site, path, e);
-            throw new ContentNotFoundException("Unexpected exception ", e);
-        } finally {
-            ContentUtils.release(input);
-        }
+		String parentContentPath = path;
+		if (parentContentPath.endsWith(FILE_SEPARATOR + fileName)) {
+			parentContentPath = parentContentPath.replace(FILE_SEPARATOR + fileName, "");
+		} else {
+			path = path + FILE_SEPARATOR + fileName;
+		}
+		try {
+			// look up the path content first
+			ContentItemTO parentItem = contentService.getContentItem(site, parentContentPath, 0);
+			boolean parentContentExists = contentService.contentExists(site, parentContentPath);
+			if (!parentContentExists && createFolders) {
+				parentItem = createMissingFoldersInPath(site, path, isPreview);
+			}
+			if (parentItem != null) {
+				// if the parent content name is the same as the file name
+				// update the content
+				// look up the path content first
+				if (parentItem.getName().equals(fileName)) {
+					updateFile(site, path, input, user, isPreview, unlock, result);
+					content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
+					if (unlock) {
+						unlock(site, path);
+					}
+				} else {
+					// otherwise, create new one
+					if (path.endsWith(DmConstants.XML_PATTERN) && !path.endsWith(DmConstants.INDEX_FILE)) {
+						parentContentPath = path.substring(0, path.lastIndexOf(FILE_SEPARATOR));
+						parentItem = contentService.getContentItem(site, parentContentPath, 0);
+					}
 
-    }
+					boolean fileExists = contentService.contentExists(site, path);
+					if (fileExists) {
+						updateFile(site, path, input, user, isPreview, unlock, result);
+						content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
+						if (unlock) {
+							unlock(site, path);
+						}
+					} else {
+						if (parentItem == null) {
+							throw new ContentNotFoundException(format("The parent of content item at '%s' doesn't exist in site '%s'",
+								parentContentPath, site));
+						}
+						createNewFile(site, parentItem, fileName, input, user, unlock, result);
+						content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
+					}
+				}
+			} else {
+				throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
+			}
+		} catch (ServiceLayerException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Failed to write content site '{}' path '{}'", site, path, e);
+			throw new ContentNotFoundException("Unexpected exception ", e);
+		} finally {
+			ContentUtils.release(input);
+		}
 
-    protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
-        Item item = itemServiceInternal.getItem(siteId, path);
-        // Prevent permission issues when the content is not locked
-        if (!isUserLocked(item.getState()) && item.getLockOwner() == null) {
-            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
-            return;
-        }
-        contentServiceV2.unlockContent(siteId, path);
-        logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
-    }
+	}
 
-    /**
-     * Create new file to the given path. If the path is a file name, it will
-     * create a new folder with the same name as the file name (without the
-     * prefix) and move the existing file to the folder created. Then it creates
-     * new file to the folder
-     *
-     * @param site     Site name
-     * @param fileName new file name
-     * @param input    file content
-     * @param user     current user
-     * @throws ContentNotFoundException if content at the path does not exist
-     */
-    protected ContentItemTO createNewFile(String site, @NonNull ContentItemTO parentItem, String fileName, InputStream input,
-                                          String user, boolean unlock, ResultTO result)
-            throws ServiceLayerException {
-        String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
-        itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
-        try {
-            String commitId = contentService.writeContent(site, itemPath, input);
-            result.setCommitId(commitId);
+	protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
+		Item item = itemServiceInternal.getItem(siteId, path);
+		// Prevent permission issues when the content is not locked
+		if (!isUserLocked(item.getState()) && item.getLockOwner() == null) {
+			logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
+			return;
+		}
+		contentServiceV2.unlockContent(siteId, path);
+		logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
+	}
 
-            // Item
-            // TODO: get locale code with API 2
-            String parentItemPath =
-                    ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
-            Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
-            itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
-            contentService.notifyContentEvent(site, itemPath);
+	/**
+	 * Create new file to the given path. If the path is a file name, it will
+	 * create a new folder with the same name as the file name (without the
+	 * prefix) and move the existing file to the folder created. Then it creates
+	 * new file to the folder
+	 *
+	 * @param site     Site name
+	 * @param fileName new file name
+	 * @param input    file content
+	 * @param user     current user
+	 * @throws ContentNotFoundException if content at the path does not exist
+	 */
+	protected ContentItemTO createNewFile(String site, @NonNull ContentItemTO parentItem, String fileName, InputStream input,
+					      String user, boolean unlock, ResultTO result)
+		throws ServiceLayerException {
+		String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
+		itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
+		try {
+			String commitId = contentService.writeContent(site, itemPath, input);
+			result.setCommitId(commitId);
 
-            // unlock the content upon save
-            if (unlock) {
-                contentRepository.itemUnlock(site, itemPath);
-            } else {
-                contentRepository.lockItem(site, itemPath);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
-            throw new ServiceLayerException(format("Failed to create a new file in site '%s' name '%s'", site, fileName), e);
-        } finally {
-            IOUtils.closeQuietly(input);
-        }
+			// Item
+			// TODO: get locale code with API 2
+			String parentItemPath =
+				ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
+			Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
+			itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
+			contentService.notifyContentEvent(site, itemPath);
 
-        return contentService.getContentItem(site, itemPath, 0);
-    }
+			// unlock the content upon save
+			if (unlock) {
+				contentRepository.itemUnlock(site, itemPath);
+			} else {
+				contentRepository.lockItem(site, itemPath);
+			}
+		} catch (Exception e) {
+			logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
+			throw new ServiceLayerException(format("Failed to create a new file in site '%s' name '%s'", site, fileName), e);
+		} finally {
+			IOUtils.closeQuietly(input);
+		}
 
-
-    /**
-     * update the file at the given content node
-     *
-     * @param input     stream with the content to be written
-     * @param user      user updating the content
-     * @param isPreview is this a preview update?
-     * @param unlock    unlock the content upon update?
-     * @throws ServiceLayerException if the content cannot be updated
-     */
-    protected void updateFile(String site, String path, InputStream input, String user,
-                              boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceLayerException, UserNotFoundException {
-        String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(site);
-        generalLockService.lock(sandboxRepoLockKey);
-        try {
-            // Fail to continue write operation if the item is in workflow
-            Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(site, List.of(path), false);
-            if (isNotEmpty(packagesForItems)) {
-                throw new ContentInPublishQueueException("Unable to write content that is part of an active publish package", packagesForItems);
-            }
-            String commitId;
-            try {
-                commitId = contentService.writeContent(site, path, input);
-            } finally {
-                ContentUtils.release(input);
-            }
-
-            if (isNotEmpty(commitId)) {
-                result.setCommitId(commitId);
-
-                // Item
-                // TODO: get local code with API 2
-                itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
-                contentService.notifyContentEvent(site, path);
-            }
-
-            // unlock the content upon save if the flag is true
-            if (unlock) {
-                contentRepository.itemUnlock(site, path);
-            } else {
-                contentRepository.lockItem(site, path);
-            }
-        } finally {
-            generalLockService.unlock(sandboxRepoLockKey);
-        }
-    }
-
-    @Override
-    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
-            throws ServiceLayerException, UserNotFoundException {
-        // create parent folders if missing
-        String [] levels = path.split(FILE_SEPARATOR);
-        String parentPath = "";
-        ContentItemTO lastItem;
-        for (String level : levels) {
-            if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
-                String currentPath = parentPath + FILE_SEPARATOR + level;
-                if (!contentService.contentExists(site, currentPath)) {
-                    contentService.createFolder(site, parentPath, level);
-                }
-                parentPath = currentPath;
-            }
-        }
-        lastItem = contentService.getContentItem(site, parentPath, 0);
-        return lastItem;
-    }
+		return contentService.getContentItem(site, itemPath, 0);
+	}
 
 
-    @Override
-    public String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException {
-        // Check if it is already a folder
+	/**
+	 * update the file at the given content node
+	 *
+	 * @param input     stream with the content to be written
+	 * @param user      user updating the content
+	 * @param isPreview is this a preview update?
+	 * @param unlock    unlock the content upon update?
+	 * @throws ServiceLayerException if the content cannot be updated
+	 */
+	protected void updateFile(String site, String path, InputStream input, String user,
+				  boolean isPreview, boolean unlock, ResultTO result)
+		throws ServiceLayerException, UserNotFoundException {
+		String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(site);
+		generalLockService.lock(sandboxRepoLockKey);
+		try {
+			// Fail to continue write operation if the item is in workflow
+			Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(site, List.of(path), false);
+			if (isNotEmpty(packagesForItems)) {
+				throw new ContentInPublishQueueException("Unable to write content that is part of an active publish package", packagesForItems);
+			}
+			String commitId;
+			try {
+				commitId = contentService.writeContent(site, path, input);
+			} finally {
+				ContentUtils.release(input);
+			}
 
-        if (contentService.contentExists(site, path)) {
-            ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
-            if (itemTO.isFolder() || itemTO.isDeleted()) {
-                return  path;
-            }
-            int index = path.lastIndexOf(FILE_SEPARATOR);
-            String folderPath = path.substring(0, index);
-            String parentFileName = itemTO.getName();
-            int dotIndex = parentFileName.indexOf(".");
-            String folderName = (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
-            contentService.createFolder(site, folderPath, folderName);
-            folderPath = folderPath + FILE_SEPARATOR + folderName;
-            contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
-            logger.debug("Changed file to folder from '{}' to '{}'", path, folderPath);
+			if (isNotEmpty(commitId)) {
+				result.setCommitId(commitId);
 
-            return folderPath;
-        } else {
-            return path;
-        }
-    }
+				// Item
+				// TODO: get local code with API 2
+				itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
+				contentService.notifyContentEvent(site, path);
+			}
 
-    @Lazy
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+			// unlock the content upon save if the flag is true
+			if (unlock) {
+				contentRepository.itemUnlock(site, path);
+			} else {
+				contentRepository.lockItem(site, path);
+			}
+		} finally {
+			generalLockService.unlock(sandboxRepoLockKey);
+		}
+	}
 
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
+	@Override
+	public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
+		throws ServiceLayerException, UserNotFoundException {
+		// create parent folders if missing
+		String[] levels = path.split(FILE_SEPARATOR);
+		String parentPath = "";
+		ContentItemTO lastItem;
+		for (String level : levels) {
+			if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
+				String currentPath = parentPath + FILE_SEPARATOR + level;
+				if (!contentService.contentExists(site, currentPath)) {
+					contentService.createFolder(site, parentPath, level);
+				}
+				parentPath = currentPath;
+			}
+		}
+		lastItem = contentService.getContentItem(site, parentPath, 0);
+		return lastItem;
+	}
 
-    public void setContentRepository(GitContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
+	@Override
+	public String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException {
+		// Check if it is already a folder
 
-    @SuppressWarnings("unused")
-    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
-        this.contentServiceV2 = contentServiceV2;
-    }
+		if (contentService.contentExists(site, path)) {
+			ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
+			if (itemTO.isFolder() || itemTO.isDeleted()) {
+				return path;
+			}
+			int index = path.lastIndexOf(FILE_SEPARATOR);
+			String folderPath = path.substring(0, index);
+			String parentFileName = itemTO.getName();
+			int dotIndex = parentFileName.indexOf(".");
+			String folderName = (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
+			contentService.createFolder(site, folderPath, folderName);
+			folderPath = folderPath + FILE_SEPARATOR + folderName;
+			contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
+			logger.debug("Changed file to folder from '{}' to '{}'", path, folderPath);
 
-    @SuppressWarnings("unused")
-    public void setPublishService(PublishService publishService) {
-        this.publishService = publishService;
-    }
+			return folderPath;
+		} else {
+			return path;
+		}
+	}
 
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
+	@Lazy
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
+
+	public void setServicesConfig(ServicesConfig servicesConfig) {
+		this.servicesConfig = servicesConfig;
+	}
+
+	public void setContentRepository(GitContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
+	}
+
+	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+		this.itemServiceInternal = itemServiceInternal;
+	}
+
+	@SuppressWarnings("unused")
+	public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+		this.contentServiceV2 = contentServiceV2;
+	}
+
+	@SuppressWarnings("unused")
+	public void setPublishService(PublishService publishService) {
+		this.publishService = publishService;
+	}
+
+	public void setGeneralLockService(GeneralLockService generalLockService) {
+		this.generalLockService = generalLockService;
+	}
 }

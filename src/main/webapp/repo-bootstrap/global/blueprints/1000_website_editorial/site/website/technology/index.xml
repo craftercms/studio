@@ -16,7 +16,8 @@
   -->
 
 <page>
-	<content-type>/page/category-landing</content-type>	<display-template>/templates/web/pages/category-landing.ftl</display-template>
+	<content-type>/page/category-landing</content-type>
+	<display-template>/templates/web/pages/category-landing.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>49c9</objectGroupId>
 	<objectId>49c9c85d-5349-158a-3001-a5d66f3ce168</objectId>

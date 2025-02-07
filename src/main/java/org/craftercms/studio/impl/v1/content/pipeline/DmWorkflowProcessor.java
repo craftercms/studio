@@ -26,34 +26,34 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREAT
 
 public class DmWorkflowProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(DmWorkflowProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(DmWorkflowProcessor.class);
 
-    public static final String NAME = "DmWorkflowProcessor";
+	public static final String NAME = "DmWorkflowProcessor";
 
 
-    /**
-     * default constructor
-     */
-    public DmWorkflowProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public DmWorkflowProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public DmWorkflowProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public DmWorkflowProcessor(String name) {
+		super(name);
+	}
 
-    public boolean isProcessable(PipelineContent content) {
-        return true;
-    }
+	public boolean isProcessable(PipelineContent content) {
+		return true;
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        // TODO: JM: This does nothing? Remove entire class?
-        String type = (String) content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
-        boolean edit = (OPERATION_CREATE.equals(type)) ? false : true;
-    }
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		// TODO: JM: This does nothing? Remove entire class?
+		String type = (String) content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
+		boolean edit = (OPERATION_CREATE.equals(type)) ? false : true;
+	}
 }

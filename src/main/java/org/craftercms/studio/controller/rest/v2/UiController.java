@@ -41,26 +41,26 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/ui")
 public class UiController {
 
-    private final UiService uiService;
+	private final UiService uiService;
 
-    @ConstructorProperties("uiService")
-    public UiController(final UiService uiService) {
-        this.uiService = uiService;
-    }
+	@ConstructorProperties("uiService")
+	public UiController(final UiService uiService) {
+		this.uiService = uiService;
+	}
 
-    @GetMapping("/views/global_menu")
-    public ResultList<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
-        ResultList<MenuItem> result = new ResultList<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_MENU_ITEMS, uiService.getGlobalMenu());
-        return result;
-    }
+	@GetMapping("/views/global_menu")
+	public ResultList<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
+		ResultList<MenuItem> result = new ResultList<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntities(RESULT_KEY_MENU_ITEMS, uiService.getGlobalMenu());
+		return result;
+	}
 
-    @GetMapping("/system/active_environment")
-    public ResultOne<String> getActiveEnvironment() throws AuthenticationException {
-        ResultOne<String> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_ENVIRONMENT, uiService.getActiveEnvironment());
-        return result;
-    }
+	@GetMapping("/system/active_environment")
+	public ResultOne<String> getActiveEnvironment() throws AuthenticationException {
+		ResultOne<String> result = new ResultOne<>();
+		result.setResponse(ApiResponse.OK);
+		result.setEntity(RESULT_KEY_ENVIRONMENT, uiService.getActiveEnvironment());
+		return result;
+	}
 }

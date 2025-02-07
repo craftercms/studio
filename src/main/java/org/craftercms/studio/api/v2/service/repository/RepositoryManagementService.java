@@ -32,59 +32,61 @@ import java.util.List;
 
 public interface RepositoryManagementService {
 
-    boolean addRemote(String siteId, RemoteRepository remoteRepository)
-            throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException;
+	boolean addRemote(String siteId, RemoteRepository remoteRepository)
+		throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException;
 
-    List<RemoteRepositoryInfo> listRemotes(String siteId) throws ServiceLayerException;
+	List<RemoteRepositoryInfo> listRemotes(String siteId) throws ServiceLayerException;
 
-    MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
-            throws InvalidRemoteUrlException, ServiceLayerException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
+	MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
+		throws InvalidRemoteUrlException, ServiceLayerException,
+		InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
-    boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
-            throws InvalidRemoteUrlException, ServiceLayerException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
+	boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
+		throws InvalidRemoteUrlException, ServiceLayerException,
+		InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
-    boolean removeRemote(String siteId, String remoteName)
-            throws SiteNotFoundException, RemoteNotRemovableException;
+	boolean removeRemote(String siteId, String remoteName)
+		throws SiteNotFoundException, RemoteNotRemovableException;
 
-    RepositoryStatus getRepositoryStatus(String siteId) throws ServiceLayerException;
+	RepositoryStatus getRepositoryStatus(String siteId) throws ServiceLayerException;
 
-    RepositoryStatus resolveConflict(String siteId, String path, String resolution)
-            throws ServiceLayerException;
+	RepositoryStatus resolveConflict(String siteId, String path, String resolution)
+		throws ServiceLayerException;
 
-    DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
-            throws ServiceLayerException;
+	DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
+		throws ServiceLayerException;
 
-    RepositoryStatus commitResolution(String siteId, String commitMessage)
-            throws ServiceLayerException;
+	RepositoryStatus commitResolution(String siteId, String commitMessage)
+		throws ServiceLayerException;
 
-    RepositoryStatus cancelFailedPull(String siteId) throws ServiceLayerException;
+	RepositoryStatus cancelFailedPull(String siteId) throws ServiceLayerException;
 
-    /**
-     * Unlock local git repository
-     *
-     * @param siteId site identifier, if null or empty it is global repository
-     * @param repositoryType repository type (GLOBAL, SANDBOX, PUBLISHED)
-     * @return true if successful
-     */
-    boolean unlockRepository(String siteId, GitRepositories repositoryType) throws SiteNotFoundException;
+	/**
+	 * Unlock local git repository
+	 *
+	 * @param siteId         site identifier, if null or empty it is global repository
+	 * @param repositoryType repository type (GLOBAL, SANDBOX, PUBLISHED)
+	 * @return true if successful
+	 */
+	boolean unlockRepository(String siteId, GitRepositories repositoryType) throws SiteNotFoundException;
 
-    /**
-     * Checks if a given Git repository is corrupted
-     * @param siteId the id of the site
-     * @param repositoryType the type of the repository
-     * @return true if the repo is corrupted
-     * @throws ServiceLayerException if there is any error checking the repository
-     */
-    boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
+	/**
+	 * Checks if a given Git repository is corrupted
+	 *
+	 * @param siteId         the id of the site
+	 * @param repositoryType the type of the repository
+	 * @return true if the repo is corrupted
+	 * @throws ServiceLayerException if there is any error checking the repository
+	 */
+	boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
 
-    /**
-     * Repairs a corrupted Git repository
-     * @param siteId the id of the site
-     * @param repositoryType the type of the repository
-     * @throws ServiceLayerException if there is any error repairing the repository
-     */
-    void repairCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
+	/**
+	 * Repairs a corrupted Git repository
+	 *
+	 * @param siteId         the id of the site
+	 * @param repositoryType the type of the repository
+	 * @throws ServiceLayerException if there is any error repairing the repository
+	 */
+	void repairCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
 
 }

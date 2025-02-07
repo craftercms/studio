@@ -26,62 +26,62 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class DBUtils {
 
-    private final static Logger logger = LoggerFactory.getLogger(DBUtils.class);
+	private final static Logger logger = LoggerFactory.getLogger(DBUtils.class);
 
-    /**
-     * Execute a runnable in a transaction.
-     * This method will use the provided transactionManager to run the given runnable in a transaction. It will
-     * be automatically committed (or rolled back if an exception is thrown).
-     * After transaction is complete, this method will rethrow any exception thrown by the runnable.
-     *
-     * @param transactionManager The transaction manager
-     * @param transactionName    The name of the transaction
-     * @param runnable           The runnable to execute
-     * @throws RuntimeException wrapping any exception thrown by the runnable
-     */
-    public static void runInTransaction(final PlatformTransactionManager transactionManager,
-                                        final String transactionName,
-                                        final ThrowingRunnable runnable) throws Exception {
-        Wrapper<Exception> exception = new Wrapper<>();
-        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-        transactionTemplate.setName(transactionName);
-        transactionTemplate.executeWithoutResult(status -> {
-            logger.trace("Starting transaction '{}'", status.getTransactionName());
-            try {
-                runnable.run();
-            } catch (Exception e) {
-                logger.trace("Error occurred during transaction '{}', rolling back", status.getTransactionName(), e);
-                exception.set(e);
-            }
-        });
-        if (exception.hasValue()) {
-            logger.error("Error occurred during transaction '{}', rolling back", transactionName, exception.get());
-            throw exception.get();
-        }
-        logger.trace("Completed transaction '{}'", transactionName);
-    }
+	/**
+	 * Execute a runnable in a transaction.
+	 * This method will use the provided transactionManager to run the given runnable in a transaction. It will
+	 * be automatically committed (or rolled back if an exception is thrown).
+	 * After transaction is complete, this method will rethrow any exception thrown by the runnable.
+	 *
+	 * @param transactionManager The transaction manager
+	 * @param transactionName    The name of the transaction
+	 * @param runnable           The runnable to execute
+	 * @throws RuntimeException wrapping any exception thrown by the runnable
+	 */
+	public static void runInTransaction(final PlatformTransactionManager transactionManager,
+					    final String transactionName,
+					    final ThrowingRunnable runnable) throws Exception {
+		Wrapper<Exception> exception = new Wrapper<>();
+		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+		transactionTemplate.setName(transactionName);
+		transactionTemplate.executeWithoutResult(status -> {
+			logger.trace("Starting transaction '{}'", status.getTransactionName());
+			try {
+				runnable.run();
+			} catch (Exception e) {
+				logger.trace("Error occurred during transaction '{}', rolling back", status.getTransactionName(), e);
+				exception.set(e);
+			}
+		});
+		if (exception.hasValue()) {
+			logger.error("Error occurred during transaction '{}', rolling back", transactionName, exception.get());
+			throw exception.get();
+		}
+		logger.trace("Completed transaction '{}'", transactionName);
+	}
 
-    /**
-     * Runnable interface that can throw an exception.
-     */
-    @FunctionalInterface
-    public interface ThrowingRunnable {
-        void run() throws Exception;
-    }
+	/**
+	 * Runnable interface that can throw an exception.
+	 */
+	@FunctionalInterface
+	public interface ThrowingRunnable {
+		void run() throws Exception;
+	}
 
-    private static class Wrapper<T> {
-        private T value;
+	private static class Wrapper<T> {
+		private T value;
 
-        public T get() {
-            return value;
-        }
+		public T get() {
+			return value;
+		}
 
-        public void set(T value) {
-            this.value = value;
-        }
+		public void set(T value) {
+			this.value = value;
+		}
 
-        public boolean hasValue() {
-            return this.value != null;
-        }
-    }
+		public boolean hasValue() {
+			return this.value != null;
+		}
+	}
 }

@@ -30,28 +30,28 @@ def paramsList = []
 
 // site_id
 try {
-    if (StringUtils.isEmpty(site)) {
-        site = request.getParameter("site")
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
+	if (StringUtils.isEmpty(site)) {
+		site = request.getParameter("site")
+		if (StringUtils.isEmpty(site)) {
+			invalidParams = true
+			paramsList.add("site_id")
+		}
+	}
 } catch (Exception e) {
-    invalidParams = true
-    paramsList.add("site_id")
+	invalidParams = true
+	paramsList.add("site_id")
 }
 
 if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
+	response.setStatus(400)
+	result.message = "Invalid parameter(s): " + paramsList
 } else {
-    try {
-        def context = DependencyServices.createContext(applicationContext, request)
-        result = DependencyServices.getDependenciesItems(context, site, path)
-    } catch (BlobNotFoundException | ContentNotFoundException e) {
-        response.setStatus(404)
-        result.message = e.message
-    }
+	try {
+		def context = DependencyServices.createContext(applicationContext, request)
+		result = DependencyServices.getDependenciesItems(context, site, path)
+	} catch (BlobNotFoundException | ContentNotFoundException e) {
+		response.setStatus(404)
+		result.message = e.message
+	}
 }
 return result

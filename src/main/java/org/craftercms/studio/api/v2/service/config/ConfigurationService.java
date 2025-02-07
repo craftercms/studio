@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -38,204 +38,215 @@ import java.util.Map;
  */
 public interface ConfigurationService {
 
-    /**
-     * Get role mappings configuration for given site
-     *
-     * @param siteId Site id to use
-     * @return role mappings configuration
-     * @throws ConfigurationException configuration error
-     */
-    Map<NormalizedGroup, List<NormalizedRole>> getRoleMappings(String siteId) throws ServiceLayerException;
+	/**
+	 * Get role mappings configuration for given site
+	 *
+	 * @param siteId Site id to use
+	 * @return role mappings configuration
+	 * @throws ConfigurationException configuration error
+	 */
+	Map<NormalizedGroup, List<NormalizedRole>> getRoleMappings(String siteId) throws ServiceLayerException;
 
-    /**
-     * Get global role mappings configuration
-     *
-     * @return role mappings configuration
-     * @throws ConfigurationException configuration error
-     */
-    Map<NormalizedGroup, List<NormalizedRole>> getGlobalRoleMappings() throws ServiceLayerException;
+	/**
+	 * Get global role mappings configuration
+	 *
+	 * @return role mappings configuration
+	 * @throws ConfigurationException configuration error
+	 */
+	Map<NormalizedGroup, List<NormalizedRole>> getGlobalRoleMappings() throws ServiceLayerException;
 
-    /**
-     * Get configuration as string for given parameters
-     *
-     * @param siteId site id to use
-     * @param module CrafterCMS module
-     * @param path path of configuration file
-     * @param environment environment to use. if empty using default
-     * @return String content of configuration file
-     * @throws ContentNotFoundException if there is any issue reading the file from the repository
-     */
-    String getConfigurationAsString(String siteId, String module, String path, String environment) throws ContentNotFoundException;
+	/**
+	 * Get configuration as string for given parameters
+	 *
+	 * @param siteId      site id to use
+	 * @param module      CrafterCMS module
+	 * @param path        path of configuration file
+	 * @param environment environment to use. if empty using default
+	 * @return String content of configuration file
+	 * @throws ContentNotFoundException if there is any issue reading the file from the repository
+	 */
+	String getConfigurationAsString(String siteId, String module, String path, String environment) throws ContentNotFoundException;
 
-    /**
-     * Get configuration as DOM document for given parameters
-     *
-     * @param siteId site id to use
-     * @param module CrafterCMS module
-     * @param path path of configuration file
-     * @param environment environment to use. if empty using default
-     * @return DOM document representing configuration file
-     * @throws ServiceLayerException if there is any error loading the configuration
-     */
-    Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
-            throws ServiceLayerException;
+	/**
+	 * Get configuration as DOM document for given parameters
+	 *
+	 * @param siteId      site id to use
+	 * @param module      CrafterCMS module
+	 * @param path        path of configuration file
+	 * @param environment environment to use. if empty using default
+	 * @return DOM document representing configuration file
+	 * @throws ServiceLayerException if there is any error loading the configuration
+	 */
+	Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
+		throws ServiceLayerException;
 
-    /**
-     * Reads a configuration file using Apache Commons Configuration
-     * @param siteId the id of the site
-     * @param path the path of the file
-     * @return the configuration object
-     * @throws ConfigurationException if there is any error reading or parsing the file
-     */
-    HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException;
+	/**
+	 * Reads a configuration file using Apache Commons Configuration
+	 *
+	 * @param siteId the id of the site
+	 * @param path   the path of the file
+	 * @return the configuration object
+	 * @throws ConfigurationException if there is any error reading or parsing the file
+	 */
+	HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException;
 
-    /**
-     * Reads a configuration for the current environment, or fallback to the default environment if the file is missing
-     *
-     * @param siteId the id of the site
-     * @param module the module
-     * @param path   the path of the file
-     * @return the configuration object
-     * @throws ConfigurationException if there is any error reading or parsing the file
-     */
-    HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException;
+	/**
+	 * Reads a configuration for the current environment, or fallback to the default environment if the file is missing
+	 *
+	 * @param siteId the id of the site
+	 * @param module the module
+	 * @param path   the path of the file
+	 * @return the configuration object
+	 * @throws ConfigurationException if there is any error reading or parsing the file
+	 */
+	HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException;
 
-    /**
-     * Reads a configuration file using Apache Commons Configuration
-     * @param path the path of the file
-     * @return the configuration object
-     * @throws ConfigurationException if there is any error reading or parsing the file
-     */
-    HierarchicalConfiguration<?> getGlobalXmlConfiguration(String path) throws ConfigurationException;
+	/**
+	 * Reads a configuration file using Apache Commons Configuration
+	 *
+	 * @param path the path of the file
+	 * @return the configuration object
+	 * @throws ConfigurationException if there is any error reading or parsing the file
+	 */
+	HierarchicalConfiguration<?> getGlobalXmlConfiguration(String path) throws ConfigurationException;
 
-    /**
-     * Get configuration from global repository as Document
-     * @param path path of the configuration file
-     * @return the Document
-     * @throws ServiceLayerException if there is any error reading the configuration
-     */
-    Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException;
+	/**
+	 * Get configuration from global repository as Document
+	 *
+	 * @param path path of the configuration file
+	 * @return the Document
+	 * @throws ServiceLayerException if there is any error reading the configuration
+	 */
+	Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException;
 
-    /**
-     * Get configuration from global repository as String
-     *
-     * @param path path of configuration file
-     * @return String content of configuration file
-     * @throws ContentNotFoundException if there is any issue reading the file from the repository
-     */
-    String getGlobalConfigurationAsString(String path) throws ContentNotFoundException;
+	/**
+	 * Get configuration from global repository as String
+	 *
+	 * @param path path of configuration file
+	 * @return String content of configuration file
+	 * @throws ContentNotFoundException if there is any issue reading the file from the repository
+	 */
+	String getGlobalConfigurationAsString(String path) throws ContentNotFoundException;
 
-    /**
-     * Write configuration file for given parameters
-     *
-     * @param siteId site id to use
-     * @param module CrafterCMS module
-     * @param path path where to store configuration file
-     * @param environment environment to use. if empty using default
-     * @param content content of configuration file
-     * @throws ServiceLayerException general service error
-     */
-    void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Write configuration file for given parameters
+	 *
+	 * @param siteId      site id to use
+	 * @param module      CrafterCMS module
+	 * @param path        path where to store configuration file
+	 * @param environment environment to use. if empty using default
+	 * @param content     content of configuration file
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 */
+	void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get a file from a plugin
-     * @param siteId the id of site
-     * @param pluginId the id of the plugin
-     * @param type the type of plugin
-     * @param name the name of the plugin
-     * @param filename the path and name of the file
-     * @return the file as a resource
-     * @throws ContentNotFoundException if there is any issue reading the file from the repository
-     */
-    Resource getPluginFile(String siteId, String pluginId, String type, String name, String filename)
-        throws ContentNotFoundException;
+	/**
+	 * Get a file from a plugin
+	 *
+	 * @param siteId   the id of site
+	 * @param pluginId the id of the plugin
+	 * @param type     the type of plugin
+	 * @param name     the name of the plugin
+	 * @param filename the path and name of the file
+	 * @return the file as a resource
+	 * @throws ContentNotFoundException if there is any issue reading the file from the repository
+	 */
+	Resource getPluginFile(String siteId, String pluginId, String type, String name, String filename)
+		throws ContentNotFoundException;
 
-    /**
-     * Get configuration history for given parameters
-     *
-     * @param siteId site id to use
-     * @param module CrafterCMS module
-     * @param path path of configuration file
-     * @param environment environment to use. if empty using default
-     * @return configuration history
-     */
-    ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment)
-            throws ServiceLayerException;
+	/**
+	 * Get configuration history for given parameters
+	 *
+	 * @param siteId      site id to use
+	 * @param module      CrafterCMS module
+	 * @param path        path of configuration file
+	 * @param environment environment to use. if empty using default
+	 * @return configuration history
+	 */
+	ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment)
+		throws ServiceLayerException;
 
-    /**
-     * Write configuration file within global repo
-     *
-     * @param path path of configuration file
-     * @param content content of configuration file
-     * @throws ServiceLayerException general service error
-     */
-    void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
+	/**
+	 * Write configuration file within global repo
+	 *
+	 * @param path    path of configuration file
+	 * @param content content of configuration file
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 */
+	void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Get the translation configuration for a given site
-     * @param siteId the id of the site
-     * @return the translation configuration
-     *
-     * @throws ServiceLayerException general service error
-     */
-    TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
+	/**
+	 * Get the translation configuration for a given site
+	 *
+	 * @param siteId the id of the site
+	 * @return the translation configuration
+	 * @throws ServiceLayerException general service error
+	 */
+	TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
 
-    /**
-     * This method holds logic for API 1, can be deleted when API 1 get configuration is removed
-     */
-    Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
+	/**
+	 * This method holds logic for API 1, can be deleted when API 1 get configuration is removed
+	 */
+	Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
 
-    /**
-     * Builds the key for a given file
-     * @param siteId the id of the site
-     * @param module the module of the file
-     * @param path the path of the file
-     * @param environment the environment of the file
-     * @return the key for the file
-     */
-    default String getCacheKey(String siteId, String module, String path, String environment) {
-        return getCacheKey(siteId, module, path, environment, null);
-    }
+	/**
+	 * Builds the key for a given file
+	 *
+	 * @param siteId      the id of the site
+	 * @param module      the module of the file
+	 * @param path        the path of the file
+	 * @param environment the environment of the file
+	 * @return the key for the file
+	 */
+	default String getCacheKey(String siteId, String module, String path, String environment) {
+		return getCacheKey(siteId, module, path, environment, null);
+	}
 
-    /**
-     * Builds the key for a given file
-     * @param siteId the id of the site
-     * @param module the module of the file
-     * @param path the path of the file
-     * @param environment the environment of the file
-     * @param suffix the suffix for the cache key
-     * @return the key for the file
-     */
-    String getCacheKey(String siteId, String module, String path, String environment, String suffix);
+	/**
+	 * Builds the key for a given file
+	 *
+	 * @param siteId      the id of the site
+	 * @param module      the module of the file
+	 * @param path        the path of the file
+	 * @param environment the environment of the file
+	 * @param suffix      the suffix for the cache key
+	 * @return the key for the file
+	 */
+	String getCacheKey(String siteId, String module, String path, String environment, String suffix);
 
-    /**
-     * Invalidates the cache for the given file
-     * @param siteId the id of the site
-     * @param path the path of the file
-     */
-    void invalidateConfiguration(String siteId, String path);
+	/**
+	 * Invalidates the cache for the given file
+	 *
+	 * @param siteId the id of the site
+	 * @param path   the path of the file
+	 */
+	void invalidateConfiguration(String siteId, String path);
 
-    /**
-     * Invalidates the cache for the given file
-     * @param siteId the id of the site
-     * @param module the module of the file
-     * @param path the path of the file
-     * @param environment the environment of the file
-     */
-    void invalidateConfiguration(String siteId, String module, String path, String environment);
+	/**
+	 * Invalidates the cache for the given file
+	 *
+	 * @param siteId      the id of the site
+	 * @param module      the module of the file
+	 * @param path        the path of the file
+	 * @param environment the environment of the file
+	 */
+	void invalidateConfiguration(String siteId, String module, String path, String environment);
 
-    /**
-     * Invalidates all objects for a given site
-     * @param siteId the id of the site
-     */
-    void invalidateConfiguration(String siteId);
+	/**
+	 * Invalidates all objects for a given site
+	 *
+	 * @param siteId the id of the site
+	 */
+	void invalidateConfiguration(String siteId);
 
-    /**
-     * Update blob stores configuration to make all blobStores read-only
-     *
-     * @param siteId the id of the site
-     * @throws ServiceLayerException if an error occurs while reading or writing the configuration
-     */
-    void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
+	/**
+	 * Update blob stores configuration to make all blobStores read-only
+	 *
+	 * @param siteId the id of the site
+	 * @throws ServiceLayerException if an error occurs while reading or writing the configuration
+	 */
+	void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
 }

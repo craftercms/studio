@@ -28,31 +28,30 @@ import java.util.Map;
  * A {@link Result} where the actual result is a list of entities.
  *
  * @param <T> the entity type
- *
  * @author Dejan Brkic
  * @author avasquez
  */
 public class ResultList<T> extends Result {
 
-    @JsonIgnore
-    private Map<String, Collection<T>> entities;
+	@JsonIgnore
+	private Map<String, Collection<T>> entities;
 
 
-    /**
-     * Returns the result entities.
-     */
-    @JsonAnyGetter
-    @SuppressWarnings("unused")
-    public Map<String, Collection<T>> getEntities() {
-        return entities;
-    }
+	/**
+	 * Returns the result entities.
+	 */
+	@JsonAnyGetter
+	@SuppressWarnings("unused")
+	public Map<String, Collection<T>> getEntities() {
+		return entities;
+	}
 
-    /**
-     * Sets the result entities.
-     */
-    @JsonAnySetter
-    public void setEntities(String name, Collection<T> entities) {
-        this.entities = Collections.singletonMap(name, entities);
-    }
+	/**
+	 * Sets the result entities.
+	 */
+	@JsonAnySetter
+	public void setEntities(String name, Collection<T> entities) {
+		this.entities = Collections.singletonMap(name, entities);
+	}
 
 }

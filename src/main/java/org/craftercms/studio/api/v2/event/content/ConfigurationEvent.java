@@ -25,13 +25,13 @@ import org.springframework.security.core.Authentication;
  */
 public class ConfigurationEvent extends ContentEvent {
 
-    public ConfigurationEvent(Authentication authentication, String siteId, String targetPath) {
-        super(authentication, siteId, targetPath);
-    }
+	public ConfigurationEvent(Authentication authentication, String siteId, String targetPath) {
+		super(authentication, siteId, targetPath);
+	}
 
-    @Override
-    public String getEventType() {
-        return "CONFIGURATION_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "CONFIGURATION_EVENT";
+	}
 
 }

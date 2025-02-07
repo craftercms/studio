@@ -20,35 +20,35 @@ package scripts.api.impl.dependency
  */
 class SpringDependencyServices {
 
-    static DEPENDENCY_SERVICES_BEAN = "studioDependencyService"
-    static CONTENT_SERVICES_BEAN = "cstudioContentService"
+	static DEPENDENCY_SERVICES_BEAN = "studioDependencyService"
+	static CONTENT_SERVICES_BEAN = "cstudioContentService"
 
-    def context = null
+	def context = null
 
-    def SpringDependencyServices(context) {
-        this.context = context
-    }
+	def SpringDependencyServices(context) {
+		this.context = context
+	}
 
-    @Deprecated
-    def getDependantItems(site, path) {
-        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
-        def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-        def dependants = []
-        def dependantPaths = springBackendService.getItemsDependingOn(site, path, 1)
-        dependantPaths.each {
-            dependants.add(springBackendContentService.getContentItem(site, it, 0))
-        }
-        return dependants
-    }
+	@Deprecated
+	def getDependantItems(site, path) {
+		def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
+		def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+		def dependants = []
+		def dependantPaths = springBackendService.getItemsDependingOn(site, path, 1)
+		dependantPaths.each {
+			dependants.add(springBackendContentService.getContentItem(site, it, 0))
+		}
+		return dependants
+	}
 
-    def getDependenciesItems(site, path) {
-        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
-        def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-        def dependencies = []
-        def dependencyPaths = springBackendService.getItemDependencies(site, path, 1)
-        dependencyPaths.each {
-            dependencies.add(springBackendContentService.getContentItem(site, it, 0))
-        }
-        return dependencies
-    }
+	def getDependenciesItems(site, path) {
+		def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
+		def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+		def dependencies = []
+		def dependencyPaths = springBackendService.getItemDependencies(site, path, 1)
+		dependencyPaths.each {
+			dependencies.add(springBackendContentService.getContentItem(site, it, 0))
+		}
+		return dependencies
+	}
 }

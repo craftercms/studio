@@ -28,62 +28,62 @@ import java.util.Collection;
  */
 public class MergeResult {
 
-    /**
-     * Indicates if the pull was successful
-     */
-    protected final boolean successful;
+	/**
+	 * Indicates if the pull was successful
+	 */
+	protected final boolean successful;
 
-    /**
-     * Total number of commits merged from the remote repository
-     */
-    protected final long commitsMerged;
+	/**
+	 * Total number of commits merged from the remote repository
+	 */
+	protected final long commitsMerged;
 
-    /**
-     * The merge commit id
-     */
-    protected final String mergeCommitId;
+	/**
+	 * The merge commit id
+	 */
+	protected final String mergeCommitId;
 
-    public MergeResult(boolean successful, long commitsMerged, String mergeCommitId) {
-        this.successful = successful;
-        this.commitsMerged = commitsMerged;
-        this.mergeCommitId = mergeCommitId;
-    }
+	public MergeResult(boolean successful, long commitsMerged, String mergeCommitId) {
+		this.successful = successful;
+		this.commitsMerged = commitsMerged;
+		this.mergeCommitId = mergeCommitId;
+	}
 
-    public boolean isSuccessful() {
-        return successful;
-    }
+	public boolean isSuccessful() {
+		return successful;
+	}
 
-    public long getCommitsMerged() {
-        return commitsMerged;
-    }
+	public long getCommitsMerged() {
+		return commitsMerged;
+	}
 
-    public String getMergeCommitId() {
-        return mergeCommitId;
-    }
+	public String getMergeCommitId() {
+		return mergeCommitId;
+	}
 
-    @Override
-    public String toString() {
-        return "PullResult{" +
-                "successful=" + successful +
-                ", commitsMerged=" + commitsMerged +
-                ", mergeCommitId='" + mergeCommitId + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "PullResult{" +
+			"successful=" + successful +
+			", commitsMerged=" + commitsMerged +
+			", mergeCommitId='" + mergeCommitId + '\'' +
+			'}';
+	}
 
-    public static MergeResult failed() {
-        return new MergeResult(false, 0, null);
-    }
+	public static MergeResult failed() {
+		return new MergeResult(false, 0, null);
+	}
 
-    public static MergeResult from(org.eclipse.jgit.api.MergeResult mergeResult, Collection<String> mergedCommits) {
-        long commitsMerged = 0;
-        String mergeCommitId = null;
-        // Don't check the values if the status is not MERGED, for some reason JGit keeps returning the previous values
-        // even if the status is something like ALREADY_UP_TO_DATE
-        if (mergeResult.getMergeStatus() == org.eclipse.jgit.api.MergeResult.MergeStatus.MERGED) {
-            commitsMerged = mergedCommits.size();
-            mergeCommitId = mergeResult.getNewHead().name();
-        }
-        return new MergeResult(mergeResult.getMergeStatus().isSuccessful(), commitsMerged, mergeCommitId);
-    }
+	public static MergeResult from(org.eclipse.jgit.api.MergeResult mergeResult, Collection<String> mergedCommits) {
+		long commitsMerged = 0;
+		String mergeCommitId = null;
+		// Don't check the values if the status is not MERGED, for some reason JGit keeps returning the previous values
+		// even if the status is something like ALREADY_UP_TO_DATE
+		if (mergeResult.getMergeStatus() == org.eclipse.jgit.api.MergeResult.MergeStatus.MERGED) {
+			commitsMerged = mergedCommits.size();
+			mergeCommitId = mergeResult.getNewHead().name();
+		}
+		return new MergeResult(mergeResult.getMergeStatus().isSuccessful(), commitsMerged, mergeCommitId);
+	}
 
 }

@@ -92,157 +92,161 @@ const GRAPHQL_QUERIES = '\
   }';
 // endregion
 
-(function ({ content }) {
-  const pathRegExp = /^\/(.*?)\.xml$/;
-  function isAuthoring() {
-    const html = document.documentElement;
-    const attr = html.getAttribute('data-craftercms-preview');
+(function ({content}) {
+	const pathRegExp = /^\/(.*?)\.xml$/;
 
-    return (
-      attr === '${modePreview?c}' || // Otherwise disable/enable if you want to see pencils in dev server.
-      attr === 'true'
-    );
-  }
-  function getICE(model, fieldId = null) {
-    return craftercms?.xb?.getICEAttributes({
-      model,
-      fieldId,
-      isAuthoring: authoring
-    })
-  }
-  function updatePagination() {
-    // function to update the pagination
-    var total = Math.ceil(this.products.total / this.numberOfProducts);
-    return {
-      total: total,
-      hasPrev: this.currentPage > 1,
-      hasNext: this.currentPage < total
-    }
-  }
-  const authoring = isAuthoring();
+	function isAuthoring() {
+		const html = document.documentElement;
+		const attr = html.getAttribute('data-craftercms-preview');
 
-  // Create the Vue application
-  var catalog = new Vue({
-    el: '#catalog',
-    data: {
-      selection: {
-        company: null,
-        category: null,
-        tag: null
-      },
-      numberOfProducts: 4,
-      currentPage: 1,
-      reRegistrer: false
-    },
-    methods: {
-      getICE,
-      reRender() {
-        this.$forceUpdate();
-      }
-    },
-    computed: {
-      pagination: updatePagination
-    },
-    asyncComputed: {
-      filters: {
-        default: {},
-        get: function() {
-          // function to load the filters using the GraphQL query
-          return this.$http.post(GRAPHQL_URL, { query: GRAPHQL_QUERIES, operationName: 'getFilters' }).then(response => {
-            return {
-              companies: response.body.data.companies.items,
-              categories: response.body.data.categories.items[0].items.item,
-              tags: response.body.data.tags.items[0].items.item
-            };
-          });
-        }
-      },
-      products: {
-        default: {},
-        get: function() {
-          // function to load the products using the GraphQL query with the selected filters
-          var variables = {
-            offset: (this.currentPage - 1) * this.numberOfProducts,
-            limit: this.numberOfProducts
-          };
-          if(this.selection.company) {
-            variables.company = this.selection.company.objectId;
-          }
-          if(this.selection.category) {
-            variables.category = this.selection.category.key;
-          }
-          if(this.selection.tag) {
-            variables.tag = this.selection.tag.key;
-          }
-          this.reRegistrer = true;
-          return this.$http.post(GRAPHQL_URL, {
-            query: GRAPHQL_QUERIES,
-            operationName: 'getProducts',
-            variables: variables
-          }).then(response => {
-            const products = response.body.data.products.items.map(product => content.parseDescriptor(product));
-            return {
-              ...response.body.data.products,
-              items: products
-            }
-          });
-        }
-      }
-    },
-    mounted: function() {
-      // when the app is ready init all popups
-      $(function () {
-        $('[data-toggle="popover"]').popover()
-      })
-      // If at the initial rendering XB is not ready, it won't be enabled. Re-render content when XB is loaded.
-      document.addEventListener('craftercms.xb:loaded', this.reRender);
-    },
-    beforeDestroy: function() {
-      document.removeEventListener('craftercms.xb:loaded', this.reRender);
-    },
-    beforeUpdate: function() {
-      document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
-        const record = craftercms?.xb?.elementRegistry.fromElement(el);
+		return (
+			attr === '${modePreview?c}' || // Otherwise disable/enable if you want to see pencils in dev server.
+			attr === 'true'
+		);
+	}
 
-        // This is supposed to be before updating DOM, but query is returning both old and new elements
-        if (record) {
-          craftercms?.xb?.elementRegistry.deregister(record.id);
-        }
-      });
-    },
-    watch: {
-      currentPage: function() {
-        // Set reRegister variable to true when the page changes
-        this.reRegistrer = true;
-      },
-      products: function() {
-        this.$nextTick(function() {
-          jQuery('[data-toggle="popover"]').popover();
-          // When products change due to a page update, register the new elements (de-registration is one in beforeUpdate)
-          if (this.reRegistrer) {
-            document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
-              let
-                path = element.getAttribute('data-craftercms-model-path'),
-                modelId = element.getAttribute('data-craftercms-model-id'),
-                fieldId = element.getAttribute('data-craftercms-field-id'),
-                index = element.getAttribute('data-craftercms-index'),
-                label = element.getAttribute('data-craftercms-label');
+	function getICE(model, fieldId = null) {
+		return craftercms?.xb?.getICEAttributes({
+			model,
+			fieldId,
+			isAuthoring: authoring
+		})
+	}
 
-              if ((index !== null) && (index !== undefined) && !index.includes('.')) {
-                // TODO: Need to assess the impact of index being a string with dot notation
-                // Unsure if somewhere, the system relies on the index being an integer/number.
-                // Affected inventory:
-                // - Guest.moveComponent() - string type handled
-                index = parseInt(index, 10);
-              }
+	function updatePagination() {
+		// function to update the pagination
+		var total = Math.ceil(this.products.total / this.numberOfProducts);
+		return {
+			total: total,
+			hasPrev: this.currentPage > 1,
+			hasNext: this.currentPage < total
+		}
+	}
 
-              craftercms?.xb?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
-            });
-            this.reRegistrer = false;
-          }
-        });
-      }
-    }
-  });
+	const authoring = isAuthoring();
+
+	// Create the Vue application
+	var catalog = new Vue({
+		el: '#catalog',
+		data: {
+			selection: {
+				company: null,
+				category: null,
+				tag: null
+			},
+			numberOfProducts: 4,
+			currentPage: 1,
+			reRegistrer: false
+		},
+		methods: {
+			getICE,
+			reRender() {
+				this.$forceUpdate();
+			}
+		},
+		computed: {
+			pagination: updatePagination
+		},
+		asyncComputed: {
+			filters: {
+				default: {},
+				get: function () {
+					// function to load the filters using the GraphQL query
+					return this.$http.post(GRAPHQL_URL, {query: GRAPHQL_QUERIES, operationName: 'getFilters'}).then(response => {
+						return {
+							companies: response.body.data.companies.items,
+							categories: response.body.data.categories.items[0].items.item,
+							tags: response.body.data.tags.items[0].items.item
+						};
+					});
+				}
+			},
+			products: {
+				default: {},
+				get: function () {
+					// function to load the products using the GraphQL query with the selected filters
+					var variables = {
+						offset: (this.currentPage - 1) * this.numberOfProducts,
+						limit: this.numberOfProducts
+					};
+					if (this.selection.company) {
+						variables.company = this.selection.company.objectId;
+					}
+					if (this.selection.category) {
+						variables.category = this.selection.category.key;
+					}
+					if (this.selection.tag) {
+						variables.tag = this.selection.tag.key;
+					}
+					this.reRegistrer = true;
+					return this.$http.post(GRAPHQL_URL, {
+						query: GRAPHQL_QUERIES,
+						operationName: 'getProducts',
+						variables: variables
+					}).then(response => {
+						const products = response.body.data.products.items.map(product => content.parseDescriptor(product));
+						return {
+							...response.body.data.products,
+							items: products
+						}
+					});
+				}
+			}
+		},
+		mounted: function () {
+			// when the app is ready init all popups
+			$(function () {
+				$('[data-toggle="popover"]').popover()
+			})
+			// If at the initial rendering XB is not ready, it won't be enabled. Re-render content when XB is loaded.
+			document.addEventListener('craftercms.xb:loaded', this.reRender);
+		},
+		beforeDestroy: function () {
+			document.removeEventListener('craftercms.xb:loaded', this.reRender);
+		},
+		beforeUpdate: function () {
+			document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
+				const record = craftercms?.xb?.elementRegistry.fromElement(el);
+
+				// This is supposed to be before updating DOM, but query is returning both old and new elements
+				if (record) {
+					craftercms?.xb?.elementRegistry.deregister(record.id);
+				}
+			});
+		},
+		watch: {
+			currentPage: function () {
+				// Set reRegister variable to true when the page changes
+				this.reRegistrer = true;
+			},
+			products: function () {
+				this.$nextTick(function () {
+					jQuery('[data-toggle="popover"]').popover();
+					// When products change due to a page update, register the new elements (de-registration is one in beforeUpdate)
+					if (this.reRegistrer) {
+						document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
+							let
+								path = element.getAttribute('data-craftercms-model-path'),
+								modelId = element.getAttribute('data-craftercms-model-id'),
+								fieldId = element.getAttribute('data-craftercms-field-id'),
+								index = element.getAttribute('data-craftercms-index'),
+								label = element.getAttribute('data-craftercms-label');
+
+							if ((index !== null) && (index !== undefined) && !index.includes('.')) {
+								// TODO: Need to assess the impact of index being a string with dot notation
+								// Unsure if somewhere, the system relies on the index being an integer/number.
+								// Affected inventory:
+								// - Guest.moveComponent() - string type handled
+								index = parseInt(index, 10);
+							}
+
+							craftercms?.xb?.elementRegistry.register({element, modelId, fieldId, index, label, path});
+						});
+						this.reRegistrer = false;
+					}
+				});
+			}
+		}
+	});
 })(craftercms);
 

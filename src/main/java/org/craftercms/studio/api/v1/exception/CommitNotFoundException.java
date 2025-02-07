@@ -17,9 +17,10 @@ package org.craftercms.studio.api.v1.exception;
 
 public class CommitNotFoundException extends ServiceLayerException {
 
-    private static final long serialVersionUID = 2960303983858092678L;
+	private static final long serialVersionUID = 2960303983858092678L;
 
-    public CommitNotFoundException() {}
+	public CommitNotFoundException() {
+	}
 
 	public CommitNotFoundException(Exception e) {
 		super(e);

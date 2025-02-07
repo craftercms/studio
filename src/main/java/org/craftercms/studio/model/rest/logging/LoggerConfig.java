@@ -28,36 +28,36 @@ import jakarta.validation.constraints.Pattern;
  * @since 4.0.2
  */
 public class LoggerConfig {
-    @NotEmpty
-    // TODO: JM: Revisit this when validation annotations are java validation API
-    // This will not be validated when the actual parameter is a sub-class
-    @ValidateNoTagsParam
-    private String name;
-    @NotEmpty
-    @Pattern(regexp = "off|error|warn|info|debug|trace|all", flags = Pattern.Flag.CASE_INSENSITIVE)
-    private String level;
+	@NotEmpty
+	// TODO: JM: Revisit this when validation annotations are java validation API
+	// This will not be validated when the actual parameter is a sub-class
+	@ValidateNoTagsParam
+	private String name;
+	@NotEmpty
+	@Pattern(regexp = "off|error|warn|info|debug|trace|all", flags = Pattern.Flag.CASE_INSENSITIVE)
+	private String level;
 
-    public LoggerConfig() {
-    }
+	public LoggerConfig() {
+	}
 
-    public LoggerConfig(final String name, final String level) {
-        this.name = name;
-        this.level = level;
-    }
+	public LoggerConfig(final String name, final String level) {
+		this.name = name;
+		this.level = level;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+	public void setName(final String name) {
+		this.name = name;
+	}
 
-    public String getLevel() {
-        return level;
-    }
+	public String getLevel() {
+		return level;
+	}
 
-    public void setLevel(final String level) {
-        this.level = level;
-    }
+	public void setLevel(final String level) {
+		this.level = level;
+	}
 }

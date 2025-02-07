@@ -24,30 +24,30 @@ import java.util.Map;
 
 public class PathMacrosTransaltor {
 
-    public static final String PAGEID = "{pageId}";
+	public static final String PAGEID = "{pageId}";
 
-    public static final String PAGE_GROUPID = "{pageGroupId}";
+	public static final String PAGE_GROUPID = "{pageGroupId}";
 
 
-    /**
-     * Match the URL with the know patterns and translate them to actual value
-     *
-     * @param path
-     */
-    public static String resolvePath(String path,Map<String,String> properties) throws ServiceLayerException {
+	/**
+	 * Match the URL with the know patterns and translate them to actual value
+	 *
+	 * @param path
+	 */
+	public static String resolvePath(String path, Map<String, String> properties) throws ServiceLayerException {
 
-        String pageId = properties.get(DmConstants.KEY_PAGE_ID);
+		String pageId = properties.get(DmConstants.KEY_PAGE_ID);
 
-        String groupId = properties.get(DmConstants.KEY_PAGE_GROUP_ID);
+		String groupId = properties.get(DmConstants.KEY_PAGE_GROUP_ID);
 
-        if(StringUtils.isNotEmpty(pageId) && (path.contains(PAGEID))){
-            path = path.replace(PAGEID,  pageId);
-        }
+		if (StringUtils.isNotEmpty(pageId) && (path.contains(PAGEID))) {
+			path = path.replace(PAGEID, pageId);
+		}
 
-        if(StringUtils.isNotEmpty(groupId) && (path.contains(PAGE_GROUPID))){
-            path = path.replace(PAGE_GROUPID, groupId);
-        }
+		if (StringUtils.isNotEmpty(groupId) && (path.contains(PAGE_GROUPID))) {
+			path = path.replace(PAGE_GROUPID, groupId);
+		}
 
-        return path;
-    }
+		return path;
+	}
 }

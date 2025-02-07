@@ -32,5 +32,5 @@ model.context = (request.getParameter("context")) ? request.getParameter("contex
 
 ValidationResult validationResult = ValidationUtils.validateValue(new NoTagsValidator(), model.keywordTerm, 'keywordTerm')
 if (validationResult.hasErrors()) {
-    throw new HttpStatusCodeException(HttpStatus.BAD_REQUEST, "Invalid keywordTerm input", new ValidationException(validationResult))
+	throw new HttpStatusCodeException(HttpStatus.BAD_REQUEST, "Invalid keywordTerm input", new ValidationException(validationResult))
 }

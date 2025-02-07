@@ -17,37 +17,37 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
-    <xsl:param name="newXml"/>
+	<xsl:param name="newXml"/>
 
-    <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
+	<xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <xsl:template match="${parentXpath}">
-        <xsl:copy>
-            <!-- To keep the attributes -->
-            <xsl:apply-templates select="@*|node()" />
+	<xsl:template match="${parentXpath}">
+		<xsl:copy>
+			<!-- To keep the attributes -->
+			<xsl:apply-templates select="@*|node()"/>
 
-            <!-- Add the new content -->
-            <xsl:copy-of select="$newFragment"/>
-        </xsl:copy>
-    </xsl:template>
+			<!-- Add the new content -->
+			<xsl:copy-of select="$newFragment"/>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

@@ -51,7 +51,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 
 /**
  * Extension of {@link UpgradeContext} that holds all relevant information for a system or site upgrade.
- *
+ * <p>
  * The {@code target} object is the name of the site being upgraded.
  *
  * @author joseross
@@ -59,171 +59,172 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  */
 public class StudioUpgradeContext extends UpgradeContext<String> {
 
-    public static final String COMMIT_IDENTIFIER_FORMAT = "%s,%s,%s";
+	public static final String COMMIT_IDENTIFIER_FORMAT = "%s,%s,%s";
 
-    /**
-     * Studio configuration
-     */
-    protected StudioConfiguration studioConfiguration;
+	/**
+	 * Studio configuration
+	 */
+	protected StudioConfiguration studioConfiguration;
 
-    /**
-     * The database data source.
-     */
-    protected DataSource dataSource;
+	/**
+	 * The database data source.
+	 */
+	protected DataSource dataSource;
 
-    /**
-     * The instance service
-     */
-    protected InstanceService instanceService;
+	/**
+	 * The instance service
+	 */
+	protected InstanceService instanceService;
 
-    /**
-     * The name of the config file being upgraded
-     */
-    protected String currentConfigName;
+	/**
+	 * The name of the config file being upgraded
+	 */
+	protected String currentConfigName;
 
-    /**
-     * The path of the config file being upgraded
-     */
-    protected String currentConfigPath;
+	/**
+	 * The path of the config file being upgraded
+	 */
+	protected String currentConfigPath;
 
-    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+	protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    public StudioUpgradeContext(String target, StudioConfiguration studioConfiguration, DataSource dataSource,
-                                InstanceService instanceService,
-                                RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
-        super(target);
-        this.studioConfiguration = studioConfiguration;
-        this.dataSource = dataSource;
-        this.instanceService = instanceService;
-        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
-    }
+	public StudioUpgradeContext(String target, StudioConfiguration studioConfiguration, DataSource dataSource,
+				    InstanceService instanceService,
+				    RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+		super(target);
+		this.studioConfiguration = studioConfiguration;
+		this.dataSource = dataSource;
+		this.instanceService = instanceService;
+		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+	}
 
-    public DataSource getDataSource() {
-        return dataSource;
-    }
+	public DataSource getDataSource() {
+		return dataSource;
+	}
 
-    public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
-    }
+	public Connection getConnection() throws SQLException {
+		return dataSource.getConnection();
+	}
 
-    public String getCurrentConfigName() {
-        return currentConfigName;
-    }
+	public String getCurrentConfigName() {
+		return currentConfigName;
+	}
 
-    public void setCurrentConfigName(String currentConfigName) {
-        this.currentConfigName = currentConfigName;
-    }
+	public void setCurrentConfigName(String currentConfigName) {
+		this.currentConfigName = currentConfigName;
+	}
 
-    public String getCurrentConfigPath() {
-        return currentConfigPath;
-    }
+	public String getCurrentConfigPath() {
+		return currentConfigPath;
+	}
 
-    public void setCurrentConfigPath(String currentConfigPath) {
-        this.currentConfigPath = currentConfigPath;
-    }
+	public void setCurrentConfigPath(String currentConfigPath) {
+		this.currentConfigPath = currentConfigPath;
+	}
 
-    /**
-     * Indicates if the upgrade is for a specific configuration file.
-     */
-    public boolean isConfigPresent() {
-        return isNoneEmpty(currentConfigName, currentConfigPath);
-    }
+	/**
+	 * Indicates if the upgrade is for a specific configuration file.
+	 */
+	public boolean isConfigPresent() {
+		return isNoneEmpty(currentConfigName, currentConfigPath);
+	}
 
-    public void clearCurrentConfig() {
-        currentConfigName = null;
-        currentConfigPath = null;
-    }
+	public void clearCurrentConfig() {
+		currentConfigName = null;
+		currentConfigPath = null;
+	}
 
-    /**
-     * Returns the absolute path of the repository being upgraded.
-     */
-    public Path getRepositoryPath() {
-        Path path;
-        if(isEmpty(target)) {
-            path = Paths.get(
-                    studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(GLOBAL_REPO_PATH)
-            );
-        } else {
-            path = Paths.get(
-                    studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH),
-                    target,
-                    studioConfiguration.getProperty(SANDBOX_PATH)
-            );
-        }
-        return path.toAbsolutePath();
-    }
+	/**
+	 * Returns the absolute path of the repository being upgraded.
+	 */
+	public Path getRepositoryPath() {
+		Path path;
+		if (isEmpty(target)) {
+			path = Paths.get(
+				studioConfiguration.getProperty(REPO_BASE_PATH),
+				studioConfiguration.getProperty(GLOBAL_REPO_PATH)
+			);
+		} else {
+			path = Paths.get(
+				studioConfiguration.getProperty(REPO_BASE_PATH),
+				studioConfiguration.getProperty(SITES_REPOS_PATH),
+				target,
+				studioConfiguration.getProperty(SANDBOX_PATH)
+			);
+		}
+		return path.toAbsolutePath();
+	}
 
-    /**
-     * Returns the relative path of the file based on the site repository
-     */
-    public String getRelativePath(Path file) {
-        return getRepositoryPath().relativize(file).toString();
-    }
+	/**
+	 * Returns the relative path of the file based on the site repository
+	 */
+	public String getRelativePath(Path file) {
+		return getRepositoryPath().relativize(file).toString();
+	}
 
-    /**
-     * Commits all changes for the given files in the repository of the site being upgraded.
-     * @param message the commit message
-     * @param changedFiles the list of changed files
-     * @param deletedFiles the list of deleted files
-     */
-    public void commitChanges(String message, List<String> changedFiles, List<String> deletedFiles) throws Exception {
-        Path repositoryPath = getRepositoryPath();
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder
-                .setGitDir(repositoryPath.resolve(GIT_ROOT).toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
+	/**
+	 * Commits all changes for the given files in the repository of the site being upgraded.
+	 *
+	 * @param message      the commit message
+	 * @param changedFiles the list of changed files
+	 * @param deletedFiles the list of deleted files
+	 */
+	public void commitChanges(String message, List<String> changedFiles, List<String> deletedFiles) throws Exception {
+		Path repositoryPath = getRepositoryPath();
+		FileRepositoryBuilder builder = new FileRepositoryBuilder();
+		Repository repo = builder
+			.setGitDir(repositoryPath.resolve(GIT_ROOT).toFile())
+			.readEnvironment()
+			.findGitDir()
+			.build();
 
-        try (Git git = new Git(repo)) {
-            // Add new & updated files
-            if (CollectionUtils.isNotEmpty(changedFiles)) {
-                AddCommand add = git.add();
-                changedFiles.stream().map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
-                retryingRepositoryOperationFacade.call(add);
-            }
+		try (Git git = new Git(repo)) {
+			// Add new & updated files
+			if (CollectionUtils.isNotEmpty(changedFiles)) {
+				AddCommand add = git.add();
+				changedFiles.stream().map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
+				retryingRepositoryOperationFacade.call(add);
+			}
 
-            // Add deleted files
-            if (CollectionUtils.isNotEmpty(deletedFiles)) {
-                AddCommand add = git.add();
-                add.setUpdate(true);
-                deletedFiles.stream().map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
-                retryingRepositoryOperationFacade.call(add);
-            }
+			// Add deleted files
+			if (CollectionUtils.isNotEmpty(deletedFiles)) {
+				AddCommand add = git.add();
+				add.setUpdate(true);
+				deletedFiles.stream().map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
+				retryingRepositoryOperationFacade.call(add);
+			}
 
-            StatusCommand statusCommand = git.status();
-            Status status = retryingRepositoryOperationFacade.call(statusCommand);
+			StatusCommand statusCommand = git.status();
+			Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
-            if (!status.isClean()) {
-                CommitCommand commitCommand = git.commit()
-                        .setMessage(message + "\n\n" + getIdentifier());
-                retryingRepositoryOperationFacade.call(commitCommand);
-            }
-        }
-    }
+			if (!status.isClean()) {
+				CommitCommand commitCommand = git.commit()
+					.setMessage(message + "\n\n" + getIdentifier());
+				retryingRepositoryOperationFacade.call(commitCommand);
+			}
+		}
+	}
 
-    /**
-     * Returns the identifier for this particular Studio instance
-     */
-    protected String getIdentifier() {
-        var activeEnvironment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-        var identifier=  format(COMMIT_IDENTIFIER_FORMAT, instanceService.getInstanceId(), activeEnvironment,
-                System.getProperty("user.name"));
-        return Base64.getEncoder().encodeToString(identifier.getBytes(UTF_8));
-    }
+	/**
+	 * Returns the identifier for this particular Studio instance
+	 */
+	protected String getIdentifier() {
+		var activeEnvironment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+		var identifier = format(COMMIT_IDENTIFIER_FORMAT, instanceService.getInstanceId(), activeEnvironment,
+			System.getProperty("user.name"));
+		return Base64.getEncoder().encodeToString(identifier.getBytes(UTF_8));
+	}
 
-    /**
-     * Returns the file as an absolute path
-     */
-    public Path getFile(String path) {
-        return getRepositoryPath().resolve(removeStart(path, File.separator));
-    }
+	/**
+	 * Returns the file as an absolute path
+	 */
+	public Path getFile(String path) {
+		return getRepositoryPath().resolve(removeStart(path, File.separator));
+	}
 
-    @Override
-    public String toString() {
-        return (isConfigPresent()? getCurrentConfigPath() + " @ " : "") + (isEmpty(target)? "global repo" : target);
-    }
+	@Override
+	public String toString() {
+		return (isConfigPresent() ? getCurrentConfigPath() + " @ " : "") + (isEmpty(target) ? "global repo" : target);
+	}
 
 }

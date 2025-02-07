@@ -41,37 +41,37 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping(API_2 + DEPENDENCY)
 public class DependencyController {
 
-    private final DependencyService dependencyService;
+	private final DependencyService dependencyService;
 
-    @ConstructorProperties({"dependencyService"})
-    public DependencyController(final DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
-    }
+	@ConstructorProperties({"dependencyService"})
+	public DependencyController(final DependencyService dependencyService) {
+		this.dependencyService = dependencyService;
+	}
 
-    @PostMapping(DEPENDENCIES)
-    public ResultOne<Map<String, Collection<String>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
-        Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
-        Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
+	@PostMapping(DEPENDENCIES)
+	public ResultOne<Map<String, Collection<String>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
+		Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
+		Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
-        softDeps.removeAll(hardDeps);
+		softDeps.removeAll(hardDeps);
 
-        ResultOne<Map<String, Collection<String>>> result = new ResultOne<>();
-        result.setResponse(OK);
-        Map<String, Collection<String>> items = new HashMap<>();
-        items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
-        items.put(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
-        result.setEntity(RESULT_KEY_ITEMS, items);
-        return result;
-    }
+		ResultOne<Map<String, Collection<String>>> result = new ResultOne<>();
+		result.setResponse(OK);
+		Map<String, Collection<String>> items = new HashMap<>();
+		items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
+		items.put(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
+		result.setEntity(RESULT_KEY_ITEMS, items);
+		return result;
+	}
 
-    @GetMapping(DEPENDENT_ITEMS)
-    public ResultOne<List<DependencyItem>> getDependentItems(@NotEmpty @ValidSiteId @RequestParam String siteId,
-                                          @ValidExistingContentPath @RequestParam String path)
-            throws ServiceLayerException {
-        List<DependencyItem> items = dependencyService.getDependentItems(siteId, path);
-        var result = new ResultOne<List<DependencyItem>>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_ITEMS, items);
-        return result;
-    }
+	@GetMapping(DEPENDENT_ITEMS)
+	public ResultOne<List<DependencyItem>> getDependentItems(@NotEmpty @ValidSiteId @RequestParam String siteId,
+								 @ValidExistingContentPath @RequestParam String path)
+		throws ServiceLayerException {
+		List<DependencyItem> items = dependencyService.getDependentItems(siteId, path);
+		var result = new ResultOne<List<DependencyItem>>();
+		result.setResponse(OK);
+		result.setEntity(RESULT_KEY_ITEMS, items);
+		return result;
+	}
 }

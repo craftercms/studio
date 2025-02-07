@@ -38,78 +38,78 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ContentTypeServiceInternalImplTest {
-    private static final String SITE_ID = "mySite";
-    private static final String CONTENT_TYPE = "myContentType";
-    private static final String CONTENT_TYPE_DEFINITION_FILENAME = "form-definition.xml";
-    private static final String FORM_DEFINITION_ROOT = "form";
-    private static final String FORM_DEFINITION_IMAGE_THUMBNAIL = "imageThumbnail";
-    private static final String FORM_DEFINITION_PREVIEW_IMAGE = "testImage.png";
-    private static final String CONTENT_TYPE_BASE_PATH = "/config/studio/content-types";
-    private static final String CONTENT_TYPE_BASE_PATH_PATTERN = CONTENT_TYPE_BASE_PATH + "/{content-type}";
-    private static final String CONTENT_TYPE_DEFINITION_PATH = CONTENT_TYPE_BASE_PATH + "/" + CONTENT_TYPE + "/" + CONTENT_TYPE_DEFINITION_FILENAME;
-    private static final String CONTENT_TYPE_PREVIEW_IMAGE_PATH = CONTENT_TYPE_BASE_PATH + "/" + CONTENT_TYPE + "/" + FORM_DEFINITION_PREVIEW_IMAGE;
+	private static final String SITE_ID = "mySite";
+	private static final String CONTENT_TYPE = "myContentType";
+	private static final String CONTENT_TYPE_DEFINITION_FILENAME = "form-definition.xml";
+	private static final String FORM_DEFINITION_ROOT = "form";
+	private static final String FORM_DEFINITION_IMAGE_THUMBNAIL = "imageThumbnail";
+	private static final String FORM_DEFINITION_PREVIEW_IMAGE = "testImage.png";
+	private static final String CONTENT_TYPE_BASE_PATH = "/config/studio/content-types";
+	private static final String CONTENT_TYPE_BASE_PATH_PATTERN = CONTENT_TYPE_BASE_PATH + "/{content-type}";
+	private static final String CONTENT_TYPE_DEFINITION_PATH = CONTENT_TYPE_BASE_PATH + "/" + CONTENT_TYPE + "/" + CONTENT_TYPE_DEFINITION_FILENAME;
+	private static final String CONTENT_TYPE_PREVIEW_IMAGE_PATH = CONTENT_TYPE_BASE_PATH + "/" + CONTENT_TYPE + "/" + FORM_DEFINITION_PREVIEW_IMAGE;
 
-    private static final String CONTENT_TYPE_WITHOUT_IMAGE = "noImageContentType";
-    private static final String CONTENT_TYPE_DEFINITION_PATH_WITHOUT_IMAGE = CONTENT_TYPE_BASE_PATH + "/" + CONTENT_TYPE_WITHOUT_IMAGE +
-            "/" + CONTENT_TYPE_DEFINITION_FILENAME;
-    private static final String CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH = "crafter/studio/content-type/default-contentType.jpg";
+	private static final String CONTENT_TYPE_WITHOUT_IMAGE = "noImageContentType";
+	private static final String CONTENT_TYPE_DEFINITION_PATH_WITHOUT_IMAGE = CONTENT_TYPE_BASE_PATH + "/" + CONTENT_TYPE_WITHOUT_IMAGE +
+		"/" + CONTENT_TYPE_DEFINITION_FILENAME;
+	private static final String CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH = "crafter/studio/content-type/default-contentType.jpg";
 
-    @Mock
-    private ConfigurationService configurationService;
-    @Mock
-    private SiteService siteService;
-    @Mock
-    private ContentService contentService;
-    @Mock
-    Resource resource;
-    @InjectMocks
-    private ContentTypeServiceInternalImpl service;
+	@Mock
+	private ConfigurationService configurationService;
+	@Mock
+	private SiteService siteService;
+	@Mock
+	private ContentService contentService;
+	@Mock
+	Resource resource;
+	@InjectMocks
+	private ContentTypeServiceInternalImpl service;
 
-    @Before
-    public void setUp() throws ServiceLayerException {
-        ReflectionTestUtils.setField(service, "contentTypeDefinitionFilename", CONTENT_TYPE_DEFINITION_FILENAME);
-        ReflectionTestUtils.setField(service, "contentTypeBasePathPattern", CONTENT_TYPE_BASE_PATH_PATTERN);
-        ReflectionTestUtils.setField(service, "previewImageXPath", "/form/imageThumbnail/text()");
-        ReflectionTestUtils.setField(service, "contentService", contentService);
-        ReflectionTestUtils.setField(service, "defaultPreviewImagePath", CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH);
+	@Before
+	public void setUp() throws ServiceLayerException {
+		ReflectionTestUtils.setField(service, "contentTypeDefinitionFilename", CONTENT_TYPE_DEFINITION_FILENAME);
+		ReflectionTestUtils.setField(service, "contentTypeBasePathPattern", CONTENT_TYPE_BASE_PATH_PATTERN);
+		ReflectionTestUtils.setField(service, "previewImageXPath", "/form/imageThumbnail/text()");
+		ReflectionTestUtils.setField(service, "contentService", contentService);
+		ReflectionTestUtils.setField(service, "defaultPreviewImagePath", CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH);
 
-        when(configurationService.getConfigurationAsDocument(SITE_ID, null, CONTENT_TYPE_DEFINITION_PATH, null))
-                .thenReturn(getDocumentWithPreviewImage());
+		when(configurationService.getConfigurationAsDocument(SITE_ID, null, CONTENT_TYPE_DEFINITION_PATH, null))
+			.thenReturn(getDocumentWithPreviewImage());
 
-        when(contentService.getContentAsResource(SITE_ID, CONTENT_TYPE_PREVIEW_IMAGE_PATH))
-                .thenReturn(resource);
+		when(contentService.getContentAsResource(SITE_ID, CONTENT_TYPE_PREVIEW_IMAGE_PATH))
+			.thenReturn(resource);
 
-        when(configurationService.getConfigurationAsDocument(SITE_ID, null, CONTENT_TYPE_DEFINITION_PATH_WITHOUT_IMAGE, null))
-                .thenReturn(getDocumentWithoutPreviewImage());
-    }
+		when(configurationService.getConfigurationAsDocument(SITE_ID, null, CONTENT_TYPE_DEFINITION_PATH_WITHOUT_IMAGE, null))
+			.thenReturn(getDocumentWithoutPreviewImage());
+	}
 
-    private Document getDocumentWithPreviewImage() {
-        Document document = DocumentHelper.createDocument();
-        Element root = document.addElement( FORM_DEFINITION_ROOT );
-        root.addElement(FORM_DEFINITION_IMAGE_THUMBNAIL)
-                .addText(FORM_DEFINITION_PREVIEW_IMAGE);
+	private Document getDocumentWithPreviewImage() {
+		Document document = DocumentHelper.createDocument();
+		Element root = document.addElement(FORM_DEFINITION_ROOT);
+		root.addElement(FORM_DEFINITION_IMAGE_THUMBNAIL)
+			.addText(FORM_DEFINITION_PREVIEW_IMAGE);
 
-        return document;
-    }
+		return document;
+	}
 
-    private Document getDocumentWithoutPreviewImage() {
-        Document document = DocumentHelper.createDocument();
-        Element root = document.addElement(FORM_DEFINITION_ROOT);
-        root.addElement(FORM_DEFINITION_IMAGE_THUMBNAIL)
-                .addText("undefined");
-        return document;
-    }
+	private Document getDocumentWithoutPreviewImage() {
+		Document document = DocumentHelper.createDocument();
+		Element root = document.addElement(FORM_DEFINITION_ROOT);
+		root.addElement(FORM_DEFINITION_IMAGE_THUMBNAIL)
+			.addText("undefined");
+		return document;
+	}
 
-    @Test
-    public void getPreviewImageReturnResource() throws ServiceLayerException {
-        ImmutablePair<String, Resource> pair = service.getContentTypePreviewImage(SITE_ID, CONTENT_TYPE);
-        assertEquals(pair.getKey(), CONTENT_TYPE_PREVIEW_IMAGE_PATH);
-        assertEquals(pair.getValue(), resource);
-    }
+	@Test
+	public void getPreviewImageReturnResource() throws ServiceLayerException {
+		ImmutablePair<String, Resource> pair = service.getContentTypePreviewImage(SITE_ID, CONTENT_TYPE);
+		assertEquals(pair.getKey(), CONTENT_TYPE_PREVIEW_IMAGE_PATH);
+		assertEquals(pair.getValue(), resource);
+	}
 
-    @Test
-    public void getDefaultPreviewImage() throws ServiceLayerException {
-        ImmutablePair<String, Resource> pair = service.getContentTypePreviewImage(SITE_ID, CONTENT_TYPE_WITHOUT_IMAGE);
-        assertEquals(pair.getKey(), CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH);
-    }
+	@Test
+	public void getDefaultPreviewImage() throws ServiceLayerException {
+		ImmutablePair<String, Resource> pair = service.getContentTypePreviewImage(SITE_ID, CONTENT_TYPE_WITHOUT_IMAGE);
+		assertEquals(pair.getKey(), CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH);
+	}
 }

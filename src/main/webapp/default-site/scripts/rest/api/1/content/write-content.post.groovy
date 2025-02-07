@@ -24,7 +24,6 @@ import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import org.craftercms.studio.api.v2.exception.content.ContentExistException
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException
-import org.craftercms.studio.model.rest.publish.PublishPackageResponse
 import scripts.api.ContentServices
 
 def result = [:]
@@ -47,133 +46,128 @@ def systemAsset = null;
 def context = ContentServices.createContext(applicationContext, request)
 
 if (JakartaServletFileUpload.isMultipartContent(request)) {
-    def upload = new JakartaServletFileUpload()
-    def iterator = upload.getItemIterator(request)
-    while(iterator.hasNext()) {
-        def item = iterator.next()
-        def name = item.getFieldName()
-        def stream = item.getInputStream()
-        if (item.isFormField()) {
-            switch (name) {
-                case "site_id":
-                case "site":
-                    site = Streams.asString(stream)
-                    break
-                case "path":
-                    path = Streams.asString(stream)
-                    break
-                case "isImage":
-                    isImage = Streams.asString(stream)
-                    break
-                case "allowedWidth":
-                    allowedWidth = Streams.asString(stream)
-                    break
-                case "allowedHeight":
-                    allowedHeight = Streams.asString(stream)
-                    break
-                case "allowLessSize":
-                    allowLessSize = Streams.asString(stream)
-                    break
-            }
-        } else {
-            fileName = item.getName()
-            if (fileName != null) {
-                fileName = FilenameUtils.getName(fileName)
-            }
-            contentType = item.getContentType()
-            try {
-                def writeAssetRes = ContentServices.writeContentAsset(context, site, path, fileName, stream,
-                        isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
-                if (!writeAssetRes.success) {
-                    response.setStatus(500)
-                    result.success = false
-                    result.message = writeAssetRes.message ?: "Failed to write asset"
-                } else if (writeAssetRes.success && writeAssetRes.message.isDeleted()) {
-                    response.setStatus(500)
-                    result.success = false
-                    result.message = "Failed to write asset"
-                } else {
-                    result = writeAssetRes
-                }
-            } catch (PermissionException e) {
-                response.setStatus(403)
-                result.message = e.message
-            } catch (ServiceLayerException e) {
-                response.setStatus(500)
-                result.setMessage = e.getMessage()
-            }
-        }
-    }
-    if (!fileName) {
-        throw new HttpStatusCodeException(400, "multipart request is missing the file")
-    }
+	request.getParts().each { item ->
+		def name = item.getName()
+		def stream = item.getInputStream()
+		if (item.submittedFileName) {
+			fileName = item.submittedFileName
+			if (fileName != null) {
+				fileName = FilenameUtils.getName(fileName)
+			}
+			contentType = item.getContentType()
+			try {
+				def writeAssetRes = ContentServices.writeContentAsset(context, site, path, fileName, stream,
+					isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+				if (!writeAssetRes.success) {
+					response.setStatus(500)
+					result.success = false
+					result.message = writeAssetRes.message ?: "Failed to write asset"
+				} else if (writeAssetRes.success && writeAssetRes.message.isDeleted()) {
+					response.setStatus(500)
+					result.success = false
+					result.message = "Failed to write asset"
+				} else {
+					result = writeAssetRes
+				}
+			} catch (PermissionException e) {
+				response.setStatus(403)
+				result.message = e.message
+			} catch (ServiceLayerException e) {
+				response.setStatus(500)
+				result.setMessage = e.getMessage()
+			}
+		} else {
+			switch (name) {
+				case "site_id":
+				case "site":
+					site = Streams.asString(stream)
+					break
+				case "path":
+					path = Streams.asString(stream)
+					break
+				case "isImage":
+					isImage = Streams.asString(stream)
+					break
+				case "allowedWidth":
+					allowedWidth = Streams.asString(stream)
+					break
+				case "allowedHeight":
+					allowedHeight = Streams.asString(stream)
+					break
+				case "allowLessSize":
+					allowLessSize = Streams.asString(stream)
+					break
+			}
+		}
+	}
+	if (!fileName) {
+		throw new HttpStatusCodeException(400, "multipart request is missing the file")
+	}
 } else {
-    site = request.getParameter("site_id")
-    path = request.getParameter("path")
-    oldPath = request.getParameter("oldContentPath")
-    fileName = (request.getParameter("fileName")) ? request.getParameter("fileName") : request.getParameter("filename")
-    contentType = request.getParameter("contentType")
-    edit = request.getParameter("edit")
-    draft = request.getParameter("draft")
-    unlock = request.getParameter("unlock")
-    content = request.getInputStream()
+	site = request.getParameter("site_id")
+	path = request.getParameter("path")
+	oldPath = request.getParameter("oldContentPath")
+	fileName = (request.getParameter("fileName")) ? request.getParameter("fileName") : request.getParameter("filename")
+	contentType = request.getParameter("contentType")
+	edit = request.getParameter("edit")
+	draft = request.getParameter("draft")
+	unlock = request.getParameter("unlock")
+	content = request.getInputStream()
 
-    /** Validate Parameters */
-    def invalidParams = false
-    def paramsList = []
+	/** Validate Parameters */
+	def invalidParams = false
+	def paramsList = []
 
-    // site_id
-    try {
-        if (StringUtils.isEmpty(site)) {
-            site = request.getParameter("site")
-            if (StringUtils.isEmpty(site)) {
-                invalidParams = true
-                paramsList.add("site_id")
-            }
-        }
-    } catch (Exception e) {
-        invalidParams = true
-        paramsList.add("site_id")
-    }
+	// site_id
+	try {
+		if (StringUtils.isEmpty(site)) {
+			site = request.getParameter("site")
+			if (StringUtils.isEmpty(site)) {
+				invalidParams = true
+				paramsList.add("site_id")
+			}
+		}
+	} catch (Exception e) {
+		invalidParams = true
+		paramsList.add("site_id")
+	}
 
-    if (!path || path == '') {
-        result.code = 400
-        result.message = "Path must be provided."
-        return result
-    }
-    else if (!fileName || fileName == '') {
-        result.code = 400;
-        result.message = "fileName must be provided."
-        return result
-    }
+	if (!path || path == '') {
+		result.code = 400
+		result.message = "Path must be provided."
+		return result
+	} else if (!fileName || fileName == '') {
+		result.code = 400;
+		result.message = "fileName must be provided."
+		return result
+	}
 
-    try {
-        if (oldPath != null && oldPath != "" && (draft == null || draft != true)) {
-            fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length())
-            result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true)
-        } else {
-            if (path.startsWith("/site")) {
-                try {
-                    result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock)
-                } catch (ContentExistException e) {
-                    response.setStatus(409)
-                    result.message = e.message
-                }
-            } else {
-                result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
-                        isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+	try {
+		if (oldPath != null && oldPath != "" && (draft == null || draft != true)) {
+			fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length())
+			result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true)
+		} else {
+			if (path.startsWith("/site")) {
+				try {
+					result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock)
+				} catch (ContentExistException e) {
+					response.setStatus(409)
+					result.message = e.message
+				}
+			} else {
+				result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
+					isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
 
-            }
-        }
-    } catch (Exception e) {
-        Exception inQueueException = ExceptionUtils.getThrowableOfType(e, ContentInPublishQueueException.class);
-        if (inQueueException == null) {
-            throw e;
-        }
-        response.setStatus(409)
-        result.message = inQueueException.message
-        result.publishPackages = inQueueException.getPublishPackages()
-                .collect { new PublishPackageResponse(it) }
-    }
+			}
+		}
+	} catch (Exception e) {
+		Exception inQueueException = ExceptionUtils.getThrowableOfType(e, ContentInPublishQueueException.class);
+		if (inQueueException == null) {
+			throw e;
+		}
+		response.setStatus(409)
+		result.message = inQueueException.message
+		result.publishPackages = inQueueException.getPublishPackages()
+	}
 }
 return result

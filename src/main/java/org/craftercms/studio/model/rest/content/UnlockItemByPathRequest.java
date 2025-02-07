@@ -23,26 +23,26 @@ import jakarta.validation.constraints.NotEmpty;
 
 public class UnlockItemByPathRequest {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    @ValidExistingContentPath
-    private String path;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	@ValidExistingContentPath
+	private String path;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 }

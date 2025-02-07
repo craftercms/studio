@@ -43,64 +43,65 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public class EncryptionServiceInternalImpl implements EncryptionServiceInternal {
 
-    private static final Logger logger = LoggerFactory.getLogger(EncryptionServiceInternalImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(EncryptionServiceInternalImpl.class);
 
-    private final StudioConfiguration studioConfiguration;
-    private final AuditServiceInternal auditServiceInternal;
-    private final TextEncryptor textEncryptor;
-    private final SiteDAO siteDAO;
-    private final int maxLength;
-    private final long delay;
+	private final StudioConfiguration studioConfiguration;
+	private final AuditServiceInternal auditServiceInternal;
+	private final TextEncryptor textEncryptor;
+	private final SiteDAO siteDAO;
+	private final int maxLength;
+	private final long delay;
 
-    @ConstructorProperties({"studioConfiguration", "auditServiceInternal", "textEncryptor", "siteDAO",
-            "maxLength", "delay"})
-    public EncryptionServiceInternalImpl(StudioConfiguration studioConfiguration, AuditServiceInternal auditServiceInternal,
-                                         TextEncryptor textEncryptor, SiteDAO siteDAO, int maxLength, long delay) {
-        this.studioConfiguration = studioConfiguration;
-        this.auditServiceInternal = auditServiceInternal;
-        this.textEncryptor = textEncryptor;
-        this.siteDAO = siteDAO;
-        this.maxLength = maxLength;
-        this.delay = delay;
-    }
+	@ConstructorProperties({"studioConfiguration", "auditServiceInternal", "textEncryptor", "siteDAO",
+		"maxLength", "delay"})
+	public EncryptionServiceInternalImpl(StudioConfiguration studioConfiguration, AuditServiceInternal auditServiceInternal,
+					     TextEncryptor textEncryptor, SiteDAO siteDAO, int maxLength, long delay) {
+		this.studioConfiguration = studioConfiguration;
+		this.auditServiceInternal = auditServiceInternal;
+		this.textEncryptor = textEncryptor;
+		this.siteDAO = siteDAO;
+		this.maxLength = maxLength;
+		this.delay = delay;
+	}
 
-    @Override
-    public String encrypt(final String siteId, final String text) throws ServiceLayerException {
-        if (StringUtils.isEmpty(text) || text.length() > maxLength) {
-            throw new InvalidParametersException("The provided text is invalid");
-        }
-        try {
-            Thread.sleep(delay * 1000);
-            String encryptedToken = textEncryptor.encrypt(text);
+	@Override
+	public String encrypt(final String siteId, final String text) throws ServiceLayerException {
+		if (StringUtils.isEmpty(text) || text.length() > maxLength) {
+			throw new InvalidParametersException("The provided text is invalid");
+		}
+		try {
+			Thread.sleep(delay * 1000);
+			String encryptedToken = textEncryptor.encrypt(text);
 
-            var auth = SecurityContextHolder.getContext().getAuthentication();
-            String resolvedSiteId = StringUtils.isNotEmpty(siteId) ? siteId
-                    : studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
-            String targetId = DigestUtils.md5Hex(encryptedToken);
-            createEncryptionAuditLog(resolvedSiteId, auth.getName(), targetId);
-            logger.debug("Encryption token created for site '{}', target ID '{}'", resolvedSiteId, targetId);
+			var auth = SecurityContextHolder.getContext().getAuthentication();
+			String resolvedSiteId = StringUtils.isNotEmpty(siteId) ? siteId
+				: studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
+			String targetId = DigestUtils.md5Hex(encryptedToken);
+			createEncryptionAuditLog(resolvedSiteId, auth.getName(), targetId);
+			logger.debug("Encryption token created for site '{}', target ID '{}'", resolvedSiteId, targetId);
 
-            return encryptedToken;
-        } catch (CryptoException | InterruptedException e) {
-            throw new ServiceLayerException("Error encrypting text", e);
-        }
-    }
+			return encryptedToken;
+		} catch (CryptoException | InterruptedException e) {
+			throw new ServiceLayerException("Error encrypting text", e);
+		}
+	}
 
-    /**
-     * Create encryption audit log
-     * @param siteId site identifier
-     * @param actor actor
-     * @param targetId encryption target id
-     */
-    private void createEncryptionAuditLog(String siteId, String actor, String targetId) {
-        Site site = siteDAO.getSite(siteId);
-        AuditLog entry = auditServiceInternal.createAuditLogEntry();
-        entry.setOperation(OPERATION_CREATE);
-        entry.setActorId(actor);
-        entry.setSiteId(site.getId());
-        entry.setPrimaryTargetId(targetId);
-        entry.setPrimaryTargetType(TARGET_TYPE_ENCRYPTION_TOKEN);
-        entry.setPrimaryTargetValue(targetId);
-        auditServiceInternal.insertAuditLog(entry);
-    }
+	/**
+	 * Create encryption audit log
+	 *
+	 * @param siteId   site identifier
+	 * @param actor    actor
+	 * @param targetId encryption target id
+	 */
+	private void createEncryptionAuditLog(String siteId, String actor, String targetId) {
+		Site site = siteDAO.getSite(siteId);
+		AuditLog entry = auditServiceInternal.createAuditLogEntry();
+		entry.setOperation(OPERATION_CREATE);
+		entry.setActorId(actor);
+		entry.setSiteId(site.getId());
+		entry.setPrimaryTargetId(targetId);
+		entry.setPrimaryTargetType(TARGET_TYPE_ENCRYPTION_TOKEN);
+		entry.setPrimaryTargetValue(targetId);
+		auditServiceInternal.insertAuditLog(entry);
+	}
 }

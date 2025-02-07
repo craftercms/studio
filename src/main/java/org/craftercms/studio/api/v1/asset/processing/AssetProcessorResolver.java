@@ -24,14 +24,13 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
  */
 public interface AssetProcessorResolver {
 
-    /**
-     * Returns an {@link AssetProcessor} that's compatible with the specified configuration
-     *
-     * @param config the configuration
-     *
-     * @return the asset processor for the given configuration
-     * @throws AssetProcessingException if there's an error while retrieving the processor or if the configuration is invalid
-     */
-    AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException;
+	/**
+	 * Returns an {@link AssetProcessor} that's compatible with the specified configuration
+	 *
+	 * @param config the configuration
+	 * @return the asset processor for the given configuration
+	 * @throws AssetProcessingException if there's an error while retrieving the processor or if the configuration is invalid
+	 */
+	AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException;
 
 }

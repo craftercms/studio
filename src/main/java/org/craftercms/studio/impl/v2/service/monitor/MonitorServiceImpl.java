@@ -32,16 +32,16 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class MonitorServiceImpl implements MonitorService {
 
-    protected final MonitorService monitorServiceInternal;
+	protected final MonitorService monitorServiceInternal;
 
-    @ConstructorProperties({"monitorServiceInternal"})
-    public MonitorServiceImpl(final MonitorService monitorServiceInternal) {
-        this.monitorServiceInternal = monitorServiceInternal;
-    }
+	@ConstructorProperties({"monitorServiceInternal"})
+	public MonitorServiceImpl(final MonitorService monitorServiceInternal) {
+		this.monitorServiceInternal = monitorServiceInternal;
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS, acceptManagementToken = true)
-    public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
-        return monitorServiceInternal.getLogEvents(siteId, since);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS, acceptManagementToken = true)
+	public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
+		return monitorServiceInternal.getLogEvents(siteId, since);
+	}
 }

@@ -18,49 +18,49 @@ package org.craftercms.studio.api.v2.dal;
 
 public class AuditLogParameter {
 
-    private long id;
-    private long auditId;
-    private String targetId;
-    private String targetType;
-    private String targetValue;
+	private long id;
+	private long auditId;
+	private String targetId;
+	private String targetType;
+	private String targetValue;
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public long getAuditId() {
-        return auditId;
-    }
+	public long getAuditId() {
+		return auditId;
+	}
 
-    public void setAuditId(long auditId) {
-        this.auditId = auditId;
-    }
+	public void setAuditId(long auditId) {
+		this.auditId = auditId;
+	}
 
-    public String getTargetId() {
-        return targetId;
-    }
+	public String getTargetId() {
+		return targetId;
+	}
 
-    public void setTargetId(String targetId) {
-        this.targetId = targetId;
-    }
+	public void setTargetId(String targetId) {
+		this.targetId = targetId;
+	}
 
-    public String getTargetType() {
-        return targetType;
-    }
+	public String getTargetType() {
+		return targetType;
+	}
 
-    public void setTargetType(String targetType) {
-        this.targetType = targetType;
-    }
+	public void setTargetType(String targetType) {
+		this.targetType = targetType;
+	}
 
-    public String getTargetValue() {
-        return targetValue;
-    }
+	public String getTargetValue() {
+		return targetValue;
+	}
 
-    public void setTargetValue(String targetValue) {
-        this.targetValue = targetValue;
-    }
+	public void setTargetValue(String targetValue) {
+		this.targetValue = targetValue;
+	}
 }

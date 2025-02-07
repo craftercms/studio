@@ -25,11 +25,16 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.publish.PackageId;
+import org.craftercms.studio.api.v2.annotation.publish.PackageIds;
+import org.craftercms.studio.api.v2.annotation.publish.RequirePackageExists;
+import org.craftercms.studio.api.v2.security.publish.PeerReviewCapable;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
@@ -38,67 +43,68 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 @RequireSiteReady
 public class WorkflowServiceImpl implements WorkflowService {
 
-    private final WorkflowService workflowServiceInternal;
+	private final WorkflowService workflowServiceInternal;
 
-    public WorkflowServiceImpl(final WorkflowService workflowServiceInternal) {
-        this.workflowServiceInternal = workflowServiceInternal;
-    }
+	public WorkflowServiceImpl(final WorkflowService workflowServiceInternal) {
+		this.workflowServiceInternal = workflowServiceInternal;
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getItemStatesTotal(@SiteId String siteId,
-                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states) throws SiteNotFoundException {
-        return workflowServiceInternal.getItemStatesTotal(siteId, path, states);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public int getItemStatesTotal(@SiteId String siteId,
+				      @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states) throws SiteNotFoundException {
+		return workflowServiceInternal.getItemStatesTotal(siteId, path, states);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getItemStates(@SiteId String siteId,
-                                           @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
-                                           int offset, int limit) throws SiteNotFoundException {
-        return workflowServiceInternal.getItemStates(siteId, path, states, offset, limit);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<SandboxItem> getItemStates(@SiteId String siteId,
+					       @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
+					       int offset, int limit) throws SiteNotFoundException {
+		return workflowServiceInternal.getItemStates(siteId, path, states, offset, limit);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_SET_ITEM_STATES)
-    public void updateItemStates(@SiteId String siteId,
-                                 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
-        workflowServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_SET_ITEM_STATES)
+	public void updateItemStates(@SiteId String siteId,
+				     @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, boolean clearSystemProcessing,
+				     boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+		workflowServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_SET_ITEM_STATES)
-    public void updateItemStatesByQuery(@SiteId String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path,
-                                        Long states, boolean clearSystemProcessing,
-                                        boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
-        workflowServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
-                live, staged, isNew, modified);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_SET_ITEM_STATES)
+	public void updateItemStatesByQuery(@SiteId String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+					    Long states, boolean clearSystemProcessing,
+					    boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+		workflowServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
+			live, staged, isNew, modified);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
-    public void approvePackage(@SiteId String siteId, long packageId, Instant schedule, boolean updateSchedule, String comment)
-            throws AuthenticationException, ServiceLayerException {
-        workflowServiceInternal.approvePackage(siteId, packageId, schedule, updateSchedule, comment);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_APPROVE)
+	@PeerReviewCapable
+	public void approvePackages(@SiteId String siteId, @PackageIds Collection<Long> packageIds, Instant schedule, boolean updateSchedule, String comment)
+		throws AuthenticationException, ServiceLayerException {
+		workflowServiceInternal.approvePackages(siteId, packageIds, schedule, updateSchedule, comment);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
-    public void rejectPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
-        workflowServiceInternal.rejectPackage(siteId, packageId, comment);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_REJECT)
+	public void rejectPackages(@SiteId String siteId, Collection<Long> packageIds, String comment) throws ServiceLayerException, AuthenticationException {
+		workflowServiceInternal.rejectPackages(siteId, packageIds, comment);
+	}
 
-    @Override
-    @RequireSiteExists
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
-    public void cancelPackage(@SiteId String siteId, long packageId, String comment) throws ServiceLayerException, AuthenticationException {
-        workflowServiceInternal.cancelPackage(siteId, packageId, comment);
-    }
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CANCEL)
+	public void cancelPackages(@SiteId String siteId, Collection<Long> packageIds, String comment) throws ServiceLayerException, AuthenticationException {
+		workflowServiceInternal.cancelPackages(siteId, packageIds, comment);
+	}
 }

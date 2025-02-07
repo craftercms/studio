@@ -24,124 +24,124 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PA
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.STUDIO_COOKIE_USE_BASE_DOMAIN
 
 class EnvironmentOverrides {
-  static USER_SERVICES_BEAN = "userService"
-  static logger = LoggerFactory.getLogger(EnvironmentOverrides.class)
+	static USER_SERVICES_BEAN = "userService"
+	static logger = LoggerFactory.getLogger(EnvironmentOverrides.class)
 
-  static String getBaseDomain(String domainName) {
-    def segments = domainName.split("\\.");
+	static String getBaseDomain(String domainName) {
+		def segments = domainName.split("\\.");
 
-    if (segments == null || segments.length <= 2)
-      return domainName;
+		if (segments == null || segments.length <= 2)
+			return domainName;
 
-    return segments[segments.length - 2] + "." + segments[segments.length - 1];
-  }
+		return segments[segments.length - 2] + "." + segments[segments.length - 1];
+	}
 
-  static getValuesForSite(appContext, request, response) {
+	static getValuesForSite(appContext, request, response) {
 
-    def result = [:]
-    def serverProperties = appContext.get("studio.crafter.properties")
+		def result = [:]
+		def serverProperties = appContext.get("studio.crafter.properties")
 
-    def context = SiteServices.createContext(appContext, request)
-    result.environment = serverProperties["environment"]
+		def context = SiteServices.createContext(appContext, request)
+		result.environment = serverProperties["environment"]
 
-    def contextPath = request.getContextPath()
-    if (contextPath.startsWith("/")) {
-      contextPath = contextPath.substring(1)
-    }
-    result.studioContext = contextPath
+		def contextPath = request.getContextPath()
+		if (contextPath.startsWith("/")) {
+			contextPath = contextPath.substring(1)
+		}
+		result.studioContext = contextPath
 
-    try {
-      def userServiceSB = context.applicationContext.get(USER_SERVICES_BEAN)
-      result.site = Cookies.getCookieValue("crafterSite", request)
-      result.user = SecurityServices.getCurrentUser(context)
+		try {
+			def userServiceSB = context.applicationContext.get(USER_SERVICES_BEAN)
+			result.site = Cookies.getCookieValue("crafterSite", request)
+			result.user = SecurityServices.getCurrentUser(context)
 
-      def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-      try {
-        def authenticatedUser = userServiceSB.getCurrentUser()
-        result.authenticationType = authenticatedUser.getAuthenticationType()
-      } catch (error) {
-        result.authenticationType = ""
-      }
+			def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+			try {
+				def authenticatedUser = userServiceSB.getCurrentUser()
+				result.authenticationType = authenticatedUser.getAuthenticationType()
+			} catch (error) {
+				result.authenticationType = ""
+			}
 
-      result.passwordRequirementsMinComplexity = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY).toInteger()
-      result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
+			result.passwordRequirementsMinComplexity = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY).toInteger()
+			result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
 
-      def language = Cookies.getCookieValue("crafterStudioLanguage", request)
-      if (language == null || language == "" || language == "UNSET") {
-        language = "en"
-      }
+			def language = Cookies.getCookieValue("crafterStudioLanguage", request)
+			if (language == null || language == "" || language == "UNSET") {
+				language = "en"
+			}
 
-      result.language = language
+			result.language = language
 
-      if (result.user == null) {
-        response.sendRedirect("/studio/login")
-      } else {
-        def sites = SiteServices.getSitesPerUser(context, 0, 25)
-        if (sites.isEmpty()) {
-          if (request.getRequestURI() != '/studio' && request.getRequestURI() != '/studio/') {
-            response.sendRedirect("/studio/?noSites")
-          }
-        } else {
+			if (result.user == null) {
+				response.sendRedirect("/studio/login")
+			} else {
+				def sites = SiteServices.getSitesPerUser(context, 0, 25)
+				if (sites.isEmpty()) {
+					if (request.getRequestURI() != '/studio' && request.getRequestURI() != '/studio/') {
+						response.sendRedirect("/studio/?noSites")
+					}
+				} else {
 
-          if (result.site == "UNSET") {
-            result.site = sites[0].siteId
-            def useBaseDomain = result.useBaseDomain
-            def hostname = request.getServerName()
-            def domain = hostname
+					if (result.site == "UNSET") {
+						result.site = sites[0].siteId
+						def useBaseDomain = result.useBaseDomain
+						def hostname = request.getServerName()
+						def domain = hostname
 
-            if (useBaseDomain == "true") {
-              def isHostnameIp = hostname ==~ /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/
-              if (hostname.contains(".") && !isHostnameIp) {
-                domain = getBaseDomain(hostname);
-              }
-            }
+						if (useBaseDomain == "true") {
+							def isHostnameIp = hostname ==~ /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/
+							if (hostname.contains(".") && !isHostnameIp) {
+								domain = getBaseDomain(hostname);
+							}
+						}
 
-            Cookies.createCookie("crafterSite", sites[0].siteId, domain, "/", response)
-          }
+						Cookies.createCookie("crafterSite", sites[0].siteId, domain, "/", response)
+					}
 
-          try {
-            def roles = SecurityServices.getUserRoles(context, result.site)
-            if (roles != null && roles.size() > 0) {
-              if (roles.contains("admin")) {
-                result.role = "admin"
-              } else {
-                result.role = roles[0]
-              }
-            } else {
-              logger.info("Attempt to visit the site '{}' without the necessary role", result.site)
-              response.sendRedirect("/studio/?roles")
-            }
-          } catch (error) {
-            logger.info("Failed to get roles for site '{}'", result.site)
-            response.sendRedirect("/studio/?error")
-          }
+					try {
+						def roles = SecurityServices.getUserRoles(context, result.site)
+						if (roles != null && roles.size() > 0) {
+							if (roles.contains("admin")) {
+								result.role = "admin"
+							} else {
+								result.role = roles[0]
+							}
+						} else {
+							logger.info("Attempt to visit the site '{}' without the necessary role", result.site)
+							response.sendRedirect("/studio/?roles")
+						}
+					} catch (error) {
+						logger.info("Failed to get roles for site '{}'", result.site)
+						response.sendRedirect("/studio/?error")
+					}
 
-          result.siteTitle = result.site + sites.size;
+					result.siteTitle = result.site + sites.size;
 
-          for (int j = 0; j < sites.size; j++) {
-            def site = sites[j]
-            if (site.siteId == result.site) {
-              result.siteTitle = site.name
-              result.activeSite = site
-              break;
-            }
-          }
+					for (int j = 0; j < sites.size; j++) {
+						def site = sites[j]
+						if (site.siteId == result.site) {
+							result.siteTitle = site.name
+							result.activeSite = site
+							break;
+						}
+					}
 
-        }
-      }
-    } catch (err) {
-      result.err = err
-      throw new Exception(err)
-    }
+				}
+			}
+		} catch (err) {
+			result.err = err
+			throw new Exception(err)
+		}
 
-    return result;
-  }
+		return result;
+	}
 
-  static getMinimalValuesForSite(appContext, request) {
-    def result = [:]
-    def context = SiteServices.createContext(appContext, request)
-    def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-    result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
-    return result
-  }
+	static getMinimalValuesForSite(appContext, request) {
+		def result = [:]
+		def context = SiteServices.createContext(appContext, request)
+		def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+		result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
+		return result
+	}
 }

@@ -25,16 +25,16 @@ import java.io.IOException;
  */
 public class GitCliOutputException extends IOException {
 
-    private int exitValue;
+	private int exitValue;
 
-    public GitCliOutputException(int exitValue, String output) {
-        super("\n" + output);
+	public GitCliOutputException(int exitValue, String output) {
+		super("\n" + output);
 
-        this.exitValue = exitValue;
-    }
+		this.exitValue = exitValue;
+	}
 
-    public int getExitValue() {
-        return exitValue;
-    }
+	public int getExitValue() {
+		return exitValue;
+	}
 
 }

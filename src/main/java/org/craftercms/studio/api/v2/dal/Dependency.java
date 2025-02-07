@@ -23,35 +23,60 @@ import java.io.Serializable;
  */
 public class Dependency implements Serializable {
 
-    private static final long serialVersionUID = -1098917107076676589L;
-    
-    private long id;
-    private String site;
-    private String sourcePath;
-    private String targetPath;
-    private String type;
-    private boolean valid;
+	private static final long serialVersionUID = -1098917107076676589L;
 
-    public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
+	private long id;
+	private String site;
+	private String sourcePath;
+	private String targetPath;
+	private String type;
+	private boolean valid;
 
-    public String getSite() { return site; }
-    public void setSite(String site) { this.site = site; }
+	public long getId() {
+		return id;
+	}
 
-    public String getSourcePath() { return sourcePath; }
-    public void setSourcePath(String sourcePath) { this.sourcePath = sourcePath; }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getTargetPath() { return targetPath; }
-    public void setTargetPath(String targetPath) { this.targetPath = targetPath;}
+	public String getSite() {
+		return site;
+	}
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+	public void setSite(String site) {
+		this.site = site;
+	}
 
-    public void setValid(boolean valid) {
-        this.valid = valid;
-    }
+	public String getSourcePath() {
+		return sourcePath;
+	}
 
-    public boolean isValid() {
-        return valid;
-    }
+	public void setSourcePath(String sourcePath) {
+		this.sourcePath = sourcePath;
+	}
+
+	public String getTargetPath() {
+		return targetPath;
+	}
+
+	public void setTargetPath(String targetPath) {
+		this.targetPath = targetPath;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public void setValid(boolean valid) {
+		this.valid = valid;
+	}
+
+	public boolean isValid() {
+		return valid;
+	}
 }

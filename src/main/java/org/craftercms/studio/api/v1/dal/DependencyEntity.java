@@ -23,26 +23,51 @@ import java.io.Serializable;
  */
 public class DependencyEntity implements Serializable {
 
-    private static final long serialVersionUID = -4214391267311804660L;
+	private static final long serialVersionUID = -4214391267311804660L;
 
-    public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
+	public long getId() {
+		return id;
+	}
 
-    public String getSite() { return site; }
-    public void setSite(String site) { this.site = site; }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getSourcePath() { return sourcePath; }
-    public void setSourcePath(String sourcePath) { this.sourcePath = sourcePath; }
+	public String getSite() {
+		return site;
+	}
 
-    public String getTargetPath() { return targetPath; }
-    public void setTargetPath(String targetPath) { this.targetPath = targetPath;}
+	public void setSite(String site) {
+		this.site = site;
+	}
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+	public String getSourcePath() {
+		return sourcePath;
+	}
 
-    private long id;
-    private String site;
-    private String sourcePath;
-    private String targetPath;
-    private String type;
+	public void setSourcePath(String sourcePath) {
+		this.sourcePath = sourcePath;
+	}
+
+	public String getTargetPath() {
+		return targetPath;
+	}
+
+	public void setTargetPath(String targetPath) {
+		this.targetPath = targetPath;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	private long id;
+	private String site;
+	private String sourcePath;
+	private String targetPath;
+	private String type;
 }

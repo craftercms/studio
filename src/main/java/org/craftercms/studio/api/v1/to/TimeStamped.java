@@ -18,25 +18,22 @@ package org.craftercms.studio.api.v1.to;
 import java.time.ZonedDateTime;
 
 /**
- * 
- * 
  * @author hyanghee
- *
  */
 public interface TimeStamped {
 
 	/**
-	 * set the last updated date 
-	 * 
+	 * set the last updated date
+	 *
 	 * @param lastUpdated last updated date
 	 */
 	void setLastUpdated(ZonedDateTime lastUpdated);
-	
+
 	/**
 	 * get the last updated date
-	 * 
+	 *
 	 * @return last updated date
 	 */
 	ZonedDateTime getLastUpdated();
-	
+
 }

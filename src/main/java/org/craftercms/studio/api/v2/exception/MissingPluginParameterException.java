@@ -30,22 +30,22 @@ import static java.lang.String.format;
  */
 public class MissingPluginParameterException extends PluginInstallationException {
 
-    protected Plugin plugin;
-    protected Parameter parameter;
+	protected Plugin plugin;
+	protected Parameter parameter;
 
-    public MissingPluginParameterException(final Plugin plugin, final Parameter parameter) {
-        super(format("Missing required parameter '%s' for plugin '%s'", parameter.getLabel(),
-                plugin.getId()));
-        this.plugin = plugin;
-        this.parameter = parameter;
-    }
+	public MissingPluginParameterException(final Plugin plugin, final Parameter parameter) {
+		super(format("Missing required parameter '%s' for plugin '%s'", parameter.getLabel(),
+			plugin.getId()));
+		this.plugin = plugin;
+		this.parameter = parameter;
+	}
 
-    public Plugin getPlugin() {
-        return plugin;
-    }
+	public Plugin getPlugin() {
+		return plugin;
+	}
 
-    public Parameter getParameter() {
-        return parameter;
-    }
+	public Parameter getParameter() {
+		return parameter;
+	}
 
 }

@@ -23,12 +23,12 @@ package org.craftercms.studio.api.v1.exception;
  */
 public class AwsException extends ServiceLayerException {
 
-    public AwsException(String message) {
-        super(message);
-    }
+	public AwsException(String message) {
+		super(message);
+	}
 
-    public AwsException(String message, Exception e) {
-        super(message, e);
-    }
+	public AwsException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

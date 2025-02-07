@@ -28,6 +28,7 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 import java.beans.ConstructorProperties;
+
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_SEARCH;
 
 /**
@@ -37,34 +38,42 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class SearchServiceImpl implements SearchService {
 
-    /**
-     * The security service
-     */
-    protected final SecurityService securityService;
+	/**
+	 * The security service
+	 */
+	protected final SecurityService securityService;
 
-    /**
-     * The internal search service
-     */
-    protected final SearchService searchService;
+	/**
+	 * The internal search service
+	 */
+	protected final SearchService searchService;
 
-    protected final SiteService siteService;
+	protected final SiteService siteService;
 
-    @ConstructorProperties({"securityService", "searchService", "siteService"})
-    public SearchServiceImpl(final SecurityService securityService, final SearchService searchService, final SiteService siteService) {
-        this.securityService = securityService;
-        this.searchService = searchService;
-        this.siteService = siteService;
-    }
+	@ConstructorProperties({"securityService", "searchService", "siteService"})
+	public SearchServiceImpl(final SecurityService securityService, final SearchService searchService, final SiteService siteService) {
+		this.securityService = securityService;
+		this.searchService = searchService;
+		this.siteService = siteService;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
-    public SearchResult search(@SiteId final String siteId, final SearchParams params, int maxExpansions)
-            throws ServiceLayerException {
-        return searchService.search(siteId, params, maxExpansions);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
+	public SearchResult search(@SiteId final String siteId, final SearchParams params, int maxExpansions)
+		throws ServiceLayerException {
+		return searchService.search(siteId, params, maxExpansions);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
+	public SearchResult search(@SiteId final String siteId, final SearchParams params)
+		throws ServiceLayerException {
+		return searchService.search(siteId, params, DEFAULT_MAX_EXPANSIONS);
+	}
 
 }

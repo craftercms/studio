@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
 import java.beans.ConstructorProperties;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -43,67 +44,67 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 @RequestMapping("/api/2/security")
 public class SecurityController {
 
-    protected EncryptionService encryptionService;
+	protected EncryptionService encryptionService;
 
-    protected AccessTokenService accessTokenService;
+	protected AccessTokenService accessTokenService;
 
-    @ConstructorProperties({"encryptionService", "accessTokenService"})
-    public SecurityController(EncryptionService encryptionService, AccessTokenService accessTokenService) {
-        this.encryptionService = encryptionService;
-        this.accessTokenService = accessTokenService;
-    }
+	@ConstructorProperties({"encryptionService", "accessTokenService"})
+	public SecurityController(EncryptionService encryptionService, AccessTokenService accessTokenService) {
+		this.encryptionService = encryptionService;
+		this.accessTokenService = accessTokenService;
+	}
 
-    @PostMapping("/encrypt")
-    public ResultOne<String> encryptText(@Valid @RequestBody EncryptRequest request) throws ServiceLayerException {
-        String encrypted = encryptionService.encrypt(request.getSiteId(), request.getText());
+	@PostMapping("/encrypt")
+	public ResultOne<String> encryptText(@Valid @RequestBody EncryptRequest request) throws ServiceLayerException {
+		String encrypted = encryptionService.encrypt(request.getSiteId(), request.getText());
 
-        ResultOne<String> result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_ITEM, encrypted);
-        result.setResponse(ApiResponse.OK);
+		ResultOne<String> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_ITEM, encrypted);
+		result.setResponse(ApiResponse.OK);
 
-        return result;
-    }
+		return result;
+	}
 
-    @GetMapping("/tokens")
-    public ResultList<PersistentAccessToken> getAccessTokens() {
-        var result = new ResultList<PersistentAccessToken>();
-        result.setEntities(RESULT_KEY_TOKENS, accessTokenService.getAccessTokens());
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+	@GetMapping("/tokens")
+	public ResultList<PersistentAccessToken> getAccessTokens() {
+		var result = new ResultList<PersistentAccessToken>();
+		result.setEntities(RESULT_KEY_TOKENS, accessTokenService.getAccessTokens());
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @PostMapping("/tokens")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResultOne<PersistentAccessToken> createAccessToken(@Valid @RequestBody CreateAccessTokenRequest request) throws ServiceLayerException {
-        var result = new ResultOne<PersistentAccessToken>();
-        result.setEntity(RESULT_KEY_TOKEN, accessTokenService.createAccessToken(request.getLabel(), request.getExpiresAt()));
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+	@PostMapping("/tokens")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResultOne<PersistentAccessToken> createAccessToken(@Valid @RequestBody CreateAccessTokenRequest request) throws ServiceLayerException {
+		var result = new ResultOne<PersistentAccessToken>();
+		result.setEntity(RESULT_KEY_TOKEN, accessTokenService.createAccessToken(request.getLabel(), request.getExpiresAt()));
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @PostMapping("/tokens/{tokenId}")
-    public ResultOne<PersistentAccessToken> updateAccessToken(@PathVariable long tokenId, @RequestBody UpdateAccessTokenRequest request) {
-        var result = new ResultOne<PersistentAccessToken>();
-        result.setEntity(RESULT_KEY_TOKEN, accessTokenService.updateAccessToken(tokenId, request.isEnabled()));
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+	@PostMapping("/tokens/{tokenId}")
+	public ResultOne<PersistentAccessToken> updateAccessToken(@PathVariable long tokenId, @RequestBody UpdateAccessTokenRequest request) {
+		var result = new ResultOne<PersistentAccessToken>();
+		result.setEntity(RESULT_KEY_TOKEN, accessTokenService.updateAccessToken(tokenId, request.isEnabled()));
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @DeleteMapping("/tokens/{tokenId}")
-    public Result deleteAccessToken(@PathVariable long tokenId) {
-        accessTokenService.deleteAccessToken(tokenId);
-        var result = new Result();
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+	@DeleteMapping("/tokens/{tokenId}")
+	public Result deleteAccessToken(@PathVariable long tokenId) {
+		accessTokenService.deleteAccessToken(tokenId);
+		var result = new Result();
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
-    @PostMapping("/preview/switch")
-    public Result switchPreviewSite(Authentication authentication, HttpServletRequest request, HttpServletResponse response)
-            throws ServiceLayerException {
-        accessTokenService.refreshPreviewCookie(authentication, request, response, false);
-        var result = new Result();
-        result.setResponse(ApiResponse.OK);
-        return result;
-    }
+	@PostMapping("/preview/switch")
+	public Result switchPreviewSite(Authentication authentication, HttpServletRequest request, HttpServletResponse response)
+		throws ServiceLayerException {
+		accessTokenService.refreshPreviewCookie(authentication, request, response, false);
+		var result = new Result();
+		result.setResponse(ApiResponse.OK);
+		return result;
+	}
 
 }

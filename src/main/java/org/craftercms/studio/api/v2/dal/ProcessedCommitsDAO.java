@@ -22,35 +22,35 @@ import org.apache.ibatis.annotations.Param;
  * Provides operations to processed_commits table
  */
 public interface ProcessedCommitsDAO {
-    String SITE_ID = "siteId";
-    String COMMIT_ID = "commitId";
+	String SITE_ID = "siteId";
+	String COMMIT_ID = "commitId";
 
-    /**
-     * Check if the given commitId has been processed
-     * <p>
-     * Note that the commitId should be more recent than the last processed commit for the site. Otherwise it might
-     * already have been purged from the table.
-     *
-     * @param siteId   the site id
-     * @param commitId the commit id
-     * @return true if the commit has been processed, false otherwise
-     */
-    boolean isProcessed(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
+	/**
+	 * Check if the given commitId has been processed
+	 * <p>
+	 * Note that the commitId should be more recent than the last processed commit for the site. Otherwise it might
+	 * already have been purged from the table.
+	 *
+	 * @param siteId   the site id
+	 * @param commitId the commit id
+	 * @return true if the commit has been processed, false otherwise
+	 */
+	boolean isProcessed(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
 
-    /**
-     * Inserts a new processed_commits record
-     *
-     * @param siteId   the site id
-     * @param commitId the commit id
-     */
-    void insertCommit(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
+	/**
+	 * Inserts a new processed_commits record
+	 *
+	 * @param siteId   the site id
+	 * @param commitId the commit id
+	 */
+	void insertCommit(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
 
-    /**
-     * Deletes all commits records inserted before the given commitId
-     *
-     * @param siteId   the site id
-     * @param commitId the commit id
-     */
-    void deleteBefore(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
+	/**
+	 * Deletes all commits records inserted before the given commitId
+	 *
+	 * @param siteId   the site id
+	 * @param commitId the commit id
+	 */
+	void deleteBefore(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
 
 }

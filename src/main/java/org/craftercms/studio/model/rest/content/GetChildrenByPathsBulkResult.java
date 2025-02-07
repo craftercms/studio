@@ -22,59 +22,59 @@ import java.util.Collection;
 
 public class GetChildrenByPathsBulkResult {
 
-    private Collection<ChildrenByPathResult> items;
-    private Collection<String> missingItems;
+	private Collection<ChildrenByPathResult> items;
+	private Collection<String> missingItems;
 
-    public GetChildrenByPathsBulkResult(Collection<ChildrenByPathResult> items, Collection<String> missingItems) {
-        this.items = items;
-        this.missingItems = missingItems;
-    }
+	public GetChildrenByPathsBulkResult(Collection<ChildrenByPathResult> items, Collection<String> missingItems) {
+		this.items = items;
+		this.missingItems = missingItems;
+	}
 
-    public Collection<ChildrenByPathResult> getItems() {
-        return items;
-    }
+	public Collection<ChildrenByPathResult> getItems() {
+		return items;
+	}
 
-    public void setItems(Collection<ChildrenByPathResult> items) {
-        this.items = items;
-    }
+	public void setItems(Collection<ChildrenByPathResult> items) {
+		this.items = items;
+	}
 
-    public Collection<String> getMissingItems() {
-        return missingItems;
-    }
+	public Collection<String> getMissingItems() {
+		return missingItems;
+	}
 
-    public void setMissingItems(Collection<String> missingItems) {
-        this.missingItems = missingItems;
-    }
+	public void setMissingItems(Collection<String> missingItems) {
+		this.missingItems = missingItems;
+	}
 
-    public static class ChildrenByPathResult {
+	public static class ChildrenByPathResult {
 
-        private String path;
-        private SandboxItem item;
-        private GetChildrenResult result;
+		private String path;
+		private SandboxItem item;
+		private GetChildrenResult result;
 
-        @JsonUnwrapped
-        public GetChildrenResult getResult() {
-            return result;
-        }
+		@JsonUnwrapped
+		public GetChildrenResult getResult() {
+			return result;
+		}
 
-        public void setResult(GetChildrenResult result) {
-            this.result = result;
-        }
+		public void setResult(GetChildrenResult result) {
+			this.result = result;
+		}
 
-        public String getPath() {
-            return path;
-        }
+		public String getPath() {
+			return path;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public void setPath(String path) {
+			this.path = path;
+		}
 
-        public SandboxItem getItem() {
-            return item;
-        }
+		public SandboxItem getItem() {
+			return item;
+		}
 
-        public void setItem(SandboxItem item) {
-            this.item = item;
-        }
-    }
+		public void setItem(SandboxItem item) {
+			this.item = item;
+		}
+	}
 }

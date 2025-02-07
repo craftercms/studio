@@ -54,84 +54,84 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
  */
 public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(DbScriptUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(DbScriptUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_FILENAME = "filename";
-    public static final String CONFIG_KEY_INTEGRITY = "updateIntegrity";
-    public static final String SQL_DELIMITER = " ;";
-    protected final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
+	public static final String CONFIG_KEY_FILENAME = "filename";
+	public static final String CONFIG_KEY_INTEGRITY = "updateIntegrity";
+	public static final String SQL_DELIMITER = " ;";
+	protected final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
 
-    /**
-     * Path of the folder to search the script file.
-     */
-    protected String scriptFolder;
+	/**
+	 * Path of the folder to search the script file.
+	 */
+	protected String scriptFolder;
 
-    /**
-     * Filename of the script.
-     */
-    protected String fileName;
+	/**
+	 * Filename of the script.
+	 */
+	protected String fileName;
 
-    /**
-     * Indicates if the integrity value should be updated after executing the script.
-     */
-    protected boolean updateIntegrity;
+	/**
+	 * Indicates if the integrity value should be updated after executing the script.
+	 */
+	protected boolean updateIntegrity;
 
-    /**
-     * The database integrity validator.
-     */
-    protected DbIntegrityValidator integrityValidator;
+	/**
+	 * The database integrity validator.
+	 */
+	protected DbIntegrityValidator integrityValidator;
 
-    @ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator"})
-    public DbScriptUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
-                                    DbIntegrityValidator integrityValidator) {
-        super(studioConfiguration);
-        this.scriptFolder = scriptFolder;
-        this.integrityValidator = integrityValidator;
-    }
+	@ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator"})
+	public DbScriptUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
+					DbIntegrityValidator integrityValidator) {
+		super(studioConfiguration);
+		this.scriptFolder = scriptFolder;
+		this.integrityValidator = integrityValidator;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doInit(final HierarchicalConfiguration config) {
-        fileName = config.getString(CONFIG_KEY_FILENAME);
-        updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doInit(final HierarchicalConfiguration config) {
+		fileName = config.getString(CONFIG_KEY_FILENAME);
+		updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        try (Connection connection = context.getConnection()) {
-            integrityValidator.validate(connection);
-        } catch (SQLException e) {
-            // for backward compatibility
-            logger.warn("Failed to validate the database integrity", e);
-        } catch (Exception e) {
-            throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
-        }
-        Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
-        logger.info("Execute the DB script '{}'", scriptFile.getFilename());
-        try {
-            String scriptContent = IOUtils.toString(scriptFile.getInputStream(), UTF_8);
-            try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,
-                    studioConfiguration.getProperty(DB_SCHEMA)));
-                 Connection connection = context.getConnection()) {
-                ScriptRunner scriptRunner = new ScriptRunner(connection);
-                scriptRunner.setDelimiter(SQL_DELIMITER);
-                scriptRunner.setStopOnError(true);
-                scriptRunner.setLogWriter(null);
-                scriptRunner.runScript(reader);
-                connection.commit();
-                if (updateIntegrity) {
-                    integrityValidator.store(connection);
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Failed to execute the DB script '{}'", scriptFile.getFilename(), e);
-            throw new UpgradeException(format("Failed to execute the DB script '%s'", scriptFile.getFilename()), e);
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		try (Connection connection = context.getConnection()) {
+			integrityValidator.validate(connection);
+		} catch (SQLException e) {
+			// for backward compatibility
+			logger.warn("Failed to validate the database integrity", e);
+		} catch (Exception e) {
+			throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
+		}
+		Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
+		logger.info("Execute the DB script '{}'", scriptFile.getFilename());
+		try {
+			String scriptContent = IOUtils.toString(scriptFile.getInputStream(), UTF_8);
+			try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,
+				studioConfiguration.getProperty(DB_SCHEMA)));
+			     Connection connection = context.getConnection()) {
+				ScriptRunner scriptRunner = new ScriptRunner(connection);
+				scriptRunner.setDelimiter(SQL_DELIMITER);
+				scriptRunner.setStopOnError(true);
+				scriptRunner.setLogWriter(null);
+				scriptRunner.runScript(reader);
+				connection.commit();
+				if (updateIntegrity) {
+					integrityValidator.store(connection);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Failed to execute the DB script '{}'", scriptFile.getFilename(), e);
+			throw new UpgradeException(format("Failed to execute the DB script '%s'", scriptFile.getFilename()), e);
+		}
+	}
 
 }

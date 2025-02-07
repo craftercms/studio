@@ -17,27 +17,27 @@ package org.craftercms.studio.api.v1.exception;
 
 /**
  * occurs when the content provided does not meet preconditions
- *  
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public class ContentNotAllowedException extends ContentProcessException {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = -577471131674100243L;
 
-	public ContentNotAllowedException() {}
-	
+	public ContentNotAllowedException() {
+	}
+
 	public ContentNotAllowedException(Exception e) {
 		super(e);
 	}
-	
+
 	public ContentNotAllowedException(String message) {
 		super(message);
 	}
-	
+
 	public ContentNotAllowedException(String message, Exception e) {
 		super(message, e);
 	}

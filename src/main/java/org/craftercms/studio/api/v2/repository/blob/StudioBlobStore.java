@@ -20,8 +20,8 @@ import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.repository.PublishCapableContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,59 +33,62 @@ import java.util.List;
  * @since 3.1.6
  */
 public interface StudioBlobStore extends BlobStore, ContentRepository,
-        org.craftercms.studio.api.v2.repository.ContentRepository, PublishCapableContentRepository {
+	org.craftercms.studio.api.v2.repository.ContentRepository {
 
-    /**
-     * Return a reference to a file in the store
-     * @param path the path of the file
-     * @return the blob object
-     */
-    Blob getReference(String path);
+	/**
+	 * Return a reference to a file in the store
+	 *
+	 * @param path the path of the file
+	 * @return the blob object
+	 */
+	Blob getReference(String path);
 
-    /**
-     * Indicate if the store is read only
-     * @return true if the store is read only
-     */
-    boolean isReadOnly();
+	/**
+	 * Indicate if the store is read only
+	 *
+	 * @return true if the store is read only
+	 */
+	boolean isReadOnly();
 
-    /**
-     * Copy the blob items from the source store
-     *
-     * @param sourceStore the source store
-     * @param environment the environment (publishing target)
-     * @param items       the items to copy
-     */
-    void copyBlobs(StudioBlobStore sourceStore, String environment, List<String> items);
+	/**
+	 * Copy the blob items from the source store
+	 *
+	 * @param sourceStore the source store
+	 * @param environment the environment (publishing target)
+	 * @param items       the items to copy
+	 */
+	void copyBlobs(StudioBlobStore sourceStore, String environment, List<String> items);
 
-    /**
-     * Publish the given items to the given publishing target
-     *
-     * @param publishPackage   the package to publish
-     * @param publishingTarget the target to publish to
-     * @param blobStoreItems   the items to publish
-     * @param <T>              the actual type of the items to publish
-     * @return the result of the publish operation
-     */
-    <T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
-                                                          String publishingTarget,
-                                                          Collection<T> blobStoreItems) throws ServiceLayerException;
+	/**
+	 * Publish the given items to the given publishing target
+	 *
+	 * @param publishPackage   the package to publish
+	 * @param publishingTarget the target to publish to
+	 * @param blobStoreItems   the items to publish
+	 * @param <T>              the actual type of the items to publish
+	 * @return the result of the publish operation
+	 */
+	<T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
+							      String publishingTarget,
+							      Collection<T> blobStoreItems,
+							      TaskProgress.Stage stage) throws ServiceLayerException;
 
-    /**
-     * Delete the content at the given path
-     *
-     * @param site the site id
-     * @param path the path of the content
-     */
-    void deleteContent(String site, String path) throws ServiceLayerException;
+	/**
+	 * Delete the content at the given path
+	 *
+	 * @param site the site id
+	 * @param path the path of the content
+	 */
+	void deleteContent(String site, String path) throws ServiceLayerException;
 
-    /**
-     * Store the result of a publish operation
-     *
-     * @param successfulItems the paths that were updated
-     * @param failedItems     the paths that failed to publish, mapped to the error message
-     */
-    record PublishChangeSet<T extends PublishItemTO>(Collection<T> successfulItems,
-                                                     Collection<T> failedItems) {
-    }
+	/**
+	 * Store the result of a publish operation
+	 *
+	 * @param successfulItems the paths that were updated
+	 * @param failedItems     the paths that failed to publish, mapped to the error message
+	 */
+	record PublishChangeSet<T extends PublishItemTO>(Collection<T> successfulItems,
+							 Collection<T> failedItems) {
+	}
 
 }

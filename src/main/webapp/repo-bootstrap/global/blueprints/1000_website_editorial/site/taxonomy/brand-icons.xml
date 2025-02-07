@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-  <content-type>/taxonomy</content-type>
-  <display-template/>
-  <no-template-required/>
-  <merge-strategy>inherit-levels</merge-strategy>
-  <objectGroupId>26c0</objectGroupId>
-  <objectId>26c0c419-9d5f-2506-be5c-f6fd344f38e2</objectId>
-  <items item-list="true">
+	<content-type>/taxonomy</content-type>
+	<display-template/>
+	<no-template-required/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>26c0</objectGroupId>
+	<objectId>26c0c419-9d5f-2506-be5c-f6fd344f38e2</objectId>
+	<items item-list="true">
 		<item>
 			<key>brands fa-500px</key>
 			<value>500px</value>
@@ -2197,12 +2197,12 @@
 			<value>Zhihu</value>
 			<unicode>f63f</unicode>
 		</item>
-  </items>
-  <file-name>brand-icons.xml</file-name>
-  <folder-name/>
-  <internal-name>Brand Icons</internal-name>
-  <createdDate>2019-12-20T13:33:52.973Z</createdDate>
-  <createdDate_dt>2019-12-20T13:33:52.973Z</createdDate_dt>
-  <lastModifiedDate>2019-12-20T13:33:52.973Z</lastModifiedDate>
-  <lastModifiedDate_dt>2019-12-20T13:33:52.973Z</lastModifiedDate_dt>
+	</items>
+	<file-name>brand-icons.xml</file-name>
+	<folder-name/>
+	<internal-name>Brand Icons</internal-name>
+	<createdDate>2019-12-20T13:33:52.973Z</createdDate>
+	<createdDate_dt>2019-12-20T13:33:52.973Z</createdDate_dt>
+	<lastModifiedDate>2019-12-20T13:33:52.973Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-12-20T13:33:52.973Z</lastModifiedDate_dt>
 </component>

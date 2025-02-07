@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v1.service.aws;
 
 import org.apache.commons.io.IOUtils;
-import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -34,196 +32,179 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.removeStart;
 
 public abstract class AwsUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(AwsUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(AwsUtils.class);
 
-    public static final int MIN_PART_SIZE = 5 * 1024 * 1024;
+	public static final int MIN_PART_SIZE = 5 * 1024 * 1024;
 
-    public static final int COPY_PART_SIZE = 1024 * 1024 * 1024;
+	public static final int COPY_PART_SIZE = 1024 * 1024 * 1024;
 
-    public static final long MAX_COPY_FILE_SIZE = 5L * 1024 * 1024 * 1024;
+	public static final long MAX_COPY_FILE_SIZE = 5L * 1024 * 1024 * 1024;
 
-    public static final int DELETE_BATCH_SIZE = 1000;
+	public static final int DELETE_BATCH_SIZE = 1000;
 
-    public static void uploadStream(String inputBucket, String inputKey, S3Client s3Client, int partSize,
-                                    String filename, InputStream content) throws AwsException {
-        List<CompletedPart> completedParts = new LinkedList<>();
-        CreateMultipartUploadResponse initResult = null;
-        try {
-            int partNumber = 1;
-            long totalBytes = 0;
+	public static void uploadStream(String inputBucket, String inputKey, S3Client s3Client, int partSize,
+					String filename, InputStream content) throws AwsException {
+		List<CompletedPart> completedParts = new LinkedList<>();
+		CreateMultipartUploadResponse initResult = null;
+		try {
+			int partNumber = 1;
+			long totalBytes = 0;
 
-            PutObjectRequest.Builder putRequestBuilder = PutObjectRequest.builder()
-                    .bucket(inputBucket)
-                    .key(inputKey)
-                    .contentType(StudioUtils.getMimeType(filename));
+			PutObjectRequest.Builder putRequestBuilder = PutObjectRequest.builder()
+				.bucket(inputBucket)
+				.key(inputKey)
+				.contentType(StudioUtils.getMimeType(filename));
 
-            CreateMultipartUploadRequest initRequest = CreateMultipartUploadRequest.builder()
-                    .bucket(inputBucket)
-                    .key(inputKey)
-                    .contentType(StudioUtils.getMimeType(filename))
-                    .build();
-            initResult = s3Client.createMultipartUpload(initRequest);
-            byte[] buffer = new byte[partSize];
-            int read;
+			CreateMultipartUploadRequest initRequest = CreateMultipartUploadRequest.builder()
+				.bucket(inputBucket)
+				.key(inputKey)
+				.contentType(StudioUtils.getMimeType(filename))
+				.build();
+			initResult = s3Client.createMultipartUpload(initRequest);
+			byte[] buffer = new byte[partSize];
+			int read;
 
-            logger.debug("Start upload for file '{}'", filename);
+			logger.debug("Start upload for file '{}'", filename);
 
-            while (0 < (read = IOUtils.read(content, buffer))) {
-                totalBytes += read;
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Uploading part {} with size {} - total: {}", partNumber, read, totalBytes);
-                }
-                ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, read);
-                UploadPartRequest uploadRequest = UploadPartRequest.builder()
-                        .uploadId(initResult.uploadId())
-                        .bucket(inputBucket)
-                        .key(inputKey)
-                        .partNumber(partNumber)
-                        .build();
-                UploadPartResponse uploadResponse = s3Client.uploadPart(uploadRequest, RequestBody.fromInputStream(bais, read));
-                completedParts.add(CompletedPart.builder().partNumber(partNumber).eTag(uploadResponse.eTag()).build());
-                partNumber++;
-            }
+			while (0 < (read = IOUtils.read(content, buffer))) {
+				totalBytes += read;
+				if (logger.isTraceEnabled()) {
+					logger.trace("Uploading part {} with size {} - total: {}", partNumber, read, totalBytes);
+				}
+				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, read);
+				UploadPartRequest uploadRequest = UploadPartRequest.builder()
+					.uploadId(initResult.uploadId())
+					.bucket(inputBucket)
+					.key(inputKey)
+					.partNumber(partNumber)
+					.build();
+				UploadPartResponse uploadResponse = s3Client.uploadPart(uploadRequest, RequestBody.fromInputStream(bais, read));
+				completedParts.add(CompletedPart.builder().partNumber(partNumber).eTag(uploadResponse.eTag()).build());
+				partNumber++;
+			}
 
-            if (totalBytes == 0) {
-                // If the file is empty, use the simple upload instead of the multipart
-                s3Client.abortMultipartUpload(
-                        AbortMultipartUploadRequest.builder()
-                                .bucket(inputBucket)
-                                .key(inputKey)
-                                .uploadId(initResult.uploadId())
-                                .build());
-                s3Client.putObject(putRequestBuilder.build(), RequestBody.fromBytes(new byte[0]));
-            } else {
-                CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
-                        .parts(completedParts)
-                        .build();
-                CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
-                        .bucket(inputBucket)
-                        .key(inputKey)
-                        .uploadId(initResult.uploadId())
-                        .multipartUpload(completedMultipartUpload)
-                        .build();
+			if (totalBytes == 0) {
+				// If the file is empty, use the simple upload instead of the multipart
+				s3Client.abortMultipartUpload(
+					AbortMultipartUploadRequest.builder()
+						.bucket(inputBucket)
+						.key(inputKey)
+						.uploadId(initResult.uploadId())
+						.build());
+				s3Client.putObject(putRequestBuilder.build(), RequestBody.fromBytes(new byte[0]));
+			} else {
+				CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
+					.parts(completedParts)
+					.build();
+				CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
+					.bucket(inputBucket)
+					.key(inputKey)
+					.uploadId(initResult.uploadId())
+					.multipartUpload(completedMultipartUpload)
+					.build();
 
-                s3Client.completeMultipartUpload(completeRequest);
-            }
+				s3Client.completeMultipartUpload(completeRequest);
+			}
 
-            logger.debug("Upload completed for file '{}'", filename);
-        } catch (Exception e) {
-            if (initResult != null) {
-                s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
-                        .bucket(inputBucket)
-                        .key(inputKey)
-                        .uploadId(initResult.uploadId())
-                        .build());
-            }
-            throw new AwsException(format("Upload of file '%s' failed", filename), e);
-        }
-    }
+			logger.debug("Upload completed for file '{}'", filename);
+		} catch (Exception e) {
+			if (initResult != null) {
+				s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
+					.bucket(inputBucket)
+					.key(inputKey)
+					.uploadId(initResult.uploadId())
+					.build());
+			}
+			throw new AwsException(format("Upload of file '%s' failed", filename), e);
+		}
+	}
 
-    public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
-                                  int partSize, Supplier<S3Client> clientSupplier) {
-        logger.debug("Copy all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
-        ListObjectsV2Request request = ListObjectsV2Request.builder()
-                .bucket(sourceBucket)
-                .prefix(sourcePrefix)
-                .build();
-        ListObjectsV2Iterable response = clientSupplier.get().listObjectsV2Paginator(request);
-        for (S3Object object : response.contents()) {
-            String relativePrefix = removeStart(object.key(), sourcePrefix);
-            String newKey = removeStart(UrlUtils.concat(destPrefix, relativePrefix), "/");
-            copyFile(sourceBucket, object.key(), destBucket, newKey, partSize, clientSupplier);
-        }
-        logger.debug("Completed copy from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
-    }
+	public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
+				    int partSize, Supplier<S3Client> clientSupplier) {
+		logger.debug("Copy file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
+		HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+			.bucket(sourceBucket)
+			.key(sourceKey)
+			.build();
+		HeadObjectResponse headObjectResponse = clientSupplier.get().headObject(headObjectRequest);
+		long objectSize = headObjectResponse.contentLength();
 
-    public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
-                                int partSize, Supplier<S3Client> clientSupplier) {
-        logger.debug("Copy file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
-        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
-                .bucket(sourceBucket)
-                .key(sourceKey)
-                .build();
-        HeadObjectResponse headObjectResponse = clientSupplier.get().headObject(headObjectRequest);
-        long objectSize = headObjectResponse.contentLength();
+		if (objectSize >= MAX_COPY_FILE_SIZE) {
+			logger.debug("Start multipart copy for '{}/{}'", sourceBucket, sourceKey);
+			CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
+				.bucket(destBucket)
+				.key(destKey)
+				.contentType(StudioUtils.getMimeType(sourceKey))
+				.build();
+			CreateMultipartUploadResponse createMultipartUploadResponse = clientSupplier.get().createMultipartUpload(createMultipartUploadRequest);
+			String uploadId = createMultipartUploadResponse.uploadId();
 
-        if (objectSize >= MAX_COPY_FILE_SIZE) {
-            logger.debug("Start multipart copy for '{}/{}'", sourceBucket, sourceKey);
-            CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
-                    .bucket(destBucket)
-                    .key(destKey)
-                    .contentType(StudioUtils.getMimeType(sourceKey))
-                    .build();
-            CreateMultipartUploadResponse createMultipartUploadResponse = clientSupplier.get().createMultipartUpload(createMultipartUploadRequest);
-            String uploadId = createMultipartUploadResponse.uploadId();
+			long bytePosition = 0;
+			int partNum = 1;
+			List<CompletedPart> completedParts = new LinkedList<>();
 
-            long bytePosition = 0;
-            int partNum = 1;
-            List<CompletedPart> completedParts = new LinkedList<>();
+			try {
+				while (bytePosition < objectSize) {
+					logger.trace("Copy part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
+					long lastByte = Math.min(bytePosition + partSize - 1, objectSize - 1);
 
-            try {
-                while (bytePosition < objectSize) {
-                    logger.trace("Copy part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
-                    long lastByte = Math.min(bytePosition + partSize - 1, objectSize - 1);
+					UploadPartCopyRequest copyRequest = UploadPartCopyRequest.builder()
+						.sourceBucket(sourceBucket)
+						.sourceKey(sourceKey)
+						.destinationBucket(destBucket)
+						.destinationKey(destKey)
+						.uploadId(createMultipartUploadResponse.uploadId())
+						.copySourceRange("bytes=" + bytePosition + "-" + lastByte)
+						.partNumber(partNum)
+						.build();
 
-                    UploadPartCopyRequest copyRequest = UploadPartCopyRequest.builder()
-                            .sourceBucket(sourceBucket)
-                            .sourceKey(sourceKey)
-                            .destinationBucket(destBucket)
-                            .destinationKey(destKey)
-                            .uploadId(createMultipartUploadResponse.uploadId())
-                            .copySourceRange("bytes=" + bytePosition + "-" + lastByte)
-                            .partNumber(partNum)
-                            .build();
+					UploadPartCopyResponse copyResponse = clientSupplier.get().uploadPartCopy(copyRequest);
+					completedParts.add(CompletedPart.builder()
+						.partNumber(partNum)
+						.eTag(copyResponse.copyPartResult().eTag())
+						.build());
+					bytePosition += partSize;
+					partNum++;
+				}
 
-                    UploadPartCopyResponse copyResponse = clientSupplier.get().uploadPartCopy(copyRequest);
-                    completedParts.add(CompletedPart.builder()
-                            .partNumber(partNum)
-                            .eTag(copyResponse.copyPartResult().eTag())
-                            .build());
-                    bytePosition += partSize;
-                    partNum++;
-                }
+				CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
+					.parts(completedParts)
+					.build();
+				CompleteMultipartUploadRequest completeRequest =
+					CompleteMultipartUploadRequest.builder()
+						.bucket(destBucket)
+						.key(destKey)
+						.uploadId(uploadId)
+						.multipartUpload(completedMultipartUpload)
+						.build();
+				clientSupplier.get().completeMultipartUpload(completeRequest);
+				logger.debug("Completed multipart copy for '{}/{}'", sourceBucket, sourceKey);
+			} catch (Exception e) {
+				clientSupplier.get().abortMultipartUpload(AbortMultipartUploadRequest.builder()
+					.bucket(destBucket)
+					.key(destKey)
+					.uploadId(uploadId)
+					.build());
+				throw e;
+			}
+		} else {
+			logger.debug("Start copy operation for '{}/{}'", sourceBucket, sourceKey);
+			CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+				.sourceBucket(sourceBucket)
+				.sourceKey(sourceKey)
+				.destinationBucket(destBucket)
+				.destinationKey(destKey)
+				.build();
+			clientSupplier.get().copyObject(copyObjectRequest);
+			logger.debug("Completed copy for '{}/{}'", sourceBucket, sourceKey);
+		}
+	}
 
-                CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
-                        .parts(completedParts)
-                        .build();
-                CompleteMultipartUploadRequest completeRequest =
-                        CompleteMultipartUploadRequest.builder()
-                                .bucket(destBucket)
-                                .key(destKey)
-                                .uploadId(uploadId)
-                                .multipartUpload(completedMultipartUpload)
-                                .build();
-                clientSupplier.get().completeMultipartUpload(completeRequest);
-                logger.debug("Completed multipart copy for '{}/{}'", sourceBucket, sourceKey);
-            } catch (Exception e) {
-                clientSupplier.get().abortMultipartUpload(AbortMultipartUploadRequest.builder()
-                        .bucket(destBucket)
-                        .key(destKey)
-                        .uploadId(uploadId)
-                        .build());
-                throw e;
-            }
-        } else {
-            logger.debug("Start copy operation for '{}/{}'", sourceBucket, sourceKey);
-            CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
-                    .sourceBucket(sourceBucket)
-                    .sourceKey(sourceKey)
-                    .destinationBucket(destBucket)
-                    .destinationKey(destKey)
-                    .build();
-            clientSupplier.get().copyObject(copyObjectRequest);
-            logger.debug("Completed copy for '{}/{}'", sourceBucket, sourceKey);
-        }
-    }
-
-    public static String getS3Url(String bucket, String key) {
-        return format("s3://%s/%s", bucket, key);
-    }
+	public static String getS3Url(String bucket, String key) {
+		return format("s3://%s/%s", bucket, key);
+	}
 
 }

@@ -18,24 +18,24 @@ package org.craftercms.studio.api.v1.exception.repository;
 
 public class RemoteRepositoryNotBareException extends Exception {
 
-    private static final long serialVersionUID = 3989253201447916999L;
+	private static final long serialVersionUID = 3989253201447916999L;
 
-    public RemoteRepositoryNotBareException() {
-    }
+	public RemoteRepositoryNotBareException() {
+	}
 
-    public RemoteRepositoryNotBareException(String message) {
-        super(message);
-    }
+	public RemoteRepositoryNotBareException(String message) {
+		super(message);
+	}
 
-    public RemoteRepositoryNotBareException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public RemoteRepositoryNotBareException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public RemoteRepositoryNotBareException(Throwable cause) {
-        super(cause);
-    }
+	public RemoteRepositoryNotBareException(Throwable cause) {
+		super(cause);
+	}
 
-    public RemoteRepositoryNotBareException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public RemoteRepositoryNotBareException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

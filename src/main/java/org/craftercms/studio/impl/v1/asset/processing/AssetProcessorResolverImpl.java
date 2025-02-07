@@ -32,28 +32,28 @@ import static java.lang.String.format;
  */
 public class AssetProcessorResolverImpl implements AssetProcessorResolver, ApplicationContextAware {
 
-    private String beanNameFormat;
-    private ApplicationContext applicationContext;
+	private String beanNameFormat;
+	private ApplicationContext applicationContext;
 
-    public AssetProcessorResolverImpl(String beanNameFormat) {
-        this.beanNameFormat = beanNameFormat;
-    }
+	public AssetProcessorResolverImpl(String beanNameFormat) {
+		this.beanNameFormat = beanNameFormat;
+	}
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
 
-    @Override
-    public AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException {
-        String beanName = format(beanNameFormat, config.getType());
-        AssetProcessor processor = applicationContext.getBean(beanName, AssetProcessor.class);
+	@Override
+	public AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException {
+		String beanName = format(beanNameFormat, config.getType());
+		AssetProcessor processor = applicationContext.getBean(beanName, AssetProcessor.class);
 
-        if (processor != null) {
-            return processor;
-        } else {
-            throw new AssetProcessingConfigurationException("Invalid processor type: " + config.getType());
-        }
-    }
+		if (processor != null) {
+			return processor;
+		} else {
+			throw new AssetProcessingConfigurationException("Invalid processor type: " + config.getType());
+		}
+	}
 
 }

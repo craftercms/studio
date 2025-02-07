@@ -24,139 +24,140 @@ import java.util.List;
 
 public interface DependencyDiffService {
 
-    /**
-     * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
-     * @param diffRequest diff request
-     * @return Diff response object
-     * @throws ServiceLayerException general service error
-     */
-    DiffResponse diff(DiffRequest diffRequest) throws ServiceLayerException;
+	/**
+	 * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
+	 *
+	 * @param diffRequest diff request
+	 * @return Diff response object
+	 * @throws ServiceLayerException general service error
+	 */
+	DiffResponse diff(DiffRequest diffRequest) throws ServiceLayerException;
 
-    /**
-     *
-     * DiffResponse is returned by Diff executor with added and removed dependenices
-     *
-     */
-    class DiffResponse{
+	/**
+	 * DiffResponse is returned by Diff executor with added and removed dependenices
+	 */
+	class DiffResponse {
 
-        protected List<String> addedDependencies = new ArrayList<>();
+		protected List<String> addedDependencies = new ArrayList<>();
 
-        protected List<String> removedDependencies = new ArrayList<>();
-
-
-        public List<String> getAddedDependencies() {
-            return addedDependencies;
-        }
-        public void setAddedDependencies(List<String> addedDependencies) {
-            this.addedDependencies = addedDependencies;
-        }
-
-        public List<String> getRemovedDependencies() {
-            return removedDependencies;
-        }
-        public void setRemovedDependencies(List<String> removedDependencies) {
-            this.removedDependencies = removedDependencies;
-        }
-    }
+		protected List<String> removedDependencies = new ArrayList<>();
 
 
-    /**
-     * DiffRequest used for providing info to the Diff Executor
-     *
-     */
-    class DiffRequest {
+		public List<String> getAddedDependencies() {
+			return addedDependencies;
+		}
 
-        protected String site;
+		public void setAddedDependencies(List<String> addedDependencies) {
+			this.addedDependencies = addedDependencies;
+		}
 
-        protected String sourcePath;
+		public List<String> getRemovedDependencies() {
+			return removedDependencies;
+		}
 
-        protected String destPath;
-
-        protected String sourceSandbox;
-
-        protected String destSandbox;
-
-        //optional if provide will be used or by default the doc will be picked from sourceSandbox
-        protected Document sourceDoc;
-
-        //optional if provide will be used or by default the doc will be picked from destSandbox
-        protected Document destDoc;
-
-        protected boolean recursive=true;
+		public void setRemovedDependencies(List<String> removedDependencies) {
+			this.removedDependencies = removedDependencies;
+		}
+	}
 
 
-        public DiffRequest(String site, String sourcePath,String destPath, String sourceSandbox,String destSandbox, boolean recursive) {
-            super();
-            this.site = site;
-            this.sourcePath = sourcePath;
-            this.destPath = destPath;
-            this.sourceSandbox = sourceSandbox;
-            this.destSandbox = destSandbox;
-            this.recursive = recursive;
-        }
+	/**
+	 * DiffRequest used for providing info to the Diff Executor
+	 */
+	class DiffRequest {
 
-        public String getSite() {
-            return site;
-        }
+		protected String site;
 
-        public void setSite(String site) {
-            this.site = site;
-        }
+		protected String sourcePath;
 
-        public String getSourceSandbox() {
-            return sourceSandbox;
-        }
+		protected String destPath;
 
-        public void setSourceSandbox(String sourceSandbox) {
-            this.sourceSandbox = sourceSandbox;
-        }
+		protected String sourceSandbox;
 
-        public String getDestSandbox() {
-            return destSandbox;
-        }
+		protected String destSandbox;
 
-        public void setDestSandbox(String destSandbox) {
-            this.destSandbox = destSandbox;
-        }
+		//optional if provide will be used or by default the doc will be picked from sourceSandbox
+		protected Document sourceDoc;
 
-        public Document getSourceDoc() {
-            return sourceDoc;
-        }
+		//optional if provide will be used or by default the doc will be picked from destSandbox
+		protected Document destDoc;
 
-        public void setSourceDoc(Document sourceDoc) {
-            this.sourceDoc = sourceDoc;
-        }
+		protected boolean recursive = true;
 
-        public Document getDestDoc() {
-            return destDoc;
-        }
 
-        public void setDestDoc(Document destDoc) {
-            this.destDoc = destDoc;
-        }
+		public DiffRequest(String site, String sourcePath, String destPath, String sourceSandbox, String destSandbox, boolean recursive) {
+			super();
+			this.site = site;
+			this.sourcePath = sourcePath;
+			this.destPath = destPath;
+			this.sourceSandbox = sourceSandbox;
+			this.destSandbox = destSandbox;
+			this.recursive = recursive;
+		}
 
-        public boolean isRecursive() {
-            return recursive;
-        }
+		public String getSite() {
+			return site;
+		}
 
-        public void setRecursive(boolean recursive) {
-            this.recursive = recursive;
-        }
+		public void setSite(String site) {
+			this.site = site;
+		}
 
-        public String getSourcePath() {
-            return sourcePath;
-        }
+		public String getSourceSandbox() {
+			return sourceSandbox;
+		}
 
-        public void setSourcePath(String sourcePath) {
-            this.sourcePath = sourcePath;
-        }
-        public String getDestPath() {
-            return destPath;
-        }
+		public void setSourceSandbox(String sourceSandbox) {
+			this.sourceSandbox = sourceSandbox;
+		}
 
-        public void setDestPath(String destPath) {
-            this.destPath = destPath;
-        }
+		public String getDestSandbox() {
+			return destSandbox;
+		}
 
-    }
+		public void setDestSandbox(String destSandbox) {
+			this.destSandbox = destSandbox;
+		}
+
+		public Document getSourceDoc() {
+			return sourceDoc;
+		}
+
+		public void setSourceDoc(Document sourceDoc) {
+			this.sourceDoc = sourceDoc;
+		}
+
+		public Document getDestDoc() {
+			return destDoc;
+		}
+
+		public void setDestDoc(Document destDoc) {
+			this.destDoc = destDoc;
+		}
+
+		public boolean isRecursive() {
+			return recursive;
+		}
+
+		public void setRecursive(boolean recursive) {
+			this.recursive = recursive;
+		}
+
+		public String getSourcePath() {
+			return sourcePath;
+		}
+
+		public void setSourcePath(String sourcePath) {
+			this.sourcePath = sourcePath;
+		}
+
+		public String getDestPath() {
+			return destPath;
+		}
+
+		public void setDestPath(String destPath) {
+			this.destPath = destPath;
+		}
+
+	}
 }

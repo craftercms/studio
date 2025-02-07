@@ -28,22 +28,22 @@ import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
  */
 public class RepositoryEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    public RepositoryEvent(String siteId) {
-        super(siteId);
-    }
+	public RepositoryEvent(String siteId) {
+		super(siteId);
+	}
 
-    @Override
-    public String getEventType() {
-        return "REPOSITORY_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "REPOSITORY_EVENT";
+	}
 
-    @Override
-    public String toString() {
-        return "RepositoryEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "RepositoryEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			'}';
+	}
 
 }

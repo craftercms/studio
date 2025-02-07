@@ -14,21 +14,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.repository;
+package org.craftercms.studio.api.v2.annotation.publish;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Interface for content repositories that support publishing
+ * Annotation to mark the method or class that requires a package to exist
+ * Notice that this annotation extends @{@link RequireSiteExists}
  */
-public interface PublishCapableContentRepository {
-    /**
-     * Execute initial publish for given site
-     *
-     * @param siteId site identifier
-     * @return commit id of the initial publish.
-     * After this method runs, the returned value is the same as the last
-     * commit in the published repository for both branches(live and staging, if configured)
-     */
-    String initialPublish(String siteId) throws ServiceLayerException;
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@RequireSiteExists
+public @interface RequirePackageExists {
 }

@@ -25,19 +25,19 @@ import org.springframework.security.core.Authentication;
  */
 public abstract class SiteAwareEvent extends StudioEvent {
 
-    protected final String siteId;
+	protected final String siteId;
 
-    public SiteAwareEvent(Authentication authentication, String siteId) {
-        super(authentication);
-        this.siteId = siteId;
-    }
+	public SiteAwareEvent(Authentication authentication, String siteId) {
+		super(authentication);
+		this.siteId = siteId;
+	}
 
-    public SiteAwareEvent(String siteId) {
-        this.siteId = siteId;
-    }
+	public SiteAwareEvent(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
 }

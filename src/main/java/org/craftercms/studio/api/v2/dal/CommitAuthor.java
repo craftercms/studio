@@ -19,23 +19,23 @@ package org.craftercms.studio.api.v2.dal;
 import org.craftercms.studio.model.rest.Person;
 
 public class CommitAuthor {
-    private String commitId;
-    private Person author;
+	private String commitId;
+	private Person author;
 
-    public String getCommitId() {
-        return commitId;
-    }
+	public String getCommitId() {
+		return commitId;
+	}
 
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
-    }
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
+	}
 
-    public Person getAuthor() {
-        return author;
-    }
+	public Person getAuthor() {
+		return author;
+	}
 
-    public void setAuthor(Person author) {
-        this.author = author;
-    }
+	public void setAuthor(Person author) {
+		this.author = author;
+	}
 }
 
