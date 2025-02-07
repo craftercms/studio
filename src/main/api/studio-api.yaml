@@ -48,8 +48,6 @@ tags:
     description: Marketplace operations
   - name: webdav
     description: WebDAV operations
-  - name: box
-    description: Box operations
   - name: publishing
     description: Publishing operations
   - name: security
@@ -3668,41 +3666,6 @@ paths:
                     label: Español
                   - id: kr
                     label: 한국어
-
-  /api/1/services/api/1/box/token.json:
-    get:
-      tags:
-        - box
-      summary: Get Box token.
-      description: "Required role: N/A"
-      operationId: getBoxToken
-      parameters:
-        - name: site
-          in: query
-          description: Project/Site ID to use
-          required: true
-          schema:
-            type: string
-        - name: profileId
-          in: query
-          description: Box profile ID to use
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-        '400':
-          $ref: '#/components/responses/api1BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
   /api/2/search/search:
     post:
@@ -9204,7 +9167,6 @@ components:
           * `CODE:` 40002, `MESSAGE:` Plugin is already installed, `REMEDIAL ACTION:` Check that the site id, plugin id and plugin version are correct
           * `CODE:` 40003, `MESSAGE:` Error installing plugin, `REMEDIAL ACTION:` Check the plugin requirements
           * `CODE:` 50003, `MESSAGE:` Target path does not exist in site repository, `REMEDIAL ACTION:` Check if you sent in the right Studio Path
-          * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
           * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
           * `CODE:` 53000, `MESSAGE:` Logger not found, `REMEDIAL ACTION:` Check if you sent in the right logger name or add 'createIfAbsent=true' parameter to create the logger if it does not exist
       properties:
