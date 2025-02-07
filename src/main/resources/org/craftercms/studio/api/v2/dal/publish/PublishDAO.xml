@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -295,7 +295,7 @@
 		WHERE item.id = updates.item_id
 	</update>
 
-	<select id="getPublishItems" resultMap="PublishItemMap">
+	<select id="getPublishItemsInternal" resultMap="PublishItemMap">
 		<bind name="includeMetadata" value="false"/>
 		<include refid="getPublishItemsQuery"/>
 		<include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
@@ -350,6 +350,9 @@
 			<if test="label != null">
 				AND i.label RLIKE #{label}
 			</if>
+		</if>
+		<if test="state != null">
+			AND (pi.publish_state &amp; #{state}) > 0
 		</if>
 	</sql>
 

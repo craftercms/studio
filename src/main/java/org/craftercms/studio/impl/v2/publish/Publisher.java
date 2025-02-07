@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.publish.PublishErrorEvent;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -257,6 +258,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 			packageTO.setError(PublishUtils.translatePackageException(e));
 			publishDao.updatePackage(publishPackage);
 			publishDao.updatePublishItemsState(publishPackage.getId(), packageTO.getFailedOnBits(), 0);
+			eventPublisher.publishEvent(new PublishErrorEvent(publishPackage.getSite().getSiteId(), publishPackage.getId(), e));
 		} finally {
 			publishDao.updateItemStatesForCompletePackage(packageTO.getId(),
 				packageTO.getItemSuccessOnMask(),
@@ -336,6 +338,9 @@ public class Publisher implements ApplicationEventPublisherAware {
 			Stage refStage = taskProgress.startStage("Update ref for '%s' branch".formatted(target));
 			contentRepository.updateRef(siteId, packageId, publishChangeSet.commitId(), target);
 			refStage.complete();
+		}
+		if (publishChangeSet.hasFailedItems()) {
+			eventPublisher.publishEvent(new PublishErrorEvent(siteId, packageId));
 		}
 	}
 
@@ -488,6 +493,10 @@ public class Publisher implements ApplicationEventPublisherAware {
 		packageTO.setPublishedCommitId(initialPublishResult.commitId());
 		publishPackage.updatePackageState(packageOnBits, 0);
 		publishDao.updatePackage(publishPackage);
+
+		if (initialPublishResult.hasFailedItems()) {
+			eventPublisher.publishEvent(new PublishErrorEvent(publishPackage.getSite().getSiteId(), publishPackage.getId()));
+		}
 	}
 
 	/**
