@@ -37,10 +37,12 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.CalculatedPublishPackageResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.publish.*;
+import org.craftercms.studio.model.task.PublishTask;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -114,13 +116,12 @@ public class PublishController {
 	}
 
 	@GetMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE)
-	public ResultOne<PublishPackage> getPublishPackage(@PathVariable @ValidSiteId String site,
+	public GetPackageResult getPublishPackage(@PathVariable @ValidSiteId String site,
 							   @PathVariable @Positive long packageId)
 		throws ServiceLayerException, UserNotFoundException {
 		PublishPackage publishPackage = publishService.getPackage(site, packageId);
-		ResultOne<PublishPackage> result = new ResultOne<>();
-		result.setEntity(RESULT_KEY_PACKAGE, publishPackage);
-		// TODO: add the package status (progress) to the response
+		TaskProgress<PublishTask.PublishTaskId, Long> progress = sitesService.getPublishingTaskProgress(site, packageId);
+		GetPackageResult result = new GetPackageResult(progress, publishPackage);
 		result.setResponse(OK);
 		return result;
 	}

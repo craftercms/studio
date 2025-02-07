@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,8 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.task.PublishTask;
 
 import java.util.List;
 
@@ -130,6 +132,16 @@ public interface SitesService {
 	 * @return publishing status
 	 */
 	PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
+
+	/**
+	 * Get the progress of a publishing task, if the package is being published. Null otherwise
+	 *
+	 * @param siteId    the site id
+	 * @param packageId the package id
+	 * @return the progress of the task, or null if the package is not being published
+	 * @throws SiteNotFoundException if the requested site does not exist
+	 */
+	TaskProgress<PublishTask.PublishTaskId, Long> getPublishingTaskProgress(String siteId, long packageId) throws SiteNotFoundException;
 
 	/**
 	 * Delete a site from the system
