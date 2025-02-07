@@ -130,7 +130,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
             throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
         }
         try {
-            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged ? 1 : 0));
+            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged));
             return groupDao.getGroupByName(groupName);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -203,7 +203,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
         try {
             retryingDatabaseOperationFacade.retry(() -> groupDao.addGroupMembers(groupId,
-                    users.stream().map(User::getId).collect(Collectors.toList()), externallyManaged ? 1 : 0));
+                    users.stream().map(User::getId).collect(Collectors.toList()), externallyManaged));
 
             return users;
         } catch (Exception e) {

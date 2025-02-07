@@ -305,7 +305,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		params.put(USER_ID, userId);
 		params.put(USERNAME, username);
 		if (filterExternallyManagedGroups) {
-			params.put(EXTERNALLY_MANAGED, 1);
+			params.put(EXTERNALLY_MANAGED, true);
 		}
 
 		try {

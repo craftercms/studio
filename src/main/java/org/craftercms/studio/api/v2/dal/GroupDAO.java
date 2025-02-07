@@ -53,11 +53,11 @@ public interface GroupDAO {
      * @param orgId organization id
      * @param groupName group name
      * @param groupDescription  group description
-     * @param externallyManaged 1 if group is externally managed, 0 otherwise
+     * @param externallyManaged true if group is externally managed, false otherwise
      * @return Number of affected rows in DB
      */
     Integer createGroup(@Param(ORG_ID) long orgId, @Param(GROUP_NAME) String groupName,
-                        @Param(GROUP_DESCRIPTION) String groupDescription, @Param(EXTERNALLY_MANAGED) int externallyManaged);
+                        @Param(GROUP_DESCRIPTION) String groupDescription, @Param(EXTERNALLY_MANAGED) boolean externallyManaged);
 
     /**
      * Update group
@@ -132,11 +132,11 @@ public interface GroupDAO {
      *
      * @param groupId group identifier
      * @param userIds list of user identifiers
-	 * @param externallyManaged 1 if group is externally managed, 0 otherwise
+	 * @param externallyManaged true if group is externally managed, false otherwise
      * @return Number of rows affected in DB
      */
     Integer addGroupMembers(@Param(GROUP_ID) long groupId, @Param(USER_IDS) List<Long> userIds,
-							@Param(EXTERNALLY_MANAGED) int externallyManaged);
+							@Param(EXTERNALLY_MANAGED) boolean externallyManaged);
 
     /**
      * Remove users from the group
