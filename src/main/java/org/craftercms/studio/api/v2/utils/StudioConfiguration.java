@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -136,8 +136,6 @@ public interface StudioConfiguration {
             "studio.configuration.site.dependencyResolver.configFileName";
     String CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE = "studio.configuration.site.aws.configurationModule";
     String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
-    String CONFIGURATION_SITE_BOX_CONFIGURATION_MODULE = "studio.configuration.site.box.configurationModule";
-    String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
     String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_MODULE = "studio.configuration.site.webdav.configurationModule";
     String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";

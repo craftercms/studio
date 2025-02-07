@@ -726,6 +726,14 @@ pipelines:
         operations:
             - type: dbScriptUpgrader
               filename: upgrade/4.2.x/4.2.0.18-to-4.2.0.19.sql
+      - currentVersion: 4.2.0.19
+        nextVersion: 4.2.0.20
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
+                dest: /configuration/samples/sample-config-list.xml
+                commitDetails: Remove box configs
 
   # Pipeline to upgrade site repositories
   site:
@@ -1231,6 +1239,15 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.3.xslt
               commitDetails: Remove CMIS configs
+        # Entry point for 4.2.x
+        - currentVersion: 4.0.3
+          nextVersion: 4.2-t
+        - currentVersion: 4.2-t
+          nextVersion: 4.2.0.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.2.x/config/config-list/config-list-v4.2.0.0.xslt
+              commitDetails: Remove box configs
 
   site-config-tools:
     module: studio
