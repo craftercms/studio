@@ -367,7 +367,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 				.map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
 				.flatMap(List::stream)
 				.filter(getCommitRepoOperationsFilter(site))
-				// TODO: review this: what if we are deleting a moved item? We should delete the old path, not the new
 				.map(op -> createPublishItem(op.getPath(),
 					translateRepoAction(op.getAction()), true))
 				.collect(toMap(PublishItem::getPath, item -> item)));
