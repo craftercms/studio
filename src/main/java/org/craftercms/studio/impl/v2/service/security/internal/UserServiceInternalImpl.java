@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -292,22 +292,30 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     @Override
     public List<Group> getUserGroups(long userId, String username)
             throws UserNotFoundException, ServiceLayerException {
-        if (!userExists(userId, username)) {
-            throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID, userId);
-        params.put(USERNAME, username);
-
-        try {
-            return userDao.getUserGroups(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
+		return getUserGroups(userId, username, false);
     }
 
-    @Override
+	@Override
+	public List<Group> getUserGroups(long userId, String username, boolean filterExternallyManagedGroups) throws UserNotFoundException, ServiceLayerException {
+		if (!userExists(userId, username)) {
+			throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
+		}
+
+		Map<String, Object> params = new HashMap<>();
+		params.put(USER_ID, userId);
+		params.put(USERNAME, username);
+		if (filterExternallyManagedGroups) {
+			params.put(EXTERNALLY_MANAGED, true);
+		}
+
+		try {
+			return userDao.getUserGroups(params);
+		} catch (Exception e) {
+			throw new ServiceLayerException("Unknown database error", e);
+		}
+	}
+
+	@Override
     public boolean isUserMemberOfGroup(String username, String groupName)
             throws UserNotFoundException, ServiceLayerException {
         if (!userExists(-1, username)) {

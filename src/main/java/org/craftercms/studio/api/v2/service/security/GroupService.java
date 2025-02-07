@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -140,6 +140,7 @@ public interface GroupService {
      * @param groupId Group identifier
      * @param userIds List of user identifiers
      * @param usernames List of usernames
+	 * @param externallyManaged true if group is externally managed, false otherwise
      * @return users added to the group
      *
      * @throws ServiceLayerException general service error
@@ -147,7 +148,7 @@ public interface GroupService {
      * @throws GroupNotFoundException group not found
      * @throws AuthenticationException authentication error
      */
-    List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+    List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames, boolean externallyManaged)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException;
 
     /**
