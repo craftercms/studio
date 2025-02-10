@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API
-  version: '4.2.3'
+  version: '4.3.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2400,47 +2400,6 @@ paths:
           $ref: '#/components/responses/api1BadRequest'
         '401':
           $ref: '#/components/responses/api1Unauthorized'
-        '500':
-          $ref: '#/components/responses/api1InternalServerError'
-
-  /api/1/services/api/1/repo/sync-from-repo.json:
-    post:
-      tags:
-        - repository
-      summary: Synchronize Crafter Studio’s database and object state with the underlying repository.
-      description: "Required role: Admin, site member <br><br> This needs to be done if the underlying repository was updated directly, bypassing Studio’s APIs/UI."
-      operationId: syncFromRepo
-      requestBody:
-        description: Synchronize from repository request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                site_id:
-                  type: string
-                  description: Site ID
-              required:
-                - site_id
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: "OK"
-        '400':
-          $ref: '#/components/responses/api1BadRequest'
-        '401':
-          $ref: '#/components/responses/api1Unauthorized'
-        '404':
-          $ref: '#/components/responses/api1NotFound'
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
