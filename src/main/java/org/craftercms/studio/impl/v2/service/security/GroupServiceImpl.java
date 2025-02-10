@@ -207,9 +207,9 @@ public class GroupServiceImpl implements GroupService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_GROUPS)
-	public List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+	public List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames, boolean externallyManaged)
 		throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
-		List<User> users = groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
+		List<User> users = groupServiceInternal.addGroupMembers(groupId, userIds, usernames, externallyManaged);
 		Group group = groupServiceInternal.getGroup(groupId);
 		SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
