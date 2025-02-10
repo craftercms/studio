@@ -741,6 +741,11 @@ pipelines:
                         -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
                             dest: configuration/samples/sample-permission-mappings-config.xml
                             commitDetails: Update sample-permission-mappings-config.xml
+            -   currentVersion: 5.0.0.1
+                nextVersion: 5.0.0.2
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/5.0.0.1-to-5.0.0.2.sql
 
     # Pipeline to upgrade site repositories
     site:

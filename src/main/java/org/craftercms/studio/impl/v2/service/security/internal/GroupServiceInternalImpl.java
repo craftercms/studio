@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -130,7 +130,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 			throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
 		}
 		try {
-			retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged ? 1 : 0));
+			retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged));
 			return groupDao.getGroupByName(groupName);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
@@ -194,7 +194,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 	}
 
 	@Override
-	public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+	public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames, boolean externallyManaged)
 		throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
 		if (!groupExists(groupId, StringUtils.EMPTY)) {
 			throw new GroupNotFoundException("No group found for id '" + groupId + "'");
@@ -203,7 +203,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 		List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
 		try {
 			retryingDatabaseOperationFacade.retry(() -> groupDao.addGroupMembers(groupId,
-				users.stream().map(User::getId).collect(Collectors.toList())));
+				users.stream().map(User::getId).collect(Collectors.toList()), externallyManaged));
 
 			return users;
 		} catch (Exception e) {
