@@ -118,6 +118,13 @@
 		</file>
 		<file>
 			<module>studio</module>
+			<path>box/box.xml</path>
+			<title>confTabBoxProfiles</title>
+			<description>confTabBoxProfilesDesc</description>
+			<samplePath>sample-box.xml</samplePath>
+		</file>
+		<file>
+			<module>studio</module>
 			<path>webdav/webdav.xml</path>
 			<title>confTabWebDAVProfiles</title>
 			<description>confTabWebDAVProfilesDesc</description>

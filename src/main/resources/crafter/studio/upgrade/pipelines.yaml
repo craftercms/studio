@@ -741,6 +741,14 @@ pipelines:
                         -   src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
                             dest: configuration/samples/sample-permission-mappings-config.xml
                             commitDetails: Update sample-permission-mappings-config.xml
+            -   currentVersion: 5.0.0.2
+                nextVersion: 5.0.0.3
+                operations:
+                -   type: globalRepoUpgrader
+                    files:
+                        -   src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
+                            dest: /configuration/samples/sample-config-list.xml
+                            commitDetails: Remove box configs
 
     # Pipeline to upgrade site repositories
     site:
@@ -1252,6 +1260,15 @@ configurations:
                         -   type: xsltFileUpgrader
                             template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.3.xslt
                             commitDetails: Remove CMIS configs
+                # Entry point for 5.0.x
+                -   currentVersion: 4.0.3
+                    nextVersion: 5.0-t
+                -   currentVersion: 5.0-t
+                    nextVersion: 5.0.0.0
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/5.0.x/config/config-list/config-list-v5.0.0.0.xslt
+                            commitDetails: Remove box configs
 
     site-config-tools:
         module: studio
