@@ -8329,7 +8329,6 @@ components:
                   * `CODE:` 40002, `MESSAGE:` Plugin is already installed, `REMEDIAL ACTION:` Check that the site id, plugin id and plugin version are correct
                   * `CODE:` 40003, `MESSAGE:` Error installing plugin, `REMEDIAL ACTION:` Check the plugin requirements
                   * `CODE:` 50003, `MESSAGE:` Target path does not exist in site repository, `REMEDIAL ACTION:` Check if you sent in the right Studio Path
-                  * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
                   * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
                   * `CODE:` 52001, `MESSAGE:` S3 is unreachable, `REMEDIAL ACTION:` Check your network configuration and S3 availability
                   * `CODE:` 52002, `MESSAGE:` S3 bucket not found, `REMEDIAL ACTION:` Check the configured bucket name is correct
