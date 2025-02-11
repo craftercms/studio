@@ -685,7 +685,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 		MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> pathsByBlobStore = scanRepoForBlobPaths(taskProgress, siteId, blobStores);
 
 		Collection<BlobAwareInitialPublishItemTO> failedItems = initialPublishBlobs(publishPackage, taskProgress, target, pathsByBlobStore);
-		Collection<String> ignoredRepoPaths = failedItems.stream().map(BlobAwareInitialPublishItemTO::getRepoPath).toList();
+		List<String> ignoredRepoPaths = failedItems.stream().map(BlobAwareInitialPublishItemTO::getRepoPath).toList();
 		String commitId = localRepositoryV2.initialPublish(publishPackage, ignoredRepoPaths, target);
 		return new InitialPublishChangeSet(commitId, failedItems.stream()
 			.collect(toMap(BlobAwareInitialPublishItemTO::getPath, BlobAwareInitialPublishItemTO::getError)));

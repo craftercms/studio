@@ -162,7 +162,7 @@ public interface StudioConfiguration {
 		"studio.configuration.management.previewAuthorizationToken";
 	String CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS =
 		"studio.configuration.management.previewProtectedUrls";
-	String CONFIGURATION_PUBLISHING_BLACKLIST_REGEX = "studio.configuration.publishing.blacklist.regex";
+	String CONFIGURATION_PUBLISHING_BLACKLIST_PATHSPECS = "studio.configuration.publishing.blacklist.pathspecs";
 	String CONFIGURATION_DEFAULT_TIME_ZONE = "studio.configuration.defaultTimeZone";
 
 	String CONFIGURATION_PATH_PATTERNS = "studio.configuration.cache.site.patterns";
