@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Interface for publish operations of a git repository
@@ -59,7 +60,7 @@ public interface GitPublishCapableRepository extends GitContentRepository {
 	 * @param target         the target to publish to
 	 * @return commit id of the initial publish.
 	 */
-	String initialPublish(PublishPackage publishPackage, Collection<String> ignorePaths,
+	String initialPublish(PublishPackage publishPackage, List<String> ignorePaths,
 			      String target) throws ServiceLayerException;
 
 	/**

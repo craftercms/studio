@@ -608,7 +608,6 @@ public class GitRepositoryHelper implements DisposableBean {
 			.call()) {
 			Repository publishedRepo = publishedGit.getRepository();
 			optimizeRepository(publishedRepo);
-			removePublishBlackList(publishedRepo);
 			publishedRepo.close();
 		} catch (GitAPIException | IOException e) {
 			logger.error("Failed to add origin (sandbox) to the published repository in site '{}'", siteId, e);
@@ -709,19 +708,6 @@ public class GitRepositoryHelper implements DisposableBean {
 		} catch (GitAPIException | IOException e) {
 			logger.error("Failed to checkout the sandbox branch '{}' in site '{}'", sandboxBranchName, site, e);
 			return false;
-		}
-	}
-
-	private boolean removePublishBlackList(Repository publishedRepo) {
-		String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
-		if (StringUtils.isEmpty(blacklistConfig)) {
-			return true;
-		}
-
-		List<String> patterns = Arrays.asList(StringUtils.split(blacklistConfig, STRING_SEPARATOR));
-		try (Git git = new Git(publishedRepo)) {
-			// TODO: implement this for the new publishing system with published repo being bare
-			return true;
 		}
 	}
 
@@ -1577,9 +1563,12 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws IOException          if an error occurs while writing the tree
 	 * @throws InterruptedException if the operation is interrupted while waiting for the git process to finish
 	 */
-	public String writeTree(final Repository repo, final List<String> paths, final List<String> deletedPaths,
-				final String commitId, final ObjectId parentCommitId, TaskProgress<?, ?> taskProgress) throws IOException, InterruptedException {
-		return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths, commitId, parentCommitId, taskProgress);
+	public String writeTree(final Repository repo, final List<String> paths, List<String> deletedPaths,
+							final String commitId, final ObjectId parentCommitId, TaskProgress<?, ?> taskProgress) throws IOException, InterruptedException {
+		List<String> blacklist = studioConfiguration.getList(CONFIGURATION_PUBLISHING_BLACKLIST_PATHSPECS, String.class);
+		blacklist.add(ALL_DOT_KEEP_PATTERN);
+		return gitCli.writeTree(repo.getDirectory(), paths, deletedPaths,
+			blacklist, commitId, parentCommitId, taskProgress);
 	}
 
 	/**
