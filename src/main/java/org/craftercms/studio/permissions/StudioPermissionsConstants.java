@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,17 +24,14 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_AUDIT_LOG = "audit_log";
     public static final String PERMISSION_CANCEL_FAILED_PULL = "cancel_failed_pull";
     public static final String PERMISSION_CANCEL_PUBLISH = "cancel_publish";
-    public static final String PERMISSION_CHANGE_CONTENT_TYPE = "change_content_type";
     public static final String PERMISSION_COMMIT_RESOLUTION = "commit_resolution";
     public static final String PERMISSION_CONTENT_CREATE = "content_create";
     public static final String PERMISSION_FOLDER_CREATE = "folder_create";
-    public static final String PERMISSION_CREATE_CLUSTER = "create_cluster";
     public static final String PERMISSION_CREATE_GROUPS = "create_groups";
     public static final String PERMISSION_CREATE_USERS = "create_users";
     public static final String PERMISSION_CREATE_SITE = "create_site";
     public static final String PERMISSION_DUPLICATE_SITE = "duplicate_site";
     public static final String PERMISSION_DELETE_SITE = "delete_site";
-    public static final String PERMISSION_DELETE_CLUSTER = "delete_cluster";
     public static final String PERMISSION_CONTENT_DELETE = "content_delete";
     public static final String PERMISSION_DELETE_GROUPS = "delete_groups";
     public static final String PERMISSION_DELETE_USERS = "delete_users";
@@ -46,7 +43,6 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_PUBLISH = "publish";
     public static final String PERMISSION_PUBLISH_STATUS = "publish_status";
     public static final String PERMISSION_PUBLISH_BY_COMMITS = "publish_by_commits";
-    public static final String PERMISSION_PUBLISH_CLEAR_LOCK = "publish_clear_lock";
     public static final String PERMISSION_PULL_FROM_REMOTE = "pull_from_remote";
     public static final String PERMISSION_PUSH_TO_REMOTE = "push_to_remote";
     public static final String PERMISSION_CONTENT_READ = "content_read";
@@ -55,14 +51,12 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_READ_GROUPS = "read_groups";
     public static final String PERMISSION_READ_LOGS = "read_logs";
     public static final String PERMISSION_READ_USERS = "read_users";
-    public static final String PERMISSION_REBUILD_DATABASE = "rebuild_database";
     public static final String PERMISSION_REMOVE_REMOTE = "remove_remote";
     public static final String PERMISSION_RESOLVE_CONFLICT = "resolve_conflict";
     public static final String PERMISSION_S3_READ = "s3_read";
     public static final String PERMISSION_S3_WRITE = "s3_write";
     public static final String PERMISSION_SITE_DIFF_CONFLICTED_FILE = "site_diff_conflicted_file";
     public static final String PERMISSION_SITE_STATUS = "site_status";
-    public static final String PERMISSION_UPDATE_CLUSTER = "update_cluster";
     public static final String PERMISSION_UPDATE_GROUPS = "update_groups";
     public static final String PERMISSION_UPDATE_USERS = "update_users";
     public static final String PERMISSION_WEBDAV_READ = "webdav_read";

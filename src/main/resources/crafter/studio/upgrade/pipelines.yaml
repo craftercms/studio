@@ -734,6 +734,18 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
                 dest: /configuration/samples/sample-config-list.xml
                 commitDetails: Remove box configs
+      - currentVersion: 4.2.0.20
+          nextVersion: 4.3.0.0
+          operations:
+            - type: globalRepoUpgrader
+              files:
+                - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                  dest: configuration/samples/sample-permission-mappings-config.xml
+                  commitDetails: Remove unused permissions
+            - type: xsltFileUpgrader
+              path: /configuration/global-permission-mappings-config.xml
+              template: crafter/studio/upgrade/4.3.x/system/global-permission-mappings-config-v4.3.0.0.xslt
+              commitDetails: Remove unused permissions
 
   # Pipeline to upgrade site repositories
   site:
@@ -1183,6 +1195,13 @@ configurations:
         # Update version to align with blueprints optimized version
         - currentVersion: 4.2.0.0
           nextVersion: 4.2.0.1
+        - currentVersion: 4.2.0.1
+          nextVersion: 4.3.0.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.3.x/permission-mappings/permission-mappings-config-v4.3.0.0.xslt
+              commitDetails: Remove unused permissions
+
 
   role-mappings-config:
     module: studio
