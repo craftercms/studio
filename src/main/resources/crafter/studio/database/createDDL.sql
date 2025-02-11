@@ -476,6 +476,7 @@ CREATE TABLE IF NOT EXISTS group_user
 (
 	`user_id`  BIGINT(20) NOT NULL,
 	`group_id`  BIGINT(20)       NOT NULL,
+	`externally_managed` INT NOT NULL DEFAULT 0,
 	`record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`user_id`, `group_id`),
 	FOREIGN KEY group_member_ix_user_id(`user_id`) REFERENCES `user` (`id`)

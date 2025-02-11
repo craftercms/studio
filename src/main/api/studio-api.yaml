@@ -2247,46 +2247,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/delete-site.json:
-        post:
-            tags:
-                - sites
-            summary: Delete a Crafter Studio project.
-            description: 'Required Role: "Admin"'
-            operationId: deleteSiteAPI1
-            requestBody:
-                description: Project/site to delete
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                site_id:
-                                    description: Project/Site ID to use
-                                    type: string
-                                    example: my-editorial
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: boolean
-                                example: true
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '409':
-                    $ref: '#/components/responses/api1Conflict'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/site/exists.json:
         get:
             tags:
@@ -2441,45 +2401,6 @@ paths:
                                                         type: string
                 '400':
                     $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/security/get-user-permissions.json:
-        get:
-            tags:
-                - security
-            summary: Get user permissions for project/site and space (path).
-            description: No required role
-            operationId: getUserPermissions
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    description: Path of the content
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    permissions:
-                                        type: array
-                                        items:
-                                            type: string
-                                example:
-                                    permissions: [
-                                        "read"
-                                    ]
                 '401':
                     $ref: '#/components/responses/api1Unauthorized'
                 '500':
