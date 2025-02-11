@@ -6624,39 +6624,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/publish/{siteId}/trigger:
-        post:
-            tags:
-                - publishing
-            summary: Signal the publisher to pick the next package in the queue, if any.
-            description: 'Required permission "publish_request, publish_approve"'
-            operationId: triggerPublisher
-            parameters:
-                -   name: siteId
-                    in: path
-                    description: site ID
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
     /api/2/publish/{siteId}/status:
         get:
             tags:

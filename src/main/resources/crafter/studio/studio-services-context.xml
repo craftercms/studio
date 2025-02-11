@@ -702,6 +702,7 @@
 	</util:list>
 
 	<bean id="publishingQueueProbeTask" class="org.craftercms.studio.impl.v2.publish.PublishingQueueProbeTask">
+		<constructor-arg name="period" value="#{studioConfiguration.getProperty('studio.clockJob.task.publisher.period')}"/>
 	</bean>
 
 	<bean id="publisher" class="org.craftercms.studio.impl.v2.publish.Publisher">
