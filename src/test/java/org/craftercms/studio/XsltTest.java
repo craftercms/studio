@@ -334,8 +334,8 @@ public class XsltTest {
 			},
             new Object[] {
                     new ClassPathResource("crafter/studio/upgrade/4.3.x/permission-mappings/permission-mappings-config-v4.3.0.0.xslt"),
-                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/4.3.0/input.xml"),
-                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/4.3.0/expected.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/4.3.0.0/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/4.3.0.0/expected.xml"),
                     emptyMap()
             },
             new Object[] {
