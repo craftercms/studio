@@ -145,8 +145,6 @@ public interface StudioConfiguration {
 		"studio.configuration.site.dependencyResolver.configFileName";
 	String CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE = "studio.configuration.site.aws.configurationModule";
 	String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
-	String CONFIGURATION_SITE_BOX_CONFIGURATION_MODULE = "studio.configuration.site.box.configurationModule";
-	String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
 	String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_MODULE = "studio.configuration.site.webdav.configurationModule";
 	String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
 	String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
@@ -162,7 +160,7 @@ public interface StudioConfiguration {
 		"studio.configuration.management.previewAuthorizationToken";
 	String CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS =
 		"studio.configuration.management.previewProtectedUrls";
-	String CONFIGURATION_PUBLISHING_BLACKLIST_REGEX = "studio.configuration.publishing.blacklist.regex";
+	String CONFIGURATION_PUBLISHING_BLACKLIST_PATHSPECS = "studio.configuration.publishing.blacklist.pathspecs";
 	String CONFIGURATION_DEFAULT_TIME_ZONE = "studio.configuration.defaultTimeZone";
 
 	String CONFIGURATION_PATH_PATTERNS = "studio.configuration.cache.site.patterns";
@@ -321,10 +319,6 @@ public interface StudioConfiguration {
 	String CLOCK_JOB_TASK_EXECUTOR_CORE_POOL_SIZE = "studio.clockJob.taskExecutor.corePoolSize";
 	String CLOCK_JOB_TASK_EXECUTOR_MAX_POOL_SIZE = "studio.clockJob.taskExecutor.maxPoolSize";
 	String CLOCK_JOB_TASK_EXECUTOR_QUEUE_CAPACITY = "studio.clockJob.taskExecutor.queueCapacity";
-	String CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES =
-		"studio.clockJob.task.publisher.executeEveryNCycles";
-	String CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT =
-		"studio.clockJob.task.publisher.maxRetryCount";
 
 	String PLUGIN_BASE_PATTERN = "studio.configuration.plugin.base.pattern";
 

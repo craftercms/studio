@@ -261,9 +261,12 @@ studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
 # Format string for the controller script of a content-type
 studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
 
-# Publishing blacklist configuration, items matching regexes on this list will never be published
-studio.configuration.publishing.blacklist.regex: >-
-    .*/\.keep
+# Paths matching git pathspecs on this list will never be published.
+# For information on git pathspec, see https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathspecapathspec
+# .keep files are always ignored
+# e.g.:
+# studio.configuration.publishing.blacklist.pathspecs: "*.png"
+studio.configuration.publishing.blacklist.pathspecs: ""
 # Default studio server time zone for date time format
 studio.configuration.defaultTimeZone: UTC
 # The maximum length of configuration content for the configuration service. Default to 512kB -> 512 * 1024
@@ -1002,7 +1005,7 @@ studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
 studio.clockJob.taskExecutor.queueCapacity: 2000
 # Publisher execute every N cycles
-studio.clockJob.task.publisher.executeEveryNCycles: 2
+studio.clockJob.task.publisher.period: 12
 # Publisher max retry count in case if content not found
 studio.clockJob.task.publisher.maxRetryCount: 5
 

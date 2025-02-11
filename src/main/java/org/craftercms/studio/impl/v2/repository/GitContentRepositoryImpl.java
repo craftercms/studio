@@ -1222,7 +1222,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 	}
 
 	@Override
-	public String initialPublish(final PublishPackage publishPackage, final Collection<String> ignorePaths,
+	public String initialPublish(final PublishPackage publishPackage, final List<String> ignorePaths,
 				     final String target) throws ServiceLayerException {
 		String siteId = publishPackage.getSite().getSiteId();
 		long packageId = publishPackage.getId();
@@ -1238,9 +1238,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 			}
 			Repository repo = helper.getRepository(siteId, PUBLISHED);
 			ObjectId commitIdObject = repo.resolve(commitId);
-			List<String> ignore = new ArrayList<>(ignorePaths);
-			ignore.add(ALL_DOT_KEEP_PATTERN);
-			String treeId = helper.writeTree(repo, emptyList(), ignore, commitId, commitIdObject, taskProgress);
+			String treeId = helper.writeTree(repo, emptyList(), ignorePaths, commitId, commitIdObject, taskProgress);
 			User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
 			String newCommitId = helper.commitTree(repo, treeId, commitIdObject, gitRepoUser, helper.getCommitMessage(REPO_INITIAL_PUBLISH_COMMIT_MESSAGE));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,6 +33,8 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.task.PublishTask;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -105,6 +107,13 @@ public class SitesServiceImpl implements SitesService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
 	public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
 		return sitesServiceInternal.getPublishingStatus(siteId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
+	public TaskProgress<PublishTask.PublishTaskId, Long> getPublishingTaskProgress(String siteId, long packageId) throws SiteNotFoundException {
+		return sitesServiceInternal.getPublishingTaskProgress(siteId, packageId);
 	}
 
 	@Override

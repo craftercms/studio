@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 3 as published by
+  * the Free Software Foundation.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -702,6 +702,7 @@
 	</util:list>
 
 	<bean id="publishingQueueProbeTask" class="org.craftercms.studio.impl.v2.publish.PublishingQueueProbeTask">
+		<constructor-arg name="period" value="#{studioConfiguration.getProperty('studio.clockJob.task.publisher.period')}"/>
 	</bean>
 
 	<bean id="publisher" class="org.craftercms.studio.impl.v2.publish.Publisher">
@@ -1235,27 +1236,6 @@
 				 value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.dash')}"/>
 		<constructor-arg name="smoothExtension"
 				 value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.smooth')}"/>
-	</bean>
-
-	<!-- ////////////////////////////////////// -->
-	<!--         BOX                            -->
-	<!-- ////////////////////////////////////// -->
-	<bean id="studioBoxProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-		<constructor-arg name="profilesModule"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_MODULE)}"/>
-		<constructor-arg name="profilesPath"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
-		<constructor-arg name="profileMapper">
-			<bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
-				<constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
-			</bean>
-		</constructor-arg>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
-		<constructor-arg name="contextManager" ref="contextManager"/>
-	</bean>
-
-	<bean id="studioBoxService" class="org.craftercms.studio.impl.v1.service.box.BoxServiceImpl">
-		<constructor-arg name="profileLoader" ref="studioBoxProfileLoader"/>
 	</bean>
 
 	<!-- ////////////////////////////////////// -->
