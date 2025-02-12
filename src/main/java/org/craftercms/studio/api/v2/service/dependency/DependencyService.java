@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
+import org.craftercms.studio.model.publish.CalculatedPublishItem;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 
 import java.util.Collection;
@@ -52,7 +53,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of soft dependencies
 	 */
-	Collection<String> getPublishingSoftDependencies(String site, Set<String> paths, String target);
+	Collection<CalculatedPublishItem> getPublishingSoftDependencies(String site, Set<String> paths, String target);
 
 	/**
 	 * Get then hard dependencies of an item. A hard
@@ -67,7 +68,7 @@ public interface DependencyService {
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
 	 */
-	Collection<String> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
+	Collection<CalculatedPublishItem> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
 		throws ServiceLayerException;
 
 	/**
@@ -80,7 +81,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of hard dependencies
 	 */
-	Collection<String> getHardDependencies(String site, Collection<String> paths);
+	Collection<CalculatedPublishItem> getHardDependencies(String site, Collection<String> paths);
 
 	/**
 	 * Get list of paths of content items that are dependant on given paths

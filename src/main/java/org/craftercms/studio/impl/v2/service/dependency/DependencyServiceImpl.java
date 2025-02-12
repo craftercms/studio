@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.model.publish.CalculatedPublishItem;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
@@ -56,8 +57,8 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Collection<String> getPublishingSoftDependencies(@SiteId String siteId,
-								@ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths, String target) {
+	public Collection<CalculatedPublishItem> getPublishingSoftDependencies(@SiteId String siteId,
+																		   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths, String target) {
 		return dependencyServiceInternal.getPublishingSoftDependencies(siteId, paths, target);
 	}
 
@@ -72,16 +73,15 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget,
-						      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws ServiceLayerException {
+	public Collection<CalculatedPublishItem> getHardDependencies(@SiteId String site, String publishingTarget,
+																 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws ServiceLayerException {
 		return dependencyServiceInternal.getHardDependencies(site, publishingTarget, paths);
 	}
 
 	@Override
-	public Collection<String> getHardDependencies(String site, Collection<String> paths) {
+	public Collection<CalculatedPublishItem> getHardDependencies(String site, Collection<String> paths) {
 		return dependencyServiceInternal.getHardDependencies(site, paths);
 	}
-
 
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)

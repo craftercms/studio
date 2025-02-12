@@ -53,6 +53,21 @@
 		<association property="itemMetadata" columnPrefix="meta_" resultMap="PublishItemMetadataMap"/>
 	</resultMap>
 
+	<resultMap id="CalculatedPublishItemMap" type="org.craftercms.studio.model.publish.CalculatedPublishItem"
+			   autoMapping="true">
+		<association property="metadata" columnPrefix="meta_" resultMap="PublishItemMetadataMap"/>
+	</resultMap>
+
+	<select id="getMetadata" resultMap="CalculatedPublishItemMap">
+		SELECT i.path as path, i.label as meta_label, i.system_type as meta_system_type, i.mime_type as meta_mime_type
+		FROM item i INNER JOIN site s ON i.site_id = s.id
+		WHERE i.path IN
+			<foreach collection="paths" item="path" open="(" separator="," close=")">
+				#{path}
+			</foreach>
+		AND s.site_id = #{siteId}
+	</select>
+
 	<insert id="insertPackage"
 		useGeneratedKeys="true"
 		keyProperty="publishPackage.id">

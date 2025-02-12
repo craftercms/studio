@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.model.publish.CalculatedPublishItem;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.craftercms.studio.model.rest.dependency.GetSoftDependenciesRequestBody;
@@ -51,7 +52,7 @@ public class DependencyController {
 	@PostMapping(DEPENDENCIES)
 	public ResultOne<Map<String, Collection<String>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
 		Collection<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
-		Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
+		Collection<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths()).stream().map(CalculatedPublishItem::getPath).toList();
 
 		softDeps.removeAll(hardDeps);
 

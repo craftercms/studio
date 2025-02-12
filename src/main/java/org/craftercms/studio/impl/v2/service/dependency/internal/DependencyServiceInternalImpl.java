@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.model.publish.CalculatedPublishItem;
 import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,21 +85,13 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@LogExecutionTime
-	public Collection<String> getPublishingSoftDependencies(final String site, final Set<String> paths, String target) {
+	public Collection<CalculatedPublishItem> getPublishingSoftDependencies(final String site, final Set<String> paths, String target) {
 		logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
 		if (isEmpty(paths)) {
 			return emptyList();
 		}
-		Set<String> result = new HashSet<>();
-		List<Map<String, String>> deps = dependencyDao.getPublishingSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+		return dependencyDao.getPublishingSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
 			MODIFIED_MASK, NEW_MASK, target);
-		for (Map<String, String> d : deps) {
-			String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-			if (!paths.contains(targetPath)) {
-				result.add(targetPath);
-			}
-		}
-		return result;
 	}
 
 	protected List<String> getItemSpecificDependenciesPatterns() {
@@ -113,18 +106,17 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@RequireSiteExists
-	public Collection<String> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
+	public Collection<CalculatedPublishItem> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
 		if (isEmpty(paths)) {
 			return emptyList();
 		}
 		boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site), publishingTarget);
-		// TODO: review this and see if we need to recalculate so the renamed parents/children of hard deps are included
 		return dependencyDao.getHardDependenciesForList(site, publishingTarget, paths,
 			getItemSpecificDependenciesPatterns(), isLiveTarget);
 	}
 
 	@Override
-	public Collection<String> getHardDependencies(String site, Collection<String> paths) {
+	public Collection<CalculatedPublishItem> getHardDependencies(String site, Collection<String> paths) {
 		String liveTarget = servicesConfig.getLiveEnvironment(site);
 		// Default to live target for backwards compatibility
 		return getHardDependencies(site, liveTarget, paths);
