@@ -6211,9 +6211,12 @@ paths:
                                             items:
                                                 type: array
                                                 items:
-                                                    type: string
-                                                    description: the item path
-                                                    example: "/site/website/article1/index.xml"
+                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                example:
+                                                    - path: "/site/website/article1/index.xml"
+                                                      label: "Article 1"
+                                                      systemType: page
+                                                      mimeType: application/xml
                                             deletedItems:
                                                 type: array
                                                 items:
@@ -6223,13 +6226,21 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
-                                                    example: "/templates/web/article.ftl"
+                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                example:
+                                                    - path: "/templates/web/article.ftl"
+                                                      label: article.ftl
+                                                      systemType: renderingTemplate
+                                                      mimeType: text/x-freemarker
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
-                                                    example: "/static-assets/images/background.png"
+                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                example:
+                                                    - path: "/static-assets/images/background.png"
+                                                      label: background.png
+                                                      systemType: asset
+                                                      mimeType: image/png
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -6596,9 +6607,12 @@ paths:
                                             items:
                                                 type: array
                                                 items:
-                                                    type: string
-                                                    description: the item path
-                                                    example: "/site/website/article1/index.xml"
+                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                example:
+                                                    - path: "/site/website/article1/index.xml"
+                                                      label: "Article 1"
+                                                      systemType: page
+                                                      mimeType: application/xml
                                             deletedItems:
                                                 type: array
                                                 items:
@@ -6608,13 +6622,21 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
-                                                    example: "/templates/web/article.ftl"
+                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                example:
+                                                    - path: "/templates/web/article.ftl"
+                                                      label: article.ftl
+                                                      systemType: renderingTemplate
+                                                      mimeType: text/x-freemarker
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
-                                                    example: "/static-assets/images/background.png"
+                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                example:
+                                                    - path: "/static-assets/images/background.png"
+                                                      label: background.png
+                                                      systemType: asset
+                                                      mimeType: image/png
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -9471,6 +9493,23 @@ components:
                         mimeType:
                             type: string
                             description: mime-type of content item file
+
+        CalculatedPublishItem:
+            type: object
+            description: calculated publish item metadata
+            properties:
+                path:
+                    type: string
+                    description: path of the content item
+                label:
+                    type: string
+                    description: content item label (internal-name)
+                systemType:
+                    type: string
+                    description: one of predefined type values (page, component, asset, levelDescriptor, folder ...)
+                mimeType:
+                    type: string
+                    description: mime-type of content item file
 
         PublishTaskProgress:
             type: object
