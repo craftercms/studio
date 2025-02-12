@@ -9500,16 +9500,16 @@ components:
             properties:
                 path:
                     type: string
-                    description: path of the content item
+                    description: the path of the content item
                 label:
                     type: string
                     description: content item label (internal-name)
                 systemType:
                     type: string
-                    description: one of predefined type values (page, component, asset, levelDescriptor, folder ...)
+                    description: one of the predefined type values (page, component, asset, levelDescriptor, folder ...)
                 mimeType:
                     type: string
-                    description: mime-type of content item file
+                    description: MIME-type of the content item file
 
         PublishTaskProgress:
             type: object
