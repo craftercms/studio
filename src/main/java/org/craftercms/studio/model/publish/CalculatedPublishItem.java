@@ -14,24 +14,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.model.publish;
 
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata;
 
 /**
- * @author Dejan Brkic
+ * Represents an item of a publish package being calculated.
  */
-public interface DependencyMapper {
+public class CalculatedPublishItem {
+	private String path;
+	private PublishItemMetadata metadata;
 
-	String SITE_PARAM = "site";
-	String PATHS_PARAM = "paths";
-	String REGEX_PARAM = "regex";
+	public void setMetadata(PublishItemMetadata metadata) {
+		this.metadata = metadata;
+	}
 
-	List<String> getDependenciesForList(Map params);
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-	List<String> getItemSpecificDependenciesForList(Map params);
+	@JsonUnwrapped
+	public PublishItemMetadata getMetadata() {
+		return metadata;
+	}
 
-	@Deprecated
-	List<String> getItemsDependingOn(Map params);
+	public String getPath() {
+		return path;
+	}
 }

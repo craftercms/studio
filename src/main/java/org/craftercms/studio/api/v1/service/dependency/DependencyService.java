@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,8 +19,6 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -31,38 +29,6 @@ import java.util.Set;
  * @author Sumer Jabri
  */
 public interface DependencyService {
-
-	/**
-	 * Get a all publishing dependencies of a list of items. A publishing
-	 * dependency is:
-	 * * Never-published item that this item depends on
-	 * * Item-specific dependency that has been modified but not published
-	 *
-	 * @param site Site to operate on
-	 * @param path Paths to item to retrieve deps for
-	 * @return list of mandatory dependencies paths for publishing
-	 * @throws SiteNotFoundException    Site doesn't exist
-	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceLayerException    Internal error, see exception details
-	 */
-	Collection<String> getPublishingDependencies(String site, String path)
-		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-	/**
-	 * Get a all publishing dependencies of a list of items. A publishing
-	 * dependency is:
-	 * * Never-published item that this item depends on
-	 * * Item-specific dependency that has been modified but not published
-	 *
-	 * @param site  Site to operate on
-	 * @param paths List of paths to items to retrieve deps for
-	 * @return list of mandatory dependencies paths for publishing
-	 * @throws SiteNotFoundException    Site doesn't exist
-	 * @throws ContentNotFoundException One or more paths doesn't exist
-	 * @throws ServiceLayerException    Internal error, see exception details
-	 */
-	Collection<String> getPublishingDependencies(String site, List<String> paths)
-		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get item-specific dependencies of an item. An item-specific
@@ -111,14 +77,6 @@ public interface DependencyService {
 		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
-	 * Delete all dependencies from the database for a given site.
-	 *
-	 * @param site Site to operate on
-	 * @throws ServiceLayerException Internal error, see exception details
-	 */
-	void deleteSiteDependencies(String site) throws ServiceLayerException;
-
-	/**
 	 * @param site Site to operate on
 	 * @param path Path to item to retrieve delete dependencies for
 	 * @return Set of paths included as delete dependencies
@@ -127,16 +85,5 @@ public interface DependencyService {
 	 * @throws ServiceLayerException    Internal error
 	 */
 	Set<String> getDeleteDependencies(String site, String path)
-		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-	/**
-	 * @param site  Site to operate on
-	 * @param paths Paths to items to retrieve delete dependencies for
-	 * @return Set of paths included as delete dependencies
-	 * @throws SiteNotFoundException    Site doesn't exist
-	 * @throws ContentNotFoundException Content doesn't exist
-	 * @throws ServiceLayerException    Internal error
-	 */
-	Set<String> getDeleteDependencies(String site, List<String> paths)
 		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 }

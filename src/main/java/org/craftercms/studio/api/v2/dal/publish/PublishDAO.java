@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
+import org.craftercms.studio.model.publish.CalculatedPublishItem;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -674,4 +675,14 @@ public interface PublishDAO {
 												  @Param(ACTION) PublishItem.Action action,
 												  @Param(COMPLETED_STATE) long completedState);
 
+	/**
+	 * Get a list of {@link CalculatedPublishItem} for the given site and paths, containing
+	 * the paths metadata to be returned as part of a calculated (or re-calculated) publish package
+	 *
+	 * @param siteId the site id
+	 * @param paths  the paths to get metadata for
+	 * @return a list of {@link CalculatedPublishItem} containing the metadata for the given paths
+	 */
+	Collection<CalculatedPublishItem> getMetadata(@Param(SITE_ID) String siteId,
+												  @Param(PATHS) Set<String> paths);
 }
