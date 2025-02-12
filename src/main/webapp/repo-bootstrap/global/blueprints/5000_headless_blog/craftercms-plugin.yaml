@@ -16,7 +16,7 @@ plugin:
   version:
     major: 1
     minor: 0
-    patch: 0
+    patch: 1
   description: |
     Headless blog blueprint
   website:
@@ -41,16 +41,12 @@ plugin:
   crafterCmsVersions:
     - major: 4
       minor: 0
-      patch: 0
     - major: 4
-      minor: 0
-      patch: 1
+      minor: 1
     - major: 4
-      minor: 0
-      patch: 2
+      minor: 2
     - major: 4
-      minor: 0
-      patch: 3
+      minor: 3
   crafterCmsEditions:
     - community
     - enterprise

@@ -735,17 +735,17 @@ pipelines:
                 dest: /configuration/samples/sample-config-list.xml
                 commitDetails: Remove box configs
       - currentVersion: 4.2.0.20
-          nextVersion: 4.3.0.0
-          operations:
-            - type: globalRepoUpgrader
-              files:
-                - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
-                  dest: configuration/samples/sample-permission-mappings-config.xml
-                  commitDetails: Remove unused permissions
-            - type: xsltFileUpgrader
-              path: /configuration/global-permission-mappings-config.xml
-              template: crafter/studio/upgrade/4.3.x/system/global-permission-mappings-config-v4.3.0.0.xslt
-              commitDetails: Remove unused permissions
+        nextVersion: 4.3.0.0
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                dest: configuration/samples/sample-permission-mappings-config.xml
+                commitDetails: Remove unused permissions
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.3.x/system/global-permission-mappings-config-v4.3.0.0.xslt
+            commitDetails: Remove unused permissions
 
   # Pipeline to upgrade site repositories
   site:
