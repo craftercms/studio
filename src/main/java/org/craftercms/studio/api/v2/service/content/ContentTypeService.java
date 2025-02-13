@@ -54,6 +54,15 @@ public interface ContentTypeService {
     ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId, String contentTypeId) throws ServiceLayerException;
 
     /**
+     * Get the form-controller.js file for a given content-type
+     *
+     * @param siteId        the id of the site
+     * @param contentTypeId the id of the content-type
+     * @return the form-controller.js file as a pair of path and resource, if exists, null otherwise
+     */
+    ImmutablePair<String, Resource> getContentTypeFormController(String siteId, String contentTypeId) throws ServiceLayerException;
+
+    /**
      * Deletes all files related to a given content-type
      *
      * @param siteId the id of the site
