@@ -79,6 +79,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         return contentTypeServiceInternal.getContentTypePreviewImage(siteId, contentTypeId);
     }
 
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public ImmutablePair<String, Resource> getContentTypeFormController(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
+        return contentTypeServiceInternal.getContentTypeFormController(siteId, contentTypeId);
+    }
+
     /**
      * Deletes all files related to a given content-type
      *
