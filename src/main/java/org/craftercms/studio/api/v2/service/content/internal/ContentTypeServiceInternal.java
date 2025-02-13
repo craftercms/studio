@@ -70,6 +70,15 @@ public interface ContentTypeServiceInternal {
 		throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**
+	 * Get the form-controller.js file for a given content-type
+	 *
+	 * @param siteId        the id of the site
+	 * @param contentTypeId the id of the content-type
+	 * @return the form-controller.js file as a pair of path and resource, if exists, null otherwise
+	 */
+	ImmutablePair<String, Resource> getContentTypeFormController(String siteId, String contentTypeId) throws ServiceLayerException;
+
+	/**
 	 * Builds the path of the Groovy controller for a given content type id
 	 *
 	 * @param contentTypeId the id of the content type

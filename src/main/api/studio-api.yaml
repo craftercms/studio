@@ -4764,6 +4764,53 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/configuration/content-type/form_controller:
+        get:
+          tags:
+            - configuration
+          summary: Get the form controller (if it exists) script of a given content type
+          description: 'Required permission "content_read"'
+          operationId: getContentTypeFormController
+          parameters:
+            - name: siteId
+              in: query
+              description: site ID
+              required: true
+              schema:
+                type: string
+            - name: contentTypeId
+              in: query
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: 'OK'
+              content:
+                '*/*':
+                  schema:
+                    type: string
+                    format: binary
+                    description: The content of the form controller file
+              headers:
+                Content-Type:
+                  description: The MIME type of the form controller file
+                  schema:
+                    type: string
+                Content-Length:
+                  description: The size in bytes of the form controller file
+                  schema:
+                    type: integer
+                    format: int64
+            '400':
+              $ref: '#/components/responses/BadRequest'
+            '401':
+              $ref: '#/components/responses/Unauthorized'
+            '404':
+              $ref: '#/components/responses/NotFound'
+            '500':
+              $ref: '#/components/responses/InternalServerError'
+
     /api/2/configuration/content-type/delete:
         post:
             tags:
