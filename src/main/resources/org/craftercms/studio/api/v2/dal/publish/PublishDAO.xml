@@ -330,13 +330,15 @@
 	<select id="getMatchingPublishItemCount">
 		SELECT COUNT(1)
 		FROM (
-		<bind name="includeMetadata" value="true"/>
+		<bind name="state" value="null"/>
+		<bind name="includeMetadata" value="false"/>
 		<include refid="getPublishItemsQuery"/>
 		) AS tbl
 	</select>
 
 	<select id="getPublishItemsWithMetadata" resultMap="PublishItemMapWithMetadata">
 		<bind name="includeMetadata" value="true"/>
+		<bind name="state" value="null"/>
 		<include refid="getPublishItemsQuery"/>
 		<include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
 	</select>
