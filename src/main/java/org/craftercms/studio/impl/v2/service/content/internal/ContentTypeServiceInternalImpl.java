@@ -85,20 +85,22 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 	protected final String controllerFormat;
 	protected final String previewImageXPath;
 	protected final String defaultPreviewImagePath;
+	protected final String formControllerFilePath;
 	private final GitRepositoryHelper gitRepositoryHelper;
 
 	@ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
 		"contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
 		"contentTypesRootPath",
 		"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
-		"gitRepositoryHelper"})
+		"formControllerFilePath", "gitRepositoryHelper"})
 	public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
-					      ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
-					      String contentTypeDefinitionFilename, String contentTypeConfigFilename,
-					      String contentTypesRootPath, String templateXPath,
-					      String controllerPattern, String controllerFormat,
-					      String previewImageXPath, String defaultPreviewImagePath,
-					      GitRepositoryHelper gitRepositoryHelper) {
+										  ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
+										  String contentTypeDefinitionFilename, String contentTypeConfigFilename,
+										  String contentTypesRootPath, String templateXPath,
+										  String controllerPattern, String controllerFormat,
+										  String previewImageXPath, String defaultPreviewImagePath,
+										  String formControllerFilePath,
+										  GitRepositoryHelper gitRepositoryHelper) {
 		this.contentTypeService = contentTypeService;
 		this.securityService = securityService;
 		this.configurationService = configurationService;
@@ -112,6 +114,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 		this.controllerFormat = controllerFormat;
 		this.previewImageXPath = previewImageXPath;
 		this.defaultPreviewImagePath = defaultPreviewImagePath;
+		this.formControllerFilePath = formControllerFilePath;
 		this.gitRepositoryHelper = gitRepositoryHelper;
 	}
 
@@ -172,10 +175,20 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 		boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
 		if (hasPreviewImage) {
 			String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
-			return (new ImmutablePair(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
+			return (new ImmutablePair<>(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
 		}
 
-		return (new ImmutablePair(defaultPreviewImagePath, new ClassPathResource(defaultPreviewImagePath)));
+		return (new ImmutablePair<>(defaultPreviewImagePath, new ClassPathResource(defaultPreviewImagePath)));
+	}
+
+	@Override
+	public ImmutablePair<String, Resource> getContentTypeFormController(String siteId, String contentTypeId) throws ServiceLayerException {
+		if (contentService.contentExists(siteId, UrlUtils.concat(getContentTypePath(contentTypeId), contentTypeDefinitionFilename))) {
+			String controllerPath = UrlUtils.concat(getContentTypePath(contentTypeId), formControllerFilePath);
+			return new ImmutablePair<>(controllerPath, contentService.getContentAsResource(siteId, controllerPath));
+		}
+
+		throw new ContentNotFoundException(contentTypeId, siteId, "Content-Type not found");
 	}
 
 	@Override

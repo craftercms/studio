@@ -507,6 +507,8 @@
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.previewImage.xpath')}"/>
 		<constructor-arg name="defaultPreviewImagePath"
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.defaultPreviewImagePath')}"/>
+		<constructor-arg name="formControllerFilePath"
+				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.formControllerFilePath')}" />
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
 		<!-- TODO: Break circular dependency with this bean -->
 		<property name="contentService" ref="contentService"/>

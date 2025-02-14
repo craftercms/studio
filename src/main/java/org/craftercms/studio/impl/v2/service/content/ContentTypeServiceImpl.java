@@ -97,6 +97,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
 	@Override
 	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public ImmutablePair<String, Resource> getContentTypeFormController(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getContentTypeFormController(siteId, contentTypeId);
+	}
+
+	@Override
+	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
 	public Collection<String> getAllModelDefinitions(@SiteId final String site) throws ServiceLayerException {
 		return contentTypeServiceInternal.getAllModelDefinitions(site);

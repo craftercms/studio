@@ -260,6 +260,8 @@ studio.configuration.contentType.defaultPreviewImagePath: "crafter/studio/conten
 studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
 # Format string for the controller script of a content-type
 studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
+# Path for the content type form controller script
+studio.configuration.contentType.formControllerFilePath: form-controller.js
 
 # Paths matching git pathspecs on this list will never be published.
 # For information on git pathspec, see https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathspecapathspec
