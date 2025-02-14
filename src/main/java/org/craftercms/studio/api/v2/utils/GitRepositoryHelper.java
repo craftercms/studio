@@ -132,7 +132,6 @@ public class GitRepositoryHelper implements DisposableBean {
 	private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 	private AuthConfiguratorFactory authConfiguratorFactory;
 	private GitCli gitCli;
-	private boolean gitCliEnabled;
 
 	private final Cache<String, Repository> repositoryCache = CacheBuilder.newBuilder().build();
 
@@ -1188,26 +1187,16 @@ public class GitRepositoryHelper implements DisposableBean {
 
 		if (ArrayUtils.isNotEmpty(paths)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Add files to git in site '{}' paths '{}', gitCliEnabled is '{}'", site,
-					ArrayUtils.toString(paths), gitCliEnabled);
+				logger.debug("Add files to git in site '{}' paths '{}' using Git CLI", site, ArrayUtils.toString(paths));
 			}
 
 			String gitLockKey = getSandboxRepoLockKey(site);
 			generalLockService.lock(gitLockKey);
 			try {
-				if (gitCliEnabled) {
-					retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-						gitCli.add(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
-						return null;
-					});
-				} else {
-					try (Git git = new Git(repo)) {
-						AddCommand addCommand = git.add();
-						Arrays.stream(paths).forEach(p -> addCommand.addFilepattern(getGitPath(p)));
-						retryingRepositoryOperationFacade.call(addCommand);
-					}
-				}
-
+				retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
+					gitCli.add(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+					return null;
+				});
 				result = true;
 			} catch (Exception e) {
 				logger.error("Failed to add files to git in site '{}' paths '{}'",
@@ -1237,38 +1226,25 @@ public class GitRepositoryHelper implements DisposableBean {
 			return null;
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("Commit files to git in site '{}' paths '{}', gitCliEnabled is '{}'", site,
-				ArrayUtils.toString(paths), gitCliEnabled);
+			logger.debug("Commit files to git in site '{}' paths '{}' using Git CLI", site, ArrayUtils.toString(paths));
 		}
 
 		String gitLockKey = getSandboxRepoLockKey(site, true);
 		generalLockService.lock(gitLockKey);
 		String commitId = null;
 		try {
-			if (gitCliEnabled) {
-				String author = user.getName() + " <" + user.getEmailAddress() + ">";
+			String author = user.getName() + " <" + user.getEmailAddress() + ">";
 
-				commitId = retryingRepositoryOperationFacade.call(
-					() -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
-						author, comment, getGitPaths(paths)));
-				// Check if commit id matches jgit
-				ObjectId jgitHead = repo.resolve(HEAD);
-				if (StringUtils.equals(jgitHead.getName(), commitId)) {
-					logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHead.getName(), commitId);
-				} else {
-					logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHead.getName(), commitId);
-					reloadSiteRepository(site, SANDBOX);
-				}
+			commitId = retryingRepositoryOperationFacade.call(
+				() -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
+					author, comment, getGitPaths(paths)));
+			// Check if commit id matches jgit
+			ObjectId jgitHead = repo.resolve(HEAD);
+			if (StringUtils.equals(jgitHead.getName(), commitId)) {
+				logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHead.getName(), commitId);
 			} else {
-				try (Git git = new Git(repo)) {
-					CommitCommand commitCommand = git.commit()
-						.setAuthor(user)
-						.setCommitter(user)
-						.setMessage(comment);
-					Arrays.stream(paths).forEach(p -> commitCommand.setOnly(getGitPath(p)));
-					RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
-					commitId = commit.getName();
-				}
+				logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHead.getName(), commitId);
+				reloadSiteRepository(site, SANDBOX);
 			}
 		} catch (Exception e) {
 			Throwable cause = ExceptionUtils.getRootCause(e);
@@ -1305,26 +1281,15 @@ public class GitRepositoryHelper implements DisposableBean {
 		}
 
 		String siteDescription = isEmpty(siteId) ? "global site" : format("site '%s' git repository '%s'", siteId, gitRepository);
-
-		if (gitCliEnabled) {
-			logger.debug("Start git gc for {} using CGit", siteDescription);
-			try {
-				retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-					gitCli.gc(repo.getWorkTree().getAbsolutePath());
-					return null;
-				});
-				logger.debug("Completed git gc for {} using CGit", siteDescription);
-			} catch (Exception e) {
-				logger.error("Failed to garbage collect the git repository in {}", siteDescription, e);
-			}
-		} else {
-			logger.debug("Start git gc for {} using JGit", siteDescription);
-			try (Git git = new Git(repo)) {
-				retryingRepositoryOperationFacade.call(git.gc());
-				logger.debug("Completed git gc for {} using JGit", siteDescription);
-			} catch (GitAPIException e) {
-				logger.error("Failed to garbage collect the git repository in {}", siteDescription, e);
-			}
+		logger.debug("Start git gc for {} using CGit", siteDescription);
+		try {
+			retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
+				gitCli.gc(repo.getWorkTree().getAbsolutePath());
+				return null;
+			});
+			logger.debug("Completed git gc for {} using CGit", siteDescription);
+		} catch (Exception e) {
+			logger.error("Failed to garbage collect the git repository in {}", siteDescription, e);
 		}
 	}
 
@@ -1363,27 +1328,10 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @param paths the paths
 	 */
 	private void restorePaths(Repository repo, String site, String... paths) {
-		// TODO: JM: Refactor this class to implement Strategy pattern and get rid of these if-else statements
-		if (gitCliEnabled) {
-			try {
-				gitCli.restore(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
-			} catch (GitCliException e) {
-				logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
-			}
-		} else {
-			try (Git git = new Git(repo)) {
-				// Remove from index
-				ResetCommand resetCommand = git.reset();
-				Arrays.stream(paths).forEach(p -> resetCommand.addPath(getGitPath(p)));
-				retryingRepositoryOperationFacade.call(resetCommand);
-
-				// Discard changes
-				CheckoutCommand checkoutCommand = git.checkout();
-				Arrays.stream(paths).forEach(p -> checkoutCommand.addPath(getGitPath(p)));
-				retryingRepositoryOperationFacade.call(checkoutCommand);
-			} catch (GitAPIException e) {
-				logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
-			}
+		try {
+			gitCli.restore(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+		} catch (GitCliException e) {
+			logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
 		}
 	}
 
@@ -1501,10 +1449,6 @@ public class GitRepositoryHelper implements DisposableBean {
 
 	public void setGitCli(GitCli gitCli) {
 		this.gitCli = gitCli;
-	}
-
-	public void setGitCliEnabled(boolean gitCliEnabled) {
-		this.gitCliEnabled = gitCliEnabled;
 	}
 
 	/**
