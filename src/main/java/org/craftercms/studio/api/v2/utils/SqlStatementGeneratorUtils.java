@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -88,9 +88,9 @@ public final class SqlStatementGeneratorUtils {
 
 	public static final String DEPENDENCIES_DELETE = """
 		DELETE FROM dependency WHERE site = '#{site}' AND source_path = '#{path}' ;
-		
+
 		UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;
-		
+
 		""";
 	private static final String DEPENDENCIES_INVALIDATE =
 		"UPDATE dependency SET valid = 0 WHERE site = '#{site}' AND target_path = '#{path}' ;\n\n";

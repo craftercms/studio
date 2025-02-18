@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -92,12 +92,12 @@ public interface ItemServiceInternal {
 
 	/**
 	 * Delete item with the given path.
-	 * Notice that the parent folder will be deleted if path corresponds to a page.
 	 *
 	 * @param siteId siteIdentifier
 	 * @param path   path of item to be deleted
+	 * @param removePageParentFolder flag to indicate that parent folder for page should be removed if path corresponds to a page
 	 */
-	void deleteItem(long siteId, String path);
+	void deleteItem(long siteId, String path, boolean removePageParentFolder);
 
 	/**
 	 * Set system processing for item

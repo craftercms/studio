@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,16 +16,19 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
+import org.craftercms.studio.api.v2.dal.Dependency;
+import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -109,6 +112,76 @@ public class DependencyUtils {
 					Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Update the dependencies for the given path
+	 *
+	 * @param siteId            the site id
+	 * @param path              the content item path
+	 * @param oldPath           the content item old path
+	 * @param dependencyService the dependency service
+	 * @param dependencyDAO     the dependency DAO
+	 */
+	public static void updateDependencies(String siteId, String path, String oldPath,
+										  DependencyService dependencyService, DependencyDAO dependencyDAO) {
+		updateDependencies(siteId, path, oldPath, dependencyService, dependencyDAO, true, true);
+	}
+
+	/**
+	 * Update the dependencies for the given path
+	 *
+	 * @param siteId            the site id
+	 * @param path              the content item path
+	 * @param oldPath           the content item old path
+	 * @param dependencyService the dependency service
+	 * @param dependencyDAO     the dependency DAO
+	 * @param cleanExisting     if true, the existing dependencies for the path will be deleted
+	 * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
+	 */
+	public static void updateDependencies(String siteId, String path, String oldPath,
+										  DependencyService dependencyService, DependencyDAO dependencyDAO,
+										  boolean cleanExisting, boolean revalidate) {
+		if (cleanExisting) {
+			if (isEmpty(oldPath)) {
+				dependencyDAO.deleteItemDependencies(siteId, path);
+			} else {
+				dependencyDAO.deleteItemDependencies(siteId, oldPath);
+				// Invalidate existing dependencies pointing to the old item path
+				dependencyDAO.invalidateDependencies(siteId, oldPath);
+			}
+		}
+		if (revalidate) {
+			// Validate existing broken dependencies pointing to the item path
+			dependencyDAO.validateDependencies(siteId, path);
+		}
+
+		if (!dependencyService.isValidDependencySource(siteId, path)) {
+			// Path is not a valid dependency source. e.g.: an image or a txt
+			return;
+		}
+		Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
+		if (MapUtils.isEmpty(dependencies)) {
+			return;
+		}
+
+		List<Dependency> newDependencies = dependencies.entrySet().stream()
+			.flatMap(entry -> entry.getValue().stream()
+				.filter(dependency -> isValidDependencyPath(dependency.path()))
+				.map(dependency -> {
+					Dependency newDependency = new Dependency();
+					newDependency.setSite(siteId);
+					newDependency.setSourcePath(path);
+					newDependency.setTargetPath(dependency.path());
+					newDependency.setType(entry.getKey());
+					newDependency.setValid(dependency.valid());
+					return newDependency;
+				})
+			)
+			.toList();
+		for (List<Dependency> batchDependencies : ListUtils.partition(newDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
+			dependencyDAO.insertItemDependencies(batchDependencies);
 		}
 	}
 

@@ -18,10 +18,12 @@ package org.craftercms.studio.impl.v2.sync;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -61,18 +63,14 @@ import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.time.Instant.now;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
@@ -82,11 +80,9 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PATH_PATTERNS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_CANCELLED_PACKAGE_COMMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 /**
@@ -95,9 +91,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
-	private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
 	private static final String DEFAULT_CANCELLED_PACKAGE_COMMENT = "Cancelled because of conflicts with changes from repository sync process";
-	private final static int GENERATED_SQL_BATCH_SIZE = 10000;
 
 	private static final Set<RepoOperation.Action> CREATED_PATH_ACTIONS = Set.of(RepoOperation.Action.CREATE, RepoOperation.Action.COPY, RepoOperation.Action.MOVE);
 	private static final String EMPTY_FILE_END = FILE_SEPARATOR + EMPTY_FILE;
@@ -116,6 +110,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private final StudioConfiguration studioConfiguration;
 	private final ProcessedCommitsDAO processedCommitsDAO;
 	private final PublishDAO publishDao;
+	private final ItemDAO itemDao;
+	private final DependencyDAO dependencyDao;
+	private final SqlSessionFactory sqlSessionFactory;
 	private final ServicesConfig servicesConfig;
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private ApplicationEventPublisher eventPublisher;
@@ -126,7 +123,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		"userServiceInternal", "itemServiceInternal",
 		"contentService", "configurationService",
 		"contentRepository", "studioConfiguration",
-		"processedCommitsDAO", "publishDao",
+		"processedCommitsDAO", "publishDao", "itemDao", "dependencyDao", "sqlSessionFactory",
 		"servicesConfig", "retryingDatabaseOperationFacade"})
 	public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
 				      AuditServiceInternal auditServiceInternal,
@@ -134,7 +131,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				      UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
 				      ContentService contentService, ConfigurationService configurationService,
 				      GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
-				      ProcessedCommitsDAO processedCommitsDAO, PublishDAO publishDao,
+				      ProcessedCommitsDAO processedCommitsDAO, PublishDAO publishDao, ItemDAO itemDao, DependencyDAO dependencyDao,
+					  SqlSessionFactory sqlSessionFactory,
 				      ServicesConfig servicesConfig, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
 		this.sitesService = sitesService;
 		this.generalLockService = generalLockService;
@@ -149,6 +147,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		this.studioConfiguration = studioConfiguration;
 		this.processedCommitsDAO = processedCommitsDAO;
 		this.publishDao = publishDao;
+		this.itemDao = itemDao;
+		this.sqlSessionFactory = sqlSessionFactory;
+		this.dependencyDao = dependencyDao;
 		this.servicesConfig = servicesConfig;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
@@ -387,33 +388,12 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param site                The site being synced
 	 * @param repoOperationsDelta The repo operations to apply
 	 */
-	private void syncDatabaseWithRepo(Site site, List<RepoOperation> repoOperationsDelta)
-		throws Exception {
-		StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-		Path repoOperationsScriptPath = null;
-		try {
-			Path studioTempDir = getStudioTemporaryFilesRoot();
-			String repoOperationsScriptFilename = REPO_OPERATIONS_SCRIPT_PREFIX + UUID.randomUUID();
-			repoOperationsScriptPath = Files.createTempFile(studioTempDir, repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
-			final Path finalOperationsScript = repoOperationsScriptPath;
-			final Set<String> allAncestors = new HashSet<>();
-			for (List<RepoOperation> chunk : ListUtils.partition(repoOperationsDelta, GENERATED_SQL_BATCH_SIZE)) {
-				Files.writeString(finalOperationsScript, EMPTY, UTF_8, TRUNCATE_EXISTING);
-				TimeUtils.logExecutionTime(() -> processRepoOperations(site, chunk, finalOperationsScript, allAncestors), logger, "Process repo operations", Level.DEBUG);
-				TimeUtils.logExecutionTimeThrowing(() -> studioDBScriptRunner.execute(finalOperationsScript, true), logger, "Executing SQL script", Level.DEBUG);
-				TimeUtils.logExecutionTime(() -> updateParentId(site, getCreatedPaths(chunk)), logger, "Update parent id", Level.DEBUG);
-				TimeUtils.logExecutionTime(() -> addMissingEmptyFiles(site, getCreatedPaths(chunk)), logger, "Add missing empty files", Level.DEBUG);
-			}
-			TimeUtils.logExecutionTime(() -> updateParentId(site, allAncestors.stream().toList()), logger, "Update parent id for created paths' ancestors", Level.DEBUG);
-		} catch (SQLException | IOException e) {
-			logger.error("Failed to create the database script for processing the created files in site '{}'", site);
-			throw e;
-		} finally {
-			if (repoOperationsScriptPath != null) {
-				logger.debug("Deleting temporary file '{}'", repoOperationsScriptPath);
-				FileUtils.deleteQuietly(repoOperationsScriptPath.toFile());
-			}
-		}
+	private void syncDatabaseWithRepo(Site site, List<RepoOperation> repoOperationsDelta) {
+		final Set<String> allAncestors = new HashSet<>();
+		TimeUtils.logExecutionTime(() -> processRepoOperations(site, repoOperationsDelta, allAncestors), logger, "Process repo operations", Level.DEBUG);
+		TimeUtils.logExecutionTime(() -> updateParentId(site, getCreatedPaths(repoOperationsDelta)), logger, "Update parent id", Level.DEBUG);
+		TimeUtils.logExecutionTime(() -> addMissingEmptyFiles(site, getCreatedPaths(repoOperationsDelta)), logger, "Add missing empty files", Level.DEBUG);
+		TimeUtils.logExecutionTime(() -> updateParentId(site, allAncestors.stream().toList()), logger, "Update parent id for created paths' ancestors", Level.DEBUG);
 	}
 
 	/**
@@ -527,19 +507,17 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 *
 	 * @param site                     The site being synced
 	 * @param repoOperations           The repo operations to apply
-	 * @param repoOperationsScriptPath The path to the generated database script
-	 * @throws IOException if an error occurs while generating the database script
 	 */
 	private void processRepoOperations(Site site, List<RepoOperation> repoOperations,
-					   Path repoOperationsScriptPath, Set<String> allAncestors) throws IOException, UserNotFoundException, ServiceLayerException {
+									   Set<String> allAncestors) throws UserNotFoundException, ServiceLayerException {
 		Map<String, User> cachedUsers = new HashMap<>();
 		for (RepoOperation repoOperation : repoOperations) {
 			User user = getRepoOperationUser(repoOperation.getAuthor(), cachedUsers);
 			switch (repoOperation.getAction()) {
-				case CREATE, COPY -> processCreate(site, repoOperation, user, repoOperationsScriptPath, allAncestors);
-				case UPDATE -> processUpdate(site, repoOperation, user, repoOperationsScriptPath);
-				case DELETE -> processDelete(site, repoOperation, repoOperationsScriptPath);
-				case MOVE -> processMove(site, repoOperation, user, repoOperationsScriptPath, allAncestors);
+				case CREATE, COPY -> processCreate(site, repoOperation, user, allAncestors);
+				case UPDATE -> processUpdate(site, repoOperation, user);
+				case DELETE -> processDelete(site, repoOperation);
+				case MOVE -> processMove(site, repoOperation, user, allAncestors);
 				default -> logger.error("Failed to process unknown repo operation '{}' in site '{}'",
 					site.getSiteId(), repoOperation.getAction());
 			}
@@ -583,38 +561,62 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		return result;
 	}
 
+	/**
+	 * Process batch create operation
+	 * process a batch move operation
+	 * @param site {@link Site} to perform the operation
+	 * @param repoOperation {@link RepoOperation} repository operation detail
+	 * @param user modified {@link User}
+	 * @param allAncestors list of ancestors
+	 */
 	private void processCreate(Site site, RepoOperation repoOperation, User user,
-				   Path repoOperationsScriptPath, Set<String> allAncestors) throws IOException {
+							   Set<String> allAncestors) {
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
+			processAncestors(site.getSiteId(), repoOperation.getPath(), user.getId(),
+				repoOperation.getDateTime(), allAncestors);
+			long state = NEW.value;
+			if (metadata.disabled) {
+				state = state | DISABLED.value;
+			}
 
-		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
-		processAncestors(site.getId(), repoOperation.getPath(), user.getId(),
-			repoOperation.getDateTime(), repoOperationsScriptPath, allAncestors);
-		long state = NEW.value;
-		if (metadata.disabled) {
-			state = state | DISABLED.value;
-		}
+			if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
+				return;
+			}
 
-		if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
-			return;
+			Item item = itemServiceInternal.instantiateItem(site.getSiteId(), repoOperation.getPath())
+				.withPreviewUrl(metadata.previewUrl)
+				.withState(state)
+				.withLockedBy(null)
+				.withCreatedBy(user.getId())
+				.withCreatedOn(repoOperation.getDateTime())
+				.withLastModifiedBy(user.getId())
+				.withLastModifiedOn(repoOperation.getDateTime())
+				.withLastPublishedOn(null)
+				.withLabel(metadata.label)
+				.withContentTypeId(metadata.contentTypeId)
+				.withSystemType(contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()))
+				.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())))
+				.withLocaleCode(Locale.US.toString())
+				.withTranslationSourceId(null)
+				.withSize(contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()))
+				.build();
+			itemDao.upsertEntry(item);
+			logger.trace("Extract dependencies from site '{}' path '{}'", site.getSiteId(), repoOperation.getPath());
+			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
+				dependencyServiceInternal, dependencyDao, false, true);
+			sqlSession.commit();
 		}
-		Files.write(repoOperationsScriptPath, insertItemRow(site.getId(),
-			repoOperation.getPath(), metadata.previewUrl, state, null, user.getId(),
-			repoOperation.getDateTime(), user.getId(), repoOperation.getDateTime(),
-			null, metadata.label, metadata.contentTypeId,
-			contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
-			StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-			Locale.US.toString(), null,
-			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()))
-			.getBytes(UTF_8), StandardOpenOption.APPEND);
-		Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-		logger.trace("Extract dependencies from site '{}' path '{}'",
-			site.getSiteId(), repoOperation.getPath());
-		DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
-			repoOperationsScriptPath, dependencyServiceInternal, false, true);
 	}
 
-	private void processUpdate(Site site, RepoOperation repoOperation, User user,
-				   Path repoOperationsScriptPath) throws IOException {
+	/**
+	 * Process batch update operation
+	 * process a batch move operation
+	 * @param site {@link Site} to perform the operation
+	 * @param repoOperation {@link RepoOperation} repository operation detail
+	 * @param user modified {@link User}
+	 */
+	private void processUpdate(Site site, RepoOperation repoOperation, User user) {
 		if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
 			return;
 		}
@@ -627,76 +629,103 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			offStateBitmap = offStateBitmap | DISABLED.value;
 		}
 
-		Files.write(repoOperationsScriptPath, updateItemRow(site.getId(),
+		updateItemRow(site.getId(),
 			repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 			repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
 			contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
 			StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath())).getBytes(UTF_8), StandardOpenOption.APPEND);
-		Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-		logger.trace("Extract dependencies from site '{}' path '{}'",
-			site.getSiteId(), repoOperation.getPath());
-		DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getPath(), null,
-			repoOperationsScriptPath, dependencyServiceInternal, true, false);
+			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
+		logger.trace("Extract dependencies from site '{}' path '{}'", site.getSiteId(), repoOperation.getPath());
+		DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
+			dependencyServiceInternal, dependencyDao, true, false);
 	}
 
+	/**
+	 * process a batch move operation
+	 * @param site {@link Site} to perform the operation
+	 * @param repoOperation {@link RepoOperation} repository operation detail
+	 * @param user modified {@link User}
+	 * @param allAncestors list af ancestors
+	 */
 	private void processMove(Site site, RepoOperation repoOperation, User user,
-				 Path repoOperationsScriptPath, Set<String> allAncestors) throws IOException {
+							 Set<String> allAncestors) {
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
+			processAncestors(site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
+				repoOperation.getDateTime(), allAncestors);
+			long onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
+			long offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
+			if (metadata.disabled) {
+				onStateBitMap = onStateBitMap | DISABLED.value;
+			} else {
+				offStateBitmap = offStateBitmap | DISABLED.value;
+			}
+			if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) &&
+				!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
+				itemDao.moveItemForSyncTask(site.getSiteId(), repoOperation.getPath(), repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap);
 
-		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
-		processAncestors(site.getId(), repoOperation.getMoveToPath(), user.getId(),
-			repoOperation.getDateTime(), repoOperationsScriptPath, allAncestors);
-		long onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
-		long offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
-		if (metadata.disabled) {
-			onStateBitMap = onStateBitMap | DISABLED.value;
-		} else {
-			offStateBitmap = offStateBitmap | DISABLED.value;
+				updateItemRow(site.getId(),
+					repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
+					repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
+					contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
+					StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
+					contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
+
+				DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getMoveToPath(),
+					repoOperation.getPath(), dependencyServiceInternal, dependencyDao);
+			}
+			invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
+			sqlSession.commit();
 		}
-		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) &&
-			!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
-			Files.write(repoOperationsScriptPath, moveItemRow(site.getSiteId(), repoOperation.getPath(),
-					repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap).getBytes(UTF_8),
-				StandardOpenOption.APPEND);
-			Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-			Files.write(repoOperationsScriptPath, updateItemRow(site.getId(),
-				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
-				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-				contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
-				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()))
-				.getBytes(UTF_8), StandardOpenOption.APPEND);
-			Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-			DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), repoOperation.getMoveToPath(),
-				repoOperation.getPath(), repoOperationsScriptPath, dependencyServiceInternal);
-		}
-		invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
 	}
 
-	private void processDelete(Site site, RepoOperation repoOperation, Path repoOperationsScriptPath) throws IOException {
-		String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
-		boolean folderExists = contentRepository.contentExists(site.getSiteId(), folder);
+	/**
+	 *
+	 * @param siteId
+	 * @param path
+	 * @param previewUrl
+	 * @param onStatesBitMap
+	 * @param offStatesBitMap
+	 * @param lastModifiedBy
+	 * @param lastModifiedOn
+	 * @param label
+	 * @param contentTypeId
+	 * @param systemType
+	 * @param mimeType
+	 * @param size
+	 */
+	private void updateItemRow(long siteId, String path, String previewUrl, long onStatesBitMap,
+									   long offStatesBitMap, Long lastModifiedBy, ZonedDateTime lastModifiedOn,
+									   String label, String contentTypeId, String systemType, String mimeType,
+									   Long size) {
+		Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
+		String fileName = FilenameUtils.getName(path);
+		boolean ignored = org.apache.commons.lang3.ArrayUtils.contains(IGNORE_FILES, fileName);
+		itemDao.updateItemForSyncTask(siteId, path, previewUrl, onStatesBitMap, offStatesBitMap, lastModifiedBy, sqlTsLastModified.toString(), label, contentTypeId, systemType, mimeType, size, ignored);
+	}
 
-		// If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
-		if (folderExists && startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
-			endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
-			Files.write(repoOperationsScriptPath,
-				updateDeletedPageChildren(site.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
+	/**
+	 * Processes a batch delete operation
+	 * @param site {@link Site} to perform the operation
+	 * @param repoOperation {@link RepoOperation} repository operation detail
+	 */
+	private void processDelete(Site site, RepoOperation repoOperation) {
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
+			boolean folderExists = contentRepository.contentExists(site.getSiteId(), folder);
+			// If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
+			if (folderExists && startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
+				endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
+				itemDao.updateDeletedPageChildren(site.getId(), folder);
+			}
+			itemDao.deleteBySiteAndPath(site.getId(), repoOperation.getPath(), false);
+			if (!folderExists) {
+				itemDao.deleteBySiteAndPath(site.getId(), folder, false);
+			}
+			dependencyDao.deleteItemDependencies(site.getSiteId(), repoOperation.getPath());
+			dependencyDao.invalidateDependencies(site.getSiteId(), repoOperation.getPath());
+			sqlSession.commit();
 		}
-
-		Files.write(repoOperationsScriptPath,
-			deleteItemRow(site.getId(), repoOperation.getPath()).getBytes(UTF_8),
-			StandardOpenOption.APPEND);
-		if (!folderExists) {
-			Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-			Files.write(repoOperationsScriptPath,
-				deleteItemRow(site.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
-		}
-		Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-		Files.write(repoOperationsScriptPath,
-			deleteDependencyRows(site.getSiteId(), repoOperation.getPath()).getBytes(UTF_8),
-			StandardOpenOption.APPEND);
-		Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 	}
 
 	protected void invalidateConfigurationCacheIfRequired(String siteId, String path) {
@@ -713,11 +742,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param path                 The path
 	 * @param userId               The user id
 	 * @param now                  The current date time
-	 * @param createFileScriptPath The path to the script file
-	 * @throws IOException If an error occurs
 	 */
-	private void processAncestors(long siteId, String path, long userId, ZonedDateTime now,
-				      Path createFileScriptPath, Set<String> allAncestors) throws IOException {
+	private void processAncestors(String siteId, String path, long userId, ZonedDateTime now,
+								  Set<String> allAncestors) {
 		Path p = Paths.get(path);
 		if (isNull(p.getParent())) {
 			return;
@@ -732,11 +759,24 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				if (allAncestors.contains(currentPath)) {
 					continue;
 				}
-				Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
-						, now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-						Locale.US.toString(), null, 0L).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
-				Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+				Item item = itemServiceInternal.instantiateItem(siteId, currentPath)
+					.withPreviewUrl(null)
+					.withState(NEW.value)
+					.withLockedBy(null)
+					.withCreatedBy(userId)
+					.withCreatedOn(now)
+					.withLastModifiedBy(userId)
+					.withLastModifiedOn(now)
+					.withLastPublishedOn(null)
+					.withLabel(ancestor.toString())
+					.withContentTypeId(null)
+					.withSystemType(CONTENT_TYPE_FOLDER)
+					.withMimeType(null)
+					.withLocaleCode(Locale.US.toString())
+					.withTranslationSourceId(null)
+					.withSize(0L)
+					.build();
+				itemDao.upsertEntry(item);
 				allAncestors.add(currentPath);
 			}
 		}
