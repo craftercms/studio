@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,25 +30,21 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.craftercms.studio.model.publish.CalculatedPublishItem;
-import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
@@ -61,7 +57,6 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	private StudioConfiguration studioConfiguration;
 	private DependencyDAO dependencyDao;
-	private ItemServiceInternal itemServiceInternal;
 	private DependencyResolver dependencyResolver;
 	private ServicesConfig servicesConfig;
 	private GeneralLockService generalLockService;
@@ -69,23 +64,15 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@LogExecutionTime
-	public Collection<String> getSoftDependencies(String site, Set<String> paths) {
+	public Collection<LightItem> getSoftDependencies(String site, Set<String> paths) {
 		logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
-		Set<String> result = new HashSet<>();
-		List<Map<String, String>> deps = dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+		return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
 			MODIFIED_MASK, NEW_MASK);
-		for (Map<String, String> d : deps) {
-			String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-			if (!paths.contains(targetPath)) {
-				result.add(targetPath);
-			}
-		}
-		return result;
 	}
 
 	@Override
 	@LogExecutionTime
-	public Collection<CalculatedPublishItem> getPublishingSoftDependencies(final String site, final Set<String> paths, String target) {
+	public Collection<LightItem> getPublishingSoftDependencies(final String site, final Set<String> paths, String target) {
 		logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
 		if (isEmpty(paths)) {
 			return emptyList();
@@ -106,7 +93,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@RequireSiteExists
-	public Collection<CalculatedPublishItem> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
+	public Collection<LightItem> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
 		if (isEmpty(paths)) {
 			return emptyList();
 		}
@@ -116,29 +103,23 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public Collection<CalculatedPublishItem> getHardDependencies(String site, Collection<String> paths) {
+	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) {
 		String liveTarget = servicesConfig.getLiveEnvironment(site);
 		// Default to live target for backwards compatibility
 		return getHardDependencies(site, liveTarget, paths);
 	}
 
 	@Override
-	public List<String> getDependentPaths(String siteId, List<String> paths) {
+	public List<LightItem> getDependentPaths(String siteId, List<String> paths) {
 		if (CollectionUtils.isEmpty(paths)) {
 			return new ArrayList<>();
 		}
-		List<String> result = dependencyDao.getDependentItems(siteId, paths);
-		return result.stream().distinct().collect(Collectors.toList());
+		return dependencyDao.getDependentItems(siteId, paths);
 	}
 
 	@Override
-	public List<DependencyItem> getDependentItems(String siteId, String path) {
-		List<String> dependentPaths = dependencyDao.getDependentItems(siteId, Collections.singletonList(path))
-			.stream().distinct().toList();
-
-		return dependentPaths.stream()
-			.map(dep -> DependencyItem.getInstance(itemServiceInternal.getItem(siteId, dep)))
-			.collect(Collectors.toList());
+	public List<LightItem> getDependentItems(String siteId, String path) {
+		return dependencyDao.getDependentItems(siteId, List.of(path));
 	}
 
 	@Override
@@ -251,10 +232,6 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	public void setDependencyDao(DependencyDAO dependencyDao) {
 		this.dependencyDao = dependencyDao;
-	}
-
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
 	}
 
 	public void setDependencyResolver(DependencyResolver dependencyResolver) {

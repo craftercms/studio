@@ -525,7 +525,6 @@
 	<bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="dependencyDao" ref="dependencyDao"/>
-		<property name="itemServiceInternal" ref="itemServiceInternal"/>
 		<property name="dependencyResolver" ref="studioDependencyResolver"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>

@@ -73,6 +73,7 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.dom4j.*;
 import org.eclipse.jgit.api.AddCommand;
@@ -921,7 +922,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 			.collect(toList());
 
 		if (CollectionUtils.isNotEmpty(contentTypePaths)) {
-			dependantItems = new HashSet<>(dependencyService.getDependentPaths(siteId, contentTypePaths));
+			dependantItems = new HashSet<>(dependencyService.getDependentPaths(siteId, contentTypePaths).stream().map(LightItem::getPath).toList());
 		}
 
 		for (String contentTypePath : contentTypePaths) {

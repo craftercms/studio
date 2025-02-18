@@ -20,8 +20,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
-import org.craftercms.studio.model.publish.CalculatedPublishItem;
-import org.craftercms.studio.model.rest.content.DependencyItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +41,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of soft dependencies
 	 */
-	Collection<String> getSoftDependencies(String site, Set<String> paths);
+	Collection<LightItem> getSoftDependencies(String site, Set<String> paths);
 
 	/**
 	 * Get the publishing soft dependencies of a list of items. A soft
@@ -53,7 +52,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of soft dependencies
 	 */
-	Collection<CalculatedPublishItem> getPublishingSoftDependencies(String site, Set<String> paths, String target);
+	Collection<LightItem> getPublishingSoftDependencies(String site, Set<String> paths, String target);
 
 	/**
 	 * Get then hard dependencies of an item. A hard
@@ -68,7 +67,7 @@ public interface DependencyService {
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
 	 */
-	Collection<CalculatedPublishItem> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
+	Collection<LightItem> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
 		throws ServiceLayerException;
 
 	/**
@@ -81,7 +80,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of hard dependencies
 	 */
-	Collection<CalculatedPublishItem> getHardDependencies(String site, Collection<String> paths);
+	Collection<LightItem> getHardDependencies(String site, Collection<String> paths);
 
 	/**
 	 * Get list of paths of content items that are dependant on given paths
@@ -90,16 +89,16 @@ public interface DependencyService {
 	 * @param paths  list of paths to get dependent items for
 	 * @return list of paths dependent on given paths
 	 */
-	List<String> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
+	List<LightItem> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Get all items that depend on this item
 	 *
 	 * @param siteId site identifier
 	 * @param path   path to get dependent items for
-	 * @return list of {@link DependencyItem} dependent on given path
+	 * @return list of {@link LightItem} dependent on given path
 	 */
-	List<DependencyItem> getDependentItems(String siteId, String path);
+	List<LightItem> getDependentItems(String siteId, String path);
 
 	/**
 	 * Get item specific dependencies for given path

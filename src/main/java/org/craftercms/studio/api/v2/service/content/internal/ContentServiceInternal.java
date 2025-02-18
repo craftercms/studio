@@ -58,24 +58,6 @@ public interface ContentServiceInternal extends ContentService {
 	boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
 
 	/**
-	 * Get subtree items for given path.
-	 *
-	 * @param siteId site identifier
-	 * @param path   path to get subtree items for
-	 * @return list of paths of subtree items
-	 */
-	List<String> getSubtreeItems(String siteId, String path);
-
-	/**
-	 * Get subtree items for given paths.
-	 *
-	 * @param siteId site identifier
-	 * @param path   list of paths to get subtree items for
-	 * @return list of paths of subtree items
-	 */
-	List<String> getSubtreeItems(String siteId, List<String> path);
-
-	/**
 	 * Get list of children for given path
 	 *
 	 * @param siteId       site identifier

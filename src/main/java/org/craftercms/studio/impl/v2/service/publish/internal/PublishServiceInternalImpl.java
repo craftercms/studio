@@ -43,7 +43,7 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.model.publish.CalculatedPublishItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -180,9 +180,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		Collection<String> deletedPaths = commitOperations.get(true);
 
-		Collection<CalculatedPublishItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
+		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
 		// Get hard deps of them all
-		Collection<CalculatedPublishItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
+		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
 		return new CalculatedPublishPackageResult(publishDao.getMetadata(siteId, corePackagePaths), deletedPaths, hardDependencies, softDependencies);
 	}
 
@@ -194,9 +194,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
 		Collection<String> deletedPaths = publishPaths.get(true);
 
-		Collection<CalculatedPublishItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
+		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
-		Collection<CalculatedPublishItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
+		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
 		return new CalculatedPublishPackageResult(publishDao.getMetadata(siteId, corePackagePaths), deletedPaths, hardDependencies, softDependencies);
 	}
 
@@ -435,7 +435,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			}
 		}
 		if (!softDepsPaths.isEmpty()) {
-			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(CalculatedPublishItem::getPath).collect(toSet()));
+			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(LightItem::getPath).collect(toSet()));
 		}
 		return allPaths;
 	}
@@ -472,7 +472,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		}
 		publishItemsByPath.putAll(
 			dependencyServiceInternal.getHardDependencies(site.getSiteId(), paths).stream()
-				.map(CalculatedPublishItem::getPath)
+				.map(LightItem::getPath)
 				.filter(dep -> !publishItemsByPath.containsKey(dep))
 				.map(dep -> createPublishItem(dep, ADD, false))
 				.collect(toMap(PublishItem::getPath, item -> item)));

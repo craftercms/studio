@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -105,12 +106,12 @@ public class ContentController {
 	}
 
 	@PostMapping(GET_DELETE_PACKAGE)
-	public ResultOne<Map<String, List<String>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
+	public ResultOne<Map<String, List<?>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
 		List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
-		List<String> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
-		ResultOne<Map<String, List<String>>> result = new ResultOne<>();
+		List<LightItem> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
+		ResultOne<Map<String, List<?>>> result = new ResultOne<>();
 		result.setResponse(OK);
-		Map<String, List<String>> items = new HashMap<>();
+		Map<String, List<?>> items = new HashMap<>();
 		items.put(RESULT_KEY_CHILD_ITEMS, childItems);
 		items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentItems);
 		result.setEntity(RESULT_KEY_ITEMS, items);

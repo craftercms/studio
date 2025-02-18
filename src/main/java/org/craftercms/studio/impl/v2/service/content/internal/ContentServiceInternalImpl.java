@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
@@ -74,7 +75,8 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.collections4.CollectionUtils.*;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -113,20 +115,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	@Override
 	public boolean shallowContentExists(String siteId, String path) {
 		return contentRepository.shallowContentExists(siteId, path);
-	}
-
-	@Override
-	public List<String> getSubtreeItems(String siteId, String path) {
-		return contentRepository.getSubtreeItems(siteId, path);
-	}
-
-	@Override
-	public List<String> getSubtreeItems(String siteId, List<String> paths) {
-		List<String> subtreeItems = new ArrayList<>();
-		for (String path : paths) {
-			subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
-		}
-		return subtreeItems;
 	}
 
 	@Override
@@ -380,6 +368,14 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 		return childItems;
 	}
 
+	private List<String> getSubtreeItems(String siteId, List<String> paths) {
+		List<String> subtreeItems = new ArrayList<>();
+		for (String path : paths) {
+			subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
+		}
+		return subtreeItems;
+	}
+
 	@Override
 	public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren) throws ContentInPublishQueueException {
 		// No need to check for children, as the paths collection already includes them
@@ -419,7 +415,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			itemServiceInternal.setSystemProcessingBulk(siteId, children, true);
 			allPaths.addAll(children);
 
-			Collection<String> userRequested = union(paths, children);
+			Collection<String> userRequested = CollectionUtils.union(paths, children);
 			List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
 			itemServiceInternal.setSystemProcessingBulk(siteId, dependencies, true);
 			allPaths.addAll(dependencies);

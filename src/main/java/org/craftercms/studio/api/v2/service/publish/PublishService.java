@@ -29,7 +29,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
-import org.craftercms.studio.model.publish.CalculatedPublishItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.publish.PublishingTarget;
 
 import java.io.IOException;
@@ -308,8 +308,8 @@ public interface PublishService {
 	 * @param hardDependencies the hard dependencies of the items
 	 * @param softDependencies the soft dependencies of the items
 	 */
-	record CalculatedPublishPackageResult(Collection<CalculatedPublishItem> items, Collection<String> deletedItems,
-										  Collection<CalculatedPublishItem> hardDependencies,
-										  Collection<CalculatedPublishItem> softDependencies) {
+	record CalculatedPublishPackageResult(Collection<LightItem> items, Collection<String> deletedItems,
+										  Collection<LightItem> hardDependencies,
+										  Collection<LightItem> softDependencies) {
 	}
 }

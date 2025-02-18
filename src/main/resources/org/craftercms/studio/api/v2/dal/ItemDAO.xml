@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -63,6 +63,19 @@
 		<result property="liveUsername" column="live_username"/>
 		<association property="lockOwner" column="lock_owner"
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+	</resultMap>
+
+	<resultMap id="LightItemMetadataMap" type="org.craftercms.studio.api.v2.dal.item.LightItemMetadata">
+		<constructor>
+			<arg column="label" javaType="java.lang.String"/>
+			<arg column="system_type" javaType="java.lang.String"/>
+			<arg column="mime_type" javaType="java.lang.String"/>
+		</constructor>
+	</resultMap>
+
+	<resultMap id="LightItemMap" type="org.craftercms.studio.api.v2.dal.item.LightItem"
+			   autoMapping="true">
+		<association property="metadata" columnPrefix="meta_" resultMap="LightItemMetadataMap"/>
 	</resultMap>
 
 	<insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">

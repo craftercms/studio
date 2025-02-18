@@ -5909,7 +5909,7 @@ paths:
                                             items:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/DependencyItem'
+                                                    $ref: '#/components/schemas/LightItem'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -6261,7 +6261,7 @@ paths:
                                             items:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                    $ref: '#/components/schemas/LightItem'
                                                 example:
                                                     - path: "/site/website/article1/index.xml"
                                                       label: "Article 1"
@@ -6276,7 +6276,7 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                    $ref: '#/components/schemas/LightItem'
                                                 example:
                                                     - path: "/templates/web/article.ftl"
                                                       label: article.ftl
@@ -6285,7 +6285,7 @@ paths:
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                    $ref: '#/components/schemas/LightItem'
                                                 example:
                                                     - path: "/static-assets/images/background.png"
                                                       label: background.png
@@ -6657,7 +6657,7 @@ paths:
                                             items:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                    $ref: '#/components/schemas/LightItem'
                                                 example:
                                                     - path: "/site/website/article1/index.xml"
                                                       label: "Article 1"
@@ -6672,7 +6672,7 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                    $ref: '#/components/schemas/LightItem'
                                                 example:
                                                     - path: "/templates/web/article.ftl"
                                                       label: article.ftl
@@ -6681,7 +6681,7 @@ paths:
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    $ref: '#/components/schemas/CalculatedPublishItem'
+                                                    $ref: '#/components/schemas/LightItem'
                                                 example:
                                                     - path: "/static-assets/images/background.png"
                                                       label: background.png
@@ -9544,7 +9544,7 @@ components:
                             type: string
                             description: mime-type of content item file
 
-        CalculatedPublishItem:
+        LightItem:
             type: object
             description: calculated publish item metadata
             properties:
@@ -9746,24 +9746,6 @@ components:
                 - numberOfChildren
                 - children
                 - publishingTarget
-
-        DependencyItem:
-            type: object
-            properties:
-                id:
-                    type: integer
-                    format: int64
-                    description: content item ID
-                label:
-                    type: string
-                    description: user friendly display name for content item
-                path:
-                    type: string
-                    description: path where content item is stored inside repository (with filename)
-            required:
-                - id
-                - label
-                - path
 
         SandboxItem:
             type: object
