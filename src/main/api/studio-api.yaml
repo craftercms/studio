@@ -5867,13 +5867,20 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/dependency/dependent_items:
-        get:
+    /api/2/dependency/{siteId}/dependent_items:
+        post:
             tags:
-                - dependent_items
+                - dependency
             summary: Get list of dependent items for given content path
             description: 'Required permission "content_read"'
             operationId: getDependentItems
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: site ID
+                    required: true
+                    schema:
+                        type: string
             requestBody:
                 required: true
                 content:
@@ -5881,14 +5888,10 @@ paths:
                         schema:
                             type: object
                             properties:
-                                siteId:
-                                    description: Site ID
-                                    type: string
                                 path:
                                     description: Content path to get dependencies for
                                     type: string
                             required:
-                                - siteId
                                 - path
             responses:
                 '200':

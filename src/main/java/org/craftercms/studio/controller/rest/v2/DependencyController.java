@@ -17,15 +17,15 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.publish.CalculatedPublishItem;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.DependencyItem;
+import org.craftercms.studio.model.rest.dependency.GetDependentsRequestBody;
 import org.craftercms.studio.model.rest.dependency.GetSoftDependenciesRequestBody;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
@@ -38,6 +38,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
+@Validated
 @RestController
 @RequestMapping(API_2 + DEPENDENCY)
 public class DependencyController {
@@ -65,11 +66,11 @@ public class DependencyController {
 		return result;
 	}
 
-	@GetMapping(DEPENDENT_ITEMS)
-	public ResultOne<List<DependencyItem>> getDependentItems(@NotEmpty @ValidSiteId @RequestParam String siteId,
-								 @ValidExistingContentPath @RequestParam String path)
+	@PostMapping(PATH_PARAM_SITE + DEPENDENT_ITEMS)
+	public ResultOne<List<DependencyItem>> getDependentItems(@PathVariable @ValidSiteId String site,
+															 @RequestBody @Valid GetDependentsRequestBody request)
 		throws ServiceLayerException {
-		List<DependencyItem> items = dependencyService.getDependentItems(siteId, path);
+		List<DependencyItem> items = dependencyService.getDependentItems(site, request.getPath());
 		var result = new ResultOne<List<DependencyItem>>();
 		result.setResponse(OK);
 		result.setEntity(RESULT_KEY_ITEMS, items);
