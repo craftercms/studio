@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,12 +19,14 @@ package org.craftercms.studio.impl.v1.service.site;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.mutable.MutableLong;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
@@ -93,14 +95,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.commons.file.blob.BlobStore.*;
@@ -113,9 +113,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_SITE;
@@ -131,9 +129,9 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-	private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
+
 	// Max items to insert in a single batch
-	private final static int GENERATED_SQL_BATCH_SIZE = 10000;
+	private final static int MYBATIS_BATCH_SIZE = 1000;
 
 	protected Deployer deployer;
 	protected ContentService contentService;
@@ -164,6 +162,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	protected UserDAO userDao;
+	protected ItemDAO itemDao;
+	protected DependencyDAO dependencyDao;
+
+	SqlSessionFactory sqlSessionFactory;
 
 	@Override
 	public Set<String> getAllAvailableSites() {
@@ -360,18 +362,30 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		auditServiceInternal.insertAuditLog(auditLog);
 	}
 
-	private void processCreatedDirectory(Path createdFileScriptPath, long siteId, String directory,
-					     long userId, ZonedDateTime now) throws IOException {
+	private void processCreatedDirectory(String siteId, String directory,
+					     long userId, ZonedDateTime now) {
 		String label = new File(directory).getName();
-		Files.write(createdFileScriptPath, insertItemRow(siteId, directory, null, NEW.value, null, userId,
-				now, userId, now, null, label, null, CONTENT_TYPE_FOLDER, null,
-				Locale.US.toString(), null, 0L).getBytes(UTF_8),
-			StandardOpenOption.APPEND);
-		Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+		Item item = itemServiceInternal.instantiateItem(siteId, directory)
+			.withPreviewUrl(null)
+			.withState(NEW.value)
+			.withLockedBy(null)
+			.withCreatedBy(userId)
+			.withCreatedOn(now)
+			.withLastModifiedBy(userId)
+			.withLastModifiedOn(now)
+			.withLastPublishedOn(null)
+			.withLabel(label)
+			.withContentTypeId(null)
+			.withSystemType(CONTENT_TYPE_FOLDER)
+			.withMimeType(null)
+			.withLocaleCode(Locale.US.toString())
+			.withTranslationSourceId(null)
+			.withSize(0L)
+			.build();
+		itemDao.upsertEntry(item);
 	}
 
-	private void processCreatedFile(Path createdFileScriptPath, Site site, String path,
-					long userId, ZonedDateTime now) throws IOException {
+	private void processCreatedFile(Site site, String path, long userId, ZonedDateTime now) {
 		// Item
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
@@ -404,37 +418,44 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}
 
 		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
-			Files.write(createdFileScriptPath, insertItemRow(site.getId(), path, previewUrl, state,
-					null, userId, now, userId, now, null, label, contentTypeId,
-					contentService.getContentTypeClass(site.getSiteId(), path),
-					StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-					contentRepositoryV2.getContentSize(site.getSiteId(), path)).getBytes(UTF_8),
-				StandardOpenOption.APPEND);
-			Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+			Item item = itemServiceInternal.instantiateItem(site.getSiteId(), path)
+				.withPreviewUrl(previewUrl)
+				.withState(state)
+				.withLockedBy(null)
+				.withCreatedBy(userId)
+				.withCreatedOn(now)
+				.withLastModifiedBy(userId)
+				.withLastModifiedOn(now)
+				.withLastPublishedOn(null)
+				.withLabel(label)
+				.withContentTypeId(contentTypeId)
+				.withSystemType(contentService.getContentTypeClass(site.getSiteId(), path))
+				.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
+				.withLocaleCode(Locale.US.toString())
+				.withTranslationSourceId(null)
+				.withSize(contentRepositoryV2.getContentSize(site.getSiteId(), path))
+				.build();
+			itemDao.upsertEntry(item);
 
-			DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), path, null,
-				createdFileScriptPath, dependencyServiceInternal, false, false);
+			DependencyUtils.updateDependencies(site.getSiteId(), path, null,
+				dependencyServiceInternal, dependencyDao, false, false);
 		}
 	}
 
 	/**
 	 * Return a Runnable that will check if the counter has exceeded the batch size and if so, execute the script and truncate the file
 	 *
+	 * @param sqlSession sql session instance
 	 * @param counter      The counter to check
-	 * @param scriptRunner The script runner
-	 * @param scriptPath   The path to the script file
 	 * @return runnable
 	 */
-	private ThrowingRunnable getCheckCounterFunction(final MutableLong counter, final String siteId,
-							 final StudioDBScriptRunner scriptRunner, final Path scriptPath) {
+	private ThrowingRunnable getCheckCounterFunction(final SqlSession sqlSession, final MutableLong counter, final String siteId) {
 		return () -> {
 			counter.increment();
-			if (counter.longValue() >= GENERATED_SQL_BATCH_SIZE) {
-				logger.debug("Executing batch of items for site '{}' in the script file '{}'", siteId, scriptPath);
-				scriptRunner.execute(scriptPath, true);
-				logger.debug("Executed batch of items for site '{}' in the script file '{}'", siteId, scriptPath);
-				// Truncate the file so it can be reused
-				Files.writeString(scriptPath, EMPTY, UTF_8, TRUNCATE_EXISTING);
+			if (counter.longValue() >= MYBATIS_BATCH_SIZE) {
+				logger.debug("Executing batch of items for site '{}'", siteId);
+				sqlSession.flushStatements();
+				logger.debug("Executed batch of items for site '{}'", siteId);
 				counter.setValue(0);
 			}
 		};
@@ -446,46 +467,31 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		Site site = sitesServiceInternal.getSite(siteId);
 		User userObj = userServiceInternal.getUserByGitName(creator);
 
-		StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-
-		Path createdFileScriptPath = null;
-		// TODO: SJ: Refactor to avoid string literals
+		MutableLong itemCount = new MutableLong(0);
+		SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH);
 		try {
-			Path studioTempDir = getStudioTemporaryFilesRoot();
-			String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
-			createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
-
-			// Variable in lambda needs to be final
-			final Path scriptPath = createdFileScriptPath;
-
-			MutableLong itemCount = new MutableLong(0);
-			ThrowingRunnable checkCounter = getCheckCounterFunction(itemCount, siteId, studioDBScriptRunner, scriptPath);
+			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
 			contentRepositoryV2.forAllSitePaths(siteId,
 				directory -> {
-					processCreatedDirectory(scriptPath, site.getId(), directory, userObj.getId(), now);
+					processCreatedDirectory(site.getSiteId(), directory, userObj.getId(), now);
 					checkCounter.run();
 				},
 				file -> {
-					processCreatedFile(scriptPath, site, file, userObj.getId(), now);
+					processCreatedFile(site, file, userObj.getId(), now);
 					checkCounter.run();
 				}
 			);
-			if (itemCount.longValue() > 0) {
-				logger.debug("Executing the last batch of items for site '{}' in the script file '{}'", siteId, createdFileScriptPath);
-				studioDBScriptRunner.execute(createdFileScriptPath, true);
-			}
+			sqlSession.commit();
 			logger.debug("Update parent ID for created items for site '{}'", siteId);
 			itemServiceInternal.updateParentId(siteId);
 			logger.debug("Validate dependencies for site '{}'", siteId);
 			dependencyServiceInternal.validateDependencies(siteId);
 		} catch (Exception e) {
-			logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
+			sqlSession.rollback();
+			logger.error("Failed to update database for processingCreatedFiles in site '{}'", siteId, e);
 			throw e;
 		} finally {
-			if (createdFileScriptPath != null) {
-				logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
-				FileUtils.deleteQuietly(createdFileScriptPath.toFile());
-			}
+			sqlSession.close();
 		}
 		logger.debug("Finished processing created files for site '{}'", siteId);
 	}
@@ -1085,5 +1091,20 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@SuppressWarnings("unused")
 	public void setUserDao(UserDAO userDao) {
 		this.userDao = userDao;
+	}
+
+	@SuppressWarnings("unused")
+	public void  setItemDao(ItemDAO itemDao) {
+		this.itemDao = itemDao;
+	}
+
+	@SuppressWarnings("unused")
+	public void setDependencyDao(DependencyDAO dependencyDao) {
+		this.dependencyDao = dependencyDao;
+	}
+
+	@SuppressWarnings("unused")
+	public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
+		this.sqlSessionFactory = sqlSessionFactory;
 	}
 }

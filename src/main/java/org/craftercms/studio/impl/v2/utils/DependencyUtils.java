@@ -24,16 +24,10 @@ import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.DalUtils;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 
 /**
  * Utility class for Dependency related helper methods
@@ -44,76 +38,6 @@ public class DependencyUtils {
 	public static final String INVALID_DEPENDENCY_PATH_REGEX = "\\n";
 	public static final Pattern INVALID_DEPENDENCY_PATH_PATTERN = Pattern.compile(INVALID_DEPENDENCY_PATH_REGEX);
 	public static final Integer MAX_DEPENDENCY_PATH_LENGTH = 4000;
-
-	/**
-	 * Add the script snippets to update the dependencies for the given path
-	 *
-	 * @param siteId            the site id
-	 * @param path              the content item path
-	 * @param oldPath           the content item old path
-	 * @param file              the file
-	 * @param dependencyService the dependency service
-	 * @throws IOException if an error occurs while updating the script
-	 */
-	public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
-							 Path file, DependencyService dependencyService)
-		throws IOException {
-		addDependenciesScriptSnippets(siteId, path, oldPath, file, dependencyService, true, true);
-	}
-
-	/**
-	 * Add the script snippets to update the dependencies for the given path
-	 *
-	 * @param siteId            the site id
-	 * @param path              the content item path
-	 * @param oldPath           the content item old path
-	 * @param file              the file
-	 * @param dependencyService the dependency service
-	 * @param cleanExisting     if true, the existing dependencies for the path will be deleted
-	 * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
-	 * @throws IOException if an error occurs while updating the script
-	 */
-	public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
-							 Path file, DependencyService dependencyService,
-							 boolean cleanExisting, boolean revalidate)
-		throws IOException {
-		if (cleanExisting) {
-			if (isEmpty(oldPath)) {
-				Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
-				Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-			} else {
-				Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
-				// Invalidate existing dependencies pointing to the old item path
-				Files.write(file, invalidateDependencies(siteId, oldPath).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
-			}
-		}
-		if (revalidate) {
-			// Validate existing broken dependencies pointing to the item path
-			Files.write(file, validateDependencies(siteId, path).getBytes(UTF_8),
-				StandardOpenOption.APPEND);
-		}
-
-		if (!dependencyService.isValidDependencySource(siteId, path)) {
-			// Path is not a valid dependency source. e.g.: an image or a txt
-			return;
-		}
-		Map<String, Set<ResolvedDependency>> dependencies = dependencyService.resolveDependencies(siteId, path);
-		if (MapUtils.isEmpty(dependencies)) {
-			return;
-		}
-		for (Map.Entry<String, Set<ResolvedDependency>> entry : dependencies.entrySet()) {
-			for (ResolvedDependency dependency : entry.getValue()) {
-				if (isValidDependencyPath(dependency.path())) {
-					Files.write(file, insertDependencyRow(siteId, path, dependency.path(), entry.getKey(), dependency.valid())
-						.getBytes(UTF_8), StandardOpenOption.APPEND);
-					Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-				}
-			}
-		}
-	}
 
 	/**
 	 * Update the dependencies for the given path

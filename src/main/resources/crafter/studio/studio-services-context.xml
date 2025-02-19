@@ -123,6 +123,9 @@
 		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="userDao" ref="userDao"/>
+		<property name="itemDao" ref="itemDao"/>
+		<property name="dependencyDao" ref="dependencyDao"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
 	<bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl">
