@@ -113,6 +113,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
+import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
@@ -129,9 +130,6 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-
-	// Max items to insert in a single batch
-	private final static int MYBATIS_BATCH_SIZE = 1000;
 
 	protected Deployer deployer;
 	protected ContentService contentService;
@@ -162,8 +160,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	protected UserDAO userDao;
-	protected ItemDAO itemDao;
-	protected DependencyDAO dependencyDao;
 
 	SqlSessionFactory sqlSessionFactory;
 
@@ -362,7 +358,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		auditServiceInternal.insertAuditLog(auditLog);
 	}
 
-	private void processCreatedDirectory(String siteId, String directory,
+	private void processCreatedDirectory(SqlSession sqlSession, String siteId, String directory,
 					     long userId, ZonedDateTime now) {
 		String label = new File(directory).getName();
 		Item item = itemServiceInternal.instantiateItem(siteId, directory)
@@ -382,10 +378,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			.withTranslationSourceId(null)
 			.withSize(0L)
 			.build();
+		ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 		itemDao.upsertEntry(item);
 	}
 
-	private void processCreatedFile(Site site, String path, long userId, ZonedDateTime now) {
+	private void processCreatedFile(SqlSession sqlSession, Site site, String path, long userId, ZonedDateTime now) {
 		// Item
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
@@ -435,10 +432,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 				.withTranslationSourceId(null)
 				.withSize(contentRepositoryV2.getContentSize(site.getSiteId(), path))
 				.build();
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 			itemDao.upsertEntry(item);
 
-			DependencyUtils.updateDependencies(site.getSiteId(), path, null,
-				dependencyServiceInternal, dependencyDao, false, false);
+			DependencyUtils.updateDependencies(site.getSiteId(), path, null, dependencyServiceInternal,
+				sqlSession, false, false);
 		}
 	}
 
@@ -452,7 +450,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	private ThrowingRunnable getCheckCounterFunction(final SqlSession sqlSession, final MutableLong counter, final String siteId) {
 		return () -> {
 			counter.increment();
-			if (counter.longValue() >= MYBATIS_BATCH_SIZE) {
+			if (counter.longValue() >= MY_BATIS_QUERY_BATCH_SIZE) {
 				logger.debug("Executing batch of items for site '{}'", siteId);
 				sqlSession.flushStatements();
 				logger.debug("Executed batch of items for site '{}'", siteId);
@@ -473,11 +471,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
 			contentRepositoryV2.forAllSitePaths(siteId,
 				directory -> {
-					processCreatedDirectory(site.getSiteId(), directory, userObj.getId(), now);
+					processCreatedDirectory(sqlSession, site.getSiteId(), directory, userObj.getId(), now);
 					checkCounter.run();
 				},
 				file -> {
-					processCreatedFile(site, file, userObj.getId(), now);
+					processCreatedFile(sqlSession, site, file, userObj.getId(), now);
 					checkCounter.run();
 				}
 			);
@@ -1091,16 +1089,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@SuppressWarnings("unused")
 	public void setUserDao(UserDAO userDao) {
 		this.userDao = userDao;
-	}
-
-	@SuppressWarnings("unused")
-	public void  setItemDao(ItemDAO itemDao) {
-		this.itemDao = itemDao;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDependencyDao(DependencyDAO dependencyDao) {
-		this.dependencyDao = dependencyDao;
 	}
 
 	@SuppressWarnings("unused")

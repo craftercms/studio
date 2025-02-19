@@ -16,8 +16,10 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.ibatis.session.SqlSession;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
@@ -46,11 +48,11 @@ public class DependencyUtils {
 	 * @param path              the content item path
 	 * @param oldPath           the content item old path
 	 * @param dependencyService the dependency service
-	 * @param dependencyDAO     the dependency DAO
+	 * @param sqlSession        the sql session
 	 */
 	public static void updateDependencies(String siteId, String path, String oldPath,
-										  DependencyService dependencyService, DependencyDAO dependencyDAO) {
-		updateDependencies(siteId, path, oldPath, dependencyService, dependencyDAO, true, true);
+										  DependencyService dependencyService, SqlSession sqlSession) {
+		updateDependencies(siteId, path, oldPath, dependencyService, sqlSession, true, true);
 	}
 
 	/**
@@ -60,25 +62,25 @@ public class DependencyUtils {
 	 * @param path              the content item path
 	 * @param oldPath           the content item old path
 	 * @param dependencyService the dependency service
-	 * @param dependencyDAO     the dependency DAO
+	 * @param sqlSession        the sql session
 	 * @param cleanExisting     if true, the existing dependencies for the path will be deleted
 	 * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
 	 */
 	public static void updateDependencies(String siteId, String path, String oldPath,
-										  DependencyService dependencyService, DependencyDAO dependencyDAO,
-										  boolean cleanExisting, boolean revalidate) {
+										  DependencyService dependencyService, SqlSession sqlSession, boolean cleanExisting, boolean revalidate) {
+		DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
 		if (cleanExisting) {
 			if (isEmpty(oldPath)) {
-				dependencyDAO.deleteItemDependencies(siteId, path);
+				dependencyDao.deleteItemDependencies(siteId, path);
 			} else {
-				dependencyDAO.deleteItemDependencies(siteId, oldPath);
+				dependencyDao.deleteItemDependencies(siteId, oldPath);
 				// Invalidate existing dependencies pointing to the old item path
-				dependencyDAO.invalidateDependencies(siteId, oldPath);
+				dependencyDao.invalidateDependencies(siteId, oldPath);
 			}
 		}
 		if (revalidate) {
 			// Validate existing broken dependencies pointing to the item path
-			dependencyDAO.validateDependencies(siteId, path);
+			dependencyDao.validateDependencies(siteId, path);
 		}
 
 		if (!dependencyService.isValidDependencySource(siteId, path)) {
@@ -104,8 +106,8 @@ public class DependencyUtils {
 				})
 			)
 			.toList();
-		for (List<Dependency> batchDependencies : ListUtils.partition(newDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
-			dependencyDAO.insertItemDependencies(batchDependencies);
+		if (CollectionUtils.isNotEmpty(newDependencies)) {
+			dependencyDao.insertItemDependencies(newDependencies);
 		}
 	}
 

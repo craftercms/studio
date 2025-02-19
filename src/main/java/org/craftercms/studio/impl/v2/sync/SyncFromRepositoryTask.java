@@ -110,8 +110,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private final StudioConfiguration studioConfiguration;
 	private final ProcessedCommitsDAO processedCommitsDAO;
 	private final PublishDAO publishDao;
-	private final ItemDAO itemDao;
-	private final DependencyDAO dependencyDao;
 	private final SqlSessionFactory sqlSessionFactory;
 	private final ServicesConfig servicesConfig;
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
@@ -123,7 +121,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		"userServiceInternal", "itemServiceInternal",
 		"contentService", "configurationService",
 		"contentRepository", "studioConfiguration",
-		"processedCommitsDAO", "publishDao", "itemDao", "dependencyDao", "sqlSessionFactory",
+		"processedCommitsDAO", "publishDao", "sqlSessionFactory",
 		"servicesConfig", "retryingDatabaseOperationFacade"})
 	public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
 				      AuditServiceInternal auditServiceInternal,
@@ -131,8 +129,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				      UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
 				      ContentService contentService, ConfigurationService configurationService,
 				      GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
-				      ProcessedCommitsDAO processedCommitsDAO, PublishDAO publishDao, ItemDAO itemDao, DependencyDAO dependencyDao,
-					  SqlSessionFactory sqlSessionFactory,
+				      ProcessedCommitsDAO processedCommitsDAO, PublishDAO publishDao, SqlSessionFactory sqlSessionFactory,
 				      ServicesConfig servicesConfig, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
 		this.sitesService = sitesService;
 		this.generalLockService = generalLockService;
@@ -147,9 +144,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		this.studioConfiguration = studioConfiguration;
 		this.processedCommitsDAO = processedCommitsDAO;
 		this.publishDao = publishDao;
-		this.itemDao = itemDao;
 		this.sqlSessionFactory = sqlSessionFactory;
-		this.dependencyDao = dependencyDao;
 		this.servicesConfig = servicesConfig;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
@@ -572,8 +567,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private void processCreate(Site site, RepoOperation repoOperation, User user,
 							   Set<String> allAncestors) {
 		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 			ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
-			processAncestors(site.getSiteId(), repoOperation.getPath(), user.getId(),
+			processAncestors(sqlSession, site.getSiteId(), repoOperation.getPath(), user.getId(),
 				repoOperation.getDateTime(), allAncestors);
 			long state = NEW.value;
 			if (metadata.disabled) {
@@ -604,7 +600,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			itemDao.upsertEntry(item);
 			logger.trace("Extract dependencies from site '{}' path '{}'", site.getSiteId(), repoOperation.getPath());
 			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
-				dependencyServiceInternal, dependencyDao, false, true);
+				dependencyServiceInternal, sqlSession, false, true);
 			sqlSession.commit();
 		}
 	}
@@ -629,15 +625,17 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			offStateBitmap = offStateBitmap | DISABLED.value;
 		}
 
-		updateItemRow(site.getId(),
-			repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
-			repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-			contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
-			StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
-		logger.trace("Extract dependencies from site '{}' path '{}'", site.getSiteId(), repoOperation.getPath());
-		DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
-			dependencyServiceInternal, dependencyDao, true, false);
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			updateItemRow(sqlSession, site.getId(),
+				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
+				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
+				contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
+				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
+				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
+			logger.trace("Extract dependencies from site '{}' path '{}'", site.getSiteId(), repoOperation.getPath());
+			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
+				dependencyServiceInternal, sqlSession, true, false);
+		}
 	}
 
 	/**
@@ -650,8 +648,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private void processMove(Site site, RepoOperation repoOperation, User user,
 							 Set<String> allAncestors) {
 		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 			ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
-			processAncestors(site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
+			processAncestors(sqlSession, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
 				repoOperation.getDateTime(), allAncestors);
 			long onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
 			long offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
@@ -664,7 +663,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
 				itemDao.moveItemForSyncTask(site.getSiteId(), repoOperation.getPath(), repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap);
 
-				updateItemRow(site.getId(),
+				updateItemRow(sqlSession, site.getId(),
 					repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 					repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
 					contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
@@ -672,7 +671,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 					contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 
 				DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getMoveToPath(),
-					repoOperation.getPath(), dependencyServiceInternal, dependencyDao);
+					repoOperation.getPath(), dependencyServiceInternal, sqlSession);
 			}
 			invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
 			sqlSession.commit();
@@ -681,6 +680,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 	/**
 	 *
+	 * @param sqlSession
 	 * @param siteId
 	 * @param path
 	 * @param previewUrl
@@ -694,10 +694,11 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param mimeType
 	 * @param size
 	 */
-	private void updateItemRow(long siteId, String path, String previewUrl, long onStatesBitMap,
+	private void updateItemRow(SqlSession sqlSession, long siteId, String path, String previewUrl, long onStatesBitMap,
 									   long offStatesBitMap, Long lastModifiedBy, ZonedDateTime lastModifiedOn,
 									   String label, String contentTypeId, String systemType, String mimeType,
 									   Long size) {
+		ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 		Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
 		String fileName = FilenameUtils.getName(path);
 		boolean ignored = org.apache.commons.lang3.ArrayUtils.contains(IGNORE_FILES, fileName);
@@ -711,6 +712,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 */
 	private void processDelete(Site site, RepoOperation repoOperation) {
 		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
+			DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
+
 			String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
 			boolean folderExists = contentRepository.contentExists(site.getSiteId(), folder);
 			// If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
@@ -722,8 +726,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			if (!folderExists) {
 				itemDao.deleteBySiteAndPath(site.getId(), folder, false);
 			}
+
 			dependencyDao.deleteItemDependencies(site.getSiteId(), repoOperation.getPath());
 			dependencyDao.invalidateDependencies(site.getSiteId(), repoOperation.getPath());
+
 			sqlSession.commit();
 		}
 	}
@@ -738,12 +744,13 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	/**
 	 * Add the script snippets to insert the parents of the given path.
 	 *
+	 * @param sqlSession           The sql session
 	 * @param siteId               The site id
 	 * @param path                 The path
 	 * @param userId               The user id
 	 * @param now                  The current date time
 	 */
-	private void processAncestors(String siteId, String path, long userId, ZonedDateTime now,
+	private void processAncestors(SqlSession sqlSession, String siteId, String path, long userId, ZonedDateTime now,
 								  Set<String> allAncestors) {
 		Path p = Paths.get(path);
 		if (isNull(p.getParent())) {
@@ -776,6 +783,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 					.withTranslationSourceId(null)
 					.withSize(0L)
 					.build();
+				ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 				itemDao.upsertEntry(item);
 				allAncestors.add(currentPath);
 			}

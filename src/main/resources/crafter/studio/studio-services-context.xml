@@ -123,8 +123,6 @@
 		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="userDao" ref="userDao"/>
-		<property name="itemDao" ref="itemDao"/>
-		<property name="dependencyDao" ref="dependencyDao"/>
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
@@ -787,9 +785,7 @@
 		<constructor-arg name="contentRepository" ref="contentRepository"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="publishDAO" ref="publishDao"/>
-		<constructor-arg name="itemDao" ref="itemDao"/>
 		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
-		<constructor-arg name="dependencyDao" ref="dependencyDao"/>
 		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
 	</bean>
 
