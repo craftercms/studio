@@ -52,17 +52,6 @@ public interface GitContentRepository extends ContentRepository {
 	}
 
 	/**
-	 * List sandbox subtree items for give site and path
-	 *
-	 * @param site site identifier
-	 * @param path path for subtree root
-	 * @return list of item paths contained in the subtree
-	 */
-	default List<String> getSubtreeItems(String site, String path) {
-		return getSubtreeItems(site, path, GitRepositories.SANDBOX, HEAD);
-	}
-
-	/**
 	 * List subtree items for give site and path
 	 *
 	 * @param site     site identifier

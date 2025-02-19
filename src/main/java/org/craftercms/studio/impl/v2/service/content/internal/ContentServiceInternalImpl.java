@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
@@ -30,6 +31,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
@@ -75,8 +77,8 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.*;
+import static org.apache.commons.collections4.ListUtils.union;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -359,21 +361,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	}
 
 	@Override
-	public List<String> getChildItems(String siteId, List<String> paths) {
-		List<String> subtreeItems = getSubtreeItems(siteId, paths);
-		List<String> childItems = new ArrayList<>();
-		childItems.addAll(subtreeItems);
-		childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, paths));
-		childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
+	public List<LightItem> getChildItems(final String siteId, final List<String> paths) {
+		Collection<LightItem> subtreeItems = itemDao.getSubtreeItems(siteId, paths);
+		List<String> subtreePaths = subtreeItems.stream().map(LightItem::getPath).toList();
+		List<LightItem> childItems = new ArrayList<>(subtreeItems);
+		childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, union(paths, subtreePaths)));
 		return childItems;
-	}
-
-	private List<String> getSubtreeItems(String siteId, List<String> paths) {
-		List<String> subtreeItems = new ArrayList<>();
-		for (String path : paths) {
-			subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
-		}
-		return subtreeItems;
 	}
 
 	@Override
@@ -408,15 +401,14 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			}
 
 			Site site = siteService.getSite(siteId);
-			List<String> children = paths.stream()
-				.map(path -> contentRepository.getSubtreeItems(siteId, path))
-				.flatMap(List::stream)
+			List<String> children = itemDao.getSubtreeItems(siteId, paths).stream()
+				.map(LightItem::getPath)
 				.toList();
 			itemServiceInternal.setSystemProcessingBulk(siteId, children, true);
 			allPaths.addAll(children);
 
 			Collection<String> userRequested = CollectionUtils.union(paths, children);
-			List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
+			List<String> dependencies = dependencyServiceInternal.getItemSpecificDependencies(siteId, paths).stream().map(LightItem::getPath).toList();
 			itemServiceInternal.setSystemProcessingBulk(siteId, dependencies, true);
 			allPaths.addAll(dependencies);
 

@@ -106,12 +106,12 @@ public class ContentController {
 	}
 
 	@PostMapping(GET_DELETE_PACKAGE)
-	public ResultOne<Map<String, List<?>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
-		List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
+	public ResultOne<Map<String, List<LightItem>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
+		List<LightItem> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
 		List<LightItem> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
-		ResultOne<Map<String, List<?>>> result = new ResultOne<>();
+		ResultOne<Map<String, List<LightItem>>> result = new ResultOne<>();
 		result.setResponse(OK);
-		Map<String, List<?>> items = new HashMap<>();
+		Map<String, List<LightItem>> items = new HashMap<>();
 		items.put(RESULT_KEY_CHILD_ITEMS, childItems);
 		items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentItems);
 		result.setEntity(RESULT_KEY_ITEMS, items);

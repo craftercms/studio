@@ -799,4 +799,28 @@
 			#{path}
 		</foreach>
 	</select>
+
+	<select id="getSubtreeItems" resultMap="LightItemMap">
+		WITH RECURSIVE children AS (
+				SELECT i.id, i.path, i.label, i.system_type, i.mime_type
+				FROM item i
+				INNER JOIN site s ON s.id = i.site_id
+				WHERE i.path IN
+					<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+						#{path}
+					</foreach>
+				AND s.site_id = #{siteId}
+			UNION
+				SELECT i.id, i.path, i.label, i.system_type, i.mime_type
+				FROM item i, children
+				WHERE i.parent_id = children.id
+		)
+		SELECT path, label AS meta_label, mime_type AS meta_mime_type, system_type AS meta_system_type
+		FROM children
+		WHERE system_type &lt;&gt; #{systemTypeFolder}
+		AND path NOT IN
+			<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+				#{path}
+			</foreach>
+	</select>
 </mapper>

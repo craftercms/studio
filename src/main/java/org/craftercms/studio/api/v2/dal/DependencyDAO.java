@@ -129,7 +129,7 @@ public interface DependencyDAO {
 	 * @param regex  list of patterns that define item specific dependencies
 	 * @return list of item specific dependencies
 	 */
-	List<String> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+	List<LightItem> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
 											 @Param(REGEX) List<String> regex);
 
 	/**

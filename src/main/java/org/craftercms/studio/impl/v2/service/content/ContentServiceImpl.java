@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -85,7 +86,7 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-	public List<String> getChildItems(@SiteId String siteId,
+	public List<LightItem> getChildItems(@SiteId String siteId,
 										 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
 		return contentServiceInternal.getChildItems(siteId, paths);
 	}

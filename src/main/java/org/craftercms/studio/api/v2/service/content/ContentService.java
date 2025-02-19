@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
@@ -75,7 +76,7 @@ public interface ContentService {
 	 * @param paths  list of paths to get child items for
 	 * @return list of paths of child items
 	 */
-	List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
+	List<LightItem> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Delete content for given paths. Following content will be deleted:

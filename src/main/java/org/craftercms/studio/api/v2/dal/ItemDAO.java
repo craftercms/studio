@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -636,6 +637,31 @@ public interface ItemDAO {
 
 	Collection<String> getUnpublishedPaths(@Param(SITE_ID) long siteId,
 					       @Param(STATES) long states);
+
+
+	/**
+	 * Get all the non-folder children of the given paths, recursively.
+	 *
+	 * @param siteId the site id
+	 * @param paths  the paths to get children for
+	 * @return list of children as {@link LightItem}
+	 */
+	default Collection<LightItem> getSubtreeItems(String siteId,
+												  Collection<String> paths) {
+		return getSubtreeItems(siteId, paths, CONTENT_TYPE_FOLDER);
+	}
+
+	/**
+	 * Get all the non-folder children of the given paths, recursively.
+	 *
+	 * @param siteId           the site id
+	 * @param paths            the paths to get children for
+	 * @param systemTypeFolder the system type folder
+	 * @return list of children as {@link LightItem}
+	 */
+	Collection<LightItem> getSubtreeItems(@Param(SITE_ID) String siteId,
+										  @Param(PATHS) Collection<String> paths,
+										  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
 	/**
 	 * Get {@link ItemPathAndState} records for the given paths in a map by path
