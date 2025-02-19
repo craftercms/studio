@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.ibatis.session.SqlSession;
@@ -106,8 +105,13 @@ public class DependencyUtils {
 				})
 			)
 			.toList();
-		if (CollectionUtils.isNotEmpty(newDependencies)) {
-			dependencyDao.insertItemDependencies(newDependencies);
+
+		for (List<Dependency> batchDependencies : ListUtils.partition(newDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
+			dependencyDao.insertItemDependencies(batchDependencies);
+			// Flush only for full batches, but not for the last smaller chunk
+			if (batchDependencies.size() == DalUtils.MY_BATIS_QUERY_BATCH_SIZE) {
+				sqlSession.flushStatements();
+			}
 		}
 	}
 

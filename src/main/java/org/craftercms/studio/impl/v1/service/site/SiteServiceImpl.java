@@ -441,9 +441,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	/**
-	 * Return a Runnable that will check if the counter has exceeded the batch size and if so, execute the script and truncate the file
+	 * Return a Runnable that will check if the counter has exceeded the batch size and if so, execute the queries
 	 *
-	 * @param sqlSession sql session instance
+	 * @param sqlSession   sql session instance
 	 * @param counter      The counter to check
 	 * @return runnable
 	 */
@@ -466,8 +466,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		User userObj = userServiceInternal.getUserByGitName(creator);
 
 		MutableLong itemCount = new MutableLong(0);
-		SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH);
-		try {
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
 			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
 			contentRepositoryV2.forAllSitePaths(siteId,
 				directory -> {
@@ -485,11 +484,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			logger.debug("Validate dependencies for site '{}'", siteId);
 			dependencyServiceInternal.validateDependencies(siteId);
 		} catch (Exception e) {
-			sqlSession.rollback();
 			logger.error("Failed to update database for processingCreatedFiles in site '{}'", siteId, e);
 			throw e;
-		} finally {
-			sqlSession.close();
 		}
 		logger.debug("Finished processing created files for site '{}'", siteId);
 	}
