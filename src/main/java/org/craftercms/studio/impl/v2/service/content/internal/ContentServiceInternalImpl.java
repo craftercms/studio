@@ -209,11 +209,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	}
 
 	@Override
-	public List<ContentItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+	public List<ContentItem> getContentItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
 		Site site = siteService.getSite(siteId);
 		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
 		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		List<ContentItem> items = itemDao.getDetailedItemsByStates(site.getId(), statesBitMap,
+		List<ContentItem> items = itemDao.getContentItemsByStates(site.getId(), statesBitMap,
 			systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
 		for (ContentItem item : items) {
 			populateDetailedItemPropertiesFromRepository(siteId, item);
@@ -232,9 +232,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
 		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
 		if (preferContent) {
-			item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
+			item = itemDao.getContentItemByPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
 		} else {
-			item = itemDao.getItemBySiteIdAndPath(site.getId(), path, stagingEnv, liveEnv);
+			item = itemDao.getContentItemByPath(site.getId(), path, stagingEnv, liveEnv);
 		}
 		if (item == null) {
 			throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
@@ -258,21 +258,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 		Site site = siteService.getSite(siteId);
 		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
 		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		List<ContentItem> items = itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent, stagingEnv, liveEnv);
+		List<ContentItem> items = itemDao.getContentItemsByPath(site.getId(), paths, preferContent, stagingEnv, liveEnv);
 		return calculatePossibleActions(siteId, items);
 	}
-
-//	@Override
-//	public List<ContentItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
-//		throws ServiceLayerException, UserNotFoundException {
-//		List<ContentItem> items;
-//		if (preferContent) {
-//			items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
-//		} else {
-//			items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
-//		}
-//		return calculatePossibleActions(siteId, items);
-//	}
 
 	private List<ContentItem> calculatePossibleActions(String siteId, List<ContentItem> items)
 		throws ServiceLayerException, UserNotFoundException {

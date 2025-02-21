@@ -144,7 +144,7 @@ public class DashboardServiceImpl implements DashboardService {
 												   List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
 		throws UserNotFoundException, ServiceLayerException {
 		List<ContentItem> items =
-			contentServiceInternal.getItemsByStates(siteId, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
+			contentServiceInternal.getContentItemsByStates(siteId, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
 		if (items.isEmpty()) {
 			return emptyList();
 		}

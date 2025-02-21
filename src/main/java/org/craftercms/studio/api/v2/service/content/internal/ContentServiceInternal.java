@@ -153,9 +153,9 @@ public interface ContentServiceInternal extends ContentService {
 	 * @throws UserNotFoundException
 	 * @throws ServiceLayerException
 	 */
-	List<ContentItem> getItemsByStates(String siteId, long statesBitMap,
-					    List<String> systemTypes, List<SortField> sortFields,
-					    int offset, int limit) throws UserNotFoundException, ServiceLayerException;
+	List<ContentItem> getContentItemsByStates(String siteId, long statesBitMap,
+											  List<String> systemTypes, List<SortField> sortFields,
+											  int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get the version history for a given content item.
