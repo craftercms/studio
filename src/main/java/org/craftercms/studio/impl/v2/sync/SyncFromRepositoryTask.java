@@ -506,22 +506,25 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private void processRepoOperations(Site site, List<RepoOperation> repoOperations,
 									   Set<String> allAncestors) throws UserNotFoundException, ServiceLayerException {
 		Map<String, User> cachedUsers = new HashMap<>();
-		for (List<RepoOperation> batchRepoOperations : ListUtils.partition(repoOperations, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
-			try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
+			DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
+			for (List<RepoOperation> batchRepoOperations : ListUtils.partition(repoOperations, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
 				for (RepoOperation repoOperation : batchRepoOperations) {
 					User user = getRepoOperationUser(repoOperation.getAuthor(), cachedUsers);
 					switch (repoOperation.getAction()) {
-						case CREATE, COPY -> processCreate(sqlSession, site, repoOperation, user, allAncestors);
-						case UPDATE -> processUpdate(sqlSession, site, repoOperation, user);
-						case DELETE -> processDelete(sqlSession, site, repoOperation);
-						case MOVE -> processMove(sqlSession, site, repoOperation, user, allAncestors);
+						case CREATE, COPY -> processCreate(itemDao, dependencyDao, sqlSession, site, repoOperation, user, allAncestors);
+						case UPDATE -> processUpdate(itemDao, dependencyDao, sqlSession, site, repoOperation, user);
+						case DELETE -> processDelete(itemDao, dependencyDao, site, repoOperation);
+						case MOVE -> processMove(itemDao, dependencyDao, sqlSession, site, repoOperation, user, allAncestors);
 						default -> logger.error("Failed to process unknown repo operation '{}' in site '{}'",
 							site.getSiteId(), repoOperation.getAction());
 					}
 					invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getPath());
 				}
-				sqlSession.commit();
+				sqlSession.flushStatements();
 			}
+			sqlSession.commit();
 		}
 	}
 
@@ -564,16 +567,18 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	/**
 	 * Process batch create operation
 	 * process a batch move operation
+	 * @param itemDao item mapper
+	 * @param dependencyDao dependency mapper
 	 * @param sqlSession sql session
 	 * @param site {@link Site} to perform the operation
 	 * @param repoOperation {@link RepoOperation} repository operation detail
 	 * @param user modified {@link User}
 	 * @param allAncestors list of ancestors
 	 */
-	private void processCreate(SqlSession sqlSession, Site site, RepoOperation repoOperation, User user,
-							   Set<String> allAncestors) {
+	private void processCreate(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
+							   Site site, RepoOperation repoOperation, User user, Set<String> allAncestors) {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
-		processAncestors(sqlSession, site.getSiteId(), repoOperation.getPath(), user.getId(),
+		processAncestors(itemDao, site.getSiteId(), repoOperation.getPath(), user.getId(),
 			repoOperation.getDateTime(), allAncestors);
 		long state = NEW.value;
 		if (metadata.disabled) {
@@ -601,23 +606,25 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			.withTranslationSourceId(null)
 			.withSize(contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()))
 			.build();
-		ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 		itemDao.upsertEntry(item);
 
 		logger.trace("Extract dependencies from site '{}' path '{}' while processing batch create", site.getSiteId(), repoOperation.getPath());
 		DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
-			dependencyServiceInternal, sqlSession, false, true);
+			dependencyServiceInternal, dependencyDao, sqlSession, false, true);
 	}
 
 	/**
 	 * Process batch update operation
 	 * process a batch move operation
+	 * @param itemDao item mapper
+	 * @param dependencyDao dependency mapper
 	 * @param sqlSession sql session
 	 * @param site {@link Site} to perform the operation
 	 * @param repoOperation {@link RepoOperation} repository operation detail
 	 * @param user modified {@link User}
 	 */
-	private void processUpdate(SqlSession sqlSession, Site site, RepoOperation repoOperation, User user) {
+	private void processUpdate(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
+							   Site site, RepoOperation repoOperation, User user) {
 		if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
 			return;
 		}
@@ -630,7 +637,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			offStateBitmap = offStateBitmap | DISABLED.value;
 		}
 
-		updateItemRow(sqlSession, site.getId(),
+		updateItemRow(itemDao, site.getId(),
 			repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 			repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
 			contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
@@ -639,21 +646,24 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 		logger.trace("Extract dependencies from site '{}' path '{}' while processing batch update", site.getSiteId(), repoOperation.getPath());
 		DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
-			dependencyServiceInternal, sqlSession, true, false);
+			dependencyServiceInternal, dependencyDao, sqlSession, true, false);
 	}
 
 	/**
 	 * process a batch move operation
+	 * @param itemDao item mapper
+	 * @param dependencyDao dependency mapper
 	 * @param sqlSession sql session
 	 * @param site {@link Site} to perform the operation
 	 * @param repoOperation {@link RepoOperation} repository operation detail
 	 * @param user modified {@link User}
 	 * @param allAncestors list af ancestors
 	 */
-	private void processMove(SqlSession sqlSession, Site site, RepoOperation repoOperation, User user,
+	private void processMove(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
+							 Site site, RepoOperation repoOperation, User user,
 							 Set<String> allAncestors) {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
-		processAncestors(sqlSession, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
+		processAncestors(itemDao, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
 			repoOperation.getDateTime(), allAncestors);
 		long onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
 		long offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
@@ -664,10 +674,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		}
 		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) &&
 			!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
-			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 			itemDao.moveItemForSyncTask(site.getSiteId(), repoOperation.getPath(), repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap);
 
-			updateItemRow(sqlSession, site.getId(),
+			updateItemRow(itemDao, site.getId(),
 				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
 				contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
@@ -675,14 +684,14 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 
 			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getMoveToPath(),
-				repoOperation.getPath(), dependencyServiceInternal, sqlSession);
+				repoOperation.getPath(), dependencyServiceInternal, dependencyDao, sqlSession);
 		}
 		invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
 	}
 
 	/**
 	 * Update an item row in DB
-	 * @param sqlSession       the sql session
+	 * @param itemDao          the Item mapper
 	 * @param siteId           the site identifier
 	 * @param path             the path to update
 	 * @param previewUrl       the preview url
@@ -696,11 +705,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param mimeType         mime type
 	 * @param size             content size
 	 */
-	private void updateItemRow(SqlSession sqlSession, long siteId, String path, String previewUrl, long onStatesBitMap,
+	private void updateItemRow(ItemDAO itemDao, long siteId, String path, String previewUrl, long onStatesBitMap,
 									   long offStatesBitMap, Long lastModifiedBy, ZonedDateTime lastModifiedOn,
 									   String label, String contentTypeId, String systemType, String mimeType,
 									   Long size) {
-		ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 		Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
 		String fileName = FilenameUtils.getName(path);
 		boolean ignored = org.apache.commons.lang3.ArrayUtils.contains(IGNORE_FILES, fileName);
@@ -709,14 +717,12 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 	/**
 	 * Processes a batch delete operation
-	 * @param sqlSession sql session
+	 * @param itemDao item mapper
+	 * @param dependencyDao dependency mapper
 	 * @param site {@link Site} to perform the operation
 	 * @param repoOperation {@link RepoOperation} repository operation detail
 	 */
-	private void processDelete(SqlSession sqlSession, Site site, RepoOperation repoOperation) {
-		ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
-		DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
-
+	private void processDelete(ItemDAO itemDao, DependencyDAO dependencyDao, Site site, RepoOperation repoOperation) {
 		String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
 		boolean folderExists = contentRepository.contentExists(site.getSiteId(), folder);
 		// If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
@@ -741,15 +747,15 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	}
 
 	/**
-	 * Add the script snippets to insert the parents of the given path.
+	 * Insert the parents of the given path.
 	 *
-	 * @param sqlSession           The sql session
+	 * @param itemDao              The Item mapper
 	 * @param siteId               The site id
 	 * @param path                 The path
 	 * @param userId               The user id
 	 * @param now                  The current date time
 	 */
-	private void processAncestors(SqlSession sqlSession, String siteId, String path, long userId, ZonedDateTime now,
+	private void processAncestors(ItemDAO itemDao, String siteId, String path, long userId, ZonedDateTime now,
 								  Set<String> allAncestors) {
 		Path p = Paths.get(path);
 		if (isNull(p.getParent())) {
@@ -782,7 +788,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 					.withTranslationSourceId(null)
 					.withSize(0L)
 					.build();
-				ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 				itemDao.upsertEntry(item);
 				allAncestors.add(currentPath);
 			}

@@ -161,7 +161,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	protected UserDAO userDao;
 
-	SqlSessionFactory sqlSessionFactory;
+	protected SqlSessionFactory sqlSessionFactory;
 
 	@Override
 	public Set<String> getAllAvailableSites() {
@@ -358,7 +358,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		auditServiceInternal.insertAuditLog(auditLog);
 	}
 
-	private void processCreatedDirectory(SqlSession sqlSession, String siteId, String directory,
+	private void processCreatedDirectory(ItemDAO itemDao, String siteId, String directory,
 					     long userId, ZonedDateTime now) {
 		String label = new File(directory).getName();
 		Item item = itemServiceInternal.instantiateItem(siteId, directory)
@@ -378,11 +378,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			.withTranslationSourceId(null)
 			.withSize(0L)
 			.build();
-		ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 		itemDao.upsertEntry(item);
 	}
 
-	private void processCreatedFile(SqlSession sqlSession, Site site, String path, long userId, ZonedDateTime now) {
+	private void processCreatedFile(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
+									Site site, String path, long userId, ZonedDateTime now) {
 		// Item
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
@@ -432,10 +432,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 				.withTranslationSourceId(null)
 				.withSize(contentRepositoryV2.getContentSize(site.getSiteId(), path))
 				.build();
-			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 			itemDao.upsertEntry(item);
 
-			DependencyUtils.updateDependencies(site.getSiteId(), path, null, dependencyServiceInternal,
+			DependencyUtils.updateDependencies(site.getSiteId(), path, null, dependencyServiceInternal, dependencyDao,
 				sqlSession, false, false);
 		}
 	}
@@ -467,14 +466,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 		MutableLong itemCount = new MutableLong(0);
 		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
+			DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
 			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
 			contentRepositoryV2.forAllSitePaths(siteId,
 				directory -> {
-					processCreatedDirectory(sqlSession, site.getSiteId(), directory, userObj.getId(), now);
+					processCreatedDirectory(itemDao, site.getSiteId(), directory, userObj.getId(), now);
 					checkCounter.run();
 				},
 				file -> {
-					processCreatedFile(sqlSession, site, file, userObj.getId(), now);
+					processCreatedFile(itemDao, dependencyDao, sqlSession, site, file, userObj.getId(), now);
 					checkCounter.run();
 				}
 			);

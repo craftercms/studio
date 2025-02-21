@@ -678,15 +678,15 @@ public interface ItemDAO {
 	void updateParentId(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
 
 	/**
-	 * Update a new page children.
-	 * This should be called when a new page (index.xml) is created in an already existing folder
+	 * Update a deleted page children.
+	 * This should be called when a page (index.xml) is deleted via git but its children still exists
 	 * @param siteId the site id
 	 * @param path the path to update
 	 */
 	void updateDeletedPageChildren(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
 	/**
-	 * Move item for batch operation
+	 * Move item query for sync task
 	 * @param siteId          site identifier
 	 * @param previousPath    previous path
 	 * @param newPath         new path
@@ -698,20 +698,20 @@ public interface ItemDAO {
 				  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
 	/**
-	 * Update item for sync task
-	 * @param siteId
-	 * @param path
-	 * @param previewUrl
-	 * @param onStatesBitMap
-	 * @param offStatesBitMap
-	 * @param lastModifiedBy
-	 * @param lastModifiedOn
-	 * @param label
-	 * @param contentTypeId
-	 * @param systemType
-	 * @param mimeType
-	 * @param size
-	 * @param ignored
+	 * Update item query for sync task
+	 * @param siteId           site identifier
+	 * @param path             content path
+	 * @param previewUrl       preview url
+	 * @param onStatesBitMap   on state bit map
+	 * @param offStatesBitMap  off state bit map
+	 * @param lastModifiedBy   last modified by
+	 * @param lastModifiedOn   last modified on
+	 * @param label            content label
+	 * @param contentTypeId    content type id
+	 * @param systemType       system type
+	 * @param mimeType         mime type
+	 * @param size             content size
+	 * @param ignored          is content ignored
 	 */
 	void updateItemForSyncTask(@Param(SITE_ID) long siteId, @Param(PATH) String path, @Param(PREVIEW_URL) String previewUrl,
 							   @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap,

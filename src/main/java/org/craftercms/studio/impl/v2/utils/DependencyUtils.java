@@ -47,11 +47,12 @@ public class DependencyUtils {
 	 * @param path              the content item path
 	 * @param oldPath           the content item old path
 	 * @param dependencyService the dependency service
+	 * @param dependencyDao     the dependency mapper
 	 * @param sqlSession        the sql session
 	 */
 	public static void updateDependencies(String siteId, String path, String oldPath,
-										  DependencyService dependencyService, SqlSession sqlSession) {
-		updateDependencies(siteId, path, oldPath, dependencyService, sqlSession, true, true);
+										  DependencyService dependencyService, DependencyDAO dependencyDao, SqlSession sqlSession) {
+		updateDependencies(siteId, path, oldPath, dependencyService, dependencyDao, sqlSession, true, true);
 	}
 
 	/**
@@ -61,13 +62,14 @@ public class DependencyUtils {
 	 * @param path              the content item path
 	 * @param oldPath           the content item old path
 	 * @param dependencyService the dependency service
+	 * @param dependencyDao     the dependency mapper
 	 * @param sqlSession        the sql session
 	 * @param cleanExisting     if true, the existing dependencies for the path will be deleted
 	 * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
 	 */
 	public static void updateDependencies(String siteId, String path, String oldPath,
-										  DependencyService dependencyService, SqlSession sqlSession, boolean cleanExisting, boolean revalidate) {
-		DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
+										  DependencyService dependencyService, DependencyDAO dependencyDao,
+										  SqlSession sqlSession,  boolean cleanExisting, boolean revalidate) {
 		if (cleanExisting) {
 			if (isEmpty(oldPath)) {
 				dependencyDao.deleteItemDependencies(siteId, path);
