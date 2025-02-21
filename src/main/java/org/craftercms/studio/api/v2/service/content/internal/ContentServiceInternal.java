@@ -22,10 +22,10 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
@@ -105,29 +105,6 @@ public interface ContentServiceInternal extends ContentService {
 	long getContentSize(String siteId, String path);
 
 	/**
-	 * Get detailed for given path
-	 *
-	 * @param siteId        site identifier
-	 * @param path          item for path
-	 * @param preferContent if true return content item if available
-	 * @return detailed item
-	 */
-	DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
-
-	/**
-	 * Get sandbox items for given list of paths
-	 *
-	 * @param siteId        site identifier
-	 * @param ids           list of ids to get sandbox items
-	 * @param sortFields
-	 * @param preferContent if true return content items if available
-	 * @return list of sandbox items
-	 */
-	List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
-
-	/**
 	 * Check if item is editable
 	 *
 	 * @param itemPath     item path
@@ -176,7 +153,7 @@ public interface ContentServiceInternal extends ContentService {
 	 * @throws UserNotFoundException
 	 * @throws ServiceLayerException
 	 */
-	List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
+	List<ContentItem> getItemsByStates(String siteId, long statesBitMap,
 					    List<String> systemTypes, List<SortField> sortFields,
 					    int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 

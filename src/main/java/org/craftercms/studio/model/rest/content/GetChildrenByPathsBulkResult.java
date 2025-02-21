@@ -17,6 +17,7 @@
 package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 import java.util.Collection;
 
@@ -49,7 +50,7 @@ public class GetChildrenByPathsBulkResult {
 	public static class ChildrenByPathResult {
 
 		private String path;
-		private SandboxItem item;
+		private ContentItem item;
 		private GetChildrenResult result;
 
 		@JsonUnwrapped
@@ -69,11 +70,11 @@ public class GetChildrenByPathsBulkResult {
 			this.path = path;
 		}
 
-		public SandboxItem getItem() {
+		public ContentItem getItem() {
 			return item;
 		}
 
-		public void setItem(SandboxItem item) {
+		public void setItem(ContentItem item) {
 			this.item = item;
 		}
 	}

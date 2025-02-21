@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 /**
  * Interface to resolve available actions from user permissions
@@ -47,6 +47,6 @@ public interface SemanticsAvailableActionsResolver {
 	 * @param detailedItem Item
 	 * @return bitmap representing available actions
 	 */
-	long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
+	long calculateContentItemAvailableActions(String username, String siteId, ContentItem detailedItem)
 		throws ServiceLayerException, UserNotFoundException;
 }

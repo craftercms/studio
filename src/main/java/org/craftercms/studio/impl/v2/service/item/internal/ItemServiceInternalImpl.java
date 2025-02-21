@@ -67,13 +67,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public DetailedItem getItem(String siteId, long id) {
-		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, stagingEnv, liveEnv);
-	}
-
-	@Override
 	public Item getItem(String siteId, String path) {
 		return getItem(siteId, path, false);
 	}
@@ -84,29 +77,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 		if (Objects.isNull(site)) {
 			return null;
 		}
-		DetailedItem item;
-		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		if (preferContent) {
-			item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
-		} else {
-			item = itemDao.getItemBySiteIdAndPath(site.getId(), path, stagingEnv, liveEnv);
-		}
-		if (Objects.nonNull(item)) {
-			item.setSiteName(siteId);
-		}
-		return Item.getInstance(item);
+		return itemDao.getItemByPath(site.getId(), path, preferContent);
 	}
 
 	@Override
 	public List<Item> getItems(String siteId, Collection<String> paths) {
-		return getItems(siteId, paths, false);
-	}
-
-	@Override
-	public List<Item> getItems(String siteId, Collection<String> paths, boolean preferContent) {
 		Site site = siteDao.getSite(siteId);
-		return itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent);
+		return itemDao.getItemsByPath(site.getId(), paths, false);
 	}
 
 	@Override
@@ -381,8 +358,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
-		return itemDao.getItemByStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
+	public List<Item> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
+		return itemDao.getItemsByStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
 	}
 
 	@Override

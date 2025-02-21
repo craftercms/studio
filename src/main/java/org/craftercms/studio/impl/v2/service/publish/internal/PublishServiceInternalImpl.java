@@ -411,7 +411,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 					.filter(path -> !publishItemsByPath.containsKey(path))
 					.map(path -> {
 						long itemState = statesByPath.get(path).getState();
-						return createPublishItem(path, isNew(itemState) ? ADD:UPDATE, true);
+						return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
 					})
 					.collect(toMap(PublishItem::getPath, item -> item)));
 		}

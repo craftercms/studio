@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.model.rest.ResultList;
 
 import java.util.Collection;
@@ -27,7 +28,7 @@ import java.util.Collection;
  * @author joseross
  * @since 4.0.0
  */
-public class GetSandboxItemsByPathResult extends ResultList<SandboxItem> {
+public class GetSandboxItemsByPathResult extends ResultList<ContentItem> {
 
 	/**
 	 * Collection of paths for which no item was found

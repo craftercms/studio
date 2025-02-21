@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
@@ -31,6 +30,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
@@ -52,7 +52,6 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
@@ -77,7 +76,8 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.collections4.CollectionUtils.*;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
@@ -159,8 +159,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 							       Map<String, PathParams> pathParams) throws UserNotFoundException, ServiceLayerException {
 		List<ChildrenByPathResult> resultItems = new ArrayList<>(paths.size());
 
-		Map<String, SandboxItem> sandboxItemsByPath = getSandboxItemsByPath(siteId, paths, true).stream()
-			.collect(toMap(SandboxItem::getPath, identity()));
+		Map<String, ContentItem> sandboxItemsByPath = getSandboxItemsByPath(siteId, paths, true).stream()
+			.collect(toMap(ContentItem::getPath, identity()));
 		List<String> missingItems = new LinkedList<>();
 		for (PathParams params : pathParams.values()) {
 			try {
@@ -209,29 +209,26 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	}
 
 	@Override
-	public List<DetailedItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+	public List<ContentItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
 		Site site = siteService.getSite(siteId);
 		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
 		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(site.getId(), statesBitMap,
+		List<ContentItem> items = itemDao.getDetailedItemsByStates(site.getId(), statesBitMap,
 			systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
-		List<DetailedItem> result = new ArrayList<>();
-		for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
-			DetailedItem detailedItem = DetailedItem.getInstance(item);
-			populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
-			result.add(detailedItem);
+		for (ContentItem item : items) {
+			populateDetailedItemPropertiesFromRepository(siteId, item);
 		}
-		return result;
+		return items;
 	}
 
 	@Override
-	public DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
+	public ContentItem getItemByPath(String siteId, String path, boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
 		if (!contentRepository.contentExists(siteId, path)) {
 			throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
 		}
 		Site site = siteService.getSite(siteId);
-		org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+		ContentItem item = null;
 		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
 		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
 		if (preferContent) {
@@ -242,54 +239,55 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 		if (item == null) {
 			throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
 		}
-		DetailedItem detailedItem = DetailedItem.getInstance(item);
-		populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
-		return detailedItem;
+		populateDetailedItemPropertiesFromRepository(siteId, item);
+		return item;
 	}
 
-	private void populateDetailedItemPropertiesFromRepository(String siteId, DetailedItem detailedItem)
+	private void populateDetailedItemPropertiesFromRepository(String siteId, ContentItem item)
 		throws ServiceLayerException, UserNotFoundException {
-		if (Objects.nonNull(detailedItem)) {
+		if (Objects.nonNull(item)) {
 			String user = securityService.getCurrentUser();
-			detailedItem.setAvailableActions(
-				semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, detailedItem));
+			item.setAvailableActions(
+				semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
 		}
 	}
 
 	@Override
-	public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+	public List<ContentItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
 		Site site = siteService.getSite(siteId);
-		List<Item> items = itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent);
+		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+		List<ContentItem> items = itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent, stagingEnv, liveEnv);
 		return calculatePossibleActions(siteId, items);
 	}
 
-	@Override
-	public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException {
-		List<Item> items;
-		if (preferContent) {
-			items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
-		} else {
-			items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
-		}
-		return calculatePossibleActions(siteId, items);
-	}
+//	@Override
+//	public List<ContentItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
+//		throws ServiceLayerException, UserNotFoundException {
+//		List<ContentItem> items;
+//		if (preferContent) {
+//			items = itemDao.getSandboxItemsByIdPreferContent(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+//		} else {
+//			items = itemDao.getSandboxItemsById(ids, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
+//		}
+//		return calculatePossibleActions(siteId, items);
+//	}
 
-	private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
+	private List<ContentItem> calculatePossibleActions(String siteId, List<ContentItem> items)
 		throws ServiceLayerException, UserNotFoundException {
 		if (isEmpty(items)) {
 			return emptyList();
 		}
-		List<SandboxItem> toRet = new ArrayList<>();
+		List<ContentItem> toRet = new ArrayList<>();
 		String user = securityService.getCurrentUser();
-		for (Item item : items) {
+		for (ContentItem item : items) {
 			if (!contentRepository.contentExists(siteId, item.getPath())) {
 				logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
 			} else {
 				item.setAvailableActions(
 					semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
-				toRet.add(SandboxItem.getInstance(item));
+				toRet.add(item);
 			}
 		}
 		return toRet;

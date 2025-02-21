@@ -26,10 +26,10 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
@@ -115,18 +115,17 @@ public class DashboardController {
 
 	@Valid
 	@GetMapping(value = CONTENT + UNPUBLISHED, produces = APPLICATION_JSON_VALUE)
-	public PaginatedResultList<SandboxItem> getContentUnpublished(
-		@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-		@PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-		@PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-		@RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateModified desc")
-		List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields,
-		@RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
-		List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes) throws UserNotFoundException, ServiceLayerException {
+	public PaginatedResultList<ContentItem> getContentUnpublished(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+																  @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+																  @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
+																  @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateModified desc")
+																  List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields,
+																  @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
+																  List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes) throws UserNotFoundException, ServiceLayerException {
 		var total = dashboardService.getContentUnpublishedCount(siteId, systemTypes);
 		var unpublishedContent = dashboardService.getContentUnpublished(siteId, systemTypes, sortFields, offset, limit);
 
-		var result = new PaginatedResultList<SandboxItem>();
+		var result = new PaginatedResultList<ContentItem>();
 		result.setTotal(total);
 		result.setOffset(offset);
 		result.setLimit(CollectionUtils.isNotEmpty(unpublishedContent) ? unpublishedContent.size() : 0);

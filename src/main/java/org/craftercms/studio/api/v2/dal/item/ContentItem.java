@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.dal.item;
 import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
+
 //Consider moving these classes to a package under model, as they are not only related to the DAL.
 public class ContentItem {
 	private long id;
@@ -37,12 +38,11 @@ public class ContentItem {
 	private ZonedDateTime dateCreated;
 	private Person modifier;
 	private ZonedDateTime dateModified;
-	private String commitId;
 	private long availableActions;
 	private int childrenCount;
 
-	private Environment staging;
-	private Environment live;
+	private PublishTargetStatus staging;
+	private PublishTargetStatus live;
 
 	public long getAvailableActions() {
 		return availableActions;
@@ -58,14 +58,6 @@ public class ContentItem {
 
 	public void setChildrenCount(int childrenCount) {
 		this.childrenCount = childrenCount;
-	}
-
-	public String getCommitId() {
-		return commitId;
-	}
-
-	public void setCommitId(String commitId) {
-		this.commitId = commitId;
 	}
 
 	public String getContentTypeId() {
@@ -196,40 +188,19 @@ public class ContentItem {
 		this.translationSourceId = translationSourceId;
 	}
 
-	public Environment getLive() {
+	public PublishTargetStatus getLive() {
 		return live;
 	}
 
-	public void setLive(Environment live) {
+	public void setLive(PublishTargetStatus live) {
 		this.live = live;
 	}
 
-	public Environment getStaging() {
+	public PublishTargetStatus getStaging() {
 		return staging;
 	}
 
-	public void setStaging(Environment staging) {
+	public void setStaging(PublishTargetStatus staging) {
 		this.staging = staging;
-	}
-
-	public static class Environment {
-		private ZonedDateTime lastPublishedOn;
-		private Person publisher;
-
-		public ZonedDateTime getLastPublishedOn() {
-			return lastPublishedOn;
-		}
-
-		public void setLastPublishedOn(ZonedDateTime lastPublishedOn) {
-			this.lastPublishedOn = lastPublishedOn;
-		}
-
-		public Person getPublisher() {
-			return publisher;
-		}
-
-		public void setPublisher(Person publisher) {
-			this.publisher = publisher;
-		}
 	}
 }

@@ -328,46 +328,6 @@ public class Item {
 		this.childrenCount = childrenCount;
 	}
 
-	public static Item getInstance(DetailedItem item) {
-		if (Objects.isNull(item)) {
-			return null;
-		}
-
-		Item instance = new Item();
-
-		instance.id = item.getId();
-		instance.siteId = item.getSiteId();
-		instance.siteName = item.getSiteName();
-		instance.path = item.getPath();
-		instance.previewUrl = item.getPreviewUrl();
-		instance.state = item.getState();
-		instance.lockedBy = item.getLockedBy();
-		instance.lockOwner = item.getLockOwner();
-		instance.createdBy = item.getCreatedBy();
-		instance.creator = item.getCreator();
-		instance.createdOn = item.getCreatedOn();
-		instance.lastModifiedBy = item.getLastModifiedBy();
-		instance.modifier = item.getModifier();
-		instance.lastModifiedOn = item.getLastModifiedOn();
-		instance.submitter = item.getSubmitter();
-		instance.submittedOn = item.getSubmittedOn();
-		instance.lastPublishedOn = item.getLastPublishedOn();
-		instance.label = item.getLabel();
-		instance.contentTypeId = item.getContentTypeId();
-		instance.systemType = item.getSystemType();
-		instance.mimeType = item.getMimeType();
-		instance.localeCode = item.getLocaleCode();
-		instance.translationSourceId = item.getTranslationSourceId();
-		instance.size = item.getSize();
-		instance.parentId = item.getParentId();
-		instance.availableActions = item.getAvailableActions();
-		instance.ignoredAsInt = item.getIgnoredAsInt();
-		instance.ignored = item.isIgnored();
-		instance.childrenCount = item.getChildrenCount();
-
-		return instance;
-	}
-
 	public static final class Builder {
 		private long id;
 		private long siteId;

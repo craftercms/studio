@@ -5415,7 +5415,7 @@ paths:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
                                     item:
-                                        $ref: '#/components/schemas/DetailedItem'
+                                        $ref: '#/components/schemas/ContentItem'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -5468,7 +5468,7 @@ paths:
                                     items:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/SandboxItem'
+                                            $ref: '#/components/schemas/ContentItem'
                                     missingItems:
                                         type: array
                                         items:
@@ -7299,7 +7299,7 @@ paths:
                                     unpublishedItems:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/SandboxItem'
+                                            $ref: '#/components/schemas/ContentItem'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -9369,16 +9369,12 @@ components:
             type: object
             properties:
                 item:
-                    $ref: '#/components/schemas/ContentItem'
+                    $ref: '#/components/schemas/ContentItemV1'
                 versions:
                     type: array
                     description: list of versions
                     items:
                         $ref: '#/components/schemas/ItemVersion'
-
-        ContentItem:
-            type: object
-            description: API v1 object
 
         PublishPackage:
             type: object
@@ -9724,29 +9720,6 @@ components:
                 currentTask:
                     $ref: '#/components/schemas/PublishTaskProgress'
 
-        DeploymentHistoryGroup:
-            type: object
-            properties:
-                internalName:
-                    type: string
-                    description: user friendly label
-                numberOfChildren:
-                    type: integer
-                    format: int32
-                    description: number of items in the group
-                children:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/ContentItem'
-                publishingTarget:
-                    type: string
-                    description: publishing target where item was published
-            required:
-                - internalName
-                - numberOfChildren
-                - children
-                - publishingTarget
-
         SandboxItem:
             type: object
             properties:
@@ -9897,7 +9870,7 @@ components:
                 - commitId
                 - availableActions
 
-        DetailedItem:
+        ContentItem:
             type: object
             properties:
                 id:
@@ -9968,10 +9941,20 @@ components:
                 translationSourceId:
                     type: string
                     description: ID of content item that is original for translation that current item represents
-                expiresOn:
+                creator:
+                    $ref: '#/components/schemas/Person'
+                    description: user that created the item
+                dateCreated:
                     type: string
                     format: datetime
-                    description: timestamp when the item will expire, can be null if not present/set
+                    description: timestamp when item was created
+                modifier:
+                    $ref: '#/components/schemas/Person'
+                    description: last user that modified sandbox version of item
+                dateModified:
+                    type: string
+                    format: datetime
+                    description: timestamp when was item last modified in sandbox
                 availableActions:
                     type: integer
                     format: int64
@@ -10002,75 +9985,16 @@ components:
                           * `BIT ORDER (little-endian)`: 22, `FLAG`: RETIRED ACTION - Publish: Schedule, `DESCRIPTION`: This action is no longer used
                           * `BIT ORDER (little-endian)`: 23, `FLAG`: RETIRED ACTION - Publish: Reject, `DESCRIPTION`: This action is no longer used
                           * `BIT ORDER (little-endian)`: 24, `FLAG`: Content: Unlock, `DESCRIPTION`: Unlock content item
-                sandbox:
-                    type: object
-                    description: metadata of content item version stored in sandbox repository
-                    properties:
-                        creator:
-                            $ref: '#/components/schemas/Person'
-                            description: user that created the item
-                        dateCreated:
-                            type: string
-                            format: datetime
-                            description: timestamp when item was created
-                        modifier:
-                            $ref: '#/components/schemas/Person'
-                            description: last user that modified sandbox version of item
-                        dateModified:
-                            type: string
-                            format: datetime
-                            description: timestamp when was item last modified in sandbox
-                        submitter:
-                            $ref: '#/components/schemas/Person'
-                            description: user that submitted item for publishing
-                        dateSubmitted:
-                            type: string
-                            format: datetime
-                            description: timestamp when item was submitted for review (if any)
-                        sizeInBytes:
-                            type: integer
-                            format: int64
-                            description: size of content item in the repository
-                staging:
-                    type: object
-                    description: metadata of content item version stored in staging repository
-                    properties:
-                        dateScheduled:
-                            type: string
-                            format: datetime
-                            description: timestamp when is item scheduled for publishing to staging repository
-                        datePublished:
-                            type: string
-                            format: datetime
-                            description: timestamp when was item last time published to staging repository
-                        publisher:
-                            type: string
-                            description: username of last user that published item to staging repository
-                        commitId:
-                            type: string
-                            description: commit id of last modification in the staging repository
-                live:
-                    type: object
-                    description: metadata of content item version stored in live repository
-                    properties:
-                        dateScheduled:
-                            type: string
-                            format: datetime
-                            description: timestamp when is item scheduled for publishing to live repository
-                        datePublished:
-                            type: string
-                            format: datetime
-                            description: timestamp when was item last time published to live repository
-                        publisher:
-                            type: string
-                            description: username of last user that published item to live repository
-                        commitId:
-                            type: string
-                            description: commit id of last modification in the live repository
                 childrenCount:
                     type: integer
                     format: int32
                     description: number of children of the item
+                staging:
+                    $ref: '#/components/schemas/PublishTargetStatus'
+                    description: status of the item in the staging target
+                live:
+                    $ref: '#/components/schemas/PublishTargetStatus'
+                    description: status of the item in the live target
             required:
                 - id
                 - label
@@ -10083,6 +10007,20 @@ components:
                 - lockOwner
                 - staging
                 - availableActions
+
+        PublishTargetStatus:
+            type: object
+            properties:
+                lastPublishedOn:
+                    type: string
+                    format: datetime
+                    description: timestamp when was item last time published to this target
+                scheduledDate:
+                    type: string
+                    format: datetime
+                    description: timestamp this item is scheduled for
+                publisher:
+                    $ref: '#/components/schemas/Person'
 
         LocalizationItem:
             type: object

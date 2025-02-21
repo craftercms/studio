@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.model.rest.dashboard;
 
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.time.ZonedDateTime;
@@ -45,9 +46,9 @@ public class ExpiringContentItem {
 	/**
 	 * The sandbox item
 	 */
-	protected SandboxItem sandboxItem;
+	protected ContentItem sandboxItem;
 
-	public ExpiringContentItem(String itemName, String itemPath, ZonedDateTime expiredDateTime, SandboxItem sandboxItem) {
+	public ExpiringContentItem(String itemName, String itemPath, ZonedDateTime expiredDateTime, ContentItem sandboxItem) {
 		this.itemName = itemName;
 		this.itemPath = itemPath;
 		this.expiredDateTime = expiredDateTime;
@@ -66,7 +67,7 @@ public class ExpiringContentItem {
 		return expiredDateTime;
 	}
 
-	public SandboxItem getSandboxItem() {
+	public ContentItem getSandboxItem() {
 		return sandboxItem;
 	}
 

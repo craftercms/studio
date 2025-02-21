@@ -85,7 +85,7 @@ public class WorkflowController {
 		List<SandboxItem> items = new ArrayList<>();
 
 		if (total > offset) {
-			items = workflowService.getItemStates(siteId, path, states, offset, limit);
+			items = workflowService.getItemsByStates(siteId, path, states, offset, limit);
 		}
 
 		PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();

@@ -31,12 +31,13 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -180,15 +181,15 @@ public class ContentController {
 	}
 
 	@GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
-	public ResultOne<DetailedItem> getItemByPath(@ValidSiteId
+	public ResultOne<ContentItem> getItemByPath(@ValidSiteId
 						     @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
 						     @ValidExistingContentPath
 						     @RequestParam(value = REQUEST_PARAM_PATH) String path,
 						     @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
 							     defaultValue = "false") boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
-		DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
-		ResultOne<DetailedItem> result = new ResultOne<>();
+		ContentItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
+		ResultOne<ContentItem> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_ITEM, detailedItem);
 		result.setResponse(OK);
 		return result;
@@ -201,10 +202,10 @@ public class ContentController {
 		Collection<String> missing = Collections.emptyList();
 		List<String> paths = request.getPaths();
 		boolean preferContent = request.isPreferContent();
-		List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
+		List<ContentItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
 
 		if (CollectionUtils.isEmpty(sandboxItems) || paths.size() != sandboxItems.size()) {
-			List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
+			List<String> found = sandboxItems.stream().map(ContentItem::getPath).collect(Collectors.toList());
 			if (preferContent) {
 				found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
 					FILE_SEPARATOR + INDEX_FILE, "")).toList());
