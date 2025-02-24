@@ -54,10 +54,10 @@
 						</xsl:attribute>
 						<xsl:element name="allowed-permissions">
 							<xsl:element name="permission">
-								<xsl:text>read_users</xsl:text>
+								<xsl:text>audit_log</xsl:text>
 							</xsl:element>
 							<xsl:element name="permission">
-								<xsl:text>audit_log</xsl:text>
+								<xsl:text>read_users</xsl:text>
 							</xsl:element>
 						</xsl:element>
 					</xsl:element>
