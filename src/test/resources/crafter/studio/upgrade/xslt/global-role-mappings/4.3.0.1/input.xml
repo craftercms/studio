@@ -21,15 +21,12 @@
 -->
 
 <role-mappings>
-    <groups>
-        <group name="system_admin">
-            <role>system_admin</role>
-        </group>
-        <group name="site_admin">
-            <role>site_admin</role>
-        </group>
-		<group name="site_developer">
-			<role>site_developer</role>
+	<groups>
+		<group name="system_admin">
+			<role>system_admin</role>
 		</group>
-    </groups>
+		<group name="site_admin">
+			<role>site_admin</role>
+		</group>
+	</groups>
 </role-mappings>
