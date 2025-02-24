@@ -115,12 +115,4 @@
 			</allowed-permissions>
 		</rule>
 	</role>
-	<role name="site_developer">
-		<rule regex="/.*">
-			<allowed-permissions>
-				<permission>audit_log</permission>
-				<permission>read_users</permission>
-			</allowed-permissions>
-		</rule>
-	</role>
 </permissions>

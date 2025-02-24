@@ -754,6 +754,17 @@ pipelines:
                             -   src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
                                 dest: /configuration/samples/sample-config-list.xml
                                 commitDetails: Remove box configs
+            -   currentVersion: 5.0.0.3
+                nextVersion: 5.0.0.4
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.4.xslt
+                        commitDetails: Update global permission for site_developer
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-role-mappings-config.xml
+                        template: crafter/studio/upgrade/5.0.x/system/global-role-mappings-config-v5.0.0.4.xslt
+                        commitDetails: Add new mapping for site_developer
 
     # Pipeline to upgrade site repositories
     site:
