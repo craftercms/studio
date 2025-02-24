@@ -1437,6 +1437,15 @@ configurations:
                     -   type: xsltFileUpgrader
                         template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
                         commitDetails: Add view templates and controllers as content-type dependencies
+            # Switch to 5.0 version schema
+            -   currentVersion: 4.0.1.1
+                nextVersion: 5.0-t
+            -   currentVersion: 5.0-t
+                nextVersion: 5.0.0.0
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.0.xslt
+                        commitDetails: Update static asset dependencies regex
 
     engine-site-config:
         module: engine
