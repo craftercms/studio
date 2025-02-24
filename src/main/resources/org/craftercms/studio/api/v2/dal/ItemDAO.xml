@@ -503,16 +503,17 @@
 		DELETE FROM item
 		WHERE site_id = #{siteId}
 		AND (
-		path = #{path}
-		OR
-		(   <!-- Delete the parent folder if item is a page -->
-		path = TRIM(TRAILING '/index.xml' FROM #{path})
-		AND EXISTS (SELECT 1
-		FROM item
-		WHERE site_id = #{siteId}
-		AND path = #{path}
-		AND system_type = #{systemTypePage})
-		)
+			path = #{path}
+			<if test="removePageParentFolder">
+			OR (   <!-- Delete the parent folder if item is a page -->
+				path = TRIM(TRAILING '/index.xml' FROM #{path})
+				AND EXISTS (SELECT 1
+				FROM item
+				WHERE site_id = #{siteId}
+				AND path = #{path}
+				AND system_type = #{systemTypePage})
+			)
+			</if>
 		)
 	</delete>
 
@@ -786,4 +787,53 @@
 			#{path}
 		</foreach>
 	</select>
+
+	<update id="updateDeletedPageChildren">
+		UPDATE item,
+		(
+			SELECT child.id AS childId,
+			(
+				SELECT i.id
+				FROM item i
+				WHERE i.site_id = #{siteId}
+				AND i.path = #{path}
+			) AS newParentId
+			FROM item child
+			INNER JOIN item parent ON child.parent_id = parent.id
+			WHERE child.site_id = #{siteId}
+			AND parent.path = CONCAT(#{path}, '/index.xml')
+		) AS updates
+		SET item.parent_id = updates.newParentId
+		WHERE item.id = updates.childId;
+	</update>
+
+	<update id="moveItemForSyncTask">
+		UPDATE item
+		SET
+			path = REPLACE(path, #{previousPath}, #{newPath}),
+			locked_by = NULL,
+			state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+		WHERE
+			site_id = #{siteId}
+			AND (path = #{previousPath} OR path LIKE CONCAT(#{previousPath}, '/%'));
+	</update>
+
+	<update id="updateItemForSyncTask">
+		UPDATE item
+		SET
+			preview_url = #{previewUrl},
+			state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
+			last_modified_by = #{lastModifiedBy},
+			last_modified_on = #{lastModifiedOn},
+			label = #{label},
+			content_type_id = #{contentTypeId},
+			system_type = #{systemType},
+			mime_type = #{mimeType},
+			size = #{size},
+			locked_by = NULL,
+			ignored = #{ignored}
+		WHERE
+			site_id = #{siteId}
+			AND path = #{path};
+	</update>
 </mapper>

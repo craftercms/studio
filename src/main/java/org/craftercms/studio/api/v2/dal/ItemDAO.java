@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -281,8 +281,8 @@ public interface ItemDAO {
 	 * @param siteId the site id
 	 * @param path   the item path
 	 */
-	default void deleteBySiteAndPath(final long siteId, final String path) {
-		deleteBySiteAndPath(siteId, path, CONTENT_TYPE_PAGE);
+	default void deleteBySiteAndPath(final long siteId, final String path, boolean removePageParentFolder) {
+		deleteBySiteAndPath(siteId, path, removePageParentFolder, CONTENT_TYPE_PAGE);
 	}
 
 	/**
@@ -291,9 +291,12 @@ public interface ItemDAO {
 	 *
 	 * @param siteId         site identifier
 	 * @param path           path of item to delete
+	 * @param removePageParentFolder flag to indicate that parent folder for page should be removed if path corresponds to a page
 	 * @param systemTypePage system type page. In case the path corresponds to a page, the parent folder will be deleted as well.
 	 */
-	void deleteBySiteAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path, @Param(SYSTEM_TYPE_PAGE) String systemTypePage);
+	void deleteBySiteAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+							 @Param(REMOVE_PAGE_PARENT_FOLDER) boolean removePageParentFolder,
+							 @Param(SYSTEM_TYPE_PAGE) String systemTypePage);
 
 	/**
 	 * Set items state
@@ -673,4 +676,47 @@ public interface ItemDAO {
 	 * @param paths  the paths to update
 	 */
 	void updateParentId(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
+
+	/**
+	 * Update a deleted page children.
+	 * This should be called when a page (index.xml) is deleted via git but its children still exists
+	 * @param siteId the site id
+	 * @param path the path to update
+	 */
+	void updateDeletedPageChildren(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+
+	/**
+	 * Move item query for sync task
+	 * @param siteId          site identifier
+	 * @param previousPath    previous path
+	 * @param newPath         new path
+	 * @param onStatesBitMap  state bitmap to flip on
+	 * @param offStatesBitMap state bitmap to flip off
+	 */
+	void moveItemForSyncTask(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
+				  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+				  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+	/**
+	 * Update item query for sync task
+	 * @param siteId           site identifier
+	 * @param path             content path
+	 * @param previewUrl       preview url
+	 * @param onStatesBitMap   on state bit map
+	 * @param offStatesBitMap  off state bit map
+	 * @param lastModifiedBy   last modified by
+	 * @param lastModifiedOn   last modified on
+	 * @param label            content label
+	 * @param contentTypeId    content type id
+	 * @param systemType       system type
+	 * @param mimeType         mime type
+	 * @param size             content size
+	 * @param ignored          is content ignored
+	 */
+	void updateItemForSyncTask(@Param(SITE_ID) long siteId, @Param(PATH) String path, @Param(PREVIEW_URL) String previewUrl,
+							   @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap,
+							   @Param(LAST_MODIFIED_BY) long lastModifiedBy, @Param(LAST_MODIFIED_ON) String lastModifiedOn,
+							   @Param(LABEL) String label, @Param(CONTENT_TYPE_ID) String contentTypeId,
+							   @Param(SYSTEM_TYPE) String systemType, @Param(MIME_TYPE) String mimeType, @Param(SIZE) long size,
+							   @Param(IGNORED) boolean ignored);
 }
