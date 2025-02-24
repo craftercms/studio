@@ -746,6 +746,17 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.3.x/system/global-permission-mappings-config-v4.3.0.0.xslt
             commitDetails: Remove unused permissions
+      - currentVersion: 4.3.0.0
+        nextVersion: 4.3.0.1
+        operations:
+            - type: xsltFileUpgrader
+              path: /configuration/global-permission-mappings-config.xml
+              template: crafter/studio/upgrade/4.3.x/system/global-permission-mappings-config-v4.3.0.1.xslt
+              commitDetails: Update global permission for site_developer
+            -   type: xsltFileUpgrader
+                path: /configuration/global-role-mappings-config.xml
+                template: crafter/studio/upgrade/4.3.x/system/global-role-mappings-config-v4.3.0.1.xslt
+                commitDetails: Add new mapping for site_developer
 
   # Pipeline to upgrade site repositories
   site:
