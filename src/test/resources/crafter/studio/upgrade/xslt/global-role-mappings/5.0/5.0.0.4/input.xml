@@ -28,8 +28,5 @@
 		<group name="site_admin">
 			<role>site_admin</role>
 		</group>
-		<group name="site_developer">
-			<role>site_developer</role>
-		</group>
 	</groups>
 </role-mappings>
