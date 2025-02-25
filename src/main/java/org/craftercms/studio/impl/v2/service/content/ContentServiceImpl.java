@@ -158,11 +158,11 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
-	public List<ContentItem> getSandboxItemsByPath(@SiteId String siteId,
+	public List<ContentItem> getContentItemsByPath(@SiteId String siteId,
 												   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
 												   boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
-		return contentServiceInternal.getSandboxItemsByPath(siteId, paths, preferContent);
+		return contentServiceInternal.getContentItemsByPath(siteId, paths, preferContent);
 	}
 
 	@Override

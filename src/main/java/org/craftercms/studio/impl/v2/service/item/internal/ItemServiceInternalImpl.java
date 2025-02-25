@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -127,7 +128,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
-						   long offStateBitMap) {
+											   long offStateBitMap) {
 		if (CollectionUtils.isNotEmpty(paths)) {
 			Site site = siteDao.getSite(siteId);
 			retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(site.getId(), paths,
@@ -191,7 +192,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-					   boolean unlock, Long parentId)
+									   boolean unlock, Long parentId)
 		throws ServiceLayerException, UserNotFoundException {
 		String lockKey = "persistItemAfterCreate:" + siteId;
 		generalLockService.lock(lockKey);
@@ -270,7 +271,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
-						 String commitId, Long parentId)
+											 String commitId, Long parentId)
 		throws ServiceLayerException, UserNotFoundException {
 		User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
 		Item item = instantiateItem(siteId, folderPath)
@@ -286,7 +287,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void persistItemAfterRenameContent(String siteId, String path, String name, String username,
-						  String commitId, String contentType)
+											  String commitId, String contentType)
 		throws ServiceLayerException, UserNotFoundException {
 		User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
 		Item item = instantiateItem(siteId, path)
@@ -358,13 +359,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public List<Item> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
-		return itemDao.getItemsByStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
+	public List<ContentItem> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
+		return itemDao.getContentItemsByStates(siteId, path, states, systemTypes,
+			mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
 	}
 
 	@Override
 	public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-				     boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+								 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
 		if (CollectionUtils.isNotEmpty(paths)) {
 			long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
 			long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
@@ -393,7 +395,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	protected long getResetStatesMask(boolean clearSystemProcessing, boolean clearUserLocked, Boolean live,
-					  Boolean staged, Boolean isNew, Boolean modified) {
+									  Boolean staged, Boolean isNew, Boolean modified) {
 		long resetStatesMask = 0L;
 
 		if (clearSystemProcessing) {
@@ -419,7 +421,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-					    boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+										boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
 		long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
 		long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 

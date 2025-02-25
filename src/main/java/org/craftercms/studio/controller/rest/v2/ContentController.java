@@ -196,13 +196,13 @@ public class ContentController {
 	}
 
 	@PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-	public GetSandboxItemsByPathResult getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
+	public GetContentItemsByPathResult getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
 		throws ServiceLayerException, UserNotFoundException {
 		String siteId = request.getSiteId();
 		Collection<String> missing = Collections.emptyList();
 		List<String> paths = request.getPaths();
 		boolean preferContent = request.isPreferContent();
-		List<ContentItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
+		List<ContentItem> sandboxItems = contentService.getContentItemsByPath(siteId, paths, preferContent);
 
 		if (CollectionUtils.isEmpty(sandboxItems) || paths.size() != sandboxItems.size()) {
 			List<String> found = sandboxItems.stream().map(ContentItem::getPath).collect(Collectors.toList());
@@ -213,7 +213,7 @@ public class ContentController {
 			missing = CollectionUtils.subtract(paths, found);
 		}
 
-		GetSandboxItemsByPathResult result = new GetSandboxItemsByPathResult();
+		GetContentItemsByPathResult result = new GetContentItemsByPathResult();
 		result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
 		result.setMissingItems(missing);
 		result.setResponse(OK);

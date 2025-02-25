@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemPathAndState;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -284,7 +285,7 @@ public interface ItemServiceInternal {
 	 * @param limit       number of item states records to return
 	 * @return list of sandbox items
 	 */
-	List<Item> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
+	List<ContentItem> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
 
 	/**
 	 * Update item state flags for given items

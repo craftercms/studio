@@ -44,6 +44,10 @@ public class ContentItem {
 	private PublishTargetStatus staging;
 	private PublishTargetStatus live;
 
+	public ContentItem() {
+		int x = 0;
+	}
+
 	public long getAvailableActions() {
 		return availableActions;
 	}

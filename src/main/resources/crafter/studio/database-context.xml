@@ -74,6 +74,11 @@
 		<property name="configurationProperties">
 			<props>
 				<prop key="blobFilePattern">%.#{studioConfiguration.getProperty('studio.blob.file.extension')}</prop>
+				<prop key="liveEnvironment">#{studioConfiguration.getProperty('studio.repo.published.live')}</prop>
+				<prop key="stagingEnvironment">#{studioConfiguration.getProperty('studio.repo.published.staging')}</prop>
+				<prop key="systemTypePage">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_PAGE}</prop>
+				<prop key="systemTypeFolder">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_FOLDER}</prop>
+				<prop key="systemTypeLevelDescriptor">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_LEVEL_DESCRIPTOR}</prop>
 			</props>
 		</property>
 	</bean>

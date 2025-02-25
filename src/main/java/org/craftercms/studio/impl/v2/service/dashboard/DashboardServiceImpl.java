@@ -190,7 +190,7 @@ public class DashboardServiceImpl implements DashboardService {
 		List<ExpiringContentItem> items = new ArrayList<>();
 		for (var item : results.getItems()) {
 			ContentItem sandboxItem =
-				contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+				contentServiceInternal.getContentItemsByPath(siteId, Arrays.asList(item.getPath()), false)
 					.stream()
 					.findFirst().orElse(null);
 			ExpiringContentItem contentItem = new ExpiringContentItem(

@@ -16,7 +16,6 @@
 package org.craftercms.studio.model.rest.dashboard;
 
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.time.ZonedDateTime;
 

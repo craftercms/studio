@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
@@ -38,7 +39,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.time.Instant.now;
-import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
@@ -78,10 +77,8 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	}
 
 	@Override
-	public List<SandboxItem> getItemsByStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
-		return itemServiceInternal.getItemsByStates(siteId, path, states, null, null, offset, limit).stream()
-			.map(SandboxItem::getInstance)
-			.collect(toList());
+	public List<ContentItem> getItemsByStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
+		return itemServiceInternal.getItemsByStates(siteId, path, states, null, null, offset, limit);
 	}
 
 	@Override

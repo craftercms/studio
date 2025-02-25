@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -34,17 +35,16 @@ import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.workflow.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -71,7 +71,7 @@ public class WorkflowController {
 	}
 
 	@GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
-	public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+	public PaginatedResultList<ContentItem> getItemStates(@NotBlank @ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
 														  @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
 														  @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
 														  @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
@@ -82,13 +82,13 @@ public class WorkflowController {
 			throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
 		}
 		int total = workflowService.getItemStatesTotal(siteId, path, states);
-		List<SandboxItem> items = new ArrayList<>();
+		List<ContentItem> items = emptyList();
 
 		if (total > offset) {
 			items = workflowService.getItemsByStates(siteId, path, states, offset, limit);
 		}
 
-		PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();
+		PaginatedResultList<ContentItem> result = new PaginatedResultList<>();
 		result.setTotal(total);
 		result.setOffset(offset);
 		result.setLimit(isEmpty(items) ? 0 : items.size());
