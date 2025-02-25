@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
+import org.craftercms.studio.impl.v2.utils.SanitizerUtil;
 
 import java.time.Instant;
 import java.util.List;
@@ -100,7 +101,7 @@ public class PublishPackageRequest {
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this.comment = SanitizerUtil.sanitizeText(comment);
 	}
 
 	public String getTitle() {
@@ -108,6 +109,6 @@ public class PublishPackageRequest {
 	}
 
 	public void setTitle(final String title) {
-		this.title = title;
+		this.title = SanitizerUtil.sanitizeText(title);
 	}
 }
