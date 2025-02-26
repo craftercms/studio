@@ -166,7 +166,7 @@ public interface ConfigurationService {
 	 * @return configuration history
 	 */
 	ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment)
-		throws ServiceLayerException;
+		throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Write configuration file within global repo

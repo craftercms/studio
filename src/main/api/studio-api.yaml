@@ -9381,7 +9381,7 @@ components:
             type: object
             properties:
                 item:
-                    $ref: '#/components/schemas/ContentItemV1'
+                    $ref: '#/components/schemas/ContentItem'
                 versions:
                     type: array
                     description: list of versions
