@@ -251,8 +251,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	public List<ContentItem> getContentItemsByPath(String siteId, List<String> paths, boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
 		Site site = siteService.getSite(siteId);
-		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
 		List<ContentItem> items = itemDao.getContentItemsByPath(site.getId(), paths, preferContent);
 		return calculatePossibleActions(siteId, items);
 	}
