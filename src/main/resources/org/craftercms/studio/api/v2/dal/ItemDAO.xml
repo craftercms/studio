@@ -63,17 +63,55 @@
 		<id property="id" column="id"/>
 		<result property="dateModified" column="last_modified_on"/>
 		<result property="dateCreated" column="created_on"/>
-		<association property="modifier" column="modifier"
+		<association property="modifier" column="last_modified_by"
 					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="creator" column="creator"
+		<association property="creator" column="created_by"
 					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="lockOwner" column="lock_owner"
+		<association property="lockOwner" column="locked_by"
 					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="submitter" column="submitter"
-					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="staging" columnPrefix="staging_" resultMap="PublishTargetStatusMap"/>
-		<association property="live" columnPrefix="live_" resultMap="PublishTargetStatusMap"/>
+		<association property="staging" column="id" select="getStagingTargetStatus"/>
+		<association property="live" column="id" select="getLiveTargetStatus"/>
 	</resultMap>
+
+	<select id="getLiveTargetStatus" resultMap="PublishTargetStatusMap">
+		SELECT ipi1.item_id, pp1.published_on as last_published_on, pp1.submitter_id as submitter_id, (
+					SELECT pp1.schedule
+					FROM item_publish_item ipi1
+						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+						INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+					WHERE ipi1.item_id = #{id}
+					AND pp1.target = '${liveEnvironment}'
+					AND pp1.package_state = ${packageReadyState}
+					AND pp1.approval_state = '${packageApprovedState}'
+					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
+					) AS scheduled_date
+		FROM item_publish_item ipi1
+			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+		WHERE (pi1.publish_state &amp; ${livePublishedState}) > 0
+		AND ipi1.item_id = #{id}
+		ORDER BY pp1.published_on desc LIMIT 0, 1
+	</select>
+
+	<select id="getStagingTargetStatus" resultMap="PublishTargetStatusMap">
+		SELECT ipi1.item_id, pp1.published_on as last_published_on, pp1.submitter_id as submitter_id, (
+					SELECT pp1.schedule
+					FROM item_publish_item ipi1
+						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+						INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+					WHERE ipi1.item_id = #{id}
+					AND pp1.target = '${stagingEnvironment}'
+					AND pp1.package_state = ${packageReadyState}
+					AND pp1.approval_state = '${packageApprovedState}'
+					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
+					) AS scheduled_date
+		FROM item_publish_item ipi1
+			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+		WHERE (pi1.publish_state &amp; ${stagingPublishedState}) > 0
+		AND ipi1.item_id = #{id}
+		ORDER BY pp1.published_on desc LIMIT 0, 1
+	</select>
 
 	<resultMap id="LightItemMetadataMap" type="org.craftercms.studio.api.v2.dal.item.LightItemMetadata">
 		<constructor>
@@ -123,13 +161,13 @@
 		<include refid="filterBySystemType"/>
 		AND iParent.path IN (#{path}, CONCAT(#{path}, '/index.xml'))
 		AND (
-			i.system_type &lt;&gt; #{systemTypeFolder}
+			i.system_type &lt;&gt; '${systemTypeFolder}'
 			OR
 			NOT EXISTS (
 				SELECT *
 				FROM item page
 				WHERE page.site_id = i.site_id
-				AND page.system_type = #{systemTypePage}
+				AND page.system_type = '${systemTypePage}'
 				AND page.path = CONCAT(i.path, '/index.xml')
 			)
 		)
@@ -180,7 +218,7 @@
 				ORDER BY i.label ${order}, i.path ${order}
 			</when>
 			<when test="sortStrategy == 'foldersFirst'">
-				ORDER BY IF(FIELD(i.system_type, #{systemTypeFolder})=0,1,0), FIELD(i.system_type, #{systemTypeFolder}),
+				ORDER BY IF(FIELD(i.system_type, '${systemTypeFolder}')=0,1,0), FIELD(i.system_type, '${systemTypeFolder}'),
 				i.label ${order}, i.path ${order}
 			</when>
 			<when test="sortStrategy == 'lastUpdate'">
@@ -195,61 +233,13 @@
 
 	<sql id="detailedItemSelect">
 		SELECT i.*,
-		       i.locked_by        AS           lock_owner,
-		       i.created_by       AS           creator,
-		       i.last_modified_by AS           modifier,
-				(
-					SELECT pp1.schedule
-					FROM item_publish_item ipi1
-						 INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-						 INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-					WHERE ipi1.item_id = i.id
-					AND pp1.target = '${stagingEnvironment}'
-					AND pp1.package_state = #{readyState}
-					AND pp1.approval_state = #{approvedState}
-					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
-				) AS staging_scheduled_date,
-				(
-					SELECT pp1.schedule
-					FROM item_publish_item ipi1
-						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-						INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-					WHERE ipi1.item_id = i.id
-					AND pp1.target = '${liveEnvironment}'
-					AND pp1.package_state = #{readyState}
-					AND pp1.approval_state = #{approvedState}
-					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
-				) as live_scheduled_date,
-				publishStaging.published_on AS staging_last_published_on,
-				publishStaging.submitter_id AS staging_submitter_id,
-				publishLive.published_on AS live_last_published_on,
-				publishLive.submitter_id AS live_submitter_id,
 				COUNT (DISTINCT ichild.id) AS children_count
 		FROM item i
-			INNER JOIN site s
-		ON i.site_id = s.id
+			INNER JOIN site s ON i.site_id = s.id
 			LEFT OUTER JOIN item ichild ON i.id = ichild.parent_id
-			LEFT OUTER JOIN (
-				SELECT ipi1.item_id, pp1.published_on, pp1.submitter_id as submitter_id
-				FROM item_publish_item ipi1
-				INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-				INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-				WHERE pp1.target = '${stagingEnvironment}'
-				AND (pi1.publish_state &amp; #{stagingPublishedState}) > 0
-				ORDER BY pp1.published_on desc LIMIT 0, 1
-			) as publishStaging ON publishStaging.item_id = i.id
-			LEFT OUTER JOIN (
-				SELECT ipi1.item_id, pp1.published_on, pp1.submitter_id AS submitter_id
-				FROM item_publish_item ipi1
-				INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-				INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-				WHERE pp1.target = '${liveEnvironment}'
-				AND (pi1.publish_state &amp; #{livePublishedState}) > 0
-				ORDER BY pp1.published_on desc LIMIT 0, 1
-			) as publishLive ON publishLive.item_id = i.id
 	</sql>
 
-	<select id="getItemsByPathInternal" resultMap="ItemMap">
+	<select id="getItemsByPath" resultMap="ItemMap">
 		SELECT i.*
 		FROM item i
 		WHERE i.site_id = #{siteId}
@@ -262,12 +252,12 @@
 		<if test="preferContent">
 			<!-- Prefer content means to get a page (if it exists) instead of its containing folder -->
 			AND (
-					i.system_type &lt;&gt; #{systemTypeFolder}
+					i.system_type &lt;&gt; '${systemTypeFolder}'
 				OR
 					NOT EXISTS(SELECT *
 								FROM item page
 								WHERE page.site_id = i.site_id
-								AND page.system_type = #{systemTypePage}
+								AND page.system_type = '${systemTypePage}'
 								AND page.path = CONCAT(item.path, '/index.xml')
 					)
 			)
@@ -370,7 +360,7 @@
 		FROM item
 		WHERE site_id = #{siteId}
 		AND path = #{path}
-		AND system_type = #{systemTypePage})
+		AND system_type = '${systemTypePage}')
 		)
 		)
 	</delete>
@@ -466,7 +456,7 @@
 		WHERE s.site_id = #{siteId}
 		  AND s.deleted = 0
 		  AND i.path = #{path}
-		  AND i.system_type &lt;&gt; #{systemTypeFolder}
+		  AND i.system_type &lt;&gt; '${systemTypeFolder}'
 	</update>
 
 	<update id="unlockItemByPath">
@@ -494,7 +484,7 @@
 		<include refid="filterBySystemType"/>
 	</select>
 
-	<select id="getContentItemsByStatesInternal" resultMap="ContentItemMap">
+	<select id="getContentItemsByStates" resultMap="ContentItemMap">
 		<include refid="detailedItemSelect"/>
 		WHERE s.site_id = #{siteId}
 		AND s.deleted = 0
@@ -660,7 +650,7 @@
 		)
 		SELECT path, label AS meta_label, mime_type AS meta_mime_type, system_type AS meta_system_type
 		FROM children
-		WHERE system_type &lt;&gt; #{systemTypeFolder}
+		WHERE system_type &lt;&gt; '${systemTypeFolder}'
 		AND path NOT IN
 			<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 				#{path}

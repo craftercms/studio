@@ -21,20 +21,14 @@ import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.LIVE_SUCCESS;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.STAGING_SUCCESS;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
-import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 
 public interface ItemDAO {
 
@@ -47,13 +41,7 @@ public interface ItemDAO {
 
 	String OFF_STATES_BIT_MAP = "offStatesBitMap";
 	String TIMESTAMP = "timestamp";
-	String STAGING_PUBLISHED_STATE = "stagingPublishedState";
-	String LIVE_PUBLISHED_STATE = "livePublishedState";
-	String PUBLISH_PACKAGE_APPROVED_STATES = "approvedState";
 	String ITEM_STATE_MASK = "itemStateMask";
-
-
-	String SYSTEM_TYPE_PAGE = "systemTypePage";
 
 	Map<String, String> SORT_FIELD_MAP = Map.of(
 		"id", "id",
@@ -66,30 +54,16 @@ public interface ItemDAO {
 		"dateScheduled", "IFNULL(live_scheduleddate,staging_scheduleddate)",
 		"label", "label");
 
-	default int getChildrenByPathTotal(Long siteId,
-									   String path,
-									   String localeCode,
-									   String keyword,
-									   List<String> systemTypes,
-									   List<String> excludes) {
-		return getChildrenByPathTotal(siteId, path, localeCode, keyword,
-			systemTypes, excludes,
-			STAGING_SUCCESS.value, LIVE_SUCCESS.value, READY.value, APPROVED);
-	}
-
 	/**
 	 * Get total number of children for given path
 	 *
-	 * @param siteId                site identifier
-	 * @param path                  path to get children for
-	 * @param localeCode            local code
-	 * @param keyword               filter by keyword
-	 * @param systemTypes           filter by type
-	 * @param excludes              exclude items by path
-	 * @param stagingPublishedState staging published state
-	 * @param livePublishedState    live published state
-	 * @param packageReadyState     publish package ready state
-	 * @param approvedState         publish package approved state
+	 * @param siteId             site identifier
+	 * @param path               path to get children for
+	 * @param localeCode         local code
+	 * @param keyword            filter by keyword
+	 * @param systemTypes        filter by type
+	 * @param excludeSystemTypes system types to exclude
+	 * @param excludes           exclude items by path
 	 * @return total number of children
 	 */
 	int getChildrenByPathTotal(@Param(SITE_ID) Long siteId,
@@ -97,11 +71,8 @@ public interface ItemDAO {
 							   @Param(LOCALE_CODE) String localeCode,
 							   @Param(KEYWORD) String keyword,
 							   @Param(SYSTEM_TYPES) List<String> systemTypes,
-							   @Param(EXCLUDES) List<String> excludes,
-							   @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState,
-							   @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
-							   @Param(READY_STATE) long packageReadyState,
-							   @Param(PUBLISH_PACKAGE_APPROVED_STATES) ApprovalState approvedState);
+							   @Param(EXCLUDE_SYSTEM_TYPES) List<String> excludeSystemTypes,
+							   @Param(EXCLUDES) List<String> excludes);
 
 
 	/**
@@ -112,6 +83,7 @@ public interface ItemDAO {
 	 * @param localeCode         locale code
 	 * @param keyword            filter by keyword
 	 * @param systemTypes        filter by type
+	 * @param excludeSystemTypes system types to exclude
 	 * @param excludes           exclude items by path
 	 * @param sortStrategy       sort strategy
 	 * @param order              order of children
@@ -119,53 +91,13 @@ public interface ItemDAO {
 	 * @param limit              number of children to return
 	 * @return list of items (parent, level descriptor, children)
 	 */
-	default List<ContentItem> getChildrenByPath(Long siteId,
-												String path,
-												String localeCode,
-												String keyword,
-												List<String> systemTypes,
-												List<String> excludes,
-												String sortStrategy,
-												String order,
-												int offset,
-												int limit) {
-		return getChildrenByPath(siteId, path, localeCode,
-			keyword, systemTypes, excludes,
-			STAGING_SUCCESS.value, LIVE_SUCCESS.value,
-			READY.value, APPROVED,
-			sortStrategy, order,
-			offset, limit);
-	}
-
-	/**
-	 * Get children for given path from database
-	 *
-	 * @param siteId                site identifier
-	 * @param path                  path to get children for
-	 * @param localeCode            locale code
-	 * @param keyword               filter by keyword
-	 * @param systemTypes           filter by type
-	 * @param excludes              exclude items by path
-	 * @param stagingPublishedState staging published state
-	 * @param livePublishedState    live published state
-	 * @param packageReadyState     publish package ready state
-	 * @param approvedState         publish package approved state
-	 * @param sortStrategy          sort strategy
-	 * @param order                 order of children
-	 * @param offset                offset of the first record to return
-	 * @param limit                 number of children to return
-	 * @return list of items (parent, level descriptor, children)
-	 */
 	List<ContentItem> getChildrenByPath(@Param(SITE_ID) Long siteId,
 										@Param(PATH) String path,
 										@Param(LOCALE_CODE) String localeCode,
 										@Param(KEYWORD) String keyword,
 										@Param(SYSTEM_TYPES) List<String> systemTypes,
+										@Param(EXCLUDE_SYSTEM_TYPES) List<String> excludeSystemTypes,
 										@Param(EXCLUDES) List<String> excludes,
-										@Param(STAGING_PUBLISHED_STATE) long stagingPublishedState,
-										@Param(LIVE_PUBLISHED_STATE) long livePublishedState,
-										@Param(READY_STATE) long packageReadyState,
-										@Param(PUBLISH_PACKAGE_APPROVED_STATES) ApprovalState approvedState,
 										@Param(SORT_STRATEGY) String sortStrategy,
 										@Param(ORDER) String order,
 										@Param(OFFSET) int offset,
@@ -181,60 +113,20 @@ public interface ItemDAO {
 	/**
 	 * Get item for given site and path
 	 *
-	 * @param siteId             site identifier
-	 * @param path               path of the item
+	 * @param siteId site identifier
+	 * @param path   path of the item
 	 * @return item for given site and path
 	 */
-	default ContentItem getContentItemByPath(@Param(SITE_ID) long siteId, @Param(PATH) String path) {
-		return getContentItemByPath(siteId, path,
-			STAGING_SUCCESS.value, LIVE_SUCCESS.value,
-			READY.value, APPROVED);
-	}
-
-	/**
-	 * Get item for given site and path
-	 *
-	 * @param siteId                site identifier
-	 * @param path                  path of the item
-	 * @param stagingPublishedState staging published state
-	 * @param livePublishedState    live published state
-	 * @param packageReadyState     package ready state
-	 * @param approvedState         package approved state
-	 * @return item for given site and path
-	 */
-	ContentItem getContentItemByPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
-									 @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState,
-									 @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
-									 @Param(READY_STATE) long packageReadyState,
-									 @Param(PUBLISH_PACKAGE_APPROVED_STATES) ApprovalState approvedState);
+	ContentItem getContentItemByPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
 	/**
 	 * Get item with prefer content option for given site and path
 	 *
-	 * @param siteId             site identifier
-	 * @param path               path of the item
+	 * @param siteId site identifier
+	 * @param path   path of the item
 	 * @return item for given site and path
 	 */
-
-	default ContentItem getContentItemByPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path) {
-		return getContentItemByPathPreferContent(siteId, path, LIVE_SUCCESS.value, STAGING_SUCCESS.value, READY.value, APPROVED);
-	}
-
-	/**
-	 * Get item with prefer content option for given site and path
-	 *
-	 * @param siteId                site identifier
-	 * @param path                  path of the item
-	 * @param stagingPublishedState staging published state
-	 * @param packageReadyState     package ready state
-	 * @param approvedState         package approved state
-	 * @return item for given site and path
-	 */
-	ContentItem getContentItemByPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
-												  @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState,
-												  @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
-												  @Param(READY_STATE) long packageReadyState,
-												  @Param(PUBLISH_PACKAGE_APPROVED_STATES) ApprovalState approvedState);
+	ContentItem getContentItemByPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
 	/**
 	 * Update item
@@ -352,31 +244,8 @@ public interface ItemDAO {
 	 * @param preferContent indicates if pages should be returned instead of folders when available
 	 * @return list of items
 	 */
-	default List<ContentItem> getContentItemsByPath(Long siteId, Collection<String> paths,
-													boolean preferContent) {
-		return getContentItemsByPath(siteId, paths, preferContent,
-			READY.value, APPROVED,
-			LIVE_SUCCESS.value, STAGING_SUCCESS.value);
-	}
-
-	/**
-	 * Get content items for given paths
-	 *
-	 * @param siteId                site identifier
-	 * @param paths                 paths to get items for
-	 * @param preferContent         indicates if pages should be returned instead of folders when available
-	 * @param packageReadyState     package ready state
-	 * @param approvedState         package approved state
-	 * @param livePublishedState    item state mask to filter items published to live
-	 * @param stagingPublishedState item state mask to filter items published to stage
-	 * @return list of items
-	 */
 	List<ContentItem> getContentItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) Collection<String> paths,
-											@Param(PREFER_CONTENT) boolean preferContent,
-											@Param(READY_STATE) long packageReadyState,
-											@Param(PUBLISH_PACKAGE_APPROVED_STATES) ApprovalState approvedState,
-											@Param(LIVE_PUBLISHED_STATE) long livePublishedState,
-											@Param(STAGING_PUBLISHED_STATE) long stagingPublishedState);
+											@Param(PREFER_CONTENT) boolean preferContent);
 
 	/**
 	 * Get an item by site and path
@@ -402,23 +271,9 @@ public interface ItemDAO {
 	 * @param preferContent if true return pages (if exist) instead of their containing folders
 	 * @return list of items
 	 */
-	default List<Item> getItemsByPath(long siteId, Collection<String> paths, boolean preferContent) {
-		return getItemsByPathInternal(siteId, paths, preferContent, CONTENT_TYPE_PAGE);
-	}
-
-	/**
-	 * Get items by site and path
-	 *
-	 * @param siteId         site identifier
-	 * @param paths          paths of the items
-	 * @param preferContent  if true return pages (if exist) instead of their containing folders
-	 * @param systemTypePage the "page" system type
-	 * @return list of items
-	 */
-	List<Item> getItemsByPathInternal(@Param(SITE_ID) long siteId,
-									  @Param(PATHS) Collection<String> paths,
-									  @Param(PREFER_CONTENT) boolean preferContent,
-									  @Param(SYSTEM_TYPE_PAGE) String systemTypePage);
+	List<Item> getItemsByPath(@Param(SITE_ID) long siteId,
+							  @Param(PATHS) Collection<String> paths,
+							  @Param(PREFER_CONTENT) boolean preferContent);
 
 	/**
 	 * Count all content items in the system
@@ -472,19 +327,6 @@ public interface ItemDAO {
 	int getItemByStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
 							 @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes);
 
-	default List<ContentItem> getContentItemsByStates(String siteId,
-													  String path,
-													  Long states,
-													  List<String> systemTypes,
-													  List<SortField> sortFields,
-													  int offset,
-													  int limit) {
-		return getContentItemsByStatesInternal(siteId, path, states, systemTypes,
-			STAGING_SUCCESS.value, LIVE_SUCCESS.value, READY.value, APPROVED,
-			sortFields,
-			offset, limit);
-	}
-
 	/**
 	 * Get item states for given filters by path regex and states mask
 	 *
@@ -497,17 +339,13 @@ public interface ItemDAO {
 	 * @param limit       number of item states records to return
 	 * @return list of items
 	 */
-	List<ContentItem> getContentItemsByStatesInternal(@Param(SITE_ID) String siteId,
-													  @Param(PATH) String path,
-													  @Param(STATES_BIT_MAP) Long states,
-													  @Param(SYSTEM_TYPES) List<String> systemTypes,
-													  @Param(STAGING_PUBLISHED_STATE) long stagingPublishedState,
-													  @Param(LIVE_PUBLISHED_STATE) long livePublishedState,
-													  @Param(READY_STATE) long packageReadyState,
-													  @Param(PUBLISH_PACKAGE_APPROVED_STATES) ApprovalState approvedState,
-													  @Param(SORT_FIELDS) List<SortField> sortFields,
-													  @Param(OFFSET) int offset,
-													  @Param(LIMIT) int limit);
+	List<ContentItem> getContentItemsByStates(@Param(SITE_ID) String siteId,
+											  @Param(PATH) String path,
+											  @Param(STATES_BIT_MAP) Long states,
+											  @Param(SYSTEM_TYPES) List<String> systemTypes,
+											  @Param(SORT_FIELDS) List<SortField> sortFields,
+											  @Param(OFFSET) int offset,
+											  @Param(LIMIT) int limit);
 
 	/**
 	 * Update item state by query
@@ -566,8 +404,8 @@ public interface ItemDAO {
 	/**
 	 * Get all the non-folder children of the given paths, recursively.
 	 *
-	 * @param siteId           the site id
-	 * @param paths            the paths to get children for
+	 * @param siteId the site id
+	 * @param paths  the paths to get children for
 	 * @return list of children as {@link LightItem}
 	 */
 	Collection<LightItem> getSubtreeItems(@Param(SITE_ID) String siteId,

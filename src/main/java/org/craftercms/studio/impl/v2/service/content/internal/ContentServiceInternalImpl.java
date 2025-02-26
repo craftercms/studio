@@ -129,9 +129,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 		String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
 		Site site = siteService.getSite(siteId);
 		int total = itemDao.getChildrenByPathTotal(site.getId(), parentFolderPath, locale, keyword, systemTypes,
-			excludes);
+			List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
 		List<ContentItem> resultSet = itemDao.getChildrenByPath(site.getId(), parentFolderPath,
-			locale, keyword, systemTypes,
+			locale, keyword, systemTypes, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR),
 			excludes,
 			sortStrategy, order, offset, limit);
 
@@ -147,7 +147,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 
 	private ContentItem getLevelDescriptor(final Site site, final String path, final String locale, final String keyword) throws UserNotFoundException, ServiceLayerException {
 		List<ContentItem> childItems = itemDao.getChildrenByPath(site.getId(), path,
-			locale, keyword, null, null,
+			locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null,null,
 			null, null, 0, 1);
 		if (isEmpty(childItems)) {
 			return null;
