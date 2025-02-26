@@ -407,7 +407,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			for (String path : allPaths) {
 				dependencyServiceInternal.deleteItemDependencies(siteId, path);
 				dependencyServiceInternal.invalidateDependencies(siteId, path);
-				itemServiceInternal.deleteItem(site.getId(), path);
+				itemServiceInternal.deleteItem(site.getId(), path, true);
 			}
 
 			insertDeleteContentApprovedActivity(site, currentUser.getUsername(), allPaths);

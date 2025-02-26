@@ -331,6 +331,12 @@ public class XsltTest {
 				new ClassPathResource("crafter/studio/upgrade/xslt/config-list/5.0.0.0/input.xml"),
 				new ClassPathResource("crafter/studio/upgrade/xslt/config-list/5.0.0.0/expected.xml"),
 				emptyMap()
+			},
+			new Object[] {
+				new ClassPathResource("crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.0.xslt"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0.0.0/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0.0.0/expected.xml"),
+				emptyMap()
 			}
 		};
 	}
@@ -347,17 +353,35 @@ public class XsltTest {
 		};
 	}
 
-    @DataProvider(name = "globalPermissions500TestData")
-    public Object[][] globalPermissions500TestData() {
-        return new Object[][]{
-                {
-                        new ClassPathResource("crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.1.xslt"),
-                        new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.1/input.xml"),
-                        new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.1/expected.xml"),
-                        emptyMap()
-                }
-        };
-    }
+	@DataProvider(name = "globalPermissions500TestData")
+	public Object[][] globalPermissions500TestData() {
+		return new Object[][]{
+			{
+				new ClassPathResource("crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.1.xslt"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.1/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.1/expected.xml"),
+				emptyMap()
+			},
+			new Object[] {
+				new ClassPathResource("crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.4.xslt"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.4/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.4/expected.xml"),
+				emptyMap()
+			}
+		};
+	}
+
+	@DataProvider(name = "globalRoles500TestData")
+	public Object[][] globalRoles500TestData() {
+		return new Object[][]{
+			new Object[] {
+				new ClassPathResource("crafter/studio/upgrade/5.0.x/system/global-role-mappings-config-v5.0.0.4.xslt"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-role-mappings/5.0/5.0.0.4/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/global-role-mappings/5.0/5.0.0.4/expected.xml"),
+				emptyMap()
+			}
+		};
+	}
 
 	@Test(dataProvider = "permissions500TestData")
 	public void permissions500Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
@@ -368,6 +392,11 @@ public class XsltTest {
     public void globalPermissions500Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
         testXsltTemplate(template, content, expected, params);
     }
+
+	@Test(dataProvider = "globalRoles500TestData")
+	public void globalRoles500Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
 
 	@Test(dataProvider = "xsltData")
 	public void testXsltData(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {

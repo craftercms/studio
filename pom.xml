@@ -381,6 +381,11 @@
 			<artifactId>zxcvbn</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
