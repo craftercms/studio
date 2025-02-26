@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.notification;
 
 import com.google.common.cache.Cache;
+import freemarker.core.HTMLOutputFormat;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -102,6 +103,7 @@ public class NotificationServiceImpl implements NotificationService {
 		configuration = new Configuration(Configuration.VERSION_2_3_23);
 		configuration.setTimeZone(TimeZone.getTimeZone(getTemplateTimezone()));
 		configuration.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23).build());
+		configuration.setOutputFormat(HTMLOutputFormat.INSTANCE);
 	}
 
 	@Override
