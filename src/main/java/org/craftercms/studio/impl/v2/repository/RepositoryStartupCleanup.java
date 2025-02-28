@@ -89,6 +89,7 @@ public class RepositoryStartupCleanup {
     }
 
     protected void unlockRepository(String siteId, GitRepositories repository) {
+        logger.debug("Unlock repository '{}' for site '{}'", repository, siteId);
         Path repoPath = helper.buildRepoPath(repository, siteId);
         if (repoPath != null) {
             String path = repoPath.toAbsolutePath().toString();
@@ -103,6 +104,7 @@ public class RepositoryStartupCleanup {
     }
 
     protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
+        logger.debug("Checking if repository '{}' for site '{}' is corrupted", repository, siteId);
         Repository repo = helper.getRepository(siteId, repository);
         if (isRepositoryCorrupted(repo)) {
             String repoPath = repo.getWorkTree().getAbsolutePath();
