@@ -374,6 +374,9 @@ studio.security.headers.contentSecurityPolicy.reportOnly: true
 studio.security.http.basic.enabled: false
 # Value for the X-PERMITTED-CROSS-DOMAIN-POLICIES header
 studio.security.headers.permittedCrossDomainPolicies.value: none
+# Value for Referrer-Policy header.
+# Possible values are defined in org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy
+studio.security.headers.referrerPolicy.value: NO_REFERRER
 
 # The maximum number of users to keep in the cache
 studio.security.db.cache.maxSize: 20
