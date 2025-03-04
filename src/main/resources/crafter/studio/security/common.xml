@@ -218,7 +218,9 @@
                     <constructor-arg index="0" value="SAMEORIGIN"/>
                 </bean>
                 <bean class="org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter"/>
-                <bean class="org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter"/>
+				<bean class="org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter">
+					<constructor-arg value="#{studioConfiguration.getProperty('studio.security.headers.referrerPolicy.value')}"/>
+				</bean>
                 <bean class="org.springframework.security.web.header.writers.ContentSecurityPolicyHeaderWriter">
                     <constructor-arg value="#{studioConfiguration.getProperty('studio.security.headers.contentSecurityPolicy.value')}"/>
                     <property name="reportOnly" value="#{studioConfiguration.getProperty('studio.security.headers.contentSecurityPolicy.reportOnly')}"/>
