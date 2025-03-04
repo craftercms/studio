@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -28,30 +28,29 @@
 		<result property="type" column="type"/>
 	</resultMap>
 
-	<select id="getSoftDependenciesForList" resultType="java.util.Map">
+	<select id="getSoftDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		WITH RECURSIVE CTE AS (
-		SELECT d.source_path, d.target_path, d.site
-		FROM dependency d
-		WHERE d.source_path IN
-		<foreach item="path" index="index" collection="paths"
-			 open="(" separator="," close=")">
-			#{path}
-		</foreach>
-		AND d.site = #{siteId}
-		AND d.valid = 1
+			SELECT d.target_path
+			FROM dependency d
+			WHERE d.source_path IN
+			<foreach item="path" index="index" collection="paths"
+					 open="(" separator="," close=")">
+				#{path}
+			</foreach>
+			AND d.site = #{siteId}
+			AND d.valid = 1
 		UNION
-		SELECT d.source_path, d.target_path, d.site
-		FROM cte, dependency d
-		WHERE cte.target_path = d.source_path
-		AND d.site = #{siteId}
-		AND cte.site = #{siteId}
-		AND d.valid = 1
+			SELECT d.target_path
+			FROM cte, dependency d
+			WHERE cte.target_path = d.source_path
+			AND d.site = #{siteId}
+			AND d.valid = 1
 		)
-		SELECT cte.source_path, cte.target_path
+		SELECT cte.target_path, i.label AS meta_label, i.system_type AS meta_system_type, i.mime_type AS meta_mime_type
 		FROM cte
-		INNER JOIN site s ON s.site_id = cte.site
 		INNER JOIN item i ON i.path = cte.target_path
-		AND i.site_id = s.id
+		INNER JOIN site s ON s.id = i.site_id
+		AND s.site_id = #{siteId}
 		AND s.deleted = 0
 		AND (i.state &amp; #{modifiedMask}) > 0
 		AND (i.state &amp; #{newMask}) = 0
@@ -62,8 +61,8 @@
 		</foreach>
 	</select>
 
-	<select id="getPublishingSoftDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.publish.PublishDAO.CalculatedPublishItemMap">
-		SELECT d.target_path as path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
+	<select id="getPublishingSoftDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+		SELECT d.target_path AS path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
 		FROM dependency d
 		INNER JOIN site s ON s.site_id = d.site
 		INNER JOIN item i ON i.path = d.target_path
@@ -183,7 +182,7 @@
 		) AS children_deps
 	</sql>
 
-	<select id="getHardDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.publish.PublishDAO.CalculatedPublishItemMap">
+	<select id="getHardDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		<!--
 		For each path, recursively:
 		- Get non-published ancestors
@@ -207,10 +206,12 @@
 		</foreach>
 	</select>
 
-	<select id="getDependentItems" resultType="String">
-		SELECT source_path
-		FROM dependency
-		WHERE site = #{siteId}
+	<select id="getDependentItems" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+		SELECT source_path AS path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
+		FROM dependency d
+		INNER JOIN site s ON d.site = s.site_id
+		INNER JOIN item i ON i.path = d.source_path AND i.site_id = s.id
+		WHERE s.site_id = #{siteId}
 		AND valid = 1
 		AND
 		<foreach item="path" index="index" collection="paths"

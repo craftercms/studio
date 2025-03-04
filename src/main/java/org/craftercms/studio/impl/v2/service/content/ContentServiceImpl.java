@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,14 +32,14 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
 import org.dom4j.Document;
@@ -85,8 +85,8 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-	public List<String> getChildItems(@SiteId String siteId,
-					  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
+	public List<LightItem> getChildItems(@SiteId String siteId,
+										 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
 		return contentServiceInternal.getChildItems(siteId, paths);
 	}
 
@@ -150,7 +150,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
-	public DetailedItem getItemByPath(@SiteId String siteId, @ContentPath String path, boolean preferContent)
+	public ContentItem getItemByPath(@SiteId String siteId, @ContentPath String path, boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getItemByPath(siteId, path, preferContent);
 	}
@@ -158,11 +158,11 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
-	public List<SandboxItem> getSandboxItemsByPath(@SiteId String siteId,
-						       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-						       boolean preferContent)
+	public List<ContentItem> getContentItemsByPath(@SiteId String siteId,
+												   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
+												   boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
-		return contentServiceInternal.getSandboxItemsByPath(siteId, paths, preferContent);
+		return contentServiceInternal.getContentItemsByPath(siteId, paths, preferContent);
 	}
 
 	@Override

@@ -26,10 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
@@ -40,8 +37,6 @@ import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
@@ -56,9 +51,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.UPDATE;
@@ -148,17 +140,15 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<SandboxItem> getContentUnpublished(@SiteId String siteId,
-						       List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
+	public List<ContentItem> getContentUnpublished(@SiteId String siteId,
+												   List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
 		throws UserNotFoundException, ServiceLayerException {
-		var items =
-			itemServiceInternal.getItemByStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
+		List<ContentItem> items =
+			contentServiceInternal.getContentItemsByStates(siteId, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
 		if (items.isEmpty()) {
 			return emptyList();
 		}
-		var ids = items.stream().map(Item::getId)
-			.collect(toList());
-		return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, false);
+		return items;
 	}
 
 	protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
@@ -199,8 +189,8 @@ public class DashboardServiceImpl implements DashboardService {
 	protected ExpiringContentResult processResults(String siteId, SearchResult results) throws ServiceLayerException, UserNotFoundException {
 		List<ExpiringContentItem> items = new ArrayList<>();
 		for (var item : results.getItems()) {
-			SandboxItem sandboxItem =
-				contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+			ContentItem sandboxItem =
+				contentServiceInternal.getContentItemsByPath(siteId, Arrays.asList(item.getPath()), false)
 					.stream()
 					.findFirst().orElse(null);
 			ExpiringContentItem contentItem = new ExpiringContentItem(

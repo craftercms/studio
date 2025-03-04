@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,30 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.content;
+package org.craftercms.studio.model.rest.dependency;
 
-import org.craftercms.studio.api.v2.dal.Item;
+import jakarta.validation.constraints.NotEmpty;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 
-public class DependencyItem {
-	private long id;
-	private String label;
+/**
+ * Request body for getting dependents of a path
+ */
+public class GetDependentsRequestBody {
+
+	@NotEmpty
+	@ValidExistingContentPath
 	private String path;
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getLabel() {
-		return label;
-	}
-
-	public void setLabel(String label) {
-		this.label = label;
-	}
 
 	public String getPath() {
 		return path;
@@ -45,14 +34,5 @@ public class DependencyItem {
 
 	public void setPath(String path) {
 		this.path = path;
-	}
-
-	public static DependencyItem getInstance(Item item) {
-		DependencyItem instance = new DependencyItem();
-		instance.id = item.getId();
-		instance.label = item.getLabel();
-		instance.path = item.getPath();
-
-		return instance;
 	}
 }

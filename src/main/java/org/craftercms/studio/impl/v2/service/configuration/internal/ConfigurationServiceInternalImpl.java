@@ -610,7 +610,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 							    String module,
 							    String path,
 							    String environment)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		String configPath;
 		if (!isEmpty(environment)) {
 			String configBasePath =
@@ -633,7 +633,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				"Content not found at path " + configPath + " site " + siteId);
 		}
 		ConfigurationHistory configurationHistory = new ConfigurationHistory();
-		configurationHistory.setItem(contentService.getContentItem(siteId, configPath));
+		configurationHistory.setItem(contentServiceInternal.getItemByPath(siteId, configPath, false));
 		configurationHistory.setVersions(contentServiceInternal.getContentVersionHistory(siteId, configPath));
 		return configurationHistory;
 	}

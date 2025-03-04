@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.service.workflow;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -38,7 +38,7 @@ public interface WorkflowService {
 	int getItemStatesTotal(String siteId, String path, Long states) throws SiteNotFoundException;
 
 	/**
-	 * Get item states for given filters by path regex and states mask
+	 * Get items matching the given filters by path regex and states mask
 	 *
 	 * @param siteId site identifier
 	 * @param path   path regex to filter items
@@ -47,7 +47,7 @@ public interface WorkflowService {
 	 * @param limit  number of item states records to return
 	 * @return list of sandbox items
 	 */
-	List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException;
+	List<ContentItem> getItemsByStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException;
 
 	/**
 	 * Update item state flags for given items

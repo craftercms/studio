@@ -138,7 +138,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 							    String module,
 							    @ProtectedResourceId(PATH_RESOURCE_ID) String path,
 							    String environment)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		return configurationServiceInternal.getConfigurationHistory(siteId, module, path, environment);
 	}
 

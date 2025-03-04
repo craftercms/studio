@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -19,30 +19,30 @@
 	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.ItemDAO">
-	<resultMap id="ItemMap" type="org.craftercms.studio.api.v2.dal.Item">
+	<resultMap id="ItemMap" type="org.craftercms.studio.api.v2.dal.Item" autoMapping="true">
 		<id property="id" column="id"/>
-		<result property="siteId" column="site_id"/>
-		<result property="siteName" column="site_name"/>
-		<result property="path" column="path"/>
-		<result property="previewUrl" column="preview_url"/>
-		<result property="state" column="state"/>
-		<result property="lockedBy" column="locked_by"/>
-		<result property="createdBy" column="created_by"/>
-		<result property="createdOn" column="created_on"/>
-		<result property="lastModifiedBy" column="last_modified_by"/>
-		<result property="lastModifiedOn" column="last_modified_on"/>
-		<result property="submittedOn" column="submitted_on"/>
-		<result property="label" column="label"/>
-		<result property="contentTypeId" column="content_type_id"/>
-		<result property="systemType" column="system_type"/>
-		<result property="mimeType" column="mime_type"/>
-		<result property="localeCode" column="locale_code"/>
-		<result property="translationSourceId" column="translation_source_id"/>
-		<result property="size" column="size"/>
-		<result property="parentId" column="parent_id"/>
-		<result property="previewUrl" column="preview_url"/>
-		<result property="ignoredAsInt" column="ignored"/>
-		<result property="childrenCount" column="children_count"/>
+<!--		<result property="siteId" column="site_id"/>-->
+<!--		<result property="siteName" column="site_name"/>-->
+<!--		<result property="path" column="path"/>-->
+<!--		<result property="previewUrl" column="preview_url"/>-->
+<!--		<result property="state" column="state"/>-->
+<!--		<result property="lockedBy" column="locked_by"/>-->
+<!--		<result property="createdBy" column="created_by"/>-->
+<!--		<result property="createdOn" column="created_on"/>-->
+<!--		<result property="lastModifiedBy" column="last_modified_by"/>-->
+<!--		<result property="lastModifiedOn" column="last_modified_on"/>-->
+<!--		<result property="submittedOn" column="submitted_on"/>-->
+<!--		<result property="label" column="label"/>-->
+<!--		<result property="contentTypeId" column="content_type_id"/>-->
+<!--		<result property="systemType" column="system_type"/>-->
+<!--		<result property="mimeType" column="mime_type"/>-->
+<!--		<result property="localeCode" column="locale_code"/>-->
+<!--		<result property="translationSourceId" column="translation_source_id"/>-->
+<!--		<result property="size" column="size"/>-->
+<!--		<result property="parentId" column="parent_id"/>-->
+<!--		<result property="previewUrl" column="preview_url"/>-->
+<!--		<result property="ignoredAsInt" column="ignored"/>-->
+<!--		<result property="childrenCount" column="children_count"/>-->
 		<association property="modifier" column="modifier"
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
 		<association property="creator" column="creator"
@@ -53,16 +53,77 @@
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
 	</resultMap>
 
-	<resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem"
-		   extends="ItemMap">
-		<result property="stagingScheduledDate" column="staging_scheduleddate"/>
-		<result property="stagingPublishedOn" column="staging_published_on"/>
-		<result property="stagingUsername" column="staging_username"/>
-		<result property="liveScheduledDate" column="live_scheduleddate"/>
-		<result property="livePublishedOn" column="live_published_on"/>
-		<result property="liveUsername" column="live_username"/>
-		<association property="lockOwner" column="lock_owner"
-			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+	<resultMap id="PublishTargetStatusMap" type="org.craftercms.studio.api.v2.dal.item.PublishTargetStatus" autoMapping="true">
+		<association property="publisher" column="submitter_id"
+					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+	</resultMap>
+
+	<resultMap id="ContentItemMap" type="org.craftercms.studio.api.v2.dal.item.ContentItem"
+			   autoMapping="true">
+		<id property="id" column="id"/>
+		<result property="dateModified" column="last_modified_on"/>
+		<result property="dateCreated" column="created_on"/>
+		<association property="modifier" column="last_modified_by"
+					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+		<association property="creator" column="created_by"
+					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+		<association property="lockOwner" column="locked_by"
+					 select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+		<association property="staging" column="id" select="getStagingTargetStatus"/>
+		<association property="live" column="id" select="getLiveTargetStatus"/>
+	</resultMap>
+
+	<select id="getLiveTargetStatus" resultMap="PublishTargetStatusMap">
+		SELECT ipi1.item_id, pp1.published_on as last_published_on, pp1.submitter_id as submitter_id, (
+					SELECT pp1.schedule
+					FROM item_publish_item ipi1
+						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+						INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+					WHERE ipi1.item_id = #{id}
+					AND pp1.target = '${liveEnvironment}'
+					AND pp1.package_state = ${packageReadyState}
+					AND pp1.approval_state = '${packageApprovedState}'
+					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
+					) AS scheduled_date
+		FROM item_publish_item ipi1
+			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+		WHERE (pi1.publish_state &amp; ${livePublishedState}) > 0
+		AND ipi1.item_id = #{id}
+		ORDER BY pp1.published_on desc LIMIT 0, 1
+	</select>
+
+	<select id="getStagingTargetStatus" resultMap="PublishTargetStatusMap">
+		SELECT ipi1.item_id, pp1.published_on as last_published_on, pp1.submitter_id as submitter_id, (
+					SELECT pp1.schedule
+					FROM item_publish_item ipi1
+						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+						INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+					WHERE ipi1.item_id = #{id}
+					AND pp1.target = '${stagingEnvironment}'
+					AND pp1.package_state = ${packageReadyState}
+					AND pp1.approval_state = '${packageApprovedState}'
+					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
+					) AS scheduled_date
+		FROM item_publish_item ipi1
+			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
+			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
+		WHERE (pi1.publish_state &amp; ${stagingPublishedState}) > 0
+		AND ipi1.item_id = #{id}
+		ORDER BY pp1.published_on desc LIMIT 0, 1
+	</select>
+
+	<resultMap id="LightItemMetadataMap" type="org.craftercms.studio.api.v2.dal.item.LightItemMetadata">
+		<constructor>
+			<arg column="label" javaType="java.lang.String"/>
+			<arg column="system_type" javaType="java.lang.String"/>
+			<arg column="mime_type" javaType="java.lang.String"/>
+		</constructor>
+	</resultMap>
+
+	<resultMap id="LightItemMap" type="org.craftercms.studio.api.v2.dal.item.LightItem"
+			   autoMapping="true">
+		<association property="metadata" columnPrefix="meta_" resultMap="LightItemMetadataMap"/>
 	</resultMap>
 
 	<insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
@@ -92,392 +153,180 @@
 	</insert>
 
 	<sql id="getChildrenByPathFilters">
+		INNER JOIN item iParent ON i.parent_id = iParent.id
+		WHERE i.site_id = #{siteId}
+		<if test="filterChildren">
+			<include refid="filterItemChildren"/>
+		</if>
+		<include refid="filterBySystemType"/>
+		AND iParent.path IN (#{path}, CONCAT(#{path}, '/index.xml'))
+		AND (
+			i.system_type &lt;&gt; '${systemTypeFolder}'
+			OR
+			NOT EXISTS (
+				SELECT *
+				FROM item page
+				WHERE page.site_id = i.site_id
+				AND page.system_type = '${systemTypePage}'
+				AND page.path = CONCAT(i.path, '/index.xml')
+			)
+		)
 		<if test="localeCode != null">
-			AND child.locale_code = #{localeCode}
+			AND i.locale_code = #{localeCode}
 		</if>
 		<if test="keyword != null &amp;&amp; keyword.length > 0">
 			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND child.label LIKE #{pattern}
+			AND i.label LIKE #{pattern}
 		</if>
 		<if test="excludes != null &amp;&amp; !excludes.isEmpty()">
-			AND child.path NOT IN
+			AND i.path NOT IN
 			<foreach collection="excludes" item="exclude" open="(" separator="," close=")">
 				#{exclude}, CONCAT(#{exclude}, '/index.xml')
 			</foreach>
 		</if>
 		<if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
-			AND child.system_type IN
+			AND i.system_type IN
 			<foreach collection="systemTypes" item="type" open="(" separator="," close=")">
 				#{type}
 			</foreach>
 		</if>
 		<if test="excludeSystemTypes != null &amp;&amp; !excludeSystemTypes.isEmpty()">
-			AND child.system_type NOT IN
+			AND i.system_type NOT IN
 			<foreach collection="excludeSystemTypes" item="type" open="(" separator="," close=")">
 				#{type}
 			</foreach>
 		</if>
+		GROUP BY i.id
 	</sql>
 
-	<select id="getChildrenByPath" resultMap="ItemMap">
-		SELECT child.*, child.locked_by AS lock_owner, child.created_by AS creator,
-		child.last_modified_by AS modifier,
-		submission.submitted_on AS submitted_on,
-		submission.submitter AS submitter,
-		COUNT(
-		<choose>
-			<!-- if filtering by types, then narrow down the count -->
-			<when test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
-				CASE WHEN grand_child.system_type IN
-				<foreach collection="systemTypes" item="type" open="(" separator="," close=")">
-					#{type}
-				</foreach>
-				THEN 1 ELSE NULL END
-			</when>
-			<!-- otherwise, count all children -->
-			<otherwise>grand_child.id</otherwise>
-		</choose>
-		) as children_count
-		FROM item child
-		LEFT JOIN item parent ON child.parent_id = parent.id
-		LEFT JOIN item grand_child ON grand_child.parent_id = child.id
-		LEFT OUTER JOIN (
-		SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
-		FROM item_publish_item ipi1
-		INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-		INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-		WHERE (pp1.package_state &amp; #{packageState}) > 0
-		AND pp1.approval_state IN
-		<foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
-			#{approvalState}
-		</foreach>
-		ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
-		) as submission ON submission.item_id = child.id
-		WHERE parent.site_id = #{siteId}
-		AND (parent.path = #{path} OR parent.path = CONCAT(#{path}, '/index.xml'))
-		AND (parent.system_type != #{systemTypeFolder}
-		OR
-		NOT EXISTS(SELECT *
-		FROM item page
-		WHERE page.site_id = parent.site_id
-		AND page.system_type = 'page'
-		AND page.path = CONCAT(parent.path, '/index.xml')))
-		AND child.ignored = 0
-		AND (child.system_type != #{systemTypeFolder}
-		OR
-		NOT EXISTS (select * from item page where page.site_id = child.site_id and page.path = concat(child.path, '/index.xml')))
-		<include refid="getChildrenByPathFilters"/>
-		AND (grand_child.ignored = 0 OR grand_child.ignored IS NULL)
-		AND (grand_child.system_type != #{systemTypeFolder}
-		OR
-		NOT EXISTS (select * from item page where page.site_id = grand_child.site_id and page.path = concat(grand_child.path, '/index.xml')))
-		GROUP BY child.id, child.label, child.path, child.system_type
-		<choose>
-			<when test="sortStrategy == 'alphabetic'">
-				ORDER BY child.label ${order}, child.path ${order}
-			</when>
-			<when test="sortStrategy == 'foldersFirst'">
-				ORDER BY IF(FIELD(child.system_type, 'folder')=0,1,0), FIELD(child.system_type, 'folder'),
-				child.label ${order}, child.path ${order}
-			</when>
-			<when test="sortStrategy == 'lastUpdate'">
-				ORDER BY child.last_modified_on ${order}, child.label ${order}, child.path ${order}
-			</when>
-			<otherwise>
-				ORDER BY child.label ${order}, child.path ${order}
-			</otherwise>
-		</choose>
-		LIMIT #{offset},#{limit}
+	<select id="getChildrenByPathTotal" resultType="Integer">
+		<bind name="filterChildren" value="false"/>
+		SELECT COUNT(1)
+		FROM (
+			SELECT i.id
+			FROM item i
+			<include refid="getChildrenByPathFilters"/>
+		) AS children
 	</select>
 
-	<select id="getChildrenByPathTotal" resultType="Integer">
-		SELECT COUNT(1)
-		FROM item child
-		LEFT JOIN item parent ON child.parent_id = parent.id
-		WHERE parent.site_id = #{siteId}
-		AND (parent.path = #{path} OR parent.path = CONCAT(#{path}, '/index.xml'))
-		AND (parent.system_type != 'folder'
-		OR
-		NOT EXISTS(SELECT *
-		FROM item page
-		WHERE page.site_id = parent.site_id
-		AND page.system_type = 'page'
-		AND page.path = CONCAT(parent.path, '/index.xml')))
-		AND child.ignored = 0
-		AND (child.system_type != 'folder'
-		OR
-		NOT EXISTS (select * from item page where page.site_id = child.site_id and page.path = concat(child.path, '/index.xml')))
+	<select id="getChildrenByPath" resultMap="ContentItemMap">
+		<bind name="filterChildren" value="true"/>
+		<include refid="detailedItemSelect"/>
 		<include refid="getChildrenByPathFilters"/>
+		<choose>
+			<when test="sortStrategy == 'alphabetic'">
+				ORDER BY i.label ${order}, i.path ${order}
+			</when>
+			<when test="sortStrategy == 'foldersFirst'">
+				ORDER BY IF(FIELD(i.system_type, '${systemTypeFolder}')=0,1,0), FIELD(i.system_type, '${systemTypeFolder}'),
+				i.label ${order}, i.path ${order}
+			</when>
+			<when test="sortStrategy == 'lastUpdate'">
+				ORDER BY i.last_modified_on ${order}, i.label ${order}, i.path ${order}
+			</when>
+			<otherwise>
+				ORDER BY i.label ${order}, i.path ${order}
+			</otherwise>
+		</choose>
+		LIMIT #{offset}, #{limit}
 	</select>
 
 	<sql id="detailedItemSelect">
 		SELECT i.*,
-		       i.locked_by        AS           lock_owner,
-		       i.created_by       AS           creator,
-		       i.last_modified_by AS           modifier,
-		       (SELECT pp1.schedule
-			FROM item_publish_item ipi1
-				     INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-				     INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-			WHERE ipi1.item_id = i.id
-			  AND pp1.target = #{stagingEnvironment}
-			  AND pp1.package_state = 'READY'
-			  AND pp1.approval_state = 'APPROVED'
-			ORDER BY pp1.submitted_on DESC LIMIT 0, 1 ) AS staging_scheduleddate,
-                        (
-                            SELECT pp1.schedule
-                            FROM item_publish_item ipi1
-                                INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-                                INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-                            WHERE ipi1.item_id = i.id
-                            AND pp1.target = #{liveEnvironment} AND pp1.package_state = 'READY' AND pp1.approval_state = 'APPROVED' ORDER BY pp1.submitted_on DESC LIMIT 0, 1
-			) as live_scheduleddate, publishStaging.published_on AS staging_published_on, publishStaging.submitter_username AS staging_username, publishLive.published_on AS live_published_on, publishLive.submitter_username AS live_username, COUNT (DISTINCT ichild.id) AS children_count
+				COUNT (DISTINCT ichild.id) AS children_count
 		FROM item i
-			INNER JOIN site s1
-		ON i.site_id = s1.id
+			INNER JOIN site s ON i.site_id = s.id
 			LEFT OUTER JOIN item ichild ON i.id = ichild.parent_id
-			LEFT OUTER JOIN (
-			SELECT ipi1.item_id, pp1.published_on, u.username AS submitter_username
-			FROM item_publish_item ipi1
-			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-			INNER JOIN user u ON u.id = pp1.submitter_id
-			WHERE pp1.target = #{stagingEnvironment}
-			AND (pi1.publish_state &amp; #{stagingPublishedState}) > 0
-			ORDER BY pp1.published_on desc LIMIT 0, 1
-			) as publishStaging ON publishStaging.item_id = i.id
-			LEFT OUTER JOIN (
-			SELECT ipi1.item_id, pp1.published_on, u.username AS submitter_username
-			FROM item_publish_item ipi1
-			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-			INNER JOIN user u ON u.id = pp1.submitter_id
-			WHERE pp1.target = #{liveEnvironment}
-			AND (pi1.publish_state &amp; #{livePublishedState}) > 0
-			ORDER BY pp1.published_on desc LIMIT 0, 1
-			) as publishLive ON publishLive.item_id = i.id
 	</sql>
 
-	<select id="getItemById" resultMap="DetailedItemMap">
-		<include refid="detailedItemSelect"/>
-		WHERE i.id = #{id}
-		<!-- Count not ignored children
-		     Avoid counting both the '/child/' folder and the '/child/index.xml'
-		-->
-		AND (ichild.ignored = 0 OR ichild.ignored IS NULL)
-		AND (ichild.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i10 WHERE i10.site_id = ichild.site_id AND i10.path = CONCAT(ichild.path, '/index.xml')))
-		GROUP BY i.id
-		LIMIT 0, 1
-	</select>
-
-	<select id="getDetailedItemsByStates" resultMap="DetailedItemMap">
-		<include refid="detailedItemSelect"/>
-		WHERE i.site_id = #{siteId}
-		AND (ichild.ignored = 0 OR ichild.ignored IS NULL)
-		AND (ichild.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i10 WHERE i10.site_id = ichild.site_id AND i10.path = CONCAT(ichild.path, '/index.xml')))
-		AND (i.state &amp; #{statesBitMap}) > 0
-		AND i.system_type &lt;&gt; #{systemTypeFolder}
-		<include refid="filterBySystemType"/>
-		<include refid="orderBySortFields"/>
-		LIMIT #{offset}, #{limit}
-	</select>
-
-	<select id="getSandboxItemsById" resultMap="ItemMap">
-		WITH submission AS (
-		SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
-		FROM item_publish_item ipi1
-		INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-		INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-		WHERE ipi1.item_id IN
-		<foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
-			#{id}
-		</foreach>
-		AND (pp1.package_state &amp; #{packageState}) > 0
-		AND pp1.approval_state IN
-		<foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
-			#{approvalState}
-		</foreach>
-		)
-		SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator,
-		i.last_modified_by AS modifier,
-		submission.submitted_on AS submitted_on,
-		submission.submitter AS submitter,
-		(SELECT COUNT(1)
-		FROM item child_i
-		WHERE child_i.parent_id = i.id
-		AND (child_i.ignored = 0 OR child_i.ignored IS NULL)
-		AND (child_i.system_type &lt;&gt; 'folder' OR NOT EXISTS
-		(SELECT * FROM item i10 WHERE i10.site_id = child_i.site_id
-		AND i10.path = CONCAT(child_i.path, '/index.xml')))) AS children_count
+	<select id="getItemsByPath" resultMap="ItemMap">
+		SELECT i.*
 		FROM item i
-		LEFT OUTER JOIN submission ON submission.item_id = i.id
-		WHERE i.id IN
-		<foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
-			#{id}
-		</foreach>
-		<include refid="orderBySortFields"/>
-	</select>
-
-	<select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
-		<!-- Refactor to reuse selects for ItemMap results -->
-		SELECT tbl.*
-		FROM (
-		(SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator,
-		i1.last_modified_by AS modifier,
-		submission.submitted_on AS submitted_on,
-		submission.submitter AS submitter,
-		COUNT(DISTINCT i5.id ) AS children_count
-		FROM item i1
-		LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-		LEFT OUTER JOIN (
-		SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
-		FROM item_publish_item ipi1
-		INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-		INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-		WHERE (pp1.package_state &amp; #{packageState}) > 0
-		AND pp1.approval_state IN
-		<foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
-			#{approvalState}
-		</foreach>
-		ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
-		) as submission ON submission.item_id = i1.id, item i2
-		WHERE i2.id IN
-		<foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
-			#{id}
-		</foreach>
-		AND i1.site_id = i2.site_id
-		AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
-		AND (i5.ignored = 0 OR i5.ignored IS NULL)
-		AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
-		GROUP BY i1.id)
-		UNION
-		(SELECT i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator,
-		i3.last_modified_by AS modifier,
-		submission.submitted_on AS submitted_on,
-		submission.submitter AS submitter,
-		COUNT(DISTINCT i6.id) AS children_count
-		FROM item i3
-		LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-		LEFT OUTER JOIN (
-		SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
-		FROM item_publish_item ipi1
-		INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-		INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-		WHERE (pp1.package_state &amp; #{packageState}) > 0
-		AND pp1.approval_state IN
-		<foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
-			#{approvalState}
-		</foreach>
-		ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
-		) as submission ON submission.item_id = i3.id
-		WHERE i3.id IN
-		<foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
-			#{id}
-		</foreach>
-		AND CONCAT(i3.path, '/index.xml') NOT IN
-		(SELECT i4.path FROM item i4 WHERE i4.site_id = i3.site_id
-		AND i4.path RLIKE(CONCAT('^', i3.path, '/index\.xml$')))
-		AND (i6.ignored = 0 OR i6.ignored IS NULL)
-		AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
-		GROUP BY i3.id)
-		) AS tbl
-		<include refid="orderBySortFields"/>
-	</select>
-
-	<select id="getSandboxItemsByPath" resultMap="ItemMap">
-		SELECT item.*, item.locked_by AS lock_owner, item.created_by AS creator, item.last_modified_by AS modifier,
-		submission.submitted_on AS submitted_on,
-		submission.submitter AS submitter,
-		COUNT(child.id) AS children_count
-		FROM item
-		LEFT JOIN item child ON child.parent_id = item.id
-		LEFT OUTER JOIN (
-		SELECT ipi1.item_id as item_id, pp1.submitter_id AS submitter, pp1.submitted_on AS submitted_on
-		FROM item_publish_item ipi1
-		INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
-		INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
-		WHERE (pp1.package_state &amp; #{packageState}) > 0
-		AND pp1.approval_state IN
-		<foreach collection="approvalStates" item="approvalState" index="index" open="(" close=")" separator=",">
-			#{approvalState}
-		</foreach>
-		ORDER BY pp1.submitted_on DESC LIMIT 0, 1 <!-- Get the most recently submitted active publish request -->
-		) as submission ON submission.item_id = item.id
-		WHERE item.site_id = #{siteId} AND item.ignored = 0
+		WHERE i.site_id = #{siteId}
+		AND i.path IN
+			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+				#{path}
+				<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
+			</foreach>
+		AND i.ignored = 0
 		<if test="preferContent">
-			AND (item.system_type != #{systemTypeFolder}
-			OR
-			NOT EXISTS(SELECT *
-			FROM item page
-			WHERE page.site_id = item.site_id
-			AND page.system_type = 'page'
-			AND page.path = CONCAT(item.path, '/index.xml')))
+			<!-- Prefer content means to get a page (if it exists) instead of its containing folder -->
+			AND (
+					i.system_type &lt;&gt; '${systemTypeFolder}'
+				OR
+					NOT EXISTS(SELECT *
+								FROM item page
+								WHERE page.site_id = i.site_id
+								AND page.system_type = '${systemTypePage}'
+								AND page.path = CONCAT(item.path, '/index.xml')
+					)
+			)
 		</if>
-		AND (child.ignored = 0 OR child.ignored IS NULL)
-		AND (child.system_type != #{systemTypeFolder}
-		OR
-		NOT EXISTS(SELECT *
-		FROM item page
-		WHERE page.site_id = child.site_id
-		AND page.system_type = 'page'
-		AND page.path = CONCAT(child.path, '/index.xml')))
-		AND item.path IN
-		<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
-			#{path}
-			<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
-		</foreach>
-		GROUP BY item.id
 	</select>
 
-	<select id="getItemBySiteIdAndPath" resultMap="DetailedItemMap">
+	<select id="getContentItemsByPath" resultMap="ContentItemMap">
 		<include refid="detailedItemSelect"/>
-		WHERE s1.id = #{siteId}
+		WHERE s.id = #{siteId}
+		AND i.path IN
+			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+				#{path}
+				<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
+			</foreach>
+		<include refid="filterItemChildren"/>
+		GROUP BY i.id
+	</select>
+
+	<select id="getContentItemByPath" resultMap="ContentItemMap">
+		<include refid="detailedItemSelect"/>
+		WHERE s.id = #{siteId}
 		AND i.path = #{path}
-		<!-- Count not ignored children
-		     Avoid counting both the '/child/' folder and the '/child/index.xml'
-		-->
-		AND (ichild.ignored = 0 OR ichild.ignored IS NULL)
-		AND (ichild.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i10 WHERE i10.site_id = ichild.site_id AND i10.path = CONCAT(ichild.path, '/index.xml')))
+		<include refid="filterItemChildren"/>
 		GROUP BY i.id
 		LIMIT 0, 1
 	</select>
 
-	<select id="getItemBySiteIdAndPathPreferContent" resultMap="DetailedItemMap">
+	<select id="getContentItemByPathPreferContent" resultMap="ContentItemMap">
 		(
-		<include refid="detailedItemSelect"/>
-		WHERE s1.id = #{siteId}
-		AND i.ignored = 0
-		<!-- Look for an index.xml at the given path -->
-		AND i.path = CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')
-		<!-- Count not ignored children
-		     Avoid counting both the '/child/' folder and the '/child/index.xml'
-		-->
-		AND (ichild.ignored = 0 OR ichild.ignored IS NULL)
-		AND (ichild.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i10 WHERE i10.site_id = ichild.site_id AND i10.path = concat(ichild.path, '/index.xml')))
-		GROUP BY i.id
+			<include refid="detailedItemSelect"/>
+			WHERE s.id = #{siteId}
+			AND i.ignored = 0
+			<!-- Look for an index.xml at the given path -->
+			AND i.path = CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')
+			<include refid="filterItemChildren"/>
+			GROUP BY i.id
 		)
 		UNION
 		(
-		<include refid="detailedItemSelect"/>
-		WHERE s1.id = #{siteId}
-		AND i.path = #{path}
-		AND i.ignored = 0
-		<!-- Count not ignored children
-		     Avoid counting both the '/child/' folder and the '/child/index.xml'
-		-->
-		AND (ichild.ignored = 0 OR ichild.ignored IS NULL)
-		AND (ichild.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
-		(SELECT * FROM item i11 WHERE i11.site_id = ichild.site_id AND i11.path = CONCAT(ichild.path, '/index.xml')))
-		GROUP BY i.id
-		)
+			<include refid="detailedItemSelect"/>
+			WHERE s.id = #{siteId}
+			AND i.path = #{path}
+			AND i.ignored = 0
+			<include refid="filterItemChildren"/>
+			GROUP BY i.id
+			)
 		LIMIT 0, 1
 	</select>
+
+	<sql id="filterItemChildren">
+		<!-- Count not ignored children
+			 Avoid counting both the '/child/' folder and the '/child/index.xml'
+		-->
+		AND (ichild.id IS NULL OR (
+			ichild.ignored = 0
+			AND (
+				ichild.system_type &lt;&gt; '${systemTypeFolder}'
+				OR
+					NOT EXISTS (
+						SELECT 1
+						FROM item iPage
+						WHERE iPage.site_id = ichild.site_id
+						AND iPage.system_type = '${systemTypePage}'
+						AND iPage.path = concat(ichild.path, '/index.xml')
+					)
+			)
+			AND ichild.system_type &lt;&gt; '${systemTypeLevelDescriptor}'
+		))
+	</sql>
 
 	<update id="updateItem" parameterType="org.craftercms.studio.api.v2.dal.Item">
 		UPDATE item
@@ -511,7 +360,7 @@
 				FROM item
 				WHERE site_id = #{siteId}
 				AND path = #{path}
-				AND system_type = #{systemTypePage})
+				AND system_type = '${systemTypePage}')
 			)
 			</if>
 		)
@@ -581,7 +430,7 @@
 		</foreach>
 	</select>
 
-	<select id="getUnpublishedPaths">
+	<select id="getUnpublishedPathsInternal">
 		SELECT i.path
 		FROM item i
 		WHERE i.site_id = #{siteId}
@@ -589,20 +438,16 @@
 		  AND (i.state &amp; #{states}) &gt; 0
 	</select>
 
-	<select id="getContentTypeUsages" resultType="org.craftercms.studio.api.v2.dal.Item">
-		SELECT I.path,
-		       I.system_type AS systemType
-		FROM item I
-			     INNER JOIN
-		     site S
-		     ON
-			     I.site_id = S.id
-		WHERE S.site_id = #{siteId}
-		  AND (
-			(I.system_type IN ('page', 'component') AND I.content_type_id = #{contentType})
+	<select id="getContentTypeUsages" resultMap="LightItemMap">
+		SELECT i.path, i.system_type AS meta_systemType, i.label AS meta_label, i.mime_type AS meta_mime_type
+		FROM item i
+		INNER JOIN site s ON i.site_id = s.id
+		WHERE s.site_id = #{siteId}
+		AND (
+			(i.system_type IN ('page', 'component') AND I.content_type_id = #{contentType})
 				OR
-			(I.system_type = 'script' AND I.path = #{scriptPath})
-			)
+			(i.system_type = 'script' AND i.path = #{scriptPath})
+		)
 	</select>
 
 	<update id="lockItemByPath">
@@ -612,7 +457,7 @@
 		WHERE s.site_id = #{siteId}
 		  AND s.deleted = 0
 		  AND i.path = #{path}
-		  AND i.system_type &lt;&gt; #{systemTypeFolder}
+		  AND i.system_type &lt;&gt; '${systemTypeFolder}'
 	</update>
 
 	<update id="unlockItemByPath">
@@ -625,12 +470,12 @@
 	</update>
 
 	<select id="getItemByStatesTotal" resultType="Integer">
-		SELECT count(1)
+		SELECT COUNT(1)
 		FROM item i INNER JOIN site s ON i.site_id = s.id
 		WHERE s.site_id = #{siteId}
 		AND s.deleted = 0
 		AND i.ignored = 0
-		AND i.system_type != 'folder'
+		AND i.system_type &lt;&gt; 'folder'
 		<if test="path != null">
 			AND i.path RLIKE(#{path})
 		</if>
@@ -640,13 +485,12 @@
 		<include refid="filterBySystemType"/>
 	</select>
 
-	<select id="getItemByStates" resultMap="ItemMap">
-		SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier
-		FROM item i INNER JOIN site s ON i.site_id = s.id
+	<select id="getContentItemsByStates" resultMap="ContentItemMap">
+		<include refid="detailedItemSelect"/>
 		WHERE s.site_id = #{siteId}
 		AND s.deleted = 0
 		AND i.ignored = 0
-		AND i.system_type != 'folder'
+		AND i.system_type &lt;&gt; 'folder'
 		<if test="path != null">
 			AND i.path RLIKE(#{path})
 		</if>
@@ -654,6 +498,8 @@
 			AND (i.state &amp; #{statesBitMap}) > 0
 		</if>
 		<include refid="filterBySystemType"/>
+		<include refid="filterItemChildren"/>
+		GROUP BY i.id
 		<include refid="orderBySortFields"/>
 		LIMIT #{offset}, #{limit}
 	</select>
@@ -786,6 +632,30 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+	</select>
+
+	<select id="getSubtreeItems" resultMap="LightItemMap">
+		WITH RECURSIVE children AS (
+				SELECT i.id, i.path, i.label, i.system_type, i.mime_type
+				FROM item i
+				INNER JOIN site s ON s.id = i.site_id
+				WHERE i.path IN
+					<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+						#{path}
+					</foreach>
+				AND s.site_id = #{siteId}
+			UNION
+				SELECT i.id, i.path, i.label, i.system_type, i.mime_type
+				FROM item i, children
+				WHERE i.parent_id = children.id
+		)
+		SELECT path, label AS meta_label, mime_type AS meta_mime_type, system_type AS meta_system_type
+		FROM children
+		WHERE system_type &lt;&gt; '${systemTypeFolder}'
+		AND path NOT IN
+			<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+				#{path}
+			</foreach>
 	</select>
 
 	<update id="updateDeletedPageChildren">

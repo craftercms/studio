@@ -24,12 +24,12 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
@@ -75,7 +75,7 @@ public interface ContentService {
 	 * @param paths  list of paths to get child items for
 	 * @return list of paths of child items
 	 */
-	List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
+	List<LightItem> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Delete content for given paths. Following content will be deleted:
@@ -115,7 +115,7 @@ public interface ContentService {
 	/**
 	 * Get children for paths bulk.
 	 * This method will return children for a list of paths. Result items will also
-	 * include a {@link SandboxItem} object for the item itself.
+	 * include a {@link ContentItem} object for the item itself.
 	 *
 	 * @param siteId     the site id
 	 * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
@@ -140,7 +140,7 @@ public interface ContentService {
 	 * @param preferContent if true return content item if available
 	 * @return detailed item
 	 */
-	DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
+	ContentItem getItemByPath(String siteId, String path, boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException;
 
 	/**
@@ -151,7 +151,7 @@ public interface ContentService {
 	 * @param preferContent if true return content items if available
 	 * @return list of sandbox items
 	 */
-	List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+	List<ContentItem> getContentItemsByPath(String siteId, List<String> paths, boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException;
 
 	/**

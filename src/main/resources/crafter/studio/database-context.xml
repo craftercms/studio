@@ -74,6 +74,16 @@
 		<property name="configurationProperties">
 			<props>
 				<prop key="blobFilePattern">%.#{studioConfiguration.getProperty('studio.blob.file.extension')}</prop>
+				<prop key="liveEnvironment">#{studioConfiguration.getProperty('studio.repo.published.live')}</prop>
+				<prop key="stagingEnvironment">#{studioConfiguration.getProperty('studio.repo.published.staging')}</prop>
+				<prop key="systemTypePage">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_PAGE}</prop>
+				<prop key="systemTypeFolder">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_FOLDER}</prop>
+				<prop key="systemTypeLevelDescriptor">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_LEVEL_DESCRIPTOR}</prop>
+				<prop key="packageApprovedState">#{T(org.craftercms.studio.api.v2.dal.publish.PublishPackage$ApprovalState).APPROVED.name()}</prop>
+				<!-- There seems to be a problem with non-String properties-->
+				<prop key="packageReadyState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishPackage$PackageState).READY.value)}</prop>
+				<prop key="livePublishedState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishItem$PublishState).LIVE_SUCCESS.value)}</prop>
+				<prop key="stagingPublishedState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishItem$PublishState).STAGING_SUCCESS.value)}</prop>
 			</props>
 		</property>
 	</bean>

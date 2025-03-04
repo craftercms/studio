@@ -19,9 +19,9 @@ package org.craftercms.studio.api.v2.service.item.internal;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemPathAndState;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,15 +35,6 @@ public interface ItemServiceInternal {
 	 * @param item item to add or update
 	 */
 	boolean upsertEntry(Item item);
-
-	/**
-	 * Get item by given id
-	 *
-	 * @param siteId site identifier
-	 * @param id     item id
-	 * @return item
-	 */
-	DetailedItem getItem(String siteId, long id);
 
 	/**
 	 * Get item fir given site and path
@@ -68,20 +59,10 @@ public interface ItemServiceInternal {
 	 * Get items for given site and paths
 	 *
 	 * @param siteId site identifier
-	 * @param path   item paths
+	 * @param paths  item paths
 	 * @return list of items
 	 */
-	List<Item> getItems(String siteId, Collection<String> path);
-
-	/**
-	 * Get items for given site and paths
-	 *
-	 * @param siteId        site identifier
-	 * @param paths         item paths
-	 * @param preferContent if true return content item if available
-	 * @return list of items
-	 */
-	List<Item> getItems(String siteId, Collection<String> paths, boolean preferContent);
+	List<Item> getItems(String siteId, Collection<String> paths);
 
 	/**
 	 * Update item
@@ -304,7 +285,7 @@ public interface ItemServiceInternal {
 	 * @param limit       number of item states records to return
 	 * @return list of sandbox items
 	 */
-	List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
+	List<ContentItem> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
 
 	/**
 	 * Update item state flags for given items

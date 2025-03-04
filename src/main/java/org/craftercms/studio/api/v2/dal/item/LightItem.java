@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,12 +13,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.service.fsm;
 
-// Not an api
-public enum TransitionEvent {
+package org.craftercms.studio.api.v2.dal.item;
 
-	SCHEDULED_DEPLOYMENT,
-	DEPLOYMENT,
-	DELETE
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
+/**
+ * Basic metadata for an item
+ */
+public class LightItem {
+	private String path;
+	private LightItemMetadata metadata;
+
+	public void setMetadata(LightItemMetadata metadata) {
+		this.metadata = metadata;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	@JsonUnwrapped
+	public LightItemMetadata getMetadata() {
+		return metadata;
+	}
+
+	public String getPath() {
+		return path;
+	}
 }

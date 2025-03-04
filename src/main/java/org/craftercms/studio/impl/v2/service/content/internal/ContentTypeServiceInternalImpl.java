@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
@@ -152,16 +153,16 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
 		String scriptPath = getContentTypeControllerPath(contentType);
 
-		List<Item> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
+		List<LightItem> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
 
 		usages.setContent(items.stream()
-			.filter(i -> equalsAnyIgnoreCase(i.getSystemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
-			.map(Item::getPath)
+			.filter(i -> equalsAnyIgnoreCase(i.getMetadata().systemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
+			.map(LightItem::getPath)
 			.collect(toList()));
 
 		usages.setScripts(items.stream()
-			.filter(i -> equalsIgnoreCase(i.getSystemType(), (CONTENT_TYPE_SCRIPT)))
-			.map(Item::getPath)
+			.filter(i -> equalsIgnoreCase(i.getMetadata().systemType(), (CONTENT_TYPE_SCRIPT)))
+			.map(LightItem::getPath)
 			.collect(toList()));
 
 		return usages;

@@ -51,7 +51,10 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.annotation.policy.*;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
@@ -1802,7 +1805,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Override
 	@RequireSiteExists
 	public String getItemContentType(@SiteId String site, String path) throws DocumentException, SiteNotFoundException {
-		List<Item> items = itemServiceInternal.getItems(site, List.of(path), false);
+		List<Item> items = itemServiceInternal.getItems(site, List.of(path));
 		if (CollectionUtils.isEmpty(items)) {
 			return getContentTypeClass(site, path);
 		}

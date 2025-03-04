@@ -38,27 +38,14 @@
 			     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
 	</resultMap>
 
-	<resultMap id="PublishItemMetadataMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata">
-		<constructor>
-			<arg column="label" javaType="java.lang.String"/>
-			<arg column="system_type" javaType="java.lang.String"/>
-			<arg column="mime_type" javaType="java.lang.String"/>
-		</constructor>
-	</resultMap>
-
 	<resultMap id="PublishItemMapWithMetadata" type="org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata"
 		   autoMapping="true">
 		<association property="itemTargets" column="item_id"
 			     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
-		<association property="itemMetadata" columnPrefix="meta_" resultMap="PublishItemMetadataMap"/>
+		<association property="itemMetadata" columnPrefix="meta_" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMetadataMap"/>
 	</resultMap>
 
-	<resultMap id="CalculatedPublishItemMap" type="org.craftercms.studio.model.publish.CalculatedPublishItem"
-			   autoMapping="true">
-		<association property="metadata" columnPrefix="meta_" resultMap="PublishItemMetadataMap"/>
-	</resultMap>
-
-	<select id="getMetadata" resultMap="CalculatedPublishItemMap">
+	<select id="getMetadata" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		SELECT i.path as path, i.label as meta_label, i.system_type as meta_system_type, i.mime_type as meta_mime_type
 		FROM item i INNER JOIN site s ON i.site_id = s.id
 		WHERE i.path IN

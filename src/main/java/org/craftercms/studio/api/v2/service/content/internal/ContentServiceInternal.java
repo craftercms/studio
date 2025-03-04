@@ -22,19 +22,15 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
-import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.springframework.core.io.Resource;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface ContentServiceInternal extends ContentService {
@@ -58,24 +54,6 @@ public interface ContentServiceInternal extends ContentService {
 	boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
 
 	/**
-	 * Get subtree items for given path.
-	 *
-	 * @param siteId site identifier
-	 * @param path   path to get subtree items for
-	 * @return list of paths of subtree items
-	 */
-	List<String> getSubtreeItems(String siteId, String path);
-
-	/**
-	 * Get subtree items for given paths.
-	 *
-	 * @param siteId site identifier
-	 * @param path   list of paths to get subtree items for
-	 * @return list of paths of subtree items
-	 */
-	List<String> getSubtreeItems(String siteId, List<String> path);
-
-	/**
 	 * Get list of children for given path
 	 *
 	 * @param siteId       site identifier
@@ -95,22 +73,6 @@ public interface ContentServiceInternal extends ContentService {
 					    String order, int offset, int limit)
 		throws ServiceLayerException, UserNotFoundException;
 
-	/**
-	 * Get children for paths bulk.
-	 * This method will return children for a list of paths. Result items will also
-	 * include a {@link SandboxItem} object for the item itself.
-	 *
-	 * @param siteId     the site id
-	 * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
-	 *                   validate permissions.
-	 * @param pathParams Map of extra parameters for each path
-	 * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found (when calculating available actions)
-	 */
-	GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
-		throws ServiceLayerException, UserNotFoundException;
-
 	Item getItem(String siteId, String path, boolean flatten);
 
 	/**
@@ -121,29 +83,6 @@ public interface ContentServiceInternal extends ContentService {
 	 * @return size in bytes
 	 */
 	long getContentSize(String siteId, String path);
-
-	/**
-	 * Get detailed for given path
-	 *
-	 * @param siteId        site identifier
-	 * @param path          item for path
-	 * @param preferContent if true return content item if available
-	 * @return detailed item
-	 */
-	DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
-
-	/**
-	 * Get sandbox items for given list of paths
-	 *
-	 * @param siteId        site identifier
-	 * @param ids           list of ids to get sandbox items
-	 * @param sortFields
-	 * @param preferContent if true return content items if available
-	 * @return list of sandbox items
-	 */
-	List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Check if item is editable
@@ -194,9 +133,9 @@ public interface ContentServiceInternal extends ContentService {
 	 * @throws UserNotFoundException
 	 * @throws ServiceLayerException
 	 */
-	List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
-					    List<String> systemTypes, List<SortField> sortFields,
-					    int offset, int limit) throws UserNotFoundException, ServiceLayerException;
+	List<ContentItem> getContentItemsByStates(String siteId, long statesBitMap,
+											  List<String> systemTypes, List<SortField> sortFields,
+											  int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get the version history for a given content item.

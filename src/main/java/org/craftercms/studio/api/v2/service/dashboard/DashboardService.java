@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
@@ -107,7 +107,7 @@ public interface DashboardService {
 	 * @param limit       number of results to return
 	 * @return list of unpublished content items
 	 */
-	List<SandboxItem> getContentUnpublished(String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
+	List<ContentItem> getContentUnpublished(String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
 		throws UserNotFoundException, ServiceLayerException;
 
 	/**

@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
@@ -33,7 +34,6 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.Person;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.util.List;
 import java.util.Set;
@@ -76,7 +76,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	@Override
-	public long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
+	public long calculateContentItemAvailableActions(String username, String siteId, ContentItem detailedItem)
 			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());

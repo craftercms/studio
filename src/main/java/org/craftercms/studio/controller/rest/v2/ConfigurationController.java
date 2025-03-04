@@ -125,7 +125,7 @@ public class ConfigurationController {
 								       @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
 								       @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
 								       @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
 		ResultOne<ConfigurationHistory> result = new ResultOne<>();
