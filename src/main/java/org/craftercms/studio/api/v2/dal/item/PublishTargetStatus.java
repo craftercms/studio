@@ -24,24 +24,24 @@ import java.time.ZonedDateTime;
  * Publishing environment (target) related metadata for an item.
  */
 public class PublishTargetStatus {
-	private ZonedDateTime lastPublishedOn;
-	private ZonedDateTime scheduledDate;
+	private ZonedDateTime dateLastPublished;
+	private ZonedDateTime dateScheduled;
 	private Person publisher;
 
-	public ZonedDateTime getScheduledDate() {
-		return scheduledDate;
+	public ZonedDateTime getDateScheduled() {
+		return dateScheduled;
 	}
 
-	public void setScheduledDate(ZonedDateTime scheduledDate) {
-		this.scheduledDate = scheduledDate;
+	public void setDateScheduled(ZonedDateTime dateScheduled) {
+		this.dateScheduled = dateScheduled;
 	}
 
-	public ZonedDateTime getLastPublishedOn() {
-		return lastPublishedOn;
+	public ZonedDateTime getDateLastPublished() {
+		return dateLastPublished;
 	}
 
-	public void setLastPublishedOn(ZonedDateTime lastPublishedOn) {
-		this.lastPublishedOn = lastPublishedOn;
+	public void setDateLastPublished(ZonedDateTime dateLastPublished) {
+		this.dateLastPublished = dateLastPublished;
 	}
 
 	public Person getPublisher() {

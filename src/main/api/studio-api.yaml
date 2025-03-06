@@ -9873,11 +9873,11 @@ components:
         PublishTargetStatus:
             type: object
             properties:
-                lastPublishedOn:
+                dateLastPublished:
                     type: string
                     format: datetime
                     description: timestamp when was item last time published to this target
-                scheduledDate:
+                dateScheduled:
                     type: string
                     format: datetime
                     description: timestamp this item is scheduled for

@@ -73,8 +73,9 @@
 		<association property="live" column="id" select="getLiveTargetStatus"/>
 	</resultMap>
 
+<!--	TODO: find a way to combine the following two <select> into one-->
 	<select id="getLiveTargetStatus" resultMap="PublishTargetStatusMap">
-		SELECT ipi1.item_id, pp1.published_on as last_published_on, pp1.submitter_id as submitter_id, (
+		SELECT ipi1.item_id, pp1.published_on AS date_last_published, pp1.submitter_id AS submitter_id, (
 					SELECT pp1.schedule
 					FROM item_publish_item ipi1
 						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
@@ -84,7 +85,7 @@
 					AND pp1.package_state = ${packageReadyState}
 					AND pp1.approval_state = '${packageApprovedState}'
 					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
-					) AS scheduled_date
+					) AS date_scheduled
 		FROM item_publish_item ipi1
 			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
 			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
@@ -94,7 +95,7 @@
 	</select>
 
 	<select id="getStagingTargetStatus" resultMap="PublishTargetStatusMap">
-		SELECT ipi1.item_id, pp1.published_on as last_published_on, pp1.submitter_id as submitter_id, (
+		SELECT ipi1.item_id, pp1.published_on AS date_last_published, pp1.submitter_id AS submitter_id, (
 					SELECT pp1.schedule
 					FROM item_publish_item ipi1
 						INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
@@ -104,7 +105,7 @@
 					AND pp1.package_state = ${packageReadyState}
 					AND pp1.approval_state = '${packageApprovedState}'
 					ORDER BY pp1.submitted_on DESC LIMIT 0, 1
-					) AS scheduled_date
+					) AS date_scheduled
 		FROM item_publish_item ipi1
 			INNER JOIN publish_item pi1 ON ipi1.publish_item_id = pi1.id
 			INNER JOIN publish_package pp1 ON pi1.package_id = pp1.id
