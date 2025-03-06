@@ -258,7 +258,7 @@
 								FROM item page
 								WHERE page.site_id = i.site_id
 								AND page.system_type = '${systemTypePage}'
-								AND page.path = CONCAT(item.path, '/index.xml')
+								AND page.path = CONCAT(i.path, '/index.xml')
 					)
 			)
 		</if>
@@ -444,7 +444,7 @@
 		INNER JOIN site s ON i.site_id = s.id
 		WHERE s.site_id = #{siteId}
 		AND (
-			(i.system_type IN ('page', 'component') AND I.content_type_id = #{contentType})
+			(i.system_type IN ('page', 'component') AND i.content_type_id = #{contentType})
 				OR
 			(i.system_type = 'script' AND i.path = #{scriptPath})
 		)
