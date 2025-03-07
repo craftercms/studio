@@ -440,7 +440,7 @@
 	</select>
 
 	<select id="getContentTypeUsages" resultMap="LightItemMap">
-		SELECT i.path, i.system_type AS meta_systemType, i.label AS meta_label, i.mime_type AS meta_mime_type
+		SELECT i.path, i.system_type AS meta_system_type, i.label AS meta_label, i.mime_type AS meta_mime_type
 		FROM item i
 		INNER JOIN site s ON i.site_id = s.id
 		WHERE s.site_id = #{siteId}
