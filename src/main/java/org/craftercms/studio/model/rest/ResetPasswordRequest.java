@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
 import jakarta.validation.constraints.NotBlank;
+import org.craftercms.commons.validation.annotations.param.ValidPassword;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 
@@ -29,6 +30,7 @@ public class ResetPasswordRequest {
     @EsapiValidatedParam(type = USERNAME)
     private String username;
     @NotBlank
+	@ValidPassword
     private String newPassword;
 
     public String getUsername() {
