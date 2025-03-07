@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.*;
@@ -73,7 +74,6 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
-import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.dom4j.*;
 import org.eclipse.jgit.api.AddCommand;
@@ -970,7 +970,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 				String liveTarget = servicesConfig.getLiveEnvironment(siteId);
 				logger.debug("Publish the changes in site '{}' with the message '{}'", siteId, message);
 				publishService.publish(siteId, liveTarget, emptyList(),
-					List.of(commit.getName()), null, message.substring(0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message, false);
+					List.of(commit.getName()), null, substring(message, 0, PublishService.PACKAGE_TITLE_MAX_LENGTH), message, false);
 			}
 		}
 	}
