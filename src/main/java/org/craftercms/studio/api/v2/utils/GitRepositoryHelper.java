@@ -657,6 +657,38 @@ public class GitRepositoryHelper implements DisposableBean {
 		config.save();
 	}
 
+	/**
+	 * Check if the git status command responds without errors.
+	 * If the status check fails, it might be because the repository is corrupted.
+	 *
+	 * @param repo repository to check
+	 * @return true if the status is OK, false otherwise
+	 */
+	public boolean gitStatusOk(Repository repo) {
+		try {
+			gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
+			// OK if no exception is thrown
+			return true;
+		} catch (GitCliException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Remove the .git/index file and reset and clean the repository:
+	 * rm .git/index
+	 * git reset --hard
+	 * git clean -fd
+	 *
+	 * @param repoPath path to the repository
+	 * @throws IOException if an error occurred while cleaning the repository
+	 */
+	public void removeIndexAndClean(String repoPath) throws IOException {
+		GitUtils.deleteGitIndex(repoPath);
+		gitCli.resetHard(repoPath);
+		gitCli.clean(repoPath, true, true);
+	}
+
 	public String getCommitMessage(String commitMessageKey) {
 		String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
 		String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
