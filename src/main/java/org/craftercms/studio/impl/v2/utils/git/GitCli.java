@@ -399,7 +399,7 @@ public class GitCli {
 			// No result means there's no changes, so the repo is clean
 			return StringUtils.isEmpty(result);
 		} catch (Exception e) {
-			throw new GitCliException("Git GC failed on directory " + directory, e);
+			throw new GitCliException("Git status failed on directory " + directory, e);
 		}
 	}
 
