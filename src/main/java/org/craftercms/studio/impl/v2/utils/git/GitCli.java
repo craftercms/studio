@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.utils.git;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -377,6 +378,67 @@ public class GitCli {
 				stage.advanceOne();
 			});
 			executeGitCommand(directory.getAbsolutePath(), rmCommand);
+		}
+	}
+
+	/**
+	 * Check if the repository is clean, meaning there are no changes to commit
+	 *
+	 * @param directory the git repository directory
+	 * @return true if the repository is clean, false otherwise
+	 * @throws GitCliException if the git status command fails
+	 */
+	public boolean isRepoClean(String directory) throws GitCliException {
+		GitCommandLine statusCl = new GitCommandLine("status");
+		// The --porcelain option is a short version specifically for scripts
+		statusCl.addParam("--porcelain");
+
+		try {
+			String result = executeGitCommand(directory, statusCl, DEFAULT_EX_RESOLVER);
+
+			// No result means there's no changes, so the repo is clean
+			return StringUtils.isEmpty(result);
+		} catch (Exception e) {
+			throw new GitCliException("Git status failed on directory " + directory, e);
+		}
+	}
+
+	/**
+	 * Git reset --hard
+	 *
+	 * @param repoPath the git repository directory
+	 * @return the output of the git reset command
+	 * @throws GitCliException if the git reset command fails
+	 */
+	public String resetHard(String repoPath) throws GitCliException {
+		GitCommandLine resetCl = new GitCommandLine("reset", "--hard");
+		try {
+			return StringUtils.trim(executeGitCommand(repoPath, resetCl));
+		} catch (Exception e) {
+			throw new GitCliException("Git reset --hard failed on directory " + repoPath, e);
+		}
+	}
+
+	/**
+	 * Git clean (optionally -f)
+	 *
+	 * @param repoPath  the git repository directory
+	 * @param force     true to force clean
+	 * @param recursive true to clean directories recursively
+	 * @throws GitCliException if the git clean command fails
+	 */
+	public void clean(String repoPath, boolean force, boolean recursive) throws GitCliException {
+		GitCommandLine cleanCl = new GitCommandLine("clean");
+		if (force) {
+			cleanCl.addParam("-f");
+		}
+		if (recursive) {
+			cleanCl.addParam("-d");
+		}
+		try {
+			executeGitCommand(repoPath, cleanCl);
+		} catch (Exception e) {
+			throw new GitCliException("Git clean failed on directory " + repoPath, e);
 		}
 	}
 

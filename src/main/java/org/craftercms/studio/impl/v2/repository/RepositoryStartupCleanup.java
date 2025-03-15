@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,32 +16,25 @@
 
 package org.craftercms.studio.impl.v2.repository;
 
-import org.springframework.context.event.EventListener;
+import org.craftercms.commons.git.utils.GitUtils;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.io.EOFException;
-import java.io.File;
-
-import org.craftercms.commons.git.utils.GitUtils;
-
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-
-import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 
 /**
  * Clean up git repositories on startup
@@ -92,6 +85,7 @@ public class RepositoryStartupCleanup {
 	}
 
 	protected void unlockRepository(String siteId, GitRepositories repository) {
+		logger.debug("Unlock repository '{}' for site '{}'", repository, siteId);
 		Path repoPath = helper.buildRepoPath(repository, siteId);
 		if (repoPath != null) {
 			String path = repoPath.toAbsolutePath().toString();
@@ -106,50 +100,18 @@ public class RepositoryStartupCleanup {
 	}
 
 	protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
+		logger.debug("Checking if repository '{}' for site '{}' is corrupted", repository, siteId);
 		Repository repo = helper.getRepository(siteId, repository);
-		if (isRepositoryCorrupted(repo)) {
-			String repoPath = repo.getWorkTree().getAbsolutePath();
-			try {
+		String repoPath = repo.getWorkTree().getAbsolutePath();
+		try {
+			if (!helper.gitStatusOk(repo)) {
 				logger.warn("The local repository '{}' is corrupt, trying to fix it", repoPath);
-				try (Git git = new Git(repo)) {
-					GitUtils.deleteGitIndex(repoPath);
-
-					ResetCommand resetCommand = git.reset();
-					resetCommand.setMode(ResetCommand.ResetType.HARD);
-					resetCommand.call();
-
-					CleanCommand cleanupCommand = git.clean();
-					cleanupCommand.setForce(true);
-					cleanupCommand.call();
-
-					logger.info(".git/index is deleted from local repository '{}'", repoPath);
-				} catch (Exception e) {
-					// rollback delete operation of .git/index in case reset/clean commands failed
-					String fileName = GitUtils.GIT_FOLDER_NAME + FILE_SEPARATOR + GitUtils.GIT_INDEX_NAME;
-					File indexFile = new File(repoPath, fileName);
-					if (!indexFile.exists()) {
-						indexFile.createNewFile();
-					}
-				}
-			} catch (IOException e) {
-				logger.error("Error cleaning up git repository '{}'", repoPath, e);
+				helper.removeIndexAndClean(repoPath);
+				logger.info(".git/index is deleted from local repository '{}'", repoPath);
 			}
+		} catch (IOException e) {
+			logger.error("Error cleaning up git repository '{}'", repoPath, e);
 		}
-	}
-
-	protected boolean isRepositoryCorrupted(Repository repository) {
-		if (repository == null) {
-			return false;
-		}
-
-		try (Git git = new Git(repository)) {
-			git.status().call();
-		} catch (Exception e) {
-			Throwable cause = e.getCause();
-			return cause instanceof CorruptObjectException || cause instanceof EOFException;
-		}
-
-		return false;
 	}
 
 	public void setSiteService(final SiteService siteService) {
