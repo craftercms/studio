@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -82,6 +81,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 import static org.eclipse.jgit.api.ListBranchCommand.ListMode.REMOTE;
 import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
@@ -98,7 +98,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 	protected StudioConfiguration studioConfiguration;
 	protected ServicesConfig servicesConfig;
 	protected RemoteRepositoryDAO remoteRepositoryDAO;
-	protected SecurityService securityService;
 	protected SiteDAO siteDao;
 	protected ContextManager contextManager;
 	protected GeneralLockService generalLockService;
@@ -197,7 +196,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 			if (repo != null) {
 				if (helper.writeFile(repo, siteId, path, content)) {
 					PersonIdent user = helper.getCurrentUserIdent();
-					String username = securityService.getCurrentUser();
+					String username = getCurrentUser();
 					String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
 						.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
 						.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
@@ -1263,10 +1262,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, ServletCo
 
 	public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
 		this.remoteRepositoryDAO = remoteRepositoryDAO;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setSiteDao(SiteDAO siteDao) {

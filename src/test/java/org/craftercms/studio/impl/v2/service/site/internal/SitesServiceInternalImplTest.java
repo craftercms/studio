@@ -107,8 +107,6 @@ public class SitesServiceInternalImplTest {
 
 		when(auditServiceInternal.createAuditLogEntry()).thenReturn(new AuditLog());
 
-		when(securityService.getCurrentUser()).thenReturn("admin");
-
 		when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
 
 		when(siteFeedMapper.isNameUsed(NEW_SITE_ID, USED_SITE_NAME)).thenReturn(true);

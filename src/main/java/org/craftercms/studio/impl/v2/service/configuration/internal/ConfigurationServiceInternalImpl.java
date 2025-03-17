@@ -85,6 +85,8 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 /**
  * Internal implementation of {@link ConfigurationService}.
@@ -108,7 +110,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	private StudioConfiguration studioConfiguration;
 	private AuditServiceInternal auditServiceInternal;
 	private SiteService siteService;
-	private SecurityService securityService;
 	private ServicesConfig servicesConfig;
 	private EncryptionAwareConfigurationReader configurationReader;
 	private ItemServiceInternal itemServiceInternal;
@@ -397,7 +398,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		writeEnvironmentConfiguration(siteId, module, path, environment, content);
 		invalidateConfiguration(siteId, module, path, environment);
 		applicationEventPublisher.publishEvent(
-			new ConfigurationEvent(securityService.getAuthentication(), siteId,
+			new ConfigurationEvent(getAuthentication(), siteId,
 				getConfigurationPath(siteId, module, path, environment)));
 	}
 
@@ -490,7 +491,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			.replaceAll(PATTERN_MODULE, module);
 		String configPath = Paths.get(configBasePath, path).toString();
 		contentService.writeContent(siteId, configPath, content);
-		String currentUser = securityService.getCurrentUser();
+		String currentUser = getCurrentUser();
 		try {
 			itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
 				contentRepository.getRepoLastCommitId(siteId), true);
@@ -578,7 +579,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			if (contentServiceInternal.contentExists(siteId, configBasePath)) {
 				String configPath = Paths.get(configBasePath, path).toString();
 				contentService.writeContent(siteId, configPath, content);
-				String currentUser = securityService.getCurrentUser();
+				String currentUser = getCurrentUser();
 				itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
 					contentRepository.getRepoLastCommitId(siteId), true);
 				contentService.notifyContentEvent(siteId, configPath);
@@ -643,7 +644,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			throws ServiceLayerException, UserNotFoundException {
 		contentService.writeContent(EMPTY, path, validate(content, path));
 		contentService.notifyContentEvent(EMPTY, path);
-		String currentUser = securityService.getCurrentUser();
+		String currentUser = getCurrentUser();
 		generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
 		invalidateCache(path);
 	}
@@ -855,10 +856,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	public void setSiteService(SiteService siteService) {
 		this.siteService = siteService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setServicesConfig(ServicesConfig servicesConfig) {

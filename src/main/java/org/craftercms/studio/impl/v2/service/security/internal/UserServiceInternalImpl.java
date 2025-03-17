@@ -31,9 +31,9 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.user.UserUpdatedEvent;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.beans.ConstructorProperties;
 import java.util.*;
@@ -67,24 +66,21 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 	private final ConfigurationService configurationService;
 	private final StudioConfiguration studioConfiguration;
 	private final SiteService siteService;
-	private final SecurityService securityService;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Cache<String, User> userCache;
 	private final Zxcvbn zxcvbn;
 	private ApplicationContext applicationContext;
 
-	@ConstructorProperties({"userDao", "configurationService", "studioConfiguration", "siteService", "securityService",
+	@ConstructorProperties({"userDao", "configurationService", "studioConfiguration", "siteService",
 		"retryingDatabaseOperationFacade", "userCache", "zxcvbn"})
 	public UserServiceInternalImpl(UserDAO userDao, ConfigurationService configurationService,
 				       StudioConfiguration studioConfiguration, SiteService siteService,
-				       SecurityService securityService,
 				       RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 				       Cache<String, User> userCache, Zxcvbn zxcvbn) {
 		this.userDao = userDao;
 		this.configurationService = configurationService;
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;
-		this.securityService = securityService;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.userCache = userCache;
 		this.zxcvbn = zxcvbn;
@@ -436,7 +432,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
-		var username = securityService.getCurrentUser();
+		var username = SecurityUtils.getCurrentUser();
 		try {
 			var user = getUserByIdOrUsername(0, username);
 			// TODO: Properly support multiple sites when needed
@@ -453,7 +449,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
-		var username = securityService.getCurrentUser();
+		var username = SecurityUtils.getCurrentUser();
 		try {
 			var user = getUserByIdOrUsername(0, username);
 			retryingDatabaseOperationFacade.retry(() -> userDao.updateUserProperties(user.getId(), dbSiteId, propertiesToUpdate));
@@ -472,7 +468,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
-		var username = securityService.getCurrentUser();
+		var username = SecurityUtils.getCurrentUser();
 		try {
 			var user = getUserByIdOrUsername(0, username);
 			retryingDatabaseOperationFacade.retry(() -> userDao.deleteUserProperties(user.getId(), dbSiteId, propertiesToDelete));
@@ -487,12 +483,11 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 
 	@Override
 	public AuthenticatedUser getCurrentUser() throws AuthenticationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Authentication authentication = SecurityUtils.getAuthentication();
 		if (authentication != null) {
 			return (AuthenticatedUser) authentication.getPrincipal();
-		} else {
-			throw new AuthenticationException("User should be authenticated");
 		}
+		throw new AuthenticationException("User should be authenticated");
 	}
 
 	@Override

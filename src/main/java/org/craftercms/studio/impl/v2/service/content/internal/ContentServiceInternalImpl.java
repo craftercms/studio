@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
@@ -83,6 +84,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal, ApplicationEventPublisherAware {
 
@@ -91,7 +94,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	private GitContentRepository contentRepository;
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
 	private ItemDAO itemDao;
-	private SecurityService securityService;
 	private StudioConfiguration studioConfiguration;
 	private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
 	private AuditServiceInternal auditServiceInternal;
@@ -151,7 +153,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			return null;
 		}
 		ContentItem levelDescriptorItem = childItems.getFirst();
-		String user = securityService.getCurrentUser();
+		String user = getCurrentUser();
 		levelDescriptorItem.setAvailableActions(
 			semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, site.getSiteId(), levelDescriptorItem));
 		return levelDescriptorItem;
@@ -189,7 +191,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 		if (isEmpty(resultSet)) {
 			return;
 		}
-		String user = securityService.getCurrentUser();
+		String user = getCurrentUser();
 		for (ContentItem child : resultSet) {
 			child.setAvailableActions(
 				semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
@@ -239,7 +241,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	private void populateDetailedItemPropertiesFromRepository(String siteId, ContentItem item)
 		throws ServiceLayerException, UserNotFoundException {
 		if (Objects.nonNull(item)) {
-			String user = securityService.getCurrentUser();
+			String user = getCurrentUser();
 			item.setAvailableActions(
 				semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
 		}
@@ -259,7 +261,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			return emptyList();
 		}
 		List<ContentItem> toRet = new ArrayList<>();
-		String user = securityService.getCurrentUser();
+		String user = getCurrentUser();
 		for (ContentItem item : items) {
 			if (!contentRepository.contentExists(siteId, item.getPath())) {
 				logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
@@ -408,7 +410,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 
 			insertDeleteContentApprovedActivity(site, currentUser.getUsername(), allPaths);
 
-			Authentication auth = securityService.getAuthentication();
+			Authentication auth = getAuthentication();
 			for (String path : paths) {
 				eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
 			}
@@ -465,7 +467,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 				throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'",
 					siteId, path));
 			}
-			var username = securityService.getCurrentUser();
+			var username = getCurrentUser();
 			boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
 				Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
 			if (lockedByAnotherUser) {
@@ -475,7 +477,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			itemLockByPath(siteId, path);
 			itemServiceInternal.lockItemByPath(siteId, path, username);
 			eventPublisher.publishEvent(
-				new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
+				new LockContentEvent(getAuthentication(), siteId, path, true));
 		} finally {
 			generalLockService.unlockContentItem(siteId, path);
 		}
@@ -499,7 +501,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 			itemServiceInternal.unlockItemByPath(siteId, path);
 			logger.debug("Item in site '{}' path '{}' successfully unlocked", siteId, path);
 			eventPublisher.publishEvent(
-				new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
+				new LockContentEvent(getAuthentication(), siteId, path, false));
 		} finally {
 			generalLockService.unlockContentItem(siteId, path);
 		}
@@ -523,10 +525,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	@SuppressWarnings("unused")
 	public void setItemDao(final ItemDAO itemDao) {
 		this.itemDao = itemDao;
-	}
-
-	public void setSecurityService(final SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {

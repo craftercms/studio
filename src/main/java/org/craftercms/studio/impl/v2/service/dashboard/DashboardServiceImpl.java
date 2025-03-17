@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.search.SearchService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -57,6 +56,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.UPDATE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.parseDateIso;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.opensearch.client.opensearch._types.SortOrder.Asc;
 import static org.opensearch.client.opensearch._types.SortOrder.Desc;
@@ -67,7 +67,6 @@ public class DashboardServiceImpl implements DashboardService {
 	private final ActivityStreamServiceInternal activityStreamServiceInternal;
 	private final PublishService publishServiceInternal;
 	private final ContentServiceInternal contentServiceInternal;
-	private final SecurityService securityService;
 	private final WorkflowService workflowServiceInternal;
 	private final ItemServiceInternal itemServiceInternal;
 	private final SearchService searchService;
@@ -78,15 +77,14 @@ public class DashboardServiceImpl implements DashboardService {
 	private static final String DATE_TO_REGEX = "\\{dateTo\\}";
 
 	@ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
-		"securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
+		"workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
 	public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
-				    final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
+				    final ContentServiceInternal contentServiceInternal,
 				    final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
 				    final SearchService searchService, final StudioConfiguration studioConfiguration) {
 		this.activityStreamServiceInternal = activityStreamServiceInternal;
 		this.publishServiceInternal = publishServiceInternal;
 		this.contentServiceInternal = contentServiceInternal;
-		this.securityService = securityService;
 		this.workflowServiceInternal = workflowServiceInternal;
 		this.itemServiceInternal = itemServiceInternal;
 		this.searchService = searchService;
@@ -115,7 +113,7 @@ public class DashboardServiceImpl implements DashboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public int getMyActivitiesTotal(@SiteId String siteId, List<String> actions,
 					ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
-		var username = securityService.getCurrentUser();
+		var username = getCurrentUser();
 		return activityStreamServiceInternal
 			.getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
 	}
@@ -125,7 +123,7 @@ public class DashboardServiceImpl implements DashboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<Activity> getMyActivities(@SiteId String siteId, List<String> actions, ZonedDateTime dateFrom,
 					      ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-		var username = securityService.getCurrentUser();
+		var username = getCurrentUser();
 		return activityStreamServiceInternal
 			.getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
 	}

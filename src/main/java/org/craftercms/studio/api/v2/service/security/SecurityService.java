@@ -37,20 +37,6 @@ public interface SecurityService {
 	List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) throws ExecutionException;
 
 	/**
-	 * Returns the username of the current user
-	 *
-	 * @return username of the current user, or null if no user is authenticated
-	 */
-	String getCurrentUser();
-
-	/**
-	 * Returns the {@link Authentication} for the current user or null if not user is authenticated.
-	 *
-	 * @return authentication
-	 */
-	Authentication getAuthentication();
-
-	/**
 	 * Check if a user is a member of a site
 	 * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
 	 * role mapping configuration file.

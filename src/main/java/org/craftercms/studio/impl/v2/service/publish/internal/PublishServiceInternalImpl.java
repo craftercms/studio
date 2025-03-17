@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
@@ -40,10 +41,8 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -74,6 +73,8 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageTyp
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -96,7 +97,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private ItemTargetDAO itemTargetDao;
 	private SitesService siteService;
 	private GeneralLockService generalLockService;
-	private SecurityService securityService;
 	private PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
 
 	@Override
@@ -230,7 +230,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, true));
 			auditPublishSubmission(publishPackage, OPERATION_PUBLISH);
 
-			applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, publishPackage.getId(), DIRECT_PUBLISH));
+			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(), siteId, publishPackage.getId(), DIRECT_PUBLISH));
 			notifyPublisher(publishPackage, siteService.getSite(siteId));
 			return publishPackage.getId();
 		} catch (Exception e) {
@@ -334,7 +334,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private void auditPublishSubmission(final PublishPackage p, final String operation) {
 		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
 		auditLog.setOperation(operation);
-		auditLog.setActorId(securityService.getCurrentUser());
+		auditLog.setActorId(getCurrentUser());
 		auditLog.setSiteId(p.getSiteId());
 		auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
 		auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
@@ -576,11 +576,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@SuppressWarnings("unused")
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
-	@SuppressWarnings("unused")
 	public void setPublishPackageAvailableActionResolver(final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
 		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
 	}
@@ -636,7 +631,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 			auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH:OPERATION_PUBLISH);
 
-			applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(),
+			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(),
 				site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT:DIRECT_PUBLISH));
 			if (!requestApproval) {
 				notifyPublisher(publishPackage, site);

@@ -55,6 +55,7 @@ import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstant
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.impl.v2.utils.git.GitCli;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -1375,8 +1376,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws UserNotFoundException user not found
 	 */
 	public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
-		String userName = securityService.getCurrentUser();
-		return getAuthorIdent(userName);
+		return getAuthorIdent(SecurityUtils.getCurrentUser());
 	}
 
 	/**

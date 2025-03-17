@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
@@ -35,9 +34,6 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 
@@ -45,6 +41,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
 
 public class SecurityServiceImpl implements SecurityService {
 
@@ -133,37 +130,6 @@ public class SecurityServiceImpl implements SecurityService {
 			}
 		}
 		return permissions;
-	}
-
-	@Override
-	public String getCurrentUser() {
-		String username = null;
-		var context = SecurityContextHolder.getContext();
-
-		if (context != null) {
-			var auth = context.getAuthentication();
-
-			if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
-				username = auth.getName();
-			}
-		} else {
-			CronJobContext cronJobContext = CronJobContext.getCurrent();
-
-			if (cronJobContext != null) {
-				username = cronJobContext.getCurrentUser();
-			}
-		}
-
-		return username;
-	}
-
-	@Override
-	public Authentication getAuthentication() {
-		var context = SecurityContextHolder.getContext();
-		if (context != null) {
-			return context.getAuthentication();
-		}
-		return null;
 	}
 
 	@Override

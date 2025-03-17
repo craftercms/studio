@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,7 +34,7 @@ public interface SecurityService {
 	 * Returns the username of the current user OR NULL if no user is authenticated
 	 *
 	 * @return current user
-	 * @deprecated use {@link org.craftercms.studio.api.v2.service.security.SecurityService#getCurrentUser()} instead
+	 * @deprecated use {@link org.craftercms.studio.impl.v2.utils.security.SecurityUtils#getCurrentUser()} instead
 	 */
 	@Deprecated
 	String getCurrentUser();
@@ -43,7 +43,7 @@ public interface SecurityService {
 	 * Returns the {@link Authentication} for the current user or null if not user is authenticated.
 	 *
 	 * @return authentication
-	 * @deprecated use {@link org.craftercms.studio.api.v2.service.security.SecurityService#getAuthentication()} instead
+	 * @deprecated use {@link org.craftercms.studio.impl.v2.utils.security.SecurityUtils#getAuthentication()} instead
 	 */
 	@Deprecated
 	Authentication getAuthentication();

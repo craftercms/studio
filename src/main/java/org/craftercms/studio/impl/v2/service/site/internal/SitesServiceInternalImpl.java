@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentReposi
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -76,6 +75,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FI
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
 
@@ -90,7 +90,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Deployer deployer;
 	private final ConfigurationService configurationService;
-	private final SecurityService securityService;
 	private final AuditServiceInternal auditServiceInternal;
 	private final ItemServiceInternal itemServiceInternal;
 	private final TaskManager taskManager;
@@ -102,7 +101,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		"siteDao",
 		"retryingDatabaseOperationFacade",
 		"deployer", "configurationService",
-		"securityService", "auditServiceInternal",
+		"auditServiceInternal",
 		"itemServiceInternal", "taskManager"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
 					StudioBlobAwareContentRepository blobAwareRepository,
@@ -110,7 +109,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 					SiteDAO siteDao,
 					RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 					Deployer deployer, ConfigurationService configurationService,
-					SecurityService securityService, AuditServiceInternal auditServiceInternal,
+					AuditServiceInternal auditServiceInternal,
 					ItemServiceInternal itemServiceInternal, TaskManager taskManager) {
 		this.descriptorReader = descriptorReader;
 		this.contentRepository = contentRepository;
@@ -121,7 +120,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.deployer = deployer;
 		this.configurationService = configurationService;
-		this.securityService = securityService;
 		this.auditServiceInternal = auditServiceInternal;
 		this.itemServiceInternal = itemServiceInternal;
 		this.taskManager = taskManager;
@@ -431,7 +429,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 */
 	private void insertDeleteSiteAuditLog(String siteId, String siteName, String operation) {
 		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-		String user = securityService.getCurrentUser();
+		String user = getCurrentUser();
 		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
 		auditLog.setOperation(operation);
 		auditLog.setSiteId(globalSite.getId());
@@ -478,7 +476,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			logger.info("Publishing stopped for site '{}'", siteId);
 			auditLog.setOperation(OPERATION_STOP_PUBLISHER);
 		}
-		auditLog.setActorId(securityService.getCurrentUser());
+		auditLog.setActorId(getCurrentUser());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLog.setPrimaryTargetValue(site.getName());
@@ -605,7 +603,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
 		auditLog.setOperation(OPERATION_DUPLICATE);
 		auditLog.setSiteId(globalSiteFeed.getId());
-		auditLog.setActorId(securityService.getCurrentUser());
+		auditLog.setActorId(getCurrentUser());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLog.setPrimaryTargetValue(siteName);
