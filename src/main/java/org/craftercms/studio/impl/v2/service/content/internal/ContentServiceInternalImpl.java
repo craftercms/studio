@@ -27,8 +27,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
@@ -45,6 +43,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -92,7 +91,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	private GitContentRepository contentRepository;
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
 	private ItemDAO itemDao;
-	private ServicesConfig servicesConfig;
 	private SecurityService securityService;
 	private StudioConfiguration studioConfiguration;
 	private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
@@ -525,10 +523,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	@SuppressWarnings("unused")
 	public void setItemDao(final ItemDAO itemDao) {
 		this.itemDao = itemDao;
-	}
-
-	public void setServicesConfig(final ServicesConfig servicesConfig) {
-		this.servicesConfig = servicesConfig;
 	}
 
 	public void setSecurityService(final SecurityService securityService) {

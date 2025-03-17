@@ -249,4 +249,14 @@ public interface ConfigurationService {
 	 * @throws ServiceLayerException if an error occurs while reading or writing the configuration
 	 */
 	void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get the groups associated with a site. The site groups are the groups
+	 * that are mapped to the site roles in role-mappings-config.xml.
+	 *
+	 * @param siteId the id of the site
+	 * @return the list of groups
+	 * @throws ServiceLayerException if an error occurs while reading the groups
+	 */
+	List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException;
 }

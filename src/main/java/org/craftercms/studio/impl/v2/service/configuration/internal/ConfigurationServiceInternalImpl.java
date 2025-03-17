@@ -717,6 +717,15 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		}
 	}
 
+	@Override
+	public List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException {
+		try {
+			return new ArrayList<>(getRoleMappings(siteId).keySet());
+		} catch (ConfigurationException e) {
+			throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
+		}
+	}
+
 	protected void invalidateCache(String key) {
 		logger.debug("Invalidate cache key '{}'", key);
 		cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));

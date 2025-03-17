@@ -175,7 +175,6 @@
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationCache" ref="configurationCache"/>
 		<property name="userServiceInternal" ref="userServiceInternal"/>
-		<property name="groupServiceInternal" ref="groupServiceInternal"/>
 	</bean>
 
 	<bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl">
@@ -371,11 +370,11 @@
 
 	<bean id="userServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-		<constructor-arg name="groupServiceInternal" ref="groupServiceInternal"/>
+		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="userDao" ref="userDao"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
+		<constructor-arg name="securityService" ref="studio.securityService"/>
 		<constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<constructor-arg name="userCache" ref="userDetailsCache"/>
 		<constructor-arg name="zxcvbn">
@@ -469,8 +468,7 @@
 	      class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
 		<property name="contentRepository" ref="contentRepository"/>
 		<property name="itemDao" ref="itemDao"/>
-		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
+		<property name="securityService" ref="studio.securityService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver"/>
 		<property name="auditServiceInternal" ref="auditServiceInternal"/>

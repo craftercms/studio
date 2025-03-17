@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
@@ -56,7 +55,6 @@ public class SecurityServiceImpl implements SecurityService {
 	private Cache<String, Object> configurationCache;
 
 	protected UserServiceInternal userServiceInternal;
-	protected GroupServiceInternal groupServiceInternal;
 
 	private static final String CACHE_KEY = "user-permissions";
 
@@ -176,7 +174,7 @@ public class SecurityServiceImpl implements SecurityService {
 			}
 
 			List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
-			List<NormalizedGroup> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+			List<NormalizedGroup> siteGroups = configurationService.getSiteGroups(siteId);
 			return userGroups.stream()
 				.map(group -> new NormalizedGroup((group.getGroupName())))
 				.anyMatch(siteGroups::contains);
@@ -206,10 +204,5 @@ public class SecurityServiceImpl implements SecurityService {
 
 	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
 		this.userServiceInternal = userServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-		this.groupServiceInternal = groupServiceInternal;
 	}
 }
