@@ -2062,7 +2062,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 			String username = securityService.getCurrentUser();
 			// Update the database for the target item
-			itemServiceInternal.persistItemAfterWrite(site, path, username, commitId, true);
+			itemServiceInternal.persistItemAfterWrite(site, path, username, true);
 
 
 			// This is not required, the current user is already loaded in memory

@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.NonNull;
 
 import java.beans.ConstructorProperties;
@@ -91,7 +92,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final Deployer deployer;
 	private final ConfigurationService configurationService;
 	private final AuditServiceInternal auditServiceInternal;
-	private final ItemServiceInternal itemServiceInternal;
+	private ItemServiceInternal itemServiceInternal;
 	private final TaskManager taskManager;
 	private ApplicationContext applicationContext;
 
@@ -101,16 +102,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		"siteDao",
 		"retryingDatabaseOperationFacade",
 		"deployer", "configurationService",
-		"auditServiceInternal",
-		"itemServiceInternal", "taskManager"})
+		"auditServiceInternal", "taskManager"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
 					StudioBlobAwareContentRepository blobAwareRepository,
 					StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
 					SiteDAO siteDao,
 					RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 					Deployer deployer, ConfigurationService configurationService,
-					AuditServiceInternal auditServiceInternal,
-					ItemServiceInternal itemServiceInternal, TaskManager taskManager) {
+					AuditServiceInternal auditServiceInternal, TaskManager taskManager) {
 		this.descriptorReader = descriptorReader;
 		this.contentRepository = contentRepository;
 		this.blobAwareRepository = blobAwareRepository;
@@ -121,8 +120,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.deployer = deployer;
 		this.configurationService = configurationService;
 		this.auditServiceInternal = auditServiceInternal;
-		this.itemServiceInternal = itemServiceInternal;
 		this.taskManager = taskManager;
+	}
+
+	@Lazy
+	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+		this.itemServiceInternal = itemServiceInternal;
 	}
 
 	@Override

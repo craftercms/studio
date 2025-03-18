@@ -317,7 +317,6 @@
 			  value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
 		<property name="itemServiceInternal" ref="itemServiceInternal"/>
 		<property name="configurationCache" ref="configurationCache"/>
-		<property name="contentRepository" ref="gitContentRepositoryV2"/>
 		<property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
 		<property name="dependencyService" ref="dependencyServiceInternal"/>
 		<property name="contextManager" ref="contextManager"/>
@@ -418,7 +417,6 @@
 		<constructor-arg name="deployer" ref="allDeployers"/>
 		<constructor-arg name="configurationService" ref="configurationService"/>
 		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
-		<constructor-arg name="itemServiceInternal" ref="itemServiceInternal"/>
 		<constructor-arg name="taskManager" ref="taskManager"/>
 	</bean>
 

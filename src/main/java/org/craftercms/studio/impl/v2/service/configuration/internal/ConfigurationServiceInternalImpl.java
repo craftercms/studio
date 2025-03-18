@@ -41,13 +41,11 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
@@ -113,7 +111,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	private ServicesConfig servicesConfig;
 	private EncryptionAwareConfigurationReader configurationReader;
 	private ItemServiceInternal itemServiceInternal;
-	private GitContentRepository contentRepository;
 	private DependencyService dependencyService;
 
 	private String translationConfig;
@@ -493,8 +490,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		contentService.writeContent(siteId, configPath, content);
 		String currentUser = getCurrentUser();
 		try {
-			itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-				contentRepository.getRepoLastCommitId(siteId), true);
+			itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser, true);
 			contentService.notifyContentEvent(siteId, configPath);
 		} catch (XmlFileParseException e) {
 			logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
@@ -580,8 +576,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				String configPath = Paths.get(configBasePath, path).toString();
 				contentService.writeContent(siteId, configPath, content);
 				String currentUser = getCurrentUser();
-				itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-					contentRepository.getRepoLastCommitId(siteId), true);
+				itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,true);
 				contentService.notifyContentEvent(siteId, configPath);
 				generateAuditLog(siteId, configPath, currentUser);
 				dependencyService.upsertDependencies(siteId, configPath);
@@ -876,10 +871,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	public void setConfigurationCache(Cache<String, Object> configurationCache) {
 		this.configurationCache = configurationCache;
-	}
-
-	public void setContentRepository(GitContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
 	}
 
 	public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {

@@ -259,7 +259,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 				// Item
 				// TODO: get local code with API 2
-				itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
+				itemServiceInternal.persistItemAfterWrite(site, path, user, unlock);
 				contentService.notifyContentEvent(site, path);
 			}
 

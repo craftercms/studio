@@ -235,7 +235,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public void persistItemAfterWrite(String siteId, String path, String username, String commitId, boolean unlock)
+	public void persistItemAfterWrite(String siteId, String path, String username, boolean unlock)
 		throws ServiceLayerException, UserNotFoundException {
 		User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
 		var descriptor = contentServiceInternal.getItem(siteId, path, false);
