@@ -55,8 +55,10 @@ import org.dom4j.*;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
@@ -837,6 +839,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.contentService = contentService;
 	}
 
+	@Lazy
+	@Autowired
 	public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
 		this.contentServiceInternal = contentServiceInternal;
 	}
@@ -865,6 +869,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.translationConfig = translationConfig;
 	}
 
+	@Lazy
+	@Autowired
 	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
 		this.itemServiceInternal = itemServiceInternal;
 	}

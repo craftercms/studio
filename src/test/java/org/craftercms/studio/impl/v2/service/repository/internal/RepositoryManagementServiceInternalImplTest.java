@@ -162,13 +162,15 @@ public class RepositoryManagementServiceInternalImplTest {
 
 	@Test
 	public void testCommitResolutionExceptionThrown() throws UserNotFoundException, ServiceLayerException {
-		when(status.hasUncommittedChanges()).thenReturn(true);
-//		when(securityService.getCurrentUser()).thenReturn("not_exist_user");
-		when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
+		try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+			securityUtils.when(SecurityUtils::getCurrentUser).thenReturn("not_exist_user");
+			when(status.hasUncommittedChanges()).thenReturn(true);
+			when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
 
-		assertThrows(ServiceLayerException.class, () -> repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE));
+			assertThrows(ServiceLayerException.class, () -> repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE));
 
-		verify(generalLockService).lock(GIT_LOCK_KEY);
-		verify(generalLockService).unlock(GIT_LOCK_KEY);
+			verify(generalLockService).lock(GIT_LOCK_KEY);
+			verify(generalLockService).unlock(GIT_LOCK_KEY);
+		}
 	}
 }

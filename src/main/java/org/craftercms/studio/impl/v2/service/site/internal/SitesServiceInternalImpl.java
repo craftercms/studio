@@ -26,8 +26,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
@@ -35,6 +33,7 @@ import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -47,6 +46,7 @@ import org.craftercms.studio.model.task.PublishTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Lazy;
@@ -63,10 +63,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -83,7 +80,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
 	private final PluginDescriptorReader descriptorReader;
-	private final GitContentRepository contentRepository;
 	private final StudioBlobAwareContentRepository blobAwareRepository;
 	private final StudioConfiguration studioConfiguration;
 	private final SiteFeedMapper siteFeedMapper;
@@ -96,14 +92,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final TaskManager taskManager;
 	private ApplicationContext applicationContext;
 
-	@ConstructorProperties({"descriptorReader", "contentRepository",
+	@ConstructorProperties({"descriptorReader",
 		"blobAwareRepository",
 		"studioConfiguration", "siteFeedMapper",
 		"siteDao",
 		"retryingDatabaseOperationFacade",
 		"deployer", "configurationService",
 		"auditServiceInternal", "taskManager"})
-	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, GitContentRepository contentRepository,
+	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
 					StudioBlobAwareContentRepository blobAwareRepository,
 					StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
 					SiteDAO siteDao,
@@ -111,7 +107,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 					Deployer deployer, ConfigurationService configurationService,
 					AuditServiceInternal auditServiceInternal, TaskManager taskManager) {
 		this.descriptorReader = descriptorReader;
-		this.contentRepository = contentRepository;
 		this.blobAwareRepository = blobAwareRepository;
 		this.studioConfiguration = studioConfiguration;
 		this.siteFeedMapper = siteFeedMapper;
@@ -124,16 +119,17 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Lazy
+	@Autowired
 	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
 		this.itemServiceInternal = itemServiceInternal;
 	}
 
 	@Override
 	public List<PluginDescriptor> getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
+		Collection<RepositoryItem> blueprintsFolders = getBlueprintsFolders();
 		List<PluginDescriptor> toRet = new ArrayList<>();
 		for (RepositoryItem folder : blueprintsFolders) {
-			if (folder.isFolder) {
+			if (folder.isFolder()) {
 				PluginDescriptor descriptor = loadDescriptor(folder);
 				if (descriptor != null) {
 					toRet.add(descriptor);
@@ -145,9 +141,9 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public PluginDescriptor getBlueprintDescriptor(final String id) {
-		RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
+		Collection<RepositoryItem> blueprintsFolders = getBlueprintsFolders();
 		for (RepositoryItem folder : blueprintsFolders) {
-			if (folder.isFolder) {
+			if (folder.isFolder()) {
 				PluginDescriptor descriptor = loadDescriptor(folder);
 				if (descriptor != null && descriptor.getPlugin().getId().equals(id)) {
 					return descriptor;
@@ -159,9 +155,9 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public String getBlueprintLocation(String blueprintId) {
-		RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
+		Collection<RepositoryItem> blueprintsFolders = getBlueprintsFolders();
 		for (RepositoryItem folder : blueprintsFolders) {
-			if (folder.isFolder) {
+			if (folder.isFolder()) {
 				Path descriptorPath = getBlueprintPath(folder);
 				PluginDescriptor descriptor = loadDescriptor(folder);
 				if (descriptor != null && descriptor.getPlugin().getId().equals(blueprintId)) {
@@ -173,27 +169,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		return StringUtils.EMPTY;
 	}
 
-	@Override
-	public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
-		String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
-		if (blobAwareRepository.contentExists(id, descriptorPath)) {
-			try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
-				return loadDescriptor(is);
-			} catch (Exception e) {
-				logger.error("Failed to get site blueprint descriptor for site '{}'", id, e);
-			}
-		}
-		return null;
-	}
-
-	protected RepositoryItem[] getBlueprintsFolders() {
-		return contentRepository.getContentChildren(
+	protected Collection<RepositoryItem> getBlueprintsFolders() {
+		return blobAwareRepository.getContentChildren(
 			StringUtils.EMPTY, studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 	}
 
 	protected Path getBlueprintPath(RepositoryItem folder) {
 		return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-			studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), folder.path, folder.name,
+			studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), folder.path(), folder.name(),
 			studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
 	}
 
@@ -212,7 +195,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			try (FileReader reader = new FileReader(descriptorPath.toString())) {
 				return descriptorReader.read(reader);
 			} catch (PluginException | IOException e) {
-				logger.error("Failed to load descriptor from blueprint '{}'", folder.name, e);
+				logger.error("Failed to load descriptor from blueprint '{}'", folder.name(), e);
 			}
 		}
 		return null;

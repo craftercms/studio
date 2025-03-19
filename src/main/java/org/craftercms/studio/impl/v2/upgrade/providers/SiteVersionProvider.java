@@ -17,8 +17,7 @@ package org.craftercms.studio.impl.v2.upgrade.providers;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.Resource;
 

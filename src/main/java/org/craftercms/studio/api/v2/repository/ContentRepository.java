@@ -16,7 +16,11 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+
+import java.io.InputStream;
 
 /**
  * Common interface for content repository operations
@@ -58,4 +62,33 @@ public interface ContentRepository {
 	 * @return true if site has content object at path
 	 */
 	boolean shallowContentExists(String site, String path);
+
+	/**
+	 * get document from wcm content
+	 *
+	 * @param site site id where the operation will be executed
+	 * @param path path of the content
+	 * @return document
+	 *
+	 * @throws ContentNotFoundException content not found at given path
+	 */
+	default InputStream getContent(String site, String path) throws ContentNotFoundException {
+		return getContent(site, path, false);
+	}
+
+	/**
+	 * Get content from the repository
+	 * @param site the site id
+	 * @param path the path of the content
+	 * @param shallow if true, it will load the file from disk directly, instead of retrieving it from git repository
+	 * @return InputStream to read the content
+	 * @throws ContentNotFoundException if the content is not found
+	 */
+	InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
+
+	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+
+	String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
+
+	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 }

@@ -22,7 +22,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.providers.AbstractVersionProvider;
 import org.craftercms.core.util.XmlUtils;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -102,22 +102,19 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 		String filePath = getFilePath((StudioUpgradeContext) context);
 		String currentVersion = defaultVersion;
 		if (!contentRepository.contentExists(site, "/config/studio")) {
-			String firstCommit = contentRepository.getRepoFirstCommitId(site);
-			if (StringUtils.isNotEmpty(firstCommit)) {
-				throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
-			}
-		} else if (!contentRepository.contentExists(site, filePath)) {
+			throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
+		}
+		if (!contentRepository.contentExists(site, filePath)) {
 			logger.debug("Missing file '{}' in site '{}'", filePath, site);
 			if (skipIfMissing) {
 				return SKIP;
 			}
 			return defaultVersion;
-		} else {
-			try {
-				currentVersion = getVersionFromFile(site, filePath);
-			} catch (Exception e) {
-				throw new UpgradeException(format("Error reading version from file '%s' in site '%s'", filePath, site), e);
-			}
+		}
+		try {
+			currentVersion = getVersionFromFile(site, filePath);
+		} catch (Exception e) {
+			throw new UpgradeException(format("Error reading version from file '%s' in site '%s'", filePath, site), e);
 		}
 		return currentVersion;
 	}

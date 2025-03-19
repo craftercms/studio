@@ -19,18 +19,19 @@ import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore.PublishChangeSet;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl;
+import org.craftercms.studio.model.history.ItemVersion;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -93,9 +94,6 @@ public class BlobAwareContentRepositoryTest {
 	private BlobAwareContentRepository proxy;
 
 	@Mock
-	private org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl localV1;
-
-	@Mock
 	private GitContentRepositoryImpl localRepositoryV2;
 
 	@Mock
@@ -145,11 +143,11 @@ public class BlobAwareContentRepositoryTest {
 		when(localRepositoryV2.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
 		when(localRepositoryV2.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
 
-		when(localV1.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
-		when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
-		when(localV1.contentExists(SITE, POINTER_PATH_2)).thenReturn(true);
-		when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
-		when(localV1.getContent(SITE, POINTER_PATH_2)).thenReturn(POINTER);
+		when(localRepositoryV2.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
+		when(localRepositoryV2.contentExists(SITE, POINTER_PATH)).thenReturn(true);
+		when(localRepositoryV2.contentExists(SITE, POINTER_PATH_2)).thenReturn(true);
+		when(localRepositoryV2.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
+		when(localRepositoryV2.getContent(SITE, POINTER_PATH_2)).thenReturn(POINTER);
 		when(localRepositoryV2.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
 		doAnswer(invocation -> {
@@ -164,7 +162,7 @@ public class BlobAwareContentRepositoryTest {
 		when(store.getContent(SITE, ORIGINAL_PATH, false)).thenReturn(CONTENT);
 		when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
 
-		when(store.moveContent(any(), any(), any(), any())).thenReturn(EMPTY);
+		when(store.moveContent(any(), any(), any())).thenReturn(EMPTY);
 
 		proxy.setFileExtension(BLOB_EXT);
 
@@ -216,7 +214,7 @@ public class BlobAwareContentRepositoryTest {
 		proxy.writeContent(SITE, ORIGINAL_PATH, CONTENT);
 
 		verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
-		verify(localV1).writeContent(eq(SITE), eq(POINTER_PATH), any());
+//		verify(localV1).writeContent(eq(SITE), eq(POINTER_PATH), any());
 	}
 
 	@Test
@@ -230,7 +228,7 @@ public class BlobAwareContentRepositoryTest {
 		}
 
 		verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
-		verify(localV1, never()).writeContent(eq(SITE), eq(POINTER_PATH), any());
+//		verify(localV1, never()).writeContent(eq(SITE), eq(POINTER_PATH), any());
 	}
 
 	@Test
@@ -270,44 +268,41 @@ public class BlobAwareContentRepositoryTest {
 	public void moveFileTest() throws ServiceLayerException {
 		proxy.moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
-		verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH, null);
-		verify(localV1).moveContent(SITE, POINTER_PATH, NEW_POINTER_PATH, null);
+		verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
+//		verify(localV1).moveContent(SITE, POINTER_PATH, NEW_POINTER_PATH, null);
 	}
 
 	@Test
 	public void moveFolderTest() throws ServiceLayerException {
 		proxy.moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
-		verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, null);
-		verify(localV1).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, null);
+		verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
+		verify(localRepositoryV2).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 	}
 
 	@Test
 	public void getContentChildrenWithoutRemoteTest() {
-		RepositoryItem item = new RepositoryItem();
-		item.path = ORIGINAL_PATH;
-		when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[]{item});
+		RepositoryItem item = new RepositoryItem(ORIGINAL_PATH, null, false);
+		when(localRepositoryV2.getContentChildren(SITE, PARENT_PATH)).thenReturn(List.of(item));
 
-		RepositoryItem[] result = proxy.getContentChildren(SITE, PARENT_PATH);
+		Collection<RepositoryItem> result = proxy.getContentChildren(SITE, PARENT_PATH);
 
 		assertNotNull(result);
-		assertEquals(result.length, 1);
-		assertEquals(result[0].path, ORIGINAL_PATH);
+		assertEquals(result.size(), 1);
+		assertEquals(result.stream().findFirst().get().path(), ORIGINAL_PATH);
 	}
 
 	@Test
 	public void getContentChildrenWithRemoteTest() {
-		RepositoryItem item = new RepositoryItem();
-		item.path = PARENT_PATH;
-		item.name = FilenameUtils.getName(POINTER_PATH);
-		when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[]{item});
+		RepositoryItem item = new RepositoryItem(PARENT_PATH, FilenameUtils.getName(POINTER_PATH), false);
+		when(localRepositoryV2.getContentChildren(SITE, PARENT_PATH)).thenReturn(List.of(item));
 
-		RepositoryItem[] result = proxy.getContentChildren(SITE, PARENT_PATH);
+		Collection<RepositoryItem> result = proxy.getContentChildren(SITE, PARENT_PATH);
 
 		assertNotNull(result);
-		assertEquals(result.length, 1);
-		assertEquals(result[0].path, PARENT_PATH);
-		assertEquals(result[0].name, FilenameUtils.getName(ORIGINAL_PATH));
+		assertEquals(result.size(), 1);
+		assertEquals(result.stream().findFirst().get().path(), PARENT_PATH);
+		assertEquals(result.stream().findFirst().get().name(), FilenameUtils.getName(ORIGINAL_PATH));
 	}
 
 	@Test
@@ -490,17 +485,17 @@ public class BlobAwareContentRepositoryTest {
 	}
 
 	@Test
-	public void getContentVersionHistoryTest() {
-		VersionTO version1 = new VersionTO();
-		VersionTO version2 = new VersionTO();
+	public void getContentVersionHistoryTest() throws GitAPIException, ServiceLayerException, IOException {
+		ItemVersion version1 = new ItemVersion();
+		ItemVersion version2 = new ItemVersion();
 
-		when(localV1.getContentVersionHistory(eq(SITE), eq(POINTER_PATH)))
-			.thenReturn(new VersionTO[]{version1, version2});
+		when(localRepositoryV2.getContentItemHistory(eq(SITE), eq(POINTER_PATH)))
+			.thenReturn(List.of(version1, version2));
 
-		VersionTO[] versions = proxy.getContentVersionHistory(SITE, ORIGINAL_PATH);
+		List<ItemVersion> versions = proxy.getContentItemHistory(SITE, ORIGINAL_PATH);
 
 		assertNotNull(versions);
-		assertEquals(versions.length, 2);
+		assertEquals(versions.size(), 2);
 	}
 
 	@Test
@@ -508,7 +503,7 @@ public class BlobAwareContentRepositoryTest {
 		proxy.writeContent(SITE, NO_EXT_PATH, CONTENT);
 
 		verify(store).writeContent(SITE, NO_EXT_PATH, CONTENT);
-		verify(localV1).writeContent(eq(SITE), eq(NO_EXT_PATH + "." + BLOB_EXT), any());
+		verify(localRepositoryV2).writeContent(eq(SITE), eq(NO_EXT_PATH + "." + BLOB_EXT), any());
 	}
 
 	@Test

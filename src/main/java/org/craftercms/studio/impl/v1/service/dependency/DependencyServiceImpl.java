@@ -20,8 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
@@ -33,6 +31,8 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,11 +246,11 @@ public class DependencyServiceImpl implements DependencyService {
 
 		for (String path : paths) {
 			logger.debug("Get the children from the repository for site '{}' path '{}'", site, path);
-			RepositoryItem[] children = contentRepository.getContentChildren(site, path);
+			Collection<RepositoryItem> children = contentRepository.getContentChildren(site, path);
 			if (children != null) {
 				List<String> childrenPaths = new ArrayList<>();
 				for (RepositoryItem child : children) {
-					String childPath = child.path + "/" + child.name;
+					String childPath = child.path() + "/" + child.name();
 					childrenPaths.add(childPath);
 				}
 				logger.debug("Add all the collected children paths in site '{}'", site);

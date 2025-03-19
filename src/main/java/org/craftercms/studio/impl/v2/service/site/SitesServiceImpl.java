@@ -68,11 +68,6 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
-		return sitesServiceInternal.getSiteBlueprintDescriptor(id);
-	}
-
-	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void updateSite(@SiteId String siteId, String name, String description)

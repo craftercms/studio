@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -44,6 +45,7 @@ import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -52,6 +54,7 @@ import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.task.PublishTask.PublishTaskId;
 import org.eclipse.jgit.api.*;
@@ -71,8 +74,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -201,49 +203,49 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 		if (repository != null) {
 			try {
 				// Get the sandbox repo, and then get a reference to the commitId we received and another for head
-				boolean fromEmptyRepo = isEmpty(commitIdFrom);
-				String firstCommitId = getRepoFirstCommitId(site);
-				if (fromEmptyRepo) {
-					commitIdFrom = firstCommitId;
-				}
+//				boolean fromEmptyRepo = isEmpty(commitIdFrom);
+//				String firstCommitId = getRepoFirstCommitId(site);
+//				if (fromEmptyRepo) {
+//					commitIdFrom = firstCommitId;
+//				}
 				Repository repo = helper.getRepository(site, SANDBOX);
 				ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
 				ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
 				if (Objects.nonNull(objCommitIdFrom) && Objects.nonNull(objCommitIdTo)) {
-					ObjectId objFirstCommitId = repo.resolve(firstCommitId);
+//					ObjectId objFirstCommitId = repo.resolve(firstCommitId);
 
 					try (Git git = new Git(repo)) {
 
-						if (fromEmptyRepo) {
-							try (RevWalk walk = new RevWalk(repo)) {
-								RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-								try (ObjectReader reader = repo.newObjectReader()) {
-									CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-									firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-									// Diff the two commit Ids
-									long startDiffMark1 = logger.isDebugEnabled() ?
-										System.currentTimeMillis() : 0;
-									DiffCommand diffCommand = git.diff()
-										.setOldTree(firstCommitTreeParser)
-										.setNewTree(null);
-									List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-
-									if (logger.isDebugEnabled()) {
-										logger.debug("Git diff from '{}' to null finished in '{}' seconds",
-											objFirstCommitId.getName(),
-											((System.currentTimeMillis() - startDiffMark1) / 1000));
-										logger.debug("Number of diff entries '{}'", diffEntries.size());
-									}
-
-									// Now that we have a diff, let's itemize the file changes, pack them into a TO
-									// and add them to the list of RepoOperations to return to the caller
-									// also include date/time of commit by taking number of seconds and multiply by 1000 and
-									// convert to java date before sending over
-									operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
-								}
-							}
-						}
+//						if (fromEmptyRepo) {
+//							try (RevWalk walk = new RevWalk(repo)) {
+//								RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
+//								try (ObjectReader reader = repo.newObjectReader()) {
+//									CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+//									firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+//									// Diff the two commit Ids
+//									long startDiffMark1 = logger.isDebugEnabled() ?
+//										System.currentTimeMillis() : 0;
+//									DiffCommand diffCommand = git.diff()
+//										.setOldTree(firstCommitTreeParser)
+//										.setNewTree(null);
+//									List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+//
+//									if (logger.isDebugEnabled()) {
+//										logger.debug("Git diff from '{}' to null finished in '{}' seconds",
+//											objFirstCommitId.getName(),
+//											((System.currentTimeMillis() - startDiffMark1) / 1000));
+//										logger.debug("Number of diff entries '{}'", diffEntries.size());
+//									}
+//
+//									// Now that we have a diff, let's itemize the file changes, pack them into a TO
+//									// and add them to the list of RepoOperations to return to the caller
+//									// also include date/time of commit by taking number of seconds and multiply by 1000 and
+//									// convert to java date before sending over
+//									operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
+//								}
+//							}
+//						}
 
 						// If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
 						// let's do it
@@ -326,34 +328,6 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 		}
 
 		return operations;
-	}
-
-	@Override
-	public String getRepoFirstCommitId(final String site) {
-		String toReturn = EMPTY;
-		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-		Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
-		if (repository != null) {
-			generalLockService.lock(gitLockKey);
-			try (RevWalk rw = new RevWalk(repository)) {
-				ObjectId head = repository.resolve(HEAD);
-				if (head != null) {
-					RevCommit root = rw.parseCommit(head);
-					rw.sort(REVERSE);
-					rw.markStart(root);
-					ObjectId first = rw.next();
-					toReturn = first.getName();
-					logger.debug("getRepoFirstCommitId in site '{}', the first commit ID is '{}'",
-						site, toReturn);
-				}
-			} catch (IOException e) {
-				logger.error("Failed to get the first commit ID in site '{}'", site, e);
-			} finally {
-				generalLockService.unlock(gitLockKey);
-			}
-		}
-
-		return toReturn;
 	}
 
 	private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)
@@ -1556,6 +1530,282 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 			}
 		} finally {
 			generalLockService.unlock(repoLockKey);
+		}
+	}
+
+	protected InputStream shallowGetContent(String site, String path) throws ContentNotFoundException {
+		Path filePath = helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path));
+		try {
+			return new FileInputStream(filePath.toFile());
+		} catch (FileNotFoundException e) {
+			throw new ContentNotFoundException(format("Content not found at site '%s' path '%s'", site, path), e);
+		}
+	}
+
+	@Override
+	public InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException {
+		if (shallow) {
+			return shallowGetContent(site, path);
+		}
+		return getContent(site, path, HEAD);
+	}
+
+	private TreeWalk getTreeWalkForPath(Repository repo, String path) throws IOException {
+		RevTree tree = helper.getTreeForLastCommit(repo);
+		String gitPath = helper.getGitPath(path);
+		if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+			TreeWalk tw = new TreeWalk(repo);
+			tw.addTree(tree);
+			return tw;
+
+		}
+		return TreeWalk.forPath(repo, gitPath, tree);
+	}
+
+	@Override
+	public Collection<RepositoryItem> getContentChildren(final String site, final String path) {
+		final List<RepositoryItem> retItems = new ArrayList<>();
+		try {
+			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+			try (TreeWalk tw = getTreeWalkForPath(repo, path)) {
+				// Loop for all children and gather path of item excluding the item, file/folder name, and
+				// whether or not it's a folder
+				ObjectLoader loader = repo.open(tw.getObjectId(0));
+				if (loader.getType() != OBJ_TREE) {
+					logger.debug("Item at site '{}' path '{}' doesn't have any children",
+						site, path);
+					return emptyList();
+				}
+				tw.enterSubtree();
+				while (tw.next()) {
+					String name = tw.getNameString();
+					if (ArrayUtils.contains(IGNORE_FILES, name)) {
+						continue;
+					}
+					loader = repo.open(tw.getObjectId(0));
+					boolean isFolder = loader.getType() == OBJ_TREE;
+					String itemPath = FILE_SEPARATOR + StringUtils.removeEnd(tw.getPathString(), FILE_SEPARATOR + name);
+					retItems.add(new RepositoryItem(itemPath, name, isFolder));
+				}
+			}
+		} catch (IOException e) {
+			logger.error("Failed to get children at site '{}' path '{}'", site, path, e);
+		}
+
+		return retItems;
+	}
+
+	@Override
+	public String createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
+		// SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		try {
+			Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
+			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+
+			// Create basic file
+			File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
+
+			// Create parent folders
+			File folder = file.getParentFile();
+			// Does the folder ever exist here? We are about to create it
+			folder.mkdirs();
+
+			// Create the file
+			if (!file.createNewFile()) {
+				throw new ServiceLayerException(format("Failed to write empty file to folder '%s' for site '%s'", emptyFilePath, siteId));
+			}
+
+			if (!helper.addFiles(repo, siteId, emptyFilePath.toString())) {
+				throw new ServiceLayerException(format("Failed to add file to git in site '%s' path '%s'", siteId, emptyFilePath));
+			}
+
+			String commitId = helper.commitFiles(repo, siteId, helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE).replaceAll(PATTERN_SITE, siteId).replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name), helper.getCurrentUserIdent(), emptyFilePath.toString());
+			insertProcessedCommitId(siteId, commitId);
+			return commitId;
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			logger.error("Failed to create folder '{}' in site '{}'", name, siteId, e);
+			throw e;
+		} catch (IOException e) {
+			logger.error("Failed to create folder '{}' in site '{}'", name, siteId, e);
+			throw new ServiceLayerException(format("Failed to create folder '%s' in site '%s'", name, siteId), e);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	@Override
+	public String moveContent(String siteId, String fromPath, String toPath) {
+		String commitId = null;
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		try {
+			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+
+			String gitFromPath = helper.getGitPath(fromPath);
+			String gitToPath= helper.getGitPath(toPath);
+
+			try (Git git = new Git(repo)) {
+				// Check if destination is a file, then this is a rename operation
+				// Perform rename and exit
+				Path sourcePath = Paths.get(repo.getDirectory().getParent(), gitFromPath);
+				File sourceFile = sourcePath.toFile();
+				Path targetPath = Paths.get(repo.getDirectory().getParent(), gitToPath);
+				File targetFile = targetPath.toFile();
+
+				if (sourceFile.getCanonicalFile().equals(targetFile.getCanonicalFile())) {
+					sourceFile.renameTo(targetFile);
+				} else {
+					if (targetFile.isFile()) {
+						if (sourceFile.isFile()) {
+							sourceFile.renameTo(targetFile);
+						} else {
+							// This is not a valid operation
+							logger.error("Failed to move. Trying to rename a directory to a file " +
+									"in site '{}' from path '{}' to path '{}'",
+								siteId, fromPath, toPath);
+						}
+					} else if (sourceFile.isDirectory()) {
+						// Check if we're moving a single file or whole subtree
+						File[] dirList = sourceFile.listFiles();
+						for (File child : dirList) {
+							if (!child.equals(sourceFile)) {
+								FileUtils.moveToDirectory(child, targetFile, true);
+							}
+						}
+						FileUtils.deleteDirectory(sourceFile);
+					} else {
+						if (sourceFile.isFile()) {
+							FileUtils.moveFile(sourceFile, targetFile);
+						} else {
+							FileUtils.moveToDirectory(sourceFile, targetFile, true);
+						}
+					}
+				}
+
+				// The operation is done on disk, now it's time to commit
+				boolean result = helper.addFiles(repo, siteId, gitToPath);
+				if (result) {
+					StatusCommand statusCommand = git.status().addPath(gitToPath);
+					Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
+					List<String> changeSet = new ArrayList<>(gitStatus.getAdded().size() * 2);
+					PersonIdent user = helper.getCurrentUserIdent();
+					String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
+						.replaceAll(PATTERN_FROM_PATH, fromPath)
+						.replaceAll(PATTERN_TO_PATH, toPath);
+					for (String pathToCommit : gitStatus.getAdded()) {
+						String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
+						changeSet.add(pathToCommit);
+						changeSet.add(pathRemoved);
+					}
+					commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
+					insertProcessedCommitId(siteId, commitId);
+					return commitId;
+				} else {
+					logger.error("Failed to move item in site '{}' from path '{}' to path '{}'",
+						siteId, fromPath, toPath);
+				}
+			} catch (Exception e) {
+				logger.error("Failed to move item in site '{}' from path '{}' to path '{}'",
+					siteId, fromPath, toPath, e);
+			}
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+		return commitId;
+	}
+
+	@Override
+	public String revertContent(String site, String path, String version, boolean major, String comment)
+		throws UserNotFoundException, ServiceLayerException {
+		// TODO: SJ: refactor to remove the notion of a major/minor for 3.1+
+		String commitId = null;
+		String gitLockKey = helper.getSandboxRepoLockKey(site);
+		generalLockService.lock(gitLockKey);
+		try {
+			// TODO: reimplement this to perform an actual git revert ?
+			InputStream versionContent = getContent(site, path, version);
+			commitId = writeContent(site, path, versionContent);
+			getContent(site, path, major);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+
+		return commitId;
+	}
+
+	private InputStream getContent(String site, String path, String gitVersion) throws ContentNotFoundException {
+		try {
+			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+			if (repo == null) {
+				throw new ContentNotFoundException(format("Repository not found for site '%s'", site));
+			}
+			RevTree tree = helper.getTreeForCommit(repo, gitVersion);
+			if (tree != null) {
+				try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+					// Check if the array of items is not null, and since we have an absolute path to the item,
+					// pick the first item in the list
+					if (tw != null && tw.getObjectId(0) != null) {
+						ObjectId id = tw.getObjectId(0);
+						ObjectLoader objectLoader = repo.open(id);
+
+						if (OBJ_BLOB == objectLoader.getType()) {
+							return objectLoader.openStream();
+						}
+					}
+				}
+			}
+			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path));
+		} catch (IOException e) {
+			logger.error("Failed to get the content item at site '{}' path '{}' version '{}'",
+				site, path, gitVersion, e);
+			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path), e);
+		}
+	}
+
+	@Override
+	public String writeContent(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException {
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		try {
+			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			if (repo == null) {
+				logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
+				throw new ServiceLayerException(format("Missing repository during write for site '%s' path '%s'", siteId, path));
+			}
+			if (!helper.writeFile(repo, siteId, path, content)) {
+				logger.error("Failed to write content to site '{}' path '{}'", siteId, path);
+				throw new ServiceLayerException(format("Failed to write content to site '%s' path '%s'", siteId, path));
+			}
+			PersonIdent user = helper.getCurrentUserIdent();
+			String username = SecurityUtils.getCurrentUser();
+			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
+				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
+			String commitId = helper.commitFiles(repo, siteId, comment, user, path);
+			if (commitId != null) {
+				insertProcessedCommitId(siteId, commitId);
+			}
+			return commitId;
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			logger.error("Failed to write content to site '{}' path '{}'", siteId, path, e);
+			throw e;
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	/**
+	 * Insert commit id into processed_commits table if the site exists
+	 *
+	 * @param siteId   site id
+	 * @param commitId commit id
+	 */
+	private void insertProcessedCommitId(final String siteId, final String commitId) {
+		Site site = siteDao.getSite(siteId);
+		if (site != null) {
+			retryingDatabaseOperationFacade.retry(() -> processedCommitsDao.insertCommit(site.getId(), commitId));
 		}
 	}
 

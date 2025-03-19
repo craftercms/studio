@@ -81,14 +81,6 @@ public interface SitesService {
 	String getBlueprintLocation(String blueprintId);
 
 	/**
-	 * Get the blueprint descriptor from a site repo
-	 *
-	 * @param id the id of the site
-	 * @return the blueprint object or null if not found
-	 */
-	PluginDescriptor getSiteBlueprintDescriptor(String id);
-
-	/**
 	 * Updates the name and description for the given site
 	 *
 	 * @param siteId      the id of the site

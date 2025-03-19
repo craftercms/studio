@@ -89,20 +89,20 @@ class SpringSiteServices {
 		return springBackedService.getSiteDetails(siteId)
 	}
 
-	def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
-		      remoteToken, remotePrivateKey) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType,
-			remoteUsername, remotePassword, remoteToken, remotePrivateKey)
-	}
+//	def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+//		      remoteToken, remotePrivateKey) {
+//		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+//		return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType,
+//			remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+//	}
 
-	def removeRemote(siteId, remoteName) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.removeRemote(siteId, remoteName)
-	}
+//	def removeRemote(siteId, remoteName) {
+//		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+//		return springBackedService.removeRemote(siteId, remoteName)
+//	}
 
-	def listRemote(siteId) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.listRemote(siteId)
-	}
+//	def listRemote(siteId) {
+//		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+//		return springBackedService.listRemote(siteId)
+//	}
 }

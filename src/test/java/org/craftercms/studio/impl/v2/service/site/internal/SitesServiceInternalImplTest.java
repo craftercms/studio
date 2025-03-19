@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,7 +29,6 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentReposi
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
 import org.junit.Before;
@@ -75,8 +74,6 @@ public class SitesServiceInternalImplTest {
 	ConfigurationService configurationService;
 	@Mock
 	StudioConfiguration studioConfiguration;
-	@Mock
-	SecurityService securityService;
 	@Mock
 	ApplicationContext applicationContext;
 	@Mock
@@ -125,6 +122,8 @@ public class SitesServiceInternalImplTest {
 		sourceSite.setPublishingEnabled(true);
 		sourceSite.setSandboxBranch(SOURCE_SANDBOX_BRANCH);
 		when(siteDAO.getSite(SOURCE_SITE_ID)).thenReturn(sourceSite);
+
+		sitesServiceInternal.setItemServiceInternal(itemServiceInternal);
 	}
 
 	@Test

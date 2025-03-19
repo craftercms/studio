@@ -28,8 +28,8 @@ import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
@@ -83,12 +83,12 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 		"dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService",
 		"retryingRepositoryOperationFacade"})
 	public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
-					UpgradePipelineFactory<String> dbPipelineFactory,
-					UpgradePipelineFactory<String> bpPipelineFactory, YamlConfigurationProvider configurationProvider,
-					DataSource dataSource, DbIntegrityValidator integrityValidator,
-					GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
-					InstanceService instanceService,
-					RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+									UpgradePipelineFactory<String> dbPipelineFactory,
+									UpgradePipelineFactory<String> bpPipelineFactory, YamlConfigurationProvider configurationProvider,
+									DataSource dataSource, DbIntegrityValidator integrityValidator,
+									GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
+									InstanceService instanceService,
+									RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
 		this.dbVersionProvider = dbVersionProvider;
 		this.dbPipelineFactory = dbPipelineFactory;
 		this.bpPipelineFactory = bpPipelineFactory;
@@ -207,12 +207,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 	}
 
 	protected boolean checkIfSiteRepoExists(String site) {
-		boolean toRet = false;
-		String firstCommitId = contentRepository.getRepoFirstCommitId(site);
-		if (!StringUtils.isEmpty(firstCommitId)) {
-			toRet = true;
-		}
-		return toRet;
+		return contentRepository.repositoryExists(site);
 	}
 
 	/**
@@ -242,22 +237,22 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 		String basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN);
 		String envPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
 
-		RepositoryItem[] modules = contentRepository.getContentChildren(site,
+		Collection<RepositoryItem> modules = contentRepository.getContentChildren(site,
 			replace(basePath, Collections.singletonMap(CONFIG_KEY_MODULE, StringUtils.EMPTY), "{", "}"));
 
 		for (RepositoryItem module : modules) {
-			logger.debug("Look for configured publishing targets for module '{}' in site '{}'", module.name, site);
+			logger.debug("Look for configured publishing targets for module '{}' in site '{}'", module.name(), site);
 
 			Map<String, String> values = new HashMap<>();
-			values.put(CONFIG_KEY_MODULE, module.name);
+			values.put(CONFIG_KEY_MODULE, module.name());
 			values.put(CONFIG_KEY_ENVIRONMENT, StringUtils.EMPTY);
 
-			RepositoryItem[] environments =
+			Collection<RepositoryItem> environments =
 				contentRepository.getContentChildren(site, replace(envPath, values, "{", "}"));
 
 			for (RepositoryItem env : environments) {
-				logger.debug("Add publishing target '{}' in site '{}'", env.name, site);
-				result.add(env.name);
+				logger.debug("Add publishing target '{}' in site '{}'", env.name(), site);
+				result.add(env.name());
 			}
 		}
 

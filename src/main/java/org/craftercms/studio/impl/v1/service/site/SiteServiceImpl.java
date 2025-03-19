@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -42,17 +41,14 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -61,6 +57,7 @@ import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -133,8 +130,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	protected Deployer deployer;
 	protected ContentService contentService;
-	protected org.craftercms.studio.api.v1.repository.GitContentRepository contentRepository;
-	protected GitContentRepository contentRepositoryV2;
+	protected GitContentRepository contentRepository;
 	protected DependencyService dependencyService;
 	protected SecurityService securityService;
 	protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -271,7 +267,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					processCreatedFiles(siteId, creator, now),
 				logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, creator, now)));
 
-			String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+			String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 			updateLastCommitId(siteId, lastCommitId);
 
 			logger.info("Reload the site configuration for site '{}'", siteName);
@@ -430,7 +426,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 				.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
 				.withLocaleCode(Locale.US.toString())
 				.withTranslationSourceId(null)
-				.withSize(contentRepositoryV2.getContentSize(site.getSiteId(), path))
+				.withSize(contentRepository.getContentSize(site.getSiteId(), path))
 				.build();
 			itemDao.upsertEntry(item);
 
@@ -469,7 +465,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
 			DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
 			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
-			contentRepositoryV2.forAllSitePaths(siteId,
+			contentRepository.forAllSitePaths(siteId,
 				directory -> {
 					processCreatedDirectory(itemDao, site.getSiteId(), directory, userObj.getId(), now);
 					checkCounter.run();
@@ -497,7 +493,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		boolean success;
 
 		// create site with git repo
-		success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
+		success = contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 
 		String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
 		replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -604,7 +600,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			// create site by cloning remote git repo
 			logger.info("Create site '{}' by cloning the remote '{}' url '{}' branch '{}'",
 				siteId, remoteName, remoteUrl, remoteBranch);
-			success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
+			success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
 				remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
 				remotePrivateKey, params, createAsOrphan, creator);
 
@@ -620,7 +616,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}
 
 		if (!success) {
-			contentRepository.removeRemoteRepositoriesForSite(siteId);
+//			contentRepository.removeRemoteRepositoriesForSite(siteId);
 			contentRepository.deleteSite(siteId);
 			throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
 				"remote repository: " + remoteName + " (" + remoteUrl + ")");
@@ -634,7 +630,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			logger.error("Failed to create Deployer targets for site '{}' as a clone of '{}' url '{}' " +
 				"branch '{}'. Site creation failed.", siteId, remoteName, remoteUrl, remoteBranch, e);
 
-			contentRepositoryV2.removeRemote(siteId, remoteName);
+			contentRepository.removeRemote(siteId, remoteName);
 			boolean deleted = contentRepository.deleteSite(siteId);
 
 			if (!deleted) {
@@ -677,7 +673,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					processCreatedFiles(siteId, creator, now),
 				logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, creator, now)));
 
-			String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+			String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 			updateLastCommitId(siteId, lastCommitId);
 
 			logger.info("Load the configuration for site '{}'", siteId);
@@ -723,14 +719,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	@Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders =
+		Collection<RepositoryItem> blueprintsFolders =
 			contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 		List<SiteBlueprintTO> blueprints = new ArrayList<>();
 		for (RepositoryItem folder : blueprintsFolders) {
-			if (folder.isFolder) {
+			if (folder.isFolder()) {
 				SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
-				blueprintTO.id = folder.name;
-				blueprintTO.label = StringUtils.capitalize(folder.name);
+				blueprintTO.id = folder.name();
+				blueprintTO.label = StringUtils.capitalize(folder.name());
 				blueprintTO.description = ""; // How do we populate this dynamically
 				blueprintTO.screenshots = null;
 				blueprints.add(blueprintTO);
@@ -893,64 +889,64 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}).collect(Collectors.toList());
 	}
 
-	@Override
-	public boolean addRemote(String siteId, String remoteName, String remoteUrl,
-				 String authenticationType, String remoteUsername, String remotePassword,
-				 String remoteToken, String remotePrivateKey)
-		throws InvalidRemoteUrlException, ServiceLayerException {
-		if (!exists(siteId)) {
-			throw new SiteNotFoundException();
-		}
-		boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-			remotePassword, remoteToken, remotePrivateKey);
-		insertAddRemoteAuditLog(siteId, remoteName);
-		return toRet;
-	}
+//	@Override
+//	public boolean addRemote(String siteId, String remoteName, String remoteUrl,
+//				 String authenticationType, String remoteUsername, String remotePassword,
+//				 String remoteToken, String remotePrivateKey)
+//		throws InvalidRemoteUrlException, ServiceLayerException {
+//		if (!exists(siteId)) {
+//			throw new SiteNotFoundException();
+//		}
+//		boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+//			remotePassword, remoteToken, remotePrivateKey);
+//		insertAddRemoteAuditLog(siteId, remoteName);
+//		return toRet;
+//	}
 
-	private void insertAddRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
-		SiteFeed siteFeed = getSite(siteId);
-		String user = securityService.getCurrentUser();
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-		auditLog.setOperation(OPERATION_ADD_REMOTE);
-		auditLog.setSiteId(siteFeed.getId());
-		auditLog.setActorId(user);
-		auditLog.setPrimaryTargetId(remoteName);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-		auditLog.setPrimaryTargetValue(remoteName);
-		auditServiceInternal.insertAuditLog(auditLog);
-	}
+//	private void insertAddRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
+//		SiteFeed siteFeed = getSite(siteId);
+//		String user = securityService.getCurrentUser();
+//		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+//		auditLog.setOperation(OPERATION_ADD_REMOTE);
+//		auditLog.setSiteId(siteFeed.getId());
+//		auditLog.setActorId(user);
+//		auditLog.setPrimaryTargetId(remoteName);
+//		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+//		auditLog.setPrimaryTargetValue(remoteName);
+//		auditServiceInternal.insertAuditLog(auditLog);
+//	}
 
-	@Override
-	public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
-		if (!exists(siteId)) {
-			throw new SiteNotFoundException();
-		}
-		boolean toRet = contentRepositoryV2.removeRemote(siteId, remoteName);
-		insertRemoveRemoteAuditLog(siteId, remoteName);
-		return toRet;
-	}
+//	@Override
+//	public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
+//		if (!exists(siteId)) {
+//			throw new SiteNotFoundException();
+//		}
+//		boolean toRet = contentRepository.removeRemote(siteId, remoteName);
+//		insertRemoveRemoteAuditLog(siteId, remoteName);
+//		return toRet;
+//	}
+//
+//	private void insertRemoveRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
+//		SiteFeed siteFeed = getSite(siteId);
+//		String user = securityService.getCurrentUser();
+//		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+//		auditLog.setOperation(OPERATION_REMOVE_REMOTE);
+//		auditLog.setActorId(user);
+//		auditLog.setSiteId(siteFeed.getId());
+//		auditLog.setPrimaryTargetId(remoteName);
+//		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+//		auditLog.setPrimaryTargetValue(remoteName);
+//		auditServiceInternal.insertAuditLog(auditLog);
+//	}
 
-	private void insertRemoveRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
-		SiteFeed siteFeed = getSite(siteId);
-		String user = securityService.getCurrentUser();
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-		auditLog.setOperation(OPERATION_REMOVE_REMOTE);
-		auditLog.setActorId(user);
-		auditLog.setSiteId(siteFeed.getId());
-		auditLog.setPrimaryTargetId(remoteName);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-		auditLog.setPrimaryTargetValue(remoteName);
-		auditServiceInternal.insertAuditLog(auditLog);
-	}
-
-	@Override
-	public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException {
-		if (!exists(siteId)) {
-			throw new SiteNotFoundException();
-		}
-		SiteFeed siteFeed = getSite(siteId);
-		return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
-	}
+//	@Override
+//	public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException {
+//		if (!exists(siteId)) {
+//			throw new SiteNotFoundException();
+//		}
+//		SiteFeed siteFeed = getSite(siteId);
+//		return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
+//	}
 
 	@Override
 	public List<SiteFeed> getDeletedSites() {
@@ -993,7 +989,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		this.contentService = contentService;
 	}
 
-	public void setContentRepository(org.craftercms.studio.api.v1.repository.GitContentRepository repo) {
+	public void setContentRepository(GitContentRepository repo) {
 		contentRepository = repo;
 	}
 
@@ -1053,11 +1049,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@SuppressWarnings("unused")
 	public void setConfigurationServiceInternal(final ConfigurationService configurationServiceInternal) {
 		this.configurationServiceInternal = configurationServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
-		this.contentRepositoryV2 = contentRepositoryV2;
 	}
 
 	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
