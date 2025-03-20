@@ -1624,8 +1624,12 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 				throw new ServiceLayerException(format("Failed to add file to git in site '%s' path '%s'", siteId, emptyFilePath));
 			}
 
-			String commitId = helper.commitFiles(repo, siteId, helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE).replaceAll(PATTERN_SITE, siteId).replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name), helper.getCurrentUserIdent(), emptyFilePath.toString());
-			insertProcessedCommitId(siteId, commitId);
+			String commitId = helper.commitFiles(repo, siteId,
+				helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+					.replaceAll(PATTERN_SITE, siteId)
+					.replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
+				helper.getCurrentUserIdent(), emptyFilePath.toString());
+			persistCommit(siteId, commitId);
 			return commitId;
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to create folder '{}' in site '{}'", name, siteId, e);
@@ -1689,7 +1693,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 				changeSet.add(pathRemoved);
 			}
 			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
-			insertProcessedCommitId(siteId, commitId);
+			persistCommit(siteId, commitId);
 			return commitId;
 		} catch (ServiceLayerException e) {
 			throw e;
@@ -1702,15 +1706,18 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 	}
 
 	@Override
-	public String revertContent(String site, String path, String version, String comment)
+	public String revertContent(String siteId, String path, String version, String comment)
 		throws UserNotFoundException, ServiceLayerException {
 		String commitId = null;
-		String gitLockKey = helper.getSandboxRepoLockKey(site);
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			// TODO: reimplement this to perform an actual git revert ?
-			InputStream versionContent = getContent(site, path, version);
-			commitId = writeContent(site, path, versionContent);
+			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			helper.restoreVersion(repo, siteId, helper.getGitPath(path), version);
+			commitId = helper.commitFiles(repo, siteId, comment, helper.getCurrentUserIdent(), path);
+			if (commitId != null) {
+				persistCommit(siteId, commitId);
+			}
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -1771,7 +1778,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
 			String commitId = helper.commitFiles(repo, siteId, comment, user, path);
 			if (commitId != null) {
-				insertProcessedCommitId(siteId, commitId);
+				persistCommit(siteId, commitId);
 			}
 			return commitId;
 		} catch (ServiceLayerException | UserNotFoundException e) {
@@ -1779,19 +1786,6 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 			throw e;
 		} finally {
 			generalLockService.unlock(gitLockKey);
-		}
-	}
-
-	/**
-	 * Insert commit id into processed_commits table if the site exists
-	 *
-	 * @param siteId   site id
-	 * @param commitId commit id
-	 */
-	private void insertProcessedCommitId(final String siteId, final String commitId) {
-		Site site = siteDao.getSite(siteId);
-		if (site != null) {
-			retryingDatabaseOperationFacade.retry(() -> processedCommitsDao.insertCommit(site.getId(), commitId));
 		}
 	}
 
