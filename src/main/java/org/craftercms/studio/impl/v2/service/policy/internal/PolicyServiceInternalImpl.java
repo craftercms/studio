@@ -17,8 +17,10 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +181,14 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 		// First check if the original action is ok
 		evaluateAction(config, siteId, action, results, includeAllowed);
 		// If it's ok then start checking the children
-		var children = contentRepository.getContentChildren(siteId, action.getSource());
+
+		Collection<RepositoryItem> children = null;
+		try {
+			children = contentRepository.getContentChildren(siteId, action.getSource());
+		} catch (ServiceLayerException e) {
+			logger.warn("Failed to get children for path '{}'", action.getSource(), e);
+			return;
+		}
 		var sourceName = FilenameUtils.getName(action.getSource());
 		for (var child : children) {
 			var childPath = Paths.get(child.path(), child.name());

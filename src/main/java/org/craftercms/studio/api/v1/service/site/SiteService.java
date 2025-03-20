@@ -65,8 +65,7 @@ public interface SiteService {
 	 */
 	void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
 				     String desc, Map<String, String> params, boolean createAsOrphan)
-		throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-		BlueprintNotFoundException, MissingPluginParameterException;
+		throws ServiceLayerException;
 
 	/**
 	 * Create a new site with remote option (clone from remote or push to remote repository)
@@ -111,13 +110,6 @@ public interface SiteService {
 	 */
 	@Deprecated
 	boolean deleteSite(String siteId);
-
-	/**
-	 * get a list of available blueprints
-	 *
-	 * @return list of blueprints
-	 */
-	SiteBlueprintTO[] getAvailableBlueprints();
 
 	void updateLastCommitId(String site, String commitId);
 

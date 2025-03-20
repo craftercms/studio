@@ -78,7 +78,7 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteExists
 	// TODO: JM: Should we have a "is member of site" validation here?
-	public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws SiteNotFoundException {
+	public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws ServiceLayerException {
 		return contentServiceInternal.getQuickCreatableContentTypes(siteId);
 	}
 

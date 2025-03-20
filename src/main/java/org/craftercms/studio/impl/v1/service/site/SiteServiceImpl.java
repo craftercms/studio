@@ -49,15 +49,12 @@ import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
-import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -184,8 +181,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		@ValidateStringParam String sandboxBranch,
 		@ValidateNoTagsParam String desc,
 		Map<String, String> params, boolean createAsOrphan)
-		throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-		BlueprintNotFoundException, MissingPluginParameterException {
+		throws ServiceLayerException {
 		if (exists(siteId) || existsByName(siteName)) {
 			throw new SiteAlreadyExistsException();
 		}
@@ -715,25 +711,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			logger.error("Failed to delete site '{}'", siteId, e);
 			return false;
 		}
-	}
-
-	@Override
-	public SiteBlueprintTO[] getAvailableBlueprints() {
-		Collection<RepositoryItem> blueprintsFolders =
-			contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-		List<SiteBlueprintTO> blueprints = new ArrayList<>();
-		for (RepositoryItem folder : blueprintsFolders) {
-			if (folder.isFolder()) {
-				SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
-				blueprintTO.id = folder.name();
-				blueprintTO.label = StringUtils.capitalize(folder.name());
-				blueprintTO.description = ""; // How do we populate this dynamically
-				blueprintTO.screenshots = null;
-				blueprints.add(blueprintTO);
-			}
-		}
-
-		return blueprints.toArray(new SiteBlueprintTO[0]);
 	}
 
 	@Override

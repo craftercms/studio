@@ -125,7 +125,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public List<PluginDescriptor> getAvailableBlueprints() {
+	public List<PluginDescriptor> getAvailableBlueprints() throws ServiceLayerException {
 		Collection<RepositoryItem> blueprintsFolders = getBlueprintsFolders();
 		List<PluginDescriptor> toRet = new ArrayList<>();
 		for (RepositoryItem folder : blueprintsFolders) {
@@ -140,7 +140,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public PluginDescriptor getBlueprintDescriptor(final String id) {
+	public PluginDescriptor getBlueprintDescriptor(final String id) throws ServiceLayerException {
 		Collection<RepositoryItem> blueprintsFolders = getBlueprintsFolders();
 		for (RepositoryItem folder : blueprintsFolders) {
 			if (folder.isFolder()) {
@@ -154,7 +154,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public String getBlueprintLocation(String blueprintId) {
+	public String getBlueprintLocation(String blueprintId) throws ServiceLayerException {
 		Collection<RepositoryItem> blueprintsFolders = getBlueprintsFolders();
 		for (RepositoryItem folder : blueprintsFolders) {
 			if (folder.isFolder()) {
@@ -169,7 +169,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		return StringUtils.EMPTY;
 	}
 
-	protected Collection<RepositoryItem> getBlueprintsFolders() {
+	protected Collection<RepositoryItem> getBlueprintsFolders() throws ServiceLayerException {
 		return blobAwareRepository.getContentChildren(
 			StringUtils.EMPTY, studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 	}

@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -1563,11 +1562,14 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 	}
 
 	@Override
-	public Collection<RepositoryItem> getContentChildren(final String site, final String path) {
+	public Collection<RepositoryItem> getContentChildren(final String site, final String path) throws ServiceLayerException {
 		final List<RepositoryItem> retItems = new ArrayList<>();
 		try {
 			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 			try (TreeWalk tw = getTreeWalkForPath(repo, path)) {
+				if (tw == null) {
+					throw new ContentNotFoundException(path, site, format("Content not found at site '%s' path '%s'", site, path));
+				}
 				// Loop for all children and gather path of item excluding the item, file/folder name, and
 				// whether or not it's a folder
 				ObjectLoader loader = repo.open(tw.getObjectId(0));
@@ -1590,6 +1592,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 			}
 		} catch (IOException e) {
 			logger.error("Failed to get children at site '{}' path '{}'", site, path, e);
+			throw new ServiceLayerException(format("Failed to get children at site '%s' path '%s'", site, path), e);
 		}
 
 		return retItems;
@@ -1635,91 +1638,72 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 		}
 	}
 
-	@Override
-	public String moveContent(String siteId, String fromPath, String toPath) {
-		String commitId = null;
-		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
-		generalLockService.lock(gitLockKey);
-		try {
-			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+	/**
+	 * Move files or folders in the file system
+	 *
+	 * @param repoPath    path to the repository
+	 * @param gitFromPath path to move from
+	 * @param gitToPath   path to move to
+	 * @throws IOException           if an I/O error occurs
+	 * @throws ServiceLayerException if an error occurs
+	 */
+	private void moveFiles(String repoPath, String gitFromPath, String gitToPath) throws IOException, ServiceLayerException {
+		Path sourcePath = Paths.get(repoPath, gitFromPath);
+		Path targetPath = Paths.get(repoPath, gitToPath);
+		File sourceFile = sourcePath.toFile();
+		File targetFile = targetPath.toFile();
 
-			String gitFromPath = helper.getGitPath(fromPath);
-			String gitToPath= helper.getGitPath(toPath);
-
-			try (Git git = new Git(repo)) {
-				// Check if destination is a file, then this is a rename operation
-				// Perform rename and exit
-				Path sourcePath = Paths.get(repo.getDirectory().getParent(), gitFromPath);
-				File sourceFile = sourcePath.toFile();
-				Path targetPath = Paths.get(repo.getDirectory().getParent(), gitToPath);
-				File targetFile = targetPath.toFile();
-
-				if (sourceFile.getCanonicalFile().equals(targetFile.getCanonicalFile())) {
-					sourceFile.renameTo(targetFile);
-				} else {
-					if (targetFile.isFile()) {
-						if (sourceFile.isFile()) {
-							sourceFile.renameTo(targetFile);
-						} else {
-							// This is not a valid operation
-							logger.error("Failed to move. Trying to rename a directory to a file " +
-									"in site '{}' from path '{}' to path '{}'",
-								siteId, fromPath, toPath);
-						}
-					} else if (sourceFile.isDirectory()) {
-						// Check if we're moving a single file or whole subtree
-						File[] dirList = sourceFile.listFiles();
-						for (File child : dirList) {
-							if (!child.equals(sourceFile)) {
-								FileUtils.moveToDirectory(child, targetFile, true);
-							}
-						}
-						FileUtils.deleteDirectory(sourceFile);
-					} else {
-						if (sourceFile.isFile()) {
-							FileUtils.moveFile(sourceFile, targetFile);
-						} else {
-							FileUtils.moveToDirectory(sourceFile, targetFile, true);
-						}
-					}
-				}
-
-				// The operation is done on disk, now it's time to commit
-				boolean result = helper.addFiles(repo, siteId, gitToPath);
-				if (result) {
-					StatusCommand statusCommand = git.status().addPath(gitToPath);
-					Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
-					List<String> changeSet = new ArrayList<>(gitStatus.getAdded().size() * 2);
-					PersonIdent user = helper.getCurrentUserIdent();
-					String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
-						.replaceAll(PATTERN_FROM_PATH, fromPath)
-						.replaceAll(PATTERN_TO_PATH, toPath);
-					for (String pathToCommit : gitStatus.getAdded()) {
-						String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-						changeSet.add(pathToCommit);
-						changeSet.add(pathRemoved);
-					}
-					commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
-					insertProcessedCommitId(siteId, commitId);
-					return commitId;
-				} else {
-					logger.error("Failed to move item in site '{}' from path '{}' to path '{}'",
-						siteId, fromPath, toPath);
-				}
-			} catch (Exception e) {
-				logger.error("Failed to move item in site '{}' from path '{}' to path '{}'",
-					siteId, fromPath, toPath, e);
-			}
-		} finally {
-			generalLockService.unlock(gitLockKey);
+		if (sourceFile.isFile()) {
+			FileUtils.moveFile(sourceFile, targetFile);
+		} else {
+			FileUtils.moveDirectory(sourceFile, targetFile);
 		}
-		return commitId;
 	}
 
 	@Override
-	public String revertContent(String site, String path, String version, boolean major, String comment)
+	public String moveContent(String siteId, String fromPath, String toPath) throws ServiceLayerException {
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+
+		String gitFromPath = helper.getGitPath(fromPath);
+		String gitToPath = helper.getGitPath(toPath);
+
+		try (Git git = new Git(repo)) {
+			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+
+			// The operation is done on disk, now it's time to commit
+			boolean result = helper.addFiles(repo, siteId, gitToPath);
+			if (!result) {
+				logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath);
+				throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath));
+			}
+			StatusCommand statusCommand = git.status().addPath(gitToPath);
+			Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
+			List<String> changeSet = new ArrayList<>(gitStatus.getAdded().size() * 2);
+			PersonIdent user = helper.getCurrentUserIdent();
+			String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE).replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath);
+			for (String pathToCommit : gitStatus.getAdded()) {
+				String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
+				changeSet.add(pathToCommit);
+				changeSet.add(pathRemoved);
+			}
+			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
+			insertProcessedCommitId(siteId, commitId);
+			return commitId;
+		} catch (ServiceLayerException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
+			throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	@Override
+	public String revertContent(String site, String path, String version, String comment)
 		throws UserNotFoundException, ServiceLayerException {
-		// TODO: SJ: refactor to remove the notion of a major/minor for 3.1+
 		String commitId = null;
 		String gitLockKey = helper.getSandboxRepoLockKey(site);
 		generalLockService.lock(gitLockKey);
@@ -1727,7 +1711,6 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 			// TODO: reimplement this to perform an actual git revert ?
 			InputStream versionContent = getContent(site, path, version);
 			commitId = writeContent(site, path, versionContent);
-			getContent(site, path, major);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -1735,6 +1718,9 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 		return commitId;
 	}
 
+	/**
+	 * Get the content of a file at a specific commit
+	 */
 	private InputStream getContent(String site, String path, String gitVersion) throws ContentNotFoundException {
 		try {
 			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);

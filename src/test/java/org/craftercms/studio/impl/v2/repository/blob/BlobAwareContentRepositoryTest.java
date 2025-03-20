@@ -281,7 +281,7 @@ public class BlobAwareContentRepositoryTest {
 	}
 
 	@Test
-	public void getContentChildrenWithoutRemoteTest() {
+	public void getContentChildrenWithoutRemoteTest() throws ServiceLayerException {
 		RepositoryItem item = new RepositoryItem(ORIGINAL_PATH, null, false);
 		when(localRepositoryV2.getContentChildren(SITE, PARENT_PATH)).thenReturn(List.of(item));
 
@@ -293,7 +293,7 @@ public class BlobAwareContentRepositoryTest {
 	}
 
 	@Test
-	public void getContentChildrenWithRemoteTest() {
+	public void getContentChildrenWithRemoteTest() throws ServiceLayerException {
 		RepositoryItem item = new RepositoryItem(PARENT_PATH, FilenameUtils.getName(POINTER_PATH), false);
 		when(localRepositoryV2.getContentChildren(SITE, PARENT_PATH)).thenReturn(List.of(item));
 

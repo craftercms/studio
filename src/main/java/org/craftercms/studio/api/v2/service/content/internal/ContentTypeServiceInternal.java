@@ -35,7 +35,7 @@ public interface ContentTypeServiceInternal {
 	 * @param siteId site identifier
 	 * @return List of quick creatable content types
 	 */
-	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 
 	/**
 	 * Finds all items related to a given content-type

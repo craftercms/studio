@@ -75,15 +75,4 @@ public interface DependencyService {
 	@Deprecated
 	Set<String> getItemsDependingOn(String site, String path, int depth)
 		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
-
-	/**
-	 * @param site Site to operate on
-	 * @param path Path to item to retrieve delete dependencies for
-	 * @return Set of paths included as delete dependencies
-	 * @throws SiteNotFoundException    Site doesn't exist
-	 * @throws ContentNotFoundException Content doesn't exist
-	 * @throws ServiceLayerException    Internal error
-	 */
-	Set<String> getDeleteDependencies(String site, String path)
-		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 }

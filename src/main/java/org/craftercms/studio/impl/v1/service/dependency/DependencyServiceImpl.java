@@ -20,19 +20,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.ItemDAO;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +42,6 @@ public class DependencyServiceImpl implements DependencyService {
 	protected DependencyMapper dependencyMapper;
 	protected StudioConfiguration studioConfiguration;
 	protected ContentService contentService;
-	protected GitContentRepository contentRepository;
-	protected ServicesConfig servicesConfig;
-	protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
-	protected ItemDAO itemDao;
-	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	@Override
 	@RequireSiteExists
@@ -175,92 +163,6 @@ public class DependencyServiceImpl implements DependencyService {
 		return dependencyMapper.getItemsDependingOn(params);
 	}
 
-	@Override
-	@RequireContentExists
-	public Set<String> getDeleteDependencies(@SiteId String site, @ContentPath String path)
-		throws ServiceLayerException {
-		logger.debug("Get delete dependencies for site '{}' path '{}'", site, path);
-		List<String> paths = new ArrayList<>();
-		paths.add(path);
-		Set<String> processedPaths = new HashSet<>();
-		return getDeleteDependenciesInternal(site, paths, processedPaths);
-	}
-
-	private Set<String> getDeleteDependenciesInternal(String site, List<String> paths, Set<String> processedPaths) {
-		// Step 1: collect all content from subtree
-		logger.debug("Get all the children from the subtree in site '{}' paths '{}'", site, paths);
-		Set<String> children = getAllChildrenRecursively(site, paths);
-		Set<String> toRet = new HashSet<>(children);
-
-		// Step 2: collect all dependencies from DB
-		logger.debug("Get the dependencies from the database for all the paths in the subtree(s) and filter them " +
-			"by item specificity and content type in site '{}'", site);
-		Set<String> depsSource = new HashSet<>();
-		depsSource.addAll(paths);
-		depsSource.addAll(children);
-		Set<String> dependencies = getContentTypeFilteredDeleteDependencies(site, depsSource);
-		toRet.addAll(dependencies);
-		List<String> itemSpecificcDeps = getItemSpecificDependenciesFromDB(site, depsSource);
-		toRet.addAll(itemSpecificcDeps);
-
-		// Step 3: recursion
-		logger.debug("Repeat the process for newly collected dependencies that have not been processed yet in site" +
-			"'{}'", site);
-		boolean doItAgain = processedPaths.addAll(children);
-		doItAgain = doItAgain || processedPaths.addAll(dependencies);
-		doItAgain = doItAgain || processedPaths.addAll(itemSpecificcDeps);
-		if (doItAgain) {
-			List<String> pathsToProcess = new ArrayList<>();
-			pathsToProcess.addAll(children);
-			pathsToProcess.addAll(dependencies);
-			toRet.addAll(getDeleteDependenciesInternal(site, pathsToProcess, processedPaths));
-		}
-
-		logger.debug("Return the collected set of dependencies in site '{}'", site);
-		return toRet;
-	}
-
-	private Set<String> getContentTypeFilteredDeleteDependencies(String site, Set<String> paths) {
-		Set<String> toRet = new HashSet<>();
-		List<String> deps = getItemDependenciesFromDB(site, paths);
-		for (String dep : deps) {
-			ContentItemTO item = contentService.getContentItem(site, dep, 0);
-			List<DeleteDependencyConfigTO> deleteDependencyConfigList =
-				servicesConfig.getDeleteDependencyPatterns(site, item.getContentType());
-			if (CollectionUtils.isNotEmpty(deleteDependencyConfigList)) {
-				for (DeleteDependencyConfigTO deleteDependencyConfig : deleteDependencyConfigList) {
-					if (dep.matches(deleteDependencyConfig.getPattern())) {
-						toRet.add(dep);
-						break;
-					}
-				}
-			}
-
-		}
-		return toRet;
-	}
-
-	private Set<String> getAllChildrenRecursively(String site, List<String> paths) {
-		logger.debug("Get all the items from the subtree(s) in site '{}' paths '{}'", site, paths);
-		Set<String> toRet = new HashSet<>();
-
-		for (String path : paths) {
-			logger.debug("Get the children from the repository for site '{}' path '{}'", site, path);
-			Collection<RepositoryItem> children = contentRepository.getContentChildren(site, path);
-			if (children != null) {
-				List<String> childrenPaths = new ArrayList<>();
-				for (RepositoryItem child : children) {
-					String childPath = child.path() + "/" + child.name();
-					childrenPaths.add(childPath);
-				}
-				logger.debug("Add all the collected children paths in site '{}'", site);
-				toRet.addAll(childrenPaths);
-				toRet.addAll(getAllChildrenRecursively(site, childrenPaths));
-			}
-		}
-		return toRet;
-	}
-
 	protected List<String> getItemSpecificDependenciesPatterns() {
 		StringTokenizer st = new StringTokenizer(
 			studioConfiguration.getProperty(CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS), ",");
@@ -279,27 +181,7 @@ public class DependencyServiceImpl implements DependencyService {
 		this.contentService = contentService;
 	}
 
-	public void setContentRepository(GitContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
-	}
-
-	public void setServicesConfig(ServicesConfig servicesConfig) {
-		this.servicesConfig = servicesConfig;
-	}
-
 	public void setDependencyMapper(DependencyMapper dependencyMapper) {
 		this.dependencyMapper = dependencyMapper;
-	}
-
-	public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
-		this.dependencyService = dependencyService;
-	}
-
-	public void setItemDao(ItemDAO itemDao) {
-		this.itemDao = itemDao;
-	}
-
-	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
 }

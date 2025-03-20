@@ -124,7 +124,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 	}
 
 	@Override
-	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
+	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
 		return contentTypeService.getAllContentTypes(siteId, true).stream()
 			.filter(ContentTypeConfigTO::isQuickCreate)
 			.filter(contentType ->

@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -378,8 +379,19 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param folderPath path to the folder
 	 * @return list of children
 	 */
-	Collection<RepositoryItem> getContentChildren(String site, String folderPath);
+	Collection<RepositoryItem> getContentChildren(String site, String folderPath) throws ServiceLayerException;
 
-	String revertContent(String site, String path, String version, boolean major, String comment) throws UserNotFoundException, ServiceLayerException;
+	/**
+	 * Revert content to a previous version
+	 *
+	 * @param site    site id
+	 * @param path    path of the content
+	 * @param version version to revert to
+	 * @param comment comment for the revert operation
+	 * @return commit id of the new version
+	 * @throws UserNotFoundException if the current user is not found
+	 * @throws ServiceLayerException if there is any error while reverting the content
+	 */
+	String revertContent(String site, String path, String version, String comment) throws UserNotFoundException, ServiceLayerException;
 
 }

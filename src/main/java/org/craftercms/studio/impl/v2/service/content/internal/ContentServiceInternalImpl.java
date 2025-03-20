@@ -333,7 +333,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
 	}
 
 	@Override
-	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
+	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
 		return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
 	}
 

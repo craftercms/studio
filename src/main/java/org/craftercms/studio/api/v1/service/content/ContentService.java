@@ -366,8 +366,6 @@ public interface ContentService {
 
 	String getContentTypeClass(String site, String uri);
 
-	GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
-
 	void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
 
 	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;

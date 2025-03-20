@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
@@ -100,7 +101,7 @@ public class PolicyServiceInternalImplTest {
 
 	@BeforeMethod
 	public void setUp() throws IOException,
-		org.apache.commons.configuration2.ex.ConfigurationException, ConfigurationException {
+		org.apache.commons.configuration2.ex.ConfigurationException, ServiceLayerException {
 		initMocks(this);
 
 		var systemValidator = new SystemPolicyValidator(255, 1024);
@@ -142,7 +143,7 @@ public class PolicyServiceInternalImplTest {
 	 * folder
 	 * pic.png (1 kb)
 	 */
-	protected void setUpRepository() {
+	protected void setUpRepository() throws ServiceLayerException {
 		when(contentRepository.getContentChildren(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
 			var item = new RepositoryItem(concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME), PIC_FILENAME, false);
 

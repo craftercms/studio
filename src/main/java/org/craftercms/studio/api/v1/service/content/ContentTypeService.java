@@ -59,9 +59,9 @@ public interface ContentTypeService {
 
 	ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceLayerException;
 
-	List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
+	List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable) throws ServiceLayerException;
 
-	List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath);
+	List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceLayerException;
 
 	boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException, UserNotFoundException;
 

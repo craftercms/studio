@@ -360,7 +360,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public Collection<RepositoryItem> getContentChildren(String site, String path) {
+	public Collection<RepositoryItem> getContentChildren(String site, String path) throws ServiceLayerException {
 		Collection<RepositoryItem> children = localRepository.getContentChildren(site, path);
 		return children.stream()
 			.map(item -> new RepositoryItem(item.path(), getOriginalPath(item.name()), item.isFolder()))
@@ -451,9 +451,9 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public String revertContent(String site, String path, String version, boolean major, String comment)
+	public String revertContent(String site, String path, String version, String comment)
 			throws UserNotFoundException, ServiceLayerException {
-		return localRepository.revertContent(site, path, version, major, comment);
+		return localRepository.revertContent(site, path, version, comment);
 	}
 
 	@Override

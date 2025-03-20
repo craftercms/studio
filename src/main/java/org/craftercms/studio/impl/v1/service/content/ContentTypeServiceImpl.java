@@ -135,7 +135,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	@Override
 	@Valid
 	public List<ContentTypeConfigTO> getAllContentTypes(@ValidateStringParam String site,
-							    boolean searchable) {
+							    boolean searchable) throws ServiceLayerException {
 		return getAllContentTypes(site);
 	}
 
@@ -143,7 +143,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	@Valid
 	public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam String site,
 								       @ValidateSecurePathParam
-								       String relativePath) {
+								       String relativePath) throws ServiceLayerException {
 		String user = securityService.getCurrentUser();
 		Set<NormalizedRole> userRoles = securityService.getUserRoles(site, user);
 		List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
@@ -220,7 +220,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 		}
 	}
 
-	protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
+	protected List<ContentTypeConfigTO> getAllContentTypes(String site) throws ServiceLayerException {
 		String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
 
 		Collection<RepositoryItem> folders = contentRepository.getContentChildren(site, contentTypesRootPath);
@@ -248,7 +248,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	}
 
 	protected void reloadContentTypeConfigForChildren(String site, RepositoryItem node,
-							  List<ContentTypeConfigTO> contentTypes) {
+							  List<ContentTypeConfigTO> contentTypes) throws ServiceLayerException {
 		String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
 		String fullPath = node.path() + FILE_SEPARATOR + node.name();
 		logger.debug("Get Content Type Config from site '{}' for children path '{}'", site, fullPath);

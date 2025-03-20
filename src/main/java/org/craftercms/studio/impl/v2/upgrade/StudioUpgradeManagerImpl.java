@@ -28,6 +28,8 @@ import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -226,7 +228,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> getExistingEnvironments(String site) {
+	public List<String> getExistingEnvironments(String site) throws ServiceLayerException {
 		// TODO: SJ: With fixed publishing targets, is this necessary? Remove in 4.2
 		logger.debug("Look for configured publishing targets in site '{}'", site);
 		List<String> result = new LinkedList<>();
@@ -236,23 +238,24 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 
 		String basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN);
 		String envPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
-
 		Collection<RepositoryItem> modules = contentRepository.getContentChildren(site,
 			replace(basePath, Collections.singletonMap(CONFIG_KEY_MODULE, StringUtils.EMPTY), "{", "}"));
-
 		for (RepositoryItem module : modules) {
 			logger.debug("Look for configured publishing targets for module '{}' in site '{}'", module.name(), site);
 
 			Map<String, String> values = new HashMap<>();
 			values.put(CONFIG_KEY_MODULE, module.name());
 			values.put(CONFIG_KEY_ENVIRONMENT, StringUtils.EMPTY);
+			try {
+				Collection<RepositoryItem> environments =
+					contentRepository.getContentChildren(site, replace(envPath, values, "{", "}"));
 
-			Collection<RepositoryItem> environments =
-				contentRepository.getContentChildren(site, replace(envPath, values, "{", "}"));
-
-			for (RepositoryItem env : environments) {
-				logger.debug("Add publishing target '{}' in site '{}'", env.name(), site);
-				result.add(env.name());
+				for (RepositoryItem env : environments) {
+					logger.debug("Add publishing target '{}' in site '{}'", env.name(), site);
+					result.add(env.name());
+				}
+			} catch (ContentNotFoundException e) {
+				logger.warn("No environments found for module '{}' in site '{}'", module.name(), site);
 			}
 		}
 

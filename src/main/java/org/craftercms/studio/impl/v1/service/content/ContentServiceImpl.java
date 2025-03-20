@@ -1657,7 +1657,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return orders;
 	}
 
-	protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
+	protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) throws ServiceLayerException {
 		// TODO: SJ: Refactor  in 3.1+
 		String contentPath = item.uri;
 
@@ -2025,15 +2025,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	@Override
 	@Valid
-	public boolean revertContentItem(@ValidateStringParam String site,
-					 @ValidateSecurePathParam String path,
-					 @ValidateStringParam() String version, boolean major,
-					 @ValidateStringParam() String comment)
+	public boolean revertContentItem(String site,
+									 @ValidateSecurePathParam String path,
+									 String version, boolean major,
+									 String comment)
 		throws ServiceLayerException, UserNotFoundException {
 		contentServiceV2.lockContent(site, path);
 		try {
 			trySetSystemProcessing(site, path);
-			String commitId = contentRepository.revertContent(site, path, version, major, comment);
+			String commitId = contentRepository.revertContent(site, path, version, comment);
 
 			// TODO: The repository should throw an exception instead of returning a boolean
 			if (isEmpty(commitId)) {
@@ -2303,105 +2303,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 		// if not found the current name is available
 		return levels[length - 1];
-	}
-
-	@Override
-	@Valid
-	public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam String site,
-							  @ValidateSecurePathParam()
-							  String relativePath) throws ServiceLayerException {
-		ContentItemTO contentItem = getContentItem(site, relativePath);
-		GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, itemServiceInternal);
-		if (contentItem != null) {
-			childDeleteItems(site, contentItem, deletedItems);
-			//update summary for all uri's delete
-		}
-		return deletedItems;
-	}
-
-	/**
-	 * Iterate over all paths inside the folder
-	 */
-	protected void childDeleteItems(String site, ContentItemTO contentItem, GoLiveDeleteCandidates items)
-		throws ServiceLayerException {
-		// TODO: SJ: Reconsider to be iterative instead of recursive in 3.1+
-		// TODO: SJ: Reconsider having bulk operations in the underlying repository to speed things up and result
-		// TODO: SJ: in less database writes and repo commits
-
-		if (contentItem.isFolder()) {
-			contentItem = getContentItemTree(site, contentItem.getUri(), 1);
-			if (contentItem.getChildren() != null && contentItem.getNumOfChildren() > 0) {
-				for (ContentItemTO child : contentItem.getChildren()) {
-					childDeleteItems(site, child, items);
-				}
-			}
-		} else {
-			addDependenciesToDelete(site, contentItem.getUri(), items);
-			addRemovedDependenciesToDelete(site, contentItem.getUri(), items);
-		}
-		//add the child path
-		items.getPaths().add(contentItem.getUri());
-	}
-
-	protected void addDependenciesToDelete(String site, String sourceContentPath, GoLiveDeleteCandidates candidates)
-		throws ServiceLayerException {
-		//add dependencies as well
-		Set<String> dependencies = dependencyService.getDeleteDependencies(site, sourceContentPath);
-		for (String dependency : dependencies) {
-			candidates.addDependency(dependency);
-			logger.debug("Add dependency '{}' to delete deps for the item at site '{}' path '{}'",
-				dependency, site, sourceContentPath);
-		}
-	}
-
-	protected void addRemovedDependenciesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates)
-		throws ServiceLayerException {
-		if (relativePath.endsWith(DmConstants.XML_PATTERN) && !itemServiceInternal.isNew(site, relativePath)) {
-			DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath,
-				null, null, site, true);
-			List<String> deleted = getRemovedDependencies(diffRequest, true);
-			logger.debug("Remove dependencies for site '{}' path '{}:{}'", site, relativePath, deleted);
-			for (String dependency : deleted) {
-				candidates.getLiveDependencyItems().add(dependency);
-			}
-		}
-	}
-
-	protected List<String> getRemovedDependencies(DependencyDiffService.DiffRequest diffRequest,
-						      boolean matchDeletePattern) throws ServiceLayerException {
-		DependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
-		List<String> removedDep = diffResponse.getRemovedDependencies();
-		if (matchDeletePattern) {
-			removedDep = filterDependenciesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),
-				diffResponse.getRemovedDependencies());
-		}
-		return removedDep;
-	}
-
-	protected List<String> filterDependenciesMatchingDeletePattern(String site, String sourcePath,
-								       List<String> dependencies) {
-		List<String> matchingDep = new ArrayList<>();
-		if (sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)) {
-			List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site, sourcePath);
-			if (deleteAssociations != null && deleteAssociations.size() > 0) {
-				for (String dependency : dependencies) {
-					for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
-						if (dependency.matches(deleteAssoc.getPattern())) {
-							matchingDep.add(dependency);
-						}
-					}
-				}
-			}
-		}
-		return matchingDep;
-	}
-
-	protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) {
-		List<DeleteDependencyConfigTO> deleteAssociations;
-		ContentItemTO dependencyItem = getContentItem(site, relativePath, 0);
-		String contentType = dependencyItem.getContentType();
-		deleteAssociations = servicesConfig.getDeleteDependencyPatterns(site, contentType);
-		return deleteAssociations;
 	}
 
 	@Override

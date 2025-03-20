@@ -53,17 +53,17 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public List<PluginDescriptor> getAvailableBlueprints() {
+	public List<PluginDescriptor> getAvailableBlueprints() throws ServiceLayerException {
 		return sitesServiceInternal.getAvailableBlueprints();
 	}
 
 	@Override
-	public PluginDescriptor getBlueprintDescriptor(final String id) {
+	public PluginDescriptor getBlueprintDescriptor(final String id) throws ServiceLayerException {
 		return sitesServiceInternal.getBlueprintDescriptor(id);
 	}
 
 	@Override
-	public String getBlueprintLocation(String blueprintId) {
+	public String getBlueprintLocation(String blueprintId) throws ServiceLayerException {
 		return sitesServiceInternal.getBlueprintLocation(blueprintId);
 	}
 
