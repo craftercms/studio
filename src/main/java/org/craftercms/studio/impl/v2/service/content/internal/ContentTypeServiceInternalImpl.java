@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
@@ -39,6 +38,7 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
@@ -128,7 +128,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 		return contentTypeService.getAllContentTypes(siteId, true).stream()
 			.filter(ContentTypeConfigTO::isQuickCreate)
 			.filter(contentType ->
-				securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), securityService.getCurrentUser())
+				securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUser())
 					.contains(PERMISSION_CONTENT_CREATE))
 			.map(contentType -> {
 				QuickCreateItem item = new QuickCreateItem();

@@ -515,10 +515,8 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		return toRet;
 	}
 
-	/**
-	 * Get the global roles for a user
-	 */
-	private Collection<NormalizedRole> getUserGlobalRoles(String username)
+	@Override
+	public Collection<NormalizedRole> getUserGlobalRoles(String username)
 		throws ServiceLayerException, UserNotFoundException {
 		List<Group> groups = getUserGroups(-1, username);
 

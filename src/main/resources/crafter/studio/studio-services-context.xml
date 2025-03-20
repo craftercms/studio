@@ -63,18 +63,15 @@
 		<property name="contentProcessor" ref="cstudioProcessContentExecutor"/>
 		<property name="dependencyService" ref="studioDependencyService"/>
 		<property name="dependencyServiceV2" ref="dependencyServiceInternal"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
 		<property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
 		<property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
 		<property name="siteService" ref="sitesService"/>
 		<property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="dependencyDiffService" ref="cstudioDependencyDiffService"/>
 		<property name="contentTypeService" ref="cstudioContentTypeService"/>
 		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
 		<property name="auditServiceInternal" ref="auditServiceInternal"/>
 		<property name="itemServiceInternal" ref="itemServiceInternal"/>
-		<property name="workflowServiceInternal" ref="studio.workflowServiceInternal"/>
 		<property name="userServiceInternal" ref="userServiceInternal"/>
 		<property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
 		<property name="contentServiceV2" ref="contentServiceInternal"/>
@@ -134,10 +131,6 @@
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationService" ref="configurationService"/>
 		<property name="configurationCache" ref="configurationCache"/>
-	</bean>
-
-	<bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
-		<property name="dependencyService" ref="studioDependencyService"/>
 	</bean>
 
 	<bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
@@ -331,7 +324,6 @@
 		<property name="siteService" ref="cstudioSiteServiceSimple"/>
 		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="auditServiceInternal" ref="auditServiceInternal"/>
 		<property name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
@@ -420,7 +412,6 @@
 		<constructor-arg name="repositoryManagementServiceInternal" ref="repositoryManagementServiceInternal"/>
 		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
 		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
 	</bean>
 
 	<bean id="repositoryManagementServiceInternal"

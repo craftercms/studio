@@ -57,7 +57,7 @@ public class SecurityServiceImpl implements SecurityService {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) {
+	public List<String> getUserPermission(String siteId, String username, Collection<NormalizedRole> roles) {
 		String key = siteId + ":" + CACHE_KEY + username;
 		List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
 		if (isEmpty(permissions)) {
@@ -68,7 +68,7 @@ public class SecurityServiceImpl implements SecurityService {
 		return permissions;
 	}
 
-	private List<String> loadUserPermission(String siteId, List<NormalizedRole> roles) {
+	private List<String> loadUserPermission(String siteId, Collection<NormalizedRole> roles) {
 		Set<String> permissions;
 		String configPath;
 		List<String> toRet = new ArrayList<>();
@@ -88,7 +88,7 @@ public class SecurityServiceImpl implements SecurityService {
 		return toRet;
 	}
 
-	private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<NormalizedRole> roles) {
+	private Set<String> getPermissionsFromConfig(String siteId, String configPath, Collection<NormalizedRole> roles) {
 		Document document = null;
 		Set<String> permissions = new HashSet<>();
 		try {

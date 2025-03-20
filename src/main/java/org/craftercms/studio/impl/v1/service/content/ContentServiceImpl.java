@@ -41,9 +41,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
-import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.annotation.policy.*;
@@ -65,7 +63,6 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -73,6 +70,7 @@ import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
@@ -139,18 +137,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected DependencyService dependencyService;
 	protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2;
 	protected ProcessContentExecutor contentProcessor;
-	protected SecurityService securityService;
 	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected DmContentLifeCycleService dmContentLifeCycleService;
 	protected SitesService siteService;
 	protected ContentItemIdGenerator contentItemIdGenerator;
 	protected StudioConfiguration studioConfiguration;
-	protected DependencyDiffService dependencyDiffService;
 	protected ContentTypeService contentTypeService;
 	protected EntitlementValidator entitlementValidator;
 	protected AuditServiceInternal auditServiceInternal;
 	protected ItemServiceInternal itemServiceInternal;
-	protected WorkflowService workflowServiceInternal;
 	protected UserServiceInternal userServiceInternal;
 	protected ApplicationContext applicationContext;
 	protected ActivityStreamServiceInternal activityStreamServiceInternal;
@@ -682,7 +677,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Override
 	@Valid
 	public void notifyContentEvent(@ValidateStringParam String site, @ValidateSecurePathParam String path) {
-		applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+		applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, path));
 	}
 
 	@Override
@@ -712,10 +707,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		if (isNull(parentItem)) {
 			parentItem = createMissingParentItem(site, path, commitId);
 		}
-		itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
+		itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, SecurityUtils.getCurrentUser(),
 			commitId, parentItem.getId());
 
-		String username = securityService.getCurrentUser();
+		String username = SecurityUtils.getCurrentUser();
 		Site siteFeed = siteService.getSite(site);
 		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
 		auditLog.setOperation(OPERATION_CREATE);
@@ -728,7 +723,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		auditLog.setPrimaryTargetValue(folderPath);
 		auditServiceInternal.insertAuditLog(auditLog);
 		applicationContext.publishEvent(new SyncFromRepoEvent(site));
-		applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
+		applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, folderPath));
 
 		return true;
 	}
@@ -742,7 +737,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			createMissingParentItem(site, ancestorPath, commitId);
 			ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
 		}
-		itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, securityService.getCurrentUser(),
+		itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, SecurityUtils.getCurrentUser(),
 			commitId, ancestor.getId());
 		return itemServiceInternal.getItem(site, parentPath, true);
 	}
@@ -766,7 +761,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		String retNewFileName = null;
 
 		String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
-		String user = securityService.getCurrentUser();
+		String user = SecurityUtils.getCurrentUser();
 		String copyPath = null;
 
 		try {
@@ -893,7 +888,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				retNewFileName = copyPath;
 			}
 
-			applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
+			applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, toPath));
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.info("Failed to copy content in site '{}' from '{}' to '{}', new name is '{}'",
 				site, fromPath, toPath, copyPath, e);
@@ -1015,7 +1010,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				movePath = fromPath;
 			}
 
-			applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), siteId, fromPath, movePath));
+			applicationContext.publishEvent(new MoveContentEvent(SecurityUtils.getAuthentication(), siteId, fromPath, movePath));
 		} catch (ServiceLayerException e) {
 			logger.error("Failed to move item. Content not found while moving content in siteId '{}' from '{}' to '{}'," +
 					" new name is '{}'",
@@ -1040,7 +1035,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		throws ServiceLayerException, UserNotFoundException {
 		logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
-		String user = securityService.getCurrentUser();
+		String user = SecurityUtils.getCurrentUser();
 
 		Map<String, String> params = new HashMap<>();
 		params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
@@ -2047,7 +2042,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 					"site '{}' path '{}' version '{}'", site, path, version);
 			}
 
-			String username = securityService.getCurrentUser();
+			String username = SecurityUtils.getCurrentUser();
 			// Update the database for the target item
 			itemServiceInternal.persistItemAfterWrite(site, path, username, true);
 
@@ -2068,7 +2063,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			Item item = itemServiceInternal.getItem(site, path);
 			activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
 				DateUtils.getCurrentTime(), item, null);
-			applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+			applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, path));
 
 			return true;
 		} finally {
@@ -2313,8 +2308,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		// TODO: SJ: Where is the object state update to indicate item is now locked?
 		// TODO: SJ: Dejan to look into this
 		contentRepository.lockItem(site, path);
-		itemServiceInternal.lockItemByPath(site, path, securityService.getCurrentUser());
-		applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, true));
+		itemServiceInternal.lockItemByPath(site, path, SecurityUtils.getCurrentUser());
+		applicationContext.publishEvent(new LockContentEvent(SecurityUtils.getAuthentication(), site, path, true));
 	}
 
 	@Override
@@ -2498,13 +2493,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
 			itemServiceInternal.persistItemAfterRenameContent(siteId, targetPath, name,
-				securityService.getCurrentUser(), commitId, contentType);
+				SecurityUtils.getCurrentUser(), commitId, contentType);
 
 			if (isFolder) {
 				updateChildrenOnMove(siteId, path, targetPath, commitId);
 			}
 			applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
-			applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), siteId, path, targetPath));
+			applicationContext.publishEvent(new MoveContentEvent(SecurityUtils.getAuthentication(), siteId, path, targetPath));
 			toRet = true;
 
 		} else {
@@ -2534,10 +2529,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.contentProcessor = contentProcessor;
 	}
 
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
 	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
 		this.dmPageNavigationOrderService = dmPageNavigationOrderService;
 	}
@@ -2556,10 +2547,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
-	}
-
-	public void setDependencyDiffService(DependencyDiffService dependencyDiffService) {
-		this.dependencyDiffService = dependencyDiffService;
 	}
 
 	public void setContentTypeService(ContentTypeService contentTypeService) {
@@ -2582,10 +2569,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.itemServiceInternal = itemServiceInternal;
 	}
 
-	public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
-		this.workflowServiceInternal = workflowServiceInternal;
-	}
-
 	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
 		this.userServiceInternal = userServiceInternal;
 	}
@@ -2605,7 +2588,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	/**
 	 * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
 	 */
-	protected class PastedPathMap {
+	protected static class PastedPathMap {
 		protected String filePath;
 		protected String fileName;
 		protected String fileFolder;

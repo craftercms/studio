@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
@@ -49,6 +48,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.rest.UserResponse;
@@ -85,7 +85,6 @@ public class UserServiceImpl implements UserService {
 	private SiteService siteService;
 	private EntitlementValidator entitlementValidator;
 	private GeneralLockService generalLockService;
-	private SecurityService securityService;
 	private StudioConfiguration studioConfiguration;
 	private AuditServiceInternal auditServiceInternal;
 	private AccessTokenServiceInternal accessTokenServiceInternal;
@@ -303,7 +302,7 @@ public class UserServiceImpl implements UserService {
 		List<Site> sites = new ArrayList<>();
 		Set<String> allSites = siteService.getAllAvailableSites();
 		List<Group> userGroups = userServiceInternal.getUserGroups(userId, username);
-		boolean isSysAdmin = securityService.isSystemAdmin(username);
+		boolean isSysAdmin = securityServiceV2.isSystemAdmin(username);
 
 		// Iterate all sites. If the user has any of the site groups, it has access to the site
 		for (String siteId : allSites) {
@@ -348,7 +347,7 @@ public class UserServiceImpl implements UserService {
 			return Collections.emptyList();
 		}
 
-		if (securityService.isSystemAdmin(username)) {
+		if (securityServiceV2.isSystemAdmin(username)) {
 			// If system_admin, return all roles
 			Collection<List<NormalizedRole>> roleSets = roleMappings.values();
 			for (List<NormalizedRole> roleSet : roleSets) {
@@ -373,7 +372,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
-		var authentication = securityService.getAuthentication();
+		var authentication = SecurityUtils.getAuthentication();
 		if (authentication != null) {
 			try {
 				return getUserSites(-1, authentication.getName());
@@ -388,7 +387,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException {
-		var authentication = securityService.getAuthentication();
+		var authentication = SecurityUtils.getAuthentication();
 		if (authentication != null) {
 			try {
 				return getUserSiteRoles(-1, authentication.getName(), site)
@@ -574,7 +573,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public List<String> getCurrentUserSitePermissions(String site)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
-		String currentUser = securityService.getCurrentUser();
+		String currentUser = SecurityUtils.getCurrentUser();
 		List<NormalizedRole> roles = getUserSiteRoles(-1, currentUser, site);
 		return securityServiceV2.getUserPermission(site, currentUser, roles);
 	}
@@ -590,8 +589,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
-		String currentUser = securityService.getCurrentUser();
-		List<NormalizedRole> roles = securityService.getUserGlobalRoles(-1, currentUser);
+		String currentUser = SecurityUtils.getCurrentUser();
+		Collection<NormalizedRole> roles = userServiceInternal.getUserGlobalRoles(currentUser);
 		return securityServiceV2.getUserPermission(StringUtils.EMPTY, currentUser, roles);
 	}
 
@@ -641,10 +640,6 @@ public class UserServiceImpl implements UserService {
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
