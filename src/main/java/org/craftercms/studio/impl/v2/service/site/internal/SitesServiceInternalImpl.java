@@ -176,7 +176,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	protected Path getBlueprintPath(RepositoryItem folder) {
 		return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-			studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), folder.path(), folder.name(),
+			studioConfiguration.getProperty(GLOBAL_REPO_PATH), folder.path(), folder.name(),
 			studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
 	}
 

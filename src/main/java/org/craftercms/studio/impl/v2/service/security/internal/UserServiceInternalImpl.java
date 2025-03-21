@@ -521,7 +521,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		List<Group> groups = getUserGroups(-1, username);
 
 		if (CollectionUtils.isEmpty(groups)) {
-			return Collections.emptyList();
+			return emptyList();
 		}
 
 		Map<NormalizedGroup, List<NormalizedRole>> roleMappings = configurationService.getGlobalRoleMappings();

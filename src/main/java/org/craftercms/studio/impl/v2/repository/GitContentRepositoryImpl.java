@@ -840,7 +840,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				}
 				String commitMsg = helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
 					.replaceAll(PATTERN_PATH, StringUtils.join(paths));
-				PersonIdent user = StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() :
+				PersonIdent user = isEmpty(approver) ? helper.getCurrentUserIdent() :
 					helper.getAuthorIdent(approver);
 
 				// TODO: SJ: we need to define messages in a string table of sorts
@@ -862,7 +862,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 			boolean result = paths.stream()
 					.allMatch(path -> addEmptyFile(repo, siteId, path));
 			if (result) {
@@ -1509,7 +1509,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	private TreeWalk getTreeWalkForPath(Repository repo, String path) throws IOException {
 		RevTree tree = helper.getTreeForLastCommit(repo);
 		String gitPath = helper.getGitPath(path);
-		if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+		if (isEmpty(gitPath) || gitPath.equals(".")) {
 			TreeWalk tw = new TreeWalk(repo);
 			tw.addTree(tree);
 			return tw;
@@ -1522,7 +1522,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	public Collection<RepositoryItem> getContentChildren(final String site, final String path) throws ServiceLayerException {
 		final List<RepositoryItem> retItems = new ArrayList<>();
 		try {
-			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 			try (TreeWalk tw = getTreeWalkForPath(repo, path)) {
 				if (tw == null) {
 					throw new ContentNotFoundException(path, site, format("Content not found at site '%s' path '%s'", site, path));
@@ -1562,7 +1562,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 
 			// Create basic file
 			File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
@@ -1625,7 +1625,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	public String moveContent(String siteId, String fromPath, String toPath) throws ServiceLayerException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
-		Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 
 		String gitFromPath = helper.getGitPath(fromPath);
 		String gitToPath = helper.getGitPath(toPath);
@@ -1669,7 +1669,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 			helper.restoreVersion(repo, siteId, helper.getGitPath(path), version);
 			commitId = helper.commitFiles(repo, siteId, comment, helper.getCurrentUserIdent(), path);
 			if (commitId != null) {
@@ -1687,7 +1687,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 */
 	private InputStream getContent(String site, String path, String gitVersion) throws ContentNotFoundException {
 		try {
-			Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 			if (repo == null) {
 				throw new ContentNotFoundException(format("Repository not found for site '%s'", site));
 			}
@@ -1719,7 +1719,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 			if (repo == null) {
 				logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
 				throw new ServiceLayerException(format("Missing repository during write for site '%s' path '%s'", siteId, path));
