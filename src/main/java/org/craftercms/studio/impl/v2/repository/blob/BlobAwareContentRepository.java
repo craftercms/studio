@@ -38,13 +38,14 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
-import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
@@ -70,7 +71,6 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -578,7 +578,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public InitialPublishChangeSet initialPublish(final PublishPackage publishPackage, final String target) throws ServiceLayerException {
+	public GitPublishChangeSet<? extends PublishItemTO> initialPublish(final PublishPackage publishPackage, final String target) throws ServiceLayerException {
 		String siteId = publishPackage.getSite().getSiteId();
 		long packageId = publishPackage.getId();
 		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
@@ -589,8 +589,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		Collection<BlobAwareInitialPublishItemTO> failedItems = initialPublishBlobs(publishPackage, taskProgress, target, pathsByBlobStore);
 		List<String> ignoredRepoPaths = failedItems.stream().map(BlobAwareInitialPublishItemTO::getRepoPath).toList();
 		String commitId = localRepository.initialPublish(publishPackage, ignoredRepoPaths, target);
-		return new InitialPublishChangeSet(commitId, failedItems.stream()
-			.collect(toMap(BlobAwareInitialPublishItemTO::getPath, BlobAwareInitialPublishItemTO::getError)));
+		return new GitPublishChangeSet<>(commitId, emptyList(), failedItems.stream().toList());
 	}
 
 	/**

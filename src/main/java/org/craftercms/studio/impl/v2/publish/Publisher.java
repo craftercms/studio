@@ -32,9 +32,9 @@ import org.craftercms.studio.api.v2.event.publish.PublishErrorEvent;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
-import org.craftercms.studio.api.v2.repository.PublishCapableRepository.InitialPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.task.TaskManager;
@@ -478,16 +478,16 @@ public class Publisher implements ApplicationEventPublisherAware {
 					    final boolean isLiveTarget)
 		throws ServiceLayerException {
 		PublishPackage publishPackage = packageTO.getPackage();
-		InitialPublishChangeSet initialPublishResult = contentRepository.initialPublish(publishPackage, target);
+		GitPublishChangeSet<? extends PublishItemTO> initialPublishResult = contentRepository.initialPublish(publishPackage, target);
 
 		long packageOnBits = packageTO.getSuccessOnBits();
 		if (initialPublishResult.hasFailedItems()) {
-			initialPublishResult.failedItems().forEach((path, error) -> {
-					PublishItem publishItem = failedItems.computeIfAbsent(path, p -> getInitialPublishItem(packageTO.getId(), p));
-					PublishItemTOImpl itemTO = new PublishItemTOImpl(publishItem, path, PublishItem.Action.ADD, isLiveTarget);
-					itemTO.setFailed(error);
-				}
-			);
+			initialPublishResult.failedItems().forEach(publishItemTO -> {
+				String path = publishItemTO.getPath();
+				PublishItem publishItem = failedItems.computeIfAbsent(path, p -> getInitialPublishItem(packageTO.getId(), p));
+				PublishItemTOImpl itemTO = new PublishItemTOImpl(publishItem, path, PublishItem.Action.ADD, isLiveTarget);
+				itemTO.setFailed(publishItemTO.getError());
+			});
 			packageOnBits = packageTO.getCompletedWithErrorsOnBits();
 		}
 		packageTO.setPublishedCommitId(initialPublishResult.commitId());

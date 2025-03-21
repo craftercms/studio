@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;

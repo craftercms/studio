@@ -42,10 +42,8 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
-import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
-import org.craftercms.studio.api.v2.repository.PublishItemTO;
-import org.craftercms.studio.api.v2.repository.RepositoryItem;
-import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.repository.*;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
@@ -109,7 +107,7 @@ import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
 /**
  * Implementation of the GitContentRepositoryImpl interface.
  */
-public class GitContentRepositoryImpl implements GitPublishCapableRepository {
+public class GitContentRepositoryImpl implements GitContentRepository, GitPublishCapableRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryImpl.class);
 	private static final String REFS_HEADS_FORMAT = "refs/heads/%s";
@@ -1200,7 +1198,7 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 
 	@Override
 	public <T extends PublishItemTO> GitPublishChangeSet<T> publishAll(final PublishPackage publishPackage,
-									   final String publishingTarget)
+																	   final String publishingTarget)
 		throws ServiceLayerException, IOException {
 		String siteId = publishPackage.getSite().getSiteId();
 		logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
