@@ -30,7 +30,6 @@ import org.springframework.context.event.EventListener;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 
 /**
@@ -61,7 +60,6 @@ public class RepositoryStartupCleanup {
 		siteService.getAllAvailableSites().forEach(siteId -> {
 			logger.debug("Unlock git lock for site '{}'", siteId);
 			String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
-			String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
 
 			generalLockService.lock(gitLockKeySandbox);
 			try {
@@ -69,14 +67,6 @@ public class RepositoryStartupCleanup {
 				removeIndexIfCorrupted(siteId, SANDBOX);
 			} finally {
 				generalLockService.unlock(gitLockKeySandbox);
-			}
-
-			generalLockService.lock(gitLockKeyPublished);
-			try {
-				unlockRepository(siteId, PUBLISHED);
-				removeIndexIfCorrupted(siteId, PUBLISHED);
-			} finally {
-				generalLockService.unlock(gitLockKeyPublished);
 			}
 		});
 	}
