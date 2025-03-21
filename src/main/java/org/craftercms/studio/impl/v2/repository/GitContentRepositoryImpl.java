@@ -195,138 +195,97 @@ public class GitContentRepositoryImpl implements GitPublishCapableRepository {
 		return retItems;
 	}
 
-	@Override
-	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-		List<RepoOperation> operations = new ArrayList<>();
-		Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
-		if (repository != null) {
-			try {
-				// Get the sandbox repo, and then get a reference to the commitId we received and another for head
-//				boolean fromEmptyRepo = isEmpty(commitIdFrom);
-//				String firstCommitId = getRepoFirstCommitId(site);
-//				if (fromEmptyRepo) {
-//					commitIdFrom = firstCommitId;
-//				}
-				Repository repo = helper.getRepository(site, SANDBOX);
-				ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-				ObjectId objCommitIdTo = repo.resolve(commitIdTo);
-
-				if (Objects.nonNull(objCommitIdFrom) && Objects.nonNull(objCommitIdTo)) {
-//					ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-
-					try (Git git = new Git(repo)) {
-
-//						if (fromEmptyRepo) {
-//							try (RevWalk walk = new RevWalk(repo)) {
-//								RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-//								try (ObjectReader reader = repo.newObjectReader()) {
-//									CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-//									firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-//									// Diff the two commit Ids
-//									long startDiffMark1 = logger.isDebugEnabled() ?
-//										System.currentTimeMillis() : 0;
-//									DiffCommand diffCommand = git.diff()
-//										.setOldTree(firstCommitTreeParser)
-//										.setNewTree(null);
-//									List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-//
-//									if (logger.isDebugEnabled()) {
-//										logger.debug("Git diff from '{}' to null finished in '{}' seconds",
-//											objFirstCommitId.getName(),
-//											((System.currentTimeMillis() - startDiffMark1) / 1000));
-//										logger.debug("Number of diff entries '{}'", diffEntries.size());
-//									}
-//
-//									// Now that we have a diff, let's itemize the file changes, pack them into a TO
-//									// and add them to the list of RepoOperations to return to the caller
-//									// also include date/time of commit by taking number of seconds and multiply by 1000 and
-//									// convert to java date before sending over
-//									operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
-//								}
-//							}
-//						}
-
-						// If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-						// let's do it
-						if (!objCommitIdFrom.equals(objCommitIdTo)) {
-							// Compare HEAD with commitId we're given
-							// Get list of commits between commitId and HEAD in chronological order
-
-							RevTree fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
-							RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
-							if (fromTree != null && toTree != null) {
-								try (ObjectReader reader = repo.newObjectReader()) {
-									CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
-									CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
-									fromCommitTreeParser.reset(reader, fromTree.getId());
-									toCommitTreeParser.reset(reader, toTree.getId());
-
-									// Diff the two commit Ids
-									long startDiffMark2 = logger.isDebugEnabled() ?
-										System.currentTimeMillis() : 0;
-									DiffCommand diffCommand = git.diff()
-										.setOldTree(fromCommitTreeParser)
-										.setNewTree(toCommitTreeParser);
-									List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-
-									if (logger.isDebugEnabled()) {
-										logger.debug("Git diff from '{}' to '{}' finished in '{}' seconds",
-											objCommitIdFrom.getName(),
-											objCommitIdTo.getName(),
-											((System.currentTimeMillis() - startDiffMark2) / 1000));
-										logger.debug("Number of diff entries '{}'", diffEntries.size());
-									}
-
-									if (isEmpty(diffEntries)) {
-										ObjectId objCommitIdPrevious = repo.resolve(commitIdTo + "~");
-										if (Objects.nonNull(objCommitIdPrevious)) {
-											RevTree previousTree = helper.getTreeForCommit(repo,
-												objCommitIdPrevious.getName());
-											CanonicalTreeParser previousCommitTreeParser = new CanonicalTreeParser();
-											previousCommitTreeParser.reset(reader, previousTree.getId());
-											toCommitTreeParser.reset(reader, toTree.getId());
-											diffCommand = git.diff()
-												.setOldTree(previousCommitTreeParser)
-												.setNewTree(toCommitTreeParser);
-											diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-											if (logger.isDebugEnabled()) {
-												logger.debug("Git diff from '{}' to '{}' finished in '{}' seconds",
-													objCommitIdPrevious.getName(),
-													objCommitIdTo.getName(),
-													((System.currentTimeMillis() - startDiffMark2) / 1000));
-												logger.debug("Number of diff entries '{}'", diffEntries.size());
-											}
-										}
-									}
-
-									if (logger.isDebugEnabled()) {
-										logger.debug("Git diff from '{}' to '{}' finished in '{}' seconds",
-											objCommitIdFrom.getName(),
-											objCommitIdTo.getName(),
-											((System.currentTimeMillis() - startDiffMark2) / 1000));
-										logger.debug("Number of diff entries '{}'", diffEntries.size());
-									}
-
-									// Now that we have a diff, let's itemize the file changes, pack them into a TO
-									// and add them to the list of RepoOperations to return to the caller
-									// also include date/time of commit by taking number of seconds and multiply by 1000 and
-									// convert to java date before sending over
-									operations.addAll(
-										processDiffEntry(git, diffEntries, objCommitIdTo));
-								}
-							}
-
-
-						}
-					}
+	/**
+	 * Diff two repository trees and return a list of RepoOperations.
+	 * toTree is required, fromTree is optional. If fromTree is null, the diff will be calculated
+	 * from an empty tree.
+	 */
+	private List<RepoOperation> diffTrees(final Repository repo, final RevTree fromTree, RevTree toTree, ObjectId toCommitId)
+		throws IOException, GitAPIException {
+		long startDiffMark = logger.isDebugEnabled() ?
+			System.currentTimeMillis() : 0;
+		List<RepoOperation> result;
+		try (Git git = new Git(repo)) {
+			try (ObjectReader reader = repo.newObjectReader()) {
+				CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
+				toCommitTreeParser.reset(reader, toTree.getId());
+				CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
+				if (fromTree != null) {
+					fromCommitTreeParser.reset(reader, fromTree.getId());
 				}
-			} catch (IOException | GitAPIException e) {
-				logger.error("Failed to get operations in site '{}' from commit ID '{}' to commit ID '{}'",
-					site, commitIdFrom, commitIdTo, e);
+
+				// Diff the two commit Ids
+				DiffCommand diffCommand = git.diff()
+					.setOldTree(fromCommitTreeParser)
+					.setNewTree(toCommitTreeParser);
+				List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+
+				if (logger.isDebugEnabled()) {
+					logger.debug("Git diff from '{}' to '{}' finished in '{}' seconds",
+						fromTree.getName(),
+						toTree.getName(),
+						((System.currentTimeMillis() - startDiffMark) / 1000));
+					logger.debug("Number of diff entries '{}'", diffEntries.size());
+				}
+
+				// Now that we have a diff, let's itemize the file changes, pack them into a TO
+				// and add them to the list of RepoOperations to return to the caller
+				// also include date/time of commit by taking number of seconds and multiply by 1000 and
+				// convert to java date before sending over
+				result = processDiffEntry(git, diffEntries, toCommitId);
 			}
 		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Git diff from '{}' to '{}' finished in '{}' seconds",
+				fromTree.getName(),
+				toTree.getName(),
+				((System.currentTimeMillis() - startDiffMark) / 1000));
+			logger.debug("Number of diff entries '{}'", result.size());
+		}
+		return result;
+	}
 
-		return operations;
+	@Override
+	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) throws ServiceLayerException {
+		Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
+		if (repository == null) {
+			return emptyList();
+		}
+		try {
+			// Get the sandbox repo, and then get a reference to the commit ids we are going to compare
+			Repository repo = helper.getRepository(site, SANDBOX);
+			ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
+			ObjectId objCommitIdTo = repo.resolve(commitIdTo);
+
+			if (Objects.isNull(objCommitIdTo)) {
+				throw new ServiceLayerException(format("Failed to get operations in site '%s' from commit ID '%s' to invalid commit ID '%s'", site, commitIdFrom, commitIdTo));
+			}
+			// If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
+			// let's do it
+			if (objCommitIdTo.equals(objCommitIdFrom)) {
+				return emptyList();
+			}
+
+			RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
+			if (toTree == null) {
+				logger.warn("Failed to retrieve operations between commits. Unable to get tree for commit ID '{}'", objCommitIdTo);
+				throw new ServiceLayerException("Failed to retrieve operations between commits. Unable to get tree for commit ID '" + commitIdFrom + "' or '" + commitIdTo + "'");
+			}
+
+			RevTree fromTree = null;
+			if (objCommitIdFrom != null) {
+				fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
+				if (fromTree == null) {
+					logger.warn("Failed to retrieve operations between commits. Unable to get tree for commit ID '{}'", commitIdFrom);
+					throw new ServiceLayerException("Failed to retrieve operations between commits. Unable to get tree for commit ID '" + commitIdFrom + "' or '" + commitIdTo + "'");
+				}
+			}
+			return diffTrees(repo, fromTree, toTree, objCommitIdTo);
+		} catch (IOException | GitAPIException e) {
+			logger.error("Failed to get operations in site '{}' from commit ID '{}' to commit ID '{}'",
+				site, commitIdFrom, commitIdTo, e);
+			throw new ServiceLayerException(format("Failed to get operations in site '%s' from commit ID '%s' to commit ID '%s'", site, commitIdFrom, commitIdTo), e);
+		}
 	}
 
 	private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)

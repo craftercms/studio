@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -70,7 +69,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitIdTo   commit ID to end at
 	 * @return list of operations
 	 */
-	List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo);
+	List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) throws ServiceLayerException;
 
 	/**
 	 * Get a list of operations between given commit and its first parent
@@ -79,7 +78,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitId commit id
 	 * @return list of operations
 	 */
-	default List<RepoOperation> getOperationsFromFirstParentDiff(final String site, final String commitId) {
+	default List<RepoOperation> getOperationsFromFirstParentDiff(final String site, final String commitId) throws ServiceLayerException {
 		return getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 	}
 

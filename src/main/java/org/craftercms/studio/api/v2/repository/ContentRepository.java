@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -86,9 +86,38 @@ public interface ContentRepository {
 	 */
 	InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
 
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path to create the folder
+	 * @param name the name of the folder
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
 	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 
+	/**
+	 * Move content (files or directories) from one path to another
+	 *
+	 * @param site     the site id
+	 * @param fromPath the path to move the content from
+	 * @param toPath   the path to move the content to
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 */
 	String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
+	/**
+	 * Write a content item into the repository
+	 *
+	 * @param site    the site id
+	 * @param path    the path to write the content
+	 * @param content the content to write
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
 	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 }

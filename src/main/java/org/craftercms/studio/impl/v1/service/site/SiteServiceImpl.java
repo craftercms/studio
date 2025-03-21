@@ -866,65 +866,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}).collect(Collectors.toList());
 	}
 
-//	@Override
-//	public boolean addRemote(String siteId, String remoteName, String remoteUrl,
-//				 String authenticationType, String remoteUsername, String remotePassword,
-//				 String remoteToken, String remotePrivateKey)
-//		throws InvalidRemoteUrlException, ServiceLayerException {
-//		if (!exists(siteId)) {
-//			throw new SiteNotFoundException();
-//		}
-//		boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-//			remotePassword, remoteToken, remotePrivateKey);
-//		insertAddRemoteAuditLog(siteId, remoteName);
-//		return toRet;
-//	}
-
-//	private void insertAddRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
-//		SiteFeed siteFeed = getSite(siteId);
-//		String user = securityService.getCurrentUser();
-//		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-//		auditLog.setOperation(OPERATION_ADD_REMOTE);
-//		auditLog.setSiteId(siteFeed.getId());
-//		auditLog.setActorId(user);
-//		auditLog.setPrimaryTargetId(remoteName);
-//		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-//		auditLog.setPrimaryTargetValue(remoteName);
-//		auditServiceInternal.insertAuditLog(auditLog);
-//	}
-
-//	@Override
-//	public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
-//		if (!exists(siteId)) {
-//			throw new SiteNotFoundException();
-//		}
-//		boolean toRet = contentRepository.removeRemote(siteId, remoteName);
-//		insertRemoveRemoteAuditLog(siteId, remoteName);
-//		return toRet;
-//	}
-//
-//	private void insertRemoveRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
-//		SiteFeed siteFeed = getSite(siteId);
-//		String user = securityService.getCurrentUser();
-//		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-//		auditLog.setOperation(OPERATION_REMOVE_REMOTE);
-//		auditLog.setActorId(user);
-//		auditLog.setSiteId(siteFeed.getId());
-//		auditLog.setPrimaryTargetId(remoteName);
-//		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-//		auditLog.setPrimaryTargetValue(remoteName);
-//		auditServiceInternal.insertAuditLog(auditLog);
-//	}
-
-//	@Override
-//	public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException {
-//		if (!exists(siteId)) {
-//			throw new SiteNotFoundException();
-//		}
-//		SiteFeed siteFeed = getSite(siteId);
-//		return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
-//	}
-
 	@Override
 	public List<SiteFeed> getDeletedSites() {
 		return siteFeedMapper.getDeletedSites();

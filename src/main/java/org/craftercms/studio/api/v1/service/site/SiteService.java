@@ -205,46 +205,6 @@ public interface SiteService {
 	 * @throws ServiceLayerException if an error occurs while retrieving the site details
 	 */
 	SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
-//
-//	/**
-//	 * Add remote repository for site content repository
-//	 *
-//	 * @param siteId             site identifier
-//	 * @param remoteName         remote name
-//	 * @param remoteUrl          remote url
-//	 * @param authenticationType authentication type
-//	 * @param remoteUsername     remote username
-//	 * @param remotePassword     remote password
-//	 * @param remoteToken        remote token
-//	 * @param remotePrivateKey   remote private key
-//	 * @return true if operation was successful
-//	 * @throws InvalidRemoteUrlException invalid remote url
-//	 * @throws ServiceLayerException     general service error
-//	 */
-//	boolean addRemote(String siteId, String remoteName, String remoteUrl,
-//			  String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
-//			  String remotePrivateKey)
-//		throws InvalidRemoteUrlException, ServiceLayerException;
-//
-//	/**
-//	 * Remove remote with given name for site
-//	 *
-//	 * @param siteId     site identifier
-//	 * @param remoteName remote name
-//	 * @return true if operation was successful
-//	 * @throws SiteNotFoundException site not found
-//	 */
-//	boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
-
-//	/**
-//	 * List remote repositories for given site
-//	 *
-//	 * @param siteId site identifier
-//	 * @return list of names of remote repositories
-//	 * @throws SiteNotFoundException site not found
-//	 * @throws CryptoException       git repository helper error
-//	 */
-//	List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException;
 
 	/**
 	 * Get deleted sites

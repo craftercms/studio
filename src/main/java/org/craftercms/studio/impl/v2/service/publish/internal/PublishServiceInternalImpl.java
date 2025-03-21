@@ -168,22 +168,26 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Site site = siteService.getSite(siteId);
 		Set<String> corePackagePaths = expandPublishRequestPaths(site, publishingTarget, publishRequestPaths);
 
-		Map<Boolean, List<String>> commitOperations = contentRepository.validatePublishCommits(site.getSiteId(), commitIds).stream()
-			.map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
-			.flatMap(List::stream)
+		SequencedCollection<String> sortedCommits = contentRepository.validatePublishCommits(site.getSiteId(), commitIds);
+		List<RepoOperation> commitOperations = new LinkedList<>();
+		for (String commitId : sortedCommits) {
+			commitOperations.addAll(contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId));
+		}
+		Map<Boolean, List<String>> filteredOperations = commitOperations.stream()
 			.filter(getCommitRepoOperationsFilter(site))
 			.collect(partitioningBy(op -> op.getAction() == RepoOperation.Action.DELETE,
 				mapping(RepoOperation::getPath, toList())));
 
 		// Add non-delete operations
-		corePackagePaths.addAll(commitOperations.get(false));
+		corePackagePaths.addAll(filteredOperations.get(false));
 
-		Collection<String> deletedPaths = commitOperations.get(true);
+		Collection<String> deletedPaths = filteredOperations.get(true);
 
 		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
 		// Get hard deps of them all
 		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
-		return new CalculatedPublishPackageResult(publishDao.getMetadata(siteId, corePackagePaths), deletedPaths, hardDependencies, softDependencies);
+		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
+		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
 
 	@Override
@@ -197,7 +201,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
 		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
-		return new CalculatedPublishPackageResult(publishDao.getMetadata(siteId, corePackagePaths), deletedPaths, hardDependencies, softDependencies);
+		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
+		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
 
 	@Override
@@ -362,14 +367,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		}
 		// Validate and sort commits
 		SequencedCollection<String> sortedCommits = contentRepository.validatePublishCommits(site.getSiteId(), commitIds);
-		publishItemsByPath.putAll(
-			sortedCommits.stream()
-				.map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
-				.flatMap(List::stream)
-				.filter(getCommitRepoOperationsFilter(site))
-				.map(op -> createPublishItem(op.getPath(),
-					translateRepoAction(op.getAction()), true))
-				.collect(toMap(PublishItem::getPath, item -> item)));
+		List<RepoOperation> commitOperations = new LinkedList<>();
+		for (String commitId : sortedCommits) {
+			commitOperations.addAll(contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId));
+		}
+
+		publishItemsByPath.putAll(commitOperations.stream()
+			.filter(getCommitRepoOperationsFilter(site))
+			.map(op -> createPublishItem(op.getPath(),
+				translateRepoAction(op.getAction()), true))
+			.collect(toMap(PublishItem::getPath, item -> item)));
 	}
 
 	private PublishItem.Action translateRepoAction(RepoOperation.Action repoAction) {

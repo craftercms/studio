@@ -16,5 +16,12 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+/**
+ * Represents an item in the repository
+ *
+ * @param path     path to the item
+ * @param name     name of the item
+ * @param isFolder true if the item is a folder, false otherwise
+ */
 public record RepositoryItem(String path, String name, boolean isFolder) {
 }

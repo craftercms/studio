@@ -535,7 +535,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
+	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) throws ServiceLayerException {
 		return localRepository.getOperationsFromDelta(site, commitIdFrom, commitIdTo).stream()
 			.peek(operation -> {
 				operation.setPath(getOriginalPath(operation.getPath()));
