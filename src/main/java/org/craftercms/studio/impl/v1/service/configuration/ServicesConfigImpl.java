@@ -138,20 +138,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam String site,
-									  @ValidateStringParam String contentType) {
-		if (contentType == null) {
-			return Collections.emptyList();
-		}
-		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
-		if (contentTypeConfig != null) {
-			return contentTypeConfig.getDeleteDependencyPattern();
-		}
-		return Collections.emptyList();
-	}
-
-	@Override
-	@Valid
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam String site,
 								      @ValidateStringParam String contentType) {
 		if (contentType == null) {
@@ -239,16 +225,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorName();
-		}
-		return null;
-	}
-
-	@Override
-	@Valid
-	public List<String> getDisplayInWidgetPathPatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
-			return config.getRepositoryConfig().getDisplayPatterns();
 		}
 		return null;
 	}
@@ -569,16 +545,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	public String getConfigFileName() {
 		return studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME);
-	}
-
-	@Override
-	@Valid
-	public String getSandboxBranchName(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null) {
-			return config.getSandboxBranch();
-		}
-		return null;
 	}
 
 	@Override

@@ -20,14 +20,6 @@
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.DependencyMapper">
 
-	<resultMap id="DependencyMap" type="org.craftercms.studio.api.v1.dal.DependencyEntity">
-		<id property="id" column="id"/>
-		<result property="site" column="site"/>
-		<result property="sourcePath" column="source_path"/>
-		<result property="targetPath" column="target_path"/>
-		<result property="type" column="type"/>
-	</resultMap>
-
 	<select id="getDependenciesForList" parameterType="java.util.Map" resultType="String">
 		SELECT target_path
 		FROM dependency

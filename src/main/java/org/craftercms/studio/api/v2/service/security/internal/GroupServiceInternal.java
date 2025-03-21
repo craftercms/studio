@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 
 import java.util.List;
 

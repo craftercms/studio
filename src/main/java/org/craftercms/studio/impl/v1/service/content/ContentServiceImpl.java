@@ -65,7 +65,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -172,11 +171,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				     @ValidateSecurePathParam String path) {
 		// TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
 		return this.contentRepository.contentExists(site, path);
-	}
-
-	@Override
-	public void checkContentExists(String site, String path) throws ServiceLayerException {
-		this.contentRepository.checkContentExists(site, path);
 	}
 
 	@Override
@@ -2242,62 +2236,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 
 		return to;
-	}
-
-	@Override
-	@Valid
-	public String getNextAvailableName(@ValidateStringParam String site,
-					   @ValidateSecurePathParam String path) {
-		// TODO: SJ: Refactor to be faster, and make it work regardless (seems to fail above 10) in 3.1+
-		String[] levels = path.split(FILE_SEPARATOR);
-		int length = levels.length;
-		if (length > 0) {
-			ContentItemTO item = getContentItem(site, path, 0);
-			if (item != null) {
-				String name = ContentUtils.getPageName(path);
-				String parentPath = ContentUtils.getParentUrl(path);
-				ContentItemTO parentItem = getContentItemTree(site, parentPath, 1);
-				// if parent doesn't exist, it is new item so the current name is available one
-				if (parentItem != null) {
-					int lastIndex = name.lastIndexOf(".");
-					String ext = (item.isFolder()) ? "" : name.substring(lastIndex);
-					String originalName = (item.isFolder() ||
-						item.isContainer()) ? name : name.substring(0, lastIndex);
-					List<ContentItemTO> children = parentItem.getChildren();
-					// pattern matching doesn't work here
-					// String childNamePattern = originalName + "%" + ext;
-					int lastNumber = 0;
-					String namePattern = originalName + "-\\d+" + ext;
-					if (children != null && children.size() > 0) {
-						// since it is already sorted, we only care about the last matching item
-						for (ContentItemTO child : children) {
-							if (((item.isFolder() || item.isContainer()) == (child.isFolder() ||
-								child.isContainer()))) {
-								String childName = child.getName();
-								if ((child.isFolder() || child.isContainer())) {
-									childName = ContentUtils.getPageName(child.getBrowserUri());
-								}
-								if (childName.matches(namePattern)) {
-									Pattern pattern = (item.isFolder() ||
-										item.isContainer()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
-									Matcher matcher = pattern.matcher(childName);
-									if (matcher.matches()) {
-										int helper = ContentFormatUtils.getIntValue(matcher.group(2));
-										lastNumber = Math.max(helper, lastNumber);
-									}
-								}
-							}
-						}
-					}
-					return originalName + "-" + ++lastNumber + ext;
-				}
-			}
-		} else {
-			// cannot generate a name
-			return "";
-		}
-		// if not found the current name is available
-		return levels[length - 1];
 	}
 
 	@Override

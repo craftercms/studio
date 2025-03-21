@@ -40,7 +40,10 @@ import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -834,7 +837,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
 			// commit all changes
 			commitChanges(siteId, changedFiles, true, true, "Remove plugin " + pluginId);
-		} catch (IOException | GitAPIException | CommitNotFoundException | EnvironmentNotFoundException |
+		} catch (IOException | GitAPIException | EnvironmentNotFoundException |
 			 SiteNotFoundException | TransformerException | UserNotFoundException | AuthenticationException e) {
 			if (CollectionUtils.isNotEmpty(changedFiles)) {
 				try {

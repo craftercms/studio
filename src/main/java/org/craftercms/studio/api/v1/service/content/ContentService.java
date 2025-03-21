@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
-import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
@@ -48,15 +47,6 @@ public interface ContentService {
 	 * @return true if site has content object at path
 	 */
 	boolean contentExists(String site, String path);
-
-	/**
-	 * Checks if a content exists at a given path and throw an exception if it does not.
-	 *
-	 * @param site id of the site
-	 * @param path the content path
-	 * @throws ServiceLayerException if no content is found at the given path
-	 */
-	void checkContentExists(String site, String path) throws ServiceLayerException;
 
 	/**
 	 * This is a faster, but less accurate, version of contentExists. This prioritizes
@@ -349,15 +339,6 @@ public interface ContentService {
 					      String isImage, String allowedWidth, String allowedHeight,
 					      String allowLessSize, String draft, String unlock, String systemAsset)
 		throws ServiceLayerException;
-
-	/**
-	 * get the next available of the given content name at the given path (used for paste/duplicate)
-	 *
-	 * @param site site identifier
-	 * @param path path of the item
-	 * @return next available name that avoids a name conflict
-	 */
-	String getNextAvailableName(String site, String path);
 
 	/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
 	/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */

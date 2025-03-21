@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 /**

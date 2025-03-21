@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,28 +16,23 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.String.valueOf;
 import static java.nio.charset.StandardCharsets.UTF_8;

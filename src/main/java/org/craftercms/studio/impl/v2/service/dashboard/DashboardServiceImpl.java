@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.search.SearchService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.Activity;

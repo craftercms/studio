@@ -16,11 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -30,12 +25,12 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
-import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 

@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.service.repository;
 
-import org.eclipse.jgit.api.PullResult;
-
 import java.util.Collection;
 
 /**
