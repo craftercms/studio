@@ -21,28 +21,6 @@
 <mapper namespace="org.craftercms.studio.api.v2.dal.ItemDAO">
 	<resultMap id="ItemMap" type="org.craftercms.studio.api.v2.dal.Item" autoMapping="true">
 		<id property="id" column="id"/>
-<!--		<result property="siteId" column="site_id"/>-->
-<!--		<result property="siteName" column="site_name"/>-->
-<!--		<result property="path" column="path"/>-->
-<!--		<result property="previewUrl" column="preview_url"/>-->
-<!--		<result property="state" column="state"/>-->
-<!--		<result property="lockedBy" column="locked_by"/>-->
-<!--		<result property="createdBy" column="created_by"/>-->
-<!--		<result property="createdOn" column="created_on"/>-->
-<!--		<result property="lastModifiedBy" column="last_modified_by"/>-->
-<!--		<result property="lastModifiedOn" column="last_modified_on"/>-->
-<!--		<result property="submittedOn" column="submitted_on"/>-->
-<!--		<result property="label" column="label"/>-->
-<!--		<result property="contentTypeId" column="content_type_id"/>-->
-<!--		<result property="systemType" column="system_type"/>-->
-<!--		<result property="mimeType" column="mime_type"/>-->
-<!--		<result property="localeCode" column="locale_code"/>-->
-<!--		<result property="translationSourceId" column="translation_source_id"/>-->
-<!--		<result property="size" column="size"/>-->
-<!--		<result property="parentId" column="parent_id"/>-->
-<!--		<result property="previewUrl" column="preview_url"/>-->
-<!--		<result property="ignoredAsInt" column="ignored"/>-->
-<!--		<result property="childrenCount" column="children_count"/>-->
 		<association property="modifier" column="modifier"
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
 		<association property="creator" column="creator"
