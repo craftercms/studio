@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,7 @@
 package org.craftercms.studio.impl.v2.upgrade.providers;
 
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -36,7 +36,7 @@ public class XmlStreamVersionProvider extends XmlFileVersionProvider {
 
 	@ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository", "versionElementName"})
 	public XmlStreamVersionProvider(String path, String xpath, String defaultVersion,
-									GitContentRepository contentRepository, String versionElementName) {
+									ContentRepository contentRepository, String versionElementName) {
 		super(path, xpath, defaultVersion, contentRepository);
 		this.versionElementName = versionElementName;
 	}

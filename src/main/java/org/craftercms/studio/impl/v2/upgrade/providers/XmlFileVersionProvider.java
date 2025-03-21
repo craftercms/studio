@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,7 +22,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.providers.AbstractVersionProvider;
 import org.craftercms.core.util.XmlUtils;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -73,11 +73,11 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 	 */
 	protected boolean skipIfMissing = true;
 
-	protected GitContentRepository contentRepository;
+	protected ContentRepository contentRepository;
 
 	@ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository"})
 	public XmlFileVersionProvider(String path, String xpath, String defaultVersion,
-				      GitContentRepository contentRepository) {
+								  ContentRepository contentRepository) {
 		this.path = path;
 		this.xpath = xpath;
 		this.defaultVersion = defaultVersion;
