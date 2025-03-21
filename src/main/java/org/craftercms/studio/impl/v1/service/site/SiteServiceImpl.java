@@ -45,8 +45,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
@@ -61,7 +59,6 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -128,9 +125,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected Deployer deployer;
 	protected ContentService contentService;
 	protected GitContentRepository contentRepository;
-	protected DependencyService dependencyService;
 	protected SecurityService securityService;
-	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected GroupServiceInternal groupServiceInternal;
 	protected UserServiceInternal userServiceInternal;
 	protected StudioUpgradeManager upgradeManager;
@@ -138,9 +133,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected SitesService sitesServiceInternal;
 	protected AuditServiceInternal auditServiceInternal;
 	protected ConfigurationService configurationService;
-	protected ConfigurationService configurationServiceInternal;
 	protected ItemServiceInternal itemServiceInternal;
-	protected WorkflowService workflowServiceInternal;
 	protected ApplicationContext applicationContext;
 
 	@Autowired
@@ -911,17 +904,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		contentRepository = repo;
 	}
 
-	public void setDependencyService(DependencyService dependencyService) {
-		this.dependencyService = dependencyService;
-	}
-
 	public void setSecurityService(SecurityService securityService) {
 		this.securityService = securityService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
-		this.dmPageNavigationOrderService = dmPageNavigationOrderService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
@@ -964,18 +948,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		this.configurationService = configurationService;
 	}
 
-	@SuppressWarnings("unused")
-	public void setConfigurationServiceInternal(final ConfigurationService configurationServiceInternal) {
-		this.configurationServiceInternal = configurationServiceInternal;
-	}
-
 	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
 		this.itemServiceInternal = itemServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
-		this.workflowServiceInternal = workflowServiceInternal;
 	}
 
 	@SuppressWarnings("unused")

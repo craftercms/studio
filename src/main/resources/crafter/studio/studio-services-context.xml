@@ -89,9 +89,7 @@
 	<bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
 		<property name="contentService" ref="cstudioContentService"/>
 		<property name="contentRepository" ref="contentRepository"/>
-		<property name="dependencyService" ref="studioDependencyService"/>
 		<property name="securityService" ref="cstudioSecurityService"/>
-		<property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="deployer" ref="allDeployers"/>
 		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
@@ -101,9 +99,7 @@
 		<property name="sitesServiceInternal" ref="sitesServiceInternal"/>
 		<property name="auditServiceInternal" ref="auditServiceInternal"/>
 		<property name="configurationService" ref="configurationService"/>
-		<property name="configurationServiceInternal" ref="configurationServiceInternal"/>
 		<property name="itemServiceInternal" ref="itemServiceInternal"/>
-		<property name="workflowServiceInternal" ref="studio.workflowServiceInternal"/>
 		<property name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
 		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
@@ -522,7 +518,6 @@
 		<constructor-arg name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
 		<constructor-arg name="publishServiceInternal" ref="publishServiceInternal"/>
 		<constructor-arg name="contentServiceInternal" ref="contentServiceInternal"/>
-		<constructor-arg name="workflowServiceInternal" ref="studio.workflowServiceInternal"/>
 		<constructor-arg name="itemServiceInternal" ref="itemServiceInternal"/>
 		<constructor-arg name="searchService" ref="searchService"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>

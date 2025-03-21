@@ -67,7 +67,6 @@ public class DashboardServiceImpl implements DashboardService {
 	private final ActivityStreamServiceInternal activityStreamServiceInternal;
 	private final PublishService publishServiceInternal;
 	private final ContentServiceInternal contentServiceInternal;
-	private final WorkflowService workflowServiceInternal;
 	private final ItemServiceInternal itemServiceInternal;
 	private final SearchService searchService;
 	private final StudioConfiguration studioConfiguration;
@@ -77,15 +76,14 @@ public class DashboardServiceImpl implements DashboardService {
 	private static final String DATE_TO_REGEX = "\\{dateTo\\}";
 
 	@ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
-		"workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
+		"itemServiceInternal", "searchService", "studioConfiguration"})
 	public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
 				    final ContentServiceInternal contentServiceInternal,
-				    final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
+				    final ItemServiceInternal itemServiceInternal,
 				    final SearchService searchService, final StudioConfiguration studioConfiguration) {
 		this.activityStreamServiceInternal = activityStreamServiceInternal;
 		this.publishServiceInternal = publishServiceInternal;
 		this.contentServiceInternal = contentServiceInternal;
-		this.workflowServiceInternal = workflowServiceInternal;
 		this.itemServiceInternal = itemServiceInternal;
 		this.searchService = searchService;
 		this.studioConfiguration = studioConfiguration;

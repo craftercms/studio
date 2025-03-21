@@ -214,7 +214,6 @@ public class BlobAwareContentRepositoryTest {
 		proxy.writeContent(SITE, ORIGINAL_PATH, CONTENT);
 
 		verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
-//		verify(localV1).writeContent(eq(SITE), eq(POINTER_PATH), any());
 	}
 
 	@Test
@@ -228,7 +227,6 @@ public class BlobAwareContentRepositoryTest {
 		}
 
 		verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
-//		verify(localV1, never()).writeContent(eq(SITE), eq(POINTER_PATH), any());
 	}
 
 	@Test
@@ -269,7 +267,6 @@ public class BlobAwareContentRepositoryTest {
 		proxy.moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
 		verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
-//		verify(localV1).moveContent(SITE, POINTER_PATH, NEW_POINTER_PATH, null);
 	}
 
 	@Test
