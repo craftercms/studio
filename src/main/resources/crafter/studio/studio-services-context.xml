@@ -935,7 +935,6 @@
 				<ref bean="cstudioFileFolderPathProcessor"/>
 				<ref bean="cstudioCheckImageSizeProcessor"/>
 				<ref bean="cstudioAssetDmContentProcessor"/>
-				<ref bean="cstudioCleanPreviewContentProcessor"/>
 				<ref bean="cstudioPostActivityProcessor"/>
 				<ref bean="cstudioInvalidateCacheProcessor"/>
 			</list>
@@ -957,10 +956,7 @@
 				<ref bean="cstudioExtractParamsProcessor"/>
 				<ref bean="cstudioFormNavOrderProcessor"/>
 				<ref bean="cstudioFileFolderPathProcessor"/>
-				<ref bean="cstudioCleanWorkContentProcessor"/>
 				<ref bean="cstudioFormDmContentProcessor"/>
-				<ref bean="cstudioCleanPreviewContentProcessor"/>
-				<ref bean="cstudioDmWorkflowProcessor"/>
 				<ref bean="cstudioPostActivityProcessor"/>
 				<ref bean="cstudioContentLifeCycleProcessor"/>
 				<ref bean="cstudioInvalidateCacheProcessor"/>
@@ -1014,9 +1010,6 @@
 	<bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">
 	</bean>
 
-	<bean id="cstudioCleanPreviewContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanPreviewContentProcessor">
-	</bean>
-
 	<bean id="cstudioFormDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FormDmContentProcessor">
 		<property name="contentService" ref="cstudioContentService"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -1050,13 +1043,9 @@
 		<property name="pageNavOrderService" ref="cstudioPageNavOrderService"/>
 	</bean>
 
-	<bean id="cstudioCleanWorkContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanWorkContentProcessor"/>
-
 	<bean id="cstudioExtractDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractDependencyProcessor">
 		<property name="dependencyService" ref="dependencyServiceInternal"/>
 	</bean>
-
-	<bean id="cstudioDmWorkflowProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.DmWorkflowProcessor"/>
 
 	<bean id="cstudioContentLifeCycleProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ContentLifeCycleProcessor">
 		<property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
