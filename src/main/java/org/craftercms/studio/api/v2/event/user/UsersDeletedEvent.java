@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,23 +14,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.security.internal;
+package org.craftercms.studio.api.v2.event.user;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import java.util.Collection;
 
 /**
- * @author joseross
+ * Event fired when users are deleted
  */
-public interface EncryptionServiceInternal {
+public class UsersDeletedEvent {
 
-	/**
-	 * Encrypt text
-	 *
-	 * @param siteId site identifier
-	 * @param text   text to encrypt
-	 * @return encrypted text
-	 * @throws ServiceLayerException general service exception
-	 */
-	String encrypt(String siteId, String text) throws ServiceLayerException;
+	private final Collection<Long> userIds;
 
+	public UsersDeletedEvent(Collection<Long> userIds) {
+		this.userIds = userIds;
+	}
+
+	public Collection<Long> getUserIds() {
+		return userIds;
+	}
 }

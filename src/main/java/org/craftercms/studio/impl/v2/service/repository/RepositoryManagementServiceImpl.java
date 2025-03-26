@@ -20,78 +20,49 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
-import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
-import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
 
-import static java.lang.String.format;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 @RequireSiteReady
 public class RepositoryManagementServiceImpl implements RepositoryManagementService {
 
-	private final RepositoryManagementServiceInternal repositoryManagementServiceInternal;
-	private final SiteService siteService;
-	private final AuditServiceInternal auditServiceInternal;
+	private final RepositoryManagementService repositoryManagementServiceInternal;
 
-	@ConstructorProperties({"repositoryManagementServiceInternal", "siteService", "auditServiceInternal"})
-	public RepositoryManagementServiceImpl(final RepositoryManagementServiceInternal repositoryManagementServiceInternal,
-					       final SiteService siteService, final AuditServiceInternal auditServiceInternal) {
+	@ConstructorProperties({"repositoryManagementServiceInternal"})
+	public RepositoryManagementServiceImpl(final RepositoryManagementService repositoryManagementServiceInternal) {
 		this.repositoryManagementServiceInternal = repositoryManagementServiceInternal;
-		this.siteService = siteService;
-		this.auditServiceInternal = auditServiceInternal;
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_ADD_REMOTE)
-	public boolean addRemote(@SiteId String siteId, RemoteRepository remoteRepository)
-		throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
-		boolean toRet = repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
-		insertAddRemoteAuditLog(siteId, OPERATION_ADD_REMOTE, remoteRepository.getRemoteName(),
-			remoteRepository.getRemoteName());
-		return toRet;
-	}
-
-	private void insertAddRemoteAuditLog(String siteId, String operation, String primaryTargetId,
-					     String primaryTargetValue) throws SiteNotFoundException {
-		SiteFeed siteFeed = siteService.getSite(siteId);
-		String user = SecurityUtils.getCurrentUser();
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-		auditLog.setOperation(operation);
-		auditLog.setSiteId(siteFeed.getId());
-		auditLog.setActorId(user);
-		auditLog.setPrimaryTargetId(primaryTargetId);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-		auditLog.setPrimaryTargetValue(primaryTargetValue);
-		auditServiceInternal.insertAuditLog(auditLog);
+	public void addRemote(@SiteId String siteId, RemoteRepository remoteRepository) throws ServiceLayerException, InvalidRemoteUrlException {
+		repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_LIST_REMOTES)
 	public List<RemoteRepositoryInfo> listRemotes(@SiteId String siteId)
 		throws ServiceLayerException {
-		SiteFeed siteFeed = siteService.getSite(siteId);
-		return repositoryManagementServiceInternal.listRemotes(siteId, siteFeed.getSandboxBranch());
+		return repositoryManagementServiceInternal.listRemotes(siteId);
 	}
 
 	@Override
@@ -101,15 +72,8 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 					  String remoteBranch, String mergeStrategy)
 		throws InvalidRemoteUrlException, ServiceLayerException,
 		InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-		MergeResult mergeResult = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
+		return repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
 			mergeStrategy);
-		insertAddRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
-			remoteName + "/" + remoteBranch);
-
-		if (!mergeResult.isSuccessful()) {
-			throw new PullFromRemoteConflictException("Pull from remote result is merge conflict.");
-		}
-		return mergeResult;
 	}
 
 
@@ -120,10 +84,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 				    String remoteBranch, boolean force)
 		throws InvalidRemoteUrlException, ServiceLayerException,
 		InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-		boolean toRet = repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
-		insertAddRemoteAuditLog(siteId, OPERATION_PUSH_TO_REMOTE, remoteName + "/" + remoteBranch,
-			remoteName + "/" + remoteBranch);
-		return toRet;
+		return repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
 	}
 
 	@Override
@@ -131,9 +92,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_REMOTE)
 	public boolean removeRemote(@SiteId String siteId, String remoteName)
 		throws SiteNotFoundException, RemoteNotRemovableException {
-		boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
-		insertAddRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
-		return toRet;
+		return repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
 	}
 
 	@Override
@@ -150,11 +109,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	public RepositoryStatus resolveConflict(@SiteId String siteId,
 						@ProtectedResourceId(PATH_RESOURCE_ID) String path, String resolution)
 		throws ServiceLayerException {
-		boolean success = repositoryManagementServiceInternal.resolveConflict(siteId, path, resolution);
-		if (success) {
-			return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
-		}
-		throw new ServiceLayerException("Failed to resolve conflict for site " + siteId + " path " + path);
+		return repositoryManagementServiceInternal.resolveConflict(siteId, path, resolution);
 	}
 
 	@Override
@@ -171,11 +126,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_COMMIT_RESOLUTION)
 	public RepositoryStatus commitResolution(@SiteId String siteId,
 						 String commitMessage) throws ServiceLayerException {
-		boolean success = repositoryManagementServiceInternal.commitResolution(siteId, commitMessage);
-		if (success) {
-			return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
-		}
-		throw new ServiceLayerException(format("Failed to commit conflict resolution for site '%s'", siteId));
+		return repositoryManagementServiceInternal.commitResolution(siteId, commitMessage);
 	}
 
 	@Override
@@ -183,11 +134,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_FAILED_PULL)
 	public RepositoryStatus cancelFailedPull(@SiteId String siteId)
 		throws ServiceLayerException {
-		boolean success = repositoryManagementServiceInternal.cancelFailedPull(siteId);
-		if (success) {
-			return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
-		}
-		throw new ServiceLayerException("Failed to cancel failed pull from remote for site " + siteId);
+		return repositoryManagementServiceInternal.cancelFailedPull(siteId);
 	}
 
 	@Override

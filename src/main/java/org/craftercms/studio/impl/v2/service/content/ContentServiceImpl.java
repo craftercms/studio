@@ -17,12 +17,12 @@
 package org.craftercms.studio.impl.v2.service.content;
 
 import jakarta.validation.Valid;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -31,11 +31,10 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
-import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
@@ -47,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,7 +59,7 @@ public class ContentServiceImpl implements ContentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
-	private ContentServiceInternal contentServiceInternal;
+	private ContentService contentServiceInternal;
 
 	@Override
 	@RequireSiteExists
@@ -71,15 +71,9 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public boolean shallowContentExists(@SiteId String site, String path) throws SiteNotFoundException {
 		return contentServiceInternal.shallowContentExists(site, path);
-	}
-
-	@Override
-	@RequireSiteExists
-	// TODO: JM: Should we have a "is member of site" validation here?
-	public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws ServiceLayerException {
-		return contentServiceInternal.getQuickCreatableContentTypes(siteId);
 	}
 
 	@Override
@@ -203,8 +197,10 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@Valid
-	public Resource getContentAsResource(@ValidateStringParam String site,
-					     @ValidateSecurePathParam String path)
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Resource getContentAsResource(@SiteId String site,
+					     @ValidateSecurePathParam @ContentPath String path)
 		throws ContentNotFoundException {
 		return contentServiceInternal.getContentAsResource(site, path);
 	}
@@ -217,8 +213,38 @@ public class ContentServiceImpl implements ContentService {
 		return contentServiceInternal.getContentVersionHistory(siteId, path);
 	}
 
+	@Override
+	@RequireSiteReady
+	@RequireContentExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
+	public void assertNotInWorkflow(@SiteId String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException {
+		contentServiceInternal.assertNotInWorkflow(siteId, paths, includeChildren);
+	}
+
+	@Override
+	@RequireSiteReady
+	@RequireContentExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public long getContentSize(@SiteId String siteId, @ContentPath String path) {
+		return contentServiceInternal.getContentSize(siteId, path);
+	}
+
+	@Override
+	public boolean isEditable(String itemPath, String itemMimeType) {
+		return contentServiceInternal.isEditable(itemPath, itemMimeType);
+	}
+
+	@Override
+	@RequireSiteReady
+	@RequireContentExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<ContentItem> getContentItemsByStates(@SiteId String siteId, long statesBitMap,
+													 List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+		return contentServiceInternal.getContentItemsByStates(siteId, statesBitMap, systemTypes, sortFields, offset, limit);
+	}
+
 	@SuppressWarnings("unused")
-	public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
+	public void setContentServiceInternal(final ContentService contentServiceInternal) {
 		this.contentServiceInternal = contentServiceInternal;
 	}
 }

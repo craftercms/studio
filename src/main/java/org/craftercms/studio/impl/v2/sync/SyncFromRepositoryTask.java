@@ -26,6 +26,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -37,11 +38,11 @@ import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -76,8 +77,10 @@ import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PATH_PATTERNS;
@@ -100,10 +103,10 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 	private final SitesService sitesService;
 	private final GeneralLockService generalLockService;
-	private final AuditServiceInternal auditServiceInternal;
+	private final AuditService auditService;
 	private final DependencyService dependencyServiceInternal;
-	private final UserServiceInternal userServiceInternal;
-	private final ItemServiceInternal itemServiceInternal;
+	private final UserService userService;
+	private final ItemService itemServiceInternal;
 	private final ContentService contentService;
 	private final ConfigurationService configurationService;
 	private final GitContentRepository contentRepository;
@@ -116,27 +119,27 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private ApplicationEventPublisher eventPublisher;
 
 	@ConstructorProperties({"sitesService", "generalLockService",
-		"auditServiceInternal",
+		"auditService",
 		"studioDBScriptRunnerFactory", "dependencyServiceInternal",
-		"userServiceInternal", "itemServiceInternal",
+		"userService", "itemService",
 		"contentService", "configurationService",
 		"contentRepository", "studioConfiguration",
 		"processedCommitsDAO", "publishDao", "sqlSessionFactory",
 		"servicesConfig", "retryingDatabaseOperationFacade"})
 	public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
-				      AuditServiceInternal auditServiceInternal,
+				      AuditService auditService,
 				      StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
-				      UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal,
+				      UserService userService, ItemService itemServiceInternal,
 				      ContentService contentService, ConfigurationService configurationService,
 				      GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
 				      ProcessedCommitsDAO processedCommitsDAO, PublishDAO publishDao, SqlSessionFactory sqlSessionFactory,
 				      ServicesConfig servicesConfig, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
 		this.sitesService = sitesService;
 		this.generalLockService = generalLockService;
-		this.auditServiceInternal = auditServiceInternal;
+		this.auditService = auditService;
 		this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
 		this.dependencyServiceInternal = dependencyServiceInternal;
-		this.userServiceInternal = userServiceInternal;
+		this.userService = userService;
 		this.itemServiceInternal = itemServiceInternal;
 		this.contentService = contentService;
 		this.configurationService = configurationService;
@@ -278,7 +281,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		throws UserNotFoundException, ServiceLayerException {
 		// Try to cancel ready packages
 		Collection<PublishPackage> packages = publishDao.getReadyPackagesForItem(siteId, path);
-		User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+		User gitRepoUser = userService.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
 		for (PublishPackage publishPackage : packages) {
 			cancelPackage(siteId, publishPackage, gitRepoUser);
 		}
@@ -305,7 +308,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param siteId         the site id
 	 * @param publishPackage the package to cancel
 	 */
-	private void cancelPackage(final String siteId, final PublishPackage publishPackage, final User gitRepoUser) {
+	private void cancelPackage(final String siteId, final PublishPackage publishPackage, final User gitRepoUser) throws SiteNotFoundException {
 		String packageLockKey = getPublishPackageLockKey(publishPackage.getId());
 		generalLockService.lock(packageLockKey);
 		try {
@@ -327,7 +330,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	}
 
 	private void createCancelPackageAuditLogEntry(final PublishPackage publishPackage) {
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOrigin(ORIGIN_GIT);
 		auditLog.setOperation(OPERATION_CANCEL_PUBLISH_PACKAGE);
 		auditLog.setActorId(ACTOR_ID_GIT);
@@ -335,7 +338,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
 		auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
 		auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	/**
@@ -347,7 +350,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param commitTo   The new synced commit id
 	 */
 	private void auditChangesFromGit(final Site site, final String commitFrom, final String commitTo) throws GitAPIException, IOException {
-		AuditLog auditLogEntry = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLogEntry = createAuditLogEntry();
 		auditLogEntry.setSiteId(site.getId());
 		auditLogEntry.setOperation(OPERATION_GIT_CHANGES);
 		auditLogEntry.setOrigin(ORIGIN_GIT);
@@ -374,7 +377,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				site.getSiteId(), commitFrom, commitTo, e);
 			throw e;
 		}
-		auditServiceInternal.insertAuditLog(auditLogEntry);
+		auditService.insertAuditLog(auditLogEntry);
 	}
 
 	/**
@@ -478,7 +481,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		throws UserNotFoundException, ServiceLayerException {
 		User result = cachedUsers.computeIfAbsent(operationAuthor, key -> {
 			try {
-				return userServiceInternal.getUserByIdOrUsername(-1, key);
+				return userService.getUserByIdOrUsername(-1, key);
 			} catch (UserNotFoundException | ServiceLayerException e) {
 				logger.debug("User '{}' not found while syncing operations from repository", key);
 				return null;
@@ -487,7 +490,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		if (result == null) {
 			// Map the absent username to fallback, so we don't query the database again
 			try {
-				result = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+				result = userService.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
 				cachedUsers.put(operationAuthor, result);
 			} catch (UserNotFoundException e) {
 				logger.error("User '{}' not found while syncing operations from repository", GIT_REPO_USER_USERNAME);
@@ -537,7 +540,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param path   The path to the item
 	 * @return The item metadata
 	 */
-	private ItemMetadata getItemMetadata(String siteId, String path) {
+	private ItemMetadata getItemMetadata(String siteId, String path) throws SiteNotFoundException {
 		ItemMetadata result = new ItemMetadata(path);
 		if (startsWith(path, ROOT_PATTERN_PAGES) ||
 			startsWith(path, ROOT_PATTERN_ASSETS)) {
@@ -576,7 +579,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param allAncestors list of ancestors
 	 */
 	private void processCreate(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
-							   Site site, RepoOperation repoOperation, User user, Set<String> allAncestors) {
+							   Site site, RepoOperation repoOperation, User user, Set<String> allAncestors) throws SiteNotFoundException {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
 		processAncestors(itemDao, site.getSiteId(), repoOperation.getPath(), user.getId(),
 			repoOperation.getDateTime(), allAncestors);
@@ -624,7 +627,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param user modified {@link User}
 	 */
 	private void processUpdate(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
-							   Site site, RepoOperation repoOperation, User user) {
+							   Site site, RepoOperation repoOperation, User user) throws SiteNotFoundException {
 		if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
 			return;
 		}
@@ -661,7 +664,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 */
 	private void processMove(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
 							 Site site, RepoOperation repoOperation, User user,
-							 Set<String> allAncestors) {
+							 Set<String> allAncestors) throws SiteNotFoundException {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
 		processAncestors(itemDao, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
 			repoOperation.getDateTime(), allAncestors);
@@ -739,7 +742,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		dependencyDao.invalidateDependencies(site.getSiteId(), repoOperation.getPath());
 	}
 
-	protected void invalidateConfigurationCacheIfRequired(String siteId, String path) {
+	protected void invalidateConfigurationCacheIfRequired(String siteId, String path) throws SiteNotFoundException {
 		String[] configurationPatterns = studioConfiguration.getArray(CONFIGURATION_PATH_PATTERNS, String.class);
 		if (RegexUtils.matchesAny(path, configurationPatterns)) {
 			configurationService.invalidateConfiguration(siteId, path);

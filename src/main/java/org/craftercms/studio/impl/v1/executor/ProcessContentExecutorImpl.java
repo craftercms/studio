@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.impl.v1.content.pipeline.PipelineContentImpl;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
@@ -36,7 +35,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
 /**
  * @author Dejan Brkic
@@ -52,7 +51,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
 		try {
 			if (chain != null) {
 				if (StringUtils.isEmpty(params.get(DmConstants.KEY_USER))) {
-					String user = getCurrentUser();
+					String user = getCurrentUsername();
 					params.put(DmConstants.KEY_USER, user);
 				}
 
@@ -80,15 +79,6 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
 	}
 
 	protected Map<String, ContentProcessorPipeline> processorChains;
-	protected SecurityService securityService;
-
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
 
 	public Map<String, ContentProcessorPipeline> getProcessorChains() {
 		return processorChains;

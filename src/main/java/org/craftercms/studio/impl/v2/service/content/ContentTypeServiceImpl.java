@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,13 +23,14 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
-import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
 import java.util.Collection;
+import java.util.List;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -41,10 +42,10 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
  */
 public class ContentTypeServiceImpl implements ContentTypeService {
 
-	protected final ContentTypeServiceInternal contentTypeServiceInternal;
+	protected final ContentTypeService contentTypeServiceInternal;
 
 	@ConstructorProperties({"contentTypeServiceInternal"})
-	public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
+	public ContentTypeServiceImpl(ContentTypeService contentTypeServiceInternal) {
 		this.contentTypeServiceInternal = contentTypeServiceInternal;
 	}
 
@@ -109,4 +110,20 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 		return contentTypeServiceInternal.getAllModelDefinitions(site);
 	}
 
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+	public String getContentTypeControllerPath(String contentTypeId) {
+		return contentTypeServiceInternal.getContentTypeControllerPath(contentTypeId);
+	}
+
+	@Override
+	public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getContentTypeTemplatePath(siteId, contentTypeId);
+	}
 }

@@ -301,7 +301,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param site site id where the operation will be executed
 	 * @param path path of the item
 	 */
-	void itemUnlock(String site, String path);
+	void unlockItem(String site, String path);
 
 	/**
 	 * Deletes the underlying git repositories for a site

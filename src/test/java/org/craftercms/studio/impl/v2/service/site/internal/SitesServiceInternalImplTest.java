@@ -20,15 +20,14 @@ package org.craftercms.studio.impl.v2.service.site.internal;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
 import org.junit.Before;
@@ -77,7 +76,7 @@ public class SitesServiceInternalImplTest {
 	@Mock
 	ApplicationContext applicationContext;
 	@Mock
-	ItemServiceInternal itemServiceInternal;
+    ItemService itemServiceInternal;
 	@Spy
 	@InjectMocks
 	SitesServiceInternalImpl sitesServiceInternal;
@@ -85,7 +84,7 @@ public class SitesServiceInternalImplTest {
 	@Mock
 	protected SiteDAO siteDAO;
 	@Mock
-	protected AuditServiceInternal auditServiceInternal;
+	protected AuditService auditService;
 
 	@Before
 	public void setUp() throws IOException {
@@ -101,8 +100,6 @@ public class SitesServiceInternalImplTest {
 		when(siteDAO.getSite(ROOT_SITE_ID)).thenReturn(rootSite);
 
 		when(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)).thenReturn(ROOT_SITE_ID);
-
-		when(auditServiceInternal.createAuditLogEntry()).thenReturn(new AuditLog());
 
 		when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
 
@@ -139,7 +136,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(3)).insertAuditLog(any());
+		verify(auditService, times(3)).insertAuditLog(any());
 	}
 
 	@Test
@@ -157,7 +154,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+		verify(auditService, times(2)).insertAuditLog(any());
 	}
 
 	@Test
@@ -177,7 +174,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+		verify(auditService, times(2)).insertAuditLog(any());
 	}
 
 	@Test
@@ -196,7 +193,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+		verify(auditService, times(2)).insertAuditLog(any());
 	}
 
 	@Test

@@ -567,8 +567,8 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public void itemUnlock(String site, String path) {
-		localRepository.itemUnlock(site, path);
+	public void unlockItem(String site, String path) {
+		localRepository.unlockItem(site, path);
 	}
 
 	@Override

@@ -53,11 +53,11 @@ import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -100,6 +100,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_INITIALIZING;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
@@ -126,14 +127,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected ContentService contentService;
 	protected GitContentRepository contentRepository;
 	protected SecurityService securityService;
-	protected GroupServiceInternal groupServiceInternal;
-	protected UserServiceInternal userServiceInternal;
+	protected GroupService groupService;
+	protected UserService userService;
 	protected StudioUpgradeManager upgradeManager;
 	protected StudioConfiguration studioConfiguration;
 	protected SitesService sitesServiceInternal;
-	protected AuditServiceInternal auditServiceInternal;
+	protected AuditService auditService;
 	protected ConfigurationService configurationService;
-	protected ItemServiceInternal itemServiceInternal;
+	protected ItemService itemService;
 	protected ApplicationContext applicationContext;
 
 	@Autowired
@@ -325,7 +326,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint, String creator) throws SiteNotFoundException {
 		SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_CREATE);
 		auditLog.setSiteId(siteFeed.getId());
 		auditLog.setActorId(creator);
@@ -340,13 +341,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		auditLogParameters.add(auditLogParameter);
 
 		auditLog.setParameters(auditLogParameters);
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	private void processCreatedDirectory(ItemDAO itemDao, String siteId, String directory,
 					     long userId, ZonedDateTime now) {
 		String label = new File(directory).getName();
-		Item item = itemServiceInternal.instantiateItem(siteId, directory)
+		Item item = itemService.instantiateItem(siteId, directory)
 			.withPreviewUrl(null)
 			.withState(NEW.value)
 			.withLockedBy(null)
@@ -367,7 +368,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	private void processCreatedFile(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
-									Site site, String path, long userId, ZonedDateTime now) {
+									Site site, String path, long userId, ZonedDateTime now) throws SiteNotFoundException {
 		// Item
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
@@ -392,7 +393,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		String previewUrl = null;
 		if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
 			StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-			previewUrl = itemServiceInternal.getBrowserUrl(site.getSiteId(), path);
+			previewUrl = itemService.getBrowserUrl(site.getSiteId(), path);
 		}
 		long state = NEW.value;
 		if (disabled) {
@@ -400,7 +401,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}
 
 		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
-			Item item = itemServiceInternal.instantiateItem(site.getSiteId(), path)
+			Item item = itemService.instantiateItem(site.getSiteId(), path)
 				.withPreviewUrl(previewUrl)
 				.withState(state)
 				.withLockedBy(null)
@@ -447,7 +448,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					 ZonedDateTime now) throws Exception {
 		logger.debug("Processing created files for site '{}'", siteId);
 		Site site = sitesServiceInternal.getSite(siteId);
-		User userObj = userServiceInternal.getUserByGitName(creator);
+		User userObj = userService.getUserByGitName(creator);
 
 		MutableLong itemCount = new MutableLong(0);
 		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
@@ -466,7 +467,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			);
 			sqlSession.commit();
 			logger.debug("Update parent ID for created items for site '{}'", siteId);
-			itemServiceInternal.updateParentId(siteId);
+			itemService.updateParentId(siteId);
 			logger.debug("Validate dependencies for site '{}'", siteId);
 			dependencyServiceInternal.validateDependencies(siteId);
 		} catch (Exception e) {
@@ -507,9 +508,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		for (String group : defaultGroups) {
 			String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
 			try {
-				if (!groupServiceInternal.groupExists(-1, group)) {
+				if (!groupService.groupExists(-1, group)) {
 					try {
-						groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
+						groupService.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
 					} catch (GroupAlreadyExistsException e) {
 						throw new IllegalStateException(e);
 					}
@@ -922,12 +923,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	@SuppressWarnings("unused")
-	public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-		this.groupServiceInternal = groupServiceInternal;
+	public void setGroupService(GroupService groupService) {
+		this.groupService = groupService;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
 	@SuppressWarnings("unused")
@@ -940,16 +941,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		this.sitesServiceInternal = sitesServiceInternal;
 	}
 
-	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	public void setConfigurationService(ConfigurationService configurationService) {
 		this.configurationService = configurationService;
 	}
 
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 	@SuppressWarnings("unused")

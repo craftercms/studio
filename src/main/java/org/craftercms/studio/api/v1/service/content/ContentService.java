@@ -343,9 +343,9 @@ public interface ContentService {
 	/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
 	/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
 
-	ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
+	ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) throws SiteNotFoundException;
 
-	String getContentTypeClass(String site, String uri);
+	String getContentTypeClass(String site, String uri) throws SiteNotFoundException;
 
 	void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
 

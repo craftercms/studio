@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v2.exception.configuration.ConfigurationExcepti
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
+import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
@@ -44,12 +44,12 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 
 /**
- * Default implementation of {@link PolicyServiceInternal}
+ * Internal implementation of {@link PolicyService}
  *
  * @author joseross
  * @since 4.0.0
  */
-public class PolicyServiceInternalImpl implements PolicyServiceInternal {
+public class PolicyServiceInternalImpl implements PolicyService {
 
 	private static final Logger logger = LoggerFactory.getLogger(PolicyServiceInternalImpl.class);
 

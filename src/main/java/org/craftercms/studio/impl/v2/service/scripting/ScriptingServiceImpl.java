@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,16 +17,14 @@ package org.craftercms.studio.impl.v2.service.scripting;
 
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
-import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceInternal;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 
 import java.beans.ConstructorProperties;
 
@@ -38,10 +36,10 @@ import java.beans.ConstructorProperties;
  */
 public class ScriptingServiceImpl implements ScriptingService {
 
-	protected ScriptingServiceInternal scriptingServiceInternal;
+	protected ScriptingService scriptingServiceInternal;
 
 	@ConstructorProperties({"scriptingServiceInternal"})
-	public ScriptingServiceImpl(ScriptingServiceInternal scriptingServiceInternal) {
+	public ScriptingServiceImpl(ScriptingService scriptingServiceInternal) {
 		this.scriptingServiceInternal = scriptingServiceInternal;
 	}
 

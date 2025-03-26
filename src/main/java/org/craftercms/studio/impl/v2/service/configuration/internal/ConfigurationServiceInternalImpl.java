@@ -25,27 +25,26 @@ import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.core.exception.XmlFileParseException;
 import org.craftercms.core.service.Context;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
@@ -56,6 +55,7 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.annotation.Lazy;
@@ -82,11 +82,12 @@ import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
 /**
  * Internal implementation of {@link ConfigurationService}.
@@ -105,14 +106,14 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	private static final String READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION = "/crafter/studio/utils/readonly-blob-stores.xslt";
 
+	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private ContentService contentService;
-	private ContentServiceInternal contentServiceInternal;
 	private StudioConfiguration studioConfiguration;
-	private AuditServiceInternal auditServiceInternal;
-	private SiteService siteService;
+	private AuditService auditService;
+	private SitesService siteService;
 	private ServicesConfig servicesConfig;
 	private EncryptionAwareConfigurationReader configurationReader;
-	private ItemServiceInternal itemServiceInternal;
+	private ItemService itemService;
 	private DependencyService dependencyService;
 
 	private String translationConfig;
@@ -253,42 +254,43 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	@Override
 	public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException {
-		var cacheKey = getCacheKey(siteId, null, path, null, "commons");
-		HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
-		if (config == null) {
-			try {
+		try {
+			var cacheKey = getCacheKey(siteId, null, path, null, "commons");
+			HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
+			if (config == null) {
 				logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
-				if (contentServiceInternal.contentExists(siteId, path)) {
-					config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, path), getConfigLookupVariables(siteId));
+				if (contentService.contentExists(siteId, path)) {
+					config = configurationReader.readXmlConfiguration(contentServiceV1.getContent(siteId, path), getConfigLookupVariables(siteId));
 					configurationCache.put(cacheKey, config);
 				}
-			} catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
-				logger.error("Failed to load configuration from site '{}' path '{}'", siteId, path, e);
-				throw new ConfigurationException(format("Failed to load configuration from site " +
-					"'%s' path '%s'", siteId, path), e);
 			}
+			return config;
+		} catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException |
+				 SiteNotFoundException e) {
+			logger.error("Failed to load configuration from site '{}' path '{}'", siteId, path, e);
+			throw new ConfigurationException(format("Failed to load configuration from site " +
+				"'%s' path '%s'", siteId, path), e);
 		}
-		return config;
 	}
 
 	@Override
 	public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException {
 		String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-		String cacheKey = getCacheKey(siteId, module, path, environment);
-		HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
-		if (config != null) {
-			return config;
-		}
 		try {
+			String cacheKey = getCacheKey(siteId, module, path, environment);
+			HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
+			if (config != null) {
+				return config;
+			}
 			String fullConfigurationPath = getConfigurationPath(siteId, module, path, environment);
 			logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
-			if (contentServiceInternal.contentExists(siteId, fullConfigurationPath)) {
-				config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, fullConfigurationPath), getConfigLookupVariables(siteId));
+			if (contentService.contentExists(siteId, fullConfigurationPath)) {
+				config = configurationReader.readXmlConfiguration(contentServiceV1.getContent(siteId, fullConfigurationPath), getConfigLookupVariables(siteId));
 				configurationCache.put(cacheKey, config);
 			}
 			return config;
 		} catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException |
-			 SiteNotFoundException e) {
+				 SiteNotFoundException e) {
 			logger.error("Failed to load configuration from site '{}' module '{}' env '{}' path '{}'", siteId, module, environment, path, e);
 			throw new ConfigurationException(format("Failed to load configuration from site " +
 				"'%s' module '%s' env '%s' path '%s'", siteId, module, environment, path), e);
@@ -302,11 +304,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		if (config == null) {
 			try {
 				logger.debug("Cache miss in the Global repository cache key '{}'", cacheKey);
-				if (contentServiceInternal.contentExists(EMPTY, path)) {
-					config = configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path), emptyMap());
+				if (contentService.contentExists(EMPTY, path)) {
+					config = configurationReader.readXmlConfiguration(contentServiceV1.getContent(EMPTY, path), emptyMap());
 					configurationCache.put(cacheKey, config);
 				}
-			} catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
+			} catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException |
+					 SiteNotFoundException e) {
 				logger.error("Failed to load configuration from the Global repository path '{}'",
 					path, e);
 				throw new ConfigurationException(format("Failed to load configuration from the Global " +
@@ -322,7 +325,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		if (doc == null) {
 			try {
 				logger.debug("Cache miss in the Global repository path '{}'", path);
-				doc = contentService.getContentAsDocument(EMPTY, path);
+				doc = contentServiceV1.getContentAsDocument(EMPTY, path);
 				configurationCache.put(path, doc);
 			} catch (DocumentException e) {
 				logger.error("Failed to load the Global config at path '{}'", path, e);
@@ -335,7 +338,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	@Override
 	public String getGlobalConfigurationAsString(String path) throws ContentNotFoundException {
-		String content = contentService.getContentAsString(EMPTY, path);
+		String content = contentServiceV1.getContentAsString(EMPTY, path);
 		if (content == null) {
 			throw new ContentNotFoundException(path, CONFIGURATION_GLOBAL_SYSTEM_SITE,
 				format("Configuration not found for global site '%s', path '%s'", CONFIGURATION_GLOBAL_SYSTEM_SITE, path));
@@ -357,7 +360,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		} else {
 			configPath = path;
 		}
-		String result = contentService.shallowGetContentAsString(siteId, configPath);
+		String result = contentServiceV1.shallowGetContentAsString(siteId, configPath);
 		if (logger.isTraceEnabled()) {
 			logger.trace("getDefaultConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
 		}
@@ -376,8 +379,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 					.replaceAll(PATTERN_ENVIRONMENT, environment);
 			String configPath =
 				Paths.get(configBasePath, path).toString();
-			if (contentService.shallowContentExists(siteId, configPath)) {
-				return contentService.shallowGetContentAsString(siteId, configPath);
+			if (contentServiceV1.shallowContentExists(siteId, configPath)) {
+				return contentServiceV1.shallowGetContentAsString(siteId, configPath);
 			}
 		}
 		String defaultConfiguration = getDefaultConfiguration(siteId, module, path);
@@ -401,7 +404,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				getConfigurationPath(siteId, module, path, environment)));
 	}
 
-	public String getCacheKey(String siteId, String module, String path, String environment, String suffix) {
+	@Override
+	public String getCacheKey(String siteId, String module, String path, String environment, String suffix) throws SiteNotFoundException {
 		if (isNotEmpty(siteId)) {
 			String fullPath = null;
 			if (isNotEmpty(environment)) {
@@ -411,7 +415,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 						.replaceAll(PATTERN_ENVIRONMENT, environment);
 				String configPath =
 					Paths.get(configBasePath, path).toString();
-				if (contentServiceInternal.contentExists(siteId, configPath)) {
+				if (contentService.contentExists(siteId, configPath)) {
 					fullPath = configPath;
 				}
 			}
@@ -455,7 +459,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				      String type,
 				      String name,
 				      String filename)
-		throws ContentNotFoundException {
+		throws ContentNotFoundException, SiteNotFoundException {
 		String basePath;
 		if (isEmpty(pluginId)) {
 			basePath = servicesConfig.getPluginFolderPattern(siteId);
@@ -481,7 +485,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 		String filePath = UrlUtils.concat(basePath, filename);
 
-		return contentService.getContentAsResource(siteId, filePath);
+		return contentServiceV1.getContentAsResource(siteId, filePath);
 	}
 
 	private void writeDefaultConfiguration(String siteId, String module, String path, InputStream content)
@@ -489,11 +493,11 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 			.replaceAll(PATTERN_MODULE, module);
 		String configPath = Paths.get(configBasePath, path).toString();
-		contentService.writeContent(siteId, configPath, content);
-		String currentUser = getCurrentUser();
+		contentServiceV1.writeContent(siteId, configPath, content);
+		String currentUser = getCurrentUsername();
 		try {
-			itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser, true);
-			contentService.notifyContentEvent(siteId, configPath);
+			itemService.persistItemAfterWrite(siteId, configPath, currentUser, true);
+			contentServiceV1.notifyContentEvent(siteId, configPath);
 		} catch (XmlFileParseException e) {
 			logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
 		}
@@ -554,7 +558,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
 					.replaceAll(PATTERN_MODULE, module)
 					.replaceAll(PATTERN_ENVIRONMENT, environment);
-			if (!contentServiceInternal.contentExists(siteId, configBasePath)) {
+			if (!contentService.contentExists(siteId, configBasePath)) {
 				configBasePath = null;
 			}
 		}
@@ -574,12 +578,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
 					.replaceAll(PATTERN_MODULE, module)
 					.replaceAll(PATTERN_ENVIRONMENT, environment);
-			if (contentServiceInternal.contentExists(siteId, configBasePath)) {
+			if (contentService.contentExists(siteId, configBasePath)) {
 				String configPath = Paths.get(configBasePath, path).toString();
-				contentService.writeContent(siteId, configPath, content);
-				String currentUser = getCurrentUser();
-				itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,true);
-				contentService.notifyContentEvent(siteId, configPath);
+				contentServiceV1.writeContent(siteId, configPath, content);
+				String currentUser = getCurrentUsername();
+				itemService.persistItemAfterWrite(siteId, configPath, currentUser,true);
+				contentServiceV1.notifyContentEvent(siteId, configPath);
 				generateAuditLog(siteId, configPath, currentUser);
 				dependencyService.upsertDependencies(siteId, configPath);
 			} else {
@@ -591,16 +595,16 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	}
 
 	private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
-		SiteFeed siteFeed = siteService.getSite(siteId);
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		Site site = siteService.getSite(siteId);
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_UPDATE);
-		auditLog.setSiteId(siteFeed.getId());
+		auditLog.setSiteId(site.getId());
 		auditLog.setActorId(user);
 		auditLog.setPrimaryTargetId(siteId + ":" + path);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
 		auditLog.setPrimaryTargetValue(path);
 		auditLog.setPrimaryTargetSubtype(CONTENT_TYPE_CONFIGURATION);
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	@Override
@@ -616,7 +620,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 					.replaceAll(PATTERN_MODULE, module)
 					.replaceAll(PATTERN_ENVIRONMENT, environment);
 			configPath = Paths.get(configBasePath, path).toString();
-			if (!contentServiceInternal.contentExists(siteId, configPath)) {
+			if (!contentService.contentExists(siteId, configPath)) {
 				configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 					.replaceAll(PATTERN_MODULE, module);
 				configPath = Paths.get(configBasePath, path).toString();
@@ -626,22 +630,22 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				.replaceAll(PATTERN_MODULE, module);
 			configPath = Paths.get(configBasePath, path).toString();
 		}
-		if (!contentServiceInternal.contentExists(siteId, configPath)) {
+		if (!contentService.contentExists(siteId, configPath)) {
 			throw new ContentNotFoundException(path, siteId,
 				"Content not found at path " + configPath + " site " + siteId);
 		}
 		ConfigurationHistory configurationHistory = new ConfigurationHistory();
-		configurationHistory.setItem(contentServiceInternal.getItemByPath(siteId, configPath, false));
-		configurationHistory.setVersions(contentServiceInternal.getContentVersionHistory(siteId, configPath));
+		configurationHistory.setItem(contentService.getItemByPath(siteId, configPath, false));
+		configurationHistory.setVersions(contentService.getContentVersionHistory(siteId, configPath));
 		return configurationHistory;
 	}
 
 	@Override
 	public void writeGlobalConfiguration(String path, InputStream content)
 			throws ServiceLayerException, UserNotFoundException {
-		contentService.writeContent(EMPTY, path, validate(content, path));
-		contentService.notifyContentEvent(EMPTY, path);
-		String currentUser = getCurrentUser();
+		contentServiceV1.writeContent(EMPTY, path, validate(content, path));
+		contentServiceV1.notifyContentEvent(EMPTY, path);
+		String currentUser = getCurrentUsername();
 		generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
 		invalidateCache(path);
 	}
@@ -650,8 +654,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	@SuppressWarnings("rawtypes")
 	public TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException {
 		TranslationConfiguration translationConfiguration = new TranslationConfiguration();
-		if (contentServiceInternal.contentExists(siteId, translationConfig)) {
-			try (InputStream is = contentService.getContent(siteId, translationConfig)) {
+		if (contentService.contentExists(siteId, translationConfig)) {
+			try (InputStream is = contentServiceV1.getContent(siteId, translationConfig)) {
 				HierarchicalConfiguration config = configurationReader.readXmlConfiguration(is, getConfigLookupVariables(siteId));
 				if (config != null) {
 					translationConfiguration.setDefaultLocaleCode(
@@ -672,12 +676,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	}
 
 	@Override
-	public void invalidateConfiguration(String siteId, String path) {
+	public void invalidateConfiguration(String siteId, String path) throws SiteNotFoundException {
 		invalidateConfiguration(siteId, EMPTY, path, EMPTY);
 	}
 
 	@Override
-	public void invalidateConfiguration(String siteId, String module, String path, String environment) {
+	public void invalidateConfiguration(String siteId, String module, String path, String environment) throws SiteNotFoundException {
 		var cacheKey = getCacheKey(siteId, module, path, environment);
 		invalidateCache(cacheKey);
 	}
@@ -765,7 +769,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 					logger.debug("Cache miss in site '{}' key '{}'", site, xmlCacheKey);
 					String configContent;
 					if (useContentService) {
-						configContent = contentService.getContentAsString(site, finalConfigPath);
+						configContent = contentServiceV1.getContentAsString(site, finalConfigPath);
 					} else {
 						configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
 					}
@@ -835,25 +839,26 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public void setContentService(ContentService contentService) {
-		this.contentService = contentService;
+	public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1) {
+		this.contentServiceV1 = contentServiceV1;
 	}
 
 	@Lazy
 	@Autowired
-	public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
-		this.contentServiceInternal = contentServiceInternal;
+	@Qualifier("contentServiceInternal")
+	public void setContentService(final ContentService contentService) {
+		this.contentService = contentService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
 	}
 
-	public void setSiteService(SiteService siteService) {
+	public void setSiteService(SitesService siteService) {
 		this.siteService = siteService;
 	}
 
@@ -871,8 +876,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	@Lazy
 	@Autowired
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 	public void setConfigurationCache(Cache<String, Object> configurationCache) {

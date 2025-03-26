@@ -57,11 +57,11 @@ import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -108,6 +108,7 @@ import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
@@ -143,14 +144,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected StudioConfiguration studioConfiguration;
 	protected ContentTypeService contentTypeService;
 	protected EntitlementValidator entitlementValidator;
-	protected AuditServiceInternal auditServiceInternal;
-	protected ItemServiceInternal itemServiceInternal;
-	protected UserServiceInternal userServiceInternal;
+	protected AuditService auditService;
+	protected ItemService itemService;
+	protected UserService userService;
 	protected ApplicationContext applicationContext;
-	protected ActivityStreamServiceInternal activityStreamServiceInternal;
-	protected PublishService publishServiceInternal;
+	protected ActivityStreamService activityStreamService;
+	protected PublishService publishService;
 
-	protected org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal contentServiceV2;
+	protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
 	/**
 	 * file and folder name patterns for copied files and folders
@@ -405,7 +406,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 			if (shouldUpdateChildrenParent) {
 				// Update folder's children parentId, so they become this new page children instead
-				itemServiceInternal.updateNewPageChildren(site, folderPath);
+				itemService.updateNewPageChildren(site, folderPath);
 			}
 
 			// TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
@@ -414,10 +415,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			ContentItemTO itemTo = getContentItem(site, path, 0);
 
 			if (isSaveAndClose) {
-				itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
+				itemService.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
 					SAVE_AND_CLOSE_OFF_MASK);
 			} else {
-				itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
+				itemService.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
 					SAVE_AND_NOT_CLOSE_OFF_MASK);
 			}
 		} catch (RuntimeException e) {
@@ -425,7 +426,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			throw e;
 		} finally {
 			if (clearSystemProcessing) {
-				itemServiceInternal.setSystemProcessing(site, path, false);
+				itemService.setSystemProcessing(site, path, false);
 			}
 		}
 	}
@@ -438,7 +439,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	 * @throws ServiceLayerException if the flag is already set
 	 */
 	private void trySetSystemProcessing(final String site, final String path) throws ServiceLayerException {
-		if (itemServiceInternal.isSystemProcessing(site, path)) {
+		if (itemService.isSystemProcessing(site, path)) {
 			// TODO: SJ: Review and refactor/redo
 			logger.error("Failed to write content at site '{}' path '{}' because it is being processed " +
 				"(Object State is system processing)", site, path);
@@ -446,7 +447,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 					"because it is being processed  (Object State is system processing)",
 				site, path));
 		}
-		itemServiceInternal.setSystemProcessing(site, path, true);
+		itemService.setSystemProcessing(site, path, true);
 	}
 
 	/**
@@ -455,8 +456,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	 * @param path content path
 	 */
 	private void tryResetSystemProcessing(final String site, final String path) {
-		if (itemServiceInternal.isSystemProcessing(site, path)) {
-			itemServiceInternal.setSystemProcessing(site, path, false);
+		if (itemService.isSystemProcessing(site, path)) {
+			itemService.setSystemProcessing(site, path, false);
 		}
 	}
 
@@ -605,9 +606,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			item.setSize(assetInfoTO.getSize());
 			item.setSizeUnit(assetInfoTO.getSizeUnit());
 			if (Boolean.parseBoolean(unlock)) {
-				itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+				itemService.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 			} else {
-				itemServiceInternal.updateStateBits(site, path, SAVE_AND_NOT_CLOSE_ON_MASK, SAVE_AND_NOT_CLOSE_OFF_MASK);
+				itemService.updateStateBits(site, path, SAVE_AND_NOT_CLOSE_ON_MASK, SAVE_AND_NOT_CLOSE_OFF_MASK);
 			}
 
 			Map<String, Object> toRet = new HashMap<>();
@@ -623,7 +624,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			return toRet;
 		} finally {
 			if (item != null) {
-				itemServiceInternal.setSystemProcessing(site, path, false);
+				itemService.setSystemProcessing(site, path, false);
 			}
 		}
 	}
@@ -697,16 +698,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		if (commitId == null) {
 			return false;
 		}
-		Item parentItem = itemServiceInternal.getItem(site, path, true);
+		Item parentItem = itemService.getItem(site, path, true);
 		if (isNull(parentItem)) {
 			parentItem = createMissingParentItem(site, path, commitId);
 		}
-		itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, SecurityUtils.getCurrentUser(),
+		itemService.persistItemAfterCreateFolder(site, folderPath, name, SecurityUtils.getCurrentUsername(),
 			commitId, parentItem.getId());
 
-		String username = SecurityUtils.getCurrentUser();
+		String username = SecurityUtils.getCurrentUsername();
 		Site siteFeed = siteService.getSite(site);
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_CREATE);
 		auditLog.setCommitId(commitId);
 		auditLog.setSiteId(siteFeed.getId());
@@ -715,7 +716,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		auditLog.setPrimaryTargetId(site + ":" + folderPath);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
 		auditLog.setPrimaryTargetValue(folderPath);
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 		applicationContext.publishEvent(new SyncFromRepoEvent(site));
 		applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, folderPath));
 
@@ -726,14 +727,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		throws UserNotFoundException, ServiceLayerException {
 		String ancestorPath = ContentUtils.getParentUrl(parentPath);
 		String name = ContentUtils.getPageName(parentPath);
-		Item ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
+		Item ancestor = itemService.getItem(site, ancestorPath, true);
 		if (isNull(ancestor)) {
 			createMissingParentItem(site, ancestorPath, commitId);
-			ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
+			ancestor = itemService.getItem(site, ancestorPath, true);
 		}
-		itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, SecurityUtils.getCurrentUser(),
+		itemService.persistItemAfterCreateFolder(site, parentPath, name, SecurityUtils.getCurrentUsername(),
 			commitId, ancestor.getId());
-		return itemServiceInternal.getItem(site, parentPath, true);
+		return itemService.getItem(site, parentPath, true);
 	}
 
 	@Override
@@ -755,7 +756,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		String retNewFileName = null;
 
 		String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
-		String user = SecurityUtils.getCurrentUser();
+		String user = SecurityUtils.getCurrentUsername();
 		String copyPath = null;
 
 		try {
@@ -860,7 +861,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 							processContent(site, id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
 						}
 
-						itemServiceInternal.setSystemProcessing(site, copyPath, false);
+						itemService.setSystemProcessing(site, copyPath, false);
 
 						// copy was successful, return the new name
 						retNewFileName = copyPath;
@@ -995,7 +996,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				}
 
 				// Update the database with the commitId for the target item
-				var newParent = itemServiceInternal.getItem(siteId, toPath, true);
+				var newParent = itemService.getItem(siteId, toPath, true);
 				Long parentId = newParent != null ? newParent.getId() : null;
 				updateDatabaseOnMove(siteId, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder, commitId);
 				updateChildrenOnMove(siteId, fromPath, movePath, commitId);
@@ -1029,7 +1030,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		throws ServiceLayerException, UserNotFoundException {
 		logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
-		String user = SecurityUtils.getCurrentUser();
+		String user = SecurityUtils.getCurrentUsername();
 
 		Map<String, String> params = new HashMap<>();
 		params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
@@ -1044,17 +1045,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 
 		// Item update
-		itemServiceInternal.moveItem(site, fromPath, movePath, parentId, label);
+		itemService.moveItem(site, fromPath, movePath, parentId, label);
 		// Update folder when we are moving a /index.xml
 		if (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
 			String sourcePath = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 			String targetPath = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
-			itemServiceInternal.moveItem(site, sourcePath, targetPath, parentId, folderLabel);
+			itemService.moveItem(site, sourcePath, targetPath, parentId, folderLabel);
 		}
 
 		// write activity stream
 		Site siteFeed = siteService.getSite(site);
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_MOVE);
 		auditLog.setSiteId(siteFeed.getId());
 		auditLog.setCommitId(commitId);
@@ -1067,12 +1068,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 		auditLog.setPrimaryTargetValue(movePath);
 		auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, movePath));
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 
-		Item item = itemServiceInternal.getItem(site, movePath);
+		Item item = itemService.getItem(site, movePath);
 		// This is not required, the current user is already loaded in memory
-		User u = userServiceInternal.getUserByIdOrUsername(-1, user);
-		activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
+		User u = userService.getUserByIdOrUsername(-1, user);
+		activityStreamService.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
 			DateUtils.getCurrentTime(), item, null);
 
 		updateDependenciesOnMove(site, fromPath, movePath);
@@ -1773,7 +1774,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				if (!item.isFolder() || item.isContainer()) {
 					populateWorkflowProperties(site, item);
 				} else {
-					item.setNew(!itemServiceInternal.isNew(site, item.getUri()));
+					item.setNew(!itemService.isNew(site, item.getUri()));
 					item.isNew = item.isNew();
 				}
 			} else {
@@ -1789,7 +1790,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Override
 	@RequireSiteExists
 	public String getItemContentType(@SiteId String site, String path) throws DocumentException, SiteNotFoundException {
-		List<Item> items = itemServiceInternal.getItems(site, List.of(path));
+		List<Item> items = itemService.getItems(site, List.of(path));
 		if (CollectionUtils.isEmpty(items)) {
 			return getContentTypeClass(site, path);
 		}
@@ -1815,7 +1816,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return getContentTypeClass(site, path);
 	}
 
-	protected ContentItemTO loadContentItem(String site, String path) {
+	protected ContentItemTO loadContentItem(String site, String path) throws SiteNotFoundException {
 		// TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
 		ContentItemTO item = createNewContentItemTO(site, path);
 
@@ -1855,7 +1856,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return item;
 	}
 
-	protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
+	protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) throws SiteNotFoundException {
 		// TODO: SJ: Refactor in 2.7.x
 		if (item.isFolder()) {
 			item.setContentType(CONTENT_TYPE_FOLDER);
@@ -1883,7 +1884,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	protected void populateWorkflowProperties(String site, ContentItemTO item) {
-		Item it = itemServiceInternal.getItem(site, item.getUri());
+		Item it = itemService.getItem(site, item.getUri());
 		if (it != null) {
 			if (item.isFolder()) {
 				boolean liveFolder = isLive(it.getState());
@@ -1929,7 +1930,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 		// TODO: SJ: Create a method String getValueIfNotNull(String) to use to return not null/empty string if null
 		// TODO: SJ: Use that method to reduce redundant code here. 3.1+
-		Item metadata = itemServiceInternal.getItem(site, item.getUri());
+		Item metadata = itemService.getItem(site, item.getUri());
 		if (metadata == null) {
 			item.setLockOwner("");
 			return;
@@ -1950,7 +1951,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			item.setUserLastName("");
 			item.setUserFirstName("");
 		} else {
-			User u = userServiceInternal.getUserByIdOrUsername(-1, modifierUsername);
+			User u = userService.getUserByIdOrUsername(-1, modifierUsername);
 			item.user = modifierUsername;
 			item.setUser(modifierUsername);
 			item.userFirstName = u.getFirstName();
@@ -1969,7 +1970,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			item.setPublishedDate(metadata.getLastPublishedOn());
 		}
 
-		PublishPackage publishPackage = publishServiceInternal.getReadyPackageForItem(site, path, false);
+		PublishPackage publishPackage = publishService.getReadyPackageForItem(site, path, false);
 		if (publishPackage != null) {
 			if (publishPackage.getSchedule() != null) {
 				item.setScheduledDate(publishPackage.getSchedule().atZone(ZoneOffset.UTC));
@@ -2036,15 +2037,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 					"site '{}' path '{}' version '{}'", site, path, version);
 			}
 
-			String username = SecurityUtils.getCurrentUser();
+			String username = SecurityUtils.getCurrentUsername();
 			// Update the database for the target item
-			itemServiceInternal.persistItemAfterWrite(site, path, username, true);
+			itemService.persistItemAfterWrite(site, path, username, true);
 
 
 			// This is not required, the current user is already loaded in memory
-			User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+			User user = userService.getUserByIdOrUsername(-1, username);
 			Site siteFeed = siteService.getSite(site);
-			AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+			AuditLog auditLog = createAuditLogEntry();
 			auditLog.setOperation(OPERATION_REVERT);
 			auditLog.setSiteId(siteFeed.getId());
 			auditLog.setActorId(username);
@@ -2052,10 +2053,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
 			auditLog.setPrimaryTargetValue(path);
 			auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
-			auditServiceInternal.insertAuditLog(auditLog);
+			auditService.insertAuditLog(auditLog);
 
-			Item item = itemServiceInternal.getItem(site, path);
-			activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
+			Item item = itemService.getItem(site, path);
+			activityStreamService.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
 				DateUtils.getCurrentTime(), item, null);
 			applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, path));
 
@@ -2098,7 +2099,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Valid
 	public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
 								    @ValidateSecurePathParam()
-								    String relativePath) {
+								    String relativePath) throws SiteNotFoundException {
 		// TODO: SJ: Think of another way to do this in 3.1+
 		ContentItemTO item = new ContentItemTO();
 		item.timezone = servicesConfig.getDefaultTimezone(site);
@@ -2164,7 +2165,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected static String getBrowserUri(String uri, String replacePattern, boolean isPage) {
 		String browserUri = uri.replaceFirst(replacePattern, "");
 		browserUri = browserUri.replaceFirst(DmConstants.SLASH_INDEX_FILE, "");
-		if (browserUri.length() == 0) {
+		if (browserUri.isEmpty()) {
 			browserUri = FILE_SEPARATOR;
 		}
 		// TODO: come up with a better way of doing this.
@@ -2176,7 +2177,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	@Override
 	@Valid
-	public String getContentTypeClass(@ValidateStringParam String site, String uri) {
+	public String getContentTypeClass(@ValidateStringParam String site, String uri) throws SiteNotFoundException {
 		// TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
 		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
 			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
@@ -2246,7 +2247,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		// TODO: SJ: Where is the object state update to indicate item is now locked?
 		// TODO: SJ: Dejan to look into this
 		contentRepository.lockItem(site, path);
-		itemServiceInternal.lockItemByPath(site, path, SecurityUtils.getCurrentUser());
+		itemService.lockItemByPath(site, path, SecurityUtils.getCurrentUsername());
 		applicationContext.publishEvent(new LockContentEvent(SecurityUtils.getAuthentication(), site, path, true));
 	}
 
@@ -2430,8 +2431,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			updateDatabaseOnMove(siteId, path, targetPath, commitId);
 			if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
-			itemServiceInternal.persistItemAfterRenameContent(siteId, targetPath, name,
-				SecurityUtils.getCurrentUser(), commitId, contentType);
+			itemService.persistItemAfterRenameContent(siteId, targetPath, name,
+				SecurityUtils.getCurrentUsername(), commitId, contentType);
 
 			if (isFolder) {
 				updateChildrenOnMove(siteId, path, targetPath, commitId);
@@ -2495,32 +2496,32 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.entitlementValidator = entitlementValidator;
 	}
 
-	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	public void setContentRepository(GitContentRepository contentRepository) {
 		this.contentRepository = contentRepository;
 	}
 
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
+	public void setUserService(final UserService userService) {
+		this.userService = userService;
 	}
 
-	public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
-		this.activityStreamServiceInternal = activityStreamServiceInternal;
+	public void setActivityStreamService(ActivityStreamService activityStreamService) {
+		this.activityStreamService = activityStreamService;
 	}
 
-	public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal contentServiceV2) {
+	public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
 		this.contentServiceV2 = contentServiceV2;
 	}
 
-	public void setPublishServiceInternal(final PublishService publishServiceInternal) {
-		this.publishServiceInternal = publishServiceInternal;
+	public void setPublishService(final PublishService publishService) {
+		this.publishService = publishService;
 	}
 
 	/**

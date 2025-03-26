@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.web.security.access;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,6 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
 			logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
 			return toRet;
 		}
-		String userParam = request.getParameter("username");
 		String siteParam = request.getParameter("site_id");
 		if (StringUtils.isEmpty(siteParam)) {
 			siteParam = request.getParameter("site");
@@ -80,9 +80,14 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
 		if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
 			requiredPermission = PERMISSION_CONTENT_WRITE;
 		}
-		if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
-			toRet = ACCESS_GRANTED;
-		} else {
+		try {
+			if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
+				toRet = ACCESS_GRANTED;
+			} else {
+				toRet = ACCESS_DENIED;
+			}
+		} catch (SiteNotFoundException e) {
+			logger.error("Failed to check access. Site '{}' was not found", siteParam, e);
 			toRet = ACCESS_DENIED;
 		}
 		logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);

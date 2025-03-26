@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
@@ -55,7 +56,7 @@ public interface ContentTypeService {
 	 * @param type content type name
 	 * @return content type
 	 */
-	ContentTypeConfigTO getContentType(String site, String type);
+	ContentTypeConfigTO getContentType(String site, String type) throws SiteNotFoundException;
 
 	ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceLayerException;
 

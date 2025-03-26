@@ -47,8 +47,7 @@ import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownEx
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
@@ -127,8 +126,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
 	private StudioConfiguration studioConfiguration;
 	private TextEncryptor encryptor;
-	private SecurityService securityService;
-	private UserServiceInternal userServiceInternal;
+	private UserService userService;
 	private GeneralLockService generalLockService;
 	private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 	private AuthConfiguratorFactory authConfiguratorFactory;
@@ -884,7 +882,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				retryingRepositoryOperationFacade.call(addCommand);
 				CommitCommand commitCommand = git.commit()
 					.setMessage(message);
-				User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
+				User user = userService.getUserByIdOrUsername(-1, creator);
 				if (Objects.nonNull(user)) {
 					commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
 				}
@@ -952,7 +950,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				throw new InvalidRemoteRepositoryException(format("Invalid remote repository '%s (%s)'",
 					remoteName, remoteUrl));
 			} catch (TransportException e) {
-				GitUtils.translateException(e, logger, remoteName, remoteUrl, remoteUsername);
+				GitUtils.translateException(e, logger, remoteName, remoteUrl);
 			} finally {
 				Files.deleteIfExists(tempKey);
 			}
@@ -1034,7 +1032,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			// Commit empty repo, because we need to have HEAD to delete old and rename new branch
 			CommitCommand commitCommand = git.commit()
 				.setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
-			User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
+			User user = userService.getUserByIdOrUsername(-1, creator);
 			if (Objects.nonNull(user)) {
 				commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
 			}
@@ -1398,7 +1396,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws UserNotFoundException user not found
 	 */
 	public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
-		return getAuthorIdent(SecurityUtils.getCurrentUser());
+		return getAuthorIdent(SecurityUtils.getCurrentUsername());
 	}
 
 	/**
@@ -1410,7 +1408,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws UserNotFoundException user not found error
 	 */
 	public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
-		User user = userServiceInternal.getUserByIdOrUsername(-1, author);
+		User user = userService.getUserByIdOrUsername(-1, author);
 		PersonIdent currentUserIdent =
 			new PersonIdent(format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()), user.getEmail());
 
@@ -1453,10 +1451,6 @@ public class GitRepositoryHelper implements DisposableBean {
 		return SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
 	}
 
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
-	}
-
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
@@ -1465,32 +1459,12 @@ public class GitRepositoryHelper implements DisposableBean {
 		this.encryptor = encryptor;
 	}
 
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
-	public UserServiceInternal getUserServiceInternal() {
-		return userServiceInternal;
-	}
-
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	public GeneralLockService getGeneralLockService() {
-		return generalLockService;
+	public void setUserService(final UserService userService) {
+		this.userService = userService;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
-	}
-
-	public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
-		return retryingRepositoryOperationFacade;
 	}
 
 	public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {

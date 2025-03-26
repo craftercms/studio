@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,10 +19,12 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Defines all operations related to content-types
@@ -74,6 +76,24 @@ public interface ContentTypeService {
 	ImmutablePair<String, Resource> getContentTypeFormController(String siteId, String contentTypeId) throws ServiceLayerException;
 
 	/**
+	 * Builds the path of the Groovy controller for a given content type id
+	 *
+	 * @param contentTypeId the id of the content type
+	 * @return the path of the controller or null
+	 */
+	String getContentTypeControllerPath(String contentTypeId);
+
+	/**
+	 * Extracts the path of the Freemarker template for a given content type id
+	 *
+	 * @param siteId        the id of the site
+	 * @param contentTypeId the id of the content type
+	 * @return the path of the template or null
+	 * @throws ServiceLayerException if there is any error reading the content type definition
+	 */
+	String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException;
+
+	/**
 	 * Get all content types for the given site.
 	 *
 	 * @param siteId the id of the site
@@ -81,4 +101,12 @@ public interface ContentTypeService {
 	 * @throws ServiceLayerException if there is any error getting the content types
 	 */
 	Collection<String> getAllModelDefinitions(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get list of content types marked as quick creatable for given site
+	 *
+	 * @param siteId site identifier
+	 * @return List of quick creatable content types
+	 */
+	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 }

@@ -14,10 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.item.internal;
+package org.craftercms.studio.api.v2.service.item;
 
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemPathAndState;
@@ -27,14 +28,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public interface ItemServiceInternal {
+public interface ItemService {
 
 	/**
 	 * Insert record for item if it does not exist, otherwise update it
 	 *
 	 * @param item item to add or update
 	 */
-	boolean upsertEntry(Item item);
+	void upsertEntry(Item item);
 
 	/**
 	 * Get item fir given site and path
@@ -119,7 +120,7 @@ public interface ItemServiceInternal {
 	 * @param path path of the content
 	 * @return browser url
 	 */
-	String getBrowserUrl(String site, String path);
+	String getBrowserUrl(String site, String path) throws SiteNotFoundException;
 
 	/**
 	 * Persist item metadata after create
@@ -130,8 +131,8 @@ public interface ItemServiceInternal {
 	 * @param commitId commit id of the write operation
 	 * @param unlock   Indicates if content needs to be unlocked after write (save &amp; close)
 	 * @param parentId id of parent item
-	 * @throws ServiceLayerException
-	 * @throws UserNotFoundException
+	 * @throws ServiceLayerException if there is an error persisting the item
+	 * @throws UserNotFoundException if the user is not found
 	 */
 	void persistItemAfterCreate(String siteId, String path, String username, String commitId,
 				    boolean unlock, Long parentId)
@@ -157,8 +158,8 @@ public interface ItemServiceInternal {
 	 * @param username   user that executed create folder operation
 	 * @param commitId   commit id of the create folder operation
 	 * @param parentId   id of parent item
-	 * @throws ServiceLayerException
-	 * @throws UserNotFoundException
+	 * @throws ServiceLayerException if there is an error persisting the item
+	 * @throws UserNotFoundException if the user is not found
 	 */
 	void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
 					  String commitId, Long parentId)
@@ -173,8 +174,8 @@ public interface ItemServiceInternal {
 	 * @param username    user that executed create folder operation
 	 * @param commitId    commit id of the create folder operation
 	 * @param contentType content type
-	 * @throws ServiceLayerException
-	 * @throws UserNotFoundException
+	 * @throws ServiceLayerException if there is an error persisting the item
+	 * @throws UserNotFoundException if the user is not found
 	 */
 	void persistItemAfterRenameContent(String siteId, String path, String name, String username,
 					   String commitId, String contentType)
@@ -189,7 +190,7 @@ public interface ItemServiceInternal {
 	 * @param parentId new parent ID
 	 * @param label    new label
 	 */
-	void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label);
+	void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) throws SiteNotFoundException;
 
 	/**
 	 * Check if item is new
@@ -315,15 +316,6 @@ public interface ItemServiceInternal {
 	 */
 	void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
 				     boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified);
-
-	/**
-	 * Update states for all content in the given site
-	 *
-	 * @param siteId         site identifier
-	 * @param onStateBitMap  states bitmap to flip on
-	 * @param offStateBitMap states bitmap to flip off
-	 */
-	void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap);
 
 	/**
 	 * Updates a new page's children (in case the folder existed before the page was created)

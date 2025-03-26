@@ -28,27 +28,28 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 
 public class PostActivityProcessor extends BaseContentProcessor {
 
 	public static final String NAME = "PostActivityProcessor";
 
-	protected AuditServiceInternal auditServiceInternal;
+	protected AuditService auditService;
 	protected SiteService siteService;
 	protected ContentService contentService;
 	protected ContentRepository contentRepository;
-	protected ActivityStreamServiceInternal activityStreamServiceInternal;
-	protected UserServiceInternal userServiceInternal;
-	protected ItemServiceInternal itemServiceInternal;
+	protected ActivityStreamService activityStreamService;
+	protected UserService userService;
+	protected ItemService itemService;
 
 	/**
 	 * default constructor
@@ -86,7 +87,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
 				String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
 					+ fileName;
 				SiteFeed siteFeed = siteService.getSite(site);
-				AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+				AuditLog auditLog = createAuditLogEntry();
 				auditLog.setOperation(activityType);
 				auditLog.setActorId(user);
 				auditLog.setSiteId(siteFeed.getId());
@@ -95,18 +96,18 @@ public class PostActivityProcessor extends BaseContentProcessor {
 				auditLog.setPrimaryTargetValue(uri);
 				auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
 				auditLog.setCommitId(result.getCommitId());
-				auditServiceInternal.insertAuditLog(auditLog);
+				auditService.insertAuditLog(auditLog);
 
-				User u = userServiceInternal.getUserByIdOrUsername(-1, user);
-				Item item = itemServiceInternal.getItem(site, uri);
-				activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), activityType,
+				User u = userService.getUserByIdOrUsername(-1, user);
+				Item item = itemService.getItem(site, uri);
+				activityStreamService.insertActivity(siteFeed.getId(), u.getId(), activityType,
 					DateUtils.getCurrentTime(), item, null);
 			}
 		}
 	}
 
-	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	public void setSiteService(SiteService siteService) {
@@ -121,16 +122,16 @@ public class PostActivityProcessor extends BaseContentProcessor {
 		this.contentRepository = contentRepository;
 	}
 
-	public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
-		this.activityStreamServiceInternal = activityStreamServiceInternal;
+	public void setActivityStreamService(ActivityStreamService activityStreamService) {
+		this.activityStreamService = activityStreamService;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 }

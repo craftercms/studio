@@ -29,6 +29,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -305,7 +306,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	protected NotificationConfigTO loadConfig(final String site) {
+	protected NotificationConfigTO loadConfig(final String site) throws SiteNotFoundException {
 		var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
 		var configPath = getConfigPath();
 		var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, configPath, environment, "object");
@@ -374,7 +375,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	private String getAdminEmailAddress(final String site) {
+	private String getAdminEmailAddress(final String site) throws SiteNotFoundException {
 		String adminEmail = servicesConfig.getAdminEmailAddress(site);
 		if (EmailUtils.validateEmail(adminEmail)) {
 			return adminEmail;
@@ -448,7 +449,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	protected NotificationConfigTO getNotificationConfig(final String site) {
+	protected NotificationConfigTO getNotificationConfig(final String site) throws SiteNotFoundException {
 		return loadConfig(site);
 	}
 

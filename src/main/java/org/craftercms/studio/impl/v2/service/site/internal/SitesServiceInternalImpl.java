@@ -35,9 +35,9 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -55,7 +55,6 @@ import org.springframework.lang.NonNull;
 import java.beans.ConstructorProperties;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -70,10 +69,11 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
 
@@ -87,8 +87,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Deployer deployer;
 	private final ConfigurationService configurationService;
-	private final AuditServiceInternal auditServiceInternal;
-	private ItemServiceInternal itemServiceInternal;
+	private final AuditService auditService;
+	private ItemService itemServiceInternal;
 	private final TaskManager taskManager;
 	private ApplicationContext applicationContext;
 
@@ -98,14 +98,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		"siteDao",
 		"retryingDatabaseOperationFacade",
 		"deployer", "configurationService",
-		"auditServiceInternal", "taskManager"})
+		"auditService", "taskManager"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
 					StudioBlobAwareContentRepository blobAwareRepository,
 					StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
 					SiteDAO siteDao,
 					RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 					Deployer deployer, ConfigurationService configurationService,
-					AuditServiceInternal auditServiceInternal, TaskManager taskManager) {
+					AuditService auditService, TaskManager taskManager) {
 		this.descriptorReader = descriptorReader;
 		this.blobAwareRepository = blobAwareRepository;
 		this.studioConfiguration = studioConfiguration;
@@ -114,13 +114,13 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.deployer = deployer;
 		this.configurationService = configurationService;
-		this.auditServiceInternal = auditServiceInternal;
+		this.auditService = auditService;
 		this.taskManager = taskManager;
 	}
 
 	@Lazy
 	@Autowired
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+	public void setItemServiceInternal(ItemService itemServiceInternal) {
 		this.itemServiceInternal = itemServiceInternal;
 	}
 
@@ -178,15 +178,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
 			studioConfiguration.getProperty(GLOBAL_REPO_PATH), folder.path(), folder.name(),
 			studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
-	}
-
-	protected PluginDescriptor loadDescriptor(InputStream is) {
-		try {
-			return descriptorReader.read(is);
-		} catch (PluginException e) {
-			logger.error("Failed to load descriptor", e);
-		}
-		return null;
 	}
 
 	protected PluginDescriptor loadDescriptor(RepositoryItem folder) {
@@ -415,15 +406,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 */
 	private void insertDeleteSiteAuditLog(String siteId, String siteName, String operation) {
 		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-		String user = getCurrentUser();
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		String user = getCurrentUsername();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(operation);
 		auditLog.setSiteId(globalSite.getId());
 		auditLog.setActorId(user);
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLog.setPrimaryTargetValue(siteName);
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	/**
@@ -453,7 +444,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		Site site = siteDao.getSite(siteId);
 		retryingDatabaseOperationFacade.retry(() -> siteDao.enablePublishing(siteId, enabled));
 
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setSiteId(site.getId());
 		if (enabled) {
 			logger.info("Publishing started for site '{}'", siteId);
@@ -462,11 +453,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			logger.info("Publishing stopped for site '{}'", siteId);
 			auditLog.setOperation(OPERATION_STOP_PUBLISHER);
 		}
-		auditLog.setActorId(getCurrentUser());
+		auditLog.setActorId(getCurrentUsername());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLog.setPrimaryTargetValue(site.getName());
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	@Override
@@ -568,6 +559,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
+	public List<Site> getAllSites() {
+		return siteDao.getAllSites();
+	}
+
+	@Override
 	public void setPublishedRepoCreated(final String siteId) {
 		siteDao.setPublishedRepoCreated(siteId);
 	}
@@ -586,10 +582,10 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 */
 	protected void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
 		SiteFeed globalSiteFeed = siteFeedMapper.getSite(Map.of(SITE_ID, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)));
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_DUPLICATE);
 		auditLog.setSiteId(globalSiteFeed.getId());
-		auditLog.setActorId(getCurrentUser());
+		auditLog.setActorId(getCurrentUsername());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLog.setPrimaryTargetValue(siteName);
@@ -601,7 +597,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		auditLogParameters.add(auditLogParameter);
 
 		auditLog.setParameters(auditLogParameters);
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	/**

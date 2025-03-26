@@ -23,6 +23,7 @@ import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
@@ -35,7 +36,6 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
-import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
@@ -43,6 +43,8 @@ import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -69,7 +71,9 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
 
-public class ContentTypeServiceInternalImpl implements ContentTypeServiceInternal {
+public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api.v2.service.content.ContentTypeService {
+
+	private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceInternalImpl.class);
 
 	protected final ContentTypeService contentTypeService;
 	protected final SecurityService securityService;
@@ -127,9 +131,15 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
 		return contentTypeService.getAllContentTypes(siteId, true).stream()
 			.filter(ContentTypeConfigTO::isQuickCreate)
-			.filter(contentType ->
-				securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUser())
-					.contains(PERMISSION_CONTENT_CREATE))
+			.filter(contentType -> {
+				try {
+					return securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
+						.contains(PERMISSION_CONTENT_CREATE);
+				} catch (SiteNotFoundException e) {
+					// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
+					return false;
+				}
+			})
 			.map(contentType -> {
 				QuickCreateItem item = new QuickCreateItem();
 				item.setSiteId(siteId);
@@ -170,7 +180,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
 	@Override
 	public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
-									  @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
+																	  @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
 
 		String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
 		boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail

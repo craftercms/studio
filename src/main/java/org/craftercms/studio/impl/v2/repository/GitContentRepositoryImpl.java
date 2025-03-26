@@ -27,6 +27,7 @@ import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
@@ -44,7 +45,7 @@ import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.*;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -114,7 +115,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	private GitRepositoryHelper helper;
 	private StudioConfiguration studioConfiguration;
-	private UserServiceInternal userServiceInternal;
+	private UserService userService;
 	private RemoteRepositoryDAO remoteRepositoryDAO;
 	private SiteDAO siteDao;
 	private ProcessedCommitsDAO processedCommitsDao;
@@ -408,7 +409,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 * @param sandboxBranchName sandbox repository branch name
 	 * @throws IOException if an I/O error occurs while verifying branch existence
 	 */
-	private void ensureEnvironmentBranch(String site, String environment, Repository repo, String sandboxBranchName) throws IOException {
+	private void ensureEnvironmentBranch(String site, String environment, Repository repo, String sandboxBranchName) throws IOException, SiteNotFoundException {
 		if (branchExists(repo, environment)) {
 			return;
 		}
@@ -1095,7 +1096,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public void itemUnlock(String site, String path) {
+	public void unlockItem(String site, String path) {
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 		generalLockService.lock(gitLockKey);
@@ -1169,7 +1170,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			Repository repo = helper.getRepository(siteId, PUBLISHED);
 			ObjectId commitIdObject = repo.resolve(commitId);
 			String treeId = helper.writeTree(repo, emptyList(), ignorePaths, commitId, commitIdObject, taskProgress);
-			User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+			User gitRepoUser = userService.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
 			String newCommitId = helper.commitTree(repo, treeId, commitIdObject, gitRepoUser, helper.getCommitMessage(REPO_INITIAL_PUBLISH_COMMIT_MESSAGE));
 
 			// Create target branch
@@ -1221,7 +1222,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			logger.debug("Creating new commit for tree '{}' in published repo for site '{}' package '{}' target '{}'",
 				sandboxTree, siteId, publishPackage.getId(), publishingTarget);
 
-			User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
+			User user = userService.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
 			String newCommitId = helper.commitTree(repo, sandboxTree.getId().getName(),
 				publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
 			logger.debug("Published all changes for site '{}' package '{}' target '{}'",
@@ -1286,7 +1287,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			retryingRepositoryOperationFacade.call(git.fetch());
 			fetchStage.complete();
 
-			User user = userServiceInternal.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
+			User user = userService.getUserByIdOrUsername(publishPackage.getSubmitterId(), "");
 			ObjectId publishedLastCommitId = repo.resolve(publishingTarget);
 
 			// Get affected paths, translate to git paths, group by action
@@ -1729,7 +1730,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				throw new ServiceLayerException(format("Failed to write content to site '%s' path '%s'", siteId, path));
 			}
 			PersonIdent user = helper.getCurrentUserIdent();
-			String username = SecurityUtils.getCurrentUser();
+			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
 				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
 				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
@@ -1754,8 +1755,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
 	public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {

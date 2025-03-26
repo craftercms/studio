@@ -16,8 +16,11 @@
 
 package org.craftercms.studio.impl.v2.service.proxy.internal;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.proxy.ProxyUtils;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -28,9 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 
 import java.beans.ConstructorProperties;
 import java.net.URI;
@@ -63,14 +63,14 @@ public class ProxyServiceInternalImpl implements ProxyService {
 	@Override
 	public ResponseEntity<Object> getSiteLogEvents(final String body,
 						       final String siteId,
-						       final HttpServletRequest request) throws URISyntaxException {
+						       final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
 		return proxyEngine(body, siteId, request);
 	}
 
 	@Override
 	@Valid
 	public ResponseEntity<Object> proxyEngine(final String body, final String siteId,
-						  final HttpServletRequest request) throws URISyntaxException {
+						  final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
 		URI uri = getProxyRequestUri(siteId, request);
 		HttpEntity<Object> httpEntity = new HttpEntity<>(body, getProxyRequestHeaders(request));
 		try {
@@ -105,7 +105,7 @@ public class ProxyServiceInternalImpl implements ProxyService {
 	 * @return proxying URI object
 	 * @throws URISyntaxException if there are exceptions while forming the URI
 	 */
-	private URI getProxyRequestUri(String siteId, HttpServletRequest request) throws URISyntaxException {
+	private URI getProxyRequestUri(String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
 		String proxyPath = getProxyPath(request);
 		List<String> engineProtectedUrls = getEngineProtectedUrls();
 		boolean managementTokenRequired = engineProtectedUrls.contains(proxyPath);
@@ -167,7 +167,7 @@ public class ProxyServiceInternalImpl implements ProxyService {
 	/**
 	 * Returns the full authoring url used for preview
 	 */
-	protected String getAuthoringUrl(String siteId) {
+	protected String getAuthoringUrl(String siteId) throws SiteNotFoundException {
 		return servicesConfig.getAuthoringUrl(siteId);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,16 +18,20 @@ package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.rest.UserResponse;
+import org.springframework.lang.NonNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Provides operations to manage users
+ */
 public interface UserService {
 
 	/**
@@ -40,9 +44,9 @@ public interface UserService {
 	 * @param limit   limit number of users to return per page
 	 * @param sort    sort order
 	 * @return requested page of list of users
-	 * @throws ServiceLayerException
+	 * @throws ServiceLayerException if there is an error fetching the users
 	 */
-	List<UserResponse> getAllUsersForSite(long orgId, String site, String keyword, int offset, int limit, String sort)
+	Collection<User> getAllUsersForSite(long orgId, String site, String keyword, int offset, int limit, String sort)
 		throws ServiceLayerException;
 
 	/**
@@ -53,9 +57,9 @@ public interface UserService {
 	 * @param limit   limit number of users to return per page
 	 * @param sort    sort order
 	 * @return requested page of list of users
-	 * @throws ServiceLayerException
+	 * @throws ServiceLayerException if there is an error fetching the users
 	 */
-	List<UserResponse> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
+	Collection<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
 
 	/**
 	 * Get total number of users for site filtered by keyword
@@ -64,7 +68,7 @@ public interface UserService {
 	 * @param site    site identifier
 	 * @param keyword keyword to filter users
 	 * @return total number of users for site filtered by keyword
-	 * @throws ServiceLayerException
+	 * @throws ServiceLayerException if there is an error fetching the total number of users
 	 */
 	int getAllUsersForSiteTotal(long orgId, String site, String keyword) throws ServiceLayerException;
 
@@ -73,32 +77,186 @@ public interface UserService {
 	 *
 	 * @param keyword keyword to filter user
 	 * @return total number of users filtered by keyword
-	 * @throws ServiceLayerException
+	 * @throws ServiceLayerException if there is an error fetching the total number of users
 	 */
 	int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
-	UserResponse createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
-
-	void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
-
-	void deleteUsers(List<Long> userIds, List<String> usernames)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException;
-
+	/**
+	 * Get user by id or username
+	 *
+	 * @param userId   user id
+	 * @param username username
+	 * @return user
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException if the user is not found
+	 */
+	@NonNull
 	User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
-	List<UserResponse> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
+	/**
+	 * Indicates if a user exists with the given username or user id
+	 *
+	 * @param userId   the user id
+	 * @param username the username
+	 * @return true if the user exists, false otherwise
+	 * @throws ServiceLayerException general service error
+	 */
+	boolean userExists(long userId, String username) throws ServiceLayerException;
 
+	/**
+	 * Create a new user
+	 *
+	 * @param user user to create
+	 * @return created user
+	 * @throws UserAlreadyExistsException if the user already exists
+	 * @throws ServiceLayerException      general service error
+	 */
+	User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
+
+	/**
+	 * Update a user
+	 *
+	 * @param user user to update
+	 * @throws UserNotFoundException          if the user is not found
+	 * @throws ServiceLayerException          general service error
+	 * @throws UserExternallyManagedException if the user is externally managed
+	 */
+	void updateUser(User user) throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException;
+
+	/**
+	 * Delete users by ids and usernames
+	 *
+	 * @param userIds   list of user ids
+	 * @param usernames list of usernames
+	 * @throws UserNotFoundException          if a user is not found
+	 * @throws ServiceLayerException          general service error
+	 * @throws AuthenticationException        if there is no user authenticated
+	 * @throws UserExternallyManagedException if trying to delete an externally managed user
+	 * @throws GroupNotFoundException         if the system_admin group cannot be found (this method tries to ensure
+	 *                                        that the system_admin group is not left without members)
+	 */
+	void deleteUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, ServiceLayerException, AuthenticationException, UserExternallyManagedException, GroupNotFoundException;
+
+	/**
+	 * Enable or disable users
+	 *
+	 * @param userIds   list of user ids
+	 * @param usernames list of usernames
+	 * @param enabled   true to enable, false to disable
+	 * @return list of users that were enabled or disabled
+	 * @throws UserNotFoundException          if a user is not found
+	 * @throws ServiceLayerException          general service error
+	 * @throws UserExternallyManagedException if trying to enable or disable an externally managed user
+	 */
+	List<User> enableUsers(List<Long> userIds, List<String> usernames,
+						   boolean enabled) throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException;
+
+	/**
+	 * Get user by git name.
+	 * Special use case because git stores user as string of first and last name separated by ' '
+	 *
+	 * @param gitName first and last name separated with ' '
+	 * @return user
+	 */
+	User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Get the list of Sites the given user belongs to (meaning it belongs to at least one group mapped in the site role mappings)
+	 *
+	 * @param userId   the user id
+	 * @param username the username
+	 * @return the list of sites the user belongs to
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException if the user is not found
+	 */
 	List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
+	/**
+	 * Get the list of roles the given user has in the given site
+	 *
+	 * @param userId   the user id
+	 * @param username the username
+	 * @param site     the site
+	 * @return the list of roles the user has in the site
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException if the user is not found
+	 */
 	List<NormalizedRole> getUserSiteRoles(long userId, String username, String site)
 		throws ServiceLayerException, UserNotFoundException;
 
-	AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException;
+	/**
+	 * Retrieves the list of groups associated with the specified user.
+	 *
+	 * @param userId   the unique identifier of the user
+	 * @param username the username of the user
+	 * @return a list of {@link Group} objects associated with the user
+	 * @throws UserNotFoundException if no user is found with the given userId or username
+	 * @throws ServiceLayerException if an error occurs while accessing the service layer
+	 */
+	List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException;
 
+	/**
+	 * Check if given user has system_admin role
+	 *
+	 * @param username user
+	 * @return true if user is system_admin, false otherwise
+	 */
+	boolean isSystemAdmin(String username);
+
+	/**
+	 * Get the list of sites the current authenticated user belongs to
+	 *
+	 * @return the list of sites the current authenticated user belongs to
+	 * @throws AuthenticationException if there is no user authenticated
+	 * @throws ServiceLayerException   general service error
+	 */
 	List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException;
 
-	List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
+
+	/**
+	 * Get the list of roles the current authenticated user has in the given site
+	 *
+	 * @param site the site
+	 * @return the list of roles the current authenticated user has in the site
+	 * @throws AuthenticationException if there is no user authenticated
+	 * @throws ServiceLayerException   general service error
+	 * @throws UserNotFoundException   if the user is not found
+	 */
+	List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Get a list of users by ids or usernames
+	 *
+	 * @param userIds   list of user ids
+	 * @param usernames list of usernames
+	 * @return list of users
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException if a user is not found
+	 */
+	List<User> getUsersByIdOrUsername(List<Long> userIds,
+									  List<String> usernames) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Retrieves the list of groups associated with the specified user, optionally filtering
+	 * to include only externally managed groups.
+	 *
+	 * @param userId                        the unique identifier of the user
+	 * @param username                      the username of the user
+	 * @param filterExternallyManagedGroups if true, only externally managed groups are returned;
+	 *                                      if false, all groups are returned
+	 * @return a list of {@link Group} objects associated with the user, filtered based on the flag
+	 * @throws UserNotFoundException if no user is found with the given userId or username
+	 * @throws ServiceLayerException if an error occurs while accessing the service layer
+	 */
+	List<Group> getUserGroups(long userId, String username, boolean filterExternallyManagedGroups) throws UserNotFoundException, ServiceLayerException;
+
+	/**
+	 * Get the global roles for a user
+	 *
+	 * @param username the username
+	 * @return the list global roles
+	 */
+	Collection<NormalizedRole> getUserGlobalRoles(String username) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Forgot password feature for given username
@@ -110,12 +268,12 @@ public interface UserService {
 		throws ServiceLayerException;
 
 	/**
-	 * Get aforgot password token for given username
+	 * Get a forgot password token for given username
 	 *
-	 * @param username
-	 * @return
+	 * @param username the username
+	 * @return forgot password token
 	 */
-	String getForgotPasswordToken(String username);
+	String getForgotPasswordToken(String username) throws ServiceLayerException;
 
 	/**
 	 * User changes password
@@ -130,7 +288,7 @@ public interface UserService {
 	 * @throws AuthenticationException        authentication error
 	 * @throws UserNotFoundException          user not found
 	 */
-	UserResponse changePassword(String username, String current, String newPassword)
+	User changePassword(String username, String current, String newPassword)
 		throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
 		AuthenticationException, UserNotFoundException;
 
@@ -144,7 +302,7 @@ public interface UserService {
 	 * @throws UserExternallyManagedException user is externally managed
 	 * @throws ServiceLayerException          general service error
 	 */
-	UserResponse setPassword(String token, String newPassword)
+	User setPassword(String token, String newPassword)
 		throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException;
 
 	/**
@@ -207,7 +365,7 @@ public interface UserService {
 	 * Get permissions of the current authenticated user for given site
 	 *
 	 * @param site site identifier
-	 * @return
+	 * @return list of permissions
 	 */
 	List<String> getCurrentUserSitePermissions(String site)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException;
@@ -219,13 +377,13 @@ public interface UserService {
 	 * @param permissions list of permissions to check
 	 * @return map with values true or false for each given permission
 	 */
-	Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
+	Map<String, Boolean> hasCurrentUserSitePermissions(String site, Collection<String> permissions)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException;
 
 	/**
 	 * Get global permissions of the current authenticated user
 	 *
-	 * @return
+	 * @return list of global permissions
 	 */
 	List<String> getCurrentUserGlobalPermissions()
 		throws ServiceLayerException, UserNotFoundException, ExecutionException;
@@ -238,4 +396,13 @@ public interface UserService {
 	 */
 	Map<String, Boolean> hasCurrentUserGlobalPermissions(List<String> permissions)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException;
+
+	/**
+	 * Indicates if a user is a member of a site
+	 *
+	 * @param username the username
+	 * @param siteId   the site id
+	 * @return true if the user is a member of the site, false otherwise
+	 */
+	boolean isSiteMember(String username, String siteId);
 }

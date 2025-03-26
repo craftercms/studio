@@ -20,9 +20,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.Collections;
@@ -30,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -41,7 +44,7 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
 	private SecurityService securityService;
 	private StudioConfiguration studioConfiguration;
-	private ItemServiceInternal itemServiceInternal;
+	private ItemService itemService;
 
 	@Override
 	public Permission getGlobalPermission(String username) throws PermissionException {
@@ -65,8 +68,13 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 			}
 		}
 
-		Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
-		Item item = itemServiceInternal.getItem(siteName, path);
+		Set<String> allowedActions = null;
+		try {
+			allowedActions = securityService.getUserPermissions(siteName, path, username);
+		} catch (SiteNotFoundException e) {
+			throw new ActionsDeniedException(format("Failed to load permissions for user '%s'. Site '%s' was not found", username, siteName), e);
+		}
+		Item item = itemService.getItem(siteName, path);
 
 		PermissionOrOwnership permission = new PermissionOrOwnership();
 		permission.setAllowedActions(allowedActions);
@@ -77,27 +85,15 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 		return permission;
 	}
 
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-
 	public void setSecurityService(SecurityService securityService) {
 		this.securityService = securityService;
-	}
-
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public ItemServiceInternal getItemServiceInternal() {
-		return itemServiceInternal;
-	}
-
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 }

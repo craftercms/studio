@@ -21,13 +21,16 @@ import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -73,7 +76,12 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 			}
 		}
 
-		Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username);
+		Set<String> allowedActions = null;
+		try {
+			allowedActions = securityService.getUserPermissions(siteName, path, username);
+		} catch (SiteNotFoundException e) {
+			throw new ActionsDeniedException(format("Failed to load permissions for user '%s'. Site '%s' was not found", username, siteName), e);
+		}
 
 		DefaultPermission permission = new DefaultPermission();
 		permission.setAllowedActions(allowedActions);

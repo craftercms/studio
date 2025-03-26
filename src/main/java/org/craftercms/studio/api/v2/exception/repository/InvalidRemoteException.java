@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,19 +13,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.util.filter;
 
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
+package org.craftercms.studio.api.v2.exception.repository;
+
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
- * @author Dejan Brkic
+ * Exception thrown when a remote repository is invalid.
  */
-public interface DmFilterWrapper {
-	public boolean accept(ContentItemTO item, String filterType);
-
-	public boolean accept(String site, ContentItemTO item, String filterType) throws SiteNotFoundException;
-
-	public boolean accept(String site, String relativePath, String filterType) throws SiteNotFoundException;
-
+public class InvalidRemoteException extends ServiceLayerException {
+	public InvalidRemoteException(String message, Exception e) {
+		super(message, e);
+	}
 }

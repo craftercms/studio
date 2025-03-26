@@ -55,6 +55,13 @@
 		  AND system = 0
 	</select>
 
+	<select id="getAllSites" resultMap="SiteMap">
+		SELECT *
+		FROM site
+		WHERE deleted = 0
+		AND system = 0
+	</select>
+
 	<select id="getLastCommitId" resultType="java.lang.String">
 		SELECT s.last_commit_id
 		FROM site s

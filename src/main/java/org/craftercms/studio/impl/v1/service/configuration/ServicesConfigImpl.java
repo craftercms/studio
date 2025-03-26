@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.*;
@@ -34,6 +35,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -85,52 +87,18 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected ConfigurationService configurationService;
 	protected Cache<String, SiteConfigTO> configurationCache;
 
-	protected SiteConfigTO getSiteConfig(final String site) {
-		return loadConfiguration(site);
-	}
-
-	@Override
-	@Valid
-	public String getWemProject(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getWemProject() != null) {
-			return config.getWemProject();
-		}
-		return null;
-	}
-
-	@Override
-	@Valid
-	public List<DmFolderConfigTO> getFolders(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
-			return config.getRepositoryConfig().getFolders();
-		}
-		return null;
-	}
-
-	@Override
-	@Valid
-	public String getRootPrefix(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
-			return config.getRepositoryConfig().getRootPrefix();
-		}
-		return null;
-	}
-
 	@Override
 	@Valid
 	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam String site,
-							@ValidateStringParam String name) {
+							@ValidateStringParam String name) throws SiteNotFoundException {
 		return contentTypesConfig.getContentTypeConfig(site, name);
 	}
 
 	@Override
 	@Valid
-	public List<String> getAssetPatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getAssetPatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getAssetPatterns();
 		}
 		return null;
@@ -139,7 +107,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	@Override
 	@Valid
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam String site,
-								      @ValidateStringParam String contentType) {
+								      @ValidateStringParam String contentType) throws SiteNotFoundException {
 		if (contentType == null) {
 			return Collections.emptyList();
 		}
@@ -152,9 +120,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<String> getComponentPatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getComponentPatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getComponentPatterns();
 		}
 		return null;
@@ -162,9 +130,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<String> getPagePatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getPagePatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getPagePatterns();
 		}
 		return null;
@@ -172,9 +140,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<String> getRenderingTemplatePatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getRenderingTemplatePatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getRenderingTemplatePatterns();
 		}
 		return null;
@@ -182,18 +150,18 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<String> getScriptsPatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getScriptsPatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getScriptsPatterns();
 		}
 		return null;
 	}
 
 	@Override
-	public List<String> getConfigurationPatterns(String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getConfigurationPatterns(String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getConfigurationPatterns();
 		}
 		return null;
@@ -201,9 +169,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<String> getLevelDescriptorPatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getLevelDescriptorPatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorPatterns();
 		}
 		return null;
@@ -211,9 +179,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public List<String> getDocumentPatterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getDocumentPatterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDocumentPatterns();
 		}
 		return null;
@@ -221,9 +189,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public String getLevelDescriptorName(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public String getLevelDescriptorName(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorName();
 		}
 		return null;
@@ -231,12 +199,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public String getDefaultTimezone(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		String timeZone = null;
-		if (config != null) {
-			timeZone = config.getTimezone();
-		}
+	public String getDefaultTimezone(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		String timeZone = config.getTimezone();
 		if (StringUtils.isEmpty(timeZone)) {
 			timeZone = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_TIME_ZONE);
 			if (StringUtils.isEmpty(timeZone)) {
@@ -249,18 +214,16 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
 	@Valid
-	public String getPluginFolderPattern(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null) {
-			return config.getPluginFolderPattern();
-		}
-		return null;
+	public String getPluginFolderPattern(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		return config.getPluginFolderPattern();
 	}
 
 	/**
 	 * load services configuration
 	 */
-	protected SiteConfigTO loadConfiguration(String site) {
+	@NonNull
+	protected SiteConfigTO loadConfiguration(String site) throws SiteNotFoundException {
 		String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
 		String configFilename = getConfigFileName();
 		String cacheKey =
@@ -341,7 +304,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 					configurationCache.put(cacheKey, siteConfig);
 				}
 			} catch (ServiceLayerException e) {
-				LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
+				LOGGER.error("No site configuration found for site '{}' at {}", site, getConfigFileName());
 			}
 		}
 		return siteConfig;
@@ -419,9 +382,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	/**
 	 * load the web-project configuration
-	 *
-	 * @param siteConfig
-	 * @param node
 	 */
 	protected void loadSiteRepositoryConfiguration(SiteConfigTO siteConfig, Node node) {
 		RepositoryConfigTO repoConfigTO = new RepositoryConfigTO();
@@ -437,14 +397,11 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 
 	/**
-	 * get a list of string values
-	 *
-	 * @param nodes
-	 * @return a list of string values
+	 * Get a list of string values
 	 */
 	protected List<String> getStringList(List<Node> nodes) {
-		List<String> items = null;
-		if (nodes != null && nodes.size() > 0) {
+		List<String> items;
+		if (nodes != null && !nodes.isEmpty()) {
 			items = new ArrayList<>(nodes.size());
 			for (Node node : nodes) {
 				items.add(node.getText());
@@ -455,12 +412,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return items;
 	}
 
-
 	/**
-	 * load page/component/assets patterns configuration
-	 *
-	 * @param site
-	 * @param nodes
+	 * Load page/component/assets patterns configuration
 	 */
 	protected void loadPatterns(SiteConfigTO site, RepositoryConfigTO repo, List<Node> nodes) {
 		if (nodes != null) {
@@ -476,43 +429,31 @@ public class ServicesConfigImpl implements ServicesConfig {
 								patterns.add(pattern);
 							}
 						}
-						if (patternKey.equals(PATTERN_PAGE)) {
-							repo.setPagePatterns(patterns);
-						} else if (patternKey.equals(PATTERN_COMPONENT)) {
-							repo.setComponentPatterns(patterns);
-						} else if (patternKey.equals(PATTERN_ASSET)) {
-							repo.setAssetPatterns(patterns);
-						} else if (patternKey.equals(PATTERN_DOCUMENT)) {
-							repo.setDocumentPatterns(patterns);
-						} else if (patternKey.equals(PATTERN_RENDERING_TEMPLATE)) {
-							repo.setRenderingTemplatePatterns(patterns);
-						} else if (patternKey.equals(PATTERN_SCRIPTS)) {
-							repo.setScriptsPatterns(patterns);
-						} else if (patternKey.equals(PATTERN_LEVEL_DESCRIPTOR)) {
-							repo.setLevelDescriptorPatterns(patterns);
-						} else if (patternKey.equals(PATTERN_PREVIEWABLE_MIMETYPES)) {
-							repo.setPreviewableMimetypesPaterns(patterns);
-						} else if (patternKey.equals(PATTERN_CONFIGURATION)) {
-							repo.setConfigurationPatterns(patterns);
-						} else {
-							LOGGER.error("Unknown pattern key: " + patternKey + " is provided in " + site.getName());
+						switch (patternKey) {
+							case PATTERN_PAGE -> repo.setPagePatterns(patterns);
+							case PATTERN_COMPONENT -> repo.setComponentPatterns(patterns);
+							case PATTERN_ASSET -> repo.setAssetPatterns(patterns);
+							case PATTERN_DOCUMENT -> repo.setDocumentPatterns(patterns);
+							case PATTERN_RENDERING_TEMPLATE -> repo.setRenderingTemplatePatterns(patterns);
+							case PATTERN_SCRIPTS -> repo.setScriptsPatterns(patterns);
+							case PATTERN_LEVEL_DESCRIPTOR -> repo.setLevelDescriptorPatterns(patterns);
+							case PATTERN_PREVIEWABLE_MIMETYPES -> repo.setPreviewableMimetypesPaterns(patterns);
+							case PATTERN_CONFIGURATION -> repo.setConfigurationPatterns(patterns);
+							default ->
+								LOGGER.error("Unknown pattern key: '{}' is provided in site '{}'", patternKey, site.getName());
 						}
 					}
 				} else {
-					LOGGER.error("no pattern key provided in " + site.getName() +
-						" configuration. Skipping the pattern.");
+					LOGGER.error("No pattern key provided in site '{}' configuration. Skipping the pattern.", site.getName());
 				}
 			}
 		} else {
-			LOGGER.warn(site.getName() + " does not have any pattern configuration.");
+			LOGGER.warn("Site '{}' does not have any pattern configuration.", site.getName());
 		}
 	}
 
 	/**
-	 * load top level folder configuration
-	 *
-	 * @param site
-	 * @param folderNodes
+	 * Load top level folder configuration
 	 */
 	protected void loadFolderConfiguration(SiteConfigTO site, RepositoryConfigTO repo, List<Node> folderNodes) {
 		if (folderNodes != null) {
@@ -529,15 +470,15 @@ public class ServicesConfigImpl implements ServicesConfig {
 			}
 			repo.setFolders(folders);
 		} else {
-			LOGGER.warn(site.getName() + " does not have any folder configuration.");
+			LOGGER.warn("Site '{}' does not have any folder configuration.", site.getName());
 		}
 	}
 
 	@Override
 	@Valid
-	public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null && config.getRepositoryConfig() != null) {
+	public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		if (config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
 		}
 		return null;
@@ -548,117 +489,72 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-	public boolean isStagingEnvironmentEnabled(String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null) {
-			return config.isStagingEnvironmentEnabled();
-		}
-		return false;
+	public boolean isStagingEnvironmentEnabled(String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		return config.isStagingEnvironmentEnabled();
 	}
 
 	@Override
-	public String getStagingEnvironment(String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null) {
-			return config.getStagingEnvironment();
-		}
-		return null;
+	public String getStagingEnvironment(String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		return config.getStagingEnvironment();
 	}
 
 	@Override
-	public String getLiveEnvironment(String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (config != null) {
-			return config.getLiveEnvironment();
-		}
-		return null;
+	public String getLiveEnvironment(String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		return config.getLiveEnvironment();
 	}
 
 	@Override
-	public Map<String, Float> getSearchFields(String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (Objects.nonNull(config)) {
-			return config.getSearchFields();
-		}
-		return Collections.emptyMap();
+	public Map<String, Float> getSearchFields(String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		return config.getSearchFields();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Map<String, FacetTO> getFacets(final String site) {
-		SiteConfigTO config = getSiteConfig(site);
-		if (Objects.nonNull(config)) {
-			return config.getFacets();
-		}
-		return null;
+	public Map<String, FacetTO> getFacets(final String site) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(site);
+		return config.getFacets();
 	}
 
 	@Override
-	public String getAuthoringUrl(String siteId) {
-		SiteConfigTO config = getSiteConfig(siteId);
-		if (Objects.nonNull(config)) {
-			if (StringUtils.isEmpty(config.getAuthoringUrl())) {
-				return DEFAULT_CONFIG_URL;
-			} else {
-				return config.getAuthoringUrl();
-			}
+	public String getAuthoringUrl(String siteId) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(siteId);
+		if (StringUtils.isEmpty(config.getAuthoringUrl())) {
+			return DEFAULT_CONFIG_URL;
 		}
-		return null;
+		return config.getAuthoringUrl();
 	}
 
 	@Override
-	public String getStagingUrl(String siteId) {
-		SiteConfigTO config = getSiteConfig(siteId);
-		if (Objects.nonNull(config)) {
-			if (StringUtils.isEmpty(config.getStagingUrl())) {
-				return DEFAULT_CONFIG_URL;
-			} else {
-				return config.getStagingUrl();
-			}
+	public String getLiveUrl(String siteId) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(siteId);
+		if (StringUtils.isEmpty(config.getLiveUrl())) {
+			return DEFAULT_CONFIG_URL;
 		}
-		return null;
+		return config.getLiveUrl();
 	}
 
 	@Override
-	public String getLiveUrl(String siteId) {
-		SiteConfigTO config = getSiteConfig(siteId);
-		if (Objects.nonNull(config)) {
-			if (StringUtils.isEmpty(config.getLiveUrl())) {
-				return DEFAULT_CONFIG_URL;
-			} else {
-				return config.getLiveUrl();
-			}
-		}
-		return null;
+	public String getAdminEmailAddress(String siteId) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(siteId);
+		return config.getAdminEmailAddress();
 	}
 
 	@Override
-	public String getAdminEmailAddress(String siteId) {
-		SiteConfigTO config = getSiteConfig(siteId);
-		if (Objects.nonNull(config)) {
-			return config.getAdminEmailAddress();
-		}
-		return null;
+	public boolean isRequirePeerReview(String siteId) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(siteId);
+		return config.isRequirePeerReview();
 	}
 
 	@Override
-	public boolean isRequirePeerReview(String siteId) {
-		SiteConfigTO config = getSiteConfig(siteId);
-		if (config != null) {
-			return config.isRequirePeerReview();
-		}
-		return false;
-	}
-
-	@Override
-	public List<String> getProtectedFolderPatterns(String siteId) {
-		SiteConfigTO config = getSiteConfig(siteId);
-		if (config != null) {
-			return config.getProtectedFolderPatterns();
-		}
-		return null;
+	public List<String> getProtectedFolderPatterns(String siteId) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(siteId);
+		return config.getProtectedFolderPatterns();
 	}
 
 	@SuppressWarnings("unused")
@@ -668,10 +564,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
-	}
-
-	public ConfigurationService getConfigurationService() {
-		return configurationService;
 	}
 
 	public void setConfigurationService(ConfigurationService configurationService) {

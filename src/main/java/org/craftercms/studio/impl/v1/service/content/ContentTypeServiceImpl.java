@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -128,7 +129,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	@Override
 	@Valid
 	public ContentTypeConfigTO getContentType(@ValidateStringParam String site,
-						  @ValidateStringParam String type) {
+						  @ValidateStringParam String type) throws SiteNotFoundException {
 		return servicesConfig.getContentTypeConfig(site, type);
 	}
 

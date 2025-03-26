@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -66,7 +66,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 	protected ContentService contentService;
 	protected ServicesConfig servicesConfig;
 	protected GitContentRepository contentRepository;
-	protected ItemServiceInternal itemServiceInternal;
+	protected ItemService itemService;
 	protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 	private GeneralLockService generalLockService;
 	private PublishService publishService;
@@ -171,7 +171,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 	}
 
 	protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
-		Item item = itemServiceInternal.getItem(siteId, path);
+		Item item = itemService.getItem(siteId, path);
 		// Prevent permission issues when the content is not locked
 		if (!isUserLocked(item.getState()) && item.getLockOwner() == null) {
 			logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
@@ -206,13 +206,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 			// TODO: get locale code with API 2
 			String parentItemPath =
 				ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
-			Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
-			itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
+			Item parent = itemService.getItem(site, parentItemPath, true);
+			itemService.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
 			contentService.notifyContentEvent(site, itemPath);
 
 			// unlock the content upon save
 			if (unlock) {
-				contentRepository.itemUnlock(site, itemPath);
+				contentRepository.unlockItem(site, itemPath);
 			} else {
 				contentRepository.lockItem(site, itemPath);
 			}
@@ -259,13 +259,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 				// Item
 				// TODO: get local code with API 2
-				itemServiceInternal.persistItemAfterWrite(site, path, user, unlock);
+				itemService.persistItemAfterWrite(site, path, user, unlock);
 				contentService.notifyContentEvent(site, path);
 			}
 
 			// unlock the content upon save if the flag is true
 			if (unlock) {
-				contentRepository.itemUnlock(site, path);
+				contentRepository.unlockItem(site, path);
 			} else {
 				contentRepository.lockItem(site, path);
 			}
@@ -307,8 +307,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 		this.contentRepository = contentRepository;
 	}
 
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 	@SuppressWarnings("unused")

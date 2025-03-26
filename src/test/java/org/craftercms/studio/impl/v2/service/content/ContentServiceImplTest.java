@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class ContentServiceImplTest {
 	private static final String EXISTING_PATH = "/path/to/existing/item";
 	private static final String SITE_NAME = "siteName";
 	@Mock
-	ContentServiceInternal contentServiceInternal;
+	ContentService contentServiceInternal;
 	@InjectMocks
 	ContentServiceImpl contentService;
 

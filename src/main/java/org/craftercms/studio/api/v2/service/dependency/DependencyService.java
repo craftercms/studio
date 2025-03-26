@@ -80,7 +80,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of hard dependencies
 	 */
-	Collection<LightItem> getHardDependencies(String site, Collection<String> paths);
+	Collection<LightItem> getHardDependencies(String site, Collection<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Get list of paths of content items that are dependant on given paths
@@ -116,7 +116,7 @@ public interface DependencyService {
 	 * @param sourcePath the path to resolve dependencies for
 	 * @return Map of ResolvedDependency's of files that content is dependent on by type
 	 */
-	Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(String site, String sourcePath);
+	Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(String site, String sourcePath) throws SiteNotFoundException;
 
 	/**
 	 * Scan item for direct dependencies and synchronize those to
@@ -171,5 +171,5 @@ public interface DependencyService {
 	 * @param path   the path to check
 	 * @return true if the path is a valid dependency source, false otherwise
 	 */
-	boolean isValidDependencySource(String siteId, String path);
+	boolean isValidDependencySource(String siteId, String path) throws SiteNotFoundException;
 }

@@ -369,12 +369,6 @@
 		</foreach>
 	</update>
 
-	<update id="updateStatesForSite">
-		UPDATE item
-		set state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
-		WHERE site_id = #{siteId}
-	</update>
-
 	<update id="moveItemInternal">
 		UPDATE item i INNER JOIN site s ON i.site_id = s.id
 		SET path = #{newPath},

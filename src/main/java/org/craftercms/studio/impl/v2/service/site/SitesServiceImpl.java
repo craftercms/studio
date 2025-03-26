@@ -163,6 +163,11 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
+	public List<Site> getAllSites() {
+		return sitesServiceInternal.getAllSites();
+	}
+
+	@Override
 	public void setPublishedRepoCreated(String siteId) {
 		sitesServiceInternal.setPublishedRepoCreated(siteId);
 	}

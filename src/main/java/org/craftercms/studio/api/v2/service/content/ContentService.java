@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -23,9 +24,9 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
@@ -33,10 +34,14 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Provide access to content operations
+ */
 public interface ContentService {
 
 	/**
@@ -57,14 +62,6 @@ public interface ContentService {
 	 * @return true if site has content object at path
 	 */
 	boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
-
-	/**
-	 * Get list of content types marked as quick creatable for given site
-	 *
-	 * @param siteId site id to use
-	 * @return list of content types
-	 */
-	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 
 	/**
 	 * Get child items for given paths. Child item is
@@ -128,9 +125,75 @@ public interface ContentService {
 	GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
 		throws ServiceLayerException, UserNotFoundException;
 
+	/**
+	 * Get a content item by path
+	 *
+	 * @param siteId  site identifier
+	 * @param path    item path
+	 * @param flatten indicates if descriptors should be flattened
+	 * @return content item
+	 * @throws SiteNotFoundException    if site is not found
+	 * @throws ContentNotFoundException if content is not found
+	 */
 	Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
+	/**
+	 * Get a content item descriptor by path
+	 *
+	 * @param siteId  site identifier
+	 * @param path    item path
+	 * @param flatten indicates if descriptors should be flattened
+	 * @return item descriptor
+	 * @throws SiteNotFoundException    if site is not found
+	 * @throws ContentNotFoundException if content is not found
+	 */
 	Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
+
+	/**
+	 * Check if the content is part of any ready/processing publish package and fail if it is
+	 *
+	 * @param siteId          the site id
+	 * @param paths           the paths to check
+	 * @param includeChildren if true, check if any children of the paths are part of a publish package
+	 * @throws ContentInPublishQueueException if the content is part of a publish package
+	 */
+	void assertNotInWorkflow(String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
+
+
+	/**
+	 * Get content size
+	 *
+	 * @param siteId site identifier
+	 * @param path   content path
+	 * @return size in bytes
+	 */
+	long getContentSize(String siteId, String path);
+
+	/**
+	 * Check if item is editable
+	 *
+	 * @param itemPath     item path
+	 * @param itemMimeType item mime type
+	 * @return true if item is editable
+	 */
+	boolean isEditable(String itemPath, String itemMimeType);
+
+	/**
+	 * Get a list of items by state and system types.
+	 *
+	 * @param siteId       site identifier
+	 * @param statesBitMap mask of the states to filter by
+	 * @param systemTypes  list of system types to filter by
+	 * @param sortFields   list of sort fields
+	 * @param offset       number of items to skip
+	 * @param limit        number of items to return
+	 * @return list of items
+	 * @throws UserNotFoundException if user is not found
+	 * @throws ServiceLayerException if an error occurs while getting the items
+	 */
+	List<ContentItem> getContentItemsByStates(String siteId, long statesBitMap,
+											  List<String> systemTypes, List<SortField> sortFields,
+											  int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get detailed item for given path
@@ -204,7 +267,6 @@ public interface ContentService {
 	 * @throws ContentNotFoundException if there is no content at the given path
 	 */
 	Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
-
 
 	/**
 	 * Get the version history for a given content item.

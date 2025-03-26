@@ -98,6 +98,13 @@ public interface SiteDAO {
 	List<Site> getSitesByState(@Param(STATE) String state);
 
 	/**
+	 * Get all non-deleted sites
+	 *
+	 * @return the list of sites
+	 */
+	List<Site> getAllSites();
+
+	/**
 	 * Set published repo created flag
 	 *
 	 * @param siteId the site id

@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v1.service.configuration;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 
 /**
@@ -31,7 +32,7 @@ public interface ContentTypesConfig {
 	 * @param contentType
 	 * @return content type configuration
 	 */
-	ContentTypeConfigTO getContentTypeConfig(String site, String contentType);
+	ContentTypeConfigTO getContentTypeConfig(String site, String contentType) throws SiteNotFoundException;
 
 	/**
 	 * load configuration from the noderRef given
@@ -40,8 +41,8 @@ public interface ContentTypesConfig {
 	 * @param contentType
 	 * @return content type configuration
 	 */
-	ContentTypeConfigTO loadConfiguration(String site, String contentType);
+	ContentTypeConfigTO loadConfiguration(String site, String contentType) throws SiteNotFoundException;
 
-	ContentTypeConfigTO reloadConfiguration(String site, String contentType);
+	ContentTypeConfigTO reloadConfiguration(String site, String contentType) throws SiteNotFoundException;
 
 }

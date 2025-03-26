@@ -20,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
@@ -93,7 +94,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@RequireSiteExists
-	public Collection<LightItem> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) {
+	public Collection<LightItem> getHardDependencies(@SiteId String site, String publishingTarget, Collection<String> paths) throws SiteNotFoundException {
 		if (isEmpty(paths)) {
 			return emptyList();
 		}
@@ -103,7 +104,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) {
+	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) throws SiteNotFoundException {
 		String liveTarget = servicesConfig.getLiveEnvironment(site);
 		// Default to live target for backwards compatibility
 		return getHardDependencies(site, liveTarget, paths);
@@ -133,7 +134,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	@LogExecutionTime
-	public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) {
+	public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) throws SiteNotFoundException {
 		Map<String, Set<ResolvedDependency>> dependencies = null;
 		if (isValidDependencySource(siteId, path)) {
 			dependencies = dependencyResolver.resolve(siteId, path);
@@ -217,7 +218,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public boolean isValidDependencySource(final String siteId, final String path) {
+	public boolean isValidDependencySource(final String siteId, final String path) throws SiteNotFoundException {
 		boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
 		boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
 		boolean isJs = path.endsWith(DmConstants.JS_PATTERN);

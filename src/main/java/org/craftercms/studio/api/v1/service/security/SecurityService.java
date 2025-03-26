@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.springframework.security.core.Authentication;
@@ -34,7 +35,7 @@ public interface SecurityService {
 	 * Returns the username of the current user OR NULL if no user is authenticated
 	 *
 	 * @return current user
-	 * @deprecated use {@link org.craftercms.studio.impl.v2.utils.security.SecurityUtils#getCurrentUser()} instead
+	 * @deprecated use {@link org.craftercms.studio.impl.v2.utils.security.SecurityUtils#getCurrentUsername()} instead
 	 */
 	@Deprecated
 	String getCurrentUser();
@@ -56,19 +57,7 @@ public interface SecurityService {
 
 	Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
-	/**
-	 * Get user by git name.
-	 * Special use case because git stores user as string of first and last name separated by ' '
-	 *
-	 * @param gitName first and last name separated with ' '
-	 * @return user
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found
-	 */
-	Map<String, Object> getUserProfileByGitName(String gitName)
-		throws ServiceLayerException, UserNotFoundException;
-
-	Set<String> getUserPermissions(String site, String path, String user);
+	Set<String> getUserPermissions(String site, String path, String user) throws SiteNotFoundException;
 
 	/**
 	 * Check if user exists
