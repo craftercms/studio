@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API
-  version: '4.3.0'
+  version: '4.3.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4913,7 +4913,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-          
+
   /api/2/configuration/content-type/form_controller:
     get:
       tags:
