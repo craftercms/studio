@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -46,10 +45,8 @@ import org.craftercms.studio.model.task.PublishTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.NonNull;
 
 import java.beans.ConstructorProperties;
@@ -88,7 +85,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final Deployer deployer;
 	private final ConfigurationService configurationService;
 	private final AuditService auditService;
-	private ItemService itemServiceInternal;
 	private final TaskManager taskManager;
 	private ApplicationContext applicationContext;
 
@@ -116,12 +112,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.configurationService = configurationService;
 		this.auditService = auditService;
 		this.taskManager = taskManager;
-	}
-
-	@Lazy
-	@Autowired
-	public void setItemServiceInternal(ItemService itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
 	}
 
 	@Override
@@ -514,9 +504,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			addSiteUuidFile(siteId, siteUuid);
 			// Create site in db (site state is INITIALIZING) and copy all db data
 			logger.debug("Duplicate site DB data from '{}' to '{}'", sourceSiteId, siteId);
-			retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
-			logger.debug("Update item parent ids for new site '{}'", siteId);
-			itemServiceInternal.updateParentId(siteId);
+			retryingDatabaseOperationFacade.retry(() -> siteDao.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
 
 			// Duplicate site in deployer
 			logger.debug("Duplicate site deployer targets from '{}' to '{}'", sourceSiteId, siteId);

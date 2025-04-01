@@ -765,6 +765,11 @@ pipelines:
                         path: /configuration/global-role-mappings-config.xml
                         template: crafter/studio/upgrade/5.0.x/system/global-role-mappings-config-v5.0.0.4.xslt
                         commitDetails: Add new mapping for site_developer
+            -   currentVersion: 5.0.0.4
+                nextVersion: 5.0.0.5
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/5.0.0.4-to-5.0.0.5.sql
 
     # Pipeline to upgrade site repositories
     site:

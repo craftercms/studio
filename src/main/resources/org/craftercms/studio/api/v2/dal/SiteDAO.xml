@@ -123,4 +123,15 @@
 		WHERE site_id = #{siteId}
 		  AND deleted = 0
 	</update>
+
+	<insert id="duplicate" parameterType="java.util.Map" statementType="CALLABLE">
+		{call duplicate_site(#{sourceSiteId, mode=IN, jdbcType=VARCHAR},
+		#{siteId, mode=IN, jdbcType=VARCHAR},
+		#{name, mode=IN, jdbcType=VARCHAR},
+		#{description, mode=IN, jdbcType=VARCHAR},
+		#{sandboxBranch, mode=IN, jdbcType=VARCHAR},
+		#{uuid, mode=IN, jdbcType=VARCHAR}
+		)}
+	</insert>
+
 </mapper>

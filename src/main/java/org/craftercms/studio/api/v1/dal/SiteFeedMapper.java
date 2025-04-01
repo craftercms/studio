@@ -86,19 +86,4 @@ public interface SiteFeedMapper {
 
 	String getSiteState(@Param(SITE_ID) String siteId);
 
-	/**
-	 * Duplicate a site in the database.
-	 * Notice that populateItemParentId SP should be called after this method to populate the new site's item parent ids.
-	 *
-	 * @param sourceSiteId  the id of the site to duplicate
-	 * @param siteId        the id of the new site
-	 * @param name          the name of the new site
-	 * @param description   the description of the new site
-	 * @param sandboxBranch the sandbox branch of the new site
-	 * @param siteUuid      the uuid of the new site
-	 * @see ItemService#updateParentId (String)
-	 */
-	void duplicate(@Param(SOURCE_SITE_ID) String sourceSiteId, @Param(SITE_ID) String siteId,
-		       @Param(NAME) String name, @Param(DESC) String description,
-		       @Param(SANDBOX_BRANCH) String sandboxBranch, @Param(UUID) String siteUuid);
 }

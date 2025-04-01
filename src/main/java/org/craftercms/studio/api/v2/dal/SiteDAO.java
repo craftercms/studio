@@ -17,8 +17,11 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 
 import java.util.List;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteDAO {
 
@@ -118,4 +121,21 @@ public interface SiteDAO {
 	 * @param status publisher status
 	 */
 	void updatePublishingStatus(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status);
+
+
+	/**
+	 * Duplicate a site in the database.
+	 *
+	 * @param sourceSiteId  the id of the site to duplicate
+	 * @param siteId        the id of the new site
+	 * @param name          the name of the new site
+	 * @param description   the description of the new site
+	 * @param sandboxBranch the sandbox branch of the new site
+	 * @param siteUuid      the uuid of the new site
+	 * @see ItemService#updateParentId (String)
+	 */
+	void duplicate(@Param(SOURCE_SITE_ID) String sourceSiteId, @Param(SITE_ID) String siteId,
+				   @Param(NAME) String name, @Param(DESC) String description,
+				   @Param(SANDBOX_BRANCH) String sandboxBranch, @Param(UUID) String siteUuid);
+
 }
