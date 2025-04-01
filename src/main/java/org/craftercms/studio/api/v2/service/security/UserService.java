@@ -94,6 +94,15 @@ public interface UserService {
 	User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
 	/**
+	 * Indicates if a user exists with the given username
+	 *
+	 * @param username the username
+	 * @return true if the user exists, false otherwise
+	 * @throws ServiceLayerException general service error
+	 */
+	boolean userExists(String username) throws ServiceLayerException;
+
+	/**
 	 * Indicates if a user exists with the given username or user id
 	 *
 	 * @param userId   the user id

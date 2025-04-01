@@ -598,7 +598,7 @@ public class SecurityServiceImpl implements SecurityService {
 	@Override
 	@Valid
 	public boolean userExists(@ValidateStringParam String username) throws ServiceLayerException {
-		return userService.userExists(-1, username);
+		return userService.userExists(username);
 	}
 
 	@Override

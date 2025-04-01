@@ -45,7 +45,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -66,6 +65,7 @@ import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.blobstore.BlobStoreDetails;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
@@ -126,7 +126,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected Deployer deployer;
 	protected ContentService contentService;
 	protected GitContentRepository contentRepository;
-	protected SecurityService securityService;
 	protected GroupService groupService;
 	protected UserService userService;
 	protected StudioUpgradeManager upgradeManager;
@@ -210,7 +209,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		// 1) deployer target, 2) git repo, 3) database, 4) kick deployer
 		String siteUuid = UUID.randomUUID().toString();
 
-		String creator = securityService.getCurrentUser();
+		String creator = SecurityUtils.getCurrentUsername();
 
 		// Create the site in the preview deployer
 		logger.info("Create the deployer targets for site '{}'", siteName);
@@ -486,17 +485,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		success = contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 
 		String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
-		replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
-			siteId);
+		replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", siteId);
 
 		return success;
 	}
 
-	protected void replaceFileContentGit(String site, String path, String find, String replace) throws Exception {
+	protected void replaceFileContentGit(String site, String path, String replace) throws Exception {
 		InputStream content = contentRepository.getContent(site, path);
 		String contentAsString = IOUtils.toString(content, UTF_8);
 
-		contentAsString = contentAsString.replaceAll(find, replace);
+		contentAsString = contentAsString.replaceAll("SITENAME", replace);
 
 		InputStream contentToWrite = IOUtils.toInputStream(contentAsString, UTF_8);
 
@@ -584,7 +582,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		// 1) git repo, 2) deployer target, 3) database, 4) kick deployer
 		String siteUuid = UUID.randomUUID().toString();
 
-		String creator = securityService.getCurrentUser();
+		String creator = SecurityUtils.getCurrentUsername();
 
 		try {
 			// create site by cloning remote git repo
@@ -747,14 +745,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@Valid
 	public int getSitesPerUserTotal()
 		throws UserNotFoundException, ServiceLayerException {
-		return getSitesPerUserTotal(securityService.getCurrentUser());
+		return getSitesPerUserTotal(SecurityUtils.getCurrentUsername());
 	}
 
 	@Override
 	@Valid
 	public int getSitesPerUserTotal(@ValidateStringParam String username)
 		throws UserNotFoundException, ServiceLayerException {
-		if (securityService.userExists(username)) {
+		if (userService.userExists(username)) {
 			Map<String, Object> params = new HashMap<>();
 			params.put("username", username);
 			return siteFeedMapper.getSitesPerUserQueryTotal(params);
@@ -768,7 +766,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	public List<SiteFeed> getSitesPerUser(int start,
 					      int number)
 		throws UserNotFoundException, ServiceLayerException {
-		return getSitesPerUser(securityService.getCurrentUser(), start, number);
+		return getSitesPerUser(SecurityUtils.getCurrentUsername(), start, number);
 	}
 
 	@Override
@@ -777,7 +775,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					      int start,
 					      int number)
 		throws UserNotFoundException, ServiceLayerException {
-		if (securityService.userExists(username)) {
+		if (userService.userExists(username)) {
 			Map<String, Object> params = new HashMap<>();
 			params.put("username", username);
 			params.put("start", start);
@@ -903,10 +901,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	public void setContentRepository(GitContentRepository repo) {
 		contentRepository = repo;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

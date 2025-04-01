@@ -294,7 +294,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 		return lastItem;
 	}
 
-	@Lazy
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}

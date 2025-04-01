@@ -249,7 +249,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 				"your system administrator.", e);
 		}
 
-		if (userExists(-1, user.getUsername())) {
+		if (userExists(user.getUsername())) {
 			throw new UserAlreadyExistsException(format("User '%s' already exists", user.getUsername()));
 		}
 		if (!user.isExternallyManaged() && !verifyPasswordRequirements(user.getPassword())) {
@@ -286,6 +286,11 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		auditService.insertAuditLog(auditLog);
 
 		return result;
+	}
+
+	@Override
+	public boolean userExists(String username) throws ServiceLayerException {
+		return userExists(-1, username);
 	}
 
 	@Override
@@ -589,7 +594,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	@Override
 	public boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
 		ServiceLayerException {
-		if (!userExists(-1, username)) {
+		if (!userExists(username)) {
 			throw new UserNotFoundException();
 		}
 		if (!verifyPasswordRequirements(newPassword)) {

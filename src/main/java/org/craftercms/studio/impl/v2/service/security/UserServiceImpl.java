@@ -78,6 +78,12 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
+	public boolean userExists(String username) throws ServiceLayerException {
+		return userServiceInternal.userExists(username);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
 	public boolean userExists(long userId, String username) throws ServiceLayerException {
 		return userServiceInternal.userExists(userId, username);
 	}
@@ -152,7 +158,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_READ_GROUPS, PERMISSION_READ_USERS})
 	public List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException {
-		return userServiceInternal.getUserGroups(userId, username, false);
+		return userServiceInternal.getUserGroups(userId, username);
 	}
 
 	@Override

@@ -95,7 +95,6 @@
 	<bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
 		<property name="contentService" ref="cstudioContentService"/>
 		<property name="contentRepository" ref="contentRepository"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="deployer" ref="allDeployers"/>
 		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
