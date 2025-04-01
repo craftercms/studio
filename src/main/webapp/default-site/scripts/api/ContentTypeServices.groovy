@@ -30,17 +30,6 @@ class ContentTypeServices {
 	}
 
 	/**
-	 * change content type
-	 * @param site - the project ID
-	 * @param item - the item ID
-	 * @param template - the new type
-	 */
-	static changeContentType(context, site, path, type) {
-		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
-		return contentTypeServiceImpl.changeContentType(site, path, type)
-	}
-
-	/**
 	 * get all content types for a given site
 	 * @param site - the project ID
 	 * @param searchable - include non-searchable types (true/false)

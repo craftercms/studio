@@ -62,8 +62,6 @@ public interface ContentTypeService {
 
 	List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceLayerException;
 
-	boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException, UserNotFoundException;
-
 	String getConfigPath();
 }
 

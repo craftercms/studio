@@ -21,18 +21,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
@@ -172,33 +168,6 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 		boolean isAllowed = this.isUserAllowed(userRoles, config);
 		if (isAllowed) {
 			contentTypes.add(config);
-		}
-	}
-
-	@Override
-	@Valid
-	public boolean changeContentType(@ValidateStringParam String site,
-					 @ValidateSecurePathParam String path,
-					 @ValidateStringParam String contentType)
-		throws ServiceLayerException, UserNotFoundException {
-		ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
-		if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)) {
-			// Simple form engine is not using templates - skip copying template and merging content
-			return true;
-		}
-		// get new template and the current data and merge data
-		ContentItemTO item = contentService.getContentItem(site, path, 0);
-		if (item != null) {
-			contentService.lockContent(site, path);
-			try {
-				contentService.getContentAsDocument(site, path);
-			} catch (DocumentException e) {
-				logger.error("Failed to get content as document for site '{}' path '{}'", site, path, e);
-				return false;
-			}
-			throw new RuntimeException("Unexpected code path");
-		} else {
-			throw new ContentNotFoundException(path + " is not a valid content path.");
 		}
 	}
 
