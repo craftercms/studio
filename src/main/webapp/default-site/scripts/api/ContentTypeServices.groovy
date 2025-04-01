@@ -68,9 +68,4 @@ class ContentTypeServices {
 	def getContentType(site, type) {
 
 	}
-
-	def static getContentTypeByPath(context, site, path) {
-		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
-		return contentTypeServiceImpl.getContentTypeByPath(site, path)
-	}
 }

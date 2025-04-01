@@ -47,11 +47,6 @@ class SpringContentTypeServices {
 		return springBackedService.changeContentType(site, path, type)
 	}
 
-	def getContentTypeByPath(site, path) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-		return springBackedService.getContentTypeByRelativePath(site, path)
-	}
-
 	def getAllowedContentTypesForPath(site, path) {
 		def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
 		return springBackedService.getAllowedContentTypesForPath(site, path);

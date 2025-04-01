@@ -103,7 +103,6 @@
 	<!-- Permissions -->
 
 	<bean id="crafter.studioSubjectResolver" class="org.craftercms.studio.permissions.SubjectResolverImpl">
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
 	</bean>
 
 	<bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
@@ -167,7 +166,6 @@
 				       value-ref="crafter.studioCompositePermissionEvaluator"/>
 			</map>
 		</constructor-arg>
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
 	</bean>
 
 	<bean id="studio.HasAllPermissionsAnnotationHandler"
@@ -180,7 +178,6 @@
 				       value-ref="crafter.studioCompositePermissionEvaluator"/>
 			</map>
 		</constructor-arg>
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
 	</bean>
 
 	<bean id="studio.peerReviewCapableAnnotationHandler" class="org.craftercms.studio.api.v2.security.publish.PeerReviewCapableAnnotationHandler">

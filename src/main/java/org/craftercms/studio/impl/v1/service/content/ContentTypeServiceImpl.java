@@ -38,7 +38,7 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.dom4j.Document;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.dom4j.DocumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	}
 
 	@Override
-	public boolean isUserAllowed(Set<NormalizedRole> userRoles, ContentTypeConfigTO item) {
+	public boolean isUserAllowed(Collection<NormalizedRole> userRoles, ContentTypeConfigTO item) {
 		if (item == null) {
 			logger.debug("No content type config provided for null item to limit user access, " +
 				"defaulting to permit the user");
@@ -110,24 +110,6 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
 	@Override
 	@Valid
-	public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam String site,
-								@ValidateSecurePathParam
-								String relativePath) throws ServiceLayerException {
-		ContentItemTO item = contentService.getContentItem(site, relativePath, 0);
-		if (item != null) {
-			String type = item.getContentType();
-			if (!StringUtils.isEmpty(type)) {
-				return servicesConfig.getContentTypeConfig(site, type);
-			} else {
-				throw new ServiceLayerException("No content type specified for " + relativePath + " in site: " + site);
-			}
-		} else {
-			throw new ContentNotFoundException(relativePath + " is not found in site: " + site);
-		}
-	}
-
-	@Override
-	@Valid
 	public ContentTypeConfigTO getContentType(@ValidateStringParam String site,
 						  @ValidateStringParam String type) throws SiteNotFoundException {
 		return servicesConfig.getContentTypeConfig(site, type);
@@ -145,8 +127,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam String site,
 								       @ValidateSecurePathParam
 								       String relativePath) throws ServiceLayerException {
-		String user = securityService.getCurrentUser();
-		Set<NormalizedRole> userRoles = securityService.getUserRoles(site, user);
+		String user = SecurityUtils.getCurrentUsername();
+		Collection<NormalizedRole> userRoles = securityService.getUserRoles(site, user);
 		List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
 
 		if (CollectionUtils.isNotEmpty(allContentTypes)) {
@@ -170,12 +152,12 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 							}
 							if (isMatch) {
 								// if a match is found, populate the content type information
-								addContentTypes(site, userRoles, contentTypeConfig, contentTypes);
+								addContentTypes(userRoles, contentTypeConfig, contentTypes);
 							}
 						}
 					}
 				} else if (CollectionUtils.isEmpty(contentTypeConfig.getPathExcludes())) {
-					addContentTypes(site, userRoles, contentTypeConfig, contentTypes);
+					addContentTypes(userRoles, contentTypeConfig, contentTypes);
 				}
 			}
 			return contentTypes;
@@ -185,7 +167,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 		}
 	}
 
-	protected void addContentTypes(String site, Set<NormalizedRole> userRoles, ContentTypeConfigTO config,
+	protected void addContentTypes(Collection<NormalizedRole> userRoles, ContentTypeConfigTO config,
 				       List<ContentTypeConfigTO> contentTypes) {
 		boolean isAllowed = this.isUserAllowed(userRoles, config);
 		if (isAllowed) {
@@ -208,9 +190,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 		ContentItemTO item = contentService.getContentItem(site, path, 0);
 		if (item != null) {
 			contentService.lockContent(site, path);
-			Document original = null;
 			try {
-				original = contentService.getContentAsDocument(site, path);
+				contentService.getContentAsDocument(site, path);
 			} catch (DocumentException e) {
 				logger.error("Failed to get content as document for site '{}' path '{}'", site, path, e);
 				return false;
@@ -293,6 +274,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 		this.servicesConfig = servicesConfig;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
 		this.contentTypesConfig = contentTypesConfig;
 	}

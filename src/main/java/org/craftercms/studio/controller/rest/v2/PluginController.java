@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,7 +28,6 @@ import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
@@ -63,10 +62,10 @@ public class PluginController extends ManagementTokenAware {
 
 	protected final MarketplaceService marketplaceService;
 
-	@ConstructorProperties({"studioConfiguration", "securityService", "scriptingService", "marketplaceService"})
-	public PluginController(StudioConfiguration studioConfiguration, SecurityService securityService,
+	@ConstructorProperties({"studioConfiguration", "scriptingService", "marketplaceService"})
+	public PluginController(StudioConfiguration studioConfiguration,
 				ScriptingService scriptingService, MarketplaceService marketplaceService) {
-		super(studioConfiguration, securityService);
+		super(studioConfiguration);
 		this.scriptingService = scriptingService;
 		this.marketplaceService = marketplaceService;
 	}

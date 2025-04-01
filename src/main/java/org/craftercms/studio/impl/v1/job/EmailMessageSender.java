@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,18 +15,15 @@
  */
 package org.craftercms.studio.impl.v1.job;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.mail.Message;
+import jakarta.mail.internet.InternetAddress;
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.mail.javamail.JavaMailSender;
-
-import jakarta.mail.Message;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
 import java.util.List;
@@ -48,6 +45,7 @@ public class EmailMessageSender implements Runnable {
 		return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
 	}
 
+	@SuppressWarnings("unused")
 	public void initThread() {
 		thread = new Thread(this);
 		running = true;
@@ -60,9 +58,7 @@ public class EmailMessageSender implements Runnable {
 			try {
 				if (emailMessages.size() > 0) {
 					List<EmailMessageTO> list = emailMessages.getAll();
-					int size = list.size();
-					for (int counter = 0; counter < size; counter++) {
-						EmailMessageTO emailMessage = list.get(counter);
+					for (EmailMessageTO emailMessage : list) {
 						emailMessage.preprocessEmail();
 						String userEmailAddress = emailMessage.getTo();
 						String content = emailMessage.getContent();
@@ -75,7 +71,6 @@ public class EmailMessageSender implements Runnable {
 						} else {
 							logger.error("Could not send email to '{}'", userEmailAddress);
 						}
-						emailMessage = null;
 					}
 				}
 				int secs = 30;
@@ -91,24 +86,21 @@ public class EmailMessageSender implements Runnable {
 	protected boolean sendEmail(final String subject, final String content, final String userEmailAddress,
 				    final String replyTo, final String personalFromName) {
 		boolean success = true;
-		MimeMessagePreparator preparator = new MimeMessagePreparator() {
+		MimeMessagePreparator preparator = mimeMessage -> {
 
-			public void prepare(MimeMessage mimeMessage) throws Exception {
-
-				mimeMessage.addRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmailAddress));
-				InternetAddress[] replyTos = new InternetAddress[1];
-				if ((replyTo != null) && (!"".equals(replyTo))) {
-					replyTos[0] = new InternetAddress(replyTo);
-					mimeMessage.setReplyTo(replyTos);
-				}
-				InternetAddress fromAddress = new InternetAddress(getDefaultFromAddress());
-				if (personalFromName != null)
-					fromAddress.setPersonal(personalFromName);
-				mimeMessage.setFrom(fromAddress);
-				mimeMessage.setContent(content, "text/html; charset=utf-8");
-				mimeMessage.setSubject(subject);
-				logger.debug("Sending an email to '{}' with subject '{}'", userEmailAddress, subject);
+			mimeMessage.addRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmailAddress));
+			InternetAddress[] replyTos = new InternetAddress[1];
+			if ((replyTo != null) && (!replyTo.isEmpty())) {
+				replyTos[0] = new InternetAddress(replyTo);
+				mimeMessage.setReplyTo(replyTos);
 			}
+			InternetAddress fromAddress = new InternetAddress(getDefaultFromAddress());
+			if (personalFromName != null)
+				fromAddress.setPersonal(personalFromName);
+			mimeMessage.setFrom(fromAddress);
+			mimeMessage.setContent(content, "text/html; charset=utf-8");
+			mimeMessage.setSubject(subject);
+			logger.debug("Sending an email to '{}' with subject '{}'", userEmailAddress, subject);
 		};
 
 		try {
@@ -125,6 +117,7 @@ public class EmailMessageSender implements Runnable {
 		return success;
 	}
 
+	@SuppressWarnings("unused")
 	public void shutdown() {
 		if (thread != null) {
 			running = false;
@@ -133,32 +126,22 @@ public class EmailMessageSender implements Runnable {
 	}
 
 	public boolean isAuthenticatedSMTP() {
-		boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
-		return toReturn;
+		return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
 	}
 
-	public JavaMailSender getEmailService() {
-		return emailService;
-	}
-
+	@SuppressWarnings("unused")
 	public void setEmailService(JavaMailSender emailService) {
 		this.emailService = emailService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setEmailMessages(EmailMessageQueueTo emailMessages) {
 		this.emailMessages = emailMessages;
 	}
 
-	public JavaMailSender getEmailServiceNoAuth() {
-		return emailServiceNoAuth;
-	}
-
+	@SuppressWarnings("unused")
 	public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
 		this.emailServiceNoAuth = emailServiceNoAuth;
-	}
-
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternal;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.ui.MenuItem;
 
 import java.util.List;
@@ -38,8 +39,8 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.DEFAU
  */
 public class UiServiceImpl implements UiService {
 
-	private SecurityService securityService;
-	private UiServiceInternal uiServiceInternal;
+	private final SecurityService securityService;
+	private final UiServiceInternal uiServiceInternal;
 	private StudioConfiguration studioConfiguration;
 
 	public UiServiceImpl(SecurityService securityService, UiServiceInternal uiServiceInternal) {
@@ -58,7 +59,7 @@ public class UiServiceImpl implements UiService {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
-		String user = securityService.getCurrentUser();
+		String user = SecurityUtils.getCurrentUsername();
 		if (StringUtils.isNotEmpty(user)) {
 			Set<String> permissions = securityService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
 
@@ -70,7 +71,7 @@ public class UiServiceImpl implements UiService {
 
 	@Override
 	public String getActiveEnvironment() throws AuthenticationException {
-		String user = securityService.getCurrentUser();
+		String user = SecurityUtils.getCurrentUsername();
 		if (StringUtils.isNotEmpty(user)) {
 			return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
 		} else {

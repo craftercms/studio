@@ -187,7 +187,6 @@
 	<bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
 	      parent="cstudioRegistrableService">
 		<property name="contentService" ref="cstudioContentService"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
 		<property name="scriptObjects">
 			<map>
 			</map>

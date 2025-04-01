@@ -248,6 +248,7 @@ public class UserServiceImpl implements UserService {
 		return userServiceInternal.isSiteMember(username, siteId);
 	}
 
+	@SuppressWarnings("unused")
 	public void setUserServiceInternal(final UserService userServiceInternal) {
 		this.userServiceInternal = userServiceInternal;
 	}

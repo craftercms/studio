@@ -16,15 +16,17 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import jakarta.validation.Valid;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.springframework.security.core.Authentication;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dejan Brkic
@@ -51,31 +53,11 @@ public interface SecurityService {
 
 	Set<String> getUserRoles(String site);
 
-	Set<NormalizedRole> getUserRoles(String site, String user);
-
-	Set<NormalizedRole> getUserRoles(String site, String user, boolean includeGlobal);
+	@Valid Collection<NormalizedRole> getUserRoles(String site, String user);
 
 	Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
 	Set<String> getUserPermissions(String site, String path, String user) throws SiteNotFoundException;
-
-	/**
-	 * Check if user exists
-	 *
-	 * @param username username
-	 * @return true if user exists
-	 * @throws ServiceLayerException general service error
-	 */
-	boolean userExists(String username) throws ServiceLayerException;
-
-
-	/**
-	 * Get all users
-	 *
-	 * @return number of all users
-	 * @throws ServiceLayerException general service error
-	 */
-	int getAllUsersTotal() throws ServiceLayerException;
 
 	/**
 	 * Check if given user is site admin
