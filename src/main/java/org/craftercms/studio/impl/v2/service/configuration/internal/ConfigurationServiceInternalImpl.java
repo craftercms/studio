@@ -485,7 +485,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 		String filePath = UrlUtils.concat(basePath, filename);
 
-		return contentServiceV1.getContentAsResource(siteId, filePath);
+		return contentService.getContentAsResource(siteId, filePath);
 	}
 
 	private void writeDefaultConfiguration(String siteId, String module, String path, InputStream content)
