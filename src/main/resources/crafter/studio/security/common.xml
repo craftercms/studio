@@ -185,7 +185,6 @@
 
 	<bean id="studio.peerReviewCapableAnnotationHandler" class="org.craftercms.studio.api.v2.security.publish.PeerReviewCapableAnnotationHandler">
 		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
-		<constructor-arg name="securityService" ref="studio.securityService"/>
 		<constructor-arg name="publishDao" ref="publishDao"/>
 	</bean>
 
@@ -270,7 +269,6 @@
 	      class="org.craftercms.studio.impl.v2.security.publish.PublishPackageAvailableActionResolverImpl">
 		<constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
 		<constructor-arg name="permissionMappingsProvider" ref="studio.permissionMappingsProvider"/>
-		<constructor-arg name="securityService" ref="studio.securityService"/>
 		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
 	</bean>
 

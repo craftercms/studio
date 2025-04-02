@@ -55,6 +55,7 @@ import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstant
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.impl.v2.utils.git.GitCli;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -1301,6 +1302,28 @@ public class GitRepositoryHelper implements DisposableBean {
 	}
 
 	/**
+	 * Restore (to the working directory) a file from a given version
+	 *
+	 * @param repo    the repository
+	 * @param siteId  the site
+	 * @param path    the path to restore
+	 * @param version the version (commit id) to restore the file from
+	 * @throws ServiceLayerException if there is an error while trying to restore the file
+	 */
+	public void restoreVersion(final Repository repo, final String siteId, final String path, final String version) throws ServiceLayerException {
+		String gitLockKey = getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		try {
+			String repoPath = repo.getWorkTree().getAbsolutePath();
+			gitCli.restoreVersion(repoPath, path, version);
+		} catch (Exception e) {
+			throw new ServiceLayerException(format("Failed to restore version '%s' of path '%s' in site '%s'", version, path, siteId), e);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	/**
 	 * Perform git garbage collection
 	 * @param siteId site identifier
 	 * @param gitRepository git repository type
@@ -1375,8 +1398,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws UserNotFoundException user not found
 	 */
 	public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
-		String userName = securityService.getCurrentUser();
-		return getAuthorIdent(userName);
+		return getAuthorIdent(SecurityUtils.getCurrentUser());
 	}
 
 	/**

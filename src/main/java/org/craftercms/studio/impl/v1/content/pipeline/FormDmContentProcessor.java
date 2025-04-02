@@ -259,7 +259,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 				// Item
 				// TODO: get local code with API 2
-				itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
+				itemServiceInternal.persistItemAfterWrite(site, path, user, unlock);
 				contentService.notifyContentEvent(site, path);
 			}
 
@@ -292,32 +292,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 		}
 		lastItem = contentService.getContentItem(site, parentPath, 0);
 		return lastItem;
-	}
-
-
-	@Override
-	public String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException {
-		// Check if it is already a folder
-
-		if (contentService.contentExists(site, path)) {
-			ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
-			if (itemTO.isFolder() || itemTO.isDeleted()) {
-				return path;
-			}
-			int index = path.lastIndexOf(FILE_SEPARATOR);
-			String folderPath = path.substring(0, index);
-			String parentFileName = itemTO.getName();
-			int dotIndex = parentFileName.indexOf(".");
-			String folderName = (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
-			contentService.createFolder(site, folderPath, folderName);
-			folderPath = folderPath + FILE_SEPARATOR + folderName;
-			contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
-			logger.debug("Changed file to folder from '{}' to '{}'", path, folderPath);
-
-			return folderPath;
-		} else {
-			return path;
-		}
 	}
 
 	@Lazy

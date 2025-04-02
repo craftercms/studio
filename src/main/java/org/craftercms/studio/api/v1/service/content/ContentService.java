@@ -16,18 +16,13 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
-import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
-import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
@@ -52,15 +47,6 @@ public interface ContentService {
 	 * @return true if site has content object at path
 	 */
 	boolean contentExists(String site, String path);
-
-	/**
-	 * Checks if a content exists at a given path and throw an exception if it does not.
-	 *
-	 * @param site id of the site
-	 * @param path the content path
-	 * @throws ServiceLayerException if no content is found at the given path
-	 */
-	void checkContentExists(String site, String path) throws ServiceLayerException;
 
 	/**
 	 * This is a faster, but less accurate, version of contentExists. This prioritizes
@@ -269,15 +255,6 @@ public interface ContentService {
 	String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException;
 
 	/**
-	 * get the version history for an item
-	 *
-	 * @param site - the project ID
-	 * @param path - the path of the item
-	 * @return version history
-	 */
-	VersionTO[] getContentItemVersionHistory(String site, String path);
-
-	/**
 	 * revert a version (create a new version based on an old version)
 	 *
 	 * @param site    - the project ID
@@ -363,23 +340,12 @@ public interface ContentService {
 					      String allowLessSize, String draft, String unlock, String systemAsset)
 		throws ServiceLayerException;
 
-	/**
-	 * get the next available of the given content name at the given path (used for paste/duplicate)
-	 *
-	 * @param site site identifier
-	 * @param path path of the item
-	 * @return next available name that avoids a name conflict
-	 */
-	String getNextAvailableName(String site, String path);
-
 	/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
 	/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
 
 	ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
 
 	String getContentTypeClass(String site, String uri);
-
-	GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
 	void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
 
@@ -402,33 +368,4 @@ public interface ContentService {
 	boolean renameContent(String site, String path, String name)
 		throws ServiceLayerException, UserNotFoundException, ValidationException;
 
-	/**
-	 * Push content to remote repository
-	 *
-	 * @param siteId       site identifier
-	 * @param remoteName   remote name
-	 * @param remoteBranch remote branch
-	 * @return true if operation was successful
-	 * @throws ServiceLayerException     general service error
-	 * @throws InvalidRemoteUrlException invalid remote url
-	 * @throws AuthenticationException   authentication error
-	 * @throws CryptoException           git repository helper error
-	 */
-	boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-		InvalidRemoteUrlException, AuthenticationException, CryptoException;
-
-	/**
-	 * Pull from remote repository
-	 *
-	 * @param siteId       site identifier
-	 * @param remoteName   remote name
-	 * @param remoteBranch remote branch
-	 * @return true if operation was successful
-	 * @throws ServiceLayerException     general service error
-	 * @throws InvalidRemoteUrlException invalid remote url
-	 * @throws AuthenticationException   authentication error
-	 * @throws CryptoException           git repository helper error
-	 */
-	boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-		InvalidRemoteUrlException, AuthenticationException, CryptoException;
 }

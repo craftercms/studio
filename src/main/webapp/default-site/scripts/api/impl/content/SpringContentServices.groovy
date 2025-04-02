@@ -143,16 +143,6 @@ class SpringContentServices {
 	}
 
 	/**
-	 * get the version history for an item
-	 * @param site - the project ID
-	 * @param path - the path of the item
-	 */
-	def getContentItemVersionHistory(site, path) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.getContentItemVersionHistory(site, path)
-	}
-
-	/**
 	 *  Get the content for a specific version
 	 * @param site - the project ID
 	 * @param path - the path of the item to retrieve
@@ -213,15 +203,5 @@ class SpringContentServices {
 	def renameFolder(site, path, name) {
 		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
 		return springBackedService.renameContent(site, path, name)
-	}
-
-	def pushToRemote(siteId, remoteName, remoteBranch) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.pushToRemote(siteId, remoteName, remoteBranch)
-	}
-
-	def pullFromRemote(siteId, remoteName, remoteBranch) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.pullFromRemote(siteId, remoteName, remoteBranch)
 	}
 }

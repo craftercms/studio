@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.upgrade;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.UpgradeManager;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
 import java.util.List;
@@ -66,6 +67,6 @@ public interface StudioUpgradeManager extends UpgradeManager<String> {
 	 * @param site the id of the site
 	 * @return the list of environments
 	 */
-	List<String> getExistingEnvironments(String site);
+	List<String> getExistingEnvironments(String site) throws ServiceLayerException;
 
 }

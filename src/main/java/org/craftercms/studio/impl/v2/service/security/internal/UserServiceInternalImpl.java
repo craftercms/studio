@@ -19,19 +19,21 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 import com.google.common.cache.Cache;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.user.UserUpdatedEvent;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,15 +42,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_NORMALIZED_ROLE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
@@ -59,27 +63,24 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceInternalImpl.class);
 
 	private final UserDAO userDao;
-	private final GroupServiceInternal groupServiceInternal;
+	private final ConfigurationService configurationService;
 	private final StudioConfiguration studioConfiguration;
 	private final SiteService siteService;
-	private final SecurityService securityService;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Cache<String, User> userCache;
 	private final Zxcvbn zxcvbn;
 	private ApplicationContext applicationContext;
 
-	@ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
+	@ConstructorProperties({"userDao", "configurationService", "studioConfiguration", "siteService",
 		"retryingDatabaseOperationFacade", "userCache", "zxcvbn"})
-	public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
+	public UserServiceInternalImpl(UserDAO userDao, ConfigurationService configurationService,
 				       StudioConfiguration studioConfiguration, SiteService siteService,
-				       SecurityService securityService,
 				       RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 				       Cache<String, User> userCache, Zxcvbn zxcvbn) {
 		this.userDao = userDao;
-		this.groupServiceInternal = groupServiceInternal;
+		this.configurationService = configurationService;
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;
-		this.securityService = securityService;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.userCache = userCache;
 		this.zxcvbn = zxcvbn;
@@ -162,7 +163,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 
 	@Override
 	public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
-		List<NormalizedGroup> groupNames = groupServiceInternal.getSiteGroups(siteId);
+		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
 		try {
 			return userDao.getAllUsersForSiteTotal(
 				groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
@@ -431,7 +432,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
-		var username = securityService.getCurrentUser();
+		var username = SecurityUtils.getCurrentUser();
 		try {
 			var user = getUserByIdOrUsername(0, username);
 			// TODO: Properly support multiple sites when needed
@@ -448,7 +449,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
-		var username = securityService.getCurrentUser();
+		var username = SecurityUtils.getCurrentUser();
 		try {
 			var user = getUserByIdOrUsername(0, username);
 			retryingDatabaseOperationFacade.retry(() -> userDao.updateUserProperties(user.getId(), dbSiteId, propertiesToUpdate));
@@ -467,7 +468,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 		throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
-		var username = securityService.getCurrentUser();
+		var username = SecurityUtils.getCurrentUser();
 		try {
 			var user = getUserByIdOrUsername(0, username);
 			retryingDatabaseOperationFacade.retry(() -> userDao.deleteUserProperties(user.getId(), dbSiteId, propertiesToDelete));
@@ -482,17 +483,56 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 
 	@Override
 	public AuthenticatedUser getCurrentUser() throws AuthenticationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Authentication authentication = SecurityUtils.getAuthentication();
 		if (authentication != null) {
 			return (AuthenticatedUser) authentication.getPrincipal();
-		} else {
-			throw new AuthenticationException("User should be authenticated");
 		}
+		throw new AuthenticationException("User should be authenticated");
 	}
 
 	@Override
-	public boolean isSystemAdmin(String username) {
-		return securityService.isSystemAdmin(username);
+	public boolean isSystemAdmin(final String username) {
+		Collection<NormalizedRole> roles;
+		try {
+			roles = getUserGlobalRoles(username);
+		} catch (UserNotFoundException e) {
+			logger.info("Failed to find user '{}'", username, e);
+			return false;
+		} catch (ServiceLayerException e) {
+			logger.warn("Failed to get site membership for user '{}'", username, e);
+			return false;
+		}
+
+		boolean toRet = false;
+		if (CollectionUtils.isNotEmpty(roles)) {
+			for (NormalizedRole role : roles) {
+				if (role.equals(SYSTEM_ADMIN_NORMALIZED_ROLE)) {
+					toRet = true;
+					break;
+				}
+			}
+		}
+		return toRet;
+	}
+
+	@Override
+	public Collection<NormalizedRole> getUserGlobalRoles(String username)
+		throws ServiceLayerException, UserNotFoundException {
+		List<Group> groups = getUserGroups(-1, username);
+
+		if (CollectionUtils.isEmpty(groups)) {
+			return emptyList();
+		}
+
+		Map<NormalizedGroup, List<NormalizedRole>> roleMappings = configurationService.getGlobalRoleMappings();
+
+		if (!isNotEmpty(roleMappings)) {
+			return emptyList();
+		}
+
+		return groups.stream()
+			.flatMap(group-> roleMappings.get(new NormalizedGroup(group.getGroupName())).stream())
+			.collect(Collectors.toSet());
 	}
 
 	@Override

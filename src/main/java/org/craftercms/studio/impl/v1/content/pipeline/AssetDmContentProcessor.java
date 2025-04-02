@@ -162,7 +162,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 				}
 				// Item
 				// TODO: get local code with API 2
-				itemServiceInternal.persistItemAfterWrite(site, contentPath, user, result.getCommitId(), unlock);
+				itemServiceInternal.persistItemAfterWrite(site, contentPath, user, unlock);
 				assetInfo.setFileExtension(ext);
 				return assetInfo;
 			} else {

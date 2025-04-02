@@ -21,9 +21,11 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.lang.NonNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -181,4 +183,12 @@ public interface UserServiceInternal {
 	 * @return true if user is system_admin, false otherwise
 	 */
 	boolean isSystemAdmin(String username);
+
+	/**
+	 * Get the global roles for a user
+	 *
+	 * @param username the username
+	 * @return the list global roles
+	 */
+	Collection<NormalizedRole> getUserGlobalRoles(String username) throws ServiceLayerException, UserNotFoundException;
 }

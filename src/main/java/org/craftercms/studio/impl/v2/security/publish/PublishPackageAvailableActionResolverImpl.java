@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
 import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.security.PermissionMappingsProvider;
 import org.slf4j.Logger;
@@ -34,6 +33,7 @@ import java.util.List;
 
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.APPROVE;
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.getPossibleActionsForPackageStates;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 /**
  * Default implementation of {@link PublishPackageAvailableActionResolver}
@@ -43,23 +43,20 @@ public class PublishPackageAvailableActionResolverImpl implements PublishPackage
 
 	private final PermissionMappingsProvider permissionMappingProvider;
 	private final UserServiceInternal userServiceInternal;
-	private final SecurityService securityService;
 	private final ServicesConfig servicesConfig;
 
-	@ConstructorProperties({"permissionMappingProvider", "userServiceInternal", "securityService", "servicesConfig"})
+	@ConstructorProperties({"permissionMappingProvider", "userServiceInternal", "servicesConfig"})
 	public PublishPackageAvailableActionResolverImpl(PermissionMappingsProvider permissionMappingProvider,
 													 UserServiceInternal userServiceInternal,
-													 SecurityService securityService,
 													 ServicesConfig servicesConfig) {
 		this.permissionMappingProvider = permissionMappingProvider;
 		this.userServiceInternal = userServiceInternal;
-		this.securityService = securityService;
 		this.servicesConfig = servicesConfig;
 	}
 
 	@Override
 	public long getPublishPackageAvailableActions(PublishPackage publishPackage) throws ServiceLayerException, UserNotFoundException {
-		String user = securityService.getCurrentUser();
+		String user = getCurrentUser();
 		if (user == null) {
 			logger.debug("No user is authenticated, returning 0 available actions");
 			return 0;
@@ -67,7 +64,7 @@ public class PublishPackageAvailableActionResolverImpl implements PublishPackage
 		String siteId = publishPackage.getSite().getSiteId();
 		SitePermissionMappings permissionMappings = permissionMappingProvider.getPermissionMappings(siteId);
 		List<Group> groups = userServiceInternal.getUserGroups(-1, user);
-		boolean isSubmitter = publishPackage.getSubmitter().getUsername().equals(securityService.getCurrentUser());
+		boolean isSubmitter = publishPackage.getSubmitter().getUsername().equals(getCurrentUser());
 		long userAllowedActions = permissionMappings.getPublishPackageAvailableActions(user, groups);
 		long packageStateActions = getPossibleActionsForPackageStates(publishPackage.getPackageState(),
 			publishPackage.getApprovalState());

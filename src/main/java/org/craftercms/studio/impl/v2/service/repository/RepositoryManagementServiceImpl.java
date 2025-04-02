@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
@@ -38,6 +37,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -52,16 +52,13 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	private final RepositoryManagementServiceInternal repositoryManagementServiceInternal;
 	private final SiteService siteService;
 	private final AuditServiceInternal auditServiceInternal;
-	private final SecurityService securityService;
 
-	@ConstructorProperties({"repositoryManagementServiceInternal", "siteService", "auditServiceInternal", "securityService"})
+	@ConstructorProperties({"repositoryManagementServiceInternal", "siteService", "auditServiceInternal"})
 	public RepositoryManagementServiceImpl(final RepositoryManagementServiceInternal repositoryManagementServiceInternal,
-					       final SiteService siteService, final AuditServiceInternal auditServiceInternal,
-					       final SecurityService securityService) {
+					       final SiteService siteService, final AuditServiceInternal auditServiceInternal) {
 		this.repositoryManagementServiceInternal = repositoryManagementServiceInternal;
 		this.siteService = siteService;
 		this.auditServiceInternal = auditServiceInternal;
-		this.securityService = securityService;
 	}
 
 	@Override
@@ -78,7 +75,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	private void insertAddRemoteAuditLog(String siteId, String operation, String primaryTargetId,
 					     String primaryTargetValue) throws SiteNotFoundException {
 		SiteFeed siteFeed = siteService.getSite(siteId);
-		String user = securityService.getCurrentUser();
+		String user = SecurityUtils.getCurrentUser();
 		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
 		auditLog.setOperation(operation);
 		auditLog.setSiteId(siteFeed.getId());

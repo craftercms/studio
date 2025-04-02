@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -89,6 +88,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal, ApplicationContextAware {
 
@@ -100,7 +100,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	private RemoteRepositoryDAO remoteRepositoryDao;
 	private StudioConfiguration studioConfiguration;
 	private NotificationService notificationService;
-	private SecurityService securityService;
 	private UserServiceInternal userServiceInternal;
 	private TextEncryptor encryptor;
 	private GeneralLockService generalLockService;
@@ -785,7 +784,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 				Status status = retryingRepositoryOperationFacade.call(statusCommand);
 				if (!status.hasUncommittedChanges()) {
 					logger.debug("The repository is clean. Commit to complete the merge in site '{}'.", siteId);
-					String userName = securityService.getCurrentUser();
+					String userName = getCurrentUser();
 					User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
 					PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
 					CommitCommand commitCommand = git.commit()
@@ -945,7 +944,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	protected void gitCommit(Git git, String siteId, String commitMessage) throws UserNotFoundException, ServiceLayerException, GitAPIException {
 		logger.trace("Commit the changes in site '{}'", siteId);
 		CommitCommand commitCommand = git.commit();
-		String userName = securityService.getCurrentUser();
+		String userName = getCurrentUser();
 		User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
 		PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
 		String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
@@ -1046,10 +1045,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	@SuppressWarnings("unused")
 	public void setNotificationService(NotificationService notificationService) {
 		this.notificationService = notificationService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

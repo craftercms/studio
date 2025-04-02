@@ -64,7 +64,7 @@ public interface ContentService {
 	 * @param siteId site id to use
 	 * @return list of content types
 	 */
-	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
+	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 
 	/**
 	 * Get child items for given paths. Child item is

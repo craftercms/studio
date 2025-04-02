@@ -41,13 +41,11 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
@@ -57,8 +55,10 @@ import org.dom4j.*;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
@@ -85,6 +85,8 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 /**
  * Internal implementation of {@link ConfigurationService}.
@@ -108,11 +110,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	private StudioConfiguration studioConfiguration;
 	private AuditServiceInternal auditServiceInternal;
 	private SiteService siteService;
-	private SecurityService securityService;
 	private ServicesConfig servicesConfig;
 	private EncryptionAwareConfigurationReader configurationReader;
 	private ItemServiceInternal itemServiceInternal;
-	private GitContentRepository contentRepository;
 	private DependencyService dependencyService;
 
 	private String translationConfig;
@@ -397,7 +397,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		writeEnvironmentConfiguration(siteId, module, path, environment, content);
 		invalidateConfiguration(siteId, module, path, environment);
 		applicationEventPublisher.publishEvent(
-			new ConfigurationEvent(securityService.getAuthentication(), siteId,
+			new ConfigurationEvent(getAuthentication(), siteId,
 				getConfigurationPath(siteId, module, path, environment)));
 	}
 
@@ -490,10 +490,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			.replaceAll(PATTERN_MODULE, module);
 		String configPath = Paths.get(configBasePath, path).toString();
 		contentService.writeContent(siteId, configPath, content);
-		String currentUser = securityService.getCurrentUser();
+		String currentUser = getCurrentUser();
 		try {
-			itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-				contentRepository.getRepoLastCommitId(siteId), true);
+			itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser, true);
 			contentService.notifyContentEvent(siteId, configPath);
 		} catch (XmlFileParseException e) {
 			logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
@@ -578,9 +577,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			if (contentServiceInternal.contentExists(siteId, configBasePath)) {
 				String configPath = Paths.get(configBasePath, path).toString();
 				contentService.writeContent(siteId, configPath, content);
-				String currentUser = securityService.getCurrentUser();
-				itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-					contentRepository.getRepoLastCommitId(siteId), true);
+				String currentUser = getCurrentUser();
+				itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,true);
 				contentService.notifyContentEvent(siteId, configPath);
 				generateAuditLog(siteId, configPath, currentUser);
 				dependencyService.upsertDependencies(siteId, configPath);
@@ -643,7 +641,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			throws ServiceLayerException, UserNotFoundException {
 		contentService.writeContent(EMPTY, path, validate(content, path));
 		contentService.notifyContentEvent(EMPTY, path);
-		String currentUser = securityService.getCurrentUser();
+		String currentUser = getCurrentUser();
 		generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
 		invalidateCache(path);
 	}
@@ -714,6 +712,15 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			writeConfiguration(siteId, MODULE_STUDIO, configLocation, environment, new ByteArrayInputStream(out.toByteArray()));
 		} catch (Exception e) {
 			throw new ServiceLayerException(format("Failed to make make blob stores read only for site '%s'", siteId), e);
+		}
+	}
+
+	@Override
+	public List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException {
+		try {
+			return new ArrayList<>(getRoleMappings(siteId).keySet());
+		} catch (ConfigurationException e) {
+			throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
 		}
 	}
 
@@ -832,6 +839,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.contentService = contentService;
 	}
 
+	@Lazy
+	@Autowired
 	public void setContentServiceInternal(final ContentServiceInternal contentServiceInternal) {
 		this.contentServiceInternal = contentServiceInternal;
 	}
@@ -848,10 +857,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.siteService = siteService;
 	}
 
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
 	public void setServicesConfig(ServicesConfig servicesConfig) {
 		this.servicesConfig = servicesConfig;
 	}
@@ -864,16 +869,14 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.translationConfig = translationConfig;
 	}
 
+	@Lazy
+	@Autowired
 	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
 		this.itemServiceInternal = itemServiceInternal;
 	}
 
 	public void setConfigurationCache(Cache<String, Object> configurationCache) {
 		this.configurationCache = configurationCache;
-	}
-
-	public void setContentRepository(GitContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
 	}
 
 	public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundExce
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
@@ -55,6 +54,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalSt
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
 
 public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
 
@@ -68,7 +68,6 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	private PublishDAO publishDao;
 	private UserServiceInternal userServiceInternal;
 	private ServicesConfig servicesConfig;
-	private SecurityService securityService;
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
@@ -173,7 +172,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
 			activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
 				operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
-			eventPublisher.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, packageId, eventType));
+			eventPublisher.publishEvent(new WorkflowEvent(getAuthentication(), siteId, packageId, eventType));
 		} finally {
 			generalLockService.unlock(packageLockKey);
 		}
@@ -231,10 +230,6 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
 	public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
 		this.userServiceInternal = userServiceInternal;
-	}
-
-	public void setSecurityService(final SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	@Override

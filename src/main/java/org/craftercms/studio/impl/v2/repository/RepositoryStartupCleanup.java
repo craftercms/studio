@@ -22,18 +22,14 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 
 /**
@@ -64,7 +60,6 @@ public class RepositoryStartupCleanup {
 		siteService.getAllAvailableSites().forEach(siteId -> {
 			logger.debug("Unlock git lock for site '{}'", siteId);
 			String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
-			String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
 
 			generalLockService.lock(gitLockKeySandbox);
 			try {
@@ -72,14 +67,6 @@ public class RepositoryStartupCleanup {
 				removeIndexIfCorrupted(siteId, SANDBOX);
 			} finally {
 				generalLockService.unlock(gitLockKeySandbox);
-			}
-
-			generalLockService.lock(gitLockKeyPublished);
-			try {
-				unlockRepository(siteId, PUBLISHED);
-				removeIndexIfCorrupted(siteId, PUBLISHED);
-			} finally {
-				generalLockService.unlock(gitLockKeyPublished);
 			}
 		});
 	}
@@ -102,6 +89,10 @@ public class RepositoryStartupCleanup {
 	protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
 		logger.debug("Checking if repository '{}' for site '{}' is corrupted", repository, siteId);
 		Repository repo = helper.getRepository(siteId, repository);
+		if (repo == null) {
+			logger.warn("Repository '{}' for site '{}' is not found", repository, siteId);
+			return;
+		}
 		String repoPath = repo.getWorkTree().getAbsolutePath();
 		try {
 			if (!helper.gitStatusOk(repo)) {

@@ -17,7 +17,6 @@ package org.craftercms.studio.api.v1.service.configuration;
 
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
-import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
 
@@ -134,15 +133,6 @@ public interface ServicesConfig {
 	 */
 	String getLevelDescriptorName(String site);
 
-
-	/**
-	 * get the delete dependencies related to a content type
-	 *
-	 * @param site
-	 * @return delete dependencys patterns
-	 */
-	List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site, String contentType);
-
 	/**
 	 * get the copy dependencies pattern for a content type
 	 *
@@ -151,14 +141,6 @@ public interface ServicesConfig {
 	 * @return copy dependencies patterns
 	 */
 	List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site, String contentType);
-
-	/**
-	 * get a list of paths to display in widgets
-	 *
-	 * @param site
-	 * @return a list of paths to display in widgets
-	 */
-	List<String> getDisplayInWidgetPathPatterns(String site);
 
 	/**
 	 * get the default timezone value
@@ -174,14 +156,6 @@ public interface ServicesConfig {
 	 * Get the pattern for the plugin folder in the given site
 	 */
 	String getPluginFolderPattern(String site);
-
-	/**
-	 * Get sandbox branch name for given site
-	 *
-	 * @param site
-	 * @return Sandbox branch name
-	 */
-	String getSandboxBranchName(String site);
 
 	String getStagingEnvironment(String site);
 

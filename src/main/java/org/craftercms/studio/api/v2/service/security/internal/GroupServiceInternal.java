@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 
 import java.util.List;
 
@@ -57,7 +56,5 @@ public interface GroupServiceInternal {
 
 	void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws GroupNotFoundException,
 		UserNotFoundException, ServiceLayerException;
-
-	List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException;
 
 }

@@ -17,8 +17,10 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +60,6 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
 	protected GitContentRepository contentRepository;
 
-	protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
-
 	protected ConfigurationService configurationService;
 
 	protected PolicyValidator systemValidator;
@@ -67,16 +68,14 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
 	protected String configPath;
 
-	@ConstructorProperties({"contentRepository", "contentRepositoryV2", "configurationService", "systemValidator",
+	@ConstructorProperties({"contentRepository", "configurationService", "systemValidator",
 		"policyValidators", "configPath"})
 	public PolicyServiceInternalImpl(GitContentRepository contentRepository,
-					 org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
-					 ConfigurationService configurationService,
-					 PolicyValidator systemValidator,
-					 List<PolicyValidator> policyValidators,
-					 String configPath) {
+									 ConfigurationService configurationService,
+									 PolicyValidator systemValidator,
+									 List<PolicyValidator> policyValidators,
+									 String configPath) {
 		this.contentRepository = contentRepository;
-		this.contentRepositoryV2 = contentRepositoryV2;
 		this.configurationService = configurationService;
 		this.systemValidator = systemValidator;
 		this.policyValidators = policyValidators;
@@ -182,10 +181,17 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 		// First check if the original action is ok
 		evaluateAction(config, siteId, action, results, includeAllowed);
 		// If it's ok then start checking the children
-		var children = contentRepository.getContentChildren(siteId, action.getSource());
+
+		Collection<RepositoryItem> children = null;
+		try {
+			children = contentRepository.getContentChildren(siteId, action.getSource());
+		} catch (ServiceLayerException e) {
+			logger.warn("Failed to get children for path '{}'", action.getSource(), e);
+			return;
+		}
 		var sourceName = FilenameUtils.getName(action.getSource());
 		for (var child : children) {
-			var childPath = Paths.get(child.path, child.name);
+			var childPath = Paths.get(child.path(), child.name());
 			// Calculate the new path
 			var childTarget = Paths.get(action.getTarget(), sourceName).
 				resolve(Paths.get(action.getSource()).relativize(childPath)).toString();
@@ -194,11 +200,11 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 			childAction.setType(action.getType());
 			childAction.setSource(childPath.toString());
 			childAction.setTarget(childTarget);
-			if (child.isFolder) {
+			if (child.isFolder()) {
 				evaluateRecursiveAction(config, siteId, childAction, results, false);
 			} else {
 				childAction.setContentMetadata(
-					Map.of(METADATA_FILE_SIZE, contentRepositoryV2.getContentSize(siteId, childPath.toString())));
+					Map.of(METADATA_FILE_SIZE, contentRepository.getContentSize(siteId, childPath.toString())));
 				evaluateAction(config, siteId, childAction, results, false);
 			}
 		}

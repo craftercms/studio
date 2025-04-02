@@ -178,6 +178,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 		configurationServiceInternal.makeBlobStoresReadOnly(siteId);
 	}
 
+	@Override
+	public List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException {
+		return configurationServiceInternal.getSiteGroups(siteId);
+	}
+
 	// Moved from SiteServiceImpl to be able to properly cache the object
 	// TODO: JM: Remove unused method?
 	@Override

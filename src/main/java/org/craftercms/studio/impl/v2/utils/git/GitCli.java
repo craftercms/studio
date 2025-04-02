@@ -442,6 +442,25 @@ public class GitCli {
 		}
 	}
 
+	/**
+	 * Git restore -s <version> <path>
+	 * This will checkout the file from the given version (commit id) to the working directory
+	 *
+	 * @param repoPath the git repository directory
+	 * @param path     the path to restore
+	 * @param version  the version to restore
+	 * @throws GitCliException if the git restore command fails
+	 */
+	public void restoreVersion(String repoPath, String path, String version) throws GitCliException {
+		GitCommandLine restoreCl = new GitCommandLine("restore", "-s", version, path);
+
+		try {
+			executeGitCommand(repoPath, restoreCl);
+		} catch (Exception e) {
+			throw new GitCliException("Git restore failed on directory " + repoPath + " for path " + path, e);
+		}
+	}
+
 	protected class GitCommandLine extends ArrayList<String> {
 
 		public GitCommandLine(String command) {

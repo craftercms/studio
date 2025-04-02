@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -43,8 +44,6 @@ import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -75,13 +74,7 @@ public class SitesController {
 
 	@GetMapping("/available_blueprints")
 	public ResultList<PluginDescriptor> getAvailableBlueprints() throws ServiceLayerException {
-		List<PluginDescriptor> blueprintDescriptors;
-		try {
-			blueprintDescriptors = sitesService.getAvailableBlueprints();
-		} catch (Exception e) {
-			// TODO: JM: What kind of exceptions are expected here?
-			throw new ServiceLayerException(e);
-		}
+		List<PluginDescriptor> blueprintDescriptors = sitesService.getAvailableBlueprints();
 		ResultList<PluginDescriptor> result = new ResultList<>();
 		result.setEntities(RESULT_KEY_BLUEPRINTS, blueprintDescriptors);
 		result.setResponse(OK);
@@ -103,7 +96,7 @@ public class SitesController {
 
 	@PostMapping("/{siteId}")
 	public Result updateSite(@ValidSiteId @PathVariable String siteId,
-				 @Valid @RequestBody UpdateSiteRequest request)
+							 @Valid @RequestBody UpdateSiteRequest request)
 		throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
 		sitesService.updateSite(siteId, request.getName(), request.getDescription());
 
@@ -133,7 +126,7 @@ public class SitesController {
 
 	@PostMapping("/{siteId}/policy/validate")
 	public ResultList<ValidationResult> validatePolicy(@ValidSiteId @PathVariable String siteId,
-							   @Valid @RequestBody ValidatePolicyRequest request)
+													   @Valid @RequestBody ValidatePolicyRequest request)
 		throws ConfigurationException, IOException, ContentNotFoundException {
 		List<ValidationResult> results = policyService.validate(siteId, request.getActions());
 

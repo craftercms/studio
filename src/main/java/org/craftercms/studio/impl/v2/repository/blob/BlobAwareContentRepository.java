@@ -32,27 +32,22 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
-import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryImpl;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.task.PublishTask;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -75,7 +70,6 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -83,14 +77,13 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageTyp
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 /**
- * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository}
+ * Implementation of {@link org.craftercms.studio.api.v2.repository.ContentRepository}
  * that delegates calls to a {@link StudioBlobStore} when appropriate
  *
  * @author joseross
  * @since 3.1.6
  */
-public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.repository.GitContentRepository,
-	StudioBlobAwareContentRepository {
+public class BlobAwareContentRepository implements StudioBlobAwareContentRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(BlobAwareContentRepository.class);
 
@@ -99,9 +92,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	 */
 	protected String fileExtension;
 
-	protected GitContentRepositoryImpl localRepositoryV1;
-
-	protected GitPublishCapableRepository localRepositoryV2;
+	protected GitPublishCapableRepository localRepository;
 
 	protected StudioBlobStoreResolver blobStoreResolver;
 	private ServicesConfig servicesConfig;
@@ -122,13 +113,8 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@SuppressWarnings("unused")
-	public void setLocalRepositoryV1(GitContentRepositoryImpl localRepositoryV1) {
-		this.localRepositoryV1 = localRepositoryV1;
-	}
-
-	@SuppressWarnings("unused")
-	public void setLocalRepositoryV2(GitPublishCapableRepository localRepositoryV2) {
-		this.localRepositoryV2 = localRepositoryV2;
+	public void setLocalRepository(GitPublishCapableRepository localRepository) {
+		this.localRepository = localRepository;
 	}
 
 	@SuppressWarnings("unused")
@@ -175,7 +161,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 				// Check if the pointer path is not the same (this happens for folders)
 				String pointerPath = getPointerPath(siteId, path);
 				return !StringUtils.equals(path, pointerPath)
-					&& localRepositoryV1.contentExists(siteId, pointerPath);
+					&& localRepository.contentExists(siteId, pointerPath);
 			});
 	}
 
@@ -191,7 +177,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 					return store.contentExists(site, normalize(path));
 				}
 			}
-			return localRepositoryV2.contentExists(site, path);
+			return localRepository.contentExists(site, path);
 		} catch (Exception e) {
 			logger.error("Failed to check if content exists in site '{}' path '{}'", site, path, e);
 			return false;
@@ -209,7 +195,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 			}
 
 			store.checkContentExists(site, normalize(path));
-		} else if (!localRepositoryV1.contentExists(site, path)) {
+		} else if (!localRepository.contentExists(site, path)) {
 			throw new ContentNotFoundException(path, site, "Content not found");
 		}
 	}
@@ -222,7 +208,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 			if (!isFolder(site, path) && pointersExist(site, path)) {
 				return true;
 			}
-			return localRepositoryV2.shallowContentExists(site, path);
+			return localRepository.shallowContentExists(site, path);
 		} catch (Exception e) {
 			logger.error("Failed to check if content exists in site '{}' path '{}'", site, path, e);
 			return false;
@@ -239,7 +225,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 					return store.getContent(site, normalize(path), shallow);
 				}
 			}
-			return localRepositoryV1.getContent(site, path, shallow);
+			return localRepository.getContent(site, path, shallow);
 		} catch (Exception e) {
 			logger.error("Failed to get content from site '{}' path '{}'", site, path, e);
 			return null;
@@ -259,7 +245,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 					// return store.getContentSize(site, normalize(path));
 				}
 			}
-			return localRepositoryV2.getContentSize(site, path);
+			return localRepository.getContentSize(site, path);
 		} catch (Exception e) {
 			logger.error("Failed to get content size from site '{}' path '{}'", site, path, e);
 			return -1L;
@@ -274,14 +260,14 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 			if (store != null) {
 				store.writeContent(site, normalize(path), content);
 				Blob reference = store.getReference(normalize(path));
-				return localRepositoryV1.writeContent(site, getPointerPath(site, path),
+				return localRepository.writeContent(site, getPointerPath(site, path),
 					new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
 			}
-			return localRepositoryV1.writeContent(site, path, content);
+			return localRepository.writeContent(site, path, content);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
 				"will write '{}' to the local repository", site, path);
-			return localRepositoryV1.writeContent(site, path, content);
+			return localRepository.writeContent(site, path, content);
 		} catch (ServiceLayerException e) {
 			logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
 			throw e;
@@ -292,22 +278,21 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
-	public String createFolder(String site, String path, String name) {
+	public String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Create folder in site '{}' path '{}'", site, path);
 		try {
 			StudioBlobStore store = getBlobStore(site, path);
 			if (store != null) {
 				store.createFolder(site, normalize(path), name);
 			}
-			return localRepositoryV1.createFolder(site, path, name);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
 				"will create folder '{}' in the local repository", site, path);
-			return localRepositoryV1.createFolder(site, path, name);
 		} catch (Exception e) {
 			logger.error("Failed to create folder in site '{}' path '{}'", site, path, e);
-			return null;
+			throw e;
 		}
+		return localRepository.createFolder(site, path, name);
 	}
 
 	@Override
@@ -333,7 +318,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 					store.deleteContent(siteId, path);
 				}
 			}
-			return localRepositoryV2.deleteContent(siteId, gitRepoPaths, approver);
+			return localRepository.deleteContent(siteId, gitRepoPaths, approver);
 		} catch (ServiceLayerException ex) {
 			throw ex;
 		} catch (Exception e) {
@@ -344,29 +329,29 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
 	@Override
 	public void createEmptyFiles(String siteId, Collection<String> paths) {
-		localRepositoryV2.createEmptyFiles(siteId, paths);
+		localRepository.createEmptyFiles(siteId, paths);
 	}
 
 	@Override
-	public String moveContent(String site, String fromPath, String toPath, String newName) {
+	public String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
 		logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
 		try {
 			StudioBlobStore store = getBlobStore(site, fromPath, toPath);
 			if (store != null) {
-				String result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
+				String result = store.moveContent(site, normalize(fromPath), normalize(toPath));
 				if (result != null) {
 					boolean isFolder = isFolder(site, fromPath);
 					String diskResult =
-						localRepositoryV1.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
-							isFolder ? toPath : getPointerPath(site, toPath), newName);
+						localRepository.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
+							isFolder ? toPath : getPointerPath(site, toPath));
 					return diskResult;
 				}
 			}
-			return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
+			return localRepository.moveContent(site, fromPath, toPath);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
 				"will move from '{}' to '{}' in the local repository", site, fromPath, toPath);
-			return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
+			return localRepository.moveContent(site, fromPath, toPath);
 		} catch (Exception e) {
 			logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
 			return null;
@@ -374,29 +359,11 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
-	public RepositoryItem[] getContentChildren(String site, String path) {
-		RepositoryItem[] children = localRepositoryV1.getContentChildren(site, path);
-		return Stream.of(children)
-			.peek(item -> item.name = getOriginalPath(item.name))
-			.toList()
-			.toArray(new RepositoryItem[children.length]);
-	}
-
-	@Override
-	public VersionTO[] getContentVersionHistory(String site, String path) {
-		logger.debug("Get version history for site '{}' path '{}'", site, path);
-		try {
-			if (pointersExist(site, path)) {
-				StudioBlobStore store = getBlobStore(site, path);
-				if (store != null) {
-					return localRepositoryV1.getContentVersionHistory(site, getPointerPath(site, path));
-				}
-			}
-			return localRepositoryV1.getContentVersionHistory(site, path);
-		} catch (Exception e) {
-			logger.error("Failed to get version history for site '{}' path '{}'", site, path, e);
-			return null;
-		}
+	public Collection<RepositoryItem> getContentChildren(String site, String path) throws ServiceLayerException {
+		Collection<RepositoryItem> children = localRepository.getContentChildren(site, path);
+		return children.stream()
+			.map(item -> new RepositoryItem(item.path(), getOriginalPath(item.name()), item.isFolder()))
+			.toList();
 	}
 
 	@Override
@@ -406,10 +373,10 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 			if (pointersExist(site, path)) {
 				StudioBlobStore store = getBlobStore(site, path);
 				if (store != null) {
-					return localRepositoryV2.getContentItemHistory(site, getPointerPath(site, path));
+					return localRepository.getContentItemHistory(site, getPointerPath(site, path));
 				}
 			}
-			return localRepositoryV2.getContentItemHistory(site, path);
+			return localRepository.getContentItemHistory(site, path);
 		} catch (Exception e) {
 			logger.error("Failed to get version history for site '{}' path '{}'", site, path, e);
 			throw e;
@@ -418,7 +385,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
 	@Override
 	public void duplicateSite(String sourceSiteId, String siteId, String sourceSandboxBranch, String sandboxBranch) throws IOException, ServiceLayerException {
-		localRepositoryV2.duplicateSite(sourceSiteId, siteId, sourceSandboxBranch, sandboxBranch);
+		localRepository.duplicateSite(sourceSiteId, siteId, sourceSandboxBranch, sandboxBranch);
 	}
 
 	@Override
@@ -430,7 +397,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 			if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
 				logger.info("Duplicating staging blobs from site '{}' to site '{}'", sourceSiteId, siteId);
 				String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
-				if (localRepositoryV2.commitIdExists(sourceSiteId, GitRepositories.PUBLISHED, stagingEnvironment)) {
+				if (localRepository.commitIdExists(sourceSiteId, GitRepositories.PUBLISHED, stagingEnvironment)) {
 					duplicateBlobs(sourceSiteId, siteId, GitRepositories.PUBLISHED, stagingEnvironment, stagingEnvironment);
 				}
 			}
@@ -452,7 +419,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	 * @throws ServiceLayerException if an error occurs during the operation
 	 */
 	private void duplicateBlobs(String sourceSiteId, String siteId, GitRepositories repoType, String environment, String revstr) throws ServiceLayerException {
-		List<String> siteItemPaths = localRepositoryV2.getItemPaths(sourceSiteId, repoType, revstr)
+		List<String> siteItemPaths = localRepository.getItemPaths(sourceSiteId, repoType, revstr)
 			.stream().filter(this::isBlobPath).toList();
 		MultiKeyMap<StudioBlobStore, List<String>> copyItems = new MultiKeyMap<>();
 		for (String path : siteItemPaths) {
@@ -483,105 +450,39 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	}
 
 	@Override
-	public String createVersion(String site, String path, boolean majorVersion) {
-		return localRepositoryV1.createVersion(site, path, majorVersion);
-	}
-
-	@Override
-	public String createVersion(String site, String path, String comment, boolean majorVersion) {
-		return localRepositoryV1.createVersion(site, path, comment, majorVersion);
-	}
-
-	@Override
-	public String revertContent(String site, String path, String version, boolean major, String comment)
+	public String revertContent(String site, String path, String version, String comment)
 			throws UserNotFoundException, ServiceLayerException {
-		return localRepositoryV1.revertContent(site, path, version, major, comment);
+		return localRepository.revertContent(site, path, version, comment);
 	}
 
 	@Override
 	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
-		return localRepositoryV2.getContentByCommitId(site, path, commitId);
+		return localRepository.getContentByCommitId(site, path, commitId);
 	}
 
 	@Override
 	public void lockItem(String site, String path) {
-		localRepositoryV2.lockItem(site, path);
-	}
-
-	@Override
-	public void lockItemForPublishing(String site, String path) {
-		localRepositoryV1.lockItemForPublishing(site, path);
-	}
-
-	@Override
-	public void unLockItem(String site, String path) {
-		localRepositoryV2.itemUnlock(site, path);
-	}
-
-	@Override
-	public void unLockItemForPublishing(String site, String path) {
-		localRepositoryV1.unLockItemForPublishing(site, path);
+		localRepository.lockItem(site, path);
 	}
 
 	@Override
 	public boolean isFolder(String siteId, String path) {
-		return localRepositoryV2.isFolder(siteId, path);
+		return localRepository.isFolder(siteId, path);
 	}
 
 	@Override
 	public boolean deleteSite(String siteId) {
-		return localRepositoryV2.deleteSite(siteId);
+		return localRepository.deleteSite(siteId);
 	}
 
 	@Override
 	public String getRepoLastCommitId(String site) {
-		return localRepositoryV1.getRepoLastCommitId(site);
-	}
-
-	@Override
-	public String getRepoFirstCommitId(String site) {
-		return localRepositoryV1.getRepoFirstCommitId(site);
-	}
-
-	@Override
-	public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-				 String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
-		throws InvalidRemoteUrlException, ServiceLayerException {
-		return localRepositoryV1.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-			remotePassword, remoteToken, remotePrivateKey);
-	}
-
-	@Override
-	public void removeRemoteRepositoriesForSite(String siteId) {
-		localRepositoryV1.removeRemoteRepositoriesForSite(siteId);
-	}
-
-	@Override
-	public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
-		throws ServiceLayerException {
-		return localRepositoryV1.listRemote(siteId, sandboxBranch);
-	}
-
-	@Override
-	public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-		InvalidRemoteUrlException {
-		return localRepositoryV1.pushToRemote(siteId, remoteName, remoteBranch);
-	}
-
-	@Override
-	public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-		InvalidRemoteUrlException {
-		return localRepositoryV1.pullFromRemote(siteId, remoteName, remoteBranch);
-	}
-
-	@Override
-	public void resetStagingRepository(String siteId) throws ServiceLayerException {
-		localRepositoryV1.resetStagingRepository(siteId);
+		return localRepository.getRepoLastCommitId(site);
 	}
 
 	@Override
 	public void garbageCollectGitRepositories(String siteId) {
-		localRepositoryV2.garbageCollectGitRepositories(siteId);
+		localRepository.garbageCollectGitRepositories(siteId);
 	}
 
 	// Start API 2
@@ -589,17 +490,17 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	@Override
 	public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
 					       Map<String, String> params, String creator) {
-		return localRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
+		return localRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 	}
 
 	@Override
 	public boolean commitIdExists(String site, String commitId) {
-		return localRepositoryV2.commitIdExists(site, commitId);
+		return localRepository.commitIdExists(site, commitId);
 	}
 
 	@Override
 	public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
-		return localRepositoryV2.commitIdExists(site, repoType, commitId);
+		return localRepository.commitIdExists(site, repoType, commitId);
 	}
 
 	@Override
@@ -610,31 +511,31 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 					     String creator)
 		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
 		RemoteRepositoryNotFoundException, ServiceLayerException {
-		return localRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+		return localRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
 			singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
 			params, createAsOrphan, creator);
 	}
 
 	@Override
 	public boolean removeRemote(String siteId, String remoteName) {
-		return localRepositoryV2.removeRemote(siteId, remoteName);
+		return localRepository.removeRemote(siteId, remoteName);
 	}
 
 	@Override
 	public boolean repositoryExists(String site) {
-		return localRepositoryV2.repositoryExists(site);
+		return localRepository.repositoryExists(site);
 	}
 
 	@Override
 	public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
-		return localRepositoryV2.getSubtreeItems(site, path, repoType, branch).stream()
+		return localRepository.getSubtreeItems(site, path, repoType, branch).stream()
 			.map(this::getOriginalPath)
 			.collect(toList());
 	}
 
 	@Override
-	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-		return localRepositoryV2.getOperationsFromDelta(site, commitIdFrom, commitIdTo).stream()
+	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) throws ServiceLayerException {
+		return localRepository.getOperationsFromDelta(site, commitIdFrom, commitIdTo).stream()
 			.peek(operation -> {
 				operation.setPath(getOriginalPath(operation.getPath()));
 				operation.setMoveToPath(getOriginalPath(operation.getMoveToPath()));
@@ -644,12 +545,12 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
 	@Override
 	public Item getItem(String siteId, String path, boolean flatten) {
-		return localRepositoryV2.getItem(siteId, path, flatten);
+		return localRepository.getItem(siteId, path, flatten);
 	}
 
 	@Override
 	public boolean isTargetPublished(final String siteId, final String target) throws IOException {
-		return localRepositoryV2.isTargetPublished(siteId, target);
+		return localRepository.isTargetPublished(siteId, target);
 	}
 
 	@Override
@@ -657,26 +558,26 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 	public void forAllSitePaths(String siteId,
 				    ThrowingConsumer<String> directoryProcessor,
 				    ThrowingConsumer<String> fileProcessor) throws Exception {
-		localRepositoryV2.forAllSitePaths(siteId, directoryProcessor, f -> fileProcessor.acceptWithException(getOriginalPath(f)));
+		localRepository.forAllSitePaths(siteId, directoryProcessor, f -> fileProcessor.acceptWithException(getOriginalPath(f)));
 	}
 
 	@Override
 	public String getPreviousCommitId(String siteId, String commitId) {
-		return localRepositoryV2.getPreviousCommitId(siteId, commitId);
+		return localRepository.getPreviousCommitId(siteId, commitId);
 	}
 
 	@Override
 	public void itemUnlock(String site, String path) {
-		localRepositoryV2.itemUnlock(site, path);
+		localRepository.itemUnlock(site, path);
 	}
 
 	@Override
 	public boolean publishedRepositoryExists(String siteId) {
-		return localRepositoryV2.publishedRepositoryExists(siteId);
+		return localRepository.publishedRepositoryExists(siteId);
 	}
 
 	@Override
-	public InitialPublishChangeSet initialPublish(final PublishPackage publishPackage, final String target) throws ServiceLayerException {
+	public GitPublishChangeSet<? extends PublishItemTO> initialPublish(final PublishPackage publishPackage, final String target) throws ServiceLayerException {
 		String siteId = publishPackage.getSite().getSiteId();
 		long packageId = publishPackage.getId();
 		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
@@ -686,9 +587,8 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
 		Collection<BlobAwareInitialPublishItemTO> failedItems = initialPublishBlobs(publishPackage, taskProgress, target, pathsByBlobStore);
 		List<String> ignoredRepoPaths = failedItems.stream().map(BlobAwareInitialPublishItemTO::getRepoPath).toList();
-		String commitId = localRepositoryV2.initialPublish(publishPackage, ignoredRepoPaths, target);
-		return new InitialPublishChangeSet(commitId, failedItems.stream()
-			.collect(toMap(BlobAwareInitialPublishItemTO::getPath, BlobAwareInitialPublishItemTO::getError)));
+		String commitId = localRepository.initialPublish(publishPackage, ignoredRepoPaths, target);
+		return new GitPublishChangeSet<>(commitId, emptyList(), failedItems.stream().toList());
 	}
 
 	/**
@@ -703,7 +603,7 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 		Stage scanStage = taskProgress.startStage("Scanning repo for blob paths");
 		try {
 			// Ignore directories
-			localRepositoryV2.forAllFileSitePaths(siteId, p -> {
+			localRepository.forAllFileSitePaths(siteId, p -> {
 				if (isBlobPath(p)) {
 					blobStores.stream()
 						.filter(store -> store.isCompatible(p)).findFirst()
@@ -786,9 +686,9 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
 		GitPublishChangeSet<BlobAwarePublishItemTOWrapper<T>> committedChangeset;
 		if (isEmpty(failedItems) && publishPackage.getPackageType() == PUBLISH_ALL) {
-			committedChangeset = localRepositoryV2.publishAll(publishPackage, publishingTarget);
+			committedChangeset = localRepository.publishAll(publishPackage, publishingTarget);
 		} else {
-			committedChangeset = localRepositoryV2.publish(publishPackage, publishingTarget, gitRepoItems);
+			committedChangeset = localRepository.publish(publishPackage, publishingTarget, gitRepoItems);
 		}
 
 		return new GitPublishChangeSet<>(committedChangeset.commitId(), unwrap(committedChangeset.successfulItems()),
@@ -816,22 +716,22 @@ public class BlobAwareContentRepository implements org.craftercms.studio.api.v1.
 
 	@Override
 	public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
-		return localRepositoryV2.getCommitIdsBetween(siteId, commitFrom, commitTo);
+		return localRepository.getCommitIdsBetween(siteId, commitFrom, commitTo);
 	}
 
 	@Override
 	public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
-		return localRepositoryV2.getIntroducedCommits(site, baseCommit, commitId);
+		return localRepository.getIntroducedCommits(site, baseCommit, commitId);
 	}
 
 	@Override
 	public SequencedCollection<String> validatePublishCommits(final String siteId, final Collection<String> commitIds) throws IOException, ServiceLayerException {
-		return localRepositoryV2.validatePublishCommits(siteId, commitIds);
+		return localRepository.validatePublishCommits(siteId, commitIds);
 	}
 
 	@Override
 	public void updateRef(final String siteId, final long packageId,
 			      final String commitId, final String target) throws IOException {
-		localRepositoryV2.updateRef(siteId, packageId, commitId, target);
+		localRepository.updateRef(siteId, packageId, commitId, target);
 	}
 }

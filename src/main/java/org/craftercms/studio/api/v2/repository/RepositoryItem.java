@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,10 +13,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.repository;
 
-public class RepositoryItem {
-	public String path;
-	public String name;
-	public boolean isFolder;
+package org.craftercms.studio.api.v2.repository;
+
+/**
+ * Represents an item in the repository
+ *
+ * @param path     path to the item
+ * @param name     name of the item
+ * @param isFolder true if the item is a folder, false otherwise
+ */
+public record RepositoryItem(String path, String name, boolean isFolder) {
 }
