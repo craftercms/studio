@@ -105,7 +105,6 @@
 		<property name="auditService" ref="auditServiceInternal"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
 		<property name="itemService" ref="itemService"/>
-		<property name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
 		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="userDao" ref="userDao"/>
@@ -311,7 +310,6 @@
 
 	<bean id="groupServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.security.internal.GroupServiceInternalImpl">
-		<property name="configurationService" ref="configurationServiceInternal"/>
 		<property name="groupDao" ref="groupDao"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 	</bean>
@@ -673,9 +671,6 @@
 	</bean>
 
 	<bean id="studio.clockTaskBase" abstract="true" class="org.craftercms.studio.impl.v2.job.StudioClockTask">
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
-		<property name="contentRepository" ref="contentRepository"/>
 	</bean>
 
 	<util:list id="crafter.jobTriggers">
@@ -728,7 +723,6 @@
 		<constructor-arg name="sitesService" ref="sitesServiceInternal"/>
 		<constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
-		<constructor-arg name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
 		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<constructor-arg name="itemService" ref="itemService"/>
@@ -767,7 +761,6 @@
 
 	<bean id="s3BlobStore" scope="prototype"
 	      class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore">
-		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
 		<constructor-arg name="taskExecutor" ref="studioTaskExecutor"/>
 		<property name="profileMapper" ref="crafter.s3ProfileMapper"/>
 		<property name="clientFactory" ref="crafter.s3ClientFactory"/>
@@ -799,7 +792,6 @@
 		<property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="scriptRunnerFactory" ref="studio.dbScriptRunner"/>
 		<property name="taskManager" ref="taskManager"/>
 	</bean>
 

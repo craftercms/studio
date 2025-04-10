@@ -52,6 +52,7 @@ import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.*;
 import org.dom4j.io.SAXReader;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -225,7 +227,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		Document doc = (Document) configurationCache.getIfPresent(cacheKey);
 		if (doc == null) {
 			try {
-				logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
+				logger.debug("Cache miss in site '{}' module '{}' environment '{}' cache key '{}'", siteId, module, environment, cacheKey);
 				String content = getEnvironmentConfiguration(siteId, module, normalizedPath, environment);
 				if (isNotEmpty(content)) {
 					SAXReader saxReader = new SAXReader();
@@ -283,7 +285,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				return config;
 			}
 			String fullConfigurationPath = getConfigurationPath(siteId, module, path, environment);
-			logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
+			logger.debug("Cache miss in site '{}' module '{}' cache key '{}'", siteId, module, cacheKey);
 			if (contentService.contentExists(siteId, fullConfigurationPath)) {
 				config = configurationReader.readXmlConfiguration(contentServiceV1.getContent(siteId, fullConfigurationPath), getConfigLookupVariables(siteId));
 				configurationCache.put(cacheKey, config);
@@ -710,7 +712,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			ClassPathResource templateResource = new ClassPathResource(READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION);
 			try (InputStream templateInputStream = templateResource.getInputStream()) {
 				XsltUtils.executeTemplate(templateInputStream, null, null,
-					IOUtils.toInputStream(blobConfigsContent), out);
+					IOUtils.toInputStream(blobConfigsContent, Charset.defaultCharset()), out);
 			}
 
 			writeConfiguration(siteId, MODULE_STUDIO, configLocation, environment, new ByteArrayInputStream(out.toByteArray()));
@@ -794,8 +796,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		Map<String, Object> map = new HashMap<>();
 		for (int i = 0, size = element.nodeCount(); i < size; i++) {
 			Node currentNode = element.node(i);
-			if (currentNode instanceof Element) {
-				Element currentElement = (Element) currentNode;
+			if (currentNode instanceof Element currentElement) {
 				String key = currentElement.getName();
 				Object toAdd;
 				if (currentElement.isTextOnly()) {
@@ -835,10 +836,11 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	// --- end of copied code ---
 
 	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(@NotNull ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1) {
 		this.contentServiceV1 = contentServiceV1;
 	}
@@ -866,10 +868,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.servicesConfig = servicesConfig;
 	}
 
+	@SuppressWarnings("unused")
 	public void setConfigurationReader(EncryptionAwareConfigurationReader configurationReader) {
 		this.configurationReader = configurationReader;
 	}
 
+	@SuppressWarnings("unused")
 	public void setTranslationConfig(String translationConfig) {
 		this.translationConfig = translationConfig;
 	}
@@ -880,10 +884,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.itemService = itemService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setConfigurationCache(Cache<String, Object> configurationCache) {
 		this.configurationCache = configurationCache;
 	}
 
+	@SuppressWarnings("unused")
 	public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {
 		this.cacheInvalidators = cacheInvalidators;
 	}
@@ -892,6 +898,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		this.dependencyService = dependencyService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContextManager(ContextManager contextManager) {
 		this.contextManager = contextManager;
 	}

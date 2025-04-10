@@ -98,12 +98,6 @@
 	    <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
 	</bean -->
 
-	<bean id="studio.dbScriptRunner" class="org.craftercms.studio.impl.v2.dal.StudioDBScriptRunnerFactoryImpl">
-		<property name="dataSource" ref="scriptRunnerDataSource"/>
-		<property name="scriptLinesBufferSize"
-			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SCRIPT_RUNNER_BUFFER_SIZE)}"/>
-	</bean>
-
 	<bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler">
 		<property name="maxRetries"
 			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}"/>

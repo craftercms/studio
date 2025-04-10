@@ -100,7 +100,6 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
-import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
@@ -128,8 +127,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	private ServicesConfig servicesConfig;
-
-	protected StudioDBScriptRunnerFactory scriptRunnerFactory;
 
 	private TaskManager taskManager;
 
@@ -165,7 +162,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 							}
 
 						}
-						tw.close();
 					} else {
 						logger.debug("Item at site '{}' path '{}' does not have children", site, path);
 					}
@@ -419,25 +415,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		createEnvironmentBranch(site, baseBranch, environment);
 	}
 
-	protected void resetIfNeeded(Repository repo, Git git) throws IOException, GitAPIException {
-		String currentBranch = repo.getBranch();
-		if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFFIX)) {
-			ResetCommand resetCommand = git.reset().setMode(HARD);
-			retryingRepositoryOperationFacade.call(resetCommand);
-		}
-	}
-
-	protected void checkoutBranch(Git git, String name, boolean create) throws GitAPIException {
-		CheckoutCommand checkoutCommand = git.checkout()
-			.setName(name)
-			.setCreateBranch(create);
-		retryingRepositoryOperationFacade.call(checkoutCommand);
-	}
-
-	protected void checkoutBranch(Git git, String name) throws GitAPIException {
-		checkoutBranch(git, name, false);
-	}
-
 	protected void deleteBranches(Git git, String... names) throws GitAPIException {
 		DeleteBranchCommand deleteCommand = git.branchDelete()
 			.setForce(true)
@@ -448,17 +425,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	protected boolean branchExists(Repository repo, String branch) throws IOException {
 		return repo.resolve(branch) != null;
-	}
-
-	private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
-		Path parentToDelete = Paths.get(path).getParent();
-		boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
-		deleteParentFolder(git, parentToDelete, isPage);
-		Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
-		File testDeleteFile = testDelete.toFile();
-		if (!testDeleteFile.exists()) {
-			cleanUpMoveFolders(git, parentToDelete.toString());
-		}
 	}
 
 	private void deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
@@ -478,7 +444,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					.collect(toList());
 				if (wasPage ||
 					(isEmpty(dirs) &&
-						(isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+						(isEmpty(files) || files.size() < 2 && files.getFirst().equals(EMPTY_FILE)))) {
 					if (CollectionUtils.isNotEmpty(dirs)) {
 						for (String child : dirs) {
 							Path childToDelete = Paths.get(folderToDelete, child);
@@ -765,7 +731,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					// pick the first item in the list
 					if (tw != null && tw.getObjectId(0) != null) {
 						toReturn = true;
-						tw.close();
 					} else if (tw == null) {
 						String gitPath = helper.getGitPath(path);
 						if (isEmpty(gitPath) || gitPath.equals(".")) {
@@ -1022,20 +987,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		}
 	}
 
-	private RevTree getTree(Repository repository, String branch) throws IOException {
-		ObjectId lastCommitId = repository.resolve(R_HEADS + branch);
-
-		if (Objects.nonNull(lastCommitId)) {
-			try (RevWalk revWalk = new RevWalk(repository)) {
-				RevCommit commit = revWalk.parseCommit(lastCommitId);
-
-				return commit.getTree();
-			}
-		} else {
-			return null;
-		}
-	}
-
 	@Override
 	public String getPreviousCommitId(String siteId, String commitId) {
 		String toReturn = EMPTY;
@@ -1214,7 +1165,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String repoLockKey = helper.getPublishedRepoLockKey(siteId);
 		generalLockService.lock(repoLockKey);
 		try (Git git = Git.wrap(repo)) {
-			logger.debug("Fetching changes from sandbox to published repo for site '{}' package '{}' target '{}'",
+			logger.debug("PublishAll: Fetching changes from sandbox to published repo for site '{}' package '{}' target '{}'",
 				siteId, publishPackage.getId(), publishingTarget);
 			retryingRepositoryOperationFacade.call(git.fetch());
 			RevTree sandboxTree = helper.getTreeForCommit(repo, publishPackage.getCommitId());
@@ -1262,7 +1213,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 									final Collection<T> publishItems) throws ServiceLayerException, IOException {
 		String siteId = publishPackage.getSite().getSiteId();
 		TaskProgress<PublishTaskId, ?> taskProgress = taskManager.getTask(new PublishTaskId(siteId, publishPackage.getId()));
-		logger.debug("Publishing all changes for site '{}' package '{}' target '{}'",
+		logger.debug("Publishing changes for site '{}' package '{}' target '{}'",
 			siteId, publishPackage.getId(), publishingTarget);
 		if (isEmpty(publishItems)) {
 			logger.warn("No items to publish for site '{}' package '{}' target '{}'",
@@ -1312,7 +1263,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				.startStage("Commit changes for target '%s'".formatted(publishingTarget));
 			String newCommitId = helper.commitTree(repo, newTreeId, publishedLastCommitId, user, getPublishCommitMessage(publishPackage, user));
 			commitTreeStage.complete();
-			logger.debug("Published all changes for site '{}' package '{}' target '{}'",
+			logger.debug("Published changes for site '{}' package '{}' target '{}'",
 				siteId, publishPackage.getId(), publishingTarget);
 			return new GitPublishChangeSet<>(newCommitId, publishItems, emptyList());
 		} catch (GitAPIException | IOException | UserNotFoundException | InterruptedException e) {
@@ -1325,7 +1276,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		}
 	}
 
-	private String getPublishCommitMessage(final PublishPackage publishPackage, final User user) throws UserNotFoundException, ServiceLayerException {
+	private String getPublishCommitMessage(final PublishPackage publishPackage, final User user) throws UserNotFoundException {
 		String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
 
 		commitMessage = commitMessage.replace("{username}", user.getUsername());
@@ -1439,9 +1390,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			RevCommit revCommitBase = repo.parseCommit(repo.resolve(baseCommit));
 			RevCommit revCommit = repo.parseCommit(repo.resolve(commitId));
 
-			git.log().addRange(revCommitBase, revCommit).call().forEach(commit -> {
-				result.add(commit.getName());
-			});
+			git.log().addRange(revCommitBase, revCommit).call().forEach(commit -> result.add(commit.getName()));
 		} finally {
 			generalLockService.unlock(repoLockKey);
 		}
@@ -1504,7 +1453,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		if (shallow) {
 			return shallowGetContent(site, path);
 		}
-		return getContent(site, path, HEAD);
+		return getContentFromHead(site, path);
 	}
 
 	private TreeWalk getTreeWalkForPath(Repository repo, String path) throws IOException {
@@ -1529,7 +1478,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					throw new ContentNotFoundException(path, site, format("Content not found at site '%s' path '%s'", site, path));
 				}
 				// Loop for all children and gather path of item excluding the item, file/folder name, and
-				// whether or not it's a folder
+				// whether it's a folder
 				ObjectLoader loader = repo.open(tw.getObjectId(0));
 				if (loader.getType() != OBJ_TREE) {
 					logger.debug("Item at site '{}' path '{}' doesn't have any children",
@@ -1666,7 +1615,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	@Override
 	public String revertContent(String siteId, String path, String version, String comment)
 		throws UserNotFoundException, ServiceLayerException {
-		String commitId = null;
+		String commitId;
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
@@ -1686,13 +1635,13 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	/**
 	 * Get the content of a file at a specific commit
 	 */
-	private InputStream getContent(String site, String path, String gitVersion) throws ContentNotFoundException {
+	private InputStream getContentFromHead(String site, String path) throws ContentNotFoundException {
 		try {
 			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 			if (repo == null) {
 				throw new ContentNotFoundException(format("Repository not found for site '%s'", site));
 			}
-			RevTree tree = helper.getTreeForCommit(repo, gitVersion);
+			RevTree tree = helper.getTreeForCommit(repo, HEAD);
 			if (tree != null) {
 				try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
 					// Check if the array of items is not null, and since we have an absolute path to the item,
@@ -1709,8 +1658,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			}
 			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path));
 		} catch (IOException e) {
-			logger.error("Failed to get the content item at site '{}' path '{}' version '{}'",
-				site, path, gitVersion, e);
+			logger.error("Failed to get the content item at site '{}' path '{}' from HEAD",
+				site, path, e);
 			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path), e);
 		}
 	}
@@ -1747,66 +1696,77 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public void setHelper(GitRepositoryHelper helper) {
 		this.helper = helper;
 	}
 
+	@SuppressWarnings("unused")
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
 
+	@SuppressWarnings("unused")
 	public void setUserService(UserService userService) {
 		this.userService = userService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
 		this.remoteRepositoryDAO = remoteRepositoryDAO;
 	}
 
+	@SuppressWarnings("unused")
 	public void setSiteDao(SiteDAO siteDao) {
 		this.siteDao = siteDao;
 	}
 
+	@SuppressWarnings("unused")
 	public void setProcessedCommitsDao(ProcessedCommitsDAO processedCommitsDao) {
 		this.processedCommitsDao = processedCommitsDao;
 	}
 
+	@SuppressWarnings("unused")
 	public void setEncryptor(TextEncryptor encryptor) {
 		this.encryptor = encryptor;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContextManager(ContextManager contextManager) {
 		this.contextManager = contextManager;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContentStoreService(ContentStoreService contentStoreService) {
 		this.contentStoreService = contentStoreService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setSiteService(SitesService siteService) {
 		this.siteService = siteService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
 		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
 	}
 
+	@SuppressWarnings("unused")
 	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
 
+	@SuppressWarnings("unused")
 	public void setServicesConfig(ServicesConfig servicesConfig) {
 		this.servicesConfig = servicesConfig;
 	}
 
-	public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
-		this.scriptRunnerFactory = scriptRunnerFactory;
-	}
-
+	@SuppressWarnings("unused")
 	public void setTaskManager(final TaskManager taskManager) {
 		this.taskManager = taskManager;
 	}

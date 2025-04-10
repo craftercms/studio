@@ -45,7 +45,6 @@ import org.craftercms.studio.model.search.SearchResult;
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -185,7 +184,7 @@ public class DashboardServiceImpl implements DashboardService {
 		List<ExpiringContentItem> items = new ArrayList<>();
 		for (var item : results.getItems()) {
 			ContentItem sandboxItem =
-				contentService.getContentItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+				contentService.getContentItemsByPath(siteId, List.of(item.getPath()), false)
 					.stream()
 					.findFirst().orElse(null);
 			ExpiringContentItem contentItem = new ExpiringContentItem(

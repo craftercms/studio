@@ -26,10 +26,6 @@ abstract public class AbstractFilter implements Filter {
 
 	public abstract String getIncludePattern();
 
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
-	}
-
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}

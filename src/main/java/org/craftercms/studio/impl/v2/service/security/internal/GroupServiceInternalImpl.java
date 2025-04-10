@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 
@@ -38,7 +37,6 @@ public class GroupServiceInternalImpl implements GroupService {
 
 	private GroupDAO groupDao;
 	private UserService userService;
-	private ConfigurationService configurationService;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	@Override
@@ -227,10 +225,6 @@ public class GroupServiceInternalImpl implements GroupService {
 
 	public void setUserService(UserService userService) {
 		this.userService = userService;
-	}
-
-	public void setConfigurationService(ConfigurationService configurationService) {
-		this.configurationService = configurationService;
 	}
 
 	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

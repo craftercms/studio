@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.craftercms.studio.api.v2.service.item.ItemService;
 
 import java.util.List;
 import java.util.Map;

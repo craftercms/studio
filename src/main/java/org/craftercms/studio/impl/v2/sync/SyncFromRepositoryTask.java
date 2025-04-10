@@ -99,8 +99,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private static final Set<RepoOperation.Action> CREATED_PATH_ACTIONS = Set.of(RepoOperation.Action.CREATE, RepoOperation.Action.COPY, RepoOperation.Action.MOVE);
 	private static final String EMPTY_FILE_END = FILE_SEPARATOR + EMPTY_FILE;
 
-	protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
-
 	private final SitesService sitesService;
 	private final GeneralLockService generalLockService;
 	private final AuditService auditService;
@@ -120,7 +118,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 	@ConstructorProperties({"sitesService", "generalLockService",
 		"auditService",
-		"studioDBScriptRunnerFactory", "dependencyServiceInternal",
+		"dependencyServiceInternal",
 		"userService", "itemService",
 		"contentService", "configurationService",
 		"contentRepository", "studioConfiguration",
@@ -128,7 +126,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		"servicesConfig", "retryingDatabaseOperationFacade"})
 	public SyncFromRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
 				      AuditService auditService,
-				      StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyService dependencyServiceInternal,
+				      DependencyService dependencyServiceInternal,
 				      UserService userService, ItemService itemServiceInternal,
 				      ContentService contentService, ConfigurationService configurationService,
 				      GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
@@ -137,7 +135,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		this.sitesService = sitesService;
 		this.generalLockService = generalLockService;
 		this.auditService = auditService;
-		this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
 		this.dependencyServiceInternal = dependencyServiceInternal;
 		this.userService = userService;
 		this.itemServiceInternal = itemServiceInternal;

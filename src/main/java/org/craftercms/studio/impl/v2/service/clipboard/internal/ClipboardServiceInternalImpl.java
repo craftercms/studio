@@ -34,11 +34,8 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -61,7 +58,7 @@ import static org.craftercms.studio.model.clipboard.Operation.CUT;
  * @author joseross
  * @since 3.2
  */
-public class ClipboardServiceInternalImpl implements ClipboardService, ApplicationContextAware {
+public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClipboardServiceInternalImpl.class);
 
@@ -69,7 +66,6 @@ public class ClipboardServiceInternalImpl implements ClipboardService, Applicati
 	protected PublishService publishService;
 	protected ItemService itemService;
 	protected GeneralLockService generalLockService;
-	protected ApplicationContext applicationContext;
 
 	protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
 		throws ServiceLayerException {
@@ -191,11 +187,6 @@ public class ClipboardServiceInternalImpl implements ClipboardService, Applicati
 	 */
 	protected String getParentUrl(String path) {
 		return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
-	}
-
-	@Override
-	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) {
-		this.applicationContext = applicationContext;
 	}
 
 	public void setContentService(final ContentService contentService) {

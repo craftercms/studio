@@ -134,10 +134,6 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		return path.endsWith("." + fileExtension);
 	}
 
-	protected String getPathFromPointerPath(String siteId, String pointerPath) {
-		return isFolder(siteId, pointerPath) ? pointerPath : removeEnd(pointerPath, "." + fileExtension);
-	}
-
 	protected String normalize(String path) {
 		return Paths.get(path).normalize().toString();
 	}
@@ -202,7 +198,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 
 	@Override
 	public boolean shallowContentExists(String site, String path) {
-		logger.debug("Check if content '{}' exists in site '{}'", path, site);
+		logger.debug("Shallow-check if content '{}' exists in site '{}'", path, site);
 		try {
 			// Return only if the pointer exists, otherwise do the regular call
 			if (!isFolder(site, path) && pointersExist(site, path)) {

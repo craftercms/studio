@@ -173,20 +173,12 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 		this.siteService = siteService;
 	}
 
-	public GeneralLockService getGeneralLockService() {
-		return generalLockService;
-	}
-
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
 	}
 
 	public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
 		this.gitRepositoryHelper = gitRepositoryHelper;
-	}
-
-	public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
-		return retryingRepositoryOperationFacade;
 	}
 
 	public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {

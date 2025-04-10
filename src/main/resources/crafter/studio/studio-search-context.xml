@@ -47,9 +47,7 @@
 	</bean>
 
 	<bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
-		<constructor-arg name="searchService" ref="clausesLimitAwareSearchService"/>
-		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+		<constructor-arg name="searchServiceInternal" ref="clausesLimitAwareSearchService"/>
 	</bean>
 
 	<!-- These aliases are provided for backwards compatibility only -->

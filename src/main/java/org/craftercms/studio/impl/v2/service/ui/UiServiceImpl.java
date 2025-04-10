@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -48,16 +48,11 @@ public class UiServiceImpl implements UiService {
 		this.uiServiceInternal = uiServiceInternal;
 	}
 
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
-	}
-
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
 		String user = SecurityUtils.getCurrentUsername();
 		if (StringUtils.isNotEmpty(user)) {

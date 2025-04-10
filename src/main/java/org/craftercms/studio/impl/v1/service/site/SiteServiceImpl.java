@@ -141,7 +141,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	protected EntitlementValidator entitlementValidator;
 
-	protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 	protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
@@ -945,11 +944,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	public void setItemService(ItemService itemService) {
 		this.itemService = itemService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setStudioDBScriptRunner(StudioDBScriptRunnerFactory studioDBScriptRunner) {
-		this.studioDBScriptRunnerFactory = studioDBScriptRunner;
 	}
 
 	@SuppressWarnings("unused")

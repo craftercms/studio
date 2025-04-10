@@ -74,7 +74,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	@Override
 	@LogExecutionTime
 	public Collection<LightItem> getPublishingSoftDependencies(final String site, final Set<String> paths, String target) {
-		logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
+		logger.trace("Get all publishing soft dependencies for site '{}' paths '{}'", site, paths);
 		if (isEmpty(paths)) {
 			return emptyList();
 		}

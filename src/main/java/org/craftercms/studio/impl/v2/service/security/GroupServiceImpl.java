@@ -39,7 +39,6 @@ import org.craftercms.studio.model.rest.UserResponse;
 
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -124,7 +123,7 @@ public class GroupServiceImpl implements GroupService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_GROUPS)
 	public Group updateGroup(long orgId, Group group)
 		throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
-		checkExternallyManagedGroup(Arrays.asList(group.getId()));
+		checkExternallyManagedGroup(List.of(group.getId()));
 
 		Group toRet = groupServiceInternal.updateGroup(orgId, group);
 		SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
@@ -229,7 +228,7 @@ public class GroupServiceImpl implements GroupService {
 		auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
 		auditLog.setPrimaryTargetValue(group.getGroupName());
 		auditService.insertAuditLog(auditLog);
-		return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
+		return users.stream().map(UserResponse::new).collect(Collectors.toList());
 	}
 
 	@Override
@@ -304,13 +303,13 @@ public class GroupServiceImpl implements GroupService {
 	 * If matched, the operation must not be permitted.
 	 *
 	 * @param groupIds list of group IDs
-	 * @throws ServiceLayerException
-	 * @throws GroupNotFoundException
-	 * @throws GroupExternallyManagedException
+	 * @throws ServiceLayerException if any error occurs while retrieving the groups
+	 * @throws GroupNotFoundException if any of the groups is not found
+	 * @throws GroupExternallyManagedException if any of the groups is externally managed
 	 */
 	private void checkExternallyManagedGroup(List<Long> groupIds) throws ServiceLayerException, GroupNotFoundException, GroupExternallyManagedException {
 		List<Group> groups = groupServiceInternal.getGroups(groupIds);
-		if (groups.stream().anyMatch(group -> group.isExternallyManaged())) {
+		if (groups.stream().anyMatch(Group::isExternallyManaged)) {
 			throw new GroupExternallyManagedException("Cannot update externally managed groups.");
 		}
 	}

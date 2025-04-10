@@ -23,6 +23,7 @@ import java.io.InputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.AbstractResource;
 
 /**
@@ -80,6 +81,7 @@ public class ContentResource extends AbstractResource {
 		return null;
 	}
 
+	@NotNull
 	@Override
 	public InputStream getInputStream() throws IOException {
 		try {
