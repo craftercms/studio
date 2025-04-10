@@ -749,7 +749,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		}
 
 		return groups.stream()
-			.flatMap(group -> roleMappings.get(new NormalizedGroup(group.getGroupName())).stream())
+			.flatMap(group -> roleMappings.getOrDefault(new NormalizedGroup(group.getGroupName()), emptyList()).stream())
 			.collect(Collectors.toSet());
 	}
 

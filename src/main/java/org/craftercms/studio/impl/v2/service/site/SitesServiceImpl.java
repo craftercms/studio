@@ -107,7 +107,7 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public TaskProgress<PublishTask.PublishTaskId, Long> getPublishingTaskProgress(String siteId, long packageId) throws SiteNotFoundException {
+	public TaskProgress<PublishTask.PublishTaskId, Long> getPublishingTaskProgress(@SiteId String siteId, long packageId) throws SiteNotFoundException {
 		return sitesServiceInternal.getPublishingTaskProgress(siteId, packageId);
 	}
 

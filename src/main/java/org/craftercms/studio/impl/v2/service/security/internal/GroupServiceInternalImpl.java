@@ -27,6 +27,9 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -223,6 +226,9 @@ public class GroupServiceInternalImpl implements GroupService {
 		this.groupDao = groupDao;
 	}
 
+	@Lazy
+	@Autowired
+	@Qualifier("userServiceInternal")
 	public void setUserService(UserService userService) {
 		this.userService = userService;
 	}

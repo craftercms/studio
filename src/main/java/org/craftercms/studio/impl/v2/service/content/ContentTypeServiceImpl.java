@@ -112,7 +112,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
+	public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws ServiceLayerException {
 		return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
 	}
 
@@ -123,7 +123,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	}
 
 	@Override
-	public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public String getContentTypeTemplatePath(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
 		return contentTypeServiceInternal.getContentTypeTemplatePath(siteId, contentTypeId);
 	}
 }
