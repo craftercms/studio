@@ -2490,41 +2490,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/preview/sync-site.json:
-        post:
-            tags:
-                - preview
-            summary: Sync preview content with repository
-            description: "Required role: N/A"
-            operationId: syncSite
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/content/create-folder.json:
         post:
             tags:

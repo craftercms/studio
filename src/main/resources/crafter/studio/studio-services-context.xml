@@ -111,10 +111,6 @@
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
-	<bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl">
-		<property name="siteService" ref="sitesServiceInternal"/>
-	</bean>
-
 	<bean id="cstudioNotificationService"
 	      class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl" init-method="init">
 		<property name="emailMessages" ref="cstudioEmailMessageQueue"/>
