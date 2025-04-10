@@ -38,7 +38,6 @@ import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
@@ -54,10 +53,8 @@ import java.time.Instant;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
@@ -208,60 +205,6 @@ public class NotificationServiceImpl implements NotificationService {
 		} catch (Throwable e) {
 			logger.error("Failed to send content submission notification for site '{}'", siteId, e);
 		}
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	@Valid
-	public String getNotificationMessage(@ValidateStringParam final String site,
-					     final NotificationMessageType type,
-					     @ValidateStringParam final String key,
-					     final Pair<String, Object>... params) {
-		try {
-			final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-			String message = null;
-			switch (type) {
-				case GeneralMessages:
-					message = notificationConfig.getMessages().get(key);
-					break;
-				case EmailMessage:
-					message = notificationConfig.getEmailMessageTemplates().get(key).getMessage();
-					break;
-				case CompleteMessages:
-					message = notificationConfig.getCompleteMessages().get(key);
-					break;
-				case CannedMessages:
-					message = getCannedMessage(notificationConfig.getCannedMessages(), key);
-					break;
-				default:
-					logger.error("Unknown notification message bundle type '{}' key '{}' for site '{}'",
-						type, key, site);
-					break;
-			}
-			if (message != null) {
-				Map<String, Object> model = new HashMap<>();
-				for (Pair<String, Object> param : params) {
-					model.put(param.getKey(), param.getValue());
-				}
-				model.put(SITE_NAME, site);
-				return processMessage(key, message, model);
-			}
-		} catch (Throwable e) {
-			logger.error("Failed to get notification message from the notification configuration in site '{}' " +
-				"type '{}' key '{}'", site, type, key, e);
-			return EMPTY;
-		}
-		return EMPTY;
-	}
-
-	private String getCannedMessage(final Map<String, List<MessageTO>> cannedMessages, final String key) {
-		if (cannedMessages.containsKey(key)) {
-			final List<MessageTO> messages = cannedMessages.get(key);
-			if (!messages.isEmpty()) {
-				return messages.getFirst().getBody();
-			}
-		}
-		return EMPTY;
 	}
 
 	@Override

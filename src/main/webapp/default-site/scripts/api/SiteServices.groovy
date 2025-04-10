@@ -66,11 +66,6 @@ class SiteServices {
 		return siteServicesImpl.reloadSiteConfiguration(site)
 	}
 
-	static getCannedMessage(context, site, key, locale = "en") {
-		def siteServicesImpl = ServiceFactory.getSiteServices(context)
-		return siteServicesImpl.getCannedMessage(site, key, locale)
-	}
-
 	static exists(context, site) {
 		def siteServicesImpl = ServiceFactory.getSiteServices(context)
 		return siteServicesImpl.exists(site)
