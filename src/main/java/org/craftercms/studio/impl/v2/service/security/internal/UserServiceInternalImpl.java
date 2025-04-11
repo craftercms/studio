@@ -309,8 +309,6 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public void updateUser(User user) throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
-		checkExternallyManagedUsers(List.of(user.getId()), List.of(user.getUsername()));
-
 		long userId = user.getId();
 		String username = user.getUsername() != null ? user.getUsername() : StringUtils.EMPTY;
 
@@ -347,17 +345,6 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	/**
-	 * Check if updating users list contains any externally managed users.
-	 * If matched, the operation must not be permitted.
-	 */
-	private void checkExternallyManagedUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
-		List<User> users = getUsersByIdOrUsername(userIds, usernames);
-		if (users.stream().anyMatch(User::isExternallyManaged)) {
-			throw new UserExternallyManagedException("Cannot update externally managed users.");
-		}
-	}
-
-	/**
 	 * Audit the deletion of the given users.
 	 */
 	private void auditDeleteUsers(List<User> deleted) throws SiteNotFoundException {
@@ -385,7 +372,6 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	public void deleteUsers(final List<Long> userIds, final List<String> usernames)
 		throws UserNotFoundException, ServiceLayerException, AuthenticationException, UserExternallyManagedException {
 		User currentUser = getCurrentUser();
-		checkExternallyManagedUsers(userIds, usernames);
 
 		if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
 			CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
@@ -492,8 +478,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
-		throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
-		checkExternallyManagedUsers(userIds, usernames);
+		throws ServiceLayerException, UserNotFoundException {
 		List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
 		Map<String, Object> params = new HashMap<>();
