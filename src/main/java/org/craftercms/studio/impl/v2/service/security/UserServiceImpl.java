@@ -39,6 +39,19 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 public class UserServiceImpl implements UserService {
 	private UserService userServiceInternal;
 
+
+	/**
+	 * Check if updating users list contains any externally managed users.
+	 * If matched, the operation must not be permitted.
+	 */
+	// TODO JM: Consider making this an annotation
+	private void checkExternallyManagedUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+		List<User> users = getUsersByIdOrUsername(userIds, usernames);
+		if (users.stream().anyMatch(User::isExternallyManaged)) {
+			throw new UserExternallyManagedException("Cannot update externally managed users.");
+		}
+	}
+
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
 	public Collection<User> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
@@ -73,6 +86,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
 	public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
+		checkExternallyManagedUsers(List.of(user.getId()), List.of(user.getUsername()));
 		userServiceInternal.updateUser(user);
 	}
 
@@ -98,6 +112,7 @@ public class UserServiceImpl implements UserService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_USERS)
 	public void deleteUsers(List<Long> userIds, List<String> usernames)
 		throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException, AuthenticationException, GroupNotFoundException {
+		checkExternallyManagedUsers(userIds, usernames);
 		userServiceInternal.deleteUsers(userIds, usernames);
 	}
 
@@ -113,6 +128,7 @@ public class UserServiceImpl implements UserService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
 	public List<User> enableUsers(List<Long> userIds, List<String> usernames,
 					      boolean enabled) throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
+		checkExternallyManagedUsers(userIds, usernames);
 		return userServiceInternal.enableUsers(userIds, usernames, enabled);
 	}
 
