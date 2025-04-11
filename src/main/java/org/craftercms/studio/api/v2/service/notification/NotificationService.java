@@ -77,20 +77,6 @@ public interface NotificationService {
 	void notifyPackageSubmission(PublishPackage publishPackage, final Collection<String> itemsSubmitted);
 
 	/**
-	 * Gets and process notification message
-	 *
-	 * @param site   Site of the Content.
-	 * @param type   Type of the message wanted.
-	 * @param key    key of the message wanted
-	 * @param params parameters of the message this params will be used to process the message string.
-	 * @return <p>the message in the given locale and processed with the given variables. </p><p>If message not found
-	 * either by key/locale it will <b>return a default string</b>) </p>
-	 */
-	@SuppressWarnings("unchecked")
-	String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
-				      final Pair<String, Object>... params);
-
-	/**
 	 * Send email to admin that repository has merged conflict
 	 *
 	 * @param site               site with merge conflict

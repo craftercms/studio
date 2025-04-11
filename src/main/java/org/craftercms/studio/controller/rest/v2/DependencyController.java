@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import jakarta.validation.Valid;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -50,7 +51,7 @@ public class DependencyController {
 	}
 
 	@PostMapping(DEPENDENCIES)
-	public ResultOne<Map<String, Collection<LightItem>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) {
+	public ResultOne<Map<String, Collection<LightItem>>> getDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request) throws SiteNotFoundException {
 		Collection<LightItem> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
 		Collection<LightItem> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 

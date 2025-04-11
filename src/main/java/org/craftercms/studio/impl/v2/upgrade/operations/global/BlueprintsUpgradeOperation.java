@@ -85,10 +85,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
 	}
 
-	public GeneralLockService getGeneralLockService() {
-		return generalLockService;
-	}
-
+	@SuppressWarnings("unused")
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
 	}

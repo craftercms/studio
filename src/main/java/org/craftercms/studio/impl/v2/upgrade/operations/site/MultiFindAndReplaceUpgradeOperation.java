@@ -96,7 +96,7 @@ public class MultiFindAndReplaceUpgradeOperation extends AbstractContentUpgradeO
 		}
 	}
 
-	private class Rule {
+	protected static class Rule {
 		String pattern;
 		String replacement;
 

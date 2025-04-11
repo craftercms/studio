@@ -63,7 +63,7 @@ public class ContentTypePolicyValidator implements PolicyValidator {
 		}
 
 		if (isEmpty(contentType)) {
-			logger.debug("Skipping action because there is no Content-Type from action metadata");
+			logger.debug("ValidatePermitted: Skipping action because there is no Content-Type from action metadata");
 			result.setAllowed(false);
 			result.setMessage("There is no Content-Type from action metadata");
 			return;
@@ -86,7 +86,7 @@ public class ContentTypePolicyValidator implements PolicyValidator {
 		}
 
 		if (isEmpty(contentType)) {
-			logger.debug("Skipping action because there is no Content-Type from action metadata");
+			logger.debug("ValidateDenied: Skipping action because there is no Content-Type from action metadata");
 			return;
 		}
 

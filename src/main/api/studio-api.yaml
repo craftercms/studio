@@ -991,7 +991,7 @@ paths:
                 - users
             summary: Get current authenticated user
             description: 'Required Permission: "LOGGED_IN"'
-            operationId: getCurrentUser
+            operationId: getCurrentUsername
             responses:
                 '200':
                     description: OK
@@ -2279,52 +2279,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/get-canned-message.json:
-        get:
-            tags:
-                - sites
-            summary: Get rejection reason.
-            description: No required role
-            operationId: getCannedMessage
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: locale
-                    in: query
-                    description: Locale of message
-                    required: true
-                    schema:
-                        type: string
-                    example: en
-                -   name: type
-                    in: query
-                    description: Message type
-                    required: true
-                    schema:
-                        type: string
-                    example: Typos
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    exists:
-                                        type: string
-                                        example: "This content has multiple spelling errors and/or grammatical errors. Please correct and re-submit."
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/site/get.json:
         get:
             tags:
@@ -2469,90 +2423,6 @@ paths:
                     description: Path of the content
                     required: true
                     example: /site/website/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/preview/sync-site.json:
-        post:
-            tags:
-                - preview
-            summary: Sync preview content with repository
-            description: "Required role: N/A"
-            operationId: syncSite
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/content/change-content-type.json:
-        post:
-            tags:
-                - content
-            summary: Change template for the content.
-            description: "Required role: N/A"
-            operationId: changeContentType
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-                -   name: contentType
-                    in: query
-                    schema:
-                        type: string
-                    description: Content type to change to
-                    required: true
-                    example: /page/generic
             responses:
                 '200':
                     description: OK

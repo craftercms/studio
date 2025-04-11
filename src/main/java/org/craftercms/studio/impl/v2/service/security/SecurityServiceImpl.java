@@ -21,13 +21,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.Group;
-import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -41,7 +37,6 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
 
 public class SecurityServiceImpl implements SecurityService {
 
@@ -50,8 +45,6 @@ public class SecurityServiceImpl implements SecurityService {
 	private ConfigurationService configurationService;
 	private StudioConfiguration studioConfiguration;
 	private Cache<String, Object> configurationCache;
-
-	protected UserServiceInternal userServiceInternal;
 
 	private static final String CACHE_KEY = "user-permissions";
 
@@ -132,29 +125,6 @@ public class SecurityServiceImpl implements SecurityService {
 		return permissions;
 	}
 
-	@Override
-	public boolean isSiteMember(String username, String siteId) {
-		try {
-			if (isSystemAdmin(username)) {
-				return true;
-			}
-
-			List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
-			List<NormalizedGroup> siteGroups = configurationService.getSiteGroups(siteId);
-			return userGroups.stream()
-				.map(group -> new NormalizedGroup((group.getGroupName())))
-				.anyMatch(siteGroups::contains);
-		} catch (ServiceLayerException | UserNotFoundException e) {
-			logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
-		}
-		return false;
-	}
-
-	@Override
-	public boolean isSystemAdmin(String username) {
-		return userServiceInternal.isSystemAdmin(username);
-	}
-
 	public void setConfigurationService(ConfigurationService configurationService) {
 		this.configurationService = configurationService;
 	}
@@ -166,9 +136,5 @@ public class SecurityServiceImpl implements SecurityService {
 	@SuppressWarnings("unused")
 	public void setConfigurationCache(Cache<String, Object> configurationCache) {
 		this.configurationCache = configurationCache;
-	}
-
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
 	}
 }

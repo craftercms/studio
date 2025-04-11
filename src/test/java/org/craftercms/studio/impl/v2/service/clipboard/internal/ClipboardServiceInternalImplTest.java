@@ -6,7 +6,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +37,7 @@ public class ClipboardServiceInternalImplTest {
 	private ContentService contentService;
 
 	@Mock
-	private ItemServiceInternal itemService;
+	private ItemService itemService;
 
 	@InjectMocks
 	private ClipboardServiceInternalImpl service;

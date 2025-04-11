@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,17 +16,17 @@
 
 package org.craftercms.studio.impl.v1.entitlement;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.craftercms.commons.entitlements.exception.UnsupportedEntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.craftercms.commons.entitlements.model.Module.STUDIO;
 
@@ -41,8 +41,8 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 	 * Current instance of {@link SiteService}.
 	 */
 	protected SiteService siteService;
-	protected UserServiceInternal userServiceInternal;
-	protected ItemServiceInternal itemServiceInternal;
+	protected UserService userService;
+	protected ItemService itemService;
 
 	/**
 	 * {@inheritDoc}
@@ -66,16 +66,12 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 	@Override
 	public int doGetEntitlementUsage(final EntitlementType type) throws UnsupportedEntitlementException,
 		ServiceLayerException {
-		switch (type) {
-			case SITE:
-				return countSites();
-			case USER:
-				return countUsers();
-			case ITEM:
-				return countItems();
-			default:
-				throw new UnsupportedEntitlementException(STUDIO, type);
-		}
+		return switch (type) {
+			case SITE -> countSites();
+			case USER -> countUsers();
+			case ITEM -> countItems();
+			default -> throw new UnsupportedEntitlementException(STUDIO, type);
+		};
 	}
 
 	protected int countSites() {
@@ -83,34 +79,22 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 	}
 
 	protected int countUsers() throws ServiceLayerException {
-		return userServiceInternal.getAllUsersTotal(null);
+		return userService.getAllUsersTotal(null);
 	}
 
 	protected int countItems() {
-		return itemServiceInternal.countAllContentItems();
-	}
-
-	public SiteService getSiteService() {
-		return siteService;
+		return itemService.countAllContentItems();
 	}
 
 	public void setSiteService(SiteService siteService) {
 		this.siteService = siteService;
 	}
 
-	public UserServiceInternal getUserServiceInternal() {
-		return userServiceInternal;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	public ItemServiceInternal getItemServiceInternal() {
-		return itemServiceInternal;
-	}
-
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 }

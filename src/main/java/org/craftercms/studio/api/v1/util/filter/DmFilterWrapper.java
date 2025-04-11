@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v1.util.filter;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 /**
@@ -23,8 +24,8 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 public interface DmFilterWrapper {
 	public boolean accept(ContentItemTO item, String filterType);
 
-	public boolean accept(String site, ContentItemTO item, String filterType);
+	public boolean accept(String site, ContentItemTO item, String filterType) throws SiteNotFoundException;
 
-	public boolean accept(String site, String relativePath, String filterType);
+	public boolean accept(String site, String relativePath, String filterType) throws SiteNotFoundException;
 
 }

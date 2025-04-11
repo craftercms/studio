@@ -21,7 +21,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
@@ -57,12 +57,12 @@ import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 public class SitePolicyAspect {
 
 	protected PolicyService policyService;
-	protected ContentServiceInternal contentServiceInternal;
+	protected ContentService contentService;
 
-	@ConstructorProperties({"policyService", "contentServiceInternal"})
-	public SitePolicyAspect(PolicyService policyService, ContentServiceInternal contentServiceInternal) {
+	@ConstructorProperties({"policyService", "contentService"})
+	public SitePolicyAspect(PolicyService policyService, ContentService contentService) {
 		this.policyService = policyService;
-		this.contentServiceInternal = contentServiceInternal;
+		this.contentService = contentService;
 	}
 
 	@Around("@annotation(actionParams)")
@@ -103,7 +103,7 @@ public class SitePolicyAspect {
 
 		String targetFullPath = getFullPath(targetPath, targetFilename);
 		var action = new Action();
-		if (actionParams.type() == Type.CREATE && contentServiceInternal.contentExists(siteId, targetFullPath)) {
+		if (actionParams.type() == Type.CREATE && contentService.contentExists(siteId, targetFullPath)) {
 			action.setType(Type.EDIT);
 		} else {
 			action.setType(actionParams.type());

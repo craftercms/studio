@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v1.util.filter;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.ServicesManager;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -74,7 +75,7 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
 	}
 
 	@Override
-	public boolean accept(String site, ContentItemTO item, String filterType) {
+	public boolean accept(String site, ContentItemTO item, String filterType) throws SiteNotFoundException {
 		if (item != null) {
 			return accept(site, item.uri, filterType);
 		}
@@ -89,7 +90,7 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
 		return filter;
 	}
 
-	protected List<String> getFilterPatterns(String site, String filterType) {
+	protected List<String> getFilterPatterns(String site, String filterType) throws SiteNotFoundException {
 		if (CONTENT_TYPE_COMPONENT.equalsIgnoreCase(filterType)) {
 			List<String> toRet = servicesConfig.getComponentPatterns(site);
 			List<String> levelConfig = servicesConfig.getLevelDescriptorPatterns(site);
@@ -112,7 +113,7 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
 	}
 
 	@Override
-	public boolean accept(String site, String relativePath, String filterType) {
+	public boolean accept(String site, String relativePath, String filterType) throws SiteNotFoundException {
 		if (relativePath != null) {
 			List<String> patterns = getFilterPatterns(site, filterType);
 			if (patterns != null) {

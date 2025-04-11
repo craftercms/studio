@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.policy.PolicyService;
-import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
 
@@ -36,10 +35,10 @@ import java.util.List;
  */
 public class PolicyServiceImpl implements PolicyService {
 
-	protected PolicyServiceInternal policyServiceInternal;
+	protected PolicyService policyServiceInternal;
 
 	@ConstructorProperties({"policyServiceInternal"})
-	public PolicyServiceImpl(PolicyServiceInternal policyServiceInternal) {
+	public PolicyServiceImpl(PolicyService policyServiceInternal) {
 		this.policyServiceInternal = policyServiceInternal;
 	}
 

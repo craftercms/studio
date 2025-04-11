@@ -26,7 +26,6 @@ import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
 import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
@@ -73,15 +72,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
 	public static final String OK = "OK";
 
-	protected ServicesConfig servicesConfig;
-
 	protected boolean readOnly;
 
 	private final ThreadPoolTaskExecutor taskExecutor;
 
-	@ConstructorProperties({"servicesConfig", "taskExecutor"})
-	public StudioAwsS3BlobStore(final ServicesConfig servicesConfig, final ThreadPoolTaskExecutor taskExecutor) {
-		this.servicesConfig = servicesConfig;
+	@ConstructorProperties({"taskExecutor"})
+	public StudioAwsS3BlobStore(final ThreadPoolTaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 

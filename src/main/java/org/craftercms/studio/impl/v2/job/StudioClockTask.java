@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,14 +17,9 @@
 package org.craftercms.studio.impl.v2.job;
 
 import org.craftercms.studio.api.v2.job.SiteJob;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,10 +31,6 @@ public abstract class StudioClockTask implements SiteJob, ApplicationContextAwar
 	protected int executeEveryNCycles;
 	protected Map<String, Integer> counters = new HashMap<>();
 	protected int offset;
-	protected StudioConfiguration studioConfiguration;
-	protected SitesService siteService;
-	protected ContentRepository contentRepository;
-	protected ApplicationContext applicationContext;
 
 	protected synchronized boolean checkCycleCounter(String site) {
 		if (!counters.containsKey(site)) {
@@ -74,28 +65,12 @@ public abstract class StudioClockTask implements SiteJob, ApplicationContextAwar
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public void setExecuteEveryNCycles(int executeEveryNCycles) {
 		this.executeEveryNCycles = executeEveryNCycles;
 	}
 
 	public void setOffset(int offset) {
 		this.offset = offset;
-	}
-
-	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-		this.studioConfiguration = studioConfiguration;
-	}
-
-	public void setSiteService(SitesService siteService) {
-		this.siteService = siteService;
-	}
-
-	public void setContentRepository(final ContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
-	}
-
-	@Override
-	public void setApplicationContext(final @NonNull ApplicationContext applicationContext) {
-		this.applicationContext = applicationContext;
 	}
 }

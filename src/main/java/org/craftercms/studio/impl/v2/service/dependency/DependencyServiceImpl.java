@@ -23,8 +23,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v2.annotation.*;
-import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.beans.ConstructorProperties;
@@ -78,7 +78,7 @@ public class DependencyServiceImpl implements DependencyService {
 	}
 
 	@Override
-	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) {
+	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) throws SiteNotFoundException {
 		return dependencyServiceInternal.getHardDependencies(site, paths);
 	}
 
@@ -116,7 +116,7 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public boolean isValidDependencySource(final String siteId, final String path) {
+	public boolean isValidDependencySource(final String siteId, final String path) throws SiteNotFoundException {
 		return dependencyServiceInternal.isValidDependencySource(siteId, path);
 	}
 
@@ -136,7 +136,7 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) {
+	public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) throws SiteNotFoundException {
 		return dependencyServiceInternal.resolveDependencies(site, sourcePath);
 	}
 }

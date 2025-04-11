@@ -105,8 +105,6 @@ public interface StudioConfiguration {
 	String DB_MAX_ALLOWED_PACKET = "studio.db.maxAllowedPacket";
 	String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
 	String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
-	String DB_SCRIPT_RUNNER_BUFFER_SIZE = "studio.db.scriptRunner.bufferSize";
-	String DB_BULK_OPERATIONS_BATCH_SIZE = "studio.db.bulkOperations.batchSize";
 	String DB_POOL_REMOVE_ABANDONED_ON_BORROW = "studio.db.pool.removeAbandonedOnBorrow";
 	String DB_POOL_REMOVE_ABANDONED_TIMEOUT = "studio.db.pool.removeAbandonedTimeout";
 	String DB_POOL_REMOVE_ABANDONED_ON_MAINTENANCE = "studio.db.pool.removeAbandonedOnMaintenance";

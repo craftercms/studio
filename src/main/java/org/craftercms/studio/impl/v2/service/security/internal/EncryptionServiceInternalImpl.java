@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,8 +25,8 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.security.EncryptionService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,30 +34,32 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.beans.ConstructorProperties;
 
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ENCRYPTION_TOKEN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
+ * Internal implementation of {@link EncryptionService}.
  * @author joseross
  */
-public class EncryptionServiceInternalImpl implements EncryptionServiceInternal {
+public class EncryptionServiceInternalImpl implements EncryptionService {
 
 	private static final Logger logger = LoggerFactory.getLogger(EncryptionServiceInternalImpl.class);
 
 	private final StudioConfiguration studioConfiguration;
-	private final AuditServiceInternal auditServiceInternal;
+	private final AuditService auditService;
 	private final TextEncryptor textEncryptor;
 	private final SiteDAO siteDAO;
 	private final int maxLength;
 	private final long delay;
 
-	@ConstructorProperties({"studioConfiguration", "auditServiceInternal", "textEncryptor", "siteDAO",
+	@ConstructorProperties({"studioConfiguration", "auditService", "textEncryptor", "siteDAO",
 		"maxLength", "delay"})
-	public EncryptionServiceInternalImpl(StudioConfiguration studioConfiguration, AuditServiceInternal auditServiceInternal,
+	public EncryptionServiceInternalImpl(StudioConfiguration studioConfiguration, AuditService auditService,
 					     TextEncryptor textEncryptor, SiteDAO siteDAO, int maxLength, long delay) {
 		this.studioConfiguration = studioConfiguration;
-		this.auditServiceInternal = auditServiceInternal;
+		this.auditService = auditService;
 		this.textEncryptor = textEncryptor;
 		this.siteDAO = siteDAO;
 		this.maxLength = maxLength;
@@ -95,13 +97,13 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
 	 */
 	private void createEncryptionAuditLog(String siteId, String actor, String targetId) {
 		Site site = siteDAO.getSite(siteId);
-		AuditLog entry = auditServiceInternal.createAuditLogEntry();
+		AuditLog entry = createAuditLogEntry();
 		entry.setOperation(OPERATION_CREATE);
 		entry.setActorId(actor);
 		entry.setSiteId(site.getId());
 		entry.setPrimaryTargetId(targetId);
 		entry.setPrimaryTargetType(TARGET_TYPE_ENCRYPTION_TOKEN);
 		entry.setPrimaryTargetValue(targetId);
-		auditServiceInternal.insertAuditLog(entry);
+		auditService.insertAuditLog(entry);
 	}
 }

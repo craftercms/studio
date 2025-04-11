@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -74,16 +75,19 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class ContentController {
 
 	private final ContentService contentService;
+	private final ContentTypeService contentTypeService;
 	private final DependencyService dependencyService;
 
 	//TODO: Migrate logic to new content service
 	private final ClipboardService clipboardService;
 
-	@ConstructorProperties({"contentService", "dependencyService", "clipboardService"})
-	public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService) {
+	@ConstructorProperties({"contentService", "dependencyService", "clipboardService", "contentTypeService"})
+	public ContentController(ContentService contentService, DependencyService dependencyService,
+							 ClipboardService clipboardService, ContentTypeService contentTypeService) {
 		this.contentService = contentService;
 		this.dependencyService = dependencyService;
 		this.clipboardService = clipboardService;
+		this.contentTypeService = contentTypeService;
 	}
 
 	@GetMapping(value = EXISTS, produces = APPLICATION_JSON_VALUE)
@@ -99,7 +103,7 @@ public class ContentController {
 	@GetMapping(LIST_QUICK_CREATE_CONTENT)
 	public ResultList<QuickCreateItem> listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
 		throws ServiceLayerException {
-		List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
+		List<QuickCreateItem> items = contentTypeService.getQuickCreatableContentTypes(siteId);
 		ResultList<QuickCreateItem> result = new ResultList<>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_ITEMS, items);

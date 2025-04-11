@@ -16,7 +16,7 @@
 package org.craftercms.studio.impl.v2.security.listener;
 
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.core.context.SecurityContext;
@@ -32,9 +32,9 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_SESSI
  */
 public class AuditSessionTimeoutListener extends AbstractAuditListener {
 
-	@ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
-	public AuditSessionTimeoutListener(StudioConfiguration studioConfiguration, SiteService siteService, AuditServiceInternal auditServiceInternal) {
-		super(studioConfiguration, siteService, auditServiceInternal);
+	@ConstructorProperties({"studioConfiguration", "siteService", "auditService"})
+	public AuditSessionTimeoutListener(StudioConfiguration studioConfiguration, SiteService siteService, AuditService auditService) {
+		super(studioConfiguration, siteService, auditService);
 	}
 
 	@EventListener

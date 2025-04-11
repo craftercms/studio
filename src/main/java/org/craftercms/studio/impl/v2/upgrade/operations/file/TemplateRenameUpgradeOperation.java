@@ -17,10 +17,10 @@ package org.craftercms.studio.impl.v2.upgrade.operations.file;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 
@@ -86,7 +85,7 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
 			List<Path> matches = Files.walk(base)
 				.filter(path -> base.relativize(path).toString().matches(oldPath))
 				.map(base::relativize)
-				.collect(toList());
+				.toList();
 
 			logger.debug("Found '{}' matches in site '{}'", matches.size(), site);
 

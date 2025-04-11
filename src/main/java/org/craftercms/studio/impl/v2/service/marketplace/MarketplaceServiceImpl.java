@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.marketplace;
 
+import jakarta.validation.Valid;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -34,11 +35,8 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
-import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServiceInternal;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
-
-import jakarta.validation.Valid;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -54,10 +52,10 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
  */
 public class MarketplaceServiceImpl implements MarketplaceService {
 
-	protected final MarketplaceServiceInternal marketplaceServiceInternal;
+	protected final MarketplaceService marketplaceServiceInternal;
 
 	@ConstructorProperties({"marketplaceServiceInternal"})
-	public MarketplaceServiceImpl(MarketplaceServiceInternal marketplaceServiceInternal) {
+	public MarketplaceServiceImpl(MarketplaceService marketplaceServiceInternal) {
 		this.marketplaceServiceInternal = marketplaceServiceInternal;
 	}
 

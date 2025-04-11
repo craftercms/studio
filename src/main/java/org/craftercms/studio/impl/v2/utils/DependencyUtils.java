@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.utils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.ibatis.session.SqlSession;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
@@ -51,7 +52,7 @@ public class DependencyUtils {
 	 * @param sqlSession        the sql session
 	 */
 	public static void updateDependencies(String siteId, String path, String oldPath,
-										  DependencyService dependencyService, DependencyDAO dependencyDao, SqlSession sqlSession) {
+										  DependencyService dependencyService, DependencyDAO dependencyDao, SqlSession sqlSession) throws SiteNotFoundException {
 		updateDependencies(siteId, path, oldPath, dependencyService, dependencyDao, sqlSession, true, true);
 	}
 
@@ -69,7 +70,7 @@ public class DependencyUtils {
 	 */
 	public static void updateDependencies(String siteId, String path, String oldPath,
 										  DependencyService dependencyService, DependencyDAO dependencyDao,
-										  SqlSession sqlSession,  boolean cleanExisting, boolean revalidate) {
+										  SqlSession sqlSession,  boolean cleanExisting, boolean revalidate) throws SiteNotFoundException {
 		if (cleanExisting) {
 			if (isEmpty(oldPath)) {
 				dependencyDao.deleteItemDependencies(siteId, path);

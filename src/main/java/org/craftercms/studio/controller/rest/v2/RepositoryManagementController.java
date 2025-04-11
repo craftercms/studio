@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -35,9 +37,6 @@ import org.craftercms.studio.model.rest.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -65,16 +64,10 @@ public class RepositoryManagementController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping(ADD_REMOTE)
 	public Result addRemote(HttpServletResponse response, @Valid @RequestBody RemoteRepository remoteRepository)
-		throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
-		boolean res = repositoryManagementService.addRemote(remoteRepository.getSiteId(), remoteRepository);
-
+		throws ServiceLayerException, InvalidRemoteUrlException {
 		Result result = new Result();
-		if (res) {
-			result.setResponse(CREATED);
-		} else {
-			result.setResponse(ADD_REMOTE_INVALID);
-			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-		}
+		repositoryManagementService.addRemote(remoteRepository.getSiteId(), remoteRepository);
+		result.setResponse(CREATED);
 		return result;
 	}
 

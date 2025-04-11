@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.audit.internal;
+package org.craftercms.studio.api.v2.service.audit;
 
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.model.rest.dashboard.Activity;
@@ -22,7 +22,10 @@ import org.craftercms.studio.model.rest.dashboard.Activity;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public interface ActivityStreamServiceInternal {
+/**
+ * Provide access to activity stream.
+ */
+public interface ActivityStreamService {
 
 	/**
 	 * Insert record into activity stream

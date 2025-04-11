@@ -47,8 +47,7 @@ import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownEx
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
@@ -127,8 +126,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
 	private StudioConfiguration studioConfiguration;
 	private TextEncryptor encryptor;
-	private SecurityService securityService;
-	private UserServiceInternal userServiceInternal;
+	private UserService userService;
 	private GeneralLockService generalLockService;
 	private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 	private AuthConfiguratorFactory authConfiguratorFactory;
@@ -253,28 +251,16 @@ public class GitRepositoryHelper implements DisposableBean {
 	 */
 	public Path buildRepoPath(GitRepositories repoType, String siteId) {
 		// TODO: SJ: Profile the following and see if it can be improved by using a simple string template
-		Path path;
-		switch (repoType) {
-			case SANDBOX:
-				path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-					studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-					studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
-				break;
-			case PUBLISHED:
-				path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-					studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-					studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH));
-				break;
-			case GLOBAL:
-				path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-					studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH));
-				break;
-			default:
-				path = null;
-				break;
-		}
-
-		return path;
+		return switch (repoType) {
+			case SANDBOX -> Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+				studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+				studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
+			case PUBLISHED -> Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+				studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+				studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH));
+			case GLOBAL -> Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+				studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH));
+		};
 	}
 
 	/**
@@ -484,7 +470,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
 			}
 			if (CollectionUtils.isNotEmpty(diffEntries)) {
-				return diffEntries.get(0);
+				return diffEntries.getFirst();
 			}
 			logger.debug("No diff entry found for path '{}' in commit '{}'", gitPath, commitId);
 			throw new NoChangesForPathException(format("No diff entry found for path '%s' in commit '%s'", gitPath, commitId));
@@ -506,52 +492,6 @@ public class GitRepositoryHelper implements DisposableBean {
 			return prepareTreeParser(repository, commit.getParent(0).getId().getName());
 		}
 		return new EmptyTreeIterator();
-	}
-
-	public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
-		List<String> files = new ArrayList<>();
-		RevWalk rw = new RevWalk(repository);
-		try (Git git = new Git(repository)) {
-			if (commit.getParentCount() > 0) {
-				RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
-
-				ObjectId commitId = commit.getId();
-				ObjectId parentCommitId = parent.getId();
-
-				RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
-				RevTree commitTree = getTreeForCommit(repository, commitId.getName());
-
-				if (parentTree != null && commitTree != null) {
-					try (ObjectReader reader = repository.newObjectReader()) {
-						CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-						CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-						prevCommitTreeParser.reset(reader, parentTree.getId());
-						nextCommitTreeParser.reset(reader, commitTree.getId());
-
-						// Diff the two commit Ids
-						DiffCommand diffCommand = git.diff()
-							.setOldTree(prevCommitTreeParser)
-							.setNewTree(nextCommitTreeParser);
-						List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-						for (DiffEntry diffEntry : diffEntries) {
-							if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
-								files.add(FILE_SEPARATOR + diffEntry.getOldPath());
-							} else {
-								files.add(FILE_SEPARATOR + diffEntry.getNewPath());
-							}
-						}
-						// TODO: SJ: See if the exceptions can be caught once at the end
-					} catch (IOException | GitAPIException e) {
-						logger.error("Failed to get the list of files from commit '{}'", commit.getId().getName());
-					}
-				}
-			}
-		} catch (IOException e) {
-			logger.error("Failed to get the list of files from commit '{}'", commit.getId().getName());
-		} finally {
-			rw.dispose();
-		}
-		return files;
 	}
 
 	/**
@@ -884,10 +824,8 @@ public class GitRepositoryHelper implements DisposableBean {
 				retryingRepositoryOperationFacade.call(addCommand);
 				CommitCommand commitCommand = git.commit()
 					.setMessage(message);
-				User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
-				if (Objects.nonNull(user)) {
-					commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
-				}
+				User user = userService.getUserByIdOrUsername(-1, creator);
+				commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
 				retryingRepositoryOperationFacade.call(commitCommand);
 			}
 			checkoutSandboxBranch(site, repo, sandboxBranch);
@@ -952,7 +890,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				throw new InvalidRemoteRepositoryException(format("Invalid remote repository '%s (%s)'",
 					remoteName, remoteUrl));
 			} catch (TransportException e) {
-				GitUtils.translateException(e, logger, remoteName, remoteUrl, remoteUsername);
+				GitUtils.translateException(e, logger, remoteName, remoteUrl);
 			} finally {
 				Files.deleteIfExists(tempKey);
 			}
@@ -1034,7 +972,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			// Commit empty repo, because we need to have HEAD to delete old and rename new branch
 			CommitCommand commitCommand = git.commit()
 				.setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
-			User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
+			User user = userService.getUserByIdOrUsername(-1, creator);
 			if (Objects.nonNull(user)) {
 				commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
 			}
@@ -1193,7 +1131,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				logger.debug("Write a file to site '{}' path '{}'", site, path);
 
 				// Write the bits
-				try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
+				try (FileOutputStream fos = new FileOutputStream(file.getPath()); FileChannel outChannel = fos.getChannel()) {
 					logger.trace("Created the file output channel for site '{}' path '{}'", site, path);
 					ReadableByteChannel inChannel = Channels.newChannel(content);
 					logger.trace("Created the file input channel for site '{}' path '{}'", site, path);
@@ -1398,7 +1336,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws UserNotFoundException user not found
 	 */
 	public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
-		return getAuthorIdent(SecurityUtils.getCurrentUser());
+		return getAuthorIdent(SecurityUtils.getCurrentUsername());
 	}
 
 	/**
@@ -1410,7 +1348,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws UserNotFoundException user not found error
 	 */
 	public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
-		User user = userServiceInternal.getUserByIdOrUsername(-1, author);
+		User user = userService.getUserByIdOrUsername(-1, author);
 		PersonIdent currentUserIdent =
 			new PersonIdent(format(USERNAME_FORMAT, user.getFirstName(), user.getLastName()), user.getEmail());
 
@@ -1453,54 +1391,33 @@ public class GitRepositoryHelper implements DisposableBean {
 		return SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
 	}
 
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
-	}
-
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
 
+	@SuppressWarnings("unused")
 	public void setEncryptor(TextEncryptor encryptor) {
 		this.encryptor = encryptor;
 	}
 
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
-	public UserServiceInternal getUserServiceInternal() {
-		return userServiceInternal;
-	}
-
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	public GeneralLockService getGeneralLockService() {
-		return generalLockService;
+	public void setUserService(final UserService userService) {
+		this.userService = userService;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
 	}
 
-	public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
-		return retryingRepositoryOperationFacade;
-	}
-
 	public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
 		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
 	}
 
+	@SuppressWarnings("unused")
 	public void setAuthConfiguratorFactory(AuthConfiguratorFactory authConfiguratorFactory) {
 		this.authConfiguratorFactory = authConfiguratorFactory;
 	}
 
+	@SuppressWarnings("unused")
 	public void setGitCli(GitCli gitCli) {
 		this.gitCli = gitCli;
 	}

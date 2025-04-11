@@ -16,7 +16,9 @@
 
 package org.craftercms.studio.impl.v2.utils.security;
 
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
+import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +33,7 @@ public class SecurityUtils {
 	 *
 	 * @return username of the current user, or null if no user is authenticated
 	 */
-	public static String getCurrentUser() {
+	public static String getCurrentUsername() {
 		String username = null;
 		var context = SecurityContextHolder.getContext();
 
@@ -63,5 +65,19 @@ public class SecurityUtils {
 			return context.getAuthentication();
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the {@link AuthenticatedUser} for the current user
+	 *
+	 * @return currently authenticated user
+	 * @throws AuthenticationException if no user is authenticated
+	 */
+	public static AuthenticatedUser getCurrentUser() throws AuthenticationException {
+		Authentication authentication = SecurityUtils.getAuthentication();
+		if (authentication != null) {
+			return (AuthenticatedUser) authentication.getPrincipal();
+		}
+		throw new AuthenticationException("User should be authenticated");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -61,11 +61,7 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.marketplace.Constants;
-import org.craftercms.studio.api.v2.service.marketplace.MarketplacePlugin;
-import org.craftercms.studio.api.v2.service.marketplace.Paths;
-import org.craftercms.studio.api.v2.service.marketplace.PluginTreeCopier;
-import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServiceInternal;
+import org.craftercms.studio.api.v2.service.marketplace.*;
 import org.craftercms.studio.api.v2.service.marketplace.registry.ConfigRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.FileRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
@@ -129,48 +125,40 @@ import static org.craftercms.studio.impl.v2.utils.PluginUtils.*;
 import static org.craftercms.studio.impl.v2.utils.XsltUtils.executeTemplate;
 
 /**
- * Default implementation of {@link MarketplaceServiceInternal} that proxies all request to the configured Marketplace
+ * Internal implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
  *
  * @author joseross
  * @since 3.1.2
  */
-public class MarketplaceServiceInternalImpl implements MarketplaceServiceInternal, InitializingBean {
+public class MarketplaceServiceInternalImpl implements MarketplaceService, InitializingBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(MarketplaceServiceInternalImpl.class);
 
 	public static final String INSTALLABLE_TYPES_CONFIG_KEY = "studio.marketplace.plugin.installable";
-
 	public static final String FOLDER_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.mapping";
-
 	public static final String WIDGET_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.wire.mapping";
-
 	public static final String WIDGET_REMOVE_CONFIG_KEY = "studio.marketplace.plugin.wire.remove";
-
 	public static final String TEMPLATE_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.template.mapping";
-
 	public static final String CONTENT_TYPE_PATTERN_CONFIG_KEY = "studio.marketplace.plugin.contentType.pattern";
-
 	public static final String PLUGIN_CONFIG_MODULE_CONFIG_KEY = "studio.marketplace.plugin.config.module";
-
 	public static final String PLUGIN_CONFIG_FILENAME_CONFIG_KEY = "studio.marketplace.plugin.config.filename";
-
 	public static final String MODULE_CONFIG_KEY = "module";
-
 	public static final String PATH_CONFIG_KEY = "path";
-
 	public static final String TEMPLATE_CONFIG_KEY = "template";
-
 	public static final String SYSTEM_PATH_KEY = "systemPath";
-
 	public static final String PLUGIN_PATTERN_KEY = "pluginPattern";
-
 	public static final String PARAM_NEW_XML = "newXml";
-
 	public static final String PARAM_PARENT_XPATH = "parentXpath";
-
 	public static final String PARAM_PLUGIN_ID = "pluginId";
-
 	public static final String PARAM_PLUGIN_PATH = "pluginPath";
+
+	private static final String HEADER_STUDIO_ID = "x-studio-id";
+	private static final String HEADER_STUDIO_BUILD = "x-studio-build";
+	private static final String HEADER_STUDIO_VERSION = "x-studio-version";
+	private static final String HEADER_JAVA_VERSION = "x-java-version";
+	private static final String HEADER_OS_NAME = "x-os-name";
+	private static final String HEADER_OS_VERSION = "x-os-version";
+	private static final String HEADER_OS_ARCH = "x-os-arch";
 
 	protected final InstanceService instanceService;
 

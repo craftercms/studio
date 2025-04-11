@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import com.google.common.cache.Cache;
+import jakarta.validation.Valid;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +26,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
@@ -38,12 +39,13 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -51,12 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
-
-import jakarta.validation.Valid;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,6 +65,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 /**
+ * Default implementation of the {@link SecurityService}.
  * @author Dejan Brkic
  */
 public class SecurityServiceImpl implements SecurityService {
@@ -81,33 +80,16 @@ public class SecurityServiceImpl implements SecurityService {
 	protected JavaMailSender emailServiceNoAuth;
 	protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
 	protected GroupService groupService;
-	protected UserServiceInternal userServiceInternal;
+	protected UserService userService;
 	protected ConfigurationService configurationService;
-	protected AuditServiceInternal auditServiceInternal;
+	protected AuditService auditService;
 	protected SiteService siteService;
 
 	protected Cache<String, PermissionsConfigTO> cache;
 
 	@Override
 	public String getCurrentUser() {
-		String username = null;
-		var context = SecurityContextHolder.getContext();
-
-		if (context != null) {
-			var auth = context.getAuthentication();
-
-			if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
-				username = auth.getName();
-			}
-		} else {
-			CronJobContext cronJobContext = CronJobContext.getCurrent();
-
-			if (cronJobContext != null) {
-				username = cronJobContext.getCurrentUser();
-			}
-		}
-
-		return username;
+		return SecurityUtils.getCurrentUsername();
 	}
 
 	@Override
@@ -115,39 +97,19 @@ public class SecurityServiceImpl implements SecurityService {
 	public Map<String, Object> getUserProfile(@ValidateStringParam String user)
 		throws ServiceLayerException, UserNotFoundException {
 		Map<String, Object> toRet = new HashMap<>();
-		User u = userServiceInternal.getUserByIdOrUsername(-1, user);
-		if (u != null) {
-			toRet.put(KEY_USERNAME, user);
-			toRet.put(KEY_FIRSTNAME, u.getFirstName());
-			toRet.put(KEY_LASTNAME, u.getLastName());
-			toRet.put(KEY_EMAIL, u.getEmail());
-			toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
-		}
-		return toRet;
-	}
-
-	@Override
-	public Map<String, Object> getUserProfileByGitName(
-		@ValidateStringParam String gitName)
-		throws ServiceLayerException, UserNotFoundException {
-		Map<String, Object> toRet = new HashMap<>();
-		User u = userServiceInternal.getUserByGitName(gitName);
-		if (u != null) {
-			toRet.put(KEY_USERNAME, u.getUsername());
-			toRet.put(KEY_FIRSTNAME, u.getFirstName());
-			toRet.put(KEY_LASTNAME, u.getLastName());
-			toRet.put(KEY_EMAIL, u.getEmail());
-			toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
-		} else {
-			throw new UserNotFoundException("User " + gitName + " not found");
-		}
+		User u = userService.getUserByIdOrUsername(-1, user);
+		toRet.put(KEY_USERNAME, user);
+		toRet.put(KEY_FIRSTNAME, u.getFirstName());
+		toRet.put(KEY_LASTNAME, u.getLastName());
+		toRet.put(KEY_EMAIL, u.getEmail());
+		toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
 		return toRet;
 	}
 
 	@Override
 	@Valid
 	public Set<String> getUserPermissions(@ValidateStringParam final String site, @ValidateSecurePathParam String path,
-					      @ValidateStringParam String user) {
+					      @ValidateStringParam String user) throws SiteNotFoundException {
 		Set<String> permissions = new HashSet<>();
 		if (StringUtils.isNotEmpty(site)) {
 			PermissionsConfigTO permissionsConfig = loadConfiguration(site, getPermissionsFileName());
@@ -187,7 +149,7 @@ public class SecurityServiceImpl implements SecurityService {
 
 	protected void addGlobalUserRoles(String user, Set<NormalizedRole> roles, PermissionsConfigTO rolesConfig) {
 		try {
-			List<Group> groups = userServiceInternal.getUserGroups(-1, user);
+			List<Group> groups = userService.getUserGroups(-1, user);
 			if (rolesConfig != null && groups != null) {
 				Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
 				for (Group group : groups) {
@@ -200,20 +162,6 @@ public class SecurityServiceImpl implements SecurityService {
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to get user groups for user '{}'",
 				user, e);
-		}
-	}
-
-	protected void addGlobalGroupRoles(Set<NormalizedRole> roles, List<String> groups, PermissionsConfigTO rolesConfig) {
-		if (groups != null) {
-			Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
-			for (String group : groups) {
-				NormalizedGroup normalizedGroup = new NormalizedGroup(group);
-				List<NormalizedRole> groupRoles = rolesMap.get(normalizedGroup);
-				if (groupRoles != null) {
-					logger.debug("Add roles to group'{}':'{}'", normalizedGroup, roles);
-					roles.addAll(groupRoles);
-				}
-			}
 		}
 	}
 
@@ -272,21 +220,12 @@ public class SecurityServiceImpl implements SecurityService {
 		return permissions;
 	}
 
-	/* Derives a key based off the site and filename */
-	protected String getPermissionsKey(String site, String filename) {
-		return new StringBuffer(site).append(":").append(filename).toString();
-	}
-
 	/**
-	 * add user roles
-	 *
-	 * @param roles
-	 * @param site
-	 * @param user
+	 * Add the user site roles to the {@link Set} of roles
 	 */
 	protected void addUserRoles(Set<NormalizedRole> roles, String site, String user) {
 		if (!StringUtils.isEmpty(user)) {
-			Set<NormalizedRole> userRoles = this.getUserRoles(site, user);
+			Collection<NormalizedRole> userRoles = this.getUserRoles(site, user);
 			logger.debug("Add the roles '{}' to user '{}' in site '{}'", userRoles, user, site);
 			roles.addAll(userRoles);
 		}
@@ -295,59 +234,17 @@ public class SecurityServiceImpl implements SecurityService {
 	@Override
 	@Valid
 	public Set<String> getUserRoles(@ValidateStringParam final String site) {
-		return getUserRoles(site, getCurrentUser())
+		return getUserRoles(site, SecurityUtils.getCurrentUsername())
 			.stream()
 			.map(NormalizedRole::toString)
 			.collect(Collectors.toSet());
 	}
 
 	@Override
-	@Valid
-	public Set<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
-						@ValidateStringParam String user) {
-		return getUserRoles(site, user, false);
-	}
-
-
-	@Override
-	@Valid
-	public Set<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
-						@ValidateStringParam String user, boolean includeGlobal) {
+	public Collection<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
+												   @ValidateStringParam String user) {
 		try {
-			// TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
-			// TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
-			// TODO: remove this one
-			List<Group> groups = userServiceInternal.getUserGroups(-1, user);
-			if (groups != null && !groups.isEmpty()) {
-				logger.debug("Get groups for user '{}' in site '{}' groups '{}'", user, site, groups);
-
-				PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
-				Set<NormalizedRole> userRoles = new HashSet<>();
-				if (rolesConfig != null) {
-					Map<NormalizedGroup, List<NormalizedRole>> rolesMap = rolesConfig.getRoles();
-					for (Group group : groups) {
-						if (isSystemAdmin(user)) {
-							Collection<List<NormalizedRole>> mapValues = rolesMap.values();
-							mapValues.forEach(userRoles::addAll);
-							break;
-						} else {
-							List<NormalizedRole> roles = rolesMap.get(new NormalizedGroup(group.getGroupName()));
-							if (roles != null) {
-								userRoles.addAll(roles);
-							}
-						}
-					}
-				}
-				if (includeGlobal) {
-					PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
-					addGlobalUserRoles(user, userRoles, globalRolesConfig);
-					List<String> groupNames = groups.stream().map(Group::getGroupName).collect(Collectors.toList());
-					addGlobalGroupRoles(userRoles, groupNames, globalRolesConfig);
-				}
-				return userRoles;
-			} else {
-				logger.debug("No groups found for user '{}' in site '{}'", user, site);
-			}
+			return userService.getUserSiteRoles(-1, user, site);
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to get groups for user '{}' in site '{}'", user, site, e);
 		}
@@ -356,12 +253,7 @@ public class SecurityServiceImpl implements SecurityService {
 	}
 
 	/**
-	 * populate user permissions
-	 *
-	 * @param site
-	 * @param path
-	 * @param roles
-	 * @param permissionsConfig
+	 * Get the user permissions for the given site and path
 	 */
 	protected Set<String> populateUserPermissions(String site, String path, Set<NormalizedRole> roles,
 						      PermissionsConfigTO permissionsConfig) {
@@ -407,7 +299,7 @@ public class SecurityServiceImpl implements SecurityService {
 		return permissions;
 	}
 
-	protected PermissionsConfigTO loadConfiguration(String site, String filename) {
+	protected PermissionsConfigTO loadConfiguration(String site, String filename) throws SiteNotFoundException {
 		var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
 		var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, filename, environment, "object");
 		PermissionsConfigTO config = cache.getIfPresent(cacheKey);
@@ -493,7 +385,7 @@ public class SecurityServiceImpl implements SecurityService {
 	}
 
 
-	protected PermissionsConfigTO loadGlobalPermissionsConfiguration() {
+	protected PermissionsConfigTO loadGlobalPermissionsConfiguration() throws SiteNotFoundException {
 		String globalPermissionsConfigPath = getGlobalConfigPath() + FILE_SEPARATOR + getGlobalPermissionsFileName();
 		String cacheKey = configurationService.getCacheKey(null, null, globalPermissionsConfigPath, null, "object");
 		PermissionsConfigTO config = cache.getIfPresent(cacheKey);
@@ -552,11 +444,6 @@ public class SecurityServiceImpl implements SecurityService {
 	}
 
 	@Override
-	public int getAllUsersTotal() throws ServiceLayerException {
-		return userServiceInternal.getAllUsersTotal(null);
-	}
-
-	@Override
 	@Valid
 	public boolean isSystemAdmin(@ValidateStringParam String username) {
 		List<NormalizedRole> roles;
@@ -592,7 +479,7 @@ public class SecurityServiceImpl implements SecurityService {
 				return true;
 			}
 
-			List<Group> groups = userServiceInternal.getUserGroups(-1, username);
+			List<Group> groups = userService.getUserGroups(-1, username);
 
 			if (CollectionUtils.isNotEmpty(groups)) {
 				Map<NormalizedGroup, List<NormalizedRole>> roleMappings = configurationService.getRoleMappings(site);
@@ -614,25 +501,15 @@ public class SecurityServiceImpl implements SecurityService {
 	}
 
 	@Override
-	@Valid
-	public boolean userExists(@ValidateStringParam String username) throws ServiceLayerException {
-		return userServiceInternal.userExists(-1, username);
-	}
-
-	@Override
 	public Authentication getAuthentication() {
-		var context = SecurityContextHolder.getContext();
-		if (context != null) {
-			return context.getAuthentication();
-		}
-		return null;
+		return SecurityUtils.getAuthentication();
 	}
 
 	@Override
 	@Valid
 	public List<NormalizedRole> getUserGlobalRoles(long userId, @ValidateStringParam String username)
 		throws ServiceLayerException, UserNotFoundException {
-		List<Group> groups = userServiceInternal.getUserGroups(userId, username);
+		List<Group> groups = userService.getUserGroups(userId, username);
 
 		if (CollectionUtils.isEmpty(groups)) {
 			return Collections.emptyList();
@@ -653,10 +530,6 @@ public class SecurityServiceImpl implements SecurityService {
 		return new ArrayList<>(userRoles);
 	}
 
-	public String getRoleMappingsFileName() {
-		return studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
-	}
-
 	public String getPermissionsFileName() {
 		return studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME);
 	}
@@ -673,112 +546,52 @@ public class SecurityServiceImpl implements SecurityService {
 		return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
 	}
 
-	public int getSessionTimeout() {
-		return Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-	}
-
-	public boolean isAuthenticatedSMTP() {
-		return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
-	}
-
-	public String getDefaultFromAddress() {
-		return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
-	}
-
-	public String getSystemSite() {
-		return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
-	}
-
-	public ContentTypeService getContentTypeService() {
-		return contentTypeService;
-	}
-
 	public void setContentTypeService(ContentTypeService contentTypeService) {
 		this.contentTypeService = contentTypeService;
-	}
-
-	public ContentService getContentService() {
-		return contentService;
 	}
 
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
 
-	public GeneralLockService getGeneralLockService() {
-		return generalLockService;
-	}
-
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
-	}
-
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public JavaMailSender getEmailService() {
-		return emailService;
-	}
-
+	@SuppressWarnings("unused")
 	public void setEmailService(JavaMailSender emailService) {
 		this.emailService = emailService;
 	}
 
-	public JavaMailSender getEmailServiceNoAuth() {
-		return emailServiceNoAuth;
-	}
-
+	@SuppressWarnings("unused")
 	public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
 		this.emailServiceNoAuth = emailServiceNoAuth;
 	}
 
-	public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() {
-		return freeMarkerConfig;
-	}
-
+	@SuppressWarnings("unused")
 	public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
 		this.freeMarkerConfig = freeMarkerConfig;
 	}
 
-	public GroupService getGroupService() {
-		return groupService;
-	}
-
+	@SuppressWarnings("unused")
 	public void setGroupService(GroupService groupService) {
 		this.groupService = groupService;
 	}
 
-	public UserServiceInternal getUserServiceInternal() {
-		return userServiceInternal;
-	}
-
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	public ConfigurationService getConfigurationService() {
-		return configurationService;
+	public void setUserService(final UserService userService) {
+		this.userService = userService;
 	}
 
 	public void setConfigurationService(ConfigurationService configurationService) {
 		this.configurationService = configurationService;
 	}
 
-	public AuditServiceInternal getAuditServiceInternal() {
-		return auditServiceInternal;
-	}
-
-	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
-	}
-
-	public SiteService getSiteService() {
-		return siteService;
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	public void setSiteService(SiteService siteService) {

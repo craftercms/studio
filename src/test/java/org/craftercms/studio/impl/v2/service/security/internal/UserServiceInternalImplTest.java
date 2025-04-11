@@ -1,11 +1,27 @@
-package org.craftercms.studio.impl.v2.service.security;
+/*
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.craftercms.studio.impl.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
-import org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,15 +30,18 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UserServiceImplTest {
+public class UserServiceInternalImplTest {
 
 	private static final String INSTANCE_ID = "TEST INSTANCE ID";
 	private static final String INVALID_INSTANCE_ID = "INVALID INSTANCE ID";
@@ -36,11 +55,11 @@ public class UserServiceImplTest {
 	private InstanceService instanceService;
 
 	@Mock
-	private UserServiceInternalImpl userServiceInternal;
+	private UserDAO userDAO;
 
 	@Spy
 	@InjectMocks
-	private UserServiceImpl userService;
+	private UserServiceInternalImpl userService;
 
 	@Before
 	public void setup() throws UserNotFoundException, ServiceLayerException {
@@ -48,11 +67,20 @@ public class UserServiceImplTest {
 
 		User managedUser = new User();
 		managedUser.setExternallyManaged(false);
-		when(userServiceInternal.getUserByIdOrUsername(-1, STUDIO_MANAGED_USERNAME)).thenReturn(managedUser);
-
 		User externallyManagedUser = new User();
 		externallyManagedUser.setExternallyManaged(true);
-		when(userServiceInternal.getUserByIdOrUsername(-1, EXTERNALLY_MANAGED_USERNAME)).thenReturn(externallyManagedUser);
+		when(userDAO.getUserByIdOrUsername(any()))
+			.thenAnswer(invocation -> {
+				Map<String, Object> map = invocation.getArgument(0);
+				if (STUDIO_MANAGED_USERNAME.equals(map.get(USERNAME))) {
+					return managedUser;
+				}
+				if (EXTERNALLY_MANAGED_USERNAME.equals(map.get(USERNAME))) {
+					return externallyManagedUser;
+				}
+				return null;
+			});
+
 	}
 
 	@Test

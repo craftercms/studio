@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v2.security;
 
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -22,15 +23,13 @@ import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.commons.security.permissions.annotations.AbstractPermissionAnnotationHandler;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.springframework.core.annotation.Order;
 
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Aspect that handles {@link org.craftercms.studio.api.v2.security.HasAllPermissions} annotations,
@@ -45,12 +44,9 @@ public class HasAllPermissionsAnnotationHandler extends AbstractPermissionAnnota
 	private static final String ERROR_KEY_EVALUATOR_NOT_FOUND = "security.permission.evaluatorNotFound";
 	private static final String ERROR_KEY_EVALUATION_FAILED = "security.permission.evaluationFailed";
 
-	protected final SecurityService securityService;
-
-	@ConstructorProperties({"permissionEvaluators", "securityService"})
-	public HasAllPermissionsAnnotationHandler(Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators, SecurityService securityService) {
+	@ConstructorProperties({"permissionEvaluators"})
+	public HasAllPermissionsAnnotationHandler(Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators) {
 		super(permissionEvaluators);
-		this.securityService = securityService;
 	}
 
 	@Around("@within(org.craftercms.studio.api.v2.security.HasAllPermissions) || " +
@@ -83,11 +79,11 @@ public class HasAllPermissionsAnnotationHandler extends AbstractPermissionAnnota
 		if (allowed) {
 			return pjp.proceed();
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append("User ").append(securityService.getCurrentUser())
-			.append(" does not have all of the requested permissions ")
-			.append(Stream.of(actions).collect(Collectors.joining(",", "[", "]")));
+		String message = "User " + SecurityUtils.getCurrentUsername() +
+			" does not have all of the requested permissions [" +
+			StringUtils.join(actions, ",") +
+			"]";
 
-		throw new ActionsDeniedException(sb.toString());
+		throw new ActionsDeniedException(message);
 	}
 }

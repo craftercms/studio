@@ -25,20 +25,21 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-public class GroupServiceInternalImpl implements GroupServiceInternal {
+public class GroupServiceInternalImpl implements GroupService {
 
 	private GroupDAO groupDao;
-	private UserServiceInternal userServiceInternal;
-	private ConfigurationService configurationService;
+	private UserService userService;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	@Override
@@ -195,7 +196,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 			throw new GroupNotFoundException("No group found for id '" + groupId + "'");
 		}
 
-		List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
+		List<User> users = userService.getUsersByIdOrUsername(userIds, usernames);
 		try {
 			retryingDatabaseOperationFacade.retry(() -> groupDao.addGroupMembers(groupId,
 				users.stream().map(User::getId).collect(Collectors.toList()), externallyManaged));
@@ -212,7 +213,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 		if (!groupExists(groupId, StringUtils.EMPTY)) {
 			throw new GroupNotFoundException("No group found for id '" + groupId + "'");
 		}
-		List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
+		List<User> users = userService.getUsersByIdOrUsername(userIds, usernames);
 		try {
 			retryingDatabaseOperationFacade.retry(() -> groupDao.removeGroupMembers(groupId,
 				users.stream().map(User::getId).collect(Collectors.toList())));
@@ -221,32 +222,15 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 		}
 	}
 
-	public GroupDAO getGroupDao() {
-		return groupDao;
-	}
-
 	public void setGroupDao(GroupDAO groupDao) {
 		this.groupDao = groupDao;
 	}
 
-	public UserServiceInternal getUserServiceInternal() {
-		return userServiceInternal;
-	}
-
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	public ConfigurationService getConfigurationService() {
-		return configurationService;
-	}
-
-	public void setConfigurationService(ConfigurationService configurationService) {
-		this.configurationService = configurationService;
-	}
-
-	public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-		return retryingDatabaseOperationFacade;
+	@Lazy
+	@Autowired
+	@Qualifier("userServiceInternal")
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
 	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

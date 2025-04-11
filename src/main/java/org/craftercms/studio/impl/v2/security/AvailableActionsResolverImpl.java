@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +36,12 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(AvailableActionsResolverImpl.class);
 
-	private final UserServiceInternal userServiceInternal;
+	private final UserService userService;
 	private final PermissionMappingsProvider permissionMappingsProvider;
 
-	public AvailableActionsResolverImpl(UserServiceInternal userServiceInternal,
+	public AvailableActionsResolverImpl(UserService userService,
 										PermissionMappingsProvider permissionMappingsProvider) {
-		this.userServiceInternal = userServiceInternal;
+		this.userService = userService;
 		this.permissionMappingsProvider = permissionMappingsProvider;
 	}
 
@@ -54,7 +54,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
 	@Override
 	public long getSiteWideActions(String siteId, String username) throws ServiceLayerException, UserNotFoundException {
-		List<Group> groups = userServiceInternal.getUserGroups(-1, username);
+		List<Group> groups = userService.getUserGroups(-1, username);
 		SitePermissionMappings sitePermissionMappings = permissionMappingsProvider.getPermissionMappings(siteId);
 		return sitePermissionMappings.getSiteWideItemAvailableActions(username, groups);
 	}
@@ -63,7 +63,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 										   SitePermissionMappings sitePermissionMappings)
 		throws ServiceLayerException, UserNotFoundException {
 		long toReturn = 0L;
-		List<Group> groups = userServiceInternal.getUserGroups(-1, username);
+		List<Group> groups = userService.getUserGroups(-1, username);
 		if (isNotEmpty(groups)) {
 			toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
 		}

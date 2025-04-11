@@ -55,6 +55,13 @@
 		  AND system = 0
 	</select>
 
+	<select id="getAllSites" resultMap="SiteMap">
+		SELECT *
+		FROM site
+		WHERE deleted = 0
+		AND system = 0
+	</select>
+
 	<select id="getLastCommitId" resultType="java.lang.String">
 		SELECT s.last_commit_id
 		FROM site s
@@ -116,4 +123,15 @@
 		WHERE site_id = #{siteId}
 		  AND deleted = 0
 	</update>
+
+	<insert id="duplicate" parameterType="java.util.Map" statementType="CALLABLE">
+		{call duplicate_site(#{sourceSiteId, mode=IN, jdbcType=VARCHAR},
+		#{siteId, mode=IN, jdbcType=VARCHAR},
+		#{name, mode=IN, jdbcType=VARCHAR},
+		#{description, mode=IN, jdbcType=VARCHAR},
+		#{sandboxBranch, mode=IN, jdbcType=VARCHAR},
+		#{uuid, mode=IN, jdbcType=VARCHAR}
+		)}
+	</insert>
+
 </mapper>

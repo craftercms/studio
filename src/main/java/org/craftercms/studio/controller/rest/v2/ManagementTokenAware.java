@@ -17,9 +17,9 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
 import java.util.Objects;
 
@@ -34,18 +34,17 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 public abstract class ManagementTokenAware {
 
 	protected final StudioConfiguration studioConfiguration;
-	protected final SecurityService securityService;
 
-	public ManagementTokenAware(StudioConfiguration studioConfiguration, SecurityService securityService) {
+	public ManagementTokenAware(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
-		this.securityService = securityService;
 	}
 
 	protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
-		if (StringUtils.isEmpty(securityService.getCurrentUser())) {
+		if (StringUtils.isEmpty(SecurityUtils.getCurrentUsername())) {
 			if (Objects.isNull(token)) {
 				throw new InvalidParametersException("Missing parameter: 'token'");
-			} else if (!StringUtils.equals(token, getConfiguredToken())) {
+			}
+			if (!StringUtils.equals(token, getConfiguredToken())) {
 				throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
 			}
 		}

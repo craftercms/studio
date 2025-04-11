@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.GroupResult;
 import org.craftercms.studio.api.v1.dal.UserProfileResult;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +82,7 @@ public interface SecurityDAO {
 
 	void deleteRefreshToken(@Param("userId") long userId);
 
-	void deleteRefreshTokens(@Param("userIds") List<Long> userIds);
+	void deleteRefreshTokens(@Param("userIds") Collection<Long> userIds);
 
 	PersistentAccessToken getAccessTokenById(@Param("tokenId") long tokenId);
 
@@ -97,7 +98,7 @@ public interface SecurityDAO {
 
 	void deleteAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId);
 
-	void deleteUsersAccessTokens(@Param("userIds") List<Long> userIds);
+	void deleteUsersAccessTokens(@Param("userIds") Collection<Long> userIds);
 
 	int deleteExpiredTokens(@Param("sessionTimeout") int sessionTimeout,
 				@Param("inactiveUsers") List<Long> inactiveUsers);

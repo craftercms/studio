@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,8 @@ package org.craftercms.studio.impl.v2.service.scripting.internal;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -25,22 +27,20 @@ import org.apache.commons.lang3.RegExUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.spring.context.RestrictedApplicationContext;
 import org.craftercms.engine.util.spring.ApplicationContextAccessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
-import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceInternal;
+import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
@@ -51,12 +51,12 @@ import static java.lang.String.format;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
 
 /**
- * Default implementation of {@link ScriptingServiceInternal}
+ * Internal implementation of {@link ScriptingService}
  *
  * @author joseross
  * @since 4.0
  */
-public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, ApplicationContextAware,
+public class ScriptingServiceInternalImpl implements ScriptingService, ApplicationContextAware,
 	InitializingBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(ScriptingServiceInternalImpl.class);
@@ -121,7 +121,7 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
 	}
 
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+	public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 

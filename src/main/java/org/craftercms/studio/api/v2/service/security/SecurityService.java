@@ -22,6 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Provides security related services
+ */
 public interface SecurityService {
 
 	/**
@@ -34,22 +37,4 @@ public interface SecurityService {
 	 */
 	List<String> getUserPermission(String siteId, String username, Collection<NormalizedRole> roles) throws ExecutionException;
 
-	/**
-	 * Check if a user is a member of a site
-	 * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
-	 * role mapping configuration file.
-	 *
-	 * @param username the username
-	 * @param siteName the site name
-	 * @return true if user is a member of the site, false otherwise
-	 */
-	boolean isSiteMember(String username, String siteName);
-
-	/**
-	 * Check if given user has system_admin role
-	 *
-	 * @param username user
-	 * @return true if user is system_admin, false otherwise
-	 */
-	boolean isSystemAdmin(String username);
 }

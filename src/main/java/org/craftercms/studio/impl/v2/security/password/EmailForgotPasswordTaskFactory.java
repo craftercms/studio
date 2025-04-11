@@ -17,12 +17,13 @@
 package org.craftercms.studio.impl.v2.security.password;
 
 import freemarker.template.Template;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +34,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
-
-import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -57,23 +55,21 @@ public class EmailForgotPasswordTaskFactory implements ForgotPasswordTaskFactory
 	private static final String AUTHORING_URL_MODEL_KEY = "authoringUrl";
 	private static final String SERVICE_URL_MODEL_KEY = "serviceUrl";
 	private static final String TOKEN_MODEL_KEY = "token";
-	private final UserServiceInternal userServiceInternal;
+	private final UserService userService;
 	private final StudioConfiguration studioConfiguration;
 	private final JavaMailSender emailService;
 	private final JavaMailSender emailServiceNoAuth;
-	private final UserService userService;
 	private final ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
 	private Template template;
 	private String authoringUrl;
 
-	@ConstructorProperties({"userService", "userServiceInternal",
+	@ConstructorProperties({"userService",
 		"studioConfiguration", "freeMarkerConfig",
 		"emailService", "emailServiceNoAuth"})
-	public EmailForgotPasswordTaskFactory(final UserService userService, final UserServiceInternal userServiceInternal,
+	public EmailForgotPasswordTaskFactory(final UserService userService,
 					      final StudioConfiguration studioConfiguration, final ObjectFactory<FreeMarkerConfig> freeMarkerConfig,
 					      final JavaMailSender emailService, final JavaMailSender emailServiceNoAuth) {
 		this.userService = userService;
-		this.userServiceInternal = userServiceInternal;
 		this.studioConfiguration = studioConfiguration;
 		this.emailService = emailService;
 		this.emailServiceNoAuth = emailServiceNoAuth;
@@ -99,7 +95,7 @@ public class EmailForgotPasswordTaskFactory implements ForgotPasswordTaskFactory
 		logger.debug("Get the user profile for username '{}'", username);
 		User user;
 		try {
-			user = userServiceInternal.getUserByIdOrUsername(-1, username);
+			user = userService.getUserByIdOrUsername(-1, username);
 		} catch (UserNotFoundException e) {
 			logger.error("Unable to send forgot password email because user '{}' does not exist.", username, e);
 			return;
@@ -119,9 +115,14 @@ public class EmailForgotPasswordTaskFactory implements ForgotPasswordTaskFactory
 		String email = user.getEmail();
 
 		logger.debug("Create a forgot password security token for username '{}'", username);
-		String encryptedToken = userService.getForgotPasswordToken(username);
-		logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
-		sendEmail(email, encryptedToken);
+		String encryptedToken;
+		try {
+			encryptedToken = userService.getForgotPasswordToken(username);
+			logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
+			sendEmail(email, encryptedToken);
+		} catch (ServiceLayerException e) {
+			logger.error("Failed to create a forgot password security token for username '{}'. Email will not be sent.", username, e);
+		}
 	}
 
 	private void sendEmail(String emailAddress, String token) {

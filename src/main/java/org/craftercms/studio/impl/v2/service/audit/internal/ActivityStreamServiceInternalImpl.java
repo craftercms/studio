@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.ActivityStreamDAO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 
 import java.time.ZonedDateTime;
@@ -31,7 +31,10 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
-public class ActivityStreamServiceInternalImpl implements ActivityStreamServiceInternal {
+/**
+ * Internal implementation of {@link ActivityStreamService}
+ */
+public class ActivityStreamServiceInternalImpl implements ActivityStreamService {
 
 	private SiteFeedMapper siteFeedMapper;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;

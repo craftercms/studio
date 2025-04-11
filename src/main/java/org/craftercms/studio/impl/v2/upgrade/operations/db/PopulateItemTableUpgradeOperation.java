@@ -23,9 +23,10 @@ import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -86,18 +87,18 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 	private String spName;
 	private String populateParentIdSpName;
 	private final String blobExtension;
-	private final ItemServiceInternal itemServiceInternal;
+	private final ItemService itemServiceInternal;
 	private final ContentService contentService;
 	private final GitRepositoryHelper gitRepositoryHelper;
 	private final long executorTimeoutSeconds;
 	private final int executorThreadCount;
 
-	@ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator", "itemServiceInternal",
+	@ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator", "itemService",
 		"contentService", "gitRepositoryHelper", "blobExtension", "executorTimeoutSeconds", "executorThreadCount"})
 	public PopulateItemTableUpgradeOperation(StudioConfiguration studioConfiguration,
 						 String scriptFolder,
 						 DbIntegrityValidator integrityValidator,
-						 ItemServiceInternal itemServiceInternal,
+						 ItemService itemServiceInternal,
 						 ContentService contentService,
 						 GitRepositoryHelper gitRepositoryHelper,
 						 String blobExtension,
@@ -264,7 +265,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 								try {
 									processFile(siteName, FILE_SEPARATOR + pathString,
 										nameString);
-								} catch (DocumentException | IOException e) {
+								} catch (DocumentException | IOException | SiteNotFoundException e) {
 									logger.error("Failed to process file '{}' in site '{}'", pathString,
 										siteName, e);
 								}
@@ -298,7 +299,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 	}
 
 	private void processFile(String site, String path,
-				 String name) throws DocumentException, IOException {
+				 String name) throws DocumentException, IOException, SiteNotFoundException {
 		logger.debug("Process the file '{}' in site '{}'", path, site);
 		File file = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
 			studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,25 +18,31 @@ package org.craftercms.studio.impl.v2.service.audit.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
-public class AuditServiceInternalImpl implements AuditServiceInternal {
+/**
+ * Internal implementation of {@link AuditService}
+ */
+public class AuditServiceInternalImpl implements AuditService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AuditServiceInternalImpl.class);
 
+	private ContentService contentService;
 	private AuditDAO auditDao;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
@@ -150,17 +156,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 		return result > 0;
 	}
 
-	@Override
-	public AuditLog createAuditLogEntry() {
-		AuditLog auditLog = new AuditLog();
-		String clusterNodeId = StringUtils.EMPTY;
-		auditLog.setOrganizationId(1);
-		auditLog.setOrigin(ORIGIN_API);
-		auditLog.setClusterNodeId(clusterNodeId);
-		return auditLog;
-	}
-
-	public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset, int limit, String contentType,
+	private List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset, int limit, String contentType,
 						    boolean hideLiveItems) {
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("userId", user);
@@ -185,16 +181,90 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 		return auditDao.getCommitAuthors(siteId, commitIds, path);
 	}
 
-	@Override
-	public boolean isAudited(long siteId, String commitId) {
-		return auditDao.isAudited(siteId, commitId);
+	public List<ContentItemTO> getUserActivities(@SiteId String site, int limit, String sort, boolean ascending,
+												 boolean excludeLive, String filterType) {
+		int startPos = 0;
+		List<ContentItemTO> contentItems = new ArrayList<>();
+		boolean hasMoreItems = true;
+		String user = SecurityUtils.getCurrentUsername();
+
+		while (contentItems.size() < limit && hasMoreItems) {
+			int remainingItems = limit - contentItems.size();
+			hasMoreItems = getActivityFeeds(user, site, startPos, limit, filterType, excludeLive, contentItems,
+				remainingItems);
+			startPos = startPos + limit;
+		}
+
+		if (contentItems.size() > limit) {
+			return contentItems.subList(0, limit);
+		}
+
+		return contentItems;
 	}
 
+	protected boolean getActivityFeeds(String user, String site, int startPos, int size, String filterType,
+									   boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
+
+		List<AuditLog> activityFeeds = selectUserFeedEntries(user, site, startPos, size, filterType,
+			hideLiveItems);
+
+		boolean hasMoreItems = activityFeeds.size() >= size;
+
+		// If the number of items returned is less than the size, then it means that the table has no more records
+
+		// TODO: SJ: Simplify the code below
+		if (CollectionUtils.isNotEmpty(activityFeeds)) {
+			for (int index = 0; index < activityFeeds.size() && remainingItem != 0; index++) {
+				AuditLog auditLog = activityFeeds.get(index);
+				String id = auditLog.getPrimaryTargetValue();
+				ContentItemTO item = createActivityItem(site, auditLog, id);
+				contentItems.add(item);
+				remainingItem--;
+			}
+		}
+
+		logger.debug("The total items retrieved from the activity feed in site '{}' is '{}' and hasMore is '{}'",
+			site, contentItems.size(), hasMoreItems);
+
+		return hasMoreItems;
+	}
+
+	protected ContentItemTO createActivityItem(String site, AuditLog auditLog, String id) {
+		try {
+			ContentItemTO item = contentService.getContentItem(site, id, 0);
+			if (item == null || item.isDeleted()) {
+				item = contentService.createDummyDmContentItemForDeletedNode(site, id);
+				String modifier = auditLog.getActorId();
+				if (modifier != null && !modifier.isEmpty()) {
+					item.user = modifier;
+				}
+				item.contentType = auditLog.getPrimaryTargetSubtype();
+				item.setLockOwner("");
+			}
+			ZonedDateTime editedDate = auditLog.getOperationTimestamp();
+			if (editedDate != null) {
+				item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
+			} else {
+				item.eventDate = null;
+			}
+
+			return item;
+		} catch (Exception e) {
+			logger.error("Failed to fetch content item from site '{}' with ID '{}'", site, id, e);
+			return null;
+		}
+	}
+
+	@SuppressWarnings("unused")
 	public void setAuditDao(AuditDAO auditDao) {
 		this.auditDao = auditDao;
 	}
 
 	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+	}
+
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
 	}
 }

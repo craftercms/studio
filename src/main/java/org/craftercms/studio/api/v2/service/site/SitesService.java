@@ -201,6 +201,13 @@ public interface SitesService {
 	List<Site> getSitesByState(String state);
 
 	/**
+	 * Get all non-deleted sites
+	 *
+	 * @return the list of sites
+	 */
+	List<Site> getAllSites();
+
+	/**
 	 * Set the published repo created flag for the given site
 	 *
 	 * @param siteId the site id
