@@ -16,7 +16,7 @@
 package org.craftercms.studio.impl.v2.utils.git;
 
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
@@ -34,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -128,31 +126,34 @@ public class GitCli {
 			pb.redirectInput(inputFile);
 		}
 		logger.debug("Executing git command: '{}'", commandLine);
+		File errorTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX).toFile();
+		errorTempFile.deleteOnExit();
+		pb.redirectError(errorTempFile);
+		File outputTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX).toFile();
+		outputTempFile.deleteOnExit();
+		pb.redirectOutput(outputTempFile);
 
 		// Start process
 		Process p = pb.start();
-
-		InputStream processInputStream = p.getInputStream();
-		InputStream processErrorStream = p.getErrorStream();
 		try {
 			// Wait for the process to finish, up to gitProcWaitForTimeoutSecs
 			boolean exited = p.waitFor(gitProcWaitForTimeoutSecs, TimeUnit.SECONDS);
 			if (!exited) {
-				handleProcessTimeout(p, directory, processInputStream, processErrorStream);
+				handleProcessTimeout(p, directory, outputTempFile, errorTempFile);
 			}
 
 			int exitValue = p.exitValue();
 			if (exitValue != 0) {
-				handleErrorExitValue(directory, exceptionResolver, p, processInputStream);
+				handleErrorExitValue(directory, exceptionResolver, p, outputTempFile, errorTempFile);
 			}
 
 			// Read std output if process has finished successfully
-			String output = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
+			String output = Files.readString(outputTempFile.toPath());
 			logger.debug("Git command successfully executed on '{}':\n'{}'", directory, output);
 			return output;
 		} finally {
-			IOUtils.closeQuietly(processInputStream);
-			IOUtils.closeQuietly(processErrorStream);
+			FileUtils.deleteQuietly(outputTempFile);
+			FileUtils.deleteQuietly(errorTempFile);
 			if (p.isAlive()) {
 				// Destroy process
 				destroyProcess(p);
@@ -161,10 +162,10 @@ public class GitCli {
 	}
 
 	private void handleErrorExitValue(String directory, GitCliOutputExceptionResolver exceptionResolver,
-					  Process p, InputStream processInputStream) throws IOException {
+									  Process p, File stdOutFile, File stdErrFile) throws IOException {
 		int exitValue = p.exitValue();
-		String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());
-		String stdOutput = IOUtils.toString(processInputStream, Charset.defaultCharset());
+		String errorOutput = Files.readString(stdErrFile.toPath());
+		String stdOutput = Files.readString(stdOutFile.toPath());
 
 		String errorMessage = format("Git command failed with exit value '%s' on '%s':\n\nSTDOUT: '%s'\nSTDERR: '%s'", exitValue, directory, stdOutput, errorOutput);
 		logger.debug(errorMessage);
@@ -175,10 +176,10 @@ public class GitCli {
 			.orElse(new GitCliOutputException(exitValue, errorMessage));
 	}
 
-	private void handleProcessTimeout(Process p, String directory, InputStream processInputStream, InputStream processErrorStream) throws IOException {
+	private void handleProcessTimeout(Process p, String directory, File stdOutFile, File stdErrFile) throws IOException {
 		// Read available bytes, avoiding blocking
-		String stdOutput = new String(processInputStream.readNBytes(processInputStream.available()));
-		String errorOutput = new String(processErrorStream.readNBytes(processErrorStream.available()));
+		String stdOutput = Files.readString(stdOutFile.toPath());
+		String errorOutput = Files.readString(stdErrFile.toPath());
 		destroyProcess(p);
 		String errorMessage = format("Timeout while waiting for git command to exit on '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", directory, stdOutput, errorOutput);
 		logger.debug(errorMessage);
