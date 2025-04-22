@@ -106,15 +106,15 @@ public class RepositoryStartupCleanup {
     protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
         logger.debug("Checking if repository '{}' for site '{}' is corrupted", repository, siteId);
         Repository repo = helper.getRepository(siteId, repository);
-        String repoPath = repo.getWorkTree().getAbsolutePath();
+        File repoDir = repo.getWorkTree();
         try {
             if (!helper.gitStatusOk(repo)) {
-                logger.warn("The local repository '{}' is corrupt, trying to fix it", repoPath);
-                helper.removeIndexAndClean(repoPath);
-                logger.info(".git/index is deleted from local repository '{}'", repoPath);
+                logger.warn("The local repository '{}' is corrupt, trying to fix it", repoDir.getAbsolutePath());
+                helper.removeIndexAndClean(repoDir);
+                logger.info(".git/index is deleted from local repository '{}'", repoDir.getAbsolutePath());
             }
         } catch (IOException e) {
-            logger.error("Error cleaning up git repository '{}'", repoPath, e);
+            logger.error("Error cleaning up git repository '{}'", repoDir.getAbsolutePath(), e);
         }
     }
 
