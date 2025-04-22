@@ -97,6 +97,8 @@ studio.repo.git.cli.process.name: git
 studio.repo.git.cli.process.waitForTimeout: 300
 # Timeout in seconds when waiting for the Git CLI process to finish after destroying the process forcibly
 studio.repo.git.cli.process.destroy.waitForTimeout: 60
+# Max number of bytes to read from the Git CLI process output (longer outputs will need to read the output file)
+studio.repo.git.cli.process.maxOutputBytes: 1000
 
 ##################################################
 ##           DB Sync from Repository            ##

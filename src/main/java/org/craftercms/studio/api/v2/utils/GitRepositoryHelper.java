@@ -632,7 +632,7 @@ public class GitRepositoryHelper implements DisposableBean {
         if (gitCliEnabled) {
             // The first git commit of a new repository takes a long time with Git CLI. A git status first seems
             // to fix the issue
-            gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
+            gitCli.isRepoClean(repo.getWorkTree());
         }
     }
 
@@ -645,7 +645,7 @@ public class GitRepositoryHelper implements DisposableBean {
      */
     public boolean gitStatusOk(Repository repo) {
         try {
-            gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
+            gitCli.isRepoClean(repo.getWorkTree());
             // OK if no exception is thrown
             return true;
         } catch (GitCliException e) {
@@ -659,14 +659,15 @@ public class GitRepositoryHelper implements DisposableBean {
      * git reset --hard
      * git clean -fd
      *
-     * @param repoPath path to the repository
+     * @param repoDir path to the repository
      * @throws IOException if an error occurred while cleaning the repository
      */
-    public void removeIndexAndClean(String repoPath) throws IOException {
-        GitUtils.deleteGitIndex(repoPath);
-        gitCli.resetHard(repoPath);
-        gitCli.clean(repoPath, true, true);
+    public void removeIndexAndClean(File repoDir) throws IOException {
+        GitUtils.deleteGitIndex(repoDir.getAbsolutePath());
+        gitCli.resetHard(repoDir);
+        gitCli.clean(repoDir, true, true);
     }
+
 
     public String getCommitMessage(String commitMessageKey) {
         String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
@@ -1233,7 +1234,7 @@ public class GitRepositoryHelper implements DisposableBean {
             try {
                 if (gitCliEnabled) {
                     retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-                        gitCli.add(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+                        gitCli.add(repo.getWorkTree(), getGitPaths(paths));
                         return null;
                     });
                 } else {
@@ -1282,7 +1283,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 String author = user.getName() + " <" + user.getEmailAddress() + ">";
 
                 commitId = retryingRepositoryOperationFacade.call(
-                        () -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
+                        () -> gitCli.commit(repo.getWorkTree(),
                                             author, comment, getGitPaths(paths)));
                 // Check if commit id matches jgit
                 ObjectId jgitHead = repo.resolve(HEAD);
@@ -1359,7 +1360,7 @@ public class GitRepositoryHelper implements DisposableBean {
         // TODO: JM: Refactor this class to implement Strategy pattern and get rid of these if-else statements
         if (gitCliEnabled) {
             try {
-                gitCli.restore(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+                gitCli.restore(repo.getWorkTree(), getGitPaths(paths));
             } catch (GitCliException e) {
                 logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
             }
