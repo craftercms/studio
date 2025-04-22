@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v2.utils.git;
 
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,13 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,6 +69,8 @@ public class GitCli {
 	private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 minutes
 	private static final int DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT = 30;
 	private static final int PATHS_BATCH_SIZE = 10;
+	// Default max number of bytes to read from process output
+	private static final int MAX_PROCESS_OUTPUT_BYTES = 1000;
 
 	// Exception resolvers
 	public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
@@ -82,77 +82,94 @@ public class GitCli {
 	private final String gitProcName;
 	private final int gitProcWaitForTimeoutSecs;
 	private final int gitProcDestroyWaitForTimeoutSecs;
+	private final int maxProcessOutputBytes;
 
 	public GitCli() {
-		this.gitProcName = DEFAULT_GIT_COMMAND_NAME;
-		this.gitProcWaitForTimeoutSecs = DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT;
-		this.gitProcDestroyWaitForTimeoutSecs = DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT;
+		this(DEFAULT_GIT_COMMAND_NAME, DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT, DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT, MAX_PROCESS_OUTPUT_BYTES);
 	}
 
-	public GitCli(String gitProcName, int gitProcWaitForTimeoutSecs, int gitProcDestroyWaitForTimeoutSecs) {
+	public GitCli(String gitProcName, int gitProcWaitForTimeoutSecs,
+				  int gitProcDestroyWaitForTimeoutSecs, int maxProcessOutputBytes) {
 		this.gitProcName = gitProcName;
 		this.gitProcWaitForTimeoutSecs = gitProcWaitForTimeoutSecs;
 		this.gitProcDestroyWaitForTimeoutSecs = gitProcDestroyWaitForTimeoutSecs;
+		this.maxProcessOutputBytes = maxProcessOutputBytes;
 	}
 
-	protected String executeGitCommand(String directory, GitCommandLine commandLine) throws IOException, InterruptedException {
-		return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER, null);
+	private void executeGitCommand(GitCommandLine commandLine) throws IOException, InterruptedException {
+		checkGitDirectory(commandLine.directory);
+		doExecuteGitCommand(commandLine);
 	}
 
-	protected String executeGitCommand(String directory, GitCommandLine commandLine, File inputFile)
+	/**
+	 * Convenience method to execute a git command and return the output as a string when the
+	 * expected output is "short". e.g.: git rev-parse HEAD
+	 * It will read the first <code>maxProcessOutputBytes</code> bytes of the output file
+	 */
+	private String executeShortOutputGitCommand(GitCommandLine commandLine) throws IOException, InterruptedException {
+		File outputTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX).toFile();
+		try {
+			checkGitDirectory(commandLine.directory);
+			commandLine.setOutput(outputTempFile);
+			doExecuteGitCommand(commandLine);
+			return trim(readFileFirstBytes(outputTempFile));
+		} finally {
+			FileUtils.deleteQuietly(outputTempFile);
+		}
+	}
+
+	/**
+	 * Reads the contents of a file into a string.
+	 * This method will read the first <code>maxProcessOutputBytes</code> bytes of the file.
+	 */
+	private String readFileFirstBytes(File file) throws IOException {
+		try (FileInputStream fis = new FileInputStream(file)) {
+			byte[] buffer = new byte[maxProcessOutputBytes];
+			IOUtils.read(fis, buffer);
+			return new String(buffer);
+		}
+	}
+
+	private void doExecuteGitCommand(final GitCommandLine commandLine)
 		throws IOException, InterruptedException {
-		return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER, inputFile);
-	}
-
-	protected String executeGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver) throws IOException, InterruptedException {
-		return executeGitCommand(directory, commandLine, exceptionResolver, null);
-	}
-
-	protected String executeGitCommand(String directory, GitCommandLine commandLine,
-					   final GitCliOutputExceptionResolver exceptionResolver, final File inputFile) throws IOException, InterruptedException {
-		checkGitDirectory(directory);
-		return doExecuteGitCommand(directory, commandLine, exceptionResolver, inputFile);
-	}
-
-	private String doExecuteGitCommand(final String directory, final GitCommandLine commandLine,
-					   final GitCliOutputExceptionResolver exceptionResolver)
-		throws IOException, InterruptedException {
-		return doExecuteGitCommand(directory, commandLine, exceptionResolver, null);
-	}
-
-	private String doExecuteGitCommand(final String directory, final GitCommandLine commandLine,
-					   final GitCliOutputExceptionResolver exceptionResolver, final File inputFile)
-		throws IOException, InterruptedException {
-		ProcessBuilder pb = new ProcessBuilder(commandLine).directory(new File(directory));
-		if (inputFile != null) {
-			pb.redirectInput(inputFile);
+		File directory = commandLine.getDirectory();
+		ProcessBuilder pb = new ProcessBuilder(commandLine).directory(directory);
+		if (commandLine.input != null) {
+			pb.redirectInput(commandLine.input);
 		}
 		logger.debug("Executing git command: '{}'", commandLine);
+		File errorTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX).toFile();
+		errorTempFile.deleteOnExit();
+		pb.redirectError(errorTempFile);
+
+		File output = commandLine.getOutput();
+		File outputTempFile = null;
+		if (output == null) {
+			outputTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX).toFile();
+			outputTempFile.deleteOnExit();
+			output = outputTempFile;
+		}
+		pb.redirectOutput(ProcessBuilder.Redirect.appendTo(output));
 
 		// Start process
 		Process p = pb.start();
-
-		InputStream processInputStream = p.getInputStream();
-		InputStream processErrorStream = p.getErrorStream();
 		try {
 			// Wait for the process to finish, up to gitProcWaitForTimeoutSecs
 			boolean exited = p.waitFor(gitProcWaitForTimeoutSecs, TimeUnit.SECONDS);
 			if (!exited) {
-				handleProcessTimeout(p, directory, processInputStream, processErrorStream);
+				handleProcessTimeout(p, directory.getAbsolutePath(), output, errorTempFile);
 			}
 
 			int exitValue = p.exitValue();
 			if (exitValue != 0) {
-				handleErrorExitValue(directory, exceptionResolver, p, processInputStream);
+				handleErrorExitValue(directory.getAbsolutePath(), commandLine.getExceptionResolver(), p, output, errorTempFile);
 			}
-
-			// Read std output if process has finished successfully
-			String output = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
-			logger.debug("Git command successfully executed on '{}':\n'{}'", directory, output);
-			return output;
+			logger.debug("Git command '{}' successfully executed on '{}'", commandLine, directory);
 		} finally {
-			IOUtils.closeQuietly(processInputStream);
-			IOUtils.closeQuietly(processErrorStream);
+			if (outputTempFile != null) {
+				FileUtils.deleteQuietly(outputTempFile);
+			}
+			FileUtils.deleteQuietly(errorTempFile);
 			if (p.isAlive()) {
 				// Destroy process
 				destroyProcess(p);
@@ -161,10 +178,10 @@ public class GitCli {
 	}
 
 	private void handleErrorExitValue(String directory, GitCliOutputExceptionResolver exceptionResolver,
-					  Process p, InputStream processInputStream) throws IOException {
+									  Process p, File stdOutFile, File stdErrFile) throws IOException {
 		int exitValue = p.exitValue();
-		String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());
-		String stdOutput = IOUtils.toString(processInputStream, Charset.defaultCharset());
+		String errorOutput = readFileFirstBytes(stdErrFile);
+		String stdOutput = readFileFirstBytes(stdOutFile);
 
 		String errorMessage = format("Git command failed with exit value '%s' on '%s':\n\nSTDOUT: '%s'\nSTDERR: '%s'", exitValue, directory, stdOutput, errorOutput);
 		logger.debug(errorMessage);
@@ -175,10 +192,9 @@ public class GitCli {
 			.orElse(new GitCliOutputException(exitValue, errorMessage));
 	}
 
-	private void handleProcessTimeout(Process p, String directory, InputStream processInputStream, InputStream processErrorStream) throws IOException {
-		// Read available bytes, avoiding blocking
-		String stdOutput = new String(processInputStream.readNBytes(processInputStream.available()));
-		String errorOutput = new String(processErrorStream.readNBytes(processErrorStream.available()));
+	private void handleProcessTimeout(Process p, String directory, File stdOutFile, File stdErrFile) throws IOException {
+		String stdOutput = readFileFirstBytes(stdOutFile);
+		String errorOutput = readFileFirstBytes(stdErrFile);
 		destroyProcess(p);
 		String errorMessage = format("Timeout while waiting for git command to exit on '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", directory, stdOutput, errorOutput);
 		logger.debug(errorMessage);
@@ -213,22 +229,22 @@ public class GitCli {
 	 * @param directory the directory to check
 	 * @throws GitCliException if the directory does not exist or is not a Git repository
 	 */
-	private void checkGitDirectory(final String directory) throws GitCliException {
-		if (Files.notExists(Paths.get(directory))) {
+	private void checkGitDirectory(final File directory) throws GitCliException {
+		if (Files.notExists(directory.toPath())) {
 			throw new GitCliException(format("Directory '%s' does not exist", directory));
 		}
 
-		GitCommandLine checkGitDir = new GitCommandLine("rev-parse", "--git-dir");
+		GitCommandLine checkGitDir = new GitCommandLine(directory, "rev-parse", "--git-dir");
 		try {
-			doExecuteGitCommand(directory, checkGitDir, DEFAULT_EX_RESOLVER);
+			doExecuteGitCommand(checkGitDir);
 		} catch (Exception e) {
 			throw new GitCliException(format("Directory '%s' is not a Git repository", directory), e);
 		}
 	}
 
-	public void add(String directory, String... paths) throws GitCliException {
+	public void add(File directory, String... paths) throws GitCliException {
 		try {
-			executeGitCommand(directory, new GitCommandLine("add", paths));
+			executeGitCommand(new GitCommandLine(directory, "add", paths));
 		} catch (Exception e) {
 			throw new GitCliException("Git add failed on directory " + directory + " for paths " +
 				ArrayUtils.toString(paths), e);
@@ -240,32 +256,33 @@ public class GitCli {
 	 *
 	 * @param directory the git repository directory
 	 * @param paths     the paths to restore
-	 * @return the output of the git restore command
 	 */
-	public String restore(String directory, String... paths) throws GitCliException {
-		GitCommandLine restoreCl = new GitCommandLine("restore");
+	public void restore(File directory, String... paths) throws GitCliException {
+		GitCommandLine restoreCl = new GitCommandLine(directory, "restore");
 		restoreCl.addParam("--source=HEAD");
 		restoreCl.addParam("--staged");
 		restoreCl.addParam("--worktree");
 		restoreCl.addParams(paths);
 		try {
-			return trim(executeGitCommand(directory, restoreCl));
+			executeGitCommand(restoreCl);
 		} catch (Exception e) {
 			throw new GitCliException(format("Git restore failed on directory '%s' for paths %s", directory, ArrayUtils.toString(paths)), e);
 		}
 	}
 
-	public String commit(String directory, String author, String message, String... paths) throws GitCliException {
-		GitCommandLine commitCl = new GitCommandLine("commit");
-		GitCommandLine revParseCl = new GitCommandLine("rev-parse", "HEAD");
+	public String commit(File directory, String author, String message, String... paths) throws GitCliException {
+		GitCommandLine commitCl = new GitCommandLine(directory, "commit");
+		GitCommandLine revParseCl = new GitCommandLine(directory, "rev-parse", "HEAD");
 
 		commitCl.addOption("--author", author);
 		commitCl.addOption("--message", message);
 		commitCl.addParams(paths);
 
+		commitCl.setExceptionResolver(COMMIT_EX_RESOLVER);
+
 		try {
-			executeGitCommand(directory, commitCl, COMMIT_EX_RESOLVER);
-			return trim(executeGitCommand(directory, revParseCl));
+			executeGitCommand(commitCl);
+			return executeShortOutputGitCommand(revParseCl);
 		} catch (Exception e) {
 			throw new GitCliException("Git commit failed on directory " + directory + " for paths " +
 				ArrayUtils.toString(paths), e);
@@ -276,10 +293,10 @@ public class GitCli {
 	 * Perform git gc command
 	 * @param directory git repository directory
 	 */
-	public void gc(String directory) throws GitCliException {
-		GitCommandLine command = new GitCommandLine("gc");
+	public void gc(File directory) throws GitCliException {
+		GitCommandLine command = new GitCommandLine(directory, "gc");
 		try {
-			executeGitCommand(directory, command);
+			executeGitCommand(command);
 		} catch (Exception e) {
 			throw new GitCliException(format("Git gc failed on directory '%s'", directory), e);
 		}
@@ -296,7 +313,7 @@ public class GitCli {
 	 * @throws IOException if an error occurs executing the git command or when accessing the file system
 	 */
 	public String commitTree(File repoDir, String treeId, ObjectId parentCommitId, String comment) throws IOException {
-		GitCommandLine commitTreeCl = new GitCommandLine("commit-tree");
+		GitCommandLine commitTreeCl = new GitCommandLine(repoDir, "commit-tree");
 		commitTreeCl.addParam(treeId);
 		commitTreeCl.addParams("-p", parentCommitId.getName());
 		final Path commentTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
@@ -304,7 +321,7 @@ public class GitCli {
 		try {
 			Files.write(commentTempFile, comment.getBytes());
 			commitTreeCl.addParams("-F", commentTempFile.toRealPath().toString());
-			return trim(executeGitCommand(repoDir.getAbsolutePath(), commitTreeCl));
+			return executeShortOutputGitCommand(commitTreeCl);
 		} catch (Exception e) {
 			throw new GitCliException("Git commit-tree failed on directory " + repoDir.getAbsolutePath(), e);
 		} finally {
@@ -331,8 +348,8 @@ public class GitCli {
 							final String commitId, final ObjectId parentCommitId, final TaskProgress<?, ?> taskProgress)
 		throws IOException, InterruptedException {
 		// git read-tree target_branch
-		GitCommandLine readTreeCl = new GitCommandLine("read-tree", parentCommitId.getName());
-		executeGitCommand(directory.getAbsolutePath(), readTreeCl);
+		GitCommandLine readTreeCl = new GitCommandLine(directory, "read-tree", parentCommitId.getName());
+		executeGitCommand(readTreeCl);
 		final Path indexInfoTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
 		Stage prepareWriteTreeStage = taskProgress.startStage("Prepare write tree",
 			emptyIfNull(paths).size() + emptyIfNull(deletedPaths).size() + emptyIfNull(blacklistPathspecs).size());
@@ -343,25 +360,26 @@ public class GitCli {
 			// In batches, call git ls-tree and create index info file
 			if (isNotEmpty(paths)) {
 				for (List<String> pathsBatch : ListUtils.partition(emptyIfNull(paths), PATHS_BATCH_SIZE)) {
-					GitCommandLine lsTreeCl = new GitCommandLine("ls-tree", commitId);
+					GitCommandLine lsTreeCl = new GitCommandLine(directory, "ls-tree", commitId);
+					lsTreeCl.setOutput(indexInfoTempFile.toFile());
 					pathsBatch.forEach(p -> {
 						lsTreeCl.addParam(p);
 						prepareWriteTreeStage.advanceOne();
 					});
-					String lsTreeOutput = executeGitCommand(directory.getAbsolutePath(), lsTreeCl);
-					Files.write(indexInfoTempFile, lsTreeOutput.getBytes(), StandardOpenOption.APPEND);
+					executeGitCommand(lsTreeCl);
 				}
 			}
 			removePaths(directory, blacklistPathspecs, prepareWriteTreeStage);
 			prepareWriteTreeStage.complete();
 			// Update index with correct version of published files
 			Stage updateIndexStage = taskProgress.startStage("Update index and write tree");
-			GitCommandLine updateIndexCl = new GitCommandLine("update-index", "--index-info");
-			executeGitCommand(directory.getAbsolutePath(), updateIndexCl, indexInfoTempFile.toRealPath().toFile());
+			GitCommandLine updateIndexCl = new GitCommandLine(directory, "update-index", "--index-info");
+			updateIndexCl.setInput(indexInfoTempFile.toRealPath().toFile());
+			executeGitCommand(updateIndexCl);
 
 			// git write-tree
-			GitCommandLine writeTreeCl = new GitCommandLine("write-tree");
-			String treeId = trim(executeGitCommand(directory.getAbsolutePath(), writeTreeCl));
+			GitCommandLine writeTreeCl = new GitCommandLine(directory, "write-tree");
+			String treeId = executeShortOutputGitCommand(writeTreeCl);
 			updateIndexStage.complete();
 			return treeId;
 		} finally {
@@ -372,12 +390,12 @@ public class GitCli {
 	private void removePaths(final File directory, final List<String> deletedPaths, final Stage stage) throws IOException, InterruptedException {
 		for (List<String> deletedPathsBatch : ListUtils.partition(emptyIfNull(deletedPaths), PATHS_BATCH_SIZE)) {
 			// Remove from the index
-			GitCommandLine rmCommand = new GitCommandLine("rm", "-r", "--ignore-unmatch", "--cached");
+			GitCommandLine rmCommand = new GitCommandLine(directory, "rm", "-r", "--ignore-unmatch", "--cached");
 			deletedPathsBatch.forEach(p -> {
 				rmCommand.addParam(p);
 				stage.advanceOne();
 			});
-			executeGitCommand(directory.getAbsolutePath(), rmCommand);
+			executeGitCommand(rmCommand);
 		}
 	}
 
@@ -388,13 +406,13 @@ public class GitCli {
 	 * @return true if the repository is clean, false otherwise
 	 * @throws GitCliException if the git status command fails
 	 */
-	public boolean isRepoClean(String directory) throws GitCliException {
-		GitCommandLine statusCl = new GitCommandLine("status");
+	public boolean isRepoClean(File directory) throws GitCliException {
+		GitCommandLine statusCl = new GitCommandLine(directory, "status");
 		// The --porcelain option is a short version specifically for scripts
 		statusCl.addParam("--porcelain");
 
 		try {
-			String result = executeGitCommand(directory, statusCl, DEFAULT_EX_RESOLVER);
+			String result = executeShortOutputGitCommand(statusCl);
 
 			// No result means there's no changes, so the repo is clean
 			return StringUtils.isEmpty(result);
@@ -406,29 +424,28 @@ public class GitCli {
 	/**
 	 * Git reset --hard
 	 *
-	 * @param repoPath the git repository directory
-	 * @return the output of the git reset command
+	 * @param repoDir the git repository directory
 	 * @throws GitCliException if the git reset command fails
 	 */
-	public String resetHard(String repoPath) throws GitCliException {
-		GitCommandLine resetCl = new GitCommandLine("reset", "--hard");
+	public void resetHard(File repoDir) throws GitCliException {
+		GitCommandLine resetCl = new GitCommandLine(repoDir, "reset", "--hard");
 		try {
-			return StringUtils.trim(executeGitCommand(repoPath, resetCl));
+			executeGitCommand(resetCl);
 		} catch (Exception e) {
-			throw new GitCliException("Git reset --hard failed on directory " + repoPath, e);
+			throw new GitCliException("Git reset --hard failed on directory " + repoDir.getAbsolutePath(), e);
 		}
 	}
 
 	/**
 	 * Git clean (optionally -f)
 	 *
-	 * @param repoPath  the git repository directory
+	 * @param repoDir  the git repository directory
 	 * @param force     true to force clean
 	 * @param recursive true to clean directories recursively
 	 * @throws GitCliException if the git clean command fails
 	 */
-	public void clean(String repoPath, boolean force, boolean recursive) throws GitCliException {
-		GitCommandLine cleanCl = new GitCommandLine("clean");
+	public void clean(File repoDir, boolean force, boolean recursive) throws GitCliException {
+		GitCommandLine cleanCl = new GitCommandLine(repoDir, "clean");
 		if (force) {
 			cleanCl.addParam("-f");
 		}
@@ -436,9 +453,9 @@ public class GitCli {
 			cleanCl.addParam("-d");
 		}
 		try {
-			executeGitCommand(repoPath, cleanCl);
+			executeGitCommand(cleanCl);
 		} catch (Exception e) {
-			throw new GitCliException("Git clean failed on directory " + repoPath, e);
+			throw new GitCliException("Git clean failed on directory " + repoDir.getAbsolutePath(), e);
 		}
 	}
 
@@ -446,31 +463,36 @@ public class GitCli {
 	 * Git restore -s <version> <path>
 	 * This will checkout the file from the given version (commit id) to the working directory
 	 *
-	 * @param repoPath the git repository directory
+	 * @param repoDir the git repository directory
 	 * @param path     the path to restore
 	 * @param version  the version to restore
 	 * @throws GitCliException if the git restore command fails
 	 */
-	public void restoreVersion(String repoPath, String path, String version) throws GitCliException {
-		GitCommandLine restoreCl = new GitCommandLine("restore", "-s", version, path);
+	public void restoreVersion(File repoDir, String path, String version) throws GitCliException {
+		GitCommandLine restoreCl = new GitCommandLine(repoDir, "restore", "-s", version, path);
 
 		try {
-			executeGitCommand(repoPath, restoreCl);
+			executeGitCommand(restoreCl);
 		} catch (Exception e) {
-			throw new GitCliException("Git restore failed on directory " + repoPath + " for path " + path, e);
+			throw new GitCliException("Git restore failed on directory " + repoDir.getAbsolutePath() + " for path " + path, e);
 		}
 	}
 
 	protected class GitCommandLine extends ArrayList<String> {
 
-		public GitCommandLine(String command) {
+		private final File directory;
+		private File input;
+		private File output;
+		private GitCliOutputExceptionResolver exceptionResolver = DEFAULT_EX_RESOLVER;
+
+		public GitCommandLine(final File directory, final String command) {
+			this.directory = directory;
 			add(gitProcName);
 			add(command);
 		}
 
-		public GitCommandLine(String command, String... params) {
-			add(gitProcName);
-			add(command);
+		public GitCommandLine(final File directory, final String command, final String... params) {
+			this(directory, command);
 			addParams(params);
 		}
 
@@ -491,6 +513,33 @@ public class GitCli {
 			addParam("\"" + optValue + "\"");
 		}
 
+		public File getDirectory() {
+			return directory;
+		}
+
+		public File getInput() {
+			return input;
+		}
+
+		public void setInput(File input) {
+			this.input = input;
+		}
+
+		public File getOutput() {
+			return output;
+		}
+
+		public void setOutput(File output) {
+			this.output = output;
+		}
+
+		public GitCliOutputExceptionResolver getExceptionResolver() {
+			return exceptionResolver;
+		}
+
+		public void setExceptionResolver(GitCliOutputExceptionResolver exceptionResolver) {
+			this.exceptionResolver = exceptionResolver;
+		}
 	}
 
 }

@@ -794,9 +794,11 @@
 	<bean id="studio.gitCli" class="org.craftercms.studio.impl.v2.utils.git.GitCli">
 		<constructor-arg name="gitProcName" value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.name')}"/>
 		<constructor-arg name="gitProcWaitForTimeoutSecs"
-				 value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.waitForTimeout')}"/>
+						 value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.waitForTimeout')}"/>
 		<constructor-arg name="gitProcDestroyWaitForTimeoutSecs"
-				 value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.destroy.waitForTimeout')}"/>
+						 value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.destroy.waitForTimeout')}"/>
+		<constructor-arg name="maxProcessOutputBytes"
+						 value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.maxOutputBytes')}"/>
 	</bean>
 
 	<bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
