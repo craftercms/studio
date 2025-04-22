@@ -607,7 +607,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 */
 	public boolean gitStatusOk(Repository repo) {
 		try {
-			gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
+			gitCli.isRepoClean(repo.getWorkTree());
 			// OK if no exception is thrown
 			return true;
 		} catch (GitCliException e) {
@@ -621,13 +621,13 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * git reset --hard
 	 * git clean -fd
 	 *
-	 * @param repoPath path to the repository
+	 * @param repoDir path to the repository
 	 * @throws IOException if an error occurred while cleaning the repository
 	 */
-	public void removeIndexAndClean(String repoPath) throws IOException {
-		GitUtils.deleteGitIndex(repoPath);
-		gitCli.resetHard(repoPath);
-		gitCli.clean(repoPath, true, true);
+	public void removeIndexAndClean(File repoDir) throws IOException {
+		GitUtils.deleteGitIndex(repoDir.getAbsolutePath());
+		gitCli.resetHard(repoDir);
+		gitCli.clean(repoDir, true, true);
 	}
 
 	public String getCommitMessage(String commitMessageKey) {
@@ -1165,7 +1165,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			generalLockService.lock(gitLockKey);
 			try {
 				retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-					gitCli.add(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+					gitCli.add(repo.getWorkTree(), getGitPaths(paths));
 					return null;
 				});
 				result = true;
@@ -1207,7 +1207,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			String author = user.getName() + " <" + user.getEmailAddress() + ">";
 
 			commitId = retryingRepositoryOperationFacade.call(
-				() -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
+				() -> gitCli.commit(repo.getWorkTree(),
 					author, comment, getGitPaths(paths)));
 			// Check if commit id matches jgit
 			ObjectId jgitHead = repo.resolve(HEAD);
@@ -1252,8 +1252,8 @@ public class GitRepositoryHelper implements DisposableBean {
 		String gitLockKey = getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			String repoPath = repo.getWorkTree().getAbsolutePath();
-			gitCli.restoreVersion(repoPath, path, version);
+			File repoDir = repo.getWorkTree();
+			gitCli.restoreVersion(repoDir, path, version);
 		} catch (Exception e) {
 			throw new ServiceLayerException(format("Failed to restore version '%s' of path '%s' in site '%s'", version, path, siteId), e);
 		} finally {
@@ -1277,7 +1277,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		logger.debug("Start git gc for {} using CGit", siteDescription);
 		try {
 			retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-				gitCli.gc(repo.getWorkTree().getAbsolutePath());
+				gitCli.gc(repo.getWorkTree());
 				return null;
 			});
 			logger.debug("Completed git gc for {} using CGit", siteDescription);
@@ -1322,7 +1322,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 */
 	private void restorePaths(Repository repo, String site, String... paths) {
 		try {
-			gitCli.restore(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+			gitCli.restore(repo.getWorkTree(), getGitPaths(paths));
 		} catch (GitCliException e) {
 			logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
 		}

@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -93,15 +94,15 @@ public class RepositoryStartupCleanup {
 			logger.warn("Repository '{}' for site '{}' is not found", repository, siteId);
 			return;
 		}
-		String repoPath = repo.getWorkTree().getAbsolutePath();
+		File repoDir = repo.getWorkTree();
 		try {
 			if (!helper.gitStatusOk(repo)) {
-				logger.warn("The local repository '{}' is corrupt, trying to fix it", repoPath);
-				helper.removeIndexAndClean(repoPath);
-				logger.info(".git/index is deleted from local repository '{}'", repoPath);
+				logger.warn("The local repository '{}' is corrupt, trying to fix it", repoDir.getAbsolutePath());
+				helper.removeIndexAndClean(repoDir);
+				logger.info(".git/index is deleted from local repository '{}'", repoDir.getAbsolutePath());
 			}
 		} catch (IOException e) {
-			logger.error("Error cleaning up git repository '{}'", repoPath, e);
+			logger.error("Error cleaning up git repository '{}'", repoDir.getAbsolutePath(), e);
 		}
 	}
 
