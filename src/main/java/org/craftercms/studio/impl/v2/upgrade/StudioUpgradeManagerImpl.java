@@ -50,6 +50,7 @@ import java.util.*;
 import static java.nio.file.Paths.get;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.text.StringSubstitutor.replace;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
@@ -209,7 +210,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 	}
 
 	protected boolean checkIfSiteRepoExists(String site) {
-		return contentRepository.repositoryExists(site);
+		return contentRepository.repositoryExists(site, SANDBOX);
 	}
 
 	/**

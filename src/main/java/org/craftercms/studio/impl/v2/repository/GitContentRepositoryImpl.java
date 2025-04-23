@@ -469,18 +469,13 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public boolean repositoryExists(String siteId) {
+	public boolean repositoryExists(String siteId, GitRepositories repoType) {
 		boolean exists = false;
-		Path siteSandboxRepoPath = helper.buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
+		Path siteSandboxRepoPath = helper.buildRepoPath(repoType, siteId).resolve(GIT_ROOT);
 		if (Files.exists(siteSandboxRepoPath)) {
-			exists = commitIdExists(siteId, HEAD);
+			exists = commitIdExists(siteId, repoType, HEAD);
 		}
 		return exists;
-	}
-
-	@Override
-	public boolean commitIdExists(String site, String commitId) {
-		return commitIdExists(site, SANDBOX, commitId);
 	}
 
 	@Override
