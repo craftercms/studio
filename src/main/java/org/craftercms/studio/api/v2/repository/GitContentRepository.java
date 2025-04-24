@@ -85,19 +85,11 @@ public interface GitContentRepository extends ContentRepository {
 	/**
 	 * Check if repository exists for  given site
 	 *
-	 * @param site site id
+	 * @param siteId   site id
+	 * @param repoType repository type
 	 * @return true if repository exists, otherwise false
 	 */
-	boolean repositoryExists(String site);
-
-	/**
-	 * Check if given commit id exists
-	 *
-	 * @param site     site id
-	 * @param commitId commit id to check
-	 * @return true if it exists in site repository, otherwise false
-	 */
-	boolean commitIdExists(String site, String commitId);
+	boolean repositoryExists(String siteId, GitRepositories repoType);
 
 	/**
 	 * Check if given commit id (or revision string) exists

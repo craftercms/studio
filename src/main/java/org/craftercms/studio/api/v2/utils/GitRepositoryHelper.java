@@ -174,7 +174,7 @@ public class GitRepositoryHelper implements DisposableBean {
 					}
 					break;
 				case GLOBAL:
-					Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+					Path globalConfigRepoPath = getRepoGitDir(GLOBAL, EMPTY);
 					try {
 						repo = openRepository(globalConfigRepoPath);
 					} catch (IOException e) {
@@ -196,8 +196,8 @@ public class GitRepositoryHelper implements DisposableBean {
 		Repository sandboxRepo;
 		Repository publishedRepo;
 
-		Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
-		Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);
+		Path siteSandboxRepoPath = getRepoGitDir(GitRepositories.SANDBOX, siteId);
+		Path sitePublishedRepoPath = getRepoGitDir(GitRepositories.PUBLISHED, siteId);
 
 		try {
 			if (Files.exists(siteSandboxRepoPath)) {
@@ -233,13 +233,29 @@ public class GitRepositoryHelper implements DisposableBean {
 	}
 
 	/**
-	 * Builds repository path
+	 * Builds global repository path
 	 *
-	 * @param repoType repository type
 	 * @return repository path
 	 */
-	public Path buildRepoPath(GitRepositories repoType) {
-		return buildRepoPath(repoType, EMPTY);
+	public Path buildGlobalRepoPath() {
+		return buildRepoPath(GLOBAL, EMPTY);
+	}
+
+	/**
+	 * Get the repository 'git' directory
+	 * The 'git-dir' is the directory where the git repository is stored. It is '.git' for
+	 * non-bare repositories (SANDBOX, GLOBAL) and the root directory for bare repositories (PUBLISHED).
+	 *
+	 * @param repoType the type of repository
+	 * @param siteId   the site id (empty for the global repository)
+	 * @return the path to the repository 'git' directory, or the root directory if the repository is bare
+	 */
+	public Path getRepoGitDir(GitRepositories repoType, String siteId) {
+		Path repoPath = buildRepoPath(repoType, siteId);
+		if (repoType != PUBLISHED) {
+			repoPath = repoPath.resolve(GIT_ROOT);
+		}
+		return repoPath;
 	}
 
 	/**
@@ -1002,7 +1018,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	// TODO: SJ: This should be redesigned to return the repository instead of setting it as a "side effect"
 	public boolean buildGlobalRepo() throws IOException {
 		boolean toReturn = false;
-		Path siteRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+		Path siteRepoPath = getRepoGitDir(GLOBAL, EMPTY);
 
 		if (Files.exists(siteRepoPath)) {
 			Repository repo = openRepository(siteRepoPath);
@@ -1015,7 +1031,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
 	public boolean createGlobalRepo() {
 		boolean toReturn = false;
-		Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+		Path globalConfigRepoPath = getRepoGitDir(GLOBAL, EMPTY);
 		String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
 		generalLockService.lock(gitLockKey);
 		try {

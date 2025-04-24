@@ -114,7 +114,7 @@ public class GlobalRepoBootstrap implements ServletContextAware {
 		logger.info("Bootstrap with baseline @'{}'", source.toFile());
 
 		// Copy the bootstrap repo to the global repo
-		Path globalConfigPath = helper.buildRepoPath(GLOBAL);
+		Path globalConfigPath = helper.buildGlobalRepoPath();
 		TreeCopier tc = new TreeCopier(source,
 			globalConfigPath);
 		EnumSet<FileVisitOption> opts = EnumSet.of(FOLLOW_LINKS);

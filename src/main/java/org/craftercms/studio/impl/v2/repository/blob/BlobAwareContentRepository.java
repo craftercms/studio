@@ -72,7 +72,8 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.PUBLISH_ALL;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
@@ -490,11 +491,6 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public boolean commitIdExists(String site, String commitId) {
-		return localRepository.commitIdExists(site, commitId);
-	}
-
-	@Override
 	public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
 		return localRepository.commitIdExists(site, repoType, commitId);
 	}
@@ -518,8 +514,8 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public boolean repositoryExists(String site) {
-		return localRepository.repositoryExists(site);
+	public boolean repositoryExists(String site, GitRepositories repoType) {
+		return localRepository.repositoryExists(site, repoType);
 	}
 
 	@Override
