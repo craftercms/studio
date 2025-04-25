@@ -52,6 +52,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.beans.ConstructorProperties;
 import java.util.*;
@@ -92,7 +93,7 @@ public class ContentController {
 
 	@GetMapping(value = EXISTS, produces = APPLICATION_JSON_VALUE)
 	public ResultOne<Boolean> contentExists(@NotEmpty @ValidSiteId @RequestParam String siteId,
-						@ValidExistingContentPath @ValidateSecurePathParam @RequestParam String path)
+											@ValidExistingContentPath @ValidateSecurePathParam @RequestParam String path)
 		throws SiteNotFoundException {
 		var result = new ResultOne<Boolean>();
 		result.setEntity(RESULT_KEY_EXISTS, contentService.contentExists(siteId, path));
@@ -153,8 +154,8 @@ public class ContentController {
 
 	@GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
 	public ResultOne<String> getDescriptor(@NotEmpty @ValidSiteId @RequestParam String siteId,
-					       @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String path,
-					       @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
+										   @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String path,
+										   @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
 		ContentNotFoundException, SiteNotFoundException {
 		Document descriptor = contentService.getItemDescriptor(siteId, path, flatten);
 		var result = new ResultOne<String>();
@@ -186,11 +187,11 @@ public class ContentController {
 
 	@GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
 	public ResultOne<ContentItem> getItemByPath(@ValidSiteId
-						     @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-						     @ValidExistingContentPath
-						     @RequestParam(value = REQUEST_PARAM_PATH) String path,
-						     @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
-							     defaultValue = "false") boolean preferContent)
+												@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+												@ValidExistingContentPath
+												@RequestParam(value = REQUEST_PARAM_PATH) String path,
+												@RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
+													defaultValue = "false") boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
 		ContentItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
 		ResultOne<ContentItem> result = new ResultOne<>();
@@ -245,8 +246,8 @@ public class ContentController {
 	@Valid
 	@GetMapping(GET_CONTENT_BY_COMMIT_ID)
 	public ResponseEntity<Resource> getContentByCommitId(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-							     @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
-							     @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
+														 @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
+														 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
 		throws ServiceLayerException, UserNotFoundException {
 		Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
 
@@ -255,6 +256,18 @@ public class ContentController {
 			.ok()
 			.contentType(MediaType.parseMediaType(mimeType))
 			.body(resource);
+	}
+
+	@PostMapping(value = SITE_ID, consumes = APPLICATION_JSON_VALUE)
+	public Result write(@PathVariable @ValidSiteId String siteId, @RequestBody @Valid WriteContentRequest requestBody) {
+		// TODO: implement
+		return new Result();
+	}
+
+	@PutMapping(value = SITE_ID)
+	public Result upload(@PathVariable @ValidSiteId String siteId, @RequestPart String path, @RequestPart("file") MultipartFile file) {
+		// TODO: implement
+		return new Result();
 	}
 
 	@PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
@@ -268,7 +281,7 @@ public class ContentController {
 
 	@GetMapping(value = ITEM_HISTORY)
 	public ResultList<ItemVersion> getHistory(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-						  @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path) throws ServiceLayerException {
+											  @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path) throws ServiceLayerException {
 		ResultList<ItemVersion> result = new ResultList<>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_ITEMS, contentService.getContentVersionHistory(siteId, path));

@@ -49,7 +49,8 @@ public final class RequestMappingConstants {
 	public static final String GET_DELETE_PACKAGE = "/get_delete_package";
 	public static final String DELETE = "/delete";
 	public static final String GET_CHILDREN_BY_PATH = "/children_by_path";
-	public static final String GET_CHILDREN_BY_PATHS = "/{siteId}/children";
+	public static final String SITE_ID = "/{siteId}";
+	public static final String GET_CHILDREN_BY_PATHS = SITE_ID + "/children";
 	public static final String GET_DESCRIPTOR = "/descriptor";
 	public static final String PASTE_ITEMS = "/paste";
 	public static final String DUPLICATE_ITEM = "/duplicate";
