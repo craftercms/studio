@@ -4940,11 +4940,18 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                oldPath:
+                                    type: string
+                                    description: old content item path (including filename). If present, an "update and rename" operation will be performed
                                 content:
                                     type: string
                                     description: the item content
+                            required:
+                                - path
+                                - content
                         example:
-                            path: 'templates/web/fragments/head.ftl'
+                            path: 'templates/web/fragments/head2.ftl'
+                            oldPath: 'templates/web/fragments/head.ftl'
                             content:  |-
                                 <title>${contentModel.title_t}</title>
                                 <meta charset="utf-8"/>

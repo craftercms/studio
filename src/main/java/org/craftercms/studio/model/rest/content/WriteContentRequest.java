@@ -26,6 +26,8 @@ public class WriteContentRequest {
 
 	@ValidExistingContentPath
 	private String path;
+	@ValidExistingContentPath
+	private String oldPath;
 	@NotBlank
 	private String content;
 
@@ -35,6 +37,14 @@ public class WriteContentRequest {
 
 	public void setPath(@ValidExistingContentPath String path) {
 		this.path = path;
+	}
+
+	public @ValidExistingContentPath String getOldPath() {
+		return oldPath;
+	}
+
+	public void setOldPath(@ValidExistingContentPath String oldPath) {
+		this.oldPath = oldPath;
 	}
 
 	public String getContent() {
