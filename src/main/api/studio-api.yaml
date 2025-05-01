@@ -4897,6 +4897,8 @@ paths:
                                 properties:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
+                                allOf:
+                                    -   $ref: '#/components/schemas/WriteContentResponse'
                 '201':
                     description: Created
                     content:
@@ -4963,6 +4965,8 @@ paths:
                                 properties:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
+                                allOf:
+                                    -   $ref: '#/components/schemas/WriteContentResponse'
                 '201':
                     description: Created
                     content:
@@ -10407,6 +10411,36 @@ components:
                             comment:
                                 type: string
                                 description: The commit comment
+
+        WriteContentResponse:
+            type: object
+            description: describes the result of a write content operation
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/WriteContentResultItem'
+                    example:
+                        - path: '/site/website/page1/index.xml'
+                          action: ADDED
+                        - path: '/site/website/page1/summary/index.xml'
+                          action: ADDED
+                        - path: '/site/website/page1/draft/index.xml'
+                          action: DELETED
+
+        WriteContentResultItem:
+            type: object
+            description: the result of a write content operation
+            properties:
+                path:
+                    type: string
+                    description: the content item path
+                action:
+                    type: string
+                    description: the action performed for the item
+                    enum:
+                        - ADDED
+                        - DELETED
 
         PaginatedResponse:
             type: object
