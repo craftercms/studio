@@ -4890,6 +4890,8 @@ paths:
                                     type: string
                                     format: binary
                                     description: the file to be uploaded
+                            required:
+                                - file
             responses:
                 '200':
                     description: OK
