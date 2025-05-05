@@ -4872,6 +4872,11 @@ paths:
                     required: true
                     schema:
                         type: string
+                -   name: path
+                    in: query
+                    description: content item path (including filename)
+                    schema:
+                        type: string
             requestBody:
                 description: Upload file request body
                 required: true
@@ -4880,9 +4885,6 @@ paths:
                         schema:
                             type: object
                             properties:
-                                path:
-                                    type: string
-                                    description: content item path (including filename)
                                 file:
                                     type: string
                                     format: binary
@@ -4931,23 +4933,20 @@ paths:
                     required: true
                     schema:
                         type: string
+                -   name: path
+                    in: query
+                    description: content item path (including filename)
+                    schema:
+                        type: string
             requestBody:
                 description: "Write content request body"
                 required: true
                 content:
-                    application/json:
+                    text/plain:
                         schema:
-                            type: object
-                            properties:
-                                path:
-                                    type: string
-                                    description: content item path (including filename)
-                                content:
-                                    type: string
-                                    description: the item content
-                        example:
-                            path: 'templates/web/fragments/head.ftl'
-                            content:  |-
+                            type: string
+                            description: the item content
+                            example: |-
                                 <title>${contentModel.title_t}</title>
                                 <meta charset="utf-8"/>
                                 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
