@@ -4877,6 +4877,7 @@ paths:
                     description: content item path (including filename)
                     schema:
                         type: string
+                    required: true
             requestBody:
                 description: Upload file request body
                 required: true
@@ -4938,6 +4939,7 @@ paths:
                     description: content item path (including filename)
                     schema:
                         type: string
+                    required: true
             requestBody:
                 description: "Write content request body"
                 required: true
@@ -10426,6 +10428,8 @@ components:
                           action: ADDED
                         - path: '/site/website/page1/draft/index.xml'
                           action: DELETED
+            required:
+                - items
 
         WriteContentResultItem:
             type: object
@@ -10440,6 +10444,9 @@ components:
                     enum:
                         - ADDED
                         - DELETED
+            required:
+                - path
+                - action
 
         PaginatedResponse:
             type: object
