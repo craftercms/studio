@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,9 +18,9 @@ package org.craftercms.studio.impl.v2.event;
 
 import org.apache.commons.io.FileUtils;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
-import org.craftercms.studio.impl.v2.utils.spring.event.CleanupTemporaryFilesEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 
@@ -39,7 +39,7 @@ public class TemporaryFilesDirStartupTask {
     private static final Logger logger = LoggerFactory.getLogger(TemporaryFilesDirStartupTask.class);
 
     @Order(HIGHEST_PRECEDENCE)
-    @EventListener(CleanupTemporaryFilesEvent.class)
+    @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
     public void cleanup() throws IOException {
         logger.debug("Cleanup studio temporary files");
         Path studioTempDir = StudioUtils.getStudioTemporaryFilesRoot();
