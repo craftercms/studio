@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -782,7 +781,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      * bootstrap the global repository
      */
     @Order(1)
-    @EventListener(ContextRefreshedEvent.class)
+    @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
     public void bootstrap() throws Exception {
         logger.debug("Bootstrap the Global repository");
 
