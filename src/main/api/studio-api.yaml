@@ -4882,16 +4882,11 @@ paths:
                 description: Upload file request body
                 required: true
                 content:
-                    multipart/form-data:
+                    application/octet-stream:
                         schema:
-                            type: object
-                            properties:
-                                file:
-                                    type: string
-                                    format: binary
-                                    description: the file to be uploaded
-                            required:
-                                - file
+                            type: string
+                            format: binary
+                            description: the file to be uploaded
             responses:
                 '200':
                     description: OK
@@ -10429,11 +10424,14 @@ components:
                         $ref: '#/components/schemas/WriteContentResultItem'
                     example:
                         - path: '/site/website/page1/index.xml'
-                          action: ADDED
+                          action: UPDATED
+                          amended: true
                         - path: '/site/website/page1/summary/index.xml'
                           action: ADDED
+                          amended: false
                         - path: '/site/website/page1/draft/index.xml'
                           action: DELETED
+                          amended: false
             required:
                 - items
 
@@ -10449,10 +10447,15 @@ components:
                     description: the action performed for the item
                     enum:
                         - ADDED
+                        - UPDATED
                         - DELETED
+                amended:
+                    type: boolean
+                    description: 'indicates if the content submitted was further updated (e.g.: lifecycle controller, asset pipeline)'
             required:
                 - path
                 - action
+                - amended
 
         PaginatedResponse:
             type: object
