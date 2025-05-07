@@ -10427,7 +10427,7 @@ components:
                           action: UPDATED
                           amended: true
                         - path: '/site/website/page1/summary/index.xml'
-                          action: ADDED
+                          action: NEW
                           amended: false
                         - path: '/site/website/page1/draft/index.xml'
                           action: DELETED
@@ -10446,8 +10446,12 @@ components:
                     type: string
                     description: the action performed for the item
                     enum:
-                        - ADDED
+                        - NEW
+                        - COPIED
+                        - DUPLICATED
                         - UPDATED
+                        - RENAMED
+                        - REVERTED
                         - DELETED
                 amended:
                     type: boolean
