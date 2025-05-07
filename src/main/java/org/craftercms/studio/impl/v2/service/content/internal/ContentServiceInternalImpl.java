@@ -52,6 +52,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParam
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.dom4j.Document;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +65,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.util.MimeType;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -316,6 +318,29 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} catch (IOException | GitAPIException e) {
 			throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
 		}
+	}
+
+	@Override
+	public WriteContentResult write(final String siteId, final String path, final InputStream content)
+		throws ServiceLayerException {
+		// Store content in temporary file
+		// Check if it is an asset
+			// If it is an asset, create the Asset and call the AssetService
+			// Otherwise: create the Lifecycle content object and call the controller.groovy
+		// Now we have a list of items to write
+		// Check list is not empty or throw exception  (can't write empty set)
+		// Check permissions or throw ActionDeniedException
+		// Check items are not in workflow or throw ContentInPublishQueueException
+
+		// Write to the repository and commit
+		// Update dependencies
+		// Update database metadata
+		// Audit write operation
+		// Publish events
+		// Return the WriteContentResult
+
+		// TODO: implement
+		return new WriteContentResult(emptyList());
 	}
 
 	@Override

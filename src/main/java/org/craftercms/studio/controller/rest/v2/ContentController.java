@@ -21,10 +21,7 @@ import jakarta.validation.constraints.NotEmpty;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -52,9 +49,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.beans.ConstructorProperties;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,6 +66,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @Validated
 @RestController
@@ -258,16 +256,30 @@ public class ContentController {
 			.body(resource);
 	}
 
-	@PostMapping(value = SITE_ID, consumes = APPLICATION_JSON_VALUE)
-	public Result write(@PathVariable @ValidSiteId String siteId, @RequestBody @Valid WriteContentRequest requestBody) {
-		// TODO: implement
-		return new Result();
+	@PostMapping(value = SITE_ID, consumes = TEXT_PLAIN_VALUE)
+	public Result write(@PathVariable @ValidSiteId String siteId,
+						@NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+						InputStream content)
+		throws ServiceLayerException {
+		return writeContent(siteId, path, content);
 	}
 
 	@PutMapping(value = SITE_ID)
-	public Result upload(@PathVariable @ValidSiteId String siteId, @RequestPart String path, @RequestPart("file") MultipartFile file) {
-		// TODO: implement
-		return new Result();
+	public Result upload(@PathVariable @ValidSiteId String siteId,
+						 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+						 InputStream content)
+		throws ServiceLayerException {
+		return writeContent(siteId, path, content);
+	}
+
+	private Result writeContent(final String siteId,
+								final String path,
+								final InputStream content)
+		throws ServiceLayerException {
+		WriteContentResult writeResult = contentService.write(siteId, path, content);
+		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(writeResult);
+		result.setResponse(OK);
+		return result;
 	}
 
 	@PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)

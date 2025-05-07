@@ -31,9 +31,11 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -277,4 +279,15 @@ public interface ContentService {
 	 * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
 	 */
 	List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+
+	/**
+	 * Write content to the given path
+	 *
+	 * @param siteId  the site id
+	 * @param path    the content path
+	 * @param content the content to write
+	 * @return the result of the write operation, which includes affected paths
+	 * @throws ServiceLayerException if an error occurs while writing the content
+	 */
+	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException;
 }

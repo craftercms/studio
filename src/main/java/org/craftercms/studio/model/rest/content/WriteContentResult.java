@@ -16,32 +16,23 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import jakarta.validation.constraints.NotBlank;
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 
-/**
- * Request for a write-content operation
- */
-public class WriteContentRequest {
+import java.util.List;
 
-	@ValidExistingContentPath
-	private String path;
-	@NotBlank
-	private String content;
+public class WriteContentResult {
+	private final List<WriteContentResultItem> items;
 
-	public @ValidExistingContentPath String getPath() {
-		return path;
+	public WriteContentResult(final List<WriteContentResultItem> items) {
+		this.items = items;
 	}
 
-	public void setPath(@ValidExistingContentPath String path) {
-		this.path = path;
+	public List<WriteContentResultItem> getItems() {
+		return items;
 	}
 
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
+	public record WriteContentResultItem(String path,
+										 DmContentLifeCycleService.ContentLifeCycleOperation operation,
+										 boolean amended) {
 	}
 }
