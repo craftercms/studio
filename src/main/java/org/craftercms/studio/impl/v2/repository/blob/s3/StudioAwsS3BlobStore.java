@@ -70,8 +70,6 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
 	private static final Logger logger = LoggerFactory.getLogger(StudioAwsS3BlobStore.class);
 
-	public static final String OK = "OK";
-
 	protected boolean readOnly;
 
 	private final ThreadPoolTaskExecutor taskExecutor;
@@ -201,14 +199,13 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 	}
 
 	@Override
-	public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
+	public void writeContent(String site, String path, InputStream content) throws ServiceLayerException {
 		checkReadWriteMode();
 		Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
 		logger.debug("Upload content to site '{}' path '{}'", site, getFullKey(previewMapping, path));
 		try {
 			uploadStream(previewMapping.target,
 				getKey(previewMapping, path), getClient(), MIN_PART_SIZE, path, content);
-			return OK;
 		} catch (Exception e) {
 			logger.error("Failed to upload content to site '{}' path '{}'",
 				site, getFullKey(previewMapping, path), e);
@@ -218,10 +215,9 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 	}
 
 	@Override
-	public String createFolder(String site, String path, String name) throws ServiceLayerException {
+	public void createFolder(String site, String path, String name) throws ServiceLayerException {
 		checkReadWriteMode();
 		// Do nothing, S3 has no folders
-		return OK;
 	}
 
 	@Override

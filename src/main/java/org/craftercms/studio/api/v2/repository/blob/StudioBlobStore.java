@@ -18,11 +18,13 @@ package org.craftercms.studio.api.v2.repository.blob;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
@@ -79,6 +81,26 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 * @param path the path of the content
 	 */
 	void deleteContent(String site, String path) throws ServiceLayerException;
+
+	/**
+	 * Write a content item into the repository
+	 *
+	 * @param site    the site id
+	 * @param path    the path to write the content
+	 * @param content the content to write
+	 */
+	void writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path to create the folder
+	 * @param name the name of the folder
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	void createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Store the result of a publish operation

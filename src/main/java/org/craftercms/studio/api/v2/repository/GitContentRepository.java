@@ -30,6 +30,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -385,4 +386,27 @@ public interface GitContentRepository extends ContentRepository {
 	 */
 	String revertContent(String site, String path, String version, String comment) throws UserNotFoundException, ServiceLayerException;
 
+	/**
+	 * Write a content item into the repository
+	 *
+	 * @param site    the site id
+	 * @param path    the path to write the content
+	 * @param content the content to write
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path to create the folder
+	 * @param name the name of the folder
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 }

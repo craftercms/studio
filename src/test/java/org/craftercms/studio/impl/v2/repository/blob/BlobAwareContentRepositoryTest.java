@@ -21,12 +21,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore.PublishChangeSet;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl;
@@ -218,7 +218,7 @@ public class BlobAwareContentRepositoryTest {
 
 	@Test
 	public void writeContentFailTest() throws ServiceLayerException, UserNotFoundException {
-		when(store.writeContent(SITE, ORIGINAL_PATH, CONTENT)).thenThrow(new ServiceLayerException("Test"));
+		doThrow(new ServiceLayerException("Test")).when(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
 
 		try {
 			proxy.writeContent(SITE, ORIGINAL_PATH, CONTENT);

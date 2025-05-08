@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import java.io.InputStream;
 
@@ -87,18 +86,6 @@ public interface ContentRepository {
 	InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
 
 	/**
-	 * Create a folder in the repository
-	 *
-	 * @param site the site id
-	 * @param path the path to create the folder
-	 * @param name the name of the folder
-	 * @return commit id after the operation
-	 * @throws ServiceLayerException if the operation fails
-	 * @throws UserNotFoundException if the current user is not found
-	 */
-	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
-
-	/**
 	 * Move content (files or directories) from one path to another
 	 *
 	 * @param site     the site id
@@ -108,16 +95,4 @@ public interface ContentRepository {
 	 * @throws ServiceLayerException if the operation fails
 	 */
 	String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
-
-	/**
-	 * Write a content item into the repository
-	 *
-	 * @param site    the site id
-	 * @param path    the path to write the content
-	 * @param content the content to write
-	 * @return commit id after the operation
-	 * @throws ServiceLayerException if the operation fails
-	 * @throws UserNotFoundException if the current user is not found
-	 */
-	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 }
