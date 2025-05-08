@@ -19,6 +19,7 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
@@ -55,7 +56,7 @@ public class ClipboardServiceImpl implements ClipboardService {
 	public List<String> pasteItems(@SiteId String siteId,
 				       Operation operation,
 				       @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
-				       PasteItem item) throws ServiceLayerException, UserNotFoundException {
+				       PasteItem item) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
 	}
 
@@ -65,7 +66,7 @@ public class ClipboardServiceImpl implements ClipboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public String duplicateItem(@SiteId String siteId,
 				    @ContentPath String path)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return clipboardServiceInternal.duplicateItem(siteId, path);
 	}
 }

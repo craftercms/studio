@@ -258,7 +258,7 @@ public interface ContentService {
 	 * @throws ValidationException   validation exception
 	 */
 	boolean renameContent(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException;
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 	/**
 	 * Returns content wrapped as a {@link Resource} instance

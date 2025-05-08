@@ -193,7 +193,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public boolean renameContent(@SiteId String site,
 								 @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		return contentServiceInternal.renameContent(site, path, name);
 	}
 

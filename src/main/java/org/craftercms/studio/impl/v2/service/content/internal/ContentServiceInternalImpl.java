@@ -512,7 +512,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException, ValidationException {
+	public boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		logger.debug("rename path {} to new name {} for site {}", path, name, site);
 		return contentServiceV1.renameContent(site, path, name);
 	}

@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -115,7 +116,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	@Override
 	public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		// Lock the sandbox repository to prevent publish packages being submitted (cut-paste operations might conflict with submitted packages)
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
@@ -133,7 +134,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	// Code based on the original clipboard service v1
 	protected void pasteItemsInternal(String siteId, Operation operation, String targetPath, List<PasteItem> items,
-					  List<String> pastedItems) throws ServiceLayerException, UserNotFoundException {
+					  List<String> pastedItems) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		for (var item : items) {
 			try {
 				String newPath = null;
@@ -169,7 +170,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	}
 
 	@RequireContentExists
-	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, UserNotFoundException {
+	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String parentUrl = getParentUrl(path);
 		var item = contentService.getContentItem(siteId, parentUrl, 0);
 		return contentService.copyContent(siteId, path, item.uri);

@@ -20,6 +20,7 @@ import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
@@ -179,7 +180,7 @@ public interface ContentService {
 	 * @throws ValidationException
 	 */
 	boolean validateAndCreateFolder(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException;
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 	/**
 	 * create a folder
@@ -191,7 +192,7 @@ public interface ContentService {
 	 * @throws SiteNotFoundException site not found
 	 */
 	boolean createFolder(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException;
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * copy content fromPath to toPath
@@ -204,7 +205,7 @@ public interface ContentService {
 	 * @throws ServiceLayerException general service exception
 	 * @throws UserNotFoundException user not found exception
 	 */
-	String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException;
+	String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * move content fromPath to toPath
@@ -268,7 +269,7 @@ public interface ContentService {
 	 * @throws UserNotFoundException user not found exception
 	 */
 	boolean revertContentItem(String site, String path, String version, boolean major, String comment)
-		throws ServiceLayerException, UserNotFoundException;
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * return the content for a given version
@@ -366,6 +367,6 @@ public interface ContentService {
 	 * @throws ValidationException   validation exception
 	 */
 	boolean renameContent(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException;
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 }

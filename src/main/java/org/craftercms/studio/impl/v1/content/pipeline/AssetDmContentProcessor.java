@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -64,7 +65,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 
 	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
 		String site = content.getProperty(DmConstants.KEY_SITE);
-		String user = content.getProperty(DmConstants.KEY_USER);
 		String path = content.getProperty(DmConstants.KEY_PATH);
 		String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
 		String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
@@ -75,7 +75,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 		boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
 		try {
 			ContentAssetInfoTO oldAssetInfo = (ContentAssetInfoTO) result.getItem();
-			ContentAssetInfoTO assetInfo = writeContentAsset(content, site, user, path, fileName,
+			ContentAssetInfoTO assetInfo = writeContentAsset(content, site, path, fileName,
 				content.getContentStream(), createFolders, isPreview, unlock,
 				result);
 			if (oldAssetInfo != null) {
@@ -87,7 +87,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 			} else {
 				result.setItem(assetInfo);
 			}
-		} catch (ServiceLayerException | UserNotFoundException e) {
+		} catch (ServiceLayerException | UserNotFoundException | AuthenticationException e) {
 			throw new ContentProcessException("Failed to write " + content.getId() + ", " + e, e);
 		} finally {
 			content.closeContentStream();
@@ -107,11 +107,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 	 * @return asset information
 	 * @throws ServiceLayerException if the asset cannot be written
 	 */
-	protected ContentAssetInfoTO writeContentAsset(PipelineContent content, String site, String user, String path,
+	protected ContentAssetInfoTO writeContentAsset(PipelineContent content, String site, String path,
 						       String assetName, InputStream in,
 						       boolean createFolders, boolean isPreview, boolean unlock,
 						       ResultTO result)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("Writing content asset in site '{}' path '{}' assetName '{}' createFolders '{}'",
 			site, path, assetName, createFolders);
 
@@ -135,10 +135,10 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 			if (parentExists && parentContentItem.isFolder()) {
 				boolean exists = contentService.contentExists(site, path + FILE_SEPARATOR + assetName);
 				if (exists) {
-					updateFile(site, contentPath, in, user, isPreview, unlock, result);
+					updateFile(site, contentPath, in, isPreview, unlock, result);
 					content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
 				} else {
-					createNewFile(site, parentContentItem, assetName, in, user, unlock, result);
+					createNewFile(site, parentContentItem, assetName, in, unlock, result);
 					content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
 				}
 				ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
@@ -162,7 +162,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 				}
 				// Item
 				// TODO: get local code with API 2
-				itemService.persistItemAfterWrite(site, contentPath, user, unlock);
+				itemService.persistItemAfterWrite(site, contentPath, unlock);
 				assetInfo.setFileExtension(ext);
 				return assetInfo;
 			} else {

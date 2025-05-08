@@ -24,6 +24,7 @@ import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -35,6 +36,7 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
 import java.util.*;
 
@@ -190,13 +192,13 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
+	public void persistItemAfterCreate(String siteId, String path, String commitId,
 									   boolean unlock, Long parentId)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, AuthenticationException {
 		String lockKey = "persistItemAfterCreate:" + siteId;
 		generalLockService.lock(lockKey);
 		try {
-			User userObj = userService.getUserByIdOrUsername(-1, username);
+			User userObj = SecurityUtils.getCurrentUser();
 			var descriptor = contentService.getItem(siteId, path, false);
 			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 			boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
@@ -234,9 +236,9 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterWrite(String siteId, String path, String username, boolean unlock)
-		throws ServiceLayerException, UserNotFoundException {
-		User userObj = userService.getUserByIdOrUsername(-1, username);
+	public void persistItemAfterWrite(String siteId, String path, boolean unlock)
+		throws ServiceLayerException, AuthenticationException {
+		User userObj = SecurityUtils.getCurrentUser();
 		var descriptor = contentService.getItem(siteId, path, false);
 		String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 		boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
@@ -269,10 +271,10 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
+	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName,
 											 String commitId, Long parentId)
-		throws ServiceLayerException, UserNotFoundException {
-		User userObj = userService.getUserByIdOrUsername(-1, username);
+		throws AuthenticationException {
+		User userObj = SecurityUtils.getCurrentUser();
 		Item item = instantiateItem(siteId, folderPath)
 			.withLastModifiedBy(userObj.getId())
 			.withLastModifiedOn(DateUtils.getCurrentTime())
@@ -285,10 +287,10 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterRenameContent(String siteId, String path, String name, String username,
+	public void persistItemAfterRenameContent(String siteId, String path, String name,
 											  String commitId, String contentType)
-		throws ServiceLayerException, UserNotFoundException {
-		User userObj = userService.getUserByIdOrUsername(-1, username);
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		User userObj = SecurityUtils.getCurrentUser();
 		Item item = instantiateItem(siteId, path)
 			.withPreviewUrl(CONTENT_TYPE_FOLDER.equals(contentType) ? null : getBrowserUrl(siteId, path))
 			.withLastModifiedBy(userObj.getId())

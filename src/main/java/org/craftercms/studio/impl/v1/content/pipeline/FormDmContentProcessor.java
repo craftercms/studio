@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -127,7 +128,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 				// update the content
 				// look up the path content first
 				if (parentItem.getName().equals(fileName)) {
-					updateFile(site, path, input, user, isPreview, unlock, result);
+					updateFile(site, path, input, isPreview, unlock, result);
 					content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
 					if (unlock) {
 						unlock(site, path);
@@ -141,7 +142,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 					boolean fileExists = contentService.contentExists(site, path);
 					if (fileExists) {
-						updateFile(site, path, input, user, isPreview, unlock, result);
+						updateFile(site, path, input, isPreview, unlock, result);
 						content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
 						if (unlock) {
 							unlock(site, path);
@@ -151,7 +152,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 							throw new ContentNotFoundException(format("The parent of content item at '%s' doesn't exist in site '%s'",
 								parentContentPath, site));
 						}
-						createNewFile(site, parentItem, fileName, input, user, unlock, result);
+						createNewFile(site, parentItem, fileName, input, unlock, result);
 						content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
 					}
 				}
@@ -189,11 +190,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 	 * @param site     Site name
 	 * @param fileName new file name
 	 * @param input    file content
-	 * @param user     current user
 	 * @throws ContentNotFoundException if content at the path does not exist
 	 */
 	protected ContentItemTO createNewFile(String site, @NonNull ContentItemTO parentItem, String fileName, InputStream input,
-					      String user, boolean unlock, ResultTO result)
+					      boolean unlock, ResultTO result)
 		throws ServiceLayerException {
 		String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
 		itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
@@ -206,7 +206,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 			String parentItemPath =
 				ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
 			Item parent = itemService.getItem(site, parentItemPath, true);
-			itemService.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
+			itemService.persistItemAfterCreate(site, itemPath, commitId, unlock, parent.getId());
 			contentService.notifyContentEvent(site, itemPath);
 
 			// unlock the content upon save
@@ -230,14 +230,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 	 * update the file at the given content node
 	 *
 	 * @param input     stream with the content to be written
-	 * @param user      user updating the content
 	 * @param isPreview is this a preview update?
 	 * @param unlock    unlock the content upon update?
 	 * @throws ServiceLayerException if the content cannot be updated
 	 */
-	protected void updateFile(String site, String path, InputStream input, String user,
+	protected void updateFile(String site, String path, InputStream input,
 				  boolean isPreview, boolean unlock, ResultTO result)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String sandboxRepoLockKey = StudioUtils.getSandboxRepoLockKey(site);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
@@ -258,7 +257,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 				// Item
 				// TODO: get local code with API 2
-				itemService.persistItemAfterWrite(site, path, user, unlock);
+				itemService.persistItemAfterWrite(site, path, unlock);
 				contentService.notifyContentEvent(site, path);
 			}
 
@@ -275,7 +274,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 	@Override
 	public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		// create parent folders if missing
 		String[] levels = path.split(FILE_SEPARATOR);
 		String parentPath = "";

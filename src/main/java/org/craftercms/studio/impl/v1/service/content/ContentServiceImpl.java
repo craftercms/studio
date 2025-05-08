@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -678,7 +679,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Override
 	@RequireSiteExists
 	public boolean validateAndCreateFolder(@SiteId String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
 		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
 		validateValue(pathValidator, name, REQUEST_PARAM_NAME);
@@ -692,7 +693,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public boolean createFolder(@ValidateStringParam @SiteId String site,
 				    @ValidateSecurePathParam @ActionTargetPath String path,
 				    @ValidateStringParam @ActionTargetFilename String name)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String folderPath = path + FILE_SEPARATOR + name;
 		String commitId = contentRepository.createFolder(site, path, name);
 		if (commitId == null) {
@@ -702,7 +703,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		if (isNull(parentItem)) {
 			parentItem = createMissingParentItem(site, path, commitId);
 		}
-		itemService.persistItemAfterCreateFolder(site, folderPath, name, SecurityUtils.getCurrentUsername(),
+		itemService.persistItemAfterCreateFolder(site, folderPath, name,
 			commitId, parentItem.getId());
 
 		String username = SecurityUtils.getCurrentUsername();
@@ -724,7 +725,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	private Item createMissingParentItem(String site, String parentPath, String commitId)
-		throws UserNotFoundException, ServiceLayerException {
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		String ancestorPath = ContentUtils.getParentUrl(parentPath);
 		String name = ContentUtils.getPageName(parentPath);
 		Item ancestor = itemService.getItem(site, ancestorPath, true);
@@ -732,7 +733,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			createMissingParentItem(site, ancestorPath, commitId);
 			ancestor = itemService.getItem(site, ancestorPath, true);
 		}
-		itemService.persistItemAfterCreateFolder(site, parentPath, name, SecurityUtils.getCurrentUsername(),
+		itemService.persistItemAfterCreateFolder(site, parentPath, name,
 			commitId, ancestor.getId());
 		return itemService.getItem(site, parentPath, true);
 	}
@@ -743,7 +744,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public String copyContent(@ValidateStringParam @SiteId String site,
 				  @ValidateSecurePathParam @ActionSourcePath String fromPath,
 				  @ValidateSecurePathParam @ActionTargetPath String toPath)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return copyContent(site, fromPath, toPath, new HashSet<>());
 	}
 
@@ -752,7 +753,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	 * Get dependencies is already recursive
 	 */
 	protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String retNewFileName = null;
 
 		String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
@@ -884,7 +885,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			}
 
 			applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, toPath));
-		} catch (ServiceLayerException | UserNotFoundException e) {
+		} catch (ServiceLayerException | UserNotFoundException | AuthenticationException e) {
 			logger.info("Failed to copy content in site '{}' from '{}' to '{}', new name is '{}'",
 				site, fromPath, toPath, copyPath, e);
 			throw e;
@@ -2019,7 +2020,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 									 @ValidateSecurePathParam String path,
 									 String version, boolean major,
 									 String comment)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		contentServiceV2.lockContent(site, path);
 		try {
 			trySetSystemProcessing(site, path);
@@ -2039,7 +2040,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 			String username = SecurityUtils.getCurrentUsername();
 			// Update the database for the target item
-			itemService.persistItemAfterWrite(site, path, username, true);
+			itemService.persistItemAfterWrite(site, path, true);
 
 
 			// This is not required, the current user is already loaded in memory
@@ -2396,7 +2397,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public boolean renameContent(@ValidateStringParam @SiteId String siteId,
 				     @ValidateSecurePathParam @ActionTargetPath @ContentPath String path,
 				     @ValidateStringParam @ActionTargetFilename String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
 		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
 		validateValue(pathValidator, name, REQUEST_PARAM_NAME);
@@ -2432,7 +2433,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
 			itemService.persistItemAfterRenameContent(siteId, targetPath, name,
-				SecurityUtils.getCurrentUsername(), commitId, contentType);
+				commitId, contentType);
 
 			if (isFolder) {
 				updateChildrenOnMove(siteId, path, targetPath, commitId);

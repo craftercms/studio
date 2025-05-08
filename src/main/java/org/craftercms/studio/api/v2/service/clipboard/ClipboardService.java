@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v2.service.clipboard;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.clipboard.PasteItem;
 import org.craftercms.studio.model.clipboard.Operation;
@@ -42,7 +43,7 @@ public interface ClipboardService {
 	 * @throws UserNotFoundException if the user is not found
 	 */
 	List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
-		throws ServiceLayerException, UserNotFoundException;
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Duplicates the given item
@@ -53,6 +54,6 @@ public interface ClipboardService {
 	 * @throws ServiceLayerException if there is any error copying the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException;
+	String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 }
