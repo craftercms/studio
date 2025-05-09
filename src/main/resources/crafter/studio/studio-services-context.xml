@@ -436,6 +436,12 @@
 		<property name="contentServiceV1" ref="cstudioContentService"/>
 		<property name="publishService" ref="publishServiceInternal"/>
 		<property name="processedCommitsDao" ref="processedCommitsDao"/>
+		<property name="contentLifeCycle" ref="contentLifeCycle"/>
+	</bean>
+
+	<bean id="contentLifeCycle" class="org.craftercms.studio.impl.v2.content.ContentLifeCycleImpl">
+		<constructor-arg name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
 	<bean id="contentTypeServiceInternal"

@@ -289,5 +289,5 @@ public interface ContentService {
 	 * @return the result of the write operation, which includes affected paths
 	 * @throws ServiceLayerException if an error occurs while writing the content
 	 */
-	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException;
+	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 }

@@ -409,4 +409,13 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws UserNotFoundException if the current user is not found
 	 */
 	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Write a collection of content items into the repository
+	 *
+	 * @param siteId     the site id
+	 * @param writeItems the collection of ContentWriteItem to write
+	 * @return commit id after the operation
+	 */
+	String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems) throws ServiceLayerException, UserNotFoundException;
 }

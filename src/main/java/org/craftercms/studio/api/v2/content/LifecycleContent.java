@@ -16,22 +16,40 @@
 
 package org.craftercms.studio.api.v2.content;
 
+import org.apache.commons.io.FileUtils;
+import org.craftercms.studio.api.v2.repository.ContentWriteItem;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
 /**
  * Container for content items to be passed to the content lifecycle controller
  */
 public class LifecycleContent {
 
+	// TODO: implement a close() method to delete any remaining temporary files
+
 	private final String repoPath;
 	private final LifeCycleOperation operation;
 	private final String contentType;
 	private final Map<String, ContentLifecycleItem> items;
 
+	/**
+	 * Constructor for creating a new LifecycleContent object.
+	 *
+	 * @param repoPath    the path to the content item in the repository
+	 * @param contentType the content type of the item
+	 * @param content     the content to be written
+	 * @param operation   the lifecycle operation to be performed
+	 */
 	public LifecycleContent(String repoPath, String contentType, Path content, LifeCycleOperation operation) {
 		this.items = new HashMap<>();
 		this.repoPath = repoPath;
@@ -40,11 +58,20 @@ public class LifecycleContent {
 		this.items.put(repoPath, new ContentLifecycleItem(repoPath, content));
 	}
 
-	public void write(String path, Path content) {
-		// TODO: Implement
+	/**
+	 * Add a new content item to the lifecycle operation.
+	 *
+	 * @param path    the path to the content item
+	 * @param content InputStream of the content item
+	 * @throws IOException if an error occurs while reading the stream or storing the content
+	 */
+	// TODO: consider overloading this method to accept content in different ways: Path, String Document ?
+	public void write(String path, InputStream content) throws IOException {
 		// Remove the temporary file if it exists
+		exclude(path);
+		Path filePath = createTempFile(path, content);
 		// Add a new entry with amended=<path is the same as the original repoPath>
-		this.items.put(path, new ContentLifecycleItem(path, content, repoPath.equals(path)));
+		this.items.put(path, new ContentLifecycleItem(path, filePath, repoPath.equals(path)));
 	}
 
 	/**
@@ -54,22 +81,10 @@ public class LifecycleContent {
 	 * @param path the path to exclude
 	 */
 	public void exclude(final String path) {
-		// TODO: Implement
-		// Remove the temporary file if it exists
-		items.remove(path);
-	}
-
-	/**
-	 * Mark the given path to be deleted from the repository.
-	 *
-	 * @param path the path to delete
-	 */
-	public void delete(final String path) {
-		// TODO: Implement
-		// Remove the temporary file if it exists
-		// Add a new entry with delete=true
-		this.items.put(path, new ContentLifecycleItem(path, null, false, true));
-
+		ContentLifecycleItem removed = items.remove(path);
+		if (removed != null && removed.filePath() != null) {
+			FileUtils.deleteQuietly(removed.filePath().toFile());
+		}
 	}
 
 	public Map<String, ContentLifecycleItem> getItems() {
@@ -94,14 +109,15 @@ public class LifecycleContent {
 	 * @param repoPath the path in the repository where the content will be stored (or deleted from)
 	 * @param filePath the path to the temporary file currently storing the content to be written
 	 */
-	public record ContentLifecycleItem(String repoPath, Path filePath, boolean amended, boolean delete) {
+	public record ContentLifecycleItem(String repoPath, Path filePath, boolean amended) implements ContentWriteItem {
 
 		public ContentLifecycleItem(String repoPath, Path filePath) {
-			this(repoPath, filePath, false, false);
+			this(repoPath, filePath, false);
 		}
 
-		public ContentLifecycleItem(String repoPath, Path filePath, boolean amended) {
-			this(repoPath, filePath, amended, false);
+		@Override
+		public InputStream content() throws FileNotFoundException {
+			return new FileInputStream(filePath.toFile());
 		}
 	}
 
@@ -115,6 +131,6 @@ public class LifecycleContent {
 		NEW,
 		RENAME,
 		REVERT,
-		UPDATE;
+		UPDATE
 	}
 }

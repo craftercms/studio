@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,22 +16,31 @@
 
 package org.craftercms.studio.api.v2.utils;
 
+import jakarta.activation.MimetypesFileTypeMap;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
-import jakarta.activation.MimetypesFileTypeMap;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 
+/**
+ * General utility methods for Crafter Studio
+ */
 public abstract class StudioUtils {
 	private static final String TEMP_DIR_SYSTEM_PROPERTY = "java.io.tmpdir";
 
@@ -96,6 +105,26 @@ public abstract class StudioUtils {
 	}
 
 	/**
+	 * Creates a temporary file in the Crafter Studio temporary files root directory
+	 *
+	 * @param name the name of the file. Result file will have a random name but will preserve the extension of this param
+	 * @return the path to the temporary file
+	 * @throws IOException if an error occurs while creating the file
+	 */
+	public static Path createTempFile(String name) throws IOException {
+		return Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), "." +
+			FilenameUtils.getExtension(name));
+	}
+
+	public static Path createTempFile(String name, InputStream content) throws IOException {
+		Path tmpFile = StudioUtils.createTempFile(name);
+		try (OutputStream out = Files.newOutputStream(tmpFile)) {
+			IOUtils.copy(content, out);
+		}
+		return tmpFile;
+	}
+
+	/**
 	 * Get the key for sandbox repo operations lock
 	 *
 	 * @param siteId the site id
@@ -123,5 +152,16 @@ public abstract class StudioUtils {
 	 */
 	public static String getPublishPackageLockKey(long packageId) {
 		return PUBLISH_PACKAGE_LOCK.replaceAll(PATTERN_PACKAGE_ID, String.valueOf(packageId));
+	}
+
+	/**
+	 * Check if the given path is a descriptor path. i.e. a page or component,
+	 * to be stored under <code>/site/</code>
+	 *
+	 * @param path the path to check
+	 * @return true if the path is a descriptor path, false otherwise
+	 */
+	public static boolean isDescriptorPath(String path) {
+		return path.startsWith(DESCRIPTOR_ROOT_PATH);
 	}
 }

@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
@@ -27,10 +28,15 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.content.ContentLifeCycle;
+import org.craftercms.studio.api.v2.content.LifecycleContent;
+import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
+import org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
@@ -45,6 +51,8 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
@@ -53,7 +61,9 @@ import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
+import org.craftercms.studio.model.rest.content.WriteContentResult.WriteContentResultItem;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -64,8 +74,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.MimeType;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -77,12 +88,16 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.NEW;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.isDescriptorPath;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentItemId;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
 
 public class ContentServiceInternalImpl implements ContentService, ApplicationEventPublisherAware {
@@ -103,6 +118,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private PublishService publishService;
 	private ProcessedCommitsDAO processedCommitsDao;
+	private ContentLifeCycle contentLifeCycle;
 
 	@Override
 	public boolean contentExists(String siteId, String path) {
@@ -116,8 +132,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-						   List<String> systemTypes, List<String> excludes, String sortStrategy,
-						   String order, int offset, int limit)
+											   List<String> systemTypes, List<String> excludes, String sortStrategy,
+											   String order, int offset, int limit)
 		throws ServiceLayerException, UserNotFoundException {
 		if (!contentRepository.contentExists(siteId, path)) {
 			throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -143,7 +159,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private ContentItem getLevelDescriptor(final Site site, final String path, final String locale, final String keyword) throws UserNotFoundException, ServiceLayerException {
 		List<ContentItem> childItems = itemDao.getChildrenByPath(site.getId(), path,
-			locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null,null,
+			locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null,
 			null, null, 0, 1);
 		if (isEmpty(childItems)) {
 			return null;
@@ -157,7 +173,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths,
-							       Map<String, PathParams> pathParams) throws UserNotFoundException, ServiceLayerException {
+														   Map<String, PathParams> pathParams) throws UserNotFoundException, ServiceLayerException {
 		List<ChildrenByPathResult> resultItems = new ArrayList<>(paths.size());
 
 		Map<String, ContentItem> sandboxItemsByPath = getContentItemsByPath(siteId, paths, true).stream()
@@ -322,25 +338,130 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		// Store content in temporary file
+		Path tmpFile;
+		try {
+			tmpFile = StudioUtils.createTempFile(path, content);
+		} catch (IOException e) {
+			throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
+		}
+
+		LifecycleContent lifecycleContent = null;
+
+		// Should we consider configuration files here?
+
 		// Check if it is an asset
-			// If it is an asset, create the Asset and call the AssetService
-			// Otherwise: create the Lifecycle content object and call the controller.groovy
+		if (isDescriptorPath(path)) {
+			// Create the Lifecycle content object and call the controller.groovy
+			// Nav order...
+			try {
+				Document document = ContentUtils.convertStreamToXml(new FileInputStream(tmpFile.toFile()));
+				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
+				boolean contentExists = contentExists(siteId, path);
+				LifeCycleOperation operation = contentExists ? UPDATE : NEW;
+				lifecycleContent = new LifecycleContent(path, contentType, tmpFile, operation);
+				// TODO: call the controller script
+				contentLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
+			} catch (DocumentException | FileNotFoundException e) {
+				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
+			}
+		} else {
+			// It is an asset, create the Asset and call the AssetService
+		}
+
+		Map<String, ContentLifecycleItem> resultItems = lifecycleContent.getItems();
 		// Now we have a list of items to write
 		// Check list is not empty or throw exception  (can't write empty set)
+		if (resultItems.isEmpty()) {
+			throw new ServiceLayerException(format("Item list after lifecycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
+		}
+
 		// Check permissions or throw ActionDeniedException
-		// Check items are not in workflow or throw ContentInPublishQueueException
+		// Fail to continue write operation if the item is in workflow
+		assertNotInWorkflow(siteId, resultItems.keySet(), false);
 
-		// Write to the repository and commit
-		// Update dependencies
-		// Update database metadata
+		Collection<ContentLifecycleItem> lifecycleItems = resultItems.values();
+		// Calculate the operation. This must be done before actually writing to the repository
+		Map<String, LifeCycleOperation> operationsByPath = new HashMap<>(resultItems.size());
+		for (ContentLifecycleItem item : lifecycleItems) {
+			LifeCycleOperation operation = NEW;
+			if (contentExists(siteId, item.repoPath())) {
+				operation = UPDATE;
+			}
+			operationsByPath.put(item.repoPath(), operation);
+		}
+
+		// Write to the repository and commit.
+		String commitId = contentRepository.writeContent(siteId, lifecycleItems);
+
+		Site site = siteService.getSite(siteId);
+		List<WriteContentResultItem> writeResultItems = new ArrayList<>(resultItems.size());
+		// Update database metadata and dependencies
+		for (ContentLifecycleItem item : resultItems.values()) {
+			itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
+			dependencyService.upsertDependencies(siteId, item.repoPath());
+			dependencyService.validateDependencies(siteId, item.repoPath());
+			writeResultItems.add(new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()));
+		}
+
 		// Audit write operation
-		// Publish events
-		// Return the WriteContentResult
+		insertWriteContentAudit(site, path, lifecycleContent.getOperation(), writeResultItems, commitId);
 
-		// TODO: implement
-		return new WriteContentResult(emptyList());
+		// Publish events
+		eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
+
+		// Return the WriteContentResult
+		return new WriteContentResult(writeResultItems);
+	}
+
+	/**
+	 * Content loader method to support the content lifecycle script
+	 *
+	 * @param siteId the site id
+	 * @param path   the path
+	 * @return InputStream to read the content
+	 */
+	private InputStream loadContent(String siteId, String path) {
+		if (!contentRepository.contentExists(siteId, path)) {
+			return null;
+		}
+		try {
+			return contentRepository.getContent(siteId, path);
+		} catch (ContentNotFoundException e) {
+			logger.error("Failed to load content for site '{}' path '{}'", siteId, path, e);
+			return null;
+		}
+	}
+
+	private void insertWriteContentAudit(Site site, String path, LifeCycleOperation operation,
+										 List<WriteContentResultItem> writeResultItems, String commitId) {
+		AuditLog auditLog = createAuditLogEntry();
+		switch (operation) {
+			case NEW -> auditLog.setOperation(AuditLogConstants.OPERATION_CREATE);
+			case UPDATE -> auditLog.setOperation(AuditLogConstants.OPERATION_UPDATE);
+			default -> auditLog.setOperation(operation.name());
+		}
+		auditLog.setActorId(getCurrentUsername());
+		auditLog.setSiteId(site.getId());
+		auditLog.setPrimaryTargetId(getContentItemId(site.getSiteId(), path));
+		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+		auditLog.setPrimaryTargetValue(path);
+		auditLog.setCommitId(commitId);
+
+		List<AuditLogParameter> auditLogParameters = new ArrayList<>(writeResultItems.size());
+		for (WriteContentResultItem item : writeResultItems) {
+			if (item.path().equals(path)) {
+				continue;
+			}
+			AuditLogParameter auditLogParameter = new AuditLogParameter();
+			auditLogParameter.setTargetId(getContentItemId(site.getSiteId(), item.path()));
+			auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+			auditLogParameter.setTargetValue(item.path());
+			auditLogParameters.add(auditLogParameter);
+		}
+		auditLog.setParameters(auditLogParameters);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	@Override
@@ -579,5 +700,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@SuppressWarnings("unused")
 	public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
 		this.processedCommitsDao = processedCommitsDao;
+	}
+
+	@SuppressWarnings("unused")
+
+	public void setContentLifeCycle(ContentLifeCycle contentLifeCycle) {
+		this.contentLifeCycle = contentLifeCycle;
 	}
 }

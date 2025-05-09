@@ -260,7 +260,7 @@ public class ContentController {
 	public Result write(@PathVariable @ValidSiteId String siteId,
 						@NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
 						InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return writeContent(siteId, path, content);
 	}
 
@@ -268,14 +268,14 @@ public class ContentController {
 	public Result upload(@PathVariable @ValidSiteId String siteId,
 						 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
 						 InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return writeContent(siteId, path, content);
 	}
 
 	private Result writeContent(final String siteId,
 								final String path,
 								final InputStream content)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeResult = contentService.write(siteId, path, content);
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(writeResult);
 		result.setResponse(OK);

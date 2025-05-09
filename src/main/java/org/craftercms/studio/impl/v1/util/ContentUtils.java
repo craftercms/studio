@@ -17,16 +17,17 @@ package org.craftercms.studio.impl.v1.util;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import java.io.*;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 
@@ -126,5 +127,16 @@ public class ContentUtils {
 			logger.error("Failed to convert XML document to String with encoding '{}'", encoding, e);
 			return null;
 		}
+	}
+
+	/**
+	 * Returns the content item id for a given site and path. e.g.: "my-site:/site/website/test1/index.xml"
+	 *
+	 * @param siteId the site id
+	 * @param path   the content item path
+	 * @return the content item id
+	 */
+	public static String getContentItemId(String siteId, String path) {
+		return format("%s:%s", siteId, path);
 	}
 }

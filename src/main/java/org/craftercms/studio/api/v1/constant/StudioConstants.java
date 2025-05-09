@@ -73,7 +73,7 @@ public final class StudioConstants {
 	/**
 	 * Studio Structure Constants
 	 **/
-	public static final String DESCRIPTOR_ROOT_PATH = "/site";
+	public static final String DESCRIPTOR_ROOT_PATH = "/site/";
 
 	/**
 	 * Error Codes

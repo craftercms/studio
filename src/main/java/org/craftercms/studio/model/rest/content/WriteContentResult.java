@@ -16,10 +16,13 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
+import org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation;
 
 import java.util.List;
 
+/**
+ * Result of a write content operation.
+ */
 public class WriteContentResult {
 	private final List<WriteContentResultItem> items;
 
@@ -31,8 +34,16 @@ public class WriteContentResult {
 		return items;
 	}
 
+	/**
+	 * Each of the items in the result of a write content operation.
+	 *
+	 * @param path      the path of the content item
+	 * @param operation the operation performed on the content item
+	 * @param amended   true if the content was updated (lifecycle controller or asset pipeline),
+	 *                  false otherwise
+	 */
 	public record WriteContentResultItem(String path,
-										 DmContentLifeCycleService.ContentLifeCycleOperation operation,
+										 LifeCycleOperation operation,
 										 boolean amended) {
 	}
 }
