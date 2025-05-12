@@ -18,11 +18,9 @@ package org.craftercms.studio.api.v2.content;
 
 import org.apache.commons.io.FileUtils;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
+import org.dom4j.Document;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,12 +63,28 @@ public class LifecycleContent {
 	 * @param content InputStream of the content item
 	 * @throws IOException if an error occurs while reading the stream or storing the content
 	 */
-	// TODO: consider overloading this method to accept content in different ways: Path, String Document ?
 	public void write(String path, InputStream content) throws IOException {
 		// Remove the temporary file if it exists
 		exclude(path);
 		Path filePath = createTempFile(path, content);
 		// Add a new entry with amended=<path is the same as the original repoPath>
+		this.items.put(path, new ContentLifecycleItem(path, filePath, repoPath.equals(path)));
+	}
+
+	/**
+	 * Write the content to the given path in the repository.
+	 *
+	 * @param path     the path to write the content to
+	 * @param document the Document to write
+	 * @throws IOException if an error occurs while writing the content
+	 */
+	public void write(String path, Document document) throws IOException {
+		// Remove the temporary file if it exists
+		exclude(path);
+		Path filePath = createTempFile(path);
+		try (FileWriter writer = new FileWriter(filePath.toFile())) {
+			document.write(writer);
+		}
 		this.items.put(path, new ContentLifecycleItem(path, filePath, repoPath.equals(path)));
 	}
 
