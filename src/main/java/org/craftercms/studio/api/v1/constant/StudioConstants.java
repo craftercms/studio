@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,21 +31,6 @@ public final class StudioConstants {
 	 * content encoding
 	 **/
 	public static final String CONTENT_ENCODING = "UTF-8";
-	public static final String URL_ENCODING = "UTF-8";
-
-	/**
-	 * document property names in return results
-	 **/
-	public static final String DATE_PATTERN_WORKFLOW_WITH_TZ = "yyyy-MM-dd'T'HH:mm:ssX";
-
-	// date format of form content
-	public static final String DATE_PATTERN_MODEL = "yyyy-MM-dd'T'HH:mm:ssZ";
-
-	// date format of scheduled deployment dates
-	public static final String DATE_FORMAT_SCHEDULED = "MM/dd hh:mma";
-
-	// date format of deployed dates
-	public static final String DATE_FORMAT_DEPLOYED = "MM/dd";
 
 	/**
 	 * variable names in configuration properties
@@ -69,9 +54,6 @@ public final class StudioConstants {
 
 	public static final String PERMISSION_VALUE_READ = "read";
 	public static final String PERMISSION_VALUE_NOT_ALLOWED = "not allowed";
-
-	// Locking constants
-	public static final String LOCKING_CACHE_CREATE_SCOPE = "lockingCacheCreateScope";
 
 	/**
 	 * Repository Constants
@@ -184,7 +166,6 @@ public final class StudioConstants {
 
 	/* Modules */
 	public static final String MODULE_STUDIO = "studio";
-	public static final String MODULE_ENGINE = "engine";
 
 	public static final String DEFAULT_CONFIG_URL = "http://localhost:8080";
 
