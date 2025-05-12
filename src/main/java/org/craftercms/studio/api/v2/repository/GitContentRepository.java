@@ -415,7 +415,9 @@ public interface GitContentRepository extends ContentRepository {
 	 *
 	 * @param siteId     the site id
 	 * @param writeItems the collection of ContentWriteItem to write
+	 * @param folders    collection of folders to create
 	 * @return commit id after the operation
 	 */
-	String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems) throws ServiceLayerException, UserNotFoundException;
+	String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> folders)
+		throws ServiceLayerException, UserNotFoundException;
 }

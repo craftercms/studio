@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
@@ -88,6 +89,8 @@ import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.NEW;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.UPDATE;
@@ -99,6 +102,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITE
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.isDescriptorPath;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentItemId;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
 
 public class ContentServiceInternalImpl implements ContentService, ApplicationEventPublisherAware {
@@ -383,27 +387,42 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		assertNotInWorkflow(siteId, resultItems.keySet(), false);
 
 		Collection<ContentLifecycleItem> lifecycleItems = resultItems.values();
+		Set<String> missingFolders = new HashSet<>();
 		// Calculate the operation. This must be done before actually writing to the repository
 		Map<String, LifeCycleOperation> operationsByPath = new HashMap<>(resultItems.size());
 		for (ContentLifecycleItem item : lifecycleItems) {
-			LifeCycleOperation operation = NEW;
+			LifeCycleOperation operation;
 			if (contentExists(siteId, item.repoPath())) {
 				operation = UPDATE;
+			} else {
+				operation = NEW;
+				missingFolders.addAll(addMissingFolders(siteId, item.repoPath()));
 			}
 			operationsByPath.put(item.repoPath(), operation);
 		}
 
 		// Write to the repository and commit.
-		String commitId = contentRepository.writeContent(siteId, lifecycleItems);
+		String commitId = contentRepository.writeContent(siteId, lifecycleItems, missingFolders);
 
 		Site site = siteService.getSite(siteId);
+		for (String missingFolder : missingFolders.stream().sorted().toList()) {
+			Item parentItem = itemService.getItem(siteId, getParentUrl(missingFolder), true);
+			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), commitId, parentItem.getId());
+		}
 		List<WriteContentResultItem> writeResultItems = new ArrayList<>(resultItems.size());
 		// Update database metadata and dependencies
 		for (ContentLifecycleItem item : resultItems.values()) {
-			itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
+			LifeCycleOperation operation = operationsByPath.get(item.repoPath());
+			if (NEW == operation) {
+				String parentItemPath = getParentUrl(removeEnd(item.repoPath(), SLASH_INDEX_FILE));
+				Item parent = itemService.getItem(siteId, parentItemPath, true);
+				itemService.persistItemAfterCreate(siteId, path, commitId, false, parent.getId());
+			} else {
+				itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
+			}
 			dependencyService.upsertDependencies(siteId, item.repoPath());
 			dependencyService.validateDependencies(siteId, item.repoPath());
-			writeResultItems.add(new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()));
+			writeResultItems.add(new WriteContentResultItem(item.repoPath(), operation, item.amended()));
 		}
 
 		// Audit write operation
@@ -414,6 +433,17 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 		// Return the WriteContentResult
 		return new WriteContentResult(writeResultItems);
+	}
+
+	private Collection<String> addMissingFolders(final String siteId, final String path) {
+		List<String> missingFolders = new ArrayList<>();
+		String parentItemPath = removeEnd(path, SLASH_INDEX_FILE);
+		Path current = Path.of(parentItemPath);
+		while (current != null && !contentExists(siteId, current.toString())) {
+			missingFolders.add(current.toString());
+			current = current.getParent();
+		}
+		return missingFolders;
 	}
 
 	/**

@@ -1548,7 +1548,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems) throws ServiceLayerException, UserNotFoundException {
+	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
+		throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
@@ -1563,16 +1564,24 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					helper.writeFile(repo, siteId, writeItem.repoPath(), content);
 				}
 			}
+			List<String> paths = new ArrayList<>(writeItems.size()+newFolders.size());
 
-			String[] paths = writeItems.stream()
+			paths.addAll(writeItems.stream()
 				.map(ContentWriteItem::repoPath)
-				.toArray(String[]::new);
+				.toList());
+
+			// Create new folders
+			for (String newFolder : newFolders) {
+				String emptyFilePath = Path.of(newFolder, EMPTY_FILE).toString();
+				addEmptyFile(repo, siteId, emptyFilePath);
+				paths.add(emptyFilePath);
+			}
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
 				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
-				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, paths[0]);
-			String commitId = helper.commitFiles(repo, siteId, comment, user, paths);
+				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, paths.getFirst());
+			String commitId = helper.commitFiles(repo, siteId, comment, user, paths.toArray(new String[]{}));
 			if (commitId != null) {
 				persistCommit(siteId, commitId);
 			}

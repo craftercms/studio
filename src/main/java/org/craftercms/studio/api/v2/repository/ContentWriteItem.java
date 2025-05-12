@@ -16,6 +16,10 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,5 +41,16 @@ public interface ContentWriteItem {
 	 * @throws IOException if an error occurs while reading the content
 	 */
 	InputStream content() throws IOException;
+
+
+	/**
+	 * Get the content as a Document.
+	 *
+	 * @return the content parsed as a {@link Document}
+	 * @throws DocumentException if the content cannot be converted to a Document
+	 */
+	default Document contentAsDocument() throws DocumentException, IOException {
+		return ContentUtils.convertStreamToXml(content());
+	}
 
 }

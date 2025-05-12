@@ -294,7 +294,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems)
+	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Write content in site '{}' with lifecycle items '{}'", siteId, writeItems);
 		try {
@@ -311,13 +311,13 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 					localWriteItems.add(item);
 				}
 			}
-			return localRepository.writeContent(siteId, localWriteItems);
+			return localRepository.writeContent(siteId, localWriteItems, newFolders);
 		} catch (IOException e) {
 			throw new ServiceLayerException("Failed to continue write operation. Failed to read input", e);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
 				"will write '{}' to the local repository", siteId, writeItems);
-			return localRepository.writeContent(siteId, writeItems);
+			return localRepository.writeContent(siteId, writeItems, newFolders);
 		}
 	}
 
