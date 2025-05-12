@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -37,13 +38,14 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.rometools.utils.Strings.isEmpty;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
+import static org.craftercms.studio.api.v1.constant.DmConstants.*;
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_CONTENT_TYPE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
@@ -65,9 +67,10 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 
 	@Override
 	public void execute(String siteId, LifecycleContent lifecycleContent, ContentLoader contentLoader) throws ServiceLayerException {
-		// Validate contentType param
 		String contentType = lifecycleContent.getContentType();
 		String repoPath = lifecycleContent.getRepoPath();
+
+		// Validate contentType param
 		if (isEmpty(contentType) || CONTENT_TYPE_UNKNOWN.equals(contentType)) {
 			logger.warn("No content type provided for site '{}' path '{}'. Skipping script execution.", siteId, repoPath);
 			return;
@@ -75,7 +78,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 
 		// Check if the script exists
 		String scriptPath = getScriptPath(siteId, contentType);
-		String script = null;
+		String script;
 		try (InputStream content = contentLoader.getContentRaw(siteId, scriptPath)) {
 			if (content == null) {
 				logger.warn("No content lifecycle script found for site '{}' path '{}' contentType '{}'. Skipping content lifecycle.", siteId, repoPath, contentType);
@@ -112,14 +115,14 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	 */
 	private Map<String, Object> buildModel(String siteId, LifecycleContent lifecycleContent, ContentLoader contentLoader) {
 		Map<String, Object> model = new HashMap<>();
-		model.put(DmConstants.KEY_SITE, siteId);
-		model.put(DmConstants.KEY_USER, getCurrentUsername());
-		model.put(DmConstants.KEY_PATH, lifecycleContent.getRepoPath());
-		model.put(DmConstants.KEY_CONTENT_TYPE, lifecycleContent.getContentType());
-		model.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleContent.getOperation().toString());
-		model.put(DmConstants.KEY_CONTENT_LOADER, contentLoader);
+		model.put(KEY_SITE, siteId);
+		model.put(KEY_USER, getCurrentUsername());
+		model.put(KEY_PATH, lifecycleContent.getRepoPath());
+		model.put(KEY_CONTENT_TYPE, lifecycleContent.getContentType());
+		model.put(CONTENT_LIFECYCLE_OPERATION, lifecycleContent.getOperation().toString());
+		model.put(KEY_CONTENT_LOADER, contentLoader);
 
-		model.put("lifecycleContent", lifecycleContent);
+		model.put(KEY_LIFECYCLE_CONTENT, lifecycleContent);
 
 		if (shouldIncludeApplicationContext()) {
 			model.put(DmConstants.KEY_APPLICATION_CONTEXT, applicationContext);
@@ -130,19 +133,26 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	}
 
 	private void addSpringBeans(Map<String, Object> model) {
-		// TODO: read this from studioConfiguration
-		List<String> enabledBeans = List.of("contentService");
+		String[] enabledBeans = studioConfiguration.getArray(CONTENT_LIFECYCLE_INCLUDED_BEANS, String.class);
 		for (String beanName : enabledBeans) {
-			Object bean = applicationContext.getBean(beanName);
-			model.put(beanName, bean);
+			try {
+				Object bean = applicationContext.getBean(beanName);
+				model.put(beanName, bean);
+			} catch (NoSuchBeanDefinitionException e) {
+				logger.error("Bean '{}' not found in application context. Skipping.", beanName);
+			} catch (Exception e) {
+				logger.error("Error while adding bean '{}' to model. Skipping.", beanName, e);
+			}
 		}
 	}
 
 	private boolean shouldIncludeApplicationContext() {
-		// TODO: read this from studioConfiguration
-		return true;
+		return studioConfiguration.getProperty(CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT, Boolean.class, false);
 	}
 
+	/**
+	 * Get the controller script path for the given site and content type.
+	 */
 	protected String getScriptPath(String site, String contentType) {
 		return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION)
 			.replaceAll(StudioConstants.PATTERN_SITE, site)

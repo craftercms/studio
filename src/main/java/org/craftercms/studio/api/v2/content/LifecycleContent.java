@@ -108,6 +108,7 @@ public class LifecycleContent {
 	 *
 	 * @param repoPath the path in the repository where the content will be stored (or deleted from)
 	 * @param filePath the path to the temporary file currently storing the content to be written
+	 * @param amended  true if the content has been amended by the controller, false otherwise
 	 */
 	public record ContentLifecycleItem(String repoPath, Path filePath, boolean amended) implements ContentWriteItem {
 
