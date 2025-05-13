@@ -89,6 +89,17 @@ public class LifecycleContent {
 	}
 
 	/**
+	 * Write the content to the given path in the repository.
+	 *
+	 * @param repoPath the path to write the content to
+	 * @param filePath the path containing the content to write
+	 */
+	public void write(String repoPath, Path filePath) {
+		exclude(repoPath);
+		this.items.put(repoPath, new ContentLifecycleItem(repoPath, filePath));
+	}
+
+	/**
 	 * Exclude the given path from the write operation.
 	 * Do not delete the content from repo if it exists.
 	 *

@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
@@ -124,6 +125,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private PublishService publishService;
 	private ProcessedCommitsDAO processedCommitsDao;
 	private ContentLifeCycle contentLifeCycle;
+	private ContentLifeCycle assetLifeCycle;
 
 	@Override
 	public boolean contentExists(String siteId, String path) {
@@ -352,27 +354,28 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
 		}
 
-		LifecycleContent lifecycleContent = null;
-
-		// Should we consider configuration files here?
+		LifecycleContent lifecycleContent;
+		// TODO: Should we consider configuration files here?
 
 		// Check if it is an asset
 		if (isDescriptorPath(path)) {
-			// Create the Lifecycle content object and call the controller.groovy
-			// Nav order...
+			// TODO: Nav order...
 			try {
 				Document document = ContentUtils.convertStreamToXml(new FileInputStream(tmpFile.toFile()));
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
 				boolean contentExists = contentExists(siteId, path);
 				LifeCycleOperation operation = contentExists ? UPDATE : NEW;
 				lifecycleContent = new LifecycleContent(path, contentType, tmpFile, operation);
-				// TODO: call the controller script
 				contentLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
 			} catch (DocumentException | FileNotFoundException e) {
 				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
 			}
 		} else {
 			// It is an asset, create the Asset and call the AssetService
+			boolean contentExists = contentExists(siteId, path);
+			LifeCycleOperation operation = contentExists ? UPDATE : NEW;
+			lifecycleContent = new LifecycleContent(path, null, tmpFile, operation);
+			assetLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
 		}
 
 		Map<String, ContentLifecycleItem> resultItems = lifecycleContent.getItems();
@@ -437,7 +440,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private Collection<String> addMissingFolders(final String siteId, final String path) {
 		List<String> missingFolders = new ArrayList<>();
-		String parentItemPath = removeEnd(path, SLASH_INDEX_FILE);
+		String parentItemPath = FilenameUtils.getFullPathNoEndSeparator(path);
 		Path current = Path.of(parentItemPath);
 		while (current != null && !contentExists(siteId, current.toString())) {
 			missingFolders.add(current.toString());
@@ -734,8 +737,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@SuppressWarnings("unused")
-
-	public void setContentLifeCycle(ContentLifeCycle contentLifeCycle) {
+	public void setContentLifeCycle(final ContentLifeCycle contentLifeCycle) {
 		this.contentLifeCycle = contentLifeCycle;
+	}
+
+	@SuppressWarnings("unused")
+	public void setAssetLifeCycle(final ContentLifeCycle assetLifeCycle) {
+		this.assetLifeCycle = assetLifeCycle;
 	}
 }

@@ -44,13 +44,13 @@ import static com.rometools.utils.Strings.isEmpty;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
-import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
 /**
- * Default implementation of the {@link ContentLifeCycle} interface.
+ * Content processing implementation of the {@link ContentLifeCycle} interface.
+ * Executes the content lifecycle script (if exists) with the given parameters.
  */
 public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContextAware {
 	private static final Logger logger = LoggerFactory.getLogger(ContentLifeCycleImpl.class);

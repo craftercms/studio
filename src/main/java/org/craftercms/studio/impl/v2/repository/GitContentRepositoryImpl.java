@@ -1564,7 +1564,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					helper.writeFile(repo, siteId, writeItem.repoPath(), content);
 				}
 			}
-			List<String> paths = new ArrayList<>(writeItems.size()+newFolders.size());
+			List<String> paths = new ArrayList<>(writeItems.size() + newFolders.size());
 
 			paths.addAll(writeItems.stream()
 				.map(ContentWriteItem::repoPath)

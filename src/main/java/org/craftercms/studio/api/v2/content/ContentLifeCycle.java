@@ -19,17 +19,18 @@ package org.craftercms.studio.api.v2.content;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
- * Interface for content lifecycle controller script execution
+ * Interface for content lifecycle execution
  */
 public interface ContentLifeCycle {
 	/**
-	 * Executes the content lifecycle script (if exists) with the given parameters.
-	 * If the script does not exist for the content type, this method does nothing.
+	 * Executes a content lifecycle.
+	 * Implementations will update the {@link LifecycleContent} object
+	 * with the results of the execution.
 	 *
 	 * @param siteId           the site id
 	 * @param lifecycleContent the content lifecycle object, containing the parameters and
-	 *                         enabling the script to alter the content
-	 * @param contentLoader    content load used to load the controller script
+	 *                         enabling the {@link ContentLifeCycle} to alter the content
+	 * @param contentLoader    content load used to read from the site content
 	 */
 	void execute(String siteId, LifecycleContent lifecycleContent, ContentLoader contentLoader) throws ServiceLayerException;
 }

@@ -437,11 +437,18 @@
 		<property name="publishService" ref="publishServiceInternal"/>
 		<property name="processedCommitsDao" ref="processedCommitsDao"/>
 		<property name="contentLifeCycle" ref="contentLifeCycle"/>
+		<property name="assetLifeCycle" ref="assetLifeCycle"/>
 	</bean>
 
 	<bean id="contentLifeCycle" class="org.craftercms.studio.impl.v2.content.ContentLifeCycleImpl">
 		<constructor-arg name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
+
+	<bean id="assetLifeCycle" class="org.craftercms.studio.impl.v2.content.AssetLifeCycleImpl">
+		<constructor-arg name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
+		<constructor-arg name="configReader" ref="studioAssetProcessingConfigReader"/>
+		<constructor-arg name="configPath" value="#{studioConfiguration.getProperty('studio.configuration.site.asset.processing.configurationPath')}"/>
 	</bean>
 
 	<bean id="contentTypeServiceInternal"
