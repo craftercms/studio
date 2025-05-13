@@ -85,8 +85,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
@@ -343,9 +342,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-	@Override
-	public WriteContentResult write(final String siteId, final String path, final InputStream content)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+	/**
+	 * Run lifecycle script (for content descriptors) or asset pipeline (for assets)
+	 * Return the LifecycleContent object
+	 */
+	private LifecycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
 		// Store content in temporary file
 		Path tmpFile;
 		try {
@@ -377,41 +378,89 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			lifecycleContent = new LifecycleContent(path, null, tmpFile, operation);
 			assetLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
 		}
+		return lifecycleContent;
+	}
 
+	@Override
+	public WriteContentResult write(final String siteId, final String path, final InputStream content)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		LifecycleContent lifecycleContent = runLifeCycle(siteId, path, content);
 		Map<String, ContentLifecycleItem> resultItems = lifecycleContent.getItems();
-		// Now we have a list of items to write
 		// Check list is not empty or throw exception  (can't write empty set)
 		if (resultItems.isEmpty()) {
 			throw new ServiceLayerException(format("Item list after lifecycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
 		}
 
-		// Check permissions or throw ActionDeniedException
+		// TODO: Check permissions, throw ActionDeniedException
 		// Fail to continue write operation if the item is in workflow
 		assertNotInWorkflow(siteId, resultItems.keySet(), false);
 
-		Collection<ContentLifecycleItem> lifecycleItems = resultItems.values();
-		Set<String> missingFolders = new HashSet<>();
-		// Calculate the operation. This must be done before actually writing to the repository
-		Map<String, LifeCycleOperation> operationsByPath = new HashMap<>(resultItems.size());
-		for (ContentLifecycleItem item : lifecycleItems) {
-			LifeCycleOperation operation;
-			if (contentExists(siteId, item.repoPath())) {
-				operation = UPDATE;
-			} else {
-				operation = NEW;
-				missingFolders.addAll(addMissingFolders(siteId, item.repoPath()));
-			}
-			operationsByPath.put(item.repoPath(), operation);
-		}
+		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent);
+		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 
 		// Write to the repository and commit.
-		String commitId = contentRepository.writeContent(siteId, lifecycleItems, missingFolders);
+		String commitId = contentRepository.writeContent(siteId, resultItems.values(), missingFolders);
 
 		Site site = siteService.getSite(siteId);
 		for (String missingFolder : missingFolders.stream().sorted().toList()) {
 			Item parentItem = itemService.getItem(siteId, getParentUrl(missingFolder), true);
 			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), commitId, parentItem.getId());
 		}
+		List<WriteContentResultItem> writeResultItems = getWriteResultItems(siteId, path, resultItems, operationsByPath, commitId);
+
+		// Audit write operation
+		insertWriteContentAudit(site, path, lifecycleContent.getOperation(), writeResultItems, commitId);
+
+		// Publish events
+		eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
+
+		// Return the WriteContentResult
+		return new WriteContentResult(writeResultItems);
+	}
+
+	/**
+	 * Extract the missing folders from a write operation
+	 * Missing folders are the newly created paths that need empty file added to the repo
+	 */
+	private Set<String> getMissingFolders(final String siteId, final Map<String, LifeCycleOperation> operationsByPath) {
+		return operationsByPath.entrySet().stream()
+			.filter(entry -> entry.getValue() == NEW)
+			.map(Map.Entry::getKey)
+			.map(p -> calculateMissingFolders(siteId, p))
+			.flatMap(Collection::stream)
+			.collect(toSet());
+	}
+
+	/**
+	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
+	 * the value is the operation performed
+	 */
+	private @NotNull Map<String, LifeCycleOperation> getOperationsByPath(String siteId, LifecycleContent lifecycleContent) {
+		Map<String, ContentLifecycleItem> resultItems = lifecycleContent.getItems();
+		String path = lifecycleContent.getRepoPath();
+		// Calculate the operation. This must be done before actually writing to the repository
+		Map<String, LifeCycleOperation> operationsByPath = new HashMap<>(resultItems.size());
+		for (ContentLifecycleItem item : resultItems.values()) {
+			LifeCycleOperation operation;
+			if (path.equals(item.repoPath())) {
+				// Preserve the operation for the main item
+				operation = lifecycleContent.getOperation();
+			} else if (contentExists(siteId, item.repoPath())) {
+				operation = UPDATE;
+			} else {
+				operation = NEW;
+			}
+			operationsByPath.put(item.repoPath(), operation);
+		}
+		return operationsByPath;
+	}
+
+	/**
+	 * Gather the write result items from the ContentLifecycleItems
+	 */
+	private @NotNull List<WriteContentResultItem> getWriteResultItems(String siteId, String path, Map<String, ContentLifecycleItem> resultItems,
+																	  Map<String, LifeCycleOperation> operationsByPath, String commitId)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		List<WriteContentResultItem> writeResultItems = new ArrayList<>(resultItems.size());
 		// Update database metadata and dependencies
 		for (ContentLifecycleItem item : resultItems.values()) {
@@ -427,18 +476,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			dependencyService.validateDependencies(siteId, item.repoPath());
 			writeResultItems.add(new WriteContentResultItem(item.repoPath(), operation, item.amended()));
 		}
-
-		// Audit write operation
-		insertWriteContentAudit(site, path, lifecycleContent.getOperation(), writeResultItems, commitId);
-
-		// Publish events
-		eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
-
-		// Return the WriteContentResult
-		return new WriteContentResult(writeResultItems);
+		return writeResultItems;
 	}
 
-	private Collection<String> addMissingFolders(final String siteId, final String path) {
+	/**
+	 * Calculate the missing folders for a given path.
+	 * Missing folders are the ancestors of the path that do not exist in the repository.
+	 */
+	private Collection<String> calculateMissingFolders(final String siteId, final String path) {
 		List<String> missingFolders = new ArrayList<>();
 		String parentItemPath = FilenameUtils.getFullPathNoEndSeparator(path);
 		Path current = Path.of(parentItemPath);
