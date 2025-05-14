@@ -1565,7 +1565,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				}
 			}
 			List<String> paths = new ArrayList<>(writeItems.size() + newFolders.size());
-
 			paths.addAll(writeItems.stream()
 				.map(ContentWriteItem::repoPath)
 				.toList());
@@ -1586,7 +1585,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				persistCommit(siteId, commitId);
 			}
 			return commitId;
-
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to write content to site '{}' items '{}'", siteId, writeItems, e);
 			throw e;

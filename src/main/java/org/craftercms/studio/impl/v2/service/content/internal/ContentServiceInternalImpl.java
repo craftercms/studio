@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
+import org.craftercms.studio.api.v2.exception.content.EmptyChangesetException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
@@ -89,6 +90,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -298,7 +300,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
 
 		MimeType itemMimeType;
-		if (StringUtils.isEmpty(mimeType)) {
+		if (isEmpty(mimeType)) {
 			itemMimeType = MimeType.valueOf(StudioUtils.getMimeType(itemPath));
 		} else {
 			itemMimeType = MimeType.valueOf(mimeType);
@@ -400,6 +402,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 		// Write to the repository and commit.
 		String commitId = contentRepository.writeContent(siteId, resultItems.values(), missingFolders);
+		if (isEmpty(commitId)) {
+			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
+		}
 
 		Site site = siteService.getSite(siteId);
 		for (String missingFolder : missingFolders.stream().sorted().toList()) {

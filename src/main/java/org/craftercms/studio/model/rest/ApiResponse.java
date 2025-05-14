@@ -44,6 +44,8 @@ public class ApiResponse {
 		"Check API and make sure you're sending the correct parameters", StringUtils.EMPTY);
 	public static final ApiResponse DEPRECATED = new ApiResponse(1002, "Deprecated",
 		"This API has been deprecated", StringUtils.EMPTY);
+	public static final ApiResponse MISSING_REQUEST_PART = new ApiResponse(1003, "Missing request part",
+		"Check the required multipart params are present in the request", StringUtils.EMPTY);
 
 	// 2000 - 3000
 	public static final ApiResponse UNAUTHENTICATED =
@@ -109,6 +111,8 @@ public class ApiResponse {
 		"Check the current publish package state", StringUtils.EMPTY);
 	public static final ApiResponse PACKAGE_ALREADY_APPROVED = new ApiResponse(7009, "Requested publish package is already APPROVED",
 		"Check the current publish package state", StringUtils.EMPTY);
+	public static final ApiResponse EMPTY_CHANGESET = new ApiResponse(7010, "Empty changeset",
+		"Site repository already contains the specified content in the given path", StringUtils.EMPTY);
 
 	// 8000 - 9000
 	public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",

@@ -116,8 +116,17 @@ public abstract class StudioUtils {
 			FilenameUtils.getExtension(name));
 	}
 
+	/**
+	 * Creates a temporary file in the Crafter Studio temporary files root directory and
+	 * writes the given content to it
+	 *
+	 * @param name    the name of the file. Result file will have a random name but will preserve the extension of this param
+	 * @param content the content to write to the file
+	 * @return the path to the temporary file
+	 * @throws IOException if an error occurs while creating the file or writing the content
+	 */
 	public static Path createTempFile(String name, InputStream content) throws IOException {
-		Path tmpFile = StudioUtils.createTempFile(name);
+		Path tmpFile = createTempFile(name);
 		try (OutputStream out = Files.newOutputStream(tmpFile)) {
 			IOUtils.copy(content, out);
 		}

@@ -4882,11 +4882,14 @@ paths:
                 description: Upload file request body
                 required: true
                 content:
-                    application/octet-stream:
+                    multipart/form-data:
                         schema:
-                            type: string
-                            format: binary
-                            description: the file to be uploaded
+                            type: object
+                            properties:
+                                file:
+                                    type: string
+                                    format: binary
+                                    description: the file to be uploaded
             responses:
                 '200':
                     description: OK
@@ -8078,6 +8081,8 @@ components:
                   * `CODE:` 3, `MESSAGE:` Completed with errors
                   * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
                   * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
+                  * `CODE:` 1002, `MESSAGE:` Deprecated, `REMEDIAL ACTION:` This API has been deprecated
+                  * `CODE:` 1003, `MESSAGE:` Missing request part, `REMEDIAL ACTION:` Check the required multipart params are present in the request
                   * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
                   * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
                   * `CODE:` 2002, `MESSAGE:` Peer-review check failed, `REMEDIAL ACTION:` Users are not allowed to approve their own packages when peer-review is enabled

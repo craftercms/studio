@@ -37,10 +37,7 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.exception.content.ContentExistException;
-import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
-import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
-import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
+import org.craftercms.studio.api.v2.exception.content.*;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
@@ -72,6 +69,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -595,6 +593,13 @@ public class ExceptionHandlers {
 		return handleExceptionInternal(request, e, response);
 	}
 
+	@ExceptionHandler(MissingServletRequestPartException.class)
+	@ResponseStatus(BAD_REQUEST)
+	public Result handleException(HttpServletRequest request, MissingServletRequestPartException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.MISSING_REQUEST_PART);
+		return handleExceptionInternal(request, e, response);
+	}
+
 	@ExceptionHandler(ContentInPublishQueueException.class)
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public ResultList<PublishPackage> handleException(HttpServletRequest request, ContentInPublishQueueException e) {
@@ -606,6 +611,13 @@ public class ExceptionHandlers {
 		result.setEntities(RESULT_KEY_PUBLISH_PACKAGES, e.getPublishPackages());
 
 		return result;
+	}
+
+	@ExceptionHandler(EmptyChangesetException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public Result handleException(HttpServletRequest request, EmptyChangesetException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.EMPTY_CHANGESET);
+		return handleExceptionInternal(request, e, response);
 	}
 
 	@ExceptionHandler(InvalidPackageStateException.class)

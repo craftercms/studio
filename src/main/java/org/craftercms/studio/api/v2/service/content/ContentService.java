@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.content.EmptyChangesetException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
@@ -108,7 +109,7 @@ public interface ContentService {
 	 * @return list of children
 	 */
 	GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword, List<String> types,
-					    List<String> excludes, String sortStrategy, String order, int offset, int limit)
+										List<String> excludes, String sortStrategy, String order, int offset, int limit)
 		throws ServiceLayerException, UserNotFoundException;
 
 	/**
@@ -287,7 +288,8 @@ public interface ContentService {
 	 * @param path    the content path
 	 * @param content the content to write
 	 * @return the result of the write operation, which includes affected paths
-	 * @throws ServiceLayerException if an error occurs while writing the content
+	 * @throws EmptyChangesetException if the write operation results in an empty changeset (i.e.: try to write the same content the repository already has)
+	 * @throws ServiceLayerException   if an error occurs while writing the content
 	 */
 	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 }

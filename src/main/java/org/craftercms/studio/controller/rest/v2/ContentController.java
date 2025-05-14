@@ -49,8 +49,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.beans.ConstructorProperties;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,8 +67,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.http.MediaType.*;
 
 @Validated
 @RestController
@@ -264,12 +265,12 @@ public class ContentController {
 		return writeContent(siteId, path, content);
 	}
 
-	@PutMapping(value = SITE_ID)
+	@PutMapping(value = SITE_ID, consumes = MULTIPART_FORM_DATA_VALUE)
 	public Result upload(@PathVariable @ValidSiteId String siteId,
-						 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-						 InputStream content)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		return writeContent(siteId, path, content);
+						 @RequestParam MultipartFile file,
+						 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException, IOException {
+		return writeContent(siteId, path, file.getInputStream());
 	}
 
 	private Result writeContent(final String siteId,
