@@ -22,10 +22,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.commons.security.exception.ActionDeniedException;
+import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -85,6 +88,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparingInt;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -106,6 +110,9 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.isDescriptorPath;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentItemId;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
+import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 
 public class ContentServiceInternalImpl implements ContentService, ApplicationEventPublisherAware {
 
@@ -127,6 +134,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private ProcessedCommitsDAO processedCommitsDao;
 	private ContentLifeCycle contentLifeCycle;
 	private ContentLifeCycle assetLifeCycle;
+	private PermissionEvaluator<String, Object> permissionEvaluator;
 
 	@Override
 	public boolean contentExists(String siteId, String path) {
@@ -387,34 +395,34 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		LifecycleContent lifecycleContent = runLifeCycle(siteId, path, content);
-		Map<String, ContentLifecycleItem> resultItems = lifecycleContent.getItems();
+		Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
 		// Check list is not empty or throw exception  (can't write empty set)
-		if (resultItems.isEmpty()) {
+		if (lifecycleResultItems.isEmpty()) {
 			throw new ServiceLayerException(format("Item list after lifecycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
 		}
 
-		// TODO: Check permissions, throw ActionDeniedException
+		List<String> paths = new ArrayList<>(lifecycleResultItems.keySet());
+		Map<String, Object> resource = Map.of(SITE_ID_RESOURCE_ID, siteId, PATH_LIST_RESOURCE_ID, paths);
+		if (!permissionEvaluator.isAllowed(SecurityUtils.getCurrentUsername(), resource, PERMISSION_CONTENT_WRITE)) {
+			throw new ActionDeniedException(PERMISSION_CONTENT_WRITE, paths);
+		}
+
 		// Fail to continue write operation if the item is in workflow
-		assertNotInWorkflow(siteId, resultItems.keySet(), false);
+		assertNotInWorkflow(siteId, lifecycleResultItems.keySet(), false);
 
 		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent);
 		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 
 		// Write to the repository and commit.
-		String commitId = contentRepository.writeContent(siteId, resultItems.values(), missingFolders);
+		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
 		if (isEmpty(commitId)) {
 			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 		}
 
-		Site site = siteService.getSite(siteId);
-		for (String missingFolder : missingFolders.stream().sorted().toList()) {
-			Item parentItem = itemService.getItem(siteId, getParentUrl(missingFolder), true);
-			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), commitId, parentItem.getId());
-		}
-		List<WriteContentResultItem> writeResultItems = getWriteResultItems(siteId, path, resultItems, operationsByPath, commitId);
+		List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath, commitId);
 
 		// Audit write operation
-		insertWriteContentAudit(site, path, lifecycleContent.getOperation(), writeResultItems, commitId);
+		insertWriteContentAudit(siteId, path, lifecycleContent.getOperation(), writeResultItems, commitId);
 
 		// Publish events
 		eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
@@ -461,19 +469,25 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
-	 * Gather the write result items from the ContentLifecycleItems
+	 * Persist changes to the DB and gather the write result items from the ContentLifecycleItems
 	 */
-	private @NotNull List<WriteContentResultItem> getWriteResultItems(String siteId, String path, Map<String, ContentLifecycleItem> resultItems,
-																	  Map<String, LifeCycleOperation> operationsByPath, String commitId)
+	private @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifecycleItem> lifecycleResultItems,
+															  Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath, String commitId)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		List<WriteContentResultItem> writeResultItems = new ArrayList<>(resultItems.size());
-		// Update database metadata and dependencies
-		for (ContentLifecycleItem item : resultItems.values()) {
+		for (String missingFolder : missingFolders.stream().sorted().toList()) {
+			Item parentItem = itemService.getItem(siteId, getParentUrl(missingFolder), true);
+			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), commitId, parentItem.getId());
+		}
+
+		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifecycleResultItems.size());
+		// Order by path length so we get the parents first
+		List<ContentLifecycleItem> sortedResultItems = lifecycleResultItems.stream().sorted(comparingInt(i -> i.repoPath().length())).toList();
+		for (ContentLifecycleItem item : sortedResultItems) {
 			LifeCycleOperation operation = operationsByPath.get(item.repoPath());
 			if (NEW == operation) {
 				String parentItemPath = getParentUrl(removeEnd(item.repoPath(), SLASH_INDEX_FILE));
 				Item parent = itemService.getItem(siteId, parentItemPath, true);
-				itemService.persistItemAfterCreate(siteId, path, commitId, false, parent.getId());
+				itemService.persistItemAfterCreate(siteId, item.repoPath(), commitId, false, parent.getId());
 			} else {
 				itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
 			}
@@ -518,8 +532,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-	private void insertWriteContentAudit(Site site, String path, LifeCycleOperation operation,
-										 List<WriteContentResultItem> writeResultItems, String commitId) {
+	private void insertWriteContentAudit(String siteId, String path, LifeCycleOperation operation,
+										 List<WriteContentResultItem> writeResultItems, String commitId) throws SiteNotFoundException {
+		Site site = siteService.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
 		switch (operation) {
 			case NEW -> auditLog.setOperation(AuditLogConstants.OPERATION_CREATE);
@@ -794,5 +809,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@SuppressWarnings("unused")
 	public void setAssetLifeCycle(final ContentLifeCycle assetLifeCycle) {
 		this.assetLifeCycle = assetLifeCycle;
+	}
+
+	@SuppressWarnings("unused")
+	public void setPermissionEvaluator(final PermissionEvaluator<String, Object> permissionEvaluator) {
+		this.permissionEvaluator = permissionEvaluator;
 	}
 }

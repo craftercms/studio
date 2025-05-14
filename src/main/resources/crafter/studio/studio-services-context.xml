@@ -438,6 +438,7 @@
 		<property name="processedCommitsDao" ref="processedCommitsDao"/>
 		<property name="contentLifeCycle" ref="contentLifeCycle"/>
 		<property name="assetLifeCycle" ref="assetLifeCycle"/>
+		<property name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
 	</bean>
 
 	<bean id="contentLifeCycle" class="org.craftercms.studio.impl.v2.content.ContentLifeCycleImpl">
