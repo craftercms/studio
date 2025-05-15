@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.exception.ActionDeniedException;
@@ -56,6 +55,7 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
@@ -88,12 +88,13 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static java.util.Comparator.comparingInt;
+import static java.util.Comparator.naturalOrder;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
@@ -469,31 +470,80 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
+	 * Provides a comparator to sort the paths so parents are created first
+	 *
+	 * @return a comparator to sort the paths
+	 */
+	protected Comparator<String> creationPathComparator() {
+		// index.xml should go first
+		// Otherwise sort by length so parents go first
+		return Comparator.<String, Integer>comparing(s -> StringUtils.removeEnd(s, INDEX_FILE).length())
+			// If they have the same length after removing index.xml, we are comparing folder and page for the same path:
+			// 	/site/website/en/index.xml
+			// 	/site/website/en
+			// Natural order will give us the folder first
+			.thenComparing(naturalOrder());
+	}
+
+	/**
+	 * Persist a new folder to the database
+	 *
+	 * @param siteId    the site id
+	 * @param newFolder the new folder path
+	 */
+	private void persistNewFolder(final String siteId, final String newFolder) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		Item parentItem = itemService.getItem(siteId, getParentUrl(newFolder), true);
+		itemService.persistItemAfterCreateFolder(siteId, newFolder, getBaseName(Path.of(newFolder)), parentItem.getId());
+	}
+
+	/**
+	 * Persist an item to the database
+	 *
+	 * @param siteId    the site id
+	 * @param item      the item to persist
+	 * @param operation the content lifecycle operation
+	 */
+	private WriteContentResultItem persistItem(final String siteId, final ContentLifecycleItem item,
+											   LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		if (NEW == operation) {
+			String parentItemPath = getParentUrl(removeEnd(item.repoPath(), SLASH_INDEX_FILE));
+			// TODO: preferContent if page only?
+			Item parent = itemService.getItem(siteId, parentItemPath, true);
+			itemService.persistItemAfterCreate(siteId, item.repoPath(), false, parent.getId());
+		} else {
+			itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
+		}
+		dependencyService.upsertDependencies(siteId, item.repoPath());
+		dependencyService.validateDependencies(siteId, item.repoPath());
+		return new WriteContentResultItem(item.repoPath(), operation, item.amended());
+	}
+
+	/**
 	 * Persist changes to the DB and gather the write result items from the ContentLifecycleItems
 	 */
 	private @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifecycleItem> lifecycleResultItems,
 															  Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		for (String missingFolder : missingFolders.stream().sorted().toList()) {
-			Item parentItem = itemService.getItem(siteId, getParentUrl(missingFolder), true);
-			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), parentItem.getId());
+		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifecycleResultItems.size());
+
+		// Gather all the persist calls so we can sort them
+		Map<String, ThrowingRunnable> persistItemCalls = new HashMap<>();
+		for (String missingFolder : missingFolders) {
+			persistItemCalls.put(missingFolder, () -> persistNewFolder(siteId, missingFolder));
+		}
+		for (ContentLifecycleItem item : lifecycleResultItems) {
+			persistItemCalls.put(item.repoPath(), () -> writeResultItems.add(persistItem(siteId, item, operationsByPath.get(item.repoPath()))));
 		}
 
-		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifecycleResultItems.size());
-		// Order by path length so we get the parents first
-		List<ContentLifecycleItem> sortedResultItems = lifecycleResultItems.stream().sorted(comparingInt(i -> i.repoPath().length())).toList();
-		for (ContentLifecycleItem item : sortedResultItems) {
-			LifeCycleOperation operation = operationsByPath.get(item.repoPath());
-			if (NEW == operation) {
-				String parentItemPath = getParentUrl(removeEnd(item.repoPath(), SLASH_INDEX_FILE));
-				Item parent = itemService.getItem(siteId, parentItemPath, true);
-				itemService.persistItemAfterCreate(siteId, item.repoPath(), false, parent.getId());
-			} else {
-				itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
+		List<String> allPaths = persistItemCalls.keySet().stream().sorted(creationPathComparator()).toList();
+		for (String path : allPaths) {
+			try {
+				persistItemCalls.get(path).run();
+			} catch (ServiceLayerException | UserNotFoundException | AuthenticationException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new ServiceLayerException(e);
 			}
-			dependencyService.upsertDependencies(siteId, item.repoPath());
-			dependencyService.validateDependencies(siteId, item.repoPath());
-			writeResultItems.add(new WriteContentResultItem(item.repoPath(), operation, item.amended()));
 		}
 		return writeResultItems;
 	}
