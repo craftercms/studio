@@ -97,6 +97,7 @@ import static org.apache.commons.collections4.ListUtils.union;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.NEW;
@@ -505,17 +506,23 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	private WriteContentResultItem persistItem(final String siteId, final ContentLifecycleItem item,
 											   LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		String path = item.repoPath();
 		if (NEW == operation) {
-			String parentItemPath = getParentUrl(removeEnd(item.repoPath(), SLASH_INDEX_FILE));
-			// TODO: preferContent if page only?
-			Item parent = itemService.getItem(siteId, parentItemPath, true);
-			itemService.persistItemAfterCreate(siteId, item.repoPath(), false, parent.getId());
+			boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+			String parentItemPath;
+			if (isPage) {
+				parentItemPath = getParentUrl(removeEnd(path, SLASH_INDEX_FILE));
+			} else {
+				parentItemPath = getParentUrl(path);
+			}
+			Item parent = itemService.getItem(siteId, parentItemPath, isPage);
+			itemService.persistItemAfterCreate(siteId, path, false, parent.getId());
 		} else {
-			itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
+			itemService.persistItemAfterWrite(siteId, path, false);
 		}
-		dependencyService.upsertDependencies(siteId, item.repoPath());
-		dependencyService.validateDependencies(siteId, item.repoPath());
-		return new WriteContentResultItem(item.repoPath(), operation, item.amended());
+		dependencyService.upsertDependencies(siteId, path);
+		dependencyService.validateDependencies(siteId, path);
+		return new WriteContentResultItem(path, operation, item.amended());
 	}
 
 	/**
