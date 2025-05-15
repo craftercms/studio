@@ -703,8 +703,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		if (isNull(parentItem)) {
 			parentItem = createMissingParentItem(site, path, commitId);
 		}
-		itemService.persistItemAfterCreateFolder(site, folderPath, name,
-			commitId, parentItem.getId());
+		itemService.persistItemAfterCreateFolder(site, folderPath, name, parentItem.getId());
 
 		String username = SecurityUtils.getCurrentUsername();
 		Site siteFeed = siteService.getSite(site);
@@ -733,8 +732,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			createMissingParentItem(site, ancestorPath, commitId);
 			ancestor = itemService.getItem(site, ancestorPath, true);
 		}
-		itemService.persistItemAfterCreateFolder(site, parentPath, name,
-			commitId, ancestor.getId());
+		itemService.persistItemAfterCreateFolder(site, parentPath, name, ancestor.getId());
 		return itemService.getItem(site, parentPath, true);
 	}
 
@@ -2432,8 +2430,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			updateDatabaseOnMove(siteId, path, targetPath, commitId);
 			if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
-			itemService.persistItemAfterRenameContent(siteId, targetPath, name,
-				commitId, contentType);
+			itemService.persistItemAfterRenameContent(siteId, targetPath, name, contentType);
 
 			if (isFolder) {
 				updateChildrenOnMove(siteId, path, targetPath, commitId);

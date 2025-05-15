@@ -192,7 +192,7 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterCreate(String siteId, String path, String commitId,
+	public void persistItemAfterCreate(String siteId, String path,
 									   boolean unlock, Long parentId)
 		throws ServiceLayerException, AuthenticationException {
 		String lockKey = "persistItemAfterCreate:" + siteId;
@@ -271,8 +271,7 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName,
-											 String commitId, Long parentId)
+	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, Long parentId)
 		throws AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
 		Item item = instantiateItem(siteId, folderPath)
@@ -287,8 +286,7 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterRenameContent(String siteId, String path, String name,
-											  String commitId, String contentType)
+	public void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
 		Item item = instantiateItem(siteId, path)

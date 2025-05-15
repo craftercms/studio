@@ -100,7 +100,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 	}
 
 	protected void writeContent(PipelineContent content, ResultTO result) throws ServiceLayerException {
-		String user = content.getProperty(DmConstants.KEY_USER);
 		String site = content.getProperty(DmConstants.KEY_SITE);
 		String path = content.getProperty(DmConstants.KEY_PATH);
 		String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
@@ -206,7 +205,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 			String parentItemPath =
 				ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
 			Item parent = itemService.getItem(site, parentItemPath, true);
-			itemService.persistItemAfterCreate(site, itemPath, commitId, unlock, parent.getId());
+			itemService.persistItemAfterCreate(site, itemPath, unlock, parent.getId());
 			contentService.notifyContentEvent(site, itemPath);
 
 			// unlock the content upon save

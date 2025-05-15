@@ -419,7 +419,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 		}
 
-		List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath, commitId);
+		List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath);
 
 		// Audit write operation
 		insertWriteContentAudit(siteId, path, lifecycleContent.getOperation(), writeResultItems, commitId);
@@ -472,11 +472,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Persist changes to the DB and gather the write result items from the ContentLifecycleItems
 	 */
 	private @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifecycleItem> lifecycleResultItems,
-															  Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath, String commitId)
+															  Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		for (String missingFolder : missingFolders.stream().sorted().toList()) {
 			Item parentItem = itemService.getItem(siteId, getParentUrl(missingFolder), true);
-			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), commitId, parentItem.getId());
+			itemService.persistItemAfterCreateFolder(siteId, missingFolder, PathUtils.getBaseName(Path.of(missingFolder)), parentItem.getId());
 		}
 
 		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifecycleResultItems.size());
@@ -487,7 +487,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			if (NEW == operation) {
 				String parentItemPath = getParentUrl(removeEnd(item.repoPath(), SLASH_INDEX_FILE));
 				Item parent = itemService.getItem(siteId, parentItemPath, true);
-				itemService.persistItemAfterCreate(siteId, item.repoPath(), commitId, false, parent.getId());
+				itemService.persistItemAfterCreate(siteId, item.repoPath(), false, parent.getId());
 			} else {
 				itemService.persistItemAfterWrite(siteId, item.repoPath(), false);
 			}

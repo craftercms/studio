@@ -128,14 +128,12 @@ public interface ItemService {
 	 *
 	 * @param siteId   site identifier
 	 * @param path     path of the content
-	 * @param commitId commit id of the write operation
 	 * @param unlock   Indicates if content needs to be unlocked after write (save &amp; close)
 	 * @param parentId id of parent item
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterCreate(String siteId, String path, String commitId,
-				    boolean unlock, Long parentId)
+	void persistItemAfterCreate(String siteId, String path, boolean unlock, Long parentId)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
@@ -153,13 +151,11 @@ public interface ItemService {
 	 * @param siteId     site identifier
 	 * @param folderPath folder path
 	 * @param folderName folder name
-	 * @param commitId   commit id of the create folder operation
 	 * @param parentId   id of parent item
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName,
-					  String commitId, Long parentId)
+	void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, Long parentId)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
@@ -168,13 +164,11 @@ public interface ItemService {
 	 * @param siteId      site identifier
 	 * @param path        file path
 	 * @param name        file name
-	 * @param commitId    commit id of the create folder operation
 	 * @param contentType content type
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterRenameContent(String siteId, String path, String name,
-					   String commitId, String contentType)
+	void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
