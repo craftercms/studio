@@ -9,7 +9,7 @@ jdk:
 branches:
     only:
         - develop
-        - support/4.1
+        - support/4.x
 cache:
     directories:
         - "$HOME/.m2"
