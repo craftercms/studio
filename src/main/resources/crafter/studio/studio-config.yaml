@@ -460,11 +460,11 @@ studio.pageNavigationOrder.increment: 1000
 ############################################################
 ##                   Content Processors                   ##
 ############################################################
-# Location where groovy script for content lifecycle processor is stored.
+# Location where groovy script for content life cycle processor is stored.
 studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
-# Indicates if application context should be available in the content lifecycle controller script.
+# Indicates if application context should be available in the content life cycle controller script.
 studio.contentProcessor.contentLifeCycle.includeApplicationContext: false
-# List of beans that should be available in the content lifecycle controller script.
+# List of beans that should be available in the content life cycle controller script.
 studio.contentProcessor.contentLifeCycle.includedBeans: []
 
 #######################################################

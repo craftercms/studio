@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;
-import org.craftercms.studio.api.v2.content.LifecycleContent;
+import org.craftercms.studio.api.v2.content.LifeCycleContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +57,7 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 	}
 
 	@Override
-	public void execute(String siteId, LifecycleContent lifecycleContent, ContentLoader loader) throws ServiceLayerException {
+	public void execute(String siteId, LifeCycleContent lifeCycleContent, ContentLoader loader) throws ServiceLayerException {
 		InputStream configIn = loader.getContentRaw(siteId, configPath);
 		if (configIn == null) {
 			logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
@@ -71,8 +71,8 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 			return;
 		}
 
-		String assetPath = lifecycleContent.getRepoPath();
-		Asset input = new Asset(assetPath, lifecycleContent.get(assetPath).filePath());
+		String assetPath = lifeCycleContent.getRepoPath();
+		Asset input = new Asset(assetPath, lifeCycleContent.get(assetPath).filePath());
 
 		Set<Asset> outputs = new LinkedHashSet<>();
 
@@ -88,7 +88,7 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 		}
 
 		for (Asset output : outputs) {
-			lifecycleContent.write(output.getRepoPath(), output.getFilePath());
+			lifeCycleContent.write(output.getRepoPath(), output.getFilePath());
 		}
 	}
 }

@@ -32,16 +32,16 @@ import static java.util.Collections.unmodifiableMap;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
 /**
- * Container for content items to be passed to the content lifecycle controller
+ * Container for content items to be passed to the content life cycle controller
  */
-public class LifecycleContent {
+public class LifeCycleContent {
 
 	// TODO: implement a close() method to delete any remaining temporary files
 
 	private final String repoPath;
 	private final LifeCycleOperation operation;
 	private final String contentType;
-	private final Map<String, ContentLifecycleItem> items;
+	private final Map<String, ContentLifeCycleItem> items;
 
 	/**
 	 * Constructor for creating a new LifecycleContent object.
@@ -49,18 +49,18 @@ public class LifecycleContent {
 	 * @param repoPath    the path to the content item in the repository
 	 * @param contentType the content type of the item
 	 * @param content     the content to be written
-	 * @param operation   the lifecycle operation to be performed
+	 * @param operation   the life cycle operation to be performed
 	 */
-	public LifecycleContent(String repoPath, String contentType, Path content, LifeCycleOperation operation) {
+	public LifeCycleContent(String repoPath, String contentType, Path content, LifeCycleOperation operation) {
 		this.items = new HashMap<>();
 		this.repoPath = repoPath;
 		this.operation = operation;
 		this.contentType = contentType;
-		this.items.put(repoPath, new ContentLifecycleItem(repoPath, content));
+		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, content));
 	}
 
 	/**
-	 * Add a new content item to the lifecycle operation.
+	 * Add a new content item to the life cycle operation.
 	 *
 	 * @param path    the path to the content item
 	 * @param content InputStream of the content item
@@ -71,7 +71,7 @@ public class LifecycleContent {
 		exclude(path);
 		Path filePath = createTempFile(path, content);
 		// Add a new entry with amended=<path is the same as the original repoPath>
-		this.items.put(path, new ContentLifecycleItem(path, filePath, repoPath.equals(path)));
+		this.items.put(path, new ContentLifeCycleItem(path, filePath, repoPath.equals(path)));
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class LifecycleContent {
 		// Remove the temporary file if it exists
 		exclude(path);
 		Path filePath = createTempFile(path, document);
-		this.items.put(path, new ContentLifecycleItem(path, filePath, repoPath.equals(path)));
+		this.items.put(path, new ContentLifeCycleItem(path, filePath, repoPath.equals(path)));
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class LifecycleContent {
 	 */
 	public void write(String repoPath, Path filePath) {
 		exclude(repoPath);
-		this.items.put(repoPath, new ContentLifecycleItem(repoPath, filePath));
+		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, filePath));
 	}
 
 	/**
@@ -106,23 +106,23 @@ public class LifecycleContent {
 	 * @param path the path to exclude
 	 */
 	public void exclude(final String path) {
-		ContentLifecycleItem removed = items.remove(path);
+		ContentLifeCycleItem removed = items.remove(path);
 		if (removed != null && removed.filePath() != null) {
 			FileUtils.deleteQuietly(removed.filePath().toFile());
 		}
 	}
 
-	public Map<String, ContentLifecycleItem> getItems() {
+	public Map<String, ContentLifeCycleItem> getItems() {
 		return unmodifiableMap(items);
 	}
 
 	/**
-	 * Get the content lifecycle item for the given path.
+	 * Get the content life cycle item for the given path.
 	 *
 	 * @param repoPath the path in the repository
-	 * @return the content lifecycle item, or null if it does not exist
+	 * @return the content life cycle item, or null if it does not exist
 	 */
-	public ContentLifecycleItem get(String repoPath) {
+	public ContentLifeCycleItem get(String repoPath) {
 		return items.get(repoPath);
 	}
 
@@ -139,15 +139,15 @@ public class LifecycleContent {
 	}
 
 	/**
-	 * Represents a content lifecycle item.
+	 * Represents a content life cycle item.
 	 *
 	 * @param repoPath the path in the repository where the content will be stored (or deleted from)
 	 * @param filePath the path to the temporary file currently storing the content to be written
 	 * @param amended  true if the content has been amended by the controller, false otherwise
 	 */
-	public record ContentLifecycleItem(String repoPath, Path filePath, boolean amended) implements ContentWriteItem {
+	public record ContentLifeCycleItem(String repoPath, Path filePath, boolean amended) implements ContentWriteItem {
 
-		public ContentLifecycleItem(String repoPath, Path filePath) {
+		public ContentLifeCycleItem(String repoPath, Path filePath) {
 			this(repoPath, filePath, false);
 		}
 
@@ -158,7 +158,7 @@ public class LifecycleContent {
 	}
 
 	/**
-	 * The lifecycle operation to be performed on the content.
+	 * The life cycle operation to be performed on the content.
 	 */
 	public enum LifeCycleOperation {
 		COPY,

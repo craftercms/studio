@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;
-import org.craftercms.studio.api.v2.content.LifecycleContent;
+import org.craftercms.studio.api.v2.content.LifeCycleContent;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurr
 
 /**
  * Content processing implementation of the {@link ContentLifeCycle} interface.
- * Executes the content lifecycle script (if exists) with the given parameters.
+ * Executes the content life cycle script (if exists) with the given parameters.
  */
 public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContextAware {
 	private static final Logger logger = LoggerFactory.getLogger(ContentLifeCycleImpl.class);
@@ -66,9 +66,9 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	}
 
 	@Override
-	public void execute(String siteId, LifecycleContent lifecycleContent, ContentLoader contentLoader) throws ServiceLayerException {
-		String contentType = lifecycleContent.getContentType();
-		String repoPath = lifecycleContent.getRepoPath();
+	public void execute(String siteId, LifeCycleContent lifeCycleContent, ContentLoader contentLoader) throws ServiceLayerException {
+		String contentType = lifeCycleContent.getContentType();
+		String repoPath = lifeCycleContent.getRepoPath();
 
 		// Validate contentType param
 		if (isEmpty(contentType) || CONTENT_TYPE_UNKNOWN.equals(contentType)) {
@@ -81,7 +81,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		String script;
 		try (InputStream content = contentLoader.getContentRaw(siteId, scriptPath)) {
 			if (content == null) {
-				logger.warn("No content lifecycle script found for site '{}' path '{}' contentType '{}'. Skipping content lifecycle.", siteId, repoPath, contentType);
+				logger.warn("No content life cycle script found for site '{}' path '{}' contentType '{}'. Skipping content life cycle.", siteId, repoPath, contentType);
 				return;
 			}
 			script = IOUtils.toString(content, UTF_8);
@@ -90,18 +90,18 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		}
 
 		if (isEmpty(script)) {
-			logger.warn("Empty lifecycle script found for site '{}' path '{}' contentType '{}'. Skipping content lifecycle.", siteId, repoPath, contentType);
+			logger.warn("Empty life cycle script found for site '{}' path '{}' contentType '{}'. Skipping content life cycle.", siteId, repoPath, contentType);
 			return;
 		}
 
 		// Build model
-		Map<String, Object> model = buildModel(siteId, lifecycleContent, contentLoader);
+		Map<String, Object> model = buildModel(siteId, lifeCycleContent, contentLoader);
 
 		// Execute the script
 		try {
 			scriptExecutor.executeScriptString(siteId, script, model);
 		} catch (ScriptException e) {
-			throw new ServiceLayerException(format("Failed to execute content lifecycle script for site '%s' path '%s' contentType '%s'.", siteId, repoPath, contentType), e);
+			throw new ServiceLayerException(format("Failed to execute content life cycle script for site '%s' path '%s' contentType '%s'.", siteId, repoPath, contentType), e);
 		}
 	}
 
@@ -109,20 +109,20 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	 * Builds the model to be passed to the script.
 	 *
 	 * @param siteId           the site id
-	 * @param lifecycleContent the {@link LifecycleContent} object to enable the controller
+	 * @param lifeCycleContent the {@link LifeCycleContent} object to enable the controller
 	 *                         to alter the content
 	 * @return a map with the model to be passed to the script
 	 */
-	private Map<String, Object> buildModel(String siteId, LifecycleContent lifecycleContent, ContentLoader contentLoader) {
+	private Map<String, Object> buildModel(String siteId, LifeCycleContent lifeCycleContent, ContentLoader contentLoader) {
 		Map<String, Object> model = new HashMap<>();
 		model.put(KEY_SITE, siteId);
 		model.put(KEY_USER, getCurrentUsername());
-		model.put(KEY_PATH, lifecycleContent.getRepoPath());
-		model.put(KEY_CONTENT_TYPE, lifecycleContent.getContentType());
-		model.put(CONTENT_LIFECYCLE_OPERATION, lifecycleContent.getOperation().toString());
+		model.put(KEY_PATH, lifeCycleContent.getRepoPath());
+		model.put(KEY_CONTENT_TYPE, lifeCycleContent.getContentType());
+		model.put(CONTENT_LIFECYCLE_OPERATION, lifeCycleContent.getOperation().toString());
 		model.put(KEY_CONTENT_LOADER, contentLoader);
 
-		model.put(KEY_LIFECYCLE_CONTENT, lifecycleContent);
+		model.put(KEY_LIFECYCLE_CONTENT, lifeCycleContent);
 
 		if (shouldIncludeApplicationContext()) {
 			model.put(DmConstants.KEY_APPLICATION_CONTEXT, applicationContext);

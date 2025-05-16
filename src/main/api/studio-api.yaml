@@ -10460,7 +10460,7 @@ components:
                         - DELETED
                 amended:
                     type: boolean
-                    description: 'indicates if the content submitted was further updated (e.g.: lifecycle controller, asset pipeline)'
+                    description: 'indicates if the content submitted was further updated (e.g.: lifeCycle controller, asset pipeline)'
             required:
                 - path
                 - action

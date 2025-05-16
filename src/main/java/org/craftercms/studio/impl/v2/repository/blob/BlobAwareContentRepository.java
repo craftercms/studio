@@ -296,7 +296,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	@Override
 	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException {
-		logger.debug("Write content in site '{}' with lifecycle items '{}'", siteId, writeItems);
+		logger.debug("Write content in site '{}' with life cycle items '{}'", siteId, writeItems);
 		try {
 			List<ContentWriteItem> localWriteItems = new ArrayList<>(writeItems.size());
 			for (ContentWriteItem item : writeItems) {

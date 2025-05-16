@@ -33,9 +33,9 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
-import org.craftercms.studio.api.v2.content.LifecycleContent;
-import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
-import org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation;
+import org.craftercms.studio.api.v2.content.LifeCycleContent;
+import org.craftercms.studio.api.v2.content.LifeCycleContent.ContentLifeCycleItem;
+import org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
@@ -98,8 +98,8 @@ import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.NEW;
-import static org.craftercms.studio.api.v2.content.LifecycleContent.LifeCycleOperation.UPDATE;
+import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.NEW;
+import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -352,16 +352,16 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
-	 * Run lifecycle script (for content descriptors) or asset pipeline (for assets)
+	 * Run life cycle script (for content descriptors) or asset pipeline (for assets)
 	 * Return the LifecycleContent object
 	 */
-	private LifecycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
+	private LifeCycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
 		boolean contentExists = contentExists(siteId, path);
 		LifeCycleOperation operation = contentExists ? UPDATE : NEW;
 
 		// TODO: Should we consider configuration files here?
 
-		LifecycleContent lifecycleContent;
+		LifeCycleContent lifeCycleContent;
 		// Check if it is an asset
 		if (isDescriptorPath(path)) {
 			try {
@@ -369,9 +369,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
 				pageNavOrderService.updateNavOrder(siteId, path, document);
 				Path tmpFile = createTempFile(path, document);
-				lifecycleContent = new LifecycleContent(path, contentType, tmpFile, operation);
-				contentLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
-				return lifecycleContent;
+				lifeCycleContent = new LifeCycleContent(path, contentType, tmpFile, operation);
+				contentLifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
+				return lifeCycleContent;
 			} catch (DocumentException e) {
 				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
 			} catch (IOException e) {
@@ -381,46 +381,46 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 		try {
 			Path tmpFile = createTempFile(path, content);
-			lifecycleContent = new LifecycleContent(path, null, tmpFile, operation);
-			assetLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
+			lifeCycleContent = new LifeCycleContent(path, null, tmpFile, operation);
+			assetLifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
 		} catch (IOException e) {
 			throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
 		}
-		return lifecycleContent;
+		return lifeCycleContent;
 	}
 
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		LifecycleContent lifecycleContent = runLifeCycle(siteId, path, content);
-		Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
+		LifeCycleContent lifeCycleContent = runLifeCycle(siteId, path, content);
+		Map<String, ContentLifeCycleItem> lifeCycleResultItems = lifeCycleContent.getItems();
 		// Check list is not empty or throw exception  (can't write empty set)
-		if (lifecycleResultItems.isEmpty()) {
-			throw new ServiceLayerException(format("Item list after lifecycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
+		if (lifeCycleResultItems.isEmpty()) {
+			throw new ServiceLayerException(format("Item list after life cycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
 		}
 
-		List<String> paths = new ArrayList<>(lifecycleResultItems.keySet());
+		List<String> paths = new ArrayList<>(lifeCycleResultItems.keySet());
 		Map<String, Object> resource = Map.of(SITE_ID_RESOURCE_ID, siteId, PATH_LIST_RESOURCE_ID, paths);
 		if (!permissionEvaluator.isAllowed(SecurityUtils.getCurrentUsername(), resource, PERMISSION_CONTENT_WRITE)) {
 			throw new ActionDeniedException(PERMISSION_CONTENT_WRITE, paths);
 		}
 
 		// Fail to continue write operation if the item is in workflow
-		assertNotInWorkflow(siteId, lifecycleResultItems.keySet(), false);
+		assertNotInWorkflow(siteId, lifeCycleResultItems.keySet(), false);
 
-		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent);
+		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifeCycleContent);
 		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 
 		// Write to the repository and commit.
-		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
+		String commitId = contentRepository.writeContent(siteId, lifeCycleResultItems.values(), missingFolders);
 		if (isEmpty(commitId)) {
 			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 		}
 
-		List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath);
+		List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
 
 		// Audit write operation
-		insertWriteContentAudit(siteId, path, lifecycleContent.getOperation(), writeResultItems, commitId);
+		insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems, commitId);
 
 		// Publish events
 		eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
@@ -446,16 +446,16 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
 	 * the value is the operation performed
 	 */
-	private @NotNull Map<String, LifeCycleOperation> getOperationsByPath(String siteId, LifecycleContent lifecycleContent) {
-		Map<String, ContentLifecycleItem> resultItems = lifecycleContent.getItems();
-		String path = lifecycleContent.getRepoPath();
+	private @NotNull Map<String, LifeCycleOperation> getOperationsByPath(String siteId, LifeCycleContent lifeCycleContent) {
+		Map<String, ContentLifeCycleItem> resultItems = lifeCycleContent.getItems();
+		String path = lifeCycleContent.getRepoPath();
 		// Calculate the operation. This must be done before actually writing to the repository
 		Map<String, LifeCycleOperation> operationsByPath = new HashMap<>(resultItems.size());
-		for (ContentLifecycleItem item : resultItems.values()) {
+		for (ContentLifeCycleItem item : resultItems.values()) {
 			LifeCycleOperation operation;
 			if (path.equals(item.repoPath())) {
 				// Preserve the operation for the main item
-				operation = lifecycleContent.getOperation();
+				operation = lifeCycleContent.getOperation();
 			} else if (contentExists(siteId, item.repoPath())) {
 				operation = UPDATE;
 			} else {
@@ -498,9 +498,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 *
 	 * @param siteId    the site id
 	 * @param item      the item to persist
-	 * @param operation the content lifecycle operation
+	 * @param operation the content life cycle operation
 	 */
-	private WriteContentResultItem persistItem(final String siteId, final ContentLifecycleItem item,
+	private WriteContentResultItem persistItem(final String siteId, final ContentLifeCycleItem item,
 											   LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		String path = item.repoPath();
 		if (NEW == operation) {
@@ -522,19 +522,19 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
-	 * Persist changes to the DB and gather the write result items from the ContentLifecycleItems
+	 * Persist changes to the DB and gather the write result items from the ContentLifeCycleItems
 	 */
-	private @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifecycleItem> lifecycleResultItems,
+	private @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifeCycleItem> lifeCycleResultItems,
 															  Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifecycleResultItems.size());
+		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifeCycleResultItems.size());
 
 		// Gather all the persist calls so we can sort them
 		Map<String, ThrowingRunnable> persistItemCalls = new HashMap<>();
 		for (String missingFolder : missingFolders) {
 			persistItemCalls.put(missingFolder, () -> persistNewFolder(siteId, missingFolder));
 		}
-		for (ContentLifecycleItem item : lifecycleResultItems) {
+		for (ContentLifeCycleItem item : lifeCycleResultItems) {
 			persistItemCalls.put(item.repoPath(), () -> writeResultItems.add(persistItem(siteId, item, operationsByPath.get(item.repoPath()))));
 		}
 
@@ -567,7 +567,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
-	 * Content loader method to support the content lifecycle script
+	 * Content loader method to support the content life cycle script
 	 *
 	 * @param siteId the site id
 	 * @param path   the path
