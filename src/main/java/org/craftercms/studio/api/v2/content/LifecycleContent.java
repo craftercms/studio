@@ -116,6 +116,16 @@ public class LifecycleContent {
 		return unmodifiableMap(items);
 	}
 
+	/**
+	 * Get the content lifecycle item for the given path.
+	 *
+	 * @param repoPath the path in the repository
+	 * @return the content lifecycle item, or null if it does not exist
+	 */
+	public ContentLifecycleItem get(String repoPath) {
+		return items.get(repoPath);
+	}
+
 	public LifeCycleOperation getOperation() {
 		return operation;
 	}

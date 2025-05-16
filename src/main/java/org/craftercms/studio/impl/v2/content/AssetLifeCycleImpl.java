@@ -72,7 +72,7 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 		}
 
 		String assetPath = lifecycleContent.getRepoPath();
-		Asset input = new Asset(assetPath, lifecycleContent.getItems().get(assetPath).filePath());
+		Asset input = new Asset(assetPath, lifecycleContent.get(assetPath).filePath());
 
 		Set<Asset> outputs = new LinkedHashSet<>();
 
