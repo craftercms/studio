@@ -355,12 +355,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Run life cycle script (for content descriptors) or asset pipeline (for assets)
 	 * Return the LifecycleContent object
 	 */
+	// TODO: Should we consider configuration files here?
 	private LifeCycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
 		boolean contentExists = contentExists(siteId, path);
 		LifeCycleOperation operation = contentExists ? UPDATE : NEW;
-
-		// TODO: Should we consider configuration files here?
-
+		ContentLifeCycle lifeCycle;
 		LifeCycleContent lifeCycleContent;
 		// Check if it is an asset
 		if (isDescriptorPath(path)) {
@@ -370,63 +369,71 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				pageNavOrderService.updateNavOrder(siteId, path, document);
 				Path tmpFile = createTempFile(path, document);
 				lifeCycleContent = new LifeCycleContent(path, contentType, tmpFile, operation);
-				contentLifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
-				return lifeCycleContent;
+				lifeCycle = contentLifeCycle;
 			} catch (DocumentException e) {
 				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
 			} catch (IOException e) {
 				throw new ServiceLayerException(format("Error writing content to temporary file for site '%s' path '%s'", siteId, path), e);
 			}
+		} else {
+			try {
+				Path tmpFile = createTempFile(path, content);
+				lifeCycleContent = new LifeCycleContent(path, null, tmpFile, operation);
+				lifeCycle = assetLifeCycle;
+			} catch (IOException e) {
+				throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
+			}
 		}
 
 		try {
-			Path tmpFile = createTempFile(path, content);
-			lifeCycleContent = new LifeCycleContent(path, null, tmpFile, operation);
-			assetLifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
-		} catch (IOException e) {
-			throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
+			lifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
+		} catch (Exception e) {
+			lifeCycleContent.close();
+			throw e;
 		}
+
 		return lifeCycleContent;
 	}
 
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		LifeCycleContent lifeCycleContent = runLifeCycle(siteId, path, content);
-		Map<String, ContentLifeCycleItem> lifeCycleResultItems = lifeCycleContent.getItems();
-		// Check list is not empty or throw exception  (can't write empty set)
-		if (lifeCycleResultItems.isEmpty()) {
-			throw new ServiceLayerException(format("Item list after life cycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
+		try (LifeCycleContent lifeCycleContent = runLifeCycle(siteId, path, content)) {
+			Map<String, ContentLifeCycleItem> lifeCycleResultItems = lifeCycleContent.getItems();
+			// Check list is not empty or throw exception  (can't write empty set)
+			if (lifeCycleResultItems.isEmpty()) {
+				throw new ServiceLayerException(format("Item list after life cycle processing is empty, nothing to write for site '%s' path '%s'", siteId, path));
+			}
+
+			List<String> paths = new ArrayList<>(lifeCycleResultItems.keySet());
+			Map<String, Object> resource = Map.of(SITE_ID_RESOURCE_ID, siteId, PATH_LIST_RESOURCE_ID, paths);
+			if (!permissionEvaluator.isAllowed(SecurityUtils.getCurrentUsername(), resource, PERMISSION_CONTENT_WRITE)) {
+				throw new ActionDeniedException(PERMISSION_CONTENT_WRITE, paths);
+			}
+
+			// Fail to continue write operation if the item is in workflow
+			assertNotInWorkflow(siteId, lifeCycleResultItems.keySet(), false);
+
+			Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifeCycleContent);
+			Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
+
+			// Write to the repository and commit.
+			String commitId = contentRepository.writeContent(siteId, lifeCycleResultItems.values(), missingFolders);
+			if (isEmpty(commitId)) {
+				throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
+			}
+
+			List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
+
+			// Audit write operation
+			insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems, commitId);
+
+			// Publish events
+			eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
+
+			// Return the WriteContentResult
+			return new WriteContentResult(writeResultItems);
 		}
-
-		List<String> paths = new ArrayList<>(lifeCycleResultItems.keySet());
-		Map<String, Object> resource = Map.of(SITE_ID_RESOURCE_ID, siteId, PATH_LIST_RESOURCE_ID, paths);
-		if (!permissionEvaluator.isAllowed(SecurityUtils.getCurrentUsername(), resource, PERMISSION_CONTENT_WRITE)) {
-			throw new ActionDeniedException(PERMISSION_CONTENT_WRITE, paths);
-		}
-
-		// Fail to continue write operation if the item is in workflow
-		assertNotInWorkflow(siteId, lifeCycleResultItems.keySet(), false);
-
-		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifeCycleContent);
-		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
-
-		// Write to the repository and commit.
-		String commitId = contentRepository.writeContent(siteId, lifeCycleResultItems.values(), missingFolders);
-		if (isEmpty(commitId)) {
-			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
-		}
-
-		List<WriteContentResultItem> writeResultItems = persistToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
-
-		// Audit write operation
-		insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems, commitId);
-
-		// Publish events
-		eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
-
-		// Return the WriteContentResult
-		return new WriteContentResult(writeResultItems);
 	}
 
 	/**

@@ -34,9 +34,7 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 /**
  * Container for content items to be passed to the content life cycle controller
  */
-public class LifeCycleContent {
-
-	// TODO: implement a close() method to delete any remaining temporary files
+public class LifeCycleContent implements AutoCloseable {
 
 	private final String repoPath;
 	private final LifeCycleOperation operation;
@@ -136,6 +134,16 @@ public class LifeCycleContent {
 
 	public String getContentType() {
 		return contentType;
+	}
+
+	@Override
+	public void close() {
+		// Remove the remaining temporary files
+		items.values().forEach(item -> {
+			if (item.filePath() != null) {
+				FileUtils.deleteQuietly(item.filePath().toFile());
+			}
+		});
 	}
 
 	/**

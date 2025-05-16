@@ -78,13 +78,8 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 
 		for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
 			AssetProcessorPipeline pipeline;
-			try {
-				pipeline = pipelineResolver.getPipeline(pipelineConfig);
-				outputs.addAll(pipeline.processAsset(pipelineConfig, input));
-			} catch (AssetProcessingException e) {
-				throw new ServiceLayerException(
-					String.format("Unable to resolve asset processing pipeline for site '%s' path '%s'.", siteId, assetPath), e);
-			}
+			pipeline = pipelineResolver.getPipeline(pipelineConfig);
+			outputs.addAll(pipeline.processAsset(pipelineConfig, input));
 		}
 
 		for (Asset output : outputs) {

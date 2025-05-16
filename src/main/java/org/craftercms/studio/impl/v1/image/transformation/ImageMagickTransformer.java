@@ -39,7 +39,7 @@ public class ImageMagickTransformer implements ImageTransformer {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImageMagickTransformer.class);
 
-	private static final String DEFAULT_IMG_MGK_PATH = "convert";
+	private static final String DEFAULT_IMG_MGK_PATH = "convertt";
 	private static final int DEFAULT_PROCESS_TIMEOUT_SECS = 30;
 
 	private static final String PARAM_OPTIONS = "options";
