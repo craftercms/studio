@@ -439,6 +439,7 @@
 		<property name="contentLifeCycle" ref="contentLifeCycle"/>
 		<property name="assetLifeCycle" ref="assetLifeCycle"/>
 		<property name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
+		<property name="pageNavOrderService" ref="cstudioPageNavOrderService"/>
 	</bean>
 
 	<bean id="contentLifeCycle" class="org.craftercms.studio.impl.v2.content.ContentLifeCycleImpl">

@@ -20,7 +20,10 @@ import org.apache.commons.io.FileUtils;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.dom4j.Document;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,10 +84,7 @@ public class LifecycleContent {
 	public void write(String path, Document document) throws IOException {
 		// Remove the temporary file if it exists
 		exclude(path);
-		Path filePath = createTempFile(path);
-		try (FileWriter writer = new FileWriter(filePath.toFile())) {
-			document.write(writer);
-		}
+		Path filePath = createTempFile(path, document);
 		this.items.put(path, new ContentLifecycleItem(path, filePath, repoPath.equals(path)));
 	}
 

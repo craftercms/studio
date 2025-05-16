@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
@@ -56,7 +57,6 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -79,8 +79,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.MimeType;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -107,10 +105,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.isDescriptorPath;
-import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentItemId;
-import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
@@ -137,6 +133,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private ContentLifeCycle contentLifeCycle;
 	private ContentLifeCycle assetLifeCycle;
 	private PermissionEvaluator<String, Object> permissionEvaluator;
+	private DmPageNavigationOrderService pageNavOrderService;
 
 	@Override
 	public boolean contentExists(String siteId, String path) {
@@ -359,36 +356,35 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Return the LifecycleContent object
 	 */
 	private LifecycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
-		// Store content in temporary file
-		Path tmpFile;
-		try {
-			tmpFile = StudioUtils.createTempFile(path, content);
-		} catch (IOException e) {
-			throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
-		}
+		boolean contentExists = contentExists(siteId, path);
+		LifeCycleOperation operation = contentExists ? UPDATE : NEW;
 
-		LifecycleContent lifecycleContent;
 		// TODO: Should we consider configuration files here?
 
+		LifecycleContent lifecycleContent;
 		// Check if it is an asset
 		if (isDescriptorPath(path)) {
-			// TODO: Nav order...
 			try {
-				Document document = ContentUtils.convertStreamToXml(new FileInputStream(tmpFile.toFile()));
+				Document document = convertStreamToXml(content);
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
-				boolean contentExists = contentExists(siteId, path);
-				LifeCycleOperation operation = contentExists ? UPDATE : NEW;
+				pageNavOrderService.updateNavOrder(siteId, path, document);
+				Path tmpFile = createTempFile(path, document);
 				lifecycleContent = new LifecycleContent(path, contentType, tmpFile, operation);
 				contentLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
-			} catch (DocumentException | FileNotFoundException e) {
+				return lifecycleContent;
+			} catch (DocumentException e) {
 				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
+			} catch (IOException e) {
+				throw new ServiceLayerException(format("Error writing content to temporary file for site '%s' path '%s'", siteId, path), e);
 			}
-		} else {
-			// It is an asset, create the Asset and call the AssetService
-			boolean contentExists = contentExists(siteId, path);
-			LifeCycleOperation operation = contentExists ? UPDATE : NEW;
+		}
+
+		try {
+			Path tmpFile = createTempFile(path, content);
 			lifecycleContent = new LifecycleContent(path, null, tmpFile, operation);
 			assetLifeCycle.execute(siteId, lifecycleContent, this::loadContent);
+		} catch (IOException e) {
+			throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
 		}
 		return lifecycleContent;
 	}
@@ -871,5 +867,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@SuppressWarnings("unused")
 	public void setPermissionEvaluator(final PermissionEvaluator<String, Object> permissionEvaluator) {
 		this.permissionEvaluator = permissionEvaluator;
+	}
+
+	@SuppressWarnings("unused")
+	public void setPageNavOrderService(final DmPageNavigationOrderService pageNavOrderService) {
+		this.pageNavOrderService = pageNavOrderService;
 	}
 }

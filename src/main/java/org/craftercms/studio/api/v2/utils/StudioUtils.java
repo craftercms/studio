@@ -21,10 +21,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.dom4j.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -129,6 +131,23 @@ public abstract class StudioUtils {
 		Path tmpFile = createTempFile(name);
 		try (OutputStream out = Files.newOutputStream(tmpFile)) {
 			IOUtils.copy(content, out);
+		}
+		return tmpFile;
+	}
+
+	/**
+	 * Creates a temporary file in the Crafter Studio temporary files root directory and
+	 * writes the document into it
+	 *
+	 * @param name     the name of the file. Result file will have a random name but will preserve the extension of this param
+	 * @param document the document to write to the file
+	 * @return the path to the temporary file
+	 * @throws IOException if an error occurs while creating the file or writing the content
+	 */
+	public static Path createTempFile(String name, Document document) throws IOException {
+		Path tmpFile = createTempFile(name);
+		try (FileWriter writer = new FileWriter(tmpFile.toFile())) {
+			document.write(writer);
 		}
 		return tmpFile;
 	}
