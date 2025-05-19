@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.content;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
@@ -125,7 +124,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		model.put(KEY_LIFECYCLE_CONTENT, lifeCycleContent);
 
 		if (shouldIncludeApplicationContext()) {
-			model.put(DmConstants.KEY_APPLICATION_CONTEXT, applicationContext);
+			model.put(KEY_APPLICATION_CONTEXT, applicationContext);
 		}
 		addSpringBeans(model);
 
@@ -155,8 +154,8 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	 */
 	protected String getScriptPath(String site, String contentType) {
 		return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION)
-			.replaceAll(StudioConstants.PATTERN_SITE, site)
-			.replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
+			.replaceAll(PATTERN_SITE, site)
+			.replaceAll(PATTERN_CONTENT_TYPE, contentType);
 	}
 
 	@Override

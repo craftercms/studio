@@ -57,7 +57,6 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
-import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
@@ -407,7 +406,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 			List<String> paths = new ArrayList<>(lifeCycleResultItems.keySet());
 			Map<String, Object> resource = Map.of(SITE_ID_RESOURCE_ID, siteId, PATH_LIST_RESOURCE_ID, paths);
-			if (!permissionEvaluator.isAllowed(SecurityUtils.getCurrentUsername(), resource, PERMISSION_CONTENT_WRITE)) {
+			if (!permissionEvaluator.isAllowed(getCurrentUsername(), resource, PERMISSION_CONTENT_WRITE)) {
 				throw new ActionDeniedException(PERMISSION_CONTENT_WRITE, paths);
 			}
 
@@ -429,7 +428,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems, commitId);
 
 			// Publish events
-			eventPublisher.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), siteId, path));
+			eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
 
 			// Return the WriteContentResult
 			return new WriteContentResult(writeResultItems);
@@ -481,7 +480,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected Comparator<String> creationPathComparator() {
 		// index.xml should go first
 		// Otherwise sort by length so parents go first
-		return Comparator.<String, Integer>comparing(s -> StringUtils.removeEnd(s, INDEX_FILE).length())
+		return Comparator.<String, Integer>comparing(s -> removeEnd(s, INDEX_FILE).length())
 			// If they have the same length after removing index.xml, we are comparing folder and page for the same path:
 			// 	/site/website/en/index.xml
 			// 	/site/website/en
