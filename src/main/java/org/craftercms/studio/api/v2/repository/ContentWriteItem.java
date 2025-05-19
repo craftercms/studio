@@ -50,7 +50,9 @@ public interface ContentWriteItem {
 	 * @throws DocumentException if the content cannot be converted to a Document
 	 */
 	default Document contentAsDocument() throws DocumentException, IOException {
-		return ContentUtils.convertStreamToXml(content());
+		try (InputStream in = content()) {
+			return ContentUtils.convertStreamToXml(in);
+		}
 	}
 
 }

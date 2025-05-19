@@ -106,6 +106,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		this.servicesConfig = servicesConfig;
 	}
 
+	@SuppressWarnings("unused")
 	public void setTaskManager(final TaskManager taskManager) {
 		this.taskManager = taskManager;
 	}
@@ -253,7 +254,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	@Override
 	public String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Write content to site '{}' path '{}'", site, path);
-		try {
+		try (content) {
 			StudioBlobStore store = getBlobStore(site, path);
 			if (store != null) {
 				store.writeContent(site, normalize(path), content);
@@ -302,7 +303,9 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			for (ContentWriteItem item : writeItems) {
 				StudioBlobStore store = getBlobStore(siteId, item.repoPath());
 				if (store != null) {
-					store.writeContent(siteId, normalize(item.repoPath()), item.content());
+					try (InputStream in = item.content()) {
+						store.writeContent(siteId, normalize(item.repoPath()), in);
+					}
 					Blob reference = store.getReference(normalize(item.repoPath()));
 					localWriteItems.add(
 						new BlobStoreReferenceWriteItem(getPointerPath(siteId, item.repoPath()),

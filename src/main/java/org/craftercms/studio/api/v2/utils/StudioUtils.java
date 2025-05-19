@@ -129,7 +129,7 @@ public abstract class StudioUtils {
 	 */
 	public static Path createTempFile(String name, InputStream content) throws IOException {
 		Path tmpFile = createTempFile(name);
-		try (OutputStream out = Files.newOutputStream(tmpFile)) {
+		try (content; OutputStream out = Files.newOutputStream(tmpFile)) {
 			IOUtils.copy(content, out);
 		}
 		return tmpFile;

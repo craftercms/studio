@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -57,24 +58,27 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 
 	@Override
 	public void execute(String siteId, LifeCycleContent lifeCycleContent, ContentLoader loader) throws ServiceLayerException {
-		InputStream configIn = loader.getContentRaw(siteId, configPath);
-		if (configIn == null) {
-			logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
-				"Skip asset processing ...", configPath, siteId);
-			return;
-		}
-		List<ProcessorPipelineConfiguration> pipelinesConfig = configReader.readConfig(configIn);
-		if (isEmpty(pipelinesConfig)) {
-			logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
-				"Skip asset processing ...", configPath, siteId);
-			return;
+		List<ProcessorPipelineConfiguration> pipelinesConfig;
+		try (InputStream configIn = loader.getContentRaw(siteId, configPath)) {
+			if (configIn == null) {
+				logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
+					"Skip asset processing ...", configPath, siteId);
+				return;
+			}
+			pipelinesConfig = configReader.readConfig(configIn);
+			if (isEmpty(pipelinesConfig)) {
+				logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
+					"Skip asset processing ...", configPath, siteId);
+				return;
+			}
+		} catch (IOException e) {
+			throw new ServiceLayerException("Failed to load asset processing pipelines config", e);
 		}
 
 		String assetPath = lifeCycleContent.getRepoPath();
 		Asset input = new Asset(assetPath, lifeCycleContent.get(assetPath).filePath());
 
 		Set<Asset> outputs = new LinkedHashSet<>();
-
 		for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
 			AssetProcessorPipeline pipeline;
 			pipeline = pipelineResolver.getPipeline(pipelineConfig);

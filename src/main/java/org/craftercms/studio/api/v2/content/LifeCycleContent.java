@@ -161,6 +161,9 @@ public class LifeCycleContent implements AutoCloseable {
 
 		@Override
 		public InputStream content() throws FileNotFoundException {
+			if (filePath == null) {
+				throw new FileNotFoundException("No content file available for " + repoPath);
+			}
 			return new FileInputStream(filePath.toFile());
 		}
 	}

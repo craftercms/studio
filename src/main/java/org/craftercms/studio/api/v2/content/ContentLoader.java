@@ -29,6 +29,7 @@ public interface ContentLoader {
 
 	/**
 	 * Get the content at the given path in the given site.
+	 * Note: The caller is responsible for closing this input stream
 	 *
 	 * @param siteId the site id
 	 * @param path   the path to the content

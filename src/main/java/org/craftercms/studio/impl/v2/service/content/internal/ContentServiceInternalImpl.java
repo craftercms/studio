@@ -397,7 +397,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		try (LifeCycleContent lifeCycleContent = runLifeCycle(siteId, path, content)) {
+		try (content; LifeCycleContent lifeCycleContent = runLifeCycle(siteId, path, content)) {
 			Map<String, ContentLifeCycleItem> lifeCycleResultItems = lifeCycleContent.getItems();
 			// Check list is not empty or throw exception  (can't write empty set)
 			if (lifeCycleResultItems.isEmpty()) {
@@ -416,6 +416,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifeCycleContent);
 			Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 
+			// TODO: Consider creating the commit in a temporary branch and merge after db updates complete
+			// 		successfully (and transactionally)
 			// Write to the repository and commit.
 			String commitId = contentRepository.writeContent(siteId, lifeCycleResultItems.values(), missingFolders);
 			if (isEmpty(commitId)) {
@@ -432,6 +434,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 			// Return the WriteContentResult
 			return new WriteContentResult(writeResultItems);
+		} catch (IOException e) {
+			throw new ServiceLayerException("Failed to write content to repository from InputStream", e);
 		}
 	}
 

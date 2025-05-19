@@ -99,7 +99,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		// Execute the script
 		try {
 			scriptExecutor.executeScriptString(siteId, script, model);
-		} catch (ScriptException e) {
+		} catch (Exception e) {
 			throw new ServiceLayerException(format("Failed to execute content life cycle script for site '%s' path '%s' contentType '%s'.", siteId, repoPath, contentType), e);
 		}
 	}

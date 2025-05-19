@@ -1147,7 +1147,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				logger.debug("Write a file to site '{}' path '{}'", site, path);
 
 				// Write the bits
-				try (FileOutputStream fos = new FileOutputStream(file.getPath()); FileChannel outChannel = fos.getChannel()) {
+				try (content; FileOutputStream fos = new FileOutputStream(file.getPath()); FileChannel outChannel = fos.getChannel()) {
 					logger.trace("Created the file output channel for site '{}' path '{}'", site, path);
 					ReadableByteChannel inChannel = Channels.newChannel(content);
 					logger.trace("Created the file input channel for site '{}' path '{}'", site, path);
