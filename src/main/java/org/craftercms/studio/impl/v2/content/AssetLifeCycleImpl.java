@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessingConfigReader
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipelineResolver;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
-import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;

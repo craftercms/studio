@@ -113,7 +113,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	 *                         to alter the content
 	 * @return a map with the model to be passed to the script
 	 */
-	private Map<String, Object> buildModel(String siteId, LifeCycleContent lifeCycleContent, ContentLoader contentLoader) {
+	protected Map<String, Object> buildModel(String siteId, LifeCycleContent lifeCycleContent, ContentLoader contentLoader) {
 		Map<String, Object> model = new HashMap<>();
 		model.put(KEY_SITE, siteId);
 		model.put(KEY_USER, getCurrentUsername());
@@ -132,7 +132,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		return model;
 	}
 
-	private void addSpringBeans(Map<String, Object> model) {
+	protected void addSpringBeans(Map<String, Object> model) {
 		String[] enabledBeans = studioConfiguration.getArray(CONTENT_LIFECYCLE_INCLUDED_BEANS, String.class);
 		for (String beanName : enabledBeans) {
 			try {
@@ -146,7 +146,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		}
 	}
 
-	private boolean shouldIncludeApplicationContext() {
+	protected boolean shouldIncludeApplicationContext() {
 		return studioConfiguration.getProperty(CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT, Boolean.class, false);
 	}
 

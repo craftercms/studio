@@ -356,7 +356,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Return the LifecycleContent object
 	 */
 	// TODO: Should we consider configuration files here?
-	private LifeCycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
+	protected LifeCycleContent runLifeCycle(final String siteId, final String path, final InputStream content) throws ServiceLayerException {
 		boolean contentExists = contentExists(siteId, path);
 		LifeCycleOperation operation = contentExists ? UPDATE : NEW;
 		ContentLifeCycle lifeCycle;
@@ -440,7 +440,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Extract the missing folders from a write operation
 	 * Missing folders are the newly created paths that need empty file added to the repo
 	 */
-	private Set<String> getMissingFolders(final String siteId, final Map<String, LifeCycleOperation> operationsByPath) {
+	protected Set<String> getMissingFolders(final String siteId, final Map<String, LifeCycleOperation> operationsByPath) {
 		return operationsByPath.entrySet().stream()
 			.filter(entry -> entry.getValue() == NEW)
 			.map(Map.Entry::getKey)
@@ -453,7 +453,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
 	 * the value is the operation performed
 	 */
-	private @NotNull Map<String, LifeCycleOperation> getOperationsByPath(String siteId, LifeCycleContent lifeCycleContent) {
+	protected @NotNull Map<String, LifeCycleOperation> getOperationsByPath(String siteId, LifeCycleContent lifeCycleContent) {
 		Map<String, ContentLifeCycleItem> resultItems = lifeCycleContent.getItems();
 		String path = lifeCycleContent.getRepoPath();
 		// Calculate the operation. This must be done before actually writing to the repository
@@ -495,7 +495,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param siteId    the site id
 	 * @param newFolder the new folder path
 	 */
-	private void persistNewFolder(final String siteId, final String newFolder) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+	protected void persistNewFolder(final String siteId, final String newFolder) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		Item parentItem = itemService.getItem(siteId, getParentUrl(newFolder), true);
 		itemService.persistItemAfterCreateFolder(siteId, newFolder, getBaseName(Path.of(newFolder)), parentItem.getId());
 	}
@@ -507,8 +507,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param item      the item to persist
 	 * @param operation the content life cycle operation
 	 */
-	private WriteContentResultItem persistItem(final String siteId, final ContentLifeCycleItem item,
-											   LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+	protected WriteContentResultItem persistItem(final String siteId, final ContentLifeCycleItem item,
+												 LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		String path = item.repoPath();
 		if (NEW == operation) {
 			boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -531,8 +531,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	/**
 	 * Persist changes to the DB and gather the write result items from the ContentLifeCycleItems
 	 */
-	private @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifeCycleItem> lifeCycleResultItems,
-															  Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath)
+	protected @NotNull List<WriteContentResultItem> persistToDB(String siteId, Collection<ContentLifeCycleItem> lifeCycleResultItems,
+																Set<String> missingFolders, Map<String, LifeCycleOperation> operationsByPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		List<WriteContentResultItem> writeResultItems = new ArrayList<>(lifeCycleResultItems.size());
 
@@ -562,7 +562,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Calculate the missing folders for a given path.
 	 * Missing folders are the ancestors of the path that do not exist in the repository.
 	 */
-	private Collection<String> calculateMissingFolders(final String siteId, final String path) {
+	protected Collection<String> calculateMissingFolders(final String siteId, final String path) {
 		List<String> missingFolders = new ArrayList<>();
 		String parentItemPath = FilenameUtils.getFullPathNoEndSeparator(path);
 		Path current = Path.of(parentItemPath);
@@ -580,7 +580,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param path   the path
 	 * @return InputStream to read the content
 	 */
-	private InputStream loadContent(String siteId, String path) {
+	protected InputStream loadContent(String siteId, String path) {
 		if (!contentRepository.contentExists(siteId, path)) {
 			return null;
 		}
@@ -592,8 +592,17 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-	private void insertWriteContentAudit(String siteId, String path, LifeCycleOperation operation,
-										 List<WriteContentResultItem> writeResultItems, String commitId) throws SiteNotFoundException {
+	/**
+	 * Insert an audit log entry for the write operation
+	 *
+	 * @param siteId           the site id
+	 * @param path             the path
+	 * @param operation        the operation performed
+	 * @param writeResultItems the write result items
+	 * @param commitId         the commit id
+	 */
+	protected void insertWriteContentAudit(String siteId, String path, LifeCycleOperation operation,
+										   List<WriteContentResultItem> writeResultItems, String commitId) throws SiteNotFoundException {
 		Site site = siteService.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
 		switch (operation) {
@@ -633,7 +642,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren) throws ContentInPublishQueueException {
+	public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren)
+		throws ContentInPublishQueueException {
 		// No need to check for children, as the paths collection already includes them
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
 		if (isNotEmpty(packagesForItems)) {
