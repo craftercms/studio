@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.content;
 
 import org.apache.commons.io.IOUtils;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
@@ -32,7 +31,6 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import javax.script.ScriptException;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,6 +83,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 			}
 			script = IOUtils.toString(content, UTF_8);
 		} catch (IOException e) {
+			logger.error("Failed to load controller script for site '{}' path '{}' contentType '{}'", siteId, repoPath, contentType, e);
 			throw new ServiceLayerException(format("Failed to load controller script for site '%s' path '%s'  contentType '%s'.", siteId, repoPath, contentType), e);
 		}
 
