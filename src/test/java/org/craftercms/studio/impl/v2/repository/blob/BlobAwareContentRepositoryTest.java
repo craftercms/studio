@@ -49,7 +49,6 @@ import java.util.function.Consumer;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.mockito.Mockito.*;
@@ -161,8 +160,6 @@ public class BlobAwareContentRepositoryTest {
 		when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
 		when(store.getContent(SITE, ORIGINAL_PATH, false)).thenReturn(CONTENT);
 		when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
-
-		when(store.moveContent(any(), any(), any())).thenReturn(EMPTY);
 
 		proxy.setFileExtension(BLOB_EXT);
 

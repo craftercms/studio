@@ -85,14 +85,4 @@ public interface ContentRepository {
 	 */
 	InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
 
-	/**
-	 * Move content (files or directories) from one path to another
-	 *
-	 * @param site     the site id
-	 * @param fromPath the path to move the content from
-	 * @param toPath   the path to move the content to
-	 * @return commit id after the operation
-	 * @throws ServiceLayerException if the operation fails
-	 */
-	String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 }

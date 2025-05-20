@@ -270,7 +270,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 	}
 
 	@Override
-	public String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+	public void moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
 		checkReadWriteMode();
 		Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
 		logger.debug("Move content in site '{}' from '{}' to '{}'", site,
@@ -343,7 +343,6 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 					getFullKey(previewMapping, toPath)), e);
 			}
 		}
-		return EMPTY;
 	}
 
 	@Override

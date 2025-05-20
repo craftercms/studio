@@ -70,9 +70,9 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 * @return the result of the publish operation
 	 */
 	<T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
-							      String publishingTarget,
-							      Collection<T> blobStoreItems,
-							      TaskProgress.Stage stage) throws ServiceLayerException;
+														  String publishingTarget,
+														  Collection<T> blobStoreItems,
+														  TaskProgress.Stage stage) throws ServiceLayerException;
 
 	/**
 	 * Delete the content at the given path
@@ -109,7 +109,17 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 * @param failedItems     the paths that failed to publish, mapped to the error message
 	 */
 	record PublishChangeSet<T extends PublishItemTO>(Collection<T> successfulItems,
-							 Collection<T> failedItems) {
+													 Collection<T> failedItems) {
 	}
+
+	/**
+	 * Move content (files or directories) from one path to another
+	 *
+	 * @param site     the site id
+	 * @param fromPath the path to move the content from
+	 * @param toPath   the path to move the content to
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	void moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
 }

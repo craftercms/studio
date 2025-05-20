@@ -367,14 +367,10 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		try {
 			StudioBlobStore store = getBlobStore(site, fromPath, toPath);
 			if (store != null) {
-				String result = store.moveContent(site, normalize(fromPath), normalize(toPath));
-				if (result != null) {
-					boolean isFolder = isFolder(site, fromPath);
-					String diskResult =
-						localRepository.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
-							isFolder ? toPath : getPointerPath(site, toPath));
-					return diskResult;
-				}
+				store.moveContent(site, normalize(fromPath), normalize(toPath));
+				boolean isFolder = isFolder(site, fromPath);
+				return localRepository.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
+					isFolder ? toPath : getPointerPath(site, toPath));
 			}
 			return localRepository.moveContent(site, fromPath, toPath);
 		} catch (BlobStoreConfigurationMissingException e) {
