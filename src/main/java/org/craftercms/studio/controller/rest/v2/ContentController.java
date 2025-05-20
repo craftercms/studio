@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.content.LifeCycleContent;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
@@ -45,6 +46,7 @@ import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -66,6 +68,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.*;
 
@@ -258,29 +261,36 @@ public class ContentController {
 	}
 
 	@PostMapping(value = SITE_ID, consumes = TEXT_PLAIN_VALUE)
-	public Result write(@PathVariable @ValidSiteId String siteId,
-						@NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-						InputStream content)
+	public ResponseEntity<Result> write(@PathVariable @ValidSiteId String siteId,
+										@NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
+										InputStream content)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return writeContent(siteId, path, content);
 	}
 
 	@PutMapping(value = SITE_ID, consumes = MULTIPART_FORM_DATA_VALUE)
-	public Result upload(@PathVariable @ValidSiteId String siteId,
-						 @RequestParam MultipartFile file,
-						 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path)
+	public ResponseEntity<Result> upload(@PathVariable @ValidSiteId String siteId,
+										 @RequestParam MultipartFile file,
+										 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException, IOException {
 		return writeContent(siteId, path, file.getInputStream());
 	}
 
-	private Result writeContent(final String siteId,
-								final String path,
-								final InputStream content)
+	private ResponseEntity<Result> writeContent(final String siteId,
+												final String path,
+												final InputStream content)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeResult = contentService.write(siteId, path, content);
+		boolean isNew = writeResult.getItems().stream()
+			.filter(i -> StringUtils.equals(i.path(), path))
+			.map(WriteContentResult.WriteContentResultItem::operation)
+			.anyMatch(LifeCycleContent.LifeCycleOperation.NEW::equals);
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(writeResult);
-		result.setResponse(OK);
-		return result;
+		result.setResponse(isNew ? CREATED : OK);
+
+		return ResponseEntity
+			.status(isNew ? HttpStatus.CREATED : HttpStatus.OK)
+			.body(result);
 	}
 
 	@PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
