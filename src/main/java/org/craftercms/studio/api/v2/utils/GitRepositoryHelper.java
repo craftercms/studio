@@ -735,7 +735,7 @@ public class GitRepositoryHelper implements DisposableBean {
             Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    String sitePath = file.toAbsolutePath().toString().replaceFirst(rootPath, FILE_SEPARATOR);
+                    String sitePath = Path.of(rootPath).relativize(file).toString();
                     boolean isMatched = ContentUtils.matchesPatterns(sitePath, patterns);
                     if (isMatched) {
                         String gitPath = getGitPath(sitePath);
