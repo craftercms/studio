@@ -98,9 +98,8 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 * @param path the path to create the folder
 	 * @param name the name of the folder
 	 * @throws ServiceLayerException if the operation fails
-	 * @throws UserNotFoundException if the current user is not found
 	 */
-	void createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+	void createFolder(String site, String path, String name) throws ServiceLayerException;
 
 	/**
 	 * Store the result of a publish operation

@@ -45,16 +45,29 @@ public class LifeCycleContent implements AutoCloseable {
 	 * Constructor for creating a new LifecycleContent object.
 	 *
 	 * @param repoPath    the path to the content item in the repository
+	 * @param sourcePath  source path for move operations
+	 * @param contentType the content type of the item
+	 * @param content     the content to be written
+	 * @param operation   the life cycle operation to be performed
+	 */
+	public LifeCycleContent(String repoPath, String sourcePath, String contentType, Path content, LifeCycleOperation operation) {
+		this.items = new HashMap<>();
+		this.repoPath = repoPath;
+		this.operation = operation;
+		this.contentType = contentType;
+		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, sourcePath, content));
+	}
+
+	/**
+	 * Constructor for creating a new LifecycleContent object.
+	 *
+	 * @param repoPath    the path to the content item in the repository
 	 * @param contentType the content type of the item
 	 * @param content     the content to be written
 	 * @param operation   the life cycle operation to be performed
 	 */
 	public LifeCycleContent(String repoPath, String contentType, Path content, LifeCycleOperation operation) {
-		this.items = new HashMap<>();
-		this.repoPath = repoPath;
-		this.operation = operation;
-		this.contentType = contentType;
-		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, content));
+		this(repoPath, null, contentType, content, operation);
 	}
 
 	/**
@@ -89,12 +102,12 @@ public class LifeCycleContent implements AutoCloseable {
 	/**
 	 * Write the content to the given path in the repository.
 	 *
-	 * @param repoPath the path to write the content to
+	 * @param path     the path to write the content to
 	 * @param filePath the path containing the content to write
 	 */
-	public void write(String repoPath, Path filePath) {
-		exclude(repoPath);
-		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, filePath));
+	public void write(String path, Path filePath) {
+		exclude(path);
+		this.items.put(path, new ContentLifeCycleItem(path, filePath, repoPath.equals(path)));
 	}
 
 	/**
@@ -103,7 +116,7 @@ public class LifeCycleContent implements AutoCloseable {
 	 *
 	 * @param path the path to exclude
 	 */
-	public void exclude(final String path) {
+	private void exclude(final String path) {
 		ContentLifeCycleItem removed = items.remove(path);
 		if (removed != null && removed.filePath() != null) {
 			FileUtils.deleteQuietly(removed.filePath().toFile());
@@ -132,6 +145,11 @@ public class LifeCycleContent implements AutoCloseable {
 		return repoPath;
 	}
 
+	public String getSourcePath() {
+		ContentLifeCycleItem item = items.get(repoPath);
+		return item != null ? item.sourcePath() : null;
+	}
+
 	public String getContentType() {
 		return contentType;
 	}
@@ -139,11 +157,7 @@ public class LifeCycleContent implements AutoCloseable {
 	@Override
 	public void close() {
 		// Remove the remaining temporary files
-		items.values().forEach(item -> {
-			if (item.filePath() != null) {
-				FileUtils.deleteQuietly(item.filePath().toFile());
-			}
-		});
+		items.values().forEach(ContentLifeCycleItem::close);
 	}
 
 	/**
@@ -153,10 +167,19 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @param filePath the path to the temporary file currently storing the content to be written
 	 * @param amended  true if the content has been amended by the controller, false otherwise
 	 */
-	public record ContentLifeCycleItem(String repoPath, Path filePath, boolean amended) implements ContentWriteItem {
+	public record ContentLifeCycleItem(String repoPath, String sourcePath, Path filePath,
+									   boolean amended) implements ContentWriteItem {
 
 		public ContentLifeCycleItem(String repoPath, Path filePath) {
 			this(repoPath, filePath, false);
+		}
+
+		public ContentLifeCycleItem(String repoPath, Path filePath, boolean amended) {
+			this(repoPath, null, filePath, amended);
+		}
+
+		public ContentLifeCycleItem(String repoPath, String sourcePath, Path filePath) {
+			this(repoPath, sourcePath, filePath, false);
 		}
 
 		@Override
@@ -165,6 +188,12 @@ public class LifeCycleContent implements AutoCloseable {
 				throw new FileNotFoundException("No content file available for " + repoPath);
 			}
 			return new FileInputStream(filePath.toFile());
+		}
+
+		public void close() {
+			if (filePath != null) {
+				FileUtils.deleteQuietly(filePath.toFile());
+			}
 		}
 	}
 

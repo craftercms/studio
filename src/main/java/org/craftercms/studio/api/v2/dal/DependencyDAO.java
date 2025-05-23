@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,9 +34,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
  * @author Dejan Brkic
  */
 public interface DependencyDAO {
-
-	String SOURCE_PATH_COLUMN_NAME = "source_path";
-	String TARGET_PATH_COLUMN_NAME = "target_path";
 
 	/**
 	 * Get soft dependencies from DB for list of content paths
@@ -130,7 +128,7 @@ public interface DependencyDAO {
 	 * @return list of item specific dependencies
 	 */
 	List<LightItem> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
-											 @Param(REGEX) List<String> regex);
+												@Param(REGEX) List<String> regex);
 
 	/**
 	 * Delete the dependencies of sourcePath
@@ -169,4 +167,42 @@ public interface DependencyDAO {
 	 * @param siteId the site id
 	 */
 	void validateDependenciesForSite(@Param(SITE_ID) String siteId);
+
+	/**
+	 * Update the dependencies to reflect the move operation of a subtree
+	 *
+	 * @param siteId the site id
+	 * @param path   the removed content path
+	 */
+	@Transactional
+	default void updateDependenciesOnTreeDelete(String siteId, String path) {
+		deleteTreeDependencies(siteId, path);
+		invalidateTreeDependencies(siteId, path);
+	}
+
+	/**
+	 * Delete the dependencies entries of any item where the source is a child of the path
+	 *
+	 * @param siteId the site id
+	 * @param path   the content path
+	 */
+	void deleteTreeDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String path);
+
+	/**
+	 * Invalidate the dependencies entries of any item where the target is a child of the path
+	 *
+	 * @param siteId the site id
+	 * @param path   the removed content path
+	 */
+	void invalidateTreeDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String path);
+
+	/**
+	 * Validate any dependencies where the target exists in the site
+	 * and is a child of the content subtree path
+	 *
+	 * @param siteId the site id
+	 * @param path   the content subtree path
+	 */
+	void validateDependenciesForTree(@Param(SITE_ID) String siteId, @Param(PATH) String path);
 }
+

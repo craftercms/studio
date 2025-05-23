@@ -191,10 +191,10 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-	public boolean renameContent(@SiteId String site,
-								 @ContentPath String path, String name)
+	public void renameContent(@SiteId String site,
+							  @ContentPath String path, String name)
 		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
-		return contentServiceInternal.renameContent(site, path, name);
+		contentServiceInternal.renameContent(site, path, name);
 	}
 
 	@Override

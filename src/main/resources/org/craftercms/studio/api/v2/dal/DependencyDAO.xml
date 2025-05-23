@@ -278,4 +278,31 @@
 			ELSE 0 END)
 		WHERE site = #{siteId}
 	</update>
+
+	<delete id="deleteTreeDependencies">
+		DELETE
+		FROM dependency
+		WHERE source_path LIKE CONCAT(TRIM(TRAILING '/' FROM #{path}), '/%')
+		AND site = #{siteId}
+	</delete>
+
+	<update id="invalidateTreeDependencies">
+		UPDATE dependency
+		SET valid = 0
+		WHERE site = #{siteId}
+		AND target_path LIKE CONCAT(TRIM(TRAILING '/' FROM #{path}), '/%')
+	</update>
+
+	<update id="validateDependenciesForTree">
+		UPDATE dependency
+		SET valid = (CASE
+			WHEN target_path IN (SELECT path
+					     FROM item i
+							  INNER JOIN site s ON s.id = i.site_id
+					     WHERE s.site_id = #{siteId}) THEN 1
+			ELSE 0 END)
+		WHERE site = #{siteId}
+		AND target_path LIKE CONCAT(TRIM(TRAILING '/' FROM #{path}), '/%')
+	</update>
+
 </mapper>

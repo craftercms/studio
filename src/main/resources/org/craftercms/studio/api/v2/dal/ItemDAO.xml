@@ -679,4 +679,13 @@
 			site_id = #{siteId}
 			AND path = #{path};
 	</update>
+
+	<update id="updateMovedFolders">
+		UPDATE item
+		SET
+			path = REPLACE(path, #{sourcePath}, #{targetPath})
+		WHERE
+			site_id = #{siteId}
+			AND path LIKE CONCAT(#{sourcePath}, '/%');
+	</update>
 </mapper>

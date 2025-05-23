@@ -42,7 +42,6 @@ public interface ContentWriteItem {
 	 */
 	InputStream content() throws IOException;
 
-
 	/**
 	 * Get the content as a Document.
 	 *

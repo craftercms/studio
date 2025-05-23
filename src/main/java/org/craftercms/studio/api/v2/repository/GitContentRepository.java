@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+
 /**
  * Interface for content repositories that support git operations
  */
@@ -432,5 +435,23 @@ public interface GitContentRepository extends ContentRepository {
 	 * @return commit id after the operation
 	 * @throws ServiceLayerException if the operation fails
 	 */
-	String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
+	default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+		return moveContent(site, fromPath, toPath, emptyList(), emptySet());
+	}
+
+	/**
+	 * Move content (files or directories) from one path to another
+	 * It also accepts a collection of additional items to be written and added to the same commit
+	 *
+	 * @param site            the site id
+	 * @param fromPath        the path to move the content from
+	 * @param toPath          the path to move the content to
+	 * @param additionalItems collection of additional items to be written in the same commit
+	 * @param newFolders      collection of folders to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	String moveContent(String site, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+		throws ServiceLayerException;
+
 }

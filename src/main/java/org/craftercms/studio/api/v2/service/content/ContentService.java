@@ -253,12 +253,11 @@ public interface ContentService {
 	 * @param site site identifier
 	 * @param path path of the content
 	 * @param name new name of the content
-	 * @return true if success, otherwise false
 	 * @throws ServiceLayerException general service error
 	 * @throws UserNotFoundException user not found error
 	 * @throws ValidationException   validation exception
 	 */
-	boolean renameContent(String site, String path, String name)
+	void renameContent(String site, String path, String name)
 		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 	/**

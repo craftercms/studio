@@ -172,4 +172,22 @@ public interface DependencyService {
 	 * @return true if the path is a valid dependency source, false otherwise
 	 */
 	boolean isValidDependencySource(String siteId, String path) throws SiteNotFoundException;
+
+	/**
+	 * Update the dependencies to reflect the removal of a content subtree.
+	 * This will invalidate any dependencies where the target is a child of the path,
+	 * and will delete any dependencies where the source is a child of the path.
+	 *
+	 * @param siteId the site id
+	 * @param path   the removed content path
+	 */
+	void updateDependenciesOnTreeDelete(String siteId, String path);
+
+	/**
+	 * Validate any dependencies where the target is a child of the content subtree path
+	 *
+	 * @param siteId the site id
+	 * @param path   the content subtree path
+	 */
+	void validateDependenciesForTree(String siteId, String path);
 }

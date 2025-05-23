@@ -120,6 +120,10 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 		model.put(CONTENT_LIFECYCLE_OPERATION, lifeCycleContent.getOperation().toString());
 		model.put(KEY_CONTENT_LOADER, contentLoader);
 
+		if (lifeCycleContent.getOperation() == LifeCycleContent.LifeCycleOperation.RENAME) {
+			model.put(KEY_SOURCE_PATH, lifeCycleContent.getSourcePath());
+		}
+
 		model.put(KEY_LIFECYCLE_CONTENT, lifeCycleContent);
 
 		if (shouldIncludeApplicationContext()) {

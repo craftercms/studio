@@ -227,6 +227,16 @@ public class DependencyServiceInternalImpl implements DependencyService {
 		return isXml || isCss || isJs || isTemplate;
 	}
 
+	@Override
+	public void updateDependenciesOnTreeDelete(final String siteId, final String path) {
+		retryingDatabaseOperationFacade.retry(() -> dependencyDao.updateDependenciesOnTreeDelete(siteId, path));
+	}
+
+	@Override
+	public void validateDependenciesForTree(String siteId, String path) {
+		retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForTree(siteId, path));
+	}
+
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
 	}

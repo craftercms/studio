@@ -43,6 +43,9 @@ public interface ItemDAO {
 	String TIMESTAMP = "timestamp";
 	String ITEM_STATE_MASK = "itemStateMask";
 
+	String SOURCE_PATH = "sourcePath";
+	String TARGET_PATH = "targetPath";
+
 	Map<String, String> SORT_FIELD_MAP = Map.of(
 		"id", "id",
 		"dateModified", "last_modified_on",
@@ -482,4 +485,15 @@ public interface ItemDAO {
 							   @Param(LABEL) String label, @Param(CONTENT_TYPE_ID) String contentTypeId,
 							   @Param(SYSTEM_TYPE) String systemType, @Param(MIME_TYPE) String mimeType, @Param(SIZE) long size,
 							   @Param(IGNORED) boolean ignored);
+
+	/**
+	 * Update the path for all the affected folder items to reflect the move operation
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path
+	 * @param targetPath the target path
+	 */
+	void updateMovedFolders(@Param(SITE_ID) long siteId,
+							@Param(SOURCE_PATH) String sourcePath,
+							@Param(TARGET_PATH) String targetPath);
 }

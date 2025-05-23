@@ -1547,6 +1547,25 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		}
 	}
 
+	/**
+	 * Create empty files in the new folders and add the paths to the index
+	 *
+	 * @param siteId     the site id
+	 * @param repo       the git repo
+	 * @param newFolders the list of new folder psths
+	 * @return the list of paths to the empty files
+	 */
+	protected List<String> addNewFolders(String siteId, Repository repo, Set<String> newFolders) {
+		List<String> paths = new ArrayList<>(newFolders.size());
+		// Create new folders
+		for (String newFolder : newFolders) {
+			String emptyFilePath = Path.of(newFolder, EMPTY_FILE).toString();
+			addEmptyFile(repo, siteId, emptyFilePath);
+			paths.add(emptyFilePath);
+		}
+		return paths;
+	}
+
 	@Override
 	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException {
@@ -1569,12 +1588,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				.map(ContentWriteItem::repoPath)
 				.toList());
 
-			// Create new folders
-			for (String newFolder : newFolders) {
-				String emptyFilePath = Path.of(newFolder, EMPTY_FILE).toString();
-				addEmptyFile(repo, siteId, emptyFilePath);
-				paths.add(emptyFilePath);
-			}
+			paths.addAll(addNewFolders(siteId, repo, newFolders));
+
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
@@ -1619,11 +1634,13 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public String moveContent(String siteId, String fromPath, String toPath) throws ServiceLayerException {
+	public String moveContent(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems,
+							  Set<String> newFolders) throws ServiceLayerException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 
+		// TODO: Refactor this to use git mv command
 		String gitFromPath = helper.getGitPath(fromPath);
 		String gitToPath = helper.getGitPath(toPath);
 
@@ -1646,6 +1663,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				changeSet.add(pathToCommit);
 				changeSet.add(pathRemoved);
 			}
+
+			// TODO: add new folders and additional items
+			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
+
 			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
 			persistCommit(siteId, commitId);
 			return commitId;

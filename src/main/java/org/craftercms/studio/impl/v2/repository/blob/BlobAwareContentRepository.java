@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.PublishingTargetResolver;
@@ -75,6 +76,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.PUBLISH_ALL;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
@@ -299,21 +301,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Write content in site '{}' with life cycle items '{}'", siteId, writeItems);
 		try {
-			List<ContentWriteItem> localWriteItems = new ArrayList<>(writeItems.size());
-			for (ContentWriteItem item : writeItems) {
-				StudioBlobStore store = getBlobStore(siteId, item.repoPath());
-				if (store != null) {
-					try (InputStream in = item.content()) {
-						store.writeContent(siteId, normalize(item.repoPath()), in);
-					}
-					Blob reference = store.getReference(normalize(item.repoPath()));
-					localWriteItems.add(
-						new BlobStoreReferenceWriteItem(getPointerPath(siteId, item.repoPath()),
-							reference));
-				} else {
-					localWriteItems.add(item);
-				}
-			}
+			List<ContentWriteItem> localWriteItems = writeItemsToBlobStores(siteId, writeItems, newFolders);
 			return localRepository.writeContent(siteId, localWriteItems, newFolders);
 		} catch (IOException e) {
 			throw new ServiceLayerException("Failed to continue write operation. Failed to read input", e);
@@ -361,8 +349,48 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		localRepository.createEmptyFiles(siteId, paths);
 	}
 
+	/**
+	 * Writes each item to the blob stores (if a store exist for the path) and return a reference
+	 * item to be written to the local repository. If a blob store does not exist for the path, the same {@link ContentWriteItem}
+	 * is included in the response list.
+	 *
+	 * @param siteId     the site id
+	 * @param writeItems the items to be written
+	 * @return the list of items to be written to the local repository
+	 * @throws IOException           if there is an error reading the content
+	 * @throws ServiceLayerException if there is an error writing the content to the blob store
+	 */
+	protected List<ContentWriteItem> writeItemsToBlobStores(String siteId, Collection<? extends ContentWriteItem> writeItems,
+															Set<String> newFolders) throws IOException, ServiceLayerException {
+		for (String newFolder : newFolders) {
+			StudioBlobStore store = getBlobStore(siteId, newFolder);
+			if (store != null) {
+				String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(newFolder);
+				String name = FilenameUtils.getName(newFolder);
+				store.createFolder(siteId, normalize(parentPath), name);
+			}
+		}
+		List<ContentWriteItem> localWriteItems = new ArrayList<>(writeItems.size());
+		for (ContentWriteItem item : writeItems) {
+			StudioBlobStore store = getBlobStore(siteId, item.repoPath());
+			if (store != null) {
+				try (InputStream in = item.content()) {
+					store.writeContent(siteId, normalize(item.repoPath()), in);
+				}
+				Blob reference = store.getReference(normalize(item.repoPath()));
+				localWriteItems.add(
+					new BlobStoreReferenceWriteItem(getPointerPath(siteId, item.repoPath()),
+						reference));
+			} else {
+				localWriteItems.add(item);
+			}
+		}
+		return localWriteItems;
+	}
+
 	@Override
-	public String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+	public String moveContent(String site, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems,
+							  Set<String> newFolders) throws ServiceLayerException {
 		logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
 		try {
 			StudioBlobStore store = getBlobStore(site, fromPath, toPath);
@@ -372,14 +400,16 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 				return localRepository.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
 					isFolder ? toPath : getPointerPath(site, toPath));
 			}
-			return localRepository.moveContent(site, fromPath, toPath);
+			return localRepository.moveContent(site, fromPath, toPath, writeItemsToBlobStores(site, additionalItems, newFolders), newFolders);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
 				"will move from '{}' to '{}' in the local repository", site, fromPath, toPath);
-			return localRepository.moveContent(site, fromPath, toPath);
+			// TODO: test this and remove the exception if BlobStoreConfigurationMissingException is never here
+			return null;
+//			return localRepository.moveContent(site, fromPath, toPath, writeItemsToBlobStores(site, additionalItems));
 		} catch (Exception e) {
 			logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
-			return null;
+			throw new ServiceLayerException("Failed to move content in site '%s' from '%s' to '%s'".formatted(site, fromPath, toPath), e);
 		}
 	}
 
