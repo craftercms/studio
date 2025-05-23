@@ -20,6 +20,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -81,7 +82,7 @@ public abstract class AbstractUpgradeOperation extends
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public void setServletContext(final ServletContext servletContext) {
+	public void setServletContext(@NotNull final ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
 
@@ -95,11 +96,9 @@ public abstract class AbstractUpgradeOperation extends
 
 	@Override
 	protected void doExecute(UpgradeContext<String> context) throws Exception {
-		if (!(context instanceof StudioUpgradeContext)) {
+		if (!(context instanceof StudioUpgradeContext studioContext)) {
 			throw new IllegalArgumentException("The provided upgrade context is not supported");
 		}
-
-		var studioContext = (StudioUpgradeContext) context;
 
 		doExecute(studioContext);
 

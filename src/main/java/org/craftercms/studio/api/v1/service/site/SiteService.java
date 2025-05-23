@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v1.service.site;
 
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -24,8 +23,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.model.site.SiteDetails;
@@ -65,8 +62,7 @@ public interface SiteService {
 	 */
 	void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
 				     String desc, Map<String, String> params, boolean createAsOrphan)
-		throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-		BlueprintNotFoundException, MissingPluginParameterException;
+		throws ServiceLayerException;
 
 	/**
 	 * Create a new site with remote option (clone from remote or push to remote repository)
@@ -111,13 +107,6 @@ public interface SiteService {
 	 */
 	@Deprecated
 	boolean deleteSite(String siteId);
-
-	/**
-	 * get a list of available blueprints
-	 *
-	 * @return list of blueprints
-	 */
-	SiteBlueprintTO[] getAvailableBlueprints();
 
 	void updateLastCommitId(String site, String commitId);
 
@@ -213,46 +202,6 @@ public interface SiteService {
 	 * @throws ServiceLayerException if an error occurs while retrieving the site details
 	 */
 	SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
-
-	/**
-	 * Add remote repository for site content repository
-	 *
-	 * @param siteId             site identifier
-	 * @param remoteName         remote name
-	 * @param remoteUrl          remote url
-	 * @param authenticationType authentication type
-	 * @param remoteUsername     remote username
-	 * @param remotePassword     remote password
-	 * @param remoteToken        remote token
-	 * @param remotePrivateKey   remote private key
-	 * @return true if operation was successful
-	 * @throws InvalidRemoteUrlException invalid remote url
-	 * @throws ServiceLayerException     general service error
-	 */
-	boolean addRemote(String siteId, String remoteName, String remoteUrl,
-			  String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
-			  String remotePrivateKey)
-		throws InvalidRemoteUrlException, ServiceLayerException;
-
-	/**
-	 * Remove remote with given name for site
-	 *
-	 * @param siteId     site identifier
-	 * @param remoteName remote name
-	 * @return true if operation was successful
-	 * @throws SiteNotFoundException site not found
-	 */
-	boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
-
-	/**
-	 * List remote repositories for given site
-	 *
-	 * @param siteId site identifier
-	 * @return list of names of remote repositories
-	 * @throws SiteNotFoundException site not found
-	 * @throws CryptoException       git repository helper error
-	 */
-	List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException;
 
 	/**
 	 * Get deleted sites

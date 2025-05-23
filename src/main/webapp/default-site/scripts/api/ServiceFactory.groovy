@@ -20,7 +20,6 @@ import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices
 import scripts.api.impl.content.SpringContentTypeServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
-import scripts.api.impl.deployment.SpringDeploymentServices
 import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
 import scripts.api.impl.dependency.SpringDependencyServices
@@ -60,16 +59,6 @@ class ServiceFactory {
 	 */
 	static getContentTypeServices(context) {
 		return new SpringContentTypeServices(context)
-	}
-
-	/**
-	 * return the implementation for deployment services
-	 *
-	 * @param context site context
-	 * @return DeploymentServices
-	 */
-	static getDeploymentServices(context) {
-		return new SpringDeploymentServices(context)
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,13 +19,14 @@ package org.craftercms.studio.impl.v1.service.site;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.mutable.MutableLong;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -40,32 +41,23 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
-import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -73,6 +65,7 @@ import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.blobstore.BlobStoreDetails;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
@@ -93,14 +86,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.commons.file.blob.BlobStore.*;
@@ -109,13 +100,13 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_INITIALIZING;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemRow;
+import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_SITE;
@@ -131,27 +122,18 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-	private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
-	// Max items to insert in a single batch
-	private final static int GENERATED_SQL_BATCH_SIZE = 10000;
 
 	protected Deployer deployer;
 	protected ContentService contentService;
-	protected org.craftercms.studio.api.v1.repository.GitContentRepository contentRepository;
-	protected GitContentRepository contentRepositoryV2;
-	protected DependencyService dependencyService;
-	protected SecurityService securityService;
-	protected DmPageNavigationOrderService dmPageNavigationOrderService;
-	protected GroupServiceInternal groupServiceInternal;
-	protected UserServiceInternal userServiceInternal;
+	protected GitContentRepository contentRepository;
+	protected GroupService groupService;
+	protected UserService userService;
 	protected StudioUpgradeManager upgradeManager;
 	protected StudioConfiguration studioConfiguration;
 	protected SitesService sitesServiceInternal;
-	protected AuditServiceInternal auditServiceInternal;
+	protected AuditService auditService;
 	protected ConfigurationService configurationService;
-	protected ConfigurationService configurationServiceInternal;
-	protected ItemServiceInternal itemServiceInternal;
-	protected WorkflowService workflowServiceInternal;
+	protected ItemService itemService;
 	protected ApplicationContext applicationContext;
 
 	@Autowired
@@ -159,11 +141,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	protected EntitlementValidator entitlementValidator;
 
-	protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 	protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceInternal;
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	protected UserDAO userDao;
+
+	protected SqlSessionFactory sqlSessionFactory;
 
 	@Override
 	public Set<String> getAllAvailableSites() {
@@ -190,8 +173,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		@ValidateStringParam String sandboxBranch,
 		@ValidateNoTagsParam String desc,
 		Map<String, String> params, boolean createAsOrphan)
-		throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-		BlueprintNotFoundException, MissingPluginParameterException {
+		throws ServiceLayerException {
 		if (exists(siteId) || existsByName(siteName)) {
 			throw new SiteAlreadyExistsException();
 		}
@@ -226,7 +208,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		// 1) deployer target, 2) git repo, 3) database, 4) kick deployer
 		String siteUuid = UUID.randomUUID().toString();
 
-		String creator = securityService.getCurrentUser();
+		String creator = SecurityUtils.getCurrentUsername();
 
 		// Create the site in the preview deployer
 		logger.info("Create the deployer targets for site '{}'", siteName);
@@ -273,7 +255,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					processCreatedFiles(siteId, creator, now),
 				logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, creator, now)));
 
-			String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+			String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 			updateLastCommitId(siteId, lastCommitId);
 
 			logger.info("Reload the site configuration for site '{}'", siteName);
@@ -342,7 +324,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint, String creator) throws SiteNotFoundException {
 		SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_CREATE);
 		auditLog.setSiteId(siteFeed.getId());
 		auditLog.setActorId(creator);
@@ -357,21 +339,34 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		auditLogParameters.add(auditLogParameter);
 
 		auditLog.setParameters(auditLogParameters);
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
-	private void processCreatedDirectory(Path createdFileScriptPath, long siteId, String directory,
-					     long userId, ZonedDateTime now) throws IOException {
+	private void processCreatedDirectory(ItemDAO itemDao, String siteId, String directory,
+					     long userId, ZonedDateTime now) {
 		String label = new File(directory).getName();
-		Files.write(createdFileScriptPath, insertItemRow(siteId, directory, null, NEW.value, null, userId,
-				now, userId, now, null, label, null, CONTENT_TYPE_FOLDER, null,
-				Locale.US.toString(), null, 0L).getBytes(UTF_8),
-			StandardOpenOption.APPEND);
-		Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+		Item item = itemService.instantiateItem(siteId, directory)
+			.withPreviewUrl(null)
+			.withState(NEW.value)
+			.withLockedBy(null)
+			.withCreatedBy(userId)
+			.withCreatedOn(now)
+			.withLastModifiedBy(userId)
+			.withLastModifiedOn(now)
+			.withLastPublishedOn(null)
+			.withLabel(label)
+			.withContentTypeId(null)
+			.withSystemType(CONTENT_TYPE_FOLDER)
+			.withMimeType(null)
+			.withLocaleCode(Locale.US.toString())
+			.withTranslationSourceId(null)
+			.withSize(0L)
+			.build();
+		itemDao.upsertEntry(item);
 	}
 
-	private void processCreatedFile(Path createdFileScriptPath, Site site, String path,
-					long userId, ZonedDateTime now) throws IOException {
+	private void processCreatedFile(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
+									Site site, String path, long userId, ZonedDateTime now) throws SiteNotFoundException {
 		// Item
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
@@ -396,7 +391,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		String previewUrl = null;
 		if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
 			StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-			previewUrl = itemServiceInternal.getBrowserUrl(site.getSiteId(), path);
+			previewUrl = itemService.getBrowserUrl(site.getSiteId(), path);
 		}
 		long state = NEW.value;
 		if (disabled) {
@@ -404,37 +399,44 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}
 
 		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
-			Files.write(createdFileScriptPath, insertItemRow(site.getId(), path, previewUrl, state,
-					null, userId, now, userId, now, null, label, contentTypeId,
-					contentService.getContentTypeClass(site.getSiteId(), path),
-					StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-					contentRepositoryV2.getContentSize(site.getSiteId(), path)).getBytes(UTF_8),
-				StandardOpenOption.APPEND);
-			Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+			Item item = itemService.instantiateItem(site.getSiteId(), path)
+				.withPreviewUrl(previewUrl)
+				.withState(state)
+				.withLockedBy(null)
+				.withCreatedBy(userId)
+				.withCreatedOn(now)
+				.withLastModifiedBy(userId)
+				.withLastModifiedOn(now)
+				.withLastPublishedOn(null)
+				.withLabel(label)
+				.withContentTypeId(contentTypeId)
+				.withSystemType(contentService.getContentTypeClass(site.getSiteId(), path))
+				.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
+				.withLocaleCode(Locale.US.toString())
+				.withTranslationSourceId(null)
+				.withSize(contentRepository.getContentSize(site.getSiteId(), path))
+				.build();
+			itemDao.upsertEntry(item);
 
-			DependencyUtils.addDependenciesScriptSnippets(site.getSiteId(), path, null,
-				createdFileScriptPath, dependencyServiceInternal, false, false);
+			DependencyUtils.updateDependencies(site.getSiteId(), path, null, dependencyServiceInternal, dependencyDao,
+				sqlSession, false, false);
 		}
 	}
 
 	/**
-	 * Return a Runnable that will check if the counter has exceeded the batch size and if so, execute the script and truncate the file
+	 * Return a Runnable that will check if the counter has exceeded the batch size and if so, execute the queries
 	 *
+	 * @param sqlSession   sql session instance
 	 * @param counter      The counter to check
-	 * @param scriptRunner The script runner
-	 * @param scriptPath   The path to the script file
 	 * @return runnable
 	 */
-	private ThrowingRunnable getCheckCounterFunction(final MutableLong counter, final String siteId,
-							 final StudioDBScriptRunner scriptRunner, final Path scriptPath) {
+	private ThrowingRunnable getCheckCounterFunction(final SqlSession sqlSession, final MutableLong counter, final String siteId) {
 		return () -> {
 			counter.increment();
-			if (counter.longValue() >= GENERATED_SQL_BATCH_SIZE) {
-				logger.debug("Executing batch of items for site '{}' in the script file '{}'", siteId, scriptPath);
-				scriptRunner.execute(scriptPath, true);
-				logger.debug("Executed batch of items for site '{}' in the script file '{}'", siteId, scriptPath);
-				// Truncate the file so it can be reused
-				Files.writeString(scriptPath, EMPTY, UTF_8, TRUNCATE_EXISTING);
+			if (counter.longValue() >= MY_BATIS_QUERY_BATCH_SIZE) {
+				logger.debug("Executing batch of items for site '{}'", siteId);
+				sqlSession.flushStatements();
+				logger.debug("Executed batch of items for site '{}'", siteId);
 				counter.setValue(0);
 			}
 		};
@@ -444,48 +446,31 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					 ZonedDateTime now) throws Exception {
 		logger.debug("Processing created files for site '{}'", siteId);
 		Site site = sitesServiceInternal.getSite(siteId);
-		User userObj = userServiceInternal.getUserByGitName(creator);
+		User userObj = userService.getUserByGitName(creator);
 
-		StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-
-		Path createdFileScriptPath = null;
-		// TODO: SJ: Refactor to avoid string literals
-		try {
-			Path studioTempDir = getStudioTemporaryFilesRoot();
-			String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
-			createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
-
-			// Variable in lambda needs to be final
-			final Path scriptPath = createdFileScriptPath;
-
-			MutableLong itemCount = new MutableLong(0);
-			ThrowingRunnable checkCounter = getCheckCounterFunction(itemCount, siteId, studioDBScriptRunner, scriptPath);
-			contentRepositoryV2.forAllSitePaths(siteId,
+		MutableLong itemCount = new MutableLong(0);
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
+			DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
+			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
+			contentRepository.forAllSitePaths(siteId,
 				directory -> {
-					processCreatedDirectory(scriptPath, site.getId(), directory, userObj.getId(), now);
+					processCreatedDirectory(itemDao, site.getSiteId(), directory, userObj.getId(), now);
 					checkCounter.run();
 				},
 				file -> {
-					processCreatedFile(scriptPath, site, file, userObj.getId(), now);
+					processCreatedFile(itemDao, dependencyDao, sqlSession, site, file, userObj.getId(), now);
 					checkCounter.run();
 				}
 			);
-			if (itemCount.longValue() > 0) {
-				logger.debug("Executing the last batch of items for site '{}' in the script file '{}'", siteId, createdFileScriptPath);
-				studioDBScriptRunner.execute(createdFileScriptPath, true);
-			}
+			sqlSession.commit();
 			logger.debug("Update parent ID for created items for site '{}'", siteId);
-			itemServiceInternal.updateParentId(siteId);
+			itemService.updateParentId(siteId);
 			logger.debug("Validate dependencies for site '{}'", siteId);
 			dependencyServiceInternal.validateDependencies(siteId);
 		} catch (Exception e) {
-			logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
+			logger.error("Failed to update database for processingCreatedFiles in site '{}'", siteId, e);
 			throw e;
-		} finally {
-			if (createdFileScriptPath != null) {
-				logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
-				FileUtils.deleteQuietly(createdFileScriptPath.toFile());
-			}
 		}
 		logger.debug("Finished processing created files for site '{}'", siteId);
 	}
@@ -496,20 +481,19 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		boolean success;
 
 		// create site with git repo
-		success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
+		success = contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 
 		String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
-		replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
-			siteId);
+		replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", siteId);
 
 		return success;
 	}
 
-	protected void replaceFileContentGit(String site, String path, String find, String replace) throws Exception {
+	protected void replaceFileContentGit(String site, String path, String replace) throws Exception {
 		InputStream content = contentRepository.getContent(site, path);
 		String contentAsString = IOUtils.toString(content, UTF_8);
 
-		contentAsString = contentAsString.replaceAll(find, replace);
+		contentAsString = contentAsString.replaceAll("SITENAME", replace);
 
 		InputStream contentToWrite = IOUtils.toInputStream(contentAsString, UTF_8);
 
@@ -521,9 +505,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		for (String group : defaultGroups) {
 			String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
 			try {
-				if (!groupServiceInternal.groupExists(-1, group)) {
+				if (!groupService.groupExists(-1, group)) {
 					try {
-						groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
+						groupService.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
 					} catch (GroupAlreadyExistsException e) {
 						throw new IllegalStateException(e);
 					}
@@ -597,13 +581,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		// 1) git repo, 2) deployer target, 3) database, 4) kick deployer
 		String siteUuid = UUID.randomUUID().toString();
 
-		String creator = securityService.getCurrentUser();
+		String creator = SecurityUtils.getCurrentUsername();
 
 		try {
 			// create site by cloning remote git repo
 			logger.info("Create site '{}' by cloning the remote '{}' url '{}' branch '{}'",
 				siteId, remoteName, remoteUrl, remoteBranch);
-			success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
+			success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
 				remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
 				remotePrivateKey, params, createAsOrphan, creator);
 
@@ -619,7 +603,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}
 
 		if (!success) {
-			contentRepository.removeRemoteRepositoriesForSite(siteId);
+//			contentRepository.removeRemoteRepositoriesForSite(siteId);
 			contentRepository.deleteSite(siteId);
 			throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
 				"remote repository: " + remoteName + " (" + remoteUrl + ")");
@@ -633,7 +617,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			logger.error("Failed to create Deployer targets for site '{}' as a clone of '{}' url '{}' " +
 				"branch '{}'. Site creation failed.", siteId, remoteName, remoteUrl, remoteBranch, e);
 
-			contentRepositoryV2.removeRemote(siteId, remoteName);
+			contentRepository.removeRemote(siteId, remoteName);
 			boolean deleted = contentRepository.deleteSite(siteId);
 
 			if (!deleted) {
@@ -676,7 +660,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					processCreatedFiles(siteId, creator, now),
 				logger, format("Method 'SiteServiceImpl.processCreatedFiles(..)' with parameters %s", Arrays.asList(siteId, creator, now)));
 
-			String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+			String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 			updateLastCommitId(siteId, lastCommitId);
 
 			logger.info("Load the configuration for site '{}'", siteId);
@@ -721,25 +705,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	@Override
-	public SiteBlueprintTO[] getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders =
-			contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-		List<SiteBlueprintTO> blueprints = new ArrayList<>();
-		for (RepositoryItem folder : blueprintsFolders) {
-			if (folder.isFolder) {
-				SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
-				blueprintTO.id = folder.name;
-				blueprintTO.label = StringUtils.capitalize(folder.name);
-				blueprintTO.description = ""; // How do we populate this dynamically
-				blueprintTO.screenshots = null;
-				blueprints.add(blueprintTO);
-			}
-		}
-
-		return blueprints.toArray(new SiteBlueprintTO[0]);
-	}
-
-	@Override
 	@Valid
 	public void updateLastCommitId(@ValidateStringParam String site,
 				       @ValidateStringParam String commitId) {
@@ -779,14 +744,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@Valid
 	public int getSitesPerUserTotal()
 		throws UserNotFoundException, ServiceLayerException {
-		return getSitesPerUserTotal(securityService.getCurrentUser());
+		return getSitesPerUserTotal(SecurityUtils.getCurrentUsername());
 	}
 
 	@Override
 	@Valid
 	public int getSitesPerUserTotal(@ValidateStringParam String username)
 		throws UserNotFoundException, ServiceLayerException {
-		if (securityService.userExists(username)) {
+		if (userService.userExists(username)) {
 			Map<String, Object> params = new HashMap<>();
 			params.put("username", username);
 			return siteFeedMapper.getSitesPerUserQueryTotal(params);
@@ -800,7 +765,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	public List<SiteFeed> getSitesPerUser(int start,
 					      int number)
 		throws UserNotFoundException, ServiceLayerException {
-		return getSitesPerUser(securityService.getCurrentUser(), start, number);
+		return getSitesPerUser(SecurityUtils.getCurrentUsername(), start, number);
 	}
 
 	@Override
@@ -809,7 +774,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 					      int start,
 					      int number)
 		throws UserNotFoundException, ServiceLayerException {
-		if (securityService.userExists(username)) {
+		if (userService.userExists(username)) {
 			Map<String, Object> params = new HashMap<>();
 			params.put("username", username);
 			params.put("start", start);
@@ -893,65 +858,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	@Override
-	public boolean addRemote(String siteId, String remoteName, String remoteUrl,
-				 String authenticationType, String remoteUsername, String remotePassword,
-				 String remoteToken, String remotePrivateKey)
-		throws InvalidRemoteUrlException, ServiceLayerException {
-		if (!exists(siteId)) {
-			throw new SiteNotFoundException();
-		}
-		boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-			remotePassword, remoteToken, remotePrivateKey);
-		insertAddRemoteAuditLog(siteId, remoteName);
-		return toRet;
-	}
-
-	private void insertAddRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
-		SiteFeed siteFeed = getSite(siteId);
-		String user = securityService.getCurrentUser();
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-		auditLog.setOperation(OPERATION_ADD_REMOTE);
-		auditLog.setSiteId(siteFeed.getId());
-		auditLog.setActorId(user);
-		auditLog.setPrimaryTargetId(remoteName);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-		auditLog.setPrimaryTargetValue(remoteName);
-		auditServiceInternal.insertAuditLog(auditLog);
-	}
-
-	@Override
-	public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
-		if (!exists(siteId)) {
-			throw new SiteNotFoundException();
-		}
-		boolean toRet = contentRepositoryV2.removeRemote(siteId, remoteName);
-		insertRemoveRemoteAuditLog(siteId, remoteName);
-		return toRet;
-	}
-
-	private void insertRemoveRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
-		SiteFeed siteFeed = getSite(siteId);
-		String user = securityService.getCurrentUser();
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-		auditLog.setOperation(OPERATION_REMOVE_REMOTE);
-		auditLog.setActorId(user);
-		auditLog.setSiteId(siteFeed.getId());
-		auditLog.setPrimaryTargetId(remoteName);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-		auditLog.setPrimaryTargetValue(remoteName);
-		auditServiceInternal.insertAuditLog(auditLog);
-	}
-
-	@Override
-	public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException {
-		if (!exists(siteId)) {
-			throw new SiteNotFoundException();
-		}
-		SiteFeed siteFeed = getSite(siteId);
-		return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
-	}
-
-	@Override
 	public List<SiteFeed> getDeletedSites() {
 		return siteFeedMapper.getDeletedSites();
 	}
@@ -992,21 +898,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		this.contentService = contentService;
 	}
 
-	public void setContentRepository(org.craftercms.studio.api.v1.repository.GitContentRepository repo) {
+	public void setContentRepository(GitContentRepository repo) {
 		contentRepository = repo;
-	}
-
-	public void setDependencyService(DependencyService dependencyService) {
-		this.dependencyService = dependencyService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
-		this.dmPageNavigationOrderService = dmPageNavigationOrderService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
@@ -1023,12 +916,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	@SuppressWarnings("unused")
-	public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-		this.groupServiceInternal = groupServiceInternal;
+	public void setGroupService(GroupService groupService) {
+		this.groupService = groupService;
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
 	@SuppressWarnings("unused")
@@ -1041,36 +934,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		this.sitesServiceInternal = sitesServiceInternal;
 	}
 
-	public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	public void setConfigurationService(ConfigurationService configurationService) {
 		this.configurationService = configurationService;
 	}
 
-	@SuppressWarnings("unused")
-	public void setConfigurationServiceInternal(final ConfigurationService configurationServiceInternal) {
-		this.configurationServiceInternal = configurationServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
-		this.contentRepositoryV2 = contentRepositoryV2;
-	}
-
-	public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setWorkflowServiceInternal(WorkflowService workflowServiceInternal) {
-		this.workflowServiceInternal = workflowServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setStudioDBScriptRunner(StudioDBScriptRunnerFactory studioDBScriptRunner) {
-		this.studioDBScriptRunnerFactory = studioDBScriptRunner;
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 	@SuppressWarnings("unused")
@@ -1085,5 +958,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@SuppressWarnings("unused")
 	public void setUserDao(UserDAO userDao) {
 		this.userDao = userDao;
+	}
+
+	@SuppressWarnings("unused")
+	public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
+		this.sqlSessionFactory = sqlSessionFactory;
 	}
 }

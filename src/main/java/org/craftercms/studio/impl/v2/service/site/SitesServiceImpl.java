@@ -53,23 +53,18 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public List<PluginDescriptor> getAvailableBlueprints() {
+	public List<PluginDescriptor> getAvailableBlueprints() throws ServiceLayerException {
 		return sitesServiceInternal.getAvailableBlueprints();
 	}
 
 	@Override
-	public PluginDescriptor getBlueprintDescriptor(final String id) {
+	public PluginDescriptor getBlueprintDescriptor(final String id) throws ServiceLayerException {
 		return sitesServiceInternal.getBlueprintDescriptor(id);
 	}
 
 	@Override
-	public String getBlueprintLocation(String blueprintId) {
+	public String getBlueprintLocation(String blueprintId) throws ServiceLayerException {
 		return sitesServiceInternal.getBlueprintLocation(blueprintId);
-	}
-
-	@Override
-	public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
-		return sitesServiceInternal.getSiteBlueprintDescriptor(id);
 	}
 
 	@Override
@@ -112,7 +107,7 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public TaskProgress<PublishTask.PublishTaskId, Long> getPublishingTaskProgress(String siteId, long packageId) throws SiteNotFoundException {
+	public TaskProgress<PublishTask.PublishTaskId, Long> getPublishingTaskProgress(@SiteId String siteId, long packageId) throws SiteNotFoundException {
 		return sitesServiceInternal.getPublishingTaskProgress(siteId, packageId);
 	}
 
@@ -165,6 +160,11 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	public List<Site> getSitesByState(final String state) {
 		return sitesServiceInternal.getSitesByState(state);
+	}
+
+	@Override
+	public List<Site> getAllSites() {
+		return sitesServiceInternal.getAllSites();
 	}
 
 	@Override

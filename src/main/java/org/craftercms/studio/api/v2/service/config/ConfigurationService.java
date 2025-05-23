@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.config;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
@@ -154,7 +155,7 @@ public interface ConfigurationService {
 	 * @throws ContentNotFoundException if there is any issue reading the file from the repository
 	 */
 	Resource getPluginFile(String siteId, String pluginId, String type, String name, String filename)
-		throws ContentNotFoundException;
+		throws ContentNotFoundException, SiteNotFoundException;
 
 	/**
 	 * Get configuration history for given parameters
@@ -166,7 +167,7 @@ public interface ConfigurationService {
 	 * @return configuration history
 	 */
 	ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment)
-		throws ServiceLayerException;
+		throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Write configuration file within global repo
@@ -201,7 +202,7 @@ public interface ConfigurationService {
 	 * @param environment the environment of the file
 	 * @return the key for the file
 	 */
-	default String getCacheKey(String siteId, String module, String path, String environment) {
+	default String getCacheKey(String siteId, String module, String path, String environment) throws SiteNotFoundException {
 		return getCacheKey(siteId, module, path, environment, null);
 	}
 
@@ -215,7 +216,7 @@ public interface ConfigurationService {
 	 * @param suffix      the suffix for the cache key
 	 * @return the key for the file
 	 */
-	String getCacheKey(String siteId, String module, String path, String environment, String suffix);
+	String getCacheKey(String siteId, String module, String path, String environment, String suffix) throws SiteNotFoundException;
 
 	/**
 	 * Invalidates the cache for the given file
@@ -223,7 +224,7 @@ public interface ConfigurationService {
 	 * @param siteId the id of the site
 	 * @param path   the path of the file
 	 */
-	void invalidateConfiguration(String siteId, String path);
+	void invalidateConfiguration(String siteId, String path) throws SiteNotFoundException;
 
 	/**
 	 * Invalidates the cache for the given file
@@ -233,7 +234,7 @@ public interface ConfigurationService {
 	 * @param path        the path of the file
 	 * @param environment the environment of the file
 	 */
-	void invalidateConfiguration(String siteId, String module, String path, String environment);
+	void invalidateConfiguration(String siteId, String module, String path, String environment) throws SiteNotFoundException;
 
 	/**
 	 * Invalidates all objects for a given site
@@ -249,4 +250,14 @@ public interface ConfigurationService {
 	 * @throws ServiceLayerException if an error occurs while reading or writing the configuration
 	 */
 	void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get the groups associated with a site. The site groups are the groups
+	 * that are mapped to the site roles in role-mappings-config.xml.
+	 *
+	 * @param siteId the id of the site
+	 * @return the list of groups
+	 * @throws ServiceLayerException if an error occurs while reading the groups
+	 */
+	List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException;
 }

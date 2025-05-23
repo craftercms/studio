@@ -79,6 +79,8 @@ BEGIN
 		SELECT null, @siteNumericId, pc.commit_id
 		FROM processed_commits pc
 		WHERE site_id = @sourceSiteNumericId;
+
+	CALL populateItemParentId(@siteNumericId);
 END ;
 
 CREATE PROCEDURE addColumnIfNotExists(
@@ -223,7 +225,7 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.3', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.5', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,

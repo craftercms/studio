@@ -22,15 +22,14 @@ import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -89,7 +88,12 @@ public class CompositePermissionResolverImpl implements PermissionResolver<Strin
 		String finalSiteName = siteName;
 		CompositePermission permission = paths.stream().map(x -> {
 			DefaultPermission dp = new DefaultPermission();
-			Set<String> allowedActions = securityService.getUserPermissions(finalSiteName, x, username);
+			Set<String> allowedActions;
+			try {
+				allowedActions = securityService.getUserPermissions(finalSiteName, x, username);
+			} catch (SiteNotFoundException e) {
+				throw new ActionsDeniedException(format("Failed to load permissions for user '%s'. Site '%s' was not found", username, finalSiteName), e);
+			}
 			dp.setAllowedActions(allowedActions);
 			return dp;
 		}).collect(CompositePermission::new, CompositePermission::addPermission, CompositePermission::addPermission);

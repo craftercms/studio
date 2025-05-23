@@ -16,18 +16,20 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import org.craftercms.studio.api.v2.dal.item.LightItemMetadata;
+
 /**
- * {@link PublishItem} extension with additional {@link PublishItemMetadata}
+ * {@link PublishItem} extension with additional {@link LightItemMetadata}
  */
 public class PublishItemWithMetadata extends PublishItem {
 
-	private PublishItemMetadata itemMetadata;
+	private LightItemMetadata itemMetadata;
 
-	public PublishItemMetadata getItemMetadata() {
+	public LightItemMetadata getItemMetadata() {
 		return itemMetadata;
 	}
 
-	public void setItemMetadata(PublishItemMetadata itemMetadata) {
+	public void setItemMetadata(LightItemMetadata itemMetadata) {
 		this.itemMetadata = itemMetadata;
 	}
 }

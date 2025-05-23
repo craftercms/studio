@@ -35,8 +35,6 @@ import org.springframework.scheduling.annotation.Async;
 
 import java.beans.ConstructorProperties;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_NOTIFICATION_MAX_ITEM_COUNT;

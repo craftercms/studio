@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.notification;
 
 import com.google.common.cache.Cache;
+import freemarker.core.HTMLOutputFormat;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -36,7 +38,6 @@ import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
@@ -52,10 +53,8 @@ import java.time.Instant;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
@@ -102,6 +101,7 @@ public class NotificationServiceImpl implements NotificationService {
 		configuration = new Configuration(Configuration.VERSION_2_3_23);
 		configuration.setTimeZone(TimeZone.getTimeZone(getTemplateTimezone()));
 		configuration.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23).build());
+		configuration.setOutputFormat(HTMLOutputFormat.INSTANCE);
 	}
 
 	@Override
@@ -210,60 +210,6 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@SuppressWarnings("unchecked")
 	@Valid
-	public String getNotificationMessage(@ValidateStringParam final String site,
-					     final NotificationMessageType type,
-					     @ValidateStringParam final String key,
-					     final Pair<String, Object>... params) {
-		try {
-			final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-			String message = null;
-			switch (type) {
-				case GeneralMessages:
-					message = notificationConfig.getMessages().get(key);
-					break;
-				case EmailMessage:
-					message = notificationConfig.getEmailMessageTemplates().get(key).getMessage();
-					break;
-				case CompleteMessages:
-					message = notificationConfig.getCompleteMessages().get(key);
-					break;
-				case CannedMessages:
-					message = getCannedMessage(notificationConfig.getCannedMessages(), key);
-					break;
-				default:
-					logger.error("Unknown notification message bundle type '{}' key '{}' for site '{}'",
-						type, key, site);
-					break;
-			}
-			if (message != null) {
-				Map<String, Object> model = new HashMap<>();
-				for (Pair<String, Object> param : params) {
-					model.put(param.getKey(), param.getValue());
-				}
-				model.put(SITE_NAME, site);
-				return processMessage(key, message, model);
-			}
-		} catch (Throwable e) {
-			logger.error("Failed to get notification message from the notification configuration in site '{}' " +
-				"type '{}' key '{}'", site, type, key, e);
-			return EMPTY;
-		}
-		return EMPTY;
-	}
-
-	private String getCannedMessage(final Map<String, List<MessageTO>> cannedMessages, final String key) {
-		if (cannedMessages.containsKey(key)) {
-			final List<MessageTO> messages = cannedMessages.get(key);
-			if (!messages.isEmpty()) {
-				return messages.getFirst().getBody();
-			}
-		}
-		return EMPTY;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	@Valid
 	public void notify(@ValidateStringParam final String site, final List<String> toUsers,
 			   @ValidateStringParam final String key,
 			   final Pair<String, Object>... params) {
@@ -303,7 +249,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	protected NotificationConfigTO loadConfig(final String site) {
+	protected NotificationConfigTO loadConfig(final String site) throws SiteNotFoundException {
 		var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
 		var configPath = getConfigPath();
 		var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, configPath, environment, "object");
@@ -372,7 +318,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	private String getAdminEmailAddress(final String site) {
+	private String getAdminEmailAddress(final String site) throws SiteNotFoundException {
 		String adminEmail = servicesConfig.getAdminEmailAddress(site);
 		if (EmailUtils.validateEmail(adminEmail)) {
 			return adminEmail;
@@ -446,7 +392,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	protected NotificationConfigTO getNotificationConfig(final String site) {
+	protected NotificationConfigTO getNotificationConfig(final String site) throws SiteNotFoundException {
 		return loadConfig(site);
 	}
 

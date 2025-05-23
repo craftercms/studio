@@ -57,8 +57,8 @@ public class ClausesLimitAwareSearchService implements SearchService {
 					throw e;
 				}
 				lastException = tooManyClausesException;
-				logger.warn("Search query for site '{}' with max_expansions '{}' contains too many nested clauses, " +
-					((maxExpansions > 1) ? "retrying with a lower number of max_expansions" : ""), siteId, maxExpansions);
+				logger.warn("Search query for site '{}' with max_expansions '{}' contains too many nested clauses, {}",
+					siteId, maxExpansions, (maxExpansions > 1) ? "retrying with a lower number of max_expansions" : "");
 				maxExpansions = maxExpansions / 2;
 			}
 		} while (maxExpansions >= 1);

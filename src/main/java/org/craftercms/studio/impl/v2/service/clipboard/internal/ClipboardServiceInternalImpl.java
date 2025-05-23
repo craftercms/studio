@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,17 +28,14 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
-import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -54,22 +51,21 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockK
 import static org.craftercms.studio.model.clipboard.Operation.CUT;
 
 /**
- * Default implementation of {@link ClipboardServiceInternal}
+ * Default implementation of {@link ClipboardService}
  *
  * <p>Note: This class could be removed in the future if the logic is moved to the new content service</p>
  *
  * @author joseross
  * @since 3.2
  */
-public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, ApplicationContextAware {
+public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClipboardServiceInternalImpl.class);
 
 	protected ContentService contentService;
 	protected PublishService publishService;
-	protected ItemServiceInternal itemServiceInternal;
+	protected ItemService itemService;
 	protected GeneralLockService generalLockService;
-	protected ApplicationContext applicationContext;
 
 	protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
 		throws ServiceLayerException {
@@ -110,7 +106,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 			}
 		}
 
-		if (itemServiceInternal.isSystemProcessing(siteId, List.of(sourcePath, targetPath))) {
+		if (itemService.isSystemProcessing(siteId, List.of(sourcePath, targetPath))) {
 			throw new ServiceLayerException(format("Failed to paste items at site '%s' paths '%s' " +
 					"because some items are being processed  (Object State is system processing)",
 				siteId, List.of(sourcePath, targetPath)));
@@ -193,11 +189,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 		return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
 	}
 
-	@Override
-	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) {
-		this.applicationContext = applicationContext;
-	}
-
 	public void setContentService(final ContentService contentService) {
 		this.contentService = contentService;
 	}
@@ -212,7 +203,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 		this.generalLockService = generalLockService;
 	}
 
-	public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(final ItemService itemService) {
+		this.itemService = itemService;
 	}
 }

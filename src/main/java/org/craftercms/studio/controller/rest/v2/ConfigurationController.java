@@ -125,7 +125,7 @@ public class ConfigurationController {
 								       @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
 								       @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
 								       @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
 		ResultOne<ConfigurationHistory> result = new ResultOne<>();
@@ -153,17 +153,28 @@ public class ConfigurationController {
 		return result;
 	}
 
+	@GetMapping("content-type/form_controller")
+	public ResponseEntity<Resource> getContentTypeFormController(@ValidSiteId @RequestParam String siteId,
+																 @ValidConfigurationPath @RequestParam String contentTypeId) throws ServiceLayerException {
+		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypeFormController(siteId, contentTypeId);
+		return getResourceResponse(resource.getKey(), resource.getValue());
+	}
+
 	@GetMapping("content-type/preview_image")
 	public ResponseEntity<Resource> getContentTypePreviewImage(@ValidSiteId @RequestParam String siteId,
 								   @ValidConfigurationPath @RequestParam String contentTypeId)
 		throws ServiceLayerException {
 		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
-		String mimeType = StudioUtils.getMimeType(resource.getKey());
+		return getResourceResponse(resource.getKey(), resource.getValue());
+	}
+
+	private ResponseEntity<Resource> getResourceResponse(String name, Resource resource) {
+		String mimeType = StudioUtils.getMimeType(name);
 
 		return ResponseEntity
 			.ok()
 			.header(HttpHeaders.CONTENT_TYPE, mimeType)
-			.body(resource.getValue());
+			.body(resource);
 	}
 
 	@PostMapping("content-type/delete")

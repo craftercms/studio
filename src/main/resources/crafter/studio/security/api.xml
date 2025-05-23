@@ -24,7 +24,7 @@
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
 	<bean id="userActivityFilter" class="org.craftercms.studio.impl.v2.security.UserActivityFilter">
-		<constructor-arg name="accessTokenService" ref="accessTokenService"/>
+		<constructor-arg name="accessTokenService" ref="accessTokenServiceInternal"/>
 		<constructor-arg name="excludedUrls"
 				 value="#{studioConfiguration.getProperty('studio.security.activity.excludeUrls')}"/>
 	</bean>
@@ -39,7 +39,7 @@
 
 	<bean id="accessTokenAuthenticationFilter"
 	      class="org.craftercms.studio.impl.v2.security.authentication.token.AccessTokenAuthenticationFilter">
-		<constructor-arg name="accessTokenService" ref="accessTokenService"/>
+		<constructor-arg name="accessTokenService" ref="accessTokenServiceInternal"/>
 		<property name="authenticationManager" ref="apiAuthenticationManager"/>
 	</bean>
 
@@ -63,7 +63,7 @@
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="siteService" ref="cstudioSiteServiceSimple"/>
 		<property name="securityService" ref="cstudioSecurityService"/>
-		<property name="userServiceInternal" ref="userServiceInternal"/>
+		<property name="userService" ref="userService"/>
 	</bean>
 
 	<bean id="legacyAccessDecisionManager" class="org.springframework.security.access.vote.UnanimousBased">

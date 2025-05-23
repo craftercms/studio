@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 3 as published by
+  * the Free Software Foundation.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
 <!-- resolver-config.xml
 
-    This file configures what file paths Crafter considers a dependency and how they should be extracted 
+    This file configures what file paths Crafter considers a dependency and how they should be extracted
 
 -->
 
 <dependency-resolver>
-	<version>4.0.1.1</version>
+	<version>5.0.0.0</version>
 	<item-types>
 		<item-type>
 			<!-- name of type -->
@@ -63,7 +63,7 @@
 					<includes>
 						<!-- path patterns to look for (multiple) -->
 						<pattern>
-							<find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+							<find-regex>/static-assets/([^&lt;\\"'\)\?\]\#]+)</find-regex>
 						</pattern>
 					</includes>
 				</dependency-type>
@@ -146,7 +146,7 @@
 					<name>asset</name>
 					<includes>
 						<pattern>
-							<find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+							<find-regex>/static-assets/([^&lt;\\"'\)\?\]\#]+)</find-regex>
 						</pattern>
 					</includes>
 				</dependency-type>
@@ -237,7 +237,7 @@
 					<name>asset</name>
 					<includes>
 						<pattern>
-							<find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+							<find-regex>/static-assets/([^&lt;\\"'\)\?\]\#]+)</find-regex>
 						</pattern>
 					</includes>
 				</dependency-type>
@@ -305,7 +305,7 @@
 					<includes>
 						<!-- path patterns to look for (multiple) -->
 						<pattern>
-							<find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+							<find-regex>/static-assets/([^&lt;\\"'\)\?\]\#]+)</find-regex>
 						</pattern>
 					</includes>
 				</dependency-type>
@@ -329,7 +329,7 @@
 					<includes>
 						<!-- path patterns to look for (multiple) -->
 						<pattern>
-							<find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+							<find-regex>/static-assets/([^&lt;\\"'\)\?\]\#]+)</find-regex>
 						</pattern>
 					</includes>
 				</dependency-type>

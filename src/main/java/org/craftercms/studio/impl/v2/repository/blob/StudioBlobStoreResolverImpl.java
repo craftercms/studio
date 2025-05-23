@@ -25,8 +25,9 @@ import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.core.ContextManager;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -100,7 +101,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
 		return config;
 	}
 
-	protected HierarchicalConfiguration getConfiguration(String siteId) throws ExecutionException {
+	protected HierarchicalConfiguration getConfiguration(String siteId) throws ExecutionException, SiteNotFoundException {
 		String cacheKey1 = configurationService.getCacheKey(siteId, configModule, configPath, getEnvironment());
 		return (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
 			logger.debug("Cache miss in site '{}' key '{}'", siteId, cacheKey1);

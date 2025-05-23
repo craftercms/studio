@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.security.messaging;
 
-import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -31,19 +31,19 @@ import org.springframework.security.messaging.access.expression.MessageSecurityE
 public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressionRoot {
 
 	private static final Logger logger = LoggerFactory.getLogger(StudioMessageSecurityExpressionRoot.class);
-	protected final SecurityService securityService;
+	protected final UserService userService;
 
 	public StudioMessageSecurityExpressionRoot(Authentication authentication, Message<?> message,
-						   SecurityService securityService) {
+											   UserService userService) {
 		super(authentication, message);
-		this.securityService = securityService;
+		this.userService = userService;
 	}
 
 	/**
 	 * Checks if the current user has the {@code system_admin} role
 	 */
 	public boolean isSystemAdmin() {
-		return securityService.isSystemAdmin(getAuthentication().getName());
+		return userService.isSystemAdmin(getAuthentication().getName());
 	}
 
 	/**
@@ -52,7 +52,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
 	 * @param siteId the id of the site to check
 	 */
 	public boolean isSiteMember(String siteId) {
-		return securityService.isSiteMember(getAuthentication().getName(), siteId);
+		return userService.isSiteMember(getAuthentication().getName(), siteId);
 	}
 
 }

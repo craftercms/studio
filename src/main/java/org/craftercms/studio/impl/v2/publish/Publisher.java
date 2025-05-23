@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.publish;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -32,11 +33,11 @@ import org.craftercms.studio.api.v2.event.publish.PublishErrorEvent;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository.GitPublishChangeSet;
-import org.craftercms.studio.api.v2.repository.PublishCapableRepository.InitialPublishChangeSet;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
@@ -65,6 +66,7 @@ import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
@@ -83,30 +85,30 @@ public class Publisher implements ApplicationEventPublisherAware {
 	private final SiteDAO siteDao;
 	private final PublishDAO publishDao;
 	private ApplicationEventPublisher eventPublisher;
-	private final AuditServiceInternal auditServiceInternal;
+	private final AuditService auditService;
 	private final StudioBlobAwareContentRepository contentRepository;
 	private final GeneralLockService generalLockService;
 	private final ServicesConfig servicesConfig;
 	private final ItemTargetDAO itemTargetDAO;
 	private final PlatformTransactionManager transactionManager;
-	private final ActivityStreamServiceInternal activityService;
+	private final ActivityStreamService activityService;
 	private final TaskManager taskManager;
 
-	@ConstructorProperties({"siteDao", "publishDao", "auditServiceInternal",
+	@ConstructorProperties({"siteDao", "publishDao", "auditService",
 		"contentRepository", "generalLockService", "servicesConfig", "itemTargetDAO", "transactionManager",
 		"activityService", "taskManager"})
 	public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
-			 final AuditServiceInternal auditServiceInternal,
+			 final AuditService auditService,
 			 final StudioBlobAwareContentRepository contentRepository,
 			 final GeneralLockService generalLockService,
 			 final ServicesConfig servicesConfig,
 			 final ItemTargetDAO itemTargetDAO,
 			 final PlatformTransactionManager transactionManager,
-			 final ActivityStreamServiceInternal activityService,
+			 final ActivityStreamService activityService,
 			 final TaskManager taskManager) {
 		this.siteDao = siteDao;
 		this.publishDao = publishDao;
-		this.auditServiceInternal = auditServiceInternal;
+		this.auditService = auditService;
 		this.contentRepository = contentRepository;
 		this.generalLockService = generalLockService;
 		this.servicesConfig = servicesConfig;
@@ -227,7 +229,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 	 */
 	protected void doPublishItemList(final PublishPackage publishPackage,
 					 final Collection<PublishItem> publishItems,
-					 final TargetPublisherFunction targetPublisher) {
+					 final TargetPublisherFunction targetPublisher) throws SiteNotFoundException {
 		String siteId = publishPackage.getSite().getSiteId();
 		String target = publishPackage.getTarget();
 
@@ -248,7 +250,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 					final Collection<PublishItem> publishItems,
 					final TargetPublisherFunction targetPublisher,
 					final boolean isLiveTarget,
-					final String target) {
+					final String target) throws SiteNotFoundException {
 		PublishPackageTO packageTO = getPublishPackageTO(publishPackage, isLiveTarget);
 		try {
 			runInTransaction(targetPublisher).run(packageTO, target, publishItems);
@@ -435,7 +437,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 	/**
 	 * Process an initial publish package
 	 */
-	private void doInitialPublish(final PublishPackage publishPackage) {
+	private void doInitialPublish(final PublishPackage publishPackage) throws SiteNotFoundException {
 		String siteId = publishPackage.getSite().getSiteId();
 		long packageId = publishPackage.getId();
 		String liveTarget = servicesConfig.getLiveEnvironment(siteId);
@@ -478,16 +480,16 @@ public class Publisher implements ApplicationEventPublisherAware {
 					    final boolean isLiveTarget)
 		throws ServiceLayerException {
 		PublishPackage publishPackage = packageTO.getPackage();
-		InitialPublishChangeSet initialPublishResult = contentRepository.initialPublish(publishPackage, target);
+		GitPublishChangeSet<? extends PublishItemTO> initialPublishResult = contentRepository.initialPublish(publishPackage, target);
 
 		long packageOnBits = packageTO.getSuccessOnBits();
 		if (initialPublishResult.hasFailedItems()) {
-			initialPublishResult.failedItems().forEach((path, error) -> {
-					PublishItem publishItem = failedItems.computeIfAbsent(path, p -> getInitialPublishItem(packageTO.getId(), p));
-					PublishItemTOImpl itemTO = new PublishItemTOImpl(publishItem, path, PublishItem.Action.ADD, isLiveTarget);
-					itemTO.setFailed(error);
-				}
-			);
+			initialPublishResult.failedItems().forEach(publishItemTO -> {
+				String path = publishItemTO.getPath();
+				PublishItem publishItem = failedItems.computeIfAbsent(path, p -> getInitialPublishItem(packageTO.getId(), p));
+				PublishItemTOImpl itemTO = new PublishItemTOImpl(publishItem, path, PublishItem.Action.ADD, isLiveTarget);
+				itemTO.setFailed(publishItemTO.getError());
+			});
 			packageOnBits = packageTO.getCompletedWithErrorsOnBits();
 		}
 		packageTO.setPublishedCommitId(initialPublishResult.commitId());
@@ -542,7 +544,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 	 * @param operation the operation
 	 */
 	protected void auditPublishOperation(final PublishPackage p, final String operation) {
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(operation);
 		String actorId = p.getSubmitter() != null ? p.getSubmitter().getUsername() : String.valueOf(p.getSubmitterId());
 		auditLog.setActorId(actorId);
@@ -550,7 +552,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 		auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
 		auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
 		auditLog.setPrimaryTargetValue(String.valueOf(p.getId()));
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	@Override

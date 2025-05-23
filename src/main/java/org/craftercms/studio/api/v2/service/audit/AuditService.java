@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.CommitAuthor;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -95,4 +96,28 @@ public interface AuditService {
 	 */
 	List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
 					      boolean excludeLive, String filterType) throws ServiceLayerException;
+
+	/**
+	 * Insert log audit entry
+	 *
+	 * @param auditLog Audit log to insert
+	 * @return true if successful, otherwise false
+	 */
+	boolean insertAuditLog(AuditLog auditLog);
+
+	/**
+	 * Get commit authors from a list of commit ids
+	 * This will look in the audit data and retrieve a CommitAuthor when:
+	 * <ul>
+	 *     <li>There is an audit entry for the given commit id</li>
+	 *     <li>AND the audit entry origin is API</li>
+	 *     <li>AND the audit entry primary_target_value correspond to the given path</li>
+	 * </ul>
+	 *
+	 * @param siteId    site id
+	 * @param commitIds commit ids
+	 * @param path      path of the file
+	 * @return list {@link CommitAuthor} of the commit
+	 */
+	List<CommitAuthor> getCommitAuthors(long siteId, List<String> commitIds, String path);
 }

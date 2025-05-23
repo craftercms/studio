@@ -29,7 +29,6 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.security.PeerReviewCheckException;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -37,6 +36,8 @@ import org.springframework.core.annotation.Order;
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Method;
 import java.util.Collection;
+
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
 
 /**
  * Aspect that handles {@link PeerReviewCapable} annotations.
@@ -46,14 +47,12 @@ import java.util.Collection;
 public class PeerReviewCapableAnnotationHandler {
 	private static final Logger logger = LoggerFactory.getLogger(PeerReviewCapableAnnotationHandler.class);
 
-	private final SecurityService securityService;
 	private final ServicesConfig servicesConfig;
 	private final PublishDAO publishDao;
 
-	@ConstructorProperties({"securityService", "servicesConfig", "publishDao"})
-	public PeerReviewCapableAnnotationHandler(SecurityService securityService, ServicesConfig servicesConfig,
+	@ConstructorProperties({"servicesConfig", "publishDao"})
+	public PeerReviewCapableAnnotationHandler(ServicesConfig servicesConfig,
 											  PublishDAO publishDao) {
-		this.securityService = securityService;
 		this.servicesConfig = servicesConfig;
 		this.publishDao = publishDao;
 	}
@@ -64,7 +63,7 @@ public class PeerReviewCapableAnnotationHandler {
 	public Object checkPeerReview(ProceedingJoinPoint pjp) throws Throwable {
 		Method method = AopUtils.getActualMethod(pjp);
 		String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
-		User user = (User) securityService.getAuthentication().getPrincipal();
+		User user = (User) getAuthentication().getPrincipal();
 
 		if (!servicesConfig.isRequirePeerReview(siteId)) {
 			logger.debug("Peer review is not required for site '{}'", siteId);

@@ -15,8 +15,6 @@
  */
 package org.craftercms.studio.api.v2.event.site;
 
-import org.springframework.security.core.Authentication;
-
 /**
  * Event triggered when there is a change in a site
  *

@@ -38,20 +38,22 @@
 			     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
 	</resultMap>
 
-	<resultMap id="PublishItemMetadataMap" type="org.craftercms.studio.api.v2.dal.publish.PublishItemMetadata">
-		<constructor>
-			<arg column="label" javaType="java.lang.String"/>
-			<arg column="system_type" javaType="java.lang.String"/>
-			<arg column="mime_type" javaType="java.lang.String"/>
-		</constructor>
-	</resultMap>
-
 	<resultMap id="PublishItemMapWithMetadata" type="org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata"
 		   autoMapping="true">
 		<association property="itemTargets" column="item_id"
 			     select="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO.getByItemId"/>
-		<association property="itemMetadata" columnPrefix="meta_" resultMap="PublishItemMetadataMap"/>
+		<association property="itemMetadata" columnPrefix="meta_" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMetadataMap"/>
 	</resultMap>
+
+	<select id="getMetadata" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+		SELECT i.path as path, i.label as meta_label, i.system_type as meta_system_type, i.mime_type as meta_mime_type
+		FROM item i INNER JOIN site s ON i.site_id = s.id
+		WHERE i.path IN
+			<foreach collection="paths" item="path" open="(" separator="," close=")">
+				#{path}
+			</foreach>
+		AND s.site_id = #{siteId}
+	</select>
 
 	<insert id="insertPackage"
 		useGeneratedKeys="true"
@@ -315,13 +317,15 @@
 	<select id="getMatchingPublishItemCount">
 		SELECT COUNT(1)
 		FROM (
-		<bind name="includeMetadata" value="true"/>
+		<bind name="state" value="null"/>
+		<bind name="includeMetadata" value="false"/>
 		<include refid="getPublishItemsQuery"/>
 		) AS tbl
 	</select>
 
 	<select id="getPublishItemsWithMetadata" resultMap="PublishItemMapWithMetadata">
 		<bind name="includeMetadata" value="true"/>
+		<bind name="state" value="null"/>
 		<include refid="getPublishItemsQuery"/>
 		<include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
 	</select>

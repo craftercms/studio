@@ -24,7 +24,7 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * Holds data for the getSandboxItemsByPath request
+ * Holds data for the getContentItemsByPath request
  *
  * @author joseross
  * @since 4.0

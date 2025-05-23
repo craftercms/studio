@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,12 +19,13 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
@@ -34,16 +35,17 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -63,10 +65,7 @@ public class RepositoryManagementServiceInternalImplTest {
 	private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
 	@Mock
-	private SecurityService securityService;
-
-	@Mock
-	private UserServiceInternal userServiceInternal;
+	private UserService userServiceInternal;
 
 	@Mock
 	private StudioConfiguration studioConfiguration;
@@ -128,9 +127,9 @@ public class RepositoryManagementServiceInternalImplTest {
 	public void testCommitResolutionNoUncommittedChanges() throws Exception {
 		when(status.hasUncommittedChanges()).thenReturn(false);
 
-		boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
+		RepositoryStatus result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
 
-		assertTrue(result);
+		assertNotNull(result);
 		verify(generalLockService).lock(GIT_LOCK_KEY);
 		verify(generalLockService).unlock(GIT_LOCK_KEY);
 	}
@@ -138,33 +137,36 @@ public class RepositoryManagementServiceInternalImplTest {
 	@Test
 	public void testCommitResolutionWithUncommittedChanges() throws Exception {
 		when(status.hasUncommittedChanges()).thenReturn(true);
-		when(status.getMissing()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1, file_missing_2")));
+		when(status.getMissing()).thenReturn(new HashSet<>(List.of("file_missing_1, file_missing_2")));
 		when(status.getUncommittedChanges()).thenReturn(new HashSet<>(Arrays.asList("file_missing_1", "file_missing_2", "file1", "file2")));
-		when(securityService.getCurrentUser()).thenReturn("testUser");
 		when(userServiceInternal.getUserByIdOrUsername(-1, "testUser")).thenReturn(user);
 		when(gitRepositoryHelper.getAuthorIdent(user)).thenReturn(personIdent);
 		when(studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE)).thenReturn("");
 		when(studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT)).thenReturn("");
 
-		boolean result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
-
-		assertTrue(result);
-		verify(generalLockService).lock(GIT_LOCK_KEY);
-		verify(generalLockService).unlock(GIT_LOCK_KEY);
-		verify(retryingRepositoryOperationFacade).call(rmCommand);
-		verify(retryingRepositoryOperationFacade).call(addCommand);
-		verify(retryingRepositoryOperationFacade).call(commitCommand);
+		try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+			securityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("testUser");
+			RepositoryStatus result = repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE);
+			assertNotNull(result);
+			verify(generalLockService).lock(GIT_LOCK_KEY);
+			verify(generalLockService).unlock(GIT_LOCK_KEY);
+			verify(retryingRepositoryOperationFacade).call(rmCommand);
+			verify(retryingRepositoryOperationFacade).call(addCommand);
+			verify(retryingRepositoryOperationFacade).call(commitCommand);
+		}
 	}
 
 	@Test
 	public void testCommitResolutionExceptionThrown() throws UserNotFoundException, ServiceLayerException {
-		when(status.hasUncommittedChanges()).thenReturn(true);
-		when(securityService.getCurrentUser()).thenReturn("not_exist_user");
-		when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
+		try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+			securityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("not_exist_user");
+			when(status.hasUncommittedChanges()).thenReturn(true);
+			when(userServiceInternal.getUserByIdOrUsername(-1, "not_exist_user")).thenThrow(new ServiceLayerException("Test exception"));
 
-		assertThrows(ServiceLayerException.class, () -> repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE));
+			assertThrows(ServiceLayerException.class, () -> repositoryManagementServiceInternal.commitResolution(SITE_ID, COMMIT_MESSAGE));
 
-		verify(generalLockService).lock(GIT_LOCK_KEY);
-		verify(generalLockService).unlock(GIT_LOCK_KEY);
+			verify(generalLockService).lock(GIT_LOCK_KEY);
+			verify(generalLockService).unlock(GIT_LOCK_KEY);
+		}
 	}
 }

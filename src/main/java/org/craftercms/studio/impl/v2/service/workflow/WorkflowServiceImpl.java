@@ -25,12 +25,10 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.annotation.publish.PackageId;
 import org.craftercms.studio.api.v2.annotation.publish.PackageIds;
-import org.craftercms.studio.api.v2.annotation.publish.RequirePackageExists;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.security.publish.PeerReviewCapable;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.Instant;
@@ -60,10 +58,10 @@ public class WorkflowServiceImpl implements WorkflowService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<SandboxItem> getItemStates(@SiteId String siteId,
-					       @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
-					       int offset, int limit) throws SiteNotFoundException {
-		return workflowServiceInternal.getItemStates(siteId, path, states, offset, limit);
+	public List<ContentItem> getItemsByStates(@SiteId String siteId,
+											  @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
+											  int offset, int limit) throws SiteNotFoundException {
+		return workflowServiceInternal.getItemsByStates(siteId, path, states, offset, limit);
 	}
 
 	@Override

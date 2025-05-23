@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,12 +19,15 @@ package org.craftercms.studio.api.v2.service.workflow;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Provides workflow related services
+ */
 public interface WorkflowService {
 
 	/**
@@ -38,7 +41,7 @@ public interface WorkflowService {
 	int getItemStatesTotal(String siteId, String path, Long states) throws SiteNotFoundException;
 
 	/**
-	 * Get item states for given filters by path regex and states mask
+	 * Get items matching the given filters by path regex and states mask
 	 *
 	 * @param siteId site identifier
 	 * @param path   path regex to filter items
@@ -47,7 +50,7 @@ public interface WorkflowService {
 	 * @param limit  number of item states records to return
 	 * @return list of sandbox items
 	 */
-	List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException;
+	List<ContentItem> getItemsByStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException;
 
 	/**
 	 * Update item state flags for given items

@@ -381,6 +381,11 @@
 			<artifactId>zxcvbn</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -613,30 +618,15 @@
 		</profile>
 	</profiles>
 
-	<repositories>
-		<repository>
-			<id>sonatype-snapshots</id>
-			<name>Sonatype Snapshot Repository</name>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-		</repository>
-	</repositories>
-
 	<distributionManagement>
 		<snapshotRepository>
-			<id>sonatype-snapshots</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+			<id>central-snapshots</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
 		</snapshotRepository>
 		<repository>
-			<id>sonatype-staging</id>
-			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>github</id>
+			<name>GitHub Maven Packages</name>
+			<url>https://maven.pkg.github.com/craftercms/craftercms</url>
 		</repository>
 	</distributionManagement>
 </project>

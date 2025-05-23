@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,10 +17,10 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
@@ -49,10 +49,10 @@ public interface DependencyDAO {
 	 * @param newMask                          state bit mask for new item
 	 * @return List of soft dependencies
 	 */
-	List<Map<String, String>> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-														 @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-														 @Param(MODIFIED_MASK) long modifiedMask,
-														 @Param(NEW_MASK) long newMask);
+	List<LightItem> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+											   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+											   @Param(MODIFIED_MASK) long modifiedMask,
+											   @Param(NEW_MASK) long newMask);
 
 	/**
 	 * Get publishing soft dependencies from DB for list of content paths
@@ -64,11 +64,11 @@ public interface DependencyDAO {
 	 * @param newMask                          state bit mask for new item
 	 * @return List of soft dependencies
 	 */
-	List<Map<String, String>> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-																   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-																   @Param(MODIFIED_MASK) long modifiedMask,
-																   @Param(NEW_MASK) long newMask,
-																   @Param(TARGET) String target);
+	List<LightItem> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+														 @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+														 @Param(MODIFIED_MASK) long modifiedMask,
+														 @Param(NEW_MASK) long newMask,
+														 @Param(TARGET) String target);
 
 	/**
 	 * Get hard dependencies from DB for list of content paths
@@ -79,8 +79,8 @@ public interface DependencyDAO {
 	 * @param isLiveTarget                     true if publishing target is live, false if staging
 	 * @return List of hard dependencies
 	 */
-	default List<String> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
-													final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
+	default List<LightItem> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
+													   final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
 		long newMaskOn = NEW.value;
 		long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
 		long modifiedMask = MODIFIED.value;
@@ -103,14 +103,14 @@ public interface DependencyDAO {
 	 * @param isLiveTarget                     true if publishing target is live, false if staging
 	 * @return List of hard dependencies
 	 */
-	List<String> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
-											@Param(PATHS) Collection<String> paths,
-											@Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-											@Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-											@Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
-											@Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
-											@Param(MODIFIED_MASK) long modifiedMask,
-											@Param(IS_LIVE_TARGET) boolean isLiveTarget);
+	List<LightItem> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
+											   @Param(PATHS) Collection<String> paths,
+											   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+											   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+											   @Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
+											   @Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
+											   @Param(MODIFIED_MASK) long modifiedMask,
+											   @Param(IS_LIVE_TARGET) boolean isLiveTarget);
 
 	/**
 	 * Get items depending on given paths
@@ -119,7 +119,7 @@ public interface DependencyDAO {
 	 * @param paths  list of content paths
 	 * @return List of items depending on given paths
 	 */
-	List<String> getDependentItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
+	List<LightItem> getDependentItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
 
 	/**
 	 * Get item specific dependencies for given paths
@@ -129,7 +129,7 @@ public interface DependencyDAO {
 	 * @param regex  list of patterns that define item specific dependencies
 	 * @return list of item specific dependencies
 	 */
-	List<String> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+	List<LightItem> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
 											 @Param(REGEX) List<String> regex);
 
 	/**

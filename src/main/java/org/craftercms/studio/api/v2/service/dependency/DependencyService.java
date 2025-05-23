@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
-import org.craftercms.studio.model.rest.content.DependencyItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +41,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of soft dependencies
 	 */
-	Collection<String> getSoftDependencies(String site, Set<String> paths);
+	Collection<LightItem> getSoftDependencies(String site, Set<String> paths);
 
 	/**
 	 * Get the publishing soft dependencies of a list of items. A soft
@@ -52,7 +52,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of soft dependencies
 	 */
-	Collection<String> getPublishingSoftDependencies(String site, Set<String> paths, String target);
+	Collection<LightItem> getPublishingSoftDependencies(String site, Set<String> paths, String target);
 
 	/**
 	 * Get then hard dependencies of an item. A hard
@@ -67,7 +67,7 @@ public interface DependencyService {
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
 	 */
-	Collection<String> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
+	Collection<LightItem> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
 		throws ServiceLayerException;
 
 	/**
@@ -80,7 +80,7 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @return list of hard dependencies
 	 */
-	Collection<String> getHardDependencies(String site, Collection<String> paths);
+	Collection<LightItem> getHardDependencies(String site, Collection<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Get list of paths of content items that are dependant on given paths
@@ -89,16 +89,16 @@ public interface DependencyService {
 	 * @param paths  list of paths to get dependent items for
 	 * @return list of paths dependent on given paths
 	 */
-	List<String> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
+	List<LightItem> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Get all items that depend on this item
 	 *
 	 * @param siteId site identifier
 	 * @param path   path to get dependent items for
-	 * @return list of {@link DependencyItem} dependent on given path
+	 * @return list of {@link LightItem} dependent on given path
 	 */
-	List<DependencyItem> getDependentItems(String siteId, String path);
+	List<LightItem> getDependentItems(String siteId, String path);
 
 	/**
 	 * Get item specific dependencies for given path
@@ -107,7 +107,7 @@ public interface DependencyService {
 	 * @param paths  path to get item specific dependencies for
 	 * @return list of item specific dependencies
 	 */
-	List<String> getItemSpecificDependencies(String siteId, List<String> paths);
+	List<LightItem> getItemSpecificDependencies(String siteId, List<String> paths);
 
 	/**
 	 * Resolves dependent files for given content of given path
@@ -116,7 +116,7 @@ public interface DependencyService {
 	 * @param sourcePath the path to resolve dependencies for
 	 * @return Map of ResolvedDependency's of files that content is dependent on by type
 	 */
-	Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(String site, String sourcePath);
+	Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(String site, String sourcePath) throws SiteNotFoundException;
 
 	/**
 	 * Scan item for direct dependencies and synchronize those to
@@ -171,5 +171,5 @@ public interface DependencyService {
 	 * @param path   the path to check
 	 * @return true if the path is a valid dependency source, false otherwise
 	 */
-	boolean isValidDependencySource(String siteId, String path);
+	boolean isValidDependencySource(String siteId, String path) throws SiteNotFoundException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,21 +16,20 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
+import org.craftercms.studio.api.v2.dal.Dependency;
+import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 
 /**
  * Utility class for Dependency related helper methods
@@ -43,54 +42,47 @@ public class DependencyUtils {
 	public static final Integer MAX_DEPENDENCY_PATH_LENGTH = 4000;
 
 	/**
-	 * Add the script snippets to update the dependencies for the given path
+	 * Update the dependencies for the given path
 	 *
 	 * @param siteId            the site id
 	 * @param path              the content item path
 	 * @param oldPath           the content item old path
-	 * @param file              the file
 	 * @param dependencyService the dependency service
-	 * @throws IOException if an error occurs while updating the script
+	 * @param dependencyDao     the dependency mapper
+	 * @param sqlSession        the sql session
 	 */
-	public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
-							 Path file, DependencyService dependencyService)
-		throws IOException {
-		addDependenciesScriptSnippets(siteId, path, oldPath, file, dependencyService, true, true);
+	public static void updateDependencies(String siteId, String path, String oldPath,
+										  DependencyService dependencyService, DependencyDAO dependencyDao, SqlSession sqlSession) throws SiteNotFoundException {
+		updateDependencies(siteId, path, oldPath, dependencyService, dependencyDao, sqlSession, true, true);
 	}
 
 	/**
-	 * Add the script snippets to update the dependencies for the given path
+	 * Update the dependencies for the given path
 	 *
 	 * @param siteId            the site id
 	 * @param path              the content item path
 	 * @param oldPath           the content item old path
-	 * @param file              the file
 	 * @param dependencyService the dependency service
+	 * @param dependencyDao     the dependency mapper
+	 * @param sqlSession        the sql session
 	 * @param cleanExisting     if true, the existing dependencies for the path will be deleted
 	 * @param revalidate        if true, the existing dependencies pointing to the path will be set to valid=true
-	 * @throws IOException if an error occurs while updating the script
 	 */
-	public static void addDependenciesScriptSnippets(String siteId, String path, String oldPath,
-							 Path file, DependencyService dependencyService,
-							 boolean cleanExisting, boolean revalidate)
-		throws IOException {
+	public static void updateDependencies(String siteId, String path, String oldPath,
+										  DependencyService dependencyService, DependencyDAO dependencyDao,
+										  SqlSession sqlSession,  boolean cleanExisting, boolean revalidate) throws SiteNotFoundException {
 		if (cleanExisting) {
 			if (isEmpty(oldPath)) {
-				Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
-				Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+				dependencyDao.deleteItemDependencies(siteId, path);
 			} else {
-				Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
+				dependencyDao.deleteItemDependencies(siteId, oldPath);
 				// Invalidate existing dependencies pointing to the old item path
-				Files.write(file, invalidateDependencies(siteId, oldPath).getBytes(UTF_8),
-					StandardOpenOption.APPEND);
+				dependencyDao.invalidateDependencies(siteId, oldPath);
 			}
 		}
 		if (revalidate) {
 			// Validate existing broken dependencies pointing to the item path
-			Files.write(file, validateDependencies(siteId, path).getBytes(UTF_8),
-				StandardOpenOption.APPEND);
+			dependencyDao.validateDependencies(siteId, path);
 		}
 
 		if (!dependencyService.isValidDependencySource(siteId, path)) {
@@ -101,13 +93,27 @@ public class DependencyUtils {
 		if (MapUtils.isEmpty(dependencies)) {
 			return;
 		}
-		for (Map.Entry<String, Set<ResolvedDependency>> entry : dependencies.entrySet()) {
-			for (ResolvedDependency dependency : entry.getValue()) {
-				if (isValidDependencyPath(dependency.path())) {
-					Files.write(file, insertDependencyRow(siteId, path, dependency.path(), entry.getKey(), dependency.valid())
-						.getBytes(UTF_8), StandardOpenOption.APPEND);
-					Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-				}
+
+		List<Dependency> newDependencies = dependencies.entrySet().stream()
+			.flatMap(entry -> entry.getValue().stream()
+				.filter(dependency -> isValidDependencyPath(dependency.path()))
+				.map(dependency -> {
+					Dependency newDependency = new Dependency();
+					newDependency.setSite(siteId);
+					newDependency.setSourcePath(path);
+					newDependency.setTargetPath(dependency.path());
+					newDependency.setType(entry.getKey());
+					newDependency.setValid(dependency.valid());
+					return newDependency;
+				})
+			)
+			.toList();
+
+		for (List<Dependency> batchDependencies : ListUtils.partition(newDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
+			dependencyDao.insertItemDependencies(batchDependencies);
+			// Flush only for full batches, but not for the last smaller chunk
+			if (batchDependencies.size() == DalUtils.MY_BATIS_QUERY_BATCH_SIZE) {
+				sqlSession.flushStatements();
 			}
 		}
 	}

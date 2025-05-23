@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,16 +20,13 @@ package org.craftercms.studio.impl.v2.service.site.internal;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
 import org.junit.Before;
@@ -76,11 +73,7 @@ public class SitesServiceInternalImplTest {
 	@Mock
 	StudioConfiguration studioConfiguration;
 	@Mock
-	SecurityService securityService;
-	@Mock
 	ApplicationContext applicationContext;
-	@Mock
-	ItemServiceInternal itemServiceInternal;
 	@Spy
 	@InjectMocks
 	SitesServiceInternalImpl sitesServiceInternal;
@@ -88,7 +81,7 @@ public class SitesServiceInternalImplTest {
 	@Mock
 	protected SiteDAO siteDAO;
 	@Mock
-	protected AuditServiceInternal auditServiceInternal;
+	protected AuditService auditService;
 
 	@Before
 	public void setUp() throws IOException {
@@ -104,10 +97,6 @@ public class SitesServiceInternalImplTest {
 		when(siteDAO.getSite(ROOT_SITE_ID)).thenReturn(rootSite);
 
 		when(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)).thenReturn(ROOT_SITE_ID);
-
-		when(auditServiceInternal.createAuditLogEntry()).thenReturn(new AuditLog());
-
-		when(securityService.getCurrentUser()).thenReturn("admin");
 
 		when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
 
@@ -142,7 +131,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(3)).insertAuditLog(any());
+		verify(auditService, times(3)).insertAuditLog(any());
 	}
 
 	@Test
@@ -160,7 +149,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+		verify(auditService, times(2)).insertAuditLog(any());
 	}
 
 	@Test
@@ -180,7 +169,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, never()).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+		verify(auditService, times(2)).insertAuditLog(any());
 	}
 
 	@Test
@@ -199,7 +188,7 @@ public class SitesServiceInternalImplTest {
 		verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
 		verify(siteDAO, times(1)).deleteSiteRelatedItems(SITE_ID);
 		verify(siteDAO, times(1)).completeSiteDelete(SITE_ID);
-		verify(auditServiceInternal, times(2)).insertAuditLog(any());
+		verify(auditService, times(2)).insertAuditLog(any());
 	}
 
 	@Test
@@ -229,7 +218,7 @@ public class SitesServiceInternalImplTest {
 
 		verify(contentRepository).duplicateSite(SOURCE_SITE_ID, NEW_SITE_ID, SOURCE_SANDBOX_BRANCH, DUPLICATE_SANDBOX_BRANCH);
 		verify(sitesServiceInternal).addSiteUuidFile(eq(NEW_SITE_ID), any());
-		verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq(DUPLICATE_SANDBOX_BRANCH), any());
+		verify(siteDAO).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq(DUPLICATE_SANDBOX_BRANCH), any());
 
 		verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
 		verify(sitesServiceInternal).enablePublishing(NEW_SITE_ID, true);

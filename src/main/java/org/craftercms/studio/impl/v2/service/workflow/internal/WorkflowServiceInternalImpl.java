@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,21 +24,19 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
 import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,48 +48,46 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.time.Instant.now;
-import static java.util.stream.Collectors.toList;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
 public class WorkflowServiceInternalImpl implements WorkflowService, ApplicationEventPublisherAware {
 
 	private final static Logger logger = LoggerFactory.getLogger(WorkflowServiceInternalImpl.class);
 
-	private ItemServiceInternal itemServiceInternal;
+	private ItemService itemService;
 	private SitesService siteService;
 	private GeneralLockService generalLockService;
-	private ActivityStreamServiceInternal activityStreamServiceInternal;
-	private AuditServiceInternal auditServiceInternal;
+	private ActivityStreamService activityStreamService;
+	private AuditService auditService;
 	private PublishDAO publishDao;
-	private UserServiceInternal userServiceInternal;
 	private ServicesConfig servicesConfig;
-	private SecurityService securityService;
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public int getItemStatesTotal(String siteId, String path, Long states) {
-		return itemServiceInternal.getItemByStatesTotal(siteId, path, states, null);
+		return itemService.getItemByStatesTotal(siteId, path, states, null);
 	}
 
 	@Override
-	public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
-		return itemServiceInternal.getItemByStates(siteId, path, states, null, null, offset, limit).stream()
-			.map(SandboxItem::getInstance)
-			.collect(toList());
+	public List<ContentItem> getItemsByStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException {
+		return itemService.getItemsByStates(siteId, path, states, null, null, offset, limit);
 	}
 
 	@Override
 	public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
-		itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
+		itemService.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 	}
 
 	@Override
 	public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing, boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
-		itemServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
+		itemService.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
 			live, staged, isNew, modified);
 	}
 
@@ -152,7 +148,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 				     final String operation, final WorkflowEvent.WorkFlowEventType eventType)
 		throws ServiceLayerException, AuthenticationException {
 		Site site = siteService.getSite(siteId);
-		User user = userServiceInternal.getCurrentUser();
+		User user = getCurrentUser();
 
 		PublishPackage publishPackage = publishDao.getById(site.getId(), packageId);
 		if (publishPackage == null) {
@@ -174,9 +170,9 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
 			createUpdateStatePackageAuditLogEntry(publishPackage, user.getUsername(), operation);
 
-			activityStreamServiceInternal.insertActivity(site.getId(), user.getId(),
+			activityStreamService.insertActivity(site.getId(), user.getId(),
 				operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
-			eventPublisher.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, packageId, eventType));
+			eventPublisher.publishEvent(new WorkflowEvent(getAuthentication(), siteId, packageId, eventType));
 		} finally {
 			generalLockService.unlock(packageLockKey);
 		}
@@ -191,7 +187,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	 */
 	private void createUpdateStatePackageAuditLogEntry(final PublishPackage publishPackage,
 							   final String username, final String operation) {
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOrigin(ORIGIN_API);
 		auditLog.setOperation(operation);
 		auditLog.setActorId(username);
@@ -199,20 +195,20 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 		auditLog.setPrimaryTargetId(String.valueOf(publishPackage.getId()));
 		auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
 		auditLog.setPrimaryTargetValue(String.valueOf(publishPackage.getId()));
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
-	public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(final ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 	@SuppressWarnings("unused")
-	public void setActivityStreamServiceInternal(final ActivityStreamServiceInternal activityStreamServiceInternal) {
-		this.activityStreamServiceInternal = activityStreamServiceInternal;
+	public void setActivityStreamService(final ActivityStreamService activityStreamService) {
+		this.activityStreamService = activityStreamService;
 	}
 
-	public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(final AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	public void setGeneralLockService(final GeneralLockService generalLockService) {
@@ -230,14 +226,6 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
 	public void setSiteService(final SitesService siteService) {
 		this.siteService = siteService;
-	}
-
-	public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	public void setSecurityService(final SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	@Override

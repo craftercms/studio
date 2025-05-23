@@ -21,9 +21,10 @@ import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.impl.v2.service.policy.validators.*;
 import org.craftercms.studio.model.policy.Action;
@@ -89,9 +90,6 @@ public class PolicyServiceInternalImplTest {
 	private GitContentRepository contentRepository;
 
 	@Mock
-	private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
-
-	@Mock
 	private ConfigurationService configurationService;
 
 	private PolicyServiceInternalImpl policyService;
@@ -103,7 +101,7 @@ public class PolicyServiceInternalImplTest {
 
 	@BeforeMethod
 	public void setUp() throws IOException,
-		org.apache.commons.configuration2.ex.ConfigurationException, ConfigurationException {
+		org.apache.commons.configuration2.ex.ConfigurationException, ServiceLayerException {
 		initMocks(this);
 
 		var systemValidator = new SystemPolicyValidator(255, 1024);
@@ -113,7 +111,7 @@ public class PolicyServiceInternalImplTest {
 			new PathPolicyValidator(),
 			new ContentTypePolicyValidator());
 
-		policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, configurationService,
+		policyService = new PolicyServiceInternalImpl(contentRepository, configurationService,
 			systemValidator, policyValidators, CONFIG_PATH);
 
 		var config = new XMLConfiguration();
@@ -145,61 +143,46 @@ public class PolicyServiceInternalImplTest {
 	 * folder
 	 * pic.png (1 kb)
 	 */
-	protected void setUpRepository() {
+	protected void setUpRepository() throws ServiceLayerException {
 		when(contentRepository.getContentChildren(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
-			var item = new RepositoryItem();
-			item.path = concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME);
-			item.name = PIC_FILENAME;
+			var item = new RepositoryItem(concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME), PIC_FILENAME, false);
 
-			return new RepositoryItem[]{item};
+			return List.of(item);
 		});
 
 		when(contentRepository.getContentChildren(SITE_ID, PICS_FOLDER_PATH)).thenAnswer(i -> {
-			var item = new RepositoryItem();
-			item.isFolder = true;
-			item.path = PICS_FOLDER_PATH;
-			item.name = SUB_FOLDER_NAME;
-
-			return new RepositoryItem[]{item};
+			var item = new RepositoryItem(PICS_FOLDER_PATH, SUB_FOLDER_NAME, true);
+			return List.of(item);
 		});
 
 		when(contentRepository.getContentChildren(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
-			var item1 = new RepositoryItem();
-			item1.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
-			item1.name = DOC1_FILENAME;
+			var item1 = new RepositoryItem(concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME), DOC1_FILENAME, false);
 
-			var item2 = new RepositoryItem();
-			item2.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
-			item2.name = DOC2_FILENAME;
+			var item2 = new RepositoryItem(concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME), DOC2_FILENAME, false);
 
-			var item3 = new RepositoryItem();
-			item3.path = concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME);
-			item3.name = DOC3_FILENAME;
+			var item3 = new RepositoryItem(concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME), DOC3_FILENAME, false);
 
-			return new RepositoryItem[]{item1, item2, item3};
+			return List.of(item1, item2, item3);
 		});
 
 		when(contentRepository.getContentChildren(SITE_ID, DOCS_FOLDER_PATH)).thenAnswer(i -> {
-			var item = new RepositoryItem();
-			item.isFolder = true;
-			item.path = DOCS_FOLDER_PATH;
-			item.name = SUB_FOLDER_NAME;
+			var item = new RepositoryItem(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, true);
 
-			return new RepositoryItem[]{item};
+			return List.of(item);
 		});
 
 		when(contentRepository.contentExists(SITE_ID, STATIC_ASSETS)).thenAnswer(i -> {
 			return true;
 		});
 
-		when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC1_FILENAME)))
+		when(contentRepository.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC1_FILENAME)))
 			.thenReturn(20000L);
-		when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC2_FILENAME)))
+		when(contentRepository.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC2_FILENAME)))
 			.thenReturn(5000L);
-		when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC3_FILENAME)))
+		when(contentRepository.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC3_FILENAME)))
 			.thenReturn(30000L);
 
-		when(contentRepositoryV2.getContentSize(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME, PIC_FILENAME)))
+		when(contentRepository.getContentSize(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME, PIC_FILENAME)))
 			.thenReturn(1000L);
 	}
 

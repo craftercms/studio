@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,7 @@ package org.craftercms.studio.model.rest.workflow;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import org.craftercms.studio.impl.v2.utils.SanitizerUtil;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class ReviewPackageRequestBody {
 	}
 
 	public void setComment(@NotBlank String comment) {
-		this.comment = comment;
+		this.comment = SanitizerUtil.sanitizeText(comment);
 	}
 
 	public @NotEmpty List<Long> getPackageIds() {

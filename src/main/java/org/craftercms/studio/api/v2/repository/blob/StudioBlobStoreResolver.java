@@ -15,9 +15,6 @@
  */
 package org.craftercms.studio.api.v2.repository.blob;
 
-import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.commons.config.ConfigurationProvider;
-import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.BlobStoreResolver;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 

@@ -91,14 +91,14 @@ studio.repo.ignoreFiles:
 studio.repo.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries for retrying repository operation
 studio.repo.retryingOperation.maxSleep: 1000
-# If Git CLI should be used for some Git operations, for better performance (Git CLI needs to be installed beforehand)
-studio.repo.git.cli.enabled: true
 # The process name of git, as it is available from PATH
 studio.repo.git.cli.process.name: git
 # Timeout in seconds when waiting for the Git CLI process to finish
 studio.repo.git.cli.process.waitForTimeout: 300
 # Timeout in seconds when waiting for the Git CLI process to finish after destroying the process forcibly
 studio.repo.git.cli.process.destroy.waitForTimeout: 60
+# Max number of bytes to read from the Git CLI process output (longer outputs will need to read the output file)
+studio.repo.git.cli.process.maxOutputBytes: 1000
 
 ##################################################
 ##           DB Sync from Repository            ##
@@ -260,6 +260,8 @@ studio.configuration.contentType.defaultPreviewImagePath: "crafter/studio/conten
 studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
 # Format string for the controller script of a content-type
 studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
+# Path for the content type form controller script
+studio.configuration.contentType.formControllerFilePath: form-controller.js
 
 # Paths matching git pathspecs on this list will never be published.
 # For information on git pathspec, see https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathspecapathspec
@@ -374,6 +376,9 @@ studio.security.headers.contentSecurityPolicy.reportOnly: true
 studio.security.http.basic.enabled: false
 # Value for the X-PERMITTED-CROSS-DOMAIN-POLICIES header
 studio.security.headers.permittedCrossDomainPolicies.value: none
+# Value for Referrer-Policy header.
+# Possible values are defined in org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy
+studio.security.headers.referrerPolicy.value: NO_REFERRER
 
 # The maximum number of users to keep in the cache
 studio.security.db.cache.maxSize: 20
@@ -609,10 +614,6 @@ studio.db.maxAllowedPacket: 128M
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
 studio.db.retryingOperation.maxSleep: 1000
-# Number of lines to read from sql script file for buffered execution
-studio.db.scriptRunner.bufferSize: 10000
-# Batch size for bulk operations
-studio.db.bulkOperations.batchSize: 1000
 # DB max_recursive_iterations value. This property should be set to a value between 0 and 20 (hard limit)
 studio.db.maxRecursiveIterations: 10
 ##########################################################

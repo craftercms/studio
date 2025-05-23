@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.ZonedDateTime;
 import java.util.List;
+
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
 
 public class AuditLog {
 	private long id;
@@ -163,5 +167,13 @@ public class AuditLog {
 
 	public void setCommitId(String commitId) {
 		this.commitId = commitId;
+	}
+
+	public static AuditLog createAuditLogEntry() {
+		AuditLog auditLog = new AuditLog();
+		auditLog.setOrganizationId(1);
+		auditLog.setOrigin(ORIGIN_API);
+		auditLog.setClusterNodeId(StringUtils.EMPTY);
+		return auditLog;
 	}
 }

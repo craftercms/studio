@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,14 +16,15 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.springframework.security.core.Authentication;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Provides security related services
+ */
 public interface SecurityService {
 
 	/**
@@ -34,38 +35,6 @@ public interface SecurityService {
 	 * @param roles    roles the user is assigned to
 	 * @return list of user permissions
 	 */
-	List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) throws ExecutionException;
+	List<String> getUserPermission(String siteId, String username, Collection<NormalizedRole> roles) throws ExecutionException;
 
-	/**
-	 * Returns the username of the current user
-	 *
-	 * @return username of the current user, or null if no user is authenticated
-	 */
-	String getCurrentUser();
-
-	/**
-	 * Returns the {@link Authentication} for the current user or null if not user is authenticated.
-	 *
-	 * @return authentication
-	 */
-	Authentication getAuthentication();
-
-	/**
-	 * Check if a user is a member of a site
-	 * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
-	 * role mapping configuration file.
-	 *
-	 * @param username the username
-	 * @param siteName the site name
-	 * @return true if user is a member of the site, false otherwise
-	 */
-	boolean isSiteMember(String username, String siteName);
-
-	/**
-	 * Check if given user has system_admin role
-	 *
-	 * @param username user
-	 * @return true if user is system_admin, false otherwise
-	 */
-	boolean isSystemAdmin(String username);
 }

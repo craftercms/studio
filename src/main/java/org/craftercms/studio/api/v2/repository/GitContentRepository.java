@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -30,8 +31,6 @@ import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
 import java.util.*;
-
-import static org.eclipse.jgit.lib.Constants.HEAD;
 
 /**
  * Interface for content repositories that support git operations
@@ -49,17 +48,6 @@ public interface GitContentRepository extends ContentRepository {
 	 */
 	default List<String> getItemPaths(String site, GitRepositories repoType, String revstr) {
 		return getSubtreeItems(site, "", repoType, revstr);
-	}
-
-	/**
-	 * List sandbox subtree items for give site and path
-	 *
-	 * @param site site identifier
-	 * @param path path for subtree root
-	 * @return list of item paths contained in the subtree
-	 */
-	default List<String> getSubtreeItems(String site, String path) {
-		return getSubtreeItems(site, path, GitRepositories.SANDBOX, HEAD);
 	}
 
 	/**
@@ -81,7 +69,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitIdTo   commit ID to end at
 	 * @return list of operations
 	 */
-	List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo);
+	List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) throws ServiceLayerException;
 
 	/**
 	 * Get a list of operations between given commit and its first parent
@@ -90,34 +78,18 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitId commit id
 	 * @return list of operations
 	 */
-	default List<RepoOperation> getOperationsFromFirstParentDiff(final String site, final String commitId) {
+	default List<RepoOperation> getOperationsFromFirstParentDiff(final String site, final String commitId) throws ServiceLayerException {
 		return getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 	}
 
 	/**
-	 * Get first id from repository for given site
-	 *
-	 * @param site site id
-	 * @return first commit id
-	 */
-	String getRepoFirstCommitId(String site);
-
-	/**
 	 * Check if repository exists for  given site
 	 *
-	 * @param site site id
+	 * @param siteId   site id
+	 * @param repoType repository type
 	 * @return true if repository exists, otherwise false
 	 */
-	boolean repositoryExists(String site);
-
-	/**
-	 * Check if given commit id exists
-	 *
-	 * @param site     site id
-	 * @param commitId commit id to check
-	 * @return true if it exists in site repository, otherwise false
-	 */
-	boolean commitIdExists(String site, String commitId);
+	boolean repositoryExists(String siteId, GitRepositories repoType);
 
 	/**
 	 * Check if given commit id (or revision string) exists
@@ -154,8 +126,8 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param fileProcessor      the consumer to process the file paths
 	 */
 	void forAllSitePaths(String siteId,
-			     ThrowingConsumer<String> directoryProcessor,
-			     ThrowingConsumer<String> fileProcessor) throws Exception;
+						 ThrowingConsumer<String> directoryProcessor,
+						 ThrowingConsumer<String> fileProcessor) throws Exception;
 
 	/**
 	 * Execute {@link java.util.function.Consumer<String>} for all file paths in the site
@@ -264,7 +236,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @return true if successful, false otherwise
 	 */
 	boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-					Map<String, String> params, String creator);
+									Map<String, String> params, String creator);
 
 	/**
 	 * Create new site as a clone from remote repository
@@ -290,10 +262,10 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws ServiceLayerException                       general service error
 	 */
 	boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-				      String remoteBranch, boolean singleBranch, String authenticationType,
-				      String remoteUsername, String remotePassword, String remoteToken,
-				      String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
-				      String creator)
+								  String remoteBranch, boolean singleBranch, String authenticationType,
+								  String remoteUsername, String remotePassword, String remoteToken,
+								  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+								  String creator)
 		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
 		RemoteRepositoryNotFoundException, ServiceLayerException;
 
@@ -321,7 +293,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param site site id where the operation will be executed
 	 * @param path path of the item
 	 */
-	void itemUnlock(String site, String path);
+	void unlockItem(String site, String path);
 
 	/**
 	 * Deletes the underlying git repositories for a site
@@ -378,15 +350,39 @@ public interface GitContentRepository extends ContentRepository {
 
 	/**
 	 * Create empty file such as .keep to git repository and commit
+	 *
 	 * @param siteId site id
-	 * @param paths list of paths to create and commit to git
+	 * @param paths  list of paths to create and commit to git
 	 */
 	void createEmptyFiles(String siteId, Collection<String> paths);
 
 	/**
 	 * Performs a garbage collect all repositories for the given site
+	 *
 	 * @param siteId site identifier
 	 */
 	void garbageCollectGitRepositories(String siteId);
+
+	/**
+	 * Get the children of a repository folder
+	 *
+	 * @param site       site id
+	 * @param folderPath path to the folder
+	 * @return list of children
+	 */
+	Collection<RepositoryItem> getContentChildren(String site, String folderPath) throws ServiceLayerException;
+
+	/**
+	 * Revert content to a previous version
+	 *
+	 * @param site    site id
+	 * @param path    path of the content
+	 * @param version version to revert to
+	 * @param comment comment for the revert operation
+	 * @return commit id of the new version
+	 * @throws UserNotFoundException if the current user is not found
+	 * @throws ServiceLayerException if there is any error while reverting the content
+	 */
+	String revertContent(String site, String path, String version, String comment) throws UserNotFoundException, ServiceLayerException;
 
 }

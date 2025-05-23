@@ -20,6 +20,7 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.springframework.core.io.Resource;
@@ -64,7 +65,7 @@ public class PluginController {
 						      @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String name,
 						      @ValidExistingContentPath @ValidateSecurePathParam @RequestParam(required = false) String filename,
 						      @ValidExistingContentPath @ValidateSecurePathParam String pluginId)
-		throws ContentNotFoundException {
+		throws ContentNotFoundException, SiteNotFoundException {
 		Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
 
 		String contentType = StudioUtils.getMimeType(filename);

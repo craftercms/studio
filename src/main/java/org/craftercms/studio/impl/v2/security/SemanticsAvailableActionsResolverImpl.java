@@ -20,20 +20,21 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
-import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.Person;
-import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.util.List;
 import java.util.Set;
@@ -57,10 +58,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
 
 	private AvailableActionsResolver availableActionsResolver;
-	private ContentServiceInternal contentServiceInternal;
+	private ContentService contentService;
 	private ServicesConfig servicesConfig;
 	private StudioBlobStoreResolver studioBlobStoreResolver;
-	private ContentTypeServiceInternal contentTypeServiceInternal;
+	private ContentTypeService contentTypeService;
 
 	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -76,7 +77,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	@Override
-	public long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
+	public long calculateContentItemAvailableActions(String username, String siteId, ContentItem detailedItem)
 			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
@@ -103,7 +104,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	 * @param username The username of the user to check.
 	 * @return {@code true} if the user has the unlock permission; {@code false} otherwise.
 	 */
-	private boolean hasUnlockPermission(Person lockOwner, long state, String siteId, String path, String username) {
+	private boolean hasUnlockPermission(Person lockOwner, long state, String siteId, String path, String username) throws SiteNotFoundException {
 		boolean itemLocked = ItemState.isUserLocked(state);
 		String lockOwnerUsername = itemLocked && lockOwner != null ? lockOwner.getUsername() : null;
 		boolean isLockOwner = StringUtils.equals(username, lockOwnerUsername);
@@ -163,7 +164,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		result = applyBlobStoreFilters(siteId, itemPath, itemSystemType, result);
 
-		if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(itemPath, itemMimeType))) {
+		if ((result & CONTENT_EDIT) > 0 && (!contentService.isEditable(itemPath, itemMimeType))) {
 			result &= ~CONTENT_EDIT;
 		}
 
@@ -175,10 +176,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		// controller and template
 		if (isNotEmpty(itemContentTypeId)) {
-			String controllerPath = contentTypeServiceInternal.getContentTypeControllerPath(itemContentTypeId);
+			String controllerPath = contentTypeService.getContentTypeControllerPath(itemContentTypeId);
 			result = checkActionForDependency(siteId, username, controllerPath, result,
 					CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
-			String templatePath = contentTypeServiceInternal.getContentTypeTemplatePath(siteId, itemContentTypeId);
+			String templatePath = contentTypeService.getContentTypeTemplatePath(siteId, itemContentTypeId);
 			result = checkActionForDependency(siteId, username, templatePath, result,
 					CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
 		}
@@ -249,8 +250,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.availableActionsResolver = availableActionsResolver;
 	}
 
-	public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
-		this.contentServiceInternal = contentServiceInternal;
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
 	}
 
 	public void setServicesConfig(ServicesConfig servicesConfig) {
@@ -261,8 +262,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.studioBlobStoreResolver = studioBlobStoreResolver;
 	}
 
-	public void setContentTypeServiceInternal(ContentTypeServiceInternal contentTypeServiceInternal) {
-		this.contentTypeServiceInternal = contentTypeServiceInternal;
+	public void setContentTypeService(ContentTypeService contentTypeService) {
+		this.contentTypeService = contentTypeService;
 	}
 
 	public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {

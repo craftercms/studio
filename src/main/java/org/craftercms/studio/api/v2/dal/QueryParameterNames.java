@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -42,6 +42,11 @@ public final class QueryParameterNames {
 	public static final String REGEX = "regex";
 	// Modifier
 	public static final String MODIFIER = "modifier";
+
+	public static final String LAST_MODIFIED_BY = "lastModifiedBy";
+
+	public static final String LAST_MODIFIED_ON = "lastModifiedOn";
+
 	// Old path
 	public static final String PREVIOUS_PATH = "previousPath";
 	// New path
@@ -195,6 +200,10 @@ public final class QueryParameterNames {
 
 	public static final String CONTENT_TYPE = "contentType";
 
+	public static final String CONTENT_TYPE_ID = "contentTypeId";
+
+	public static final String PREVIEW_URL = "previewUrl";
+
 	public static final String OLD_PREVIEW_URL = "oldPreviewUrl";
 
 	public static final String NEW_PREVIEW_URL = "newPreviewUrl";
@@ -204,6 +213,10 @@ public final class QueryParameterNames {
 	public static final String EXCLUDES = "excludes";
 
 	public static final String SYSTEM_TYPES = "systemTypes";
+
+	public static final String SYSTEM_TYPE = "systemType";
+
+	public static final String MIME_TYPE = "mimeType";
 
 	public static final String KEYWORD = "keyword";
 
@@ -239,7 +252,13 @@ public final class QueryParameterNames {
 
 	public static final String TYPE = "type";
 
+	public static final String SIZE = "size";
+
+	public static final String IGNORED = "ignored";
+
 	public static final String SOURCE_PATH = "sourcePath";
+
+	public static final String REMOVE_PAGE_PARENT_FOLDER = "removePageParentFolder";
 
 	/**
 	 * Activity Stream

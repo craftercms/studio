@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,9 +17,7 @@
 package org.craftercms.studio.impl.v2.service.dependency.internal;
 
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.model.rest.content.DependencyItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +26,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,8 +39,6 @@ public class DependencyServiceInternalImplTest {
 	private static final String DEPENDENT_ITEM_1 = "/sample/dependent-item-1";
 	private static final String DEPENDENT_ITEM_2 = "/sample/dependent-item-2";
 	@Mock
-	protected ItemServiceInternal itemServiceInternal;
-	@Mock
 	protected DependencyDAO dependencyDAO;
 
 	@Spy
@@ -52,26 +47,19 @@ public class DependencyServiceInternalImplTest {
 
 	@Before
 	public void setUp() {
+		LightItem dep1 = new LightItem();
+		dep1.setPath(DEPENDENT_ITEM_1);
+		LightItem dep2 = new LightItem();
+		dep2.setPath(DEPENDENT_ITEM_2);
 		when(dependencyDAO.getDependentItems(SITE_ID, Collections.singletonList(PATH))).thenReturn(
-			Arrays.asList(DEPENDENT_ITEM_1, DEPENDENT_ITEM_2)
-		);
-
-		when(itemServiceInternal.getItem(SITE_ID, DEPENDENT_ITEM_1)).thenReturn(
-			new Item.Builder().withPath(DEPENDENT_ITEM_1).withAvailableActions(0).build()
-		);
-
-		when(itemServiceInternal.getItem(SITE_ID, DEPENDENT_ITEM_2)).thenReturn(
-			new Item.Builder().withPath(DEPENDENT_ITEM_2).withAvailableActions(0).build()
+			List.of(dep1, dep2)
 		);
 	}
 
 	@Test
 	public void getDependentItemsTest() {
-		List<DependencyItem> items = serviceInternal.getDependentItems(SITE_ID, PATH);
-
+		List<LightItem> items = serviceInternal.getDependentItems(SITE_ID, PATH);
 		verify(dependencyDAO, times(1)).getDependentItems(SITE_ID, Collections.singletonList(PATH));
-		verify(itemServiceInternal, times(1)).getItem(SITE_ID, DEPENDENT_ITEM_1);
-		verify(itemServiceInternal, times(1)).getItem(SITE_ID, DEPENDENT_ITEM_2);
 		assertEquals(2, items.size());
 		assertEquals(DEPENDENT_ITEM_1, items.get(0).getPath());
 		assertEquals(DEPENDENT_ITEM_2, items.get(1).getPath());

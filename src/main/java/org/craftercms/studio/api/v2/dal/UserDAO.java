@@ -150,14 +150,6 @@ public interface UserDAO {
 	Integer userExists(Map params);
 
 	/**
-	 * Check if user is member of given group
-	 *
-	 * @param params SQL query parameters
-	 * @return if true result greater than 0
-	 */
-	Integer isUserMemberOfGroup(Map params);
-
-	/**
 	 * Get user by git name
 	 *
 	 * @param gitName SQL query parameter

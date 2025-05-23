@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,22 +26,15 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.publish.PublishItem;
-import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.search.SearchService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
@@ -52,19 +45,16 @@ import org.craftercms.studio.model.search.SearchResult;
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.UPDATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.parseDateIso;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.opensearch.client.opensearch._types.SortOrder.Asc;
 import static org.opensearch.client.opensearch._types.SortOrder.Desc;
@@ -72,12 +62,10 @@ import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 @RequireSiteReady
 public class DashboardServiceImpl implements DashboardService {
 
-	private final ActivityStreamServiceInternal activityStreamServiceInternal;
+	private final ActivityStreamService activityStreamServiceInternal;
 	private final PublishService publishServiceInternal;
-	private final ContentServiceInternal contentServiceInternal;
-	private final SecurityService securityService;
-	private final WorkflowService workflowServiceInternal;
-	private final ItemServiceInternal itemServiceInternal;
+	private final ContentService contentService;
+	private final ItemService itemServiceInternal;
 	private final SearchService searchService;
 	private final StudioConfiguration studioConfiguration;
 
@@ -85,17 +73,15 @@ public class DashboardServiceImpl implements DashboardService {
 	private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
 	private static final String DATE_TO_REGEX = "\\{dateTo\\}";
 
-	@ConstructorProperties({"activityStreamServiceInternal", "publishServiceInternal", "contentServiceInternal",
-		"securityService", "workflowServiceInternal", "itemServiceInternal", "searchService", "studioConfiguration"})
-	public DashboardServiceImpl(final ActivityStreamServiceInternal activityStreamServiceInternal, final PublishService publishServiceInternal,
-				    final ContentServiceInternal contentServiceInternal, final SecurityService securityService,
-				    final WorkflowService workflowServiceInternal, final ItemServiceInternal itemServiceInternal,
-				    final SearchService searchService, final StudioConfiguration studioConfiguration) {
+	@ConstructorProperties({"activityStreamService", "publishServiceInternal", "contentService",
+		"itemService", "searchService", "studioConfiguration"})
+	public DashboardServiceImpl(final ActivityStreamService activityStreamServiceInternal, final PublishService publishServiceInternal,
+								final ContentService contentService,
+								final ItemService itemServiceInternal,
+								final SearchService searchService, final StudioConfiguration studioConfiguration) {
 		this.activityStreamServiceInternal = activityStreamServiceInternal;
 		this.publishServiceInternal = publishServiceInternal;
-		this.contentServiceInternal = contentServiceInternal;
-		this.securityService = securityService;
-		this.workflowServiceInternal = workflowServiceInternal;
+		this.contentService = contentService;
 		this.itemServiceInternal = itemServiceInternal;
 		this.searchService = searchService;
 		this.studioConfiguration = studioConfiguration;
@@ -123,7 +109,7 @@ public class DashboardServiceImpl implements DashboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public int getMyActivitiesTotal(@SiteId String siteId, List<String> actions,
 					ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
-		var username = securityService.getCurrentUser();
+		var username = getCurrentUsername();
 		return activityStreamServiceInternal
 			.getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
 	}
@@ -133,7 +119,7 @@ public class DashboardServiceImpl implements DashboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<Activity> getMyActivities(@SiteId String siteId, List<String> actions, ZonedDateTime dateFrom,
 					      ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
-		var username = securityService.getCurrentUser();
+		var username = getCurrentUsername();
 		return activityStreamServiceInternal
 			.getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
 	}
@@ -148,17 +134,15 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<SandboxItem> getContentUnpublished(@SiteId String siteId,
-						       List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
+	public List<ContentItem> getContentUnpublished(@SiteId String siteId,
+												   List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
 		throws UserNotFoundException, ServiceLayerException {
-		var items =
-			itemServiceInternal.getItemByStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
+		List<ContentItem> items =
+			contentService.getContentItemsByStates(siteId, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
 		if (items.isEmpty()) {
 			return emptyList();
 		}
-		var ids = items.stream().map(Item::getId)
-			.collect(toList());
-		return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, false);
+		return items;
 	}
 
 	protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
@@ -199,8 +183,8 @@ public class DashboardServiceImpl implements DashboardService {
 	protected ExpiringContentResult processResults(String siteId, SearchResult results) throws ServiceLayerException, UserNotFoundException {
 		List<ExpiringContentItem> items = new ArrayList<>();
 		for (var item : results.getItems()) {
-			SandboxItem sandboxItem =
-				contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+			ContentItem sandboxItem =
+				contentService.getContentItemsByPath(siteId, List.of(item.getPath()), false)
 					.stream()
 					.findFirst().orElse(null);
 			ExpiringContentItem contentItem = new ExpiringContentItem(

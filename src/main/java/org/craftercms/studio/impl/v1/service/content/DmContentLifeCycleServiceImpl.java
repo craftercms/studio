@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -25,9 +26,9 @@ import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
@@ -37,8 +38,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.xml.sax.SAXException;
-
-import jakarta.validation.Valid;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -53,7 +52,6 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
 	private static final Logger logger = LoggerFactory.getLogger(DmContentLifeCycleServiceImpl.class);
 
 	protected ContentService contentService;
-	protected SecurityService securityService;
 	protected ScriptExecutor scriptExecutor;
 	protected StudioConfiguration studioConfiguration;
 	protected ApplicationContext applicationContext;
@@ -149,7 +147,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
 		model.put(DmConstants.KEY_SITE, site);
 		model.put(DmConstants.KEY_PATH, path);
 
-		user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
+		user = (StringUtils.isEmpty(user)) ? SecurityUtils.getCurrentUsername() : user;
 		model.put(DmConstants.KEY_USER, user);
 		model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
 		model.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, operation);
@@ -209,32 +207,12 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
 		}
 	}
 
-	public ContentService getContentService() {
-		return contentService;
-	}
-
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
 
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
-	public ScriptExecutor getScriptExecutor() {
-		return scriptExecutor;
-	}
-
 	public void setScriptExecutor(ScriptExecutor scriptExecutor) {
 		this.scriptExecutor = scriptExecutor;
-	}
-
-	public StudioConfiguration getStudioConfiguration() {
-		return studioConfiguration;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

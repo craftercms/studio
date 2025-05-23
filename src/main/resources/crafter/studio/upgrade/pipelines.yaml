@@ -754,6 +754,22 @@ pipelines:
                             -   src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
                                 dest: /configuration/samples/sample-config-list.xml
                                 commitDetails: Remove box configs
+            -   currentVersion: 5.0.0.3
+                nextVersion: 5.0.0.4
+                operations:
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-permission-mappings-config.xml
+                        template: crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.4.xslt
+                        commitDetails: Update global permission for site_developer
+                    -   type: xsltFileUpgrader
+                        path: /configuration/global-role-mappings-config.xml
+                        template: crafter/studio/upgrade/5.0.x/system/global-role-mappings-config-v5.0.0.4.xslt
+                        commitDetails: Add new mapping for site_developer
+            -   currentVersion: 5.0.0.4
+                nextVersion: 5.0.0.5
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/5.0.0.4-to-5.0.0.5.sql
 
     # Pipeline to upgrade site repositories
     site:
@@ -1437,6 +1453,15 @@ configurations:
                     -   type: xsltFileUpgrader
                         template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
                         commitDetails: Add view templates and controllers as content-type dependencies
+            # Switch to 5.0 version schema
+            -   currentVersion: 4.0.1.1
+                nextVersion: 5.0-t
+            -   currentVersion: 5.0-t
+                nextVersion: 5.0.0.0
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.0.xslt
+                        commitDetails: Update static asset dependencies regex
 
     engine-site-config:
         module: engine

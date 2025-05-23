@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,14 +23,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
+import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -43,7 +44,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
-public class ItemServiceInternalImpl implements ItemServiceInternal {
+public class ItemServiceInternalImpl implements ItemService {
 	// TODO: SJ: Add logging to this class
 
 	public final static String INTERNAL_NAME = "/*[1]/internal-name";
@@ -51,26 +52,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	public final static String DISABLED = "/*[1]/disabled";
 	public final static String LOCALE_CODE = "/*[1]/locale-code";
 
-	private UserServiceInternal userServiceInternal;
+	private UserService userService;
 	private SiteDAO siteDao;
 	private ItemDAO itemDao;
 	private ServicesConfig servicesConfig;
-	private ContentServiceInternal contentServiceInternal;
 	private ContentService contentService;
+	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private GeneralLockService generalLockService;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	@Override
-	public boolean upsertEntry(Item item) {
+	public void upsertEntry(Item item) {
 		retryingDatabaseOperationFacade.retry(() -> itemDao.upsertEntry(item));
-		return true;
-	}
-
-	@Override
-	public DetailedItem getItem(String siteId, long id) {
-		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		return itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, stagingEnv, liveEnv);
 	}
 
 	@Override
@@ -84,34 +77,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 		if (Objects.isNull(site)) {
 			return null;
 		}
-		DetailedItem item;
-		String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-		String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-		if (preferContent) {
-			item = itemDao.getItemBySiteIdAndPathPreferContent(site.getId(), path, stagingEnv, liveEnv);
-		} else {
-			item = itemDao.getItemBySiteIdAndPath(site.getId(), path, stagingEnv, liveEnv);
-		}
-		if (Objects.nonNull(item)) {
-			item.setSiteName(siteId);
-		}
-		return Item.getInstance(item);
+		return itemDao.getItemByPath(site.getId(), path, preferContent);
 	}
 
 	@Override
 	public List<Item> getItems(String siteId, Collection<String> paths) {
-		return getItems(siteId, paths, false);
-	}
-
-	@Override
-	public List<Item> getItems(String siteId, Collection<String> paths, boolean preferContent) {
 		Site site = siteDao.getSite(siteId);
-		return itemDao.getSandboxItemsByPath(site.getId(), paths, preferContent);
+		return itemDao.getItemsByPath(site.getId(), paths, false);
 	}
 
 	@Override
-	public void deleteItem(long siteId, String path) {
-		retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteId, path));
+	public void deleteItem(long siteId, String path, boolean removePageParentFolder) {
+		retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteId, path, removePageParentFolder));
 	}
 
 	@Override
@@ -150,7 +127,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
-						   long offStateBitMap) {
+											   long offStateBitMap) {
 		if (CollectionUtils.isNotEmpty(paths)) {
 			Site site = siteDao.getSite(siteId);
 			retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(site.getId(), paths,
@@ -173,7 +150,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public String getBrowserUrl(String site, String path) {
+	public String getBrowserUrl(String site, String path) throws SiteNotFoundException {
 		String replacePattern;
 		boolean isPage = false;
 		if (ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
@@ -202,7 +179,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	protected String getBrowserUri(String uri, String replacePattern, boolean isPage) {
 		String browserUri = uri.replaceFirst(replacePattern, "");
 		browserUri = browserUri.replaceFirst(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
-		if (browserUri.length() == 0) {
+		if (browserUri.isEmpty()) {
 			browserUri = FILE_SEPARATOR;
 		}
 		// TODO: come up with a better way of doing this.
@@ -214,13 +191,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-					   boolean unlock, Long parentId)
+									   boolean unlock, Long parentId)
 		throws ServiceLayerException, UserNotFoundException {
 		String lockKey = "persistItemAfterCreate:" + siteId;
 		generalLockService.lock(lockKey);
 		try {
-			User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-			var descriptor = contentServiceInternal.getItem(siteId, path, false);
+			User userObj = userService.getUserByIdOrUsername(-1, username);
+			var descriptor = contentService.getItem(siteId, path, false);
 			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 			boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
 			String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
@@ -234,11 +211,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 				.withLastModifiedBy(userObj.getId())
 				.withLastModifiedOn(DateUtils.getCurrentTime())
 				.withLabel(label)
-				.withSystemType(contentService.getContentTypeClass(siteId, path))
+				.withSystemType(contentServiceV1.getContentTypeClass(siteId, path))
 				.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
 				.withMimeType(StudioUtils.getMimeType(path))
 				.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-				.withSize(contentServiceInternal.getContentSize(siteId, path))
+				.withSize(contentService.getContentSize(siteId, path))
 				.withParentId(parentId)
 				.build();
 			if (unlock) {
@@ -257,10 +234,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public void persistItemAfterWrite(String siteId, String path, String username, String commitId, boolean unlock)
+	public void persistItemAfterWrite(String siteId, String path, String username, boolean unlock)
 		throws ServiceLayerException, UserNotFoundException {
-		User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-		var descriptor = contentServiceInternal.getItem(siteId, path, false);
+		User userObj = userService.getUserByIdOrUsername(-1, username);
+		var descriptor = contentService.getItem(siteId, path, false);
 		String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 		boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
 		String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
@@ -272,11 +249,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 			.withLastModifiedBy(userObj.getId())
 			.withLastModifiedOn(DateUtils.getCurrentTime())
 			.withLabel(label)
-			.withSystemType(contentService.getContentTypeClass(siteId, path))
+			.withSystemType(contentServiceV1.getContentTypeClass(siteId, path))
 			.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
 			.withMimeType(StudioUtils.getMimeType(path))
 			.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-			.withSize(contentServiceInternal.getContentSize(siteId, path))
+			.withSize(contentService.getContentSize(siteId, path))
 			.build();
 		if (unlock) {
 			item.setState(ItemState.savedAndClosed(item.getState()));
@@ -293,9 +270,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
-						 String commitId, Long parentId)
+											 String commitId, Long parentId)
 		throws ServiceLayerException, UserNotFoundException {
-		User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+		User userObj = userService.getUserByIdOrUsername(-1, username);
 		Item item = instantiateItem(siteId, folderPath)
 			.withLastModifiedBy(userObj.getId())
 			.withLastModifiedOn(DateUtils.getCurrentTime())
@@ -309,9 +286,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void persistItemAfterRenameContent(String siteId, String path, String name, String username,
-						  String commitId, String contentType)
+											  String commitId, String contentType)
 		throws ServiceLayerException, UserNotFoundException {
-		User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+		User userObj = userService.getUserByIdOrUsername(-1, username);
 		Item item = instantiateItem(siteId, path)
 			.withPreviewUrl(CONTENT_TYPE_FOLDER.equals(contentType) ? null : getBrowserUrl(siteId, path))
 			.withLastModifiedBy(userObj.getId())
@@ -324,7 +301,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) {
+	public void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) throws SiteNotFoundException {
 		String oldPreviewUrl = getBrowserUrl(siteId, oldPath);
 		String newPreviewUrl = getBrowserUrl(siteId, newPath);
 		retryingDatabaseOperationFacade.retry(() ->
@@ -358,7 +335,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	@Override
 	public void lockItemByPath(String siteId, String path, String username)
 		throws UserNotFoundException, ServiceLayerException {
-		User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+		User user = userService.getUserByIdOrUsername(-1, username);
 		retryingDatabaseOperationFacade.retry(() -> itemDao.lockItemByPath(siteId, path, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER));
 	}
 
@@ -381,13 +358,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@Override
-	public List<Item> getItemByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
-		return itemDao.getItemByStates(siteId, path, states, systemTypes, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
+	public List<ContentItem> getItemsByStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
+		return itemDao.getContentItemsByStates(siteId, path, states, systemTypes,
+			mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
 	}
 
 	@Override
 	public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-				     boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+								 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
 		if (CollectionUtils.isNotEmpty(paths)) {
 			long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
 			long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
@@ -416,7 +394,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	protected long getResetStatesMask(boolean clearSystemProcessing, boolean clearUserLocked, Boolean live,
-					  Boolean staged, Boolean isNew, Boolean modified) {
+									  Boolean staged, Boolean isNew, Boolean modified) {
 		long resetStatesMask = 0L;
 
 		if (clearSystemProcessing) {
@@ -442,17 +420,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
 	@Override
 	public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-					    boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+										boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
 		long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
 		long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 
 		retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask));
-	}
-
-	@Override
-	public void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap) {
-		Site site = siteDao.getSite(siteId);
-		retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesForSite(site.getId(), onStateBitMap, offStateBitMap));
 	}
 
 	@Override
@@ -475,8 +447,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 		retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(siteId, paths));
 	}
 
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
 	@SuppressWarnings("unused")
@@ -494,12 +466,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 	}
 
 	@SuppressWarnings("unused")
-	public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
-		this.contentServiceInternal = contentServiceInternal;
-	}
-
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
+	}
+
+	@SuppressWarnings("unused")
+	public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1) {
+		this.contentServiceV1 = contentServiceV1;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {

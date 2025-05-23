@@ -16,6 +16,12 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
@@ -30,6 +36,7 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.controller.rest.ValidationUtils;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.rest.*;
@@ -42,18 +49,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
-
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
@@ -67,6 +69,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.*;
+import static org.craftercms.studio.model.rest.UserResponse.convert;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -104,7 +107,7 @@ public class UsersController {
 		@SqlSort(columns = USER_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
 			defaultValue = "id asc") String sort)
 		throws ServiceLayerException {
-		List<UserResponse> users;
+		Collection<User> users;
 		int total;
 		if (isEmpty(siteId)) {
 			total = userService.getAllUsersTotal(keyword);
@@ -119,7 +122,7 @@ public class UsersController {
 		result.setOffset(offset);
 		result.setLimit(CollectionUtils.isEmpty(users) ? 0 : users.size());
 		result.setResponse(OK);
-		result.setEntities(RESULT_KEY_USERS, users);
+		result.setEntities(RESULT_KEY_USERS, convert(users));
 		return result;
 	}
 
@@ -133,7 +136,7 @@ public class UsersController {
 	@PostMapping(consumes = APPLICATION_JSON_VALUE)
 	public ResultOne<UserResponse> createUser(@Valid @RequestBody CreateUserRequest user)
 		throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
-		UserResponse newUser = userService.createUser(buildUser(user));
+		UserResponse newUser = new UserResponse(userService.createUser(buildUser(user)));
 		ResultOne<UserResponse> result = new ResultOne<>();
 		result.setResponse(CREATED);
 		result.setEntity(RESULT_KEY_USER, newUser);
@@ -194,7 +197,7 @@ public class UsersController {
 		@RequestParam(value = REQUEST_PARAM_ID, required = false) List<@NotNull Long> userIds,
 		@RequestParam(value = REQUEST_PARAM_USERNAME, required = false)
 		List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException {
+		throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException, GroupNotFoundException {
 		ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
 		userService.deleteUsers(requireNonNullElse(userIds, emptyList()),
@@ -238,14 +241,14 @@ public class UsersController {
 	 */
 	@PatchMapping(value = ENABLE, consumes = APPLICATION_JSON_VALUE)
 	public ResultList<UserResponse> enableUsers(@Valid @RequestBody EnableUsers enableUsers)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
+		throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
 		ValidationUtils.validateEnableUsers(enableUsers);
 
-		List<UserResponse> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
+		List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
 
 		ResultList<UserResponse> result = new ResultList<>();
 		result.setResponse(OK);
-		result.setEntities(RESULT_KEY_USERS, users);
+		result.setEntities(RESULT_KEY_USERS, users.stream().map(UserResponse::new).toList());
 		return result;
 	}
 
@@ -257,10 +260,11 @@ public class UsersController {
 	 */
 	@PatchMapping(value = DISABLE, consumes = APPLICATION_JSON_VALUE)
 	public ResultList<UserResponse> disableUsers(@Valid @RequestBody EnableUsers enableUsers)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
+		throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
 		ValidationUtils.validateEnableUsers(enableUsers);
 
-		List<UserResponse> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);
+		List<UserResponse> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false).stream()
+			.map(UserResponse::new).collect(Collectors.toList());
 
 		ResultList<UserResponse> result = new ResultList<>();
 		result.setResponse(OK);
@@ -339,7 +343,7 @@ public class UsersController {
 	 */
 	@GetMapping(ME)
 	public ResultOne<AuthenticatedUser> getCurrentUser() throws AuthenticationException, ServiceLayerException {
-		AuthenticatedUser user = userService.getCurrentUser();
+		AuthenticatedUser user = SecurityUtils.getCurrentUser();
 
 		ResultOne<AuthenticatedUser> result = new ResultOne<>();
 		result.setResponse(OK);
@@ -378,7 +382,7 @@ public class UsersController {
 	 */
 	@GetMapping(ME + SITES + PATH_PARAM_SITE + ROLES)
 	public ResultList<String> getCurrentUserSiteRoles(@NotBlank @ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site)
-		throws AuthenticationException, ServiceLayerException {
+		throws AuthenticationException, ServiceLayerException, UserNotFoundException {
 		List<String> roles = userService.getCurrentUserSiteRoles(site);
 
 		ResultList<String> result = new ResultList<>();
@@ -435,8 +439,8 @@ public class UsersController {
 		} catch (InterruptedException e) {
 			logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
 		}
-		UserResponse user = userService.changePassword(changePasswordRequest.getUsername(),
-			changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
+		UserResponse user = new UserResponse(userService.changePassword(changePasswordRequest.getUsername(),
+			changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword()));
 
 		ResultOne<UserResponse> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_USER, user);
@@ -453,7 +457,7 @@ public class UsersController {
 		} catch (InterruptedException e) {
 			logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
 		}
-		UserResponse user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
+		UserResponse user = new UserResponse(userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword()));
 
 		ResultOne<UserResponse> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_USER, user);

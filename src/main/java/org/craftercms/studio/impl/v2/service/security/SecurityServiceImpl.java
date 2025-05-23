@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,24 +21,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.job.CronJobContext;
-import org.craftercms.studio.api.v2.dal.Group;
-import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 
@@ -55,14 +46,11 @@ public class SecurityServiceImpl implements SecurityService {
 	private StudioConfiguration studioConfiguration;
 	private Cache<String, Object> configurationCache;
 
-	protected UserServiceInternal userServiceInternal;
-	protected GroupServiceInternal groupServiceInternal;
-
 	private static final String CACHE_KEY = "user-permissions";
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public List<String> getUserPermission(String siteId, String username, List<NormalizedRole> roles) {
+	public List<String> getUserPermission(String siteId, String username, Collection<NormalizedRole> roles) {
 		String key = siteId + ":" + CACHE_KEY + username;
 		List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
 		if (isEmpty(permissions)) {
@@ -73,7 +61,7 @@ public class SecurityServiceImpl implements SecurityService {
 		return permissions;
 	}
 
-	private List<String> loadUserPermission(String siteId, List<NormalizedRole> roles) {
+	private List<String> loadUserPermission(String siteId, Collection<NormalizedRole> roles) {
 		Set<String> permissions;
 		String configPath;
 		List<String> toRet = new ArrayList<>();
@@ -93,7 +81,7 @@ public class SecurityServiceImpl implements SecurityService {
 		return toRet;
 	}
 
-	private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<NormalizedRole> roles) {
+	private Set<String> getPermissionsFromConfig(String siteId, String configPath, Collection<NormalizedRole> roles) {
 		Document document = null;
 		Set<String> permissions = new HashSet<>();
 		try {
@@ -137,60 +125,6 @@ public class SecurityServiceImpl implements SecurityService {
 		return permissions;
 	}
 
-	@Override
-	public String getCurrentUser() {
-		String username = null;
-		var context = SecurityContextHolder.getContext();
-
-		if (context != null) {
-			var auth = context.getAuthentication();
-
-			if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
-				username = auth.getName();
-			}
-		} else {
-			CronJobContext cronJobContext = CronJobContext.getCurrent();
-
-			if (cronJobContext != null) {
-				username = cronJobContext.getCurrentUser();
-			}
-		}
-
-		return username;
-	}
-
-	@Override
-	public Authentication getAuthentication() {
-		var context = SecurityContextHolder.getContext();
-		if (context != null) {
-			return context.getAuthentication();
-		}
-		return null;
-	}
-
-	@Override
-	public boolean isSiteMember(String username, String siteId) {
-		try {
-			if (isSystemAdmin(username)) {
-				return true;
-			}
-
-			List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
-			List<NormalizedGroup> siteGroups = groupServiceInternal.getSiteGroups(siteId);
-			return userGroups.stream()
-				.map(group -> new NormalizedGroup((group.getGroupName())))
-				.anyMatch(siteGroups::contains);
-		} catch (ServiceLayerException | UserNotFoundException e) {
-			logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
-		}
-		return false;
-	}
-
-	@Override
-	public boolean isSystemAdmin(String username) {
-		return userServiceInternal.isSystemAdmin(username);
-	}
-
 	public void setConfigurationService(ConfigurationService configurationService) {
 		this.configurationService = configurationService;
 	}
@@ -202,14 +136,5 @@ public class SecurityServiceImpl implements SecurityService {
 	@SuppressWarnings("unused")
 	public void setConfigurationCache(Cache<String, Object> configurationCache) {
 		this.configurationCache = configurationCache;
-	}
-
-	public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-		this.groupServiceInternal = groupServiceInternal;
 	}
 }

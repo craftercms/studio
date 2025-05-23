@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.event.site;
 
-import org.springframework.security.core.Authentication;
-
 /**
  * Triggered where a site deletion starts
  *

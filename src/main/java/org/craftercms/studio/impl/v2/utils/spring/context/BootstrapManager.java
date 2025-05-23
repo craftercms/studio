@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -53,14 +53,6 @@ public class BootstrapManager implements SystemStatusProvider {
 	public Object onContextRefresh() {
 		logger.info("Beans created and ready to be used");
 		logger.info("Start temporary files cleanup ...");
-		return new CleanupTemporaryFilesEvent(this);
-	}
-
-	@Order
-	@EventListener(value = CleanupTemporaryFilesEvent.class)
-	public Object onCleanupTemporaryFiles() {
-		logger.info("Successfully cleaned up temporary files");
-		logger.info("Start repository cleanup ...");
 		return new CleanupRepositoriesEvent(this);
 	}
 

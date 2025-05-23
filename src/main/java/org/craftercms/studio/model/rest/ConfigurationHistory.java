@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,21 +16,21 @@
 
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.model.history.ItemVersion;
 
 import java.util.List;
 
 public class ConfigurationHistory {
 
-	private ContentItemTO item;
+	private ContentItem item;
 	private List<ItemVersion> versions;
 
-	public ContentItemTO getItem() {
+	public ContentItem getItem() {
 		return item;
 	}
 
-	public void setItem(ContentItemTO item) {
+	public void setItem(ContentItem item) {
 		this.item = item;
 	}
 

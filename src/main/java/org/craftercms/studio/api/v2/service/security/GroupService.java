@@ -19,11 +19,14 @@ package org.craftercms.studio.api.v2.service.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
-import org.craftercms.studio.model.rest.UserResponse;
 
 import java.util.List;
 
+/**
+ * Provides operations to manage groups
+ */
 public interface GroupService {
 
 	/**
@@ -62,10 +65,9 @@ public interface GroupService {
 	 * @return the created group
 	 * @throws GroupAlreadyExistsException group already exist error
 	 * @throws ServiceLayerException       general service error
-	 * @throws AuthenticationException     authentication error
 	 */
 	Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
-		throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException;
+		throws GroupAlreadyExistsException, ServiceLayerException;
 
 	/**
 	 * Update group
@@ -124,7 +126,7 @@ public interface GroupService {
 	 * @throws ServiceLayerException  general service error
 	 * @throws GroupNotFoundException group not found
 	 */
-	List<UserResponse> getGroupMembers(long groupId, int offset, int limit, String sort)
+	List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
 		throws ServiceLayerException, GroupNotFoundException;
 
 	/**
@@ -140,9 +142,9 @@ public interface GroupService {
 	/**
 	 * Add users to the group
 	 *
-	 * @param groupId   Group identifier
-	 * @param userIds   List of user identifiers
-	 * @param usernames List of usernames
+	 * @param groupId           Group identifier
+	 * @param userIds           List of user identifiers
+	 * @param usernames         List of usernames
 	 * @param externallyManaged true if group is externally managed, false otherwise
 	 * @return users added to the group
 	 * @throws ServiceLayerException   general service error
@@ -150,7 +152,7 @@ public interface GroupService {
 	 * @throws GroupNotFoundException  group not found
 	 * @throws AuthenticationException authentication error
 	 */
-	List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames, boolean externallyManaged)
+	List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames, boolean externallyManaged)
 		throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException;
 
 	/**
@@ -166,5 +168,25 @@ public interface GroupService {
 	 */
 	void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
 		throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException;
+
+	/**
+	 * Get groups by group ids
+	 *
+	 * @param groupIds list of group identifiers
+	 * @return List of groups
+	 * @throws GroupNotFoundException if no group is found for the given id
+	 * @throws ServiceLayerException  if there is an error getting the groups
+	 */
+	List<Group> getGroups(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException;
+
+	/**
+	 * Indicates if a group exists either by id or name
+	 *
+	 * @param groupId   the group id
+	 * @param groupName the group name
+	 * @return true if the group exists, false otherwise
+	 * @throws ServiceLayerException if there is an error checking the group
+	 */
+	boolean groupExists(long groupId, String groupName) throws ServiceLayerException;
 
 }

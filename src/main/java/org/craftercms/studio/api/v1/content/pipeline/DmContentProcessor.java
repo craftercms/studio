@@ -31,14 +31,4 @@ public interface DmContentProcessor {
 	 */
 	ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
 		throws ServiceLayerException, UserNotFoundException;
-
-	/**
-	 * change file to folder content. See WcmClipboardServiceImpl when updating this logic.
-	 * Duplicate exists due to prevent circular dependency
-	 *
-	 * @param site site id
-	 * @param path content path
-	 * @return new content path
-	 */
-	String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException;
 }

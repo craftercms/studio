@@ -21,7 +21,9 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -45,6 +47,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
 	private ConfigurationService configurationServiceInternal;
 
+	@SuppressWarnings("unused")
 	public void setConfigurationServiceInternal(ConfigurationService configurationServiceInternal) {
 		this.configurationServiceInternal = configurationServiceInternal;
 	}
@@ -71,13 +74,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
 	public Document getConfigurationAsDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
 						   String path, String environment) throws ServiceLayerException {
 		return configurationServiceInternal.getConfigurationAsDocument(siteId, module, path, environment);
 	}
 
 	@Override
-	public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+	public HierarchicalConfiguration<?> getXmlConfiguration(@SiteId String siteId, @ContentPath String path) throws ConfigurationException {
 		return configurationServiceInternal.getXmlConfiguration(siteId, path);
 	}
 
@@ -115,7 +120,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public String getCacheKey(String siteId, String module, String path, String environment, String suffix) {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+	public String getCacheKey(String siteId, String module, String path, String environment, String suffix) throws SiteNotFoundException {
 		return configurationServiceInternal.getCacheKey(siteId, module, path, environment, suffix);
 	}
 
@@ -127,7 +133,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 				      String type,
 				      String name,
 				      String filename)
-		throws ContentNotFoundException {
+		throws ContentNotFoundException, SiteNotFoundException {
 		return configurationServiceInternal.getPluginFile(siteId, pluginId, type, name, filename);
 	}
 
@@ -138,7 +144,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 							    String module,
 							    @ProtectedResourceId(PATH_RESOURCE_ID) String path,
 							    String environment)
-		throws ServiceLayerException {
+		throws ServiceLayerException, UserNotFoundException {
 		return configurationServiceInternal.getConfigurationHistory(siteId, module, path, environment);
 	}
 
@@ -157,12 +163,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public void invalidateConfiguration(String siteId, String path) {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+	public void invalidateConfiguration(@SiteId String siteId, @ContentPath String path) throws SiteNotFoundException {
 		configurationServiceInternal.invalidateConfiguration(siteId, path);
 	}
 
 	@Override
-	public void invalidateConfiguration(String siteId, String module, String path, String environment) {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+	public void invalidateConfiguration(@SiteId String siteId, String module, String path, String environment) throws SiteNotFoundException {
 		configurationServiceInternal.invalidateConfiguration(siteId, module, path, environment);
 	}
 
@@ -176,6 +184,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
 	public void makeBlobStoresReadOnly(final String siteId) throws ServiceLayerException {
 		configurationServiceInternal.makeBlobStoresReadOnly(siteId);
+	}
+
+	@Override
+	public List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException {
+		return configurationServiceInternal.getSiteGroups(siteId);
 	}
 
 	// Moved from SiteServiceImpl to be able to properly cache the object

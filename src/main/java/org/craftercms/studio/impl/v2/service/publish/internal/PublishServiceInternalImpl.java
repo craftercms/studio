@@ -29,21 +29,20 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -64,6 +63,7 @@ import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.tika.io.FilenameUtils.getName;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVAL_STATES;
@@ -74,6 +74,8 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageTyp
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -85,18 +87,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private GitContentRepository contentRepository;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
-	protected ItemServiceInternal itemServiceInternal;
+	protected ItemService itemService;
 
 	protected ApplicationContext applicationContext;
 	private ServicesConfig servicesConfig;
-	private UserServiceInternal userServiceInternal;
-	private AuditServiceInternal auditServiceInternal;
+	private AuditService auditService;
 	private DependencyService dependencyServiceInternal;
 	private PublishDAO publishDao;
 	private ItemTargetDAO itemTargetDao;
 	private SitesService siteService;
 	private GeneralLockService generalLockService;
-	private SecurityService securityService;
 	private PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
 
 	@Override
@@ -137,7 +137,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) {
+	public List<PublishingTarget> getAvailablePublishingTargets(@SiteId String siteId) throws SiteNotFoundException {
 		var availablePublishingTargets = new ArrayList<PublishingTarget>();
 		var liveTarget = new PublishingTarget();
 		liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
@@ -168,22 +168,26 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Site site = siteService.getSite(siteId);
 		Set<String> corePackagePaths = expandPublishRequestPaths(site, publishingTarget, publishRequestPaths);
 
-		Map<Boolean, List<String>> commitOperations = contentRepository.validatePublishCommits(site.getSiteId(), commitIds).stream()
-			.map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
-			.flatMap(List::stream)
+		SequencedCollection<String> sortedCommits = contentRepository.validatePublishCommits(site.getSiteId(), commitIds);
+		List<RepoOperation> commitOperations = new LinkedList<>();
+		for (String commitId : sortedCommits) {
+			commitOperations.addAll(contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId));
+		}
+		Map<Boolean, List<String>> filteredOperations = commitOperations.stream()
 			.filter(getCommitRepoOperationsFilter(site))
 			.collect(partitioningBy(op -> op.getAction() == RepoOperation.Action.DELETE,
 				mapping(RepoOperation::getPath, toList())));
 
 		// Add non-delete operations
-		corePackagePaths.addAll(commitOperations.get(false));
+		corePackagePaths.addAll(filteredOperations.get(false));
 
-		Collection<String> deletedPaths = commitOperations.get(true);
+		Collection<String> deletedPaths = filteredOperations.get(true);
 
-		Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
+		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
 		// Get hard deps of them all
-		Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
-		return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
+		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
+		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
+		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
 
 	@Override
@@ -194,10 +198,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
 		Collection<String> deletedPaths = publishPaths.get(true);
 
-		Collection<String> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
+		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
-		Collection<String> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
-		return new CalculatedPublishPackageResult(corePackagePaths, deletedPaths, hardDependencies, softDependencies);
+		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
+		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
+		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
 
 	@Override
@@ -230,7 +235,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, true));
 			auditPublishSubmission(publishPackage, OPERATION_PUBLISH);
 
-			applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId, publishPackage.getId(), DIRECT_PUBLISH));
+			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(), siteId, publishPackage.getId(), DIRECT_PUBLISH));
 			notifyPublisher(publishPackage, siteService.getSite(siteId));
 			return publishPackage.getId();
 		} catch (Exception e) {
@@ -256,7 +261,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 	@Override
 	public Collection<PublishItem> getPublishItems(final String siteId, final long packageId,
-												   final int offset, final int limit) throws PublishPackageNotFoundException, SiteNotFoundException {
+												   final int offset, final int limit) {
 		return publishDao.getPublishItems(siteId, packageId, offset, limit);
 	}
 
@@ -301,17 +306,21 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * Set the previous paths (stagingPreviousPath, livePreviousPath) to the publish item based on the item targets.
 	 */
 	private void setPreviousPaths(final PublishItem item, final String siteId, final Collection<ItemTarget> itemTargets) {
-		String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
-		itemTargets.stream()
-			.filter(itemTarget -> StringUtils.isNotEmpty(itemTarget.getPreviousPath()))
-			.forEach(itemTarget -> {
-				boolean isLiveTarget = StringUtils.equals(liveEnvironment, itemTarget.getTarget());
-				if (isLiveTarget) {
-					item.setLivePreviousPath(itemTarget.getPreviousPath());
-				} else {
-					item.setStagingPreviousPath(itemTarget.getPreviousPath());
-				}
-			});
+		try {
+			String liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
+			itemTargets.stream()
+				.filter(itemTarget -> StringUtils.isNotEmpty(itemTarget.getPreviousPath()))
+				.forEach(itemTarget -> {
+					boolean isLiveTarget = StringUtils.equals(liveEnvironment, itemTarget.getTarget());
+					if (isLiveTarget) {
+						item.setLivePreviousPath(itemTarget.getPreviousPath());
+					} else {
+						item.setStagingPreviousPath(itemTarget.getPreviousPath());
+					}
+				});
+		} catch (SiteNotFoundException e) {
+			logger.warn("Failed to get live environment for site '{}'", siteId);
+		}
 	}
 
 	/**
@@ -332,9 +341,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * @param operation the audit operation
 	 */
 	private void auditPublishSubmission(final PublishPackage p, final String operation) {
-		AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(operation);
-		auditLog.setActorId(securityService.getCurrentUser());
+		auditLog.setActorId(getCurrentUsername());
 		auditLog.setSiteId(p.getSiteId());
 		auditLog.setPrimaryTargetId(String.valueOf(p.getId()));
 		auditLog.setPrimaryTargetType(TARGET_TYPE_PUBLISH_PACKAGE);
@@ -346,7 +355,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		commentParam.setTargetValue(defaultIfEmpty(p.getSubmitterComment(), ""));
 
 		auditLog.setParameters(List.of(commentParam));
-		auditServiceInternal.insertAuditLog(auditLog);
+		auditService.insertAuditLog(auditLog);
 	}
 
 	/**
@@ -362,14 +371,16 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		}
 		// Validate and sort commits
 		SequencedCollection<String> sortedCommits = contentRepository.validatePublishCommits(site.getSiteId(), commitIds);
-		publishItemsByPath.putAll(
-			sortedCommits.stream()
-				.map(commitId -> contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId))
-				.flatMap(List::stream)
-				.filter(getCommitRepoOperationsFilter(site))
-				.map(op -> createPublishItem(op.getPath(),
-					translateRepoAction(op.getAction()), true))
-				.collect(toMap(PublishItem::getPath, item -> item)));
+		List<RepoOperation> commitOperations = new LinkedList<>();
+		for (String commitId : sortedCommits) {
+			commitOperations.addAll(contentRepository.getOperationsFromFirstParentDiff(site.getSiteId(), commitId));
+		}
+
+		publishItemsByPath.putAll(commitOperations.stream()
+			.filter(getCommitRepoOperationsFilter(site))
+			.map(op -> createPublishItem(op.getPath(),
+				translateRepoAction(op.getAction()), true))
+			.collect(toMap(PublishItem::getPath, item -> item)));
 	}
 
 	private PublishItem.Action translateRepoAction(RepoOperation.Action repoAction) {
@@ -405,13 +416,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Set<String> allPaths = expandPublishRequestPaths(site, target, publishRequestPaths);
 
 		if (isNotEmpty(allPaths)) {
-			Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), allPaths);
+			Map<String, ItemPathAndState> statesByPath = itemService.getItemStates(site.getSiteId(), allPaths);
 			publishItemsByPath.putAll(
 				allPaths.stream()
 					.filter(path -> !publishItemsByPath.containsKey(path))
 					.map(path -> {
 						long itemState = statesByPath.get(path).getState();
-						return createPublishItem(path, isNew(itemState) ? ADD:UPDATE, true);
+						return createPublishItem(path, isNew(itemState) ? ADD : UPDATE, true);
 					})
 					.collect(toMap(PublishItem::getPath, item -> item)));
 		}
@@ -435,7 +446,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			}
 		}
 		if (!softDepsPaths.isEmpty()) {
-			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target));
+			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(LightItem::getPath).collect(toSet()));
 		}
 		return allPaths;
 	}
@@ -454,7 +465,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		if (publishPath.includeChildren()) {
 			// Notice that we are publishing regardless of the item's state, consistent
 			// with current behavior when publishing a live item directly
-			paths.addAll(itemServiceInternal.getChildrenPaths(site.getId(), publishPath.path()));
+			paths.addAll(itemService.getChildrenPaths(site.getId(), publishPath.path()));
 		}
 		return paths;
 	}
@@ -463,7 +474,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * Create publish items for hard dependencies.
 	 * For each non-delete PublishItem, get hard dependencies and add them to the publishItemsByPath map.
 	 */
-	private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) {
+	private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) throws SiteNotFoundException {
 		Collection<String> paths = publishItemsByPath.keySet().stream()
 			.filter(p -> publishItemsByPath.get(p).getAction() != DELETE)
 			.collect(toList());
@@ -472,6 +483,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		}
 		publishItemsByPath.putAll(
 			dependencyServiceInternal.getHardDependencies(site.getSiteId(), paths).stream()
+				.map(LightItem::getPath)
 				.filter(dep -> !publishItemsByPath.containsKey(dep))
 				.map(dep -> createPublishItem(dep, ADD, false))
 				.collect(toMap(PublishItem::getPath, item -> item)));
@@ -535,16 +547,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
 
-	public void setItemServiceInternal(final ItemServiceInternal itemServiceInternal) {
-		this.itemServiceInternal = itemServiceInternal;
+	public void setItemService(final ItemService itemService) {
+		this.itemService = itemService;
 	}
 
 	public void setServicesConfig(final ServicesConfig servicesConfig) {
 		this.servicesConfig = servicesConfig;
-	}
-
-	public void setUserServiceInternal(final UserServiceInternal userServiceInternal) {
-		this.userServiceInternal = userServiceInternal;
 	}
 
 	@SuppressWarnings("unused")
@@ -565,18 +573,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		this.generalLockService = generalLockService;
 	}
 
-	public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
+	public void setAuditService(final AuditService auditService) {
+		this.auditService = auditService;
 	}
 
 	@SuppressWarnings("unused")
 	public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
 		this.dependencyServiceInternal = dependencyServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	@SuppressWarnings("unused")
@@ -605,7 +608,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		publishPackage.setSchedule(schedule);
 		publishPackage.setTitle(title);
 		publishPackage.setSubmitterComment(comment);
-		publishPackage.setSubmitterId(userServiceInternal.getCurrentUser().getId());
+		publishPackage.setSubmitterId(SecurityUtils.getCurrentUser().getId());
 		publishPackage.setCommitId(site.getLastCommitId());
 		publishPackage.setApprovalState(requestApproval ? SUBMITTED:APPROVED);
 		return publishPackage;
@@ -635,7 +638,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 			auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH:OPERATION_PUBLISH);
 
-			applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(),
+			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(),
 				site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT:DIRECT_PUBLISH));
 			if (!requestApproval) {
 				notifyPublisher(publishPackage, site);
@@ -657,11 +660,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 				.map(PublishItem::getPath)
 				.collect(toSet());
 
-			if (itemServiceInternal.isSystemProcessing(site.getSiteId(), allPaths)) {
+			if (itemService.isSystemProcessing(site.getSiteId(), allPaths)) {
 				throw new ServiceLayerException("Failed to submit publish package: Some items are being processed by the system");
 			}
 			clearSystemProcessing = true;
-			itemServiceInternal.setSystemProcessingBulk(site.getSiteId(), allPaths, true);
+			itemService.setSystemProcessingBulk(site.getSiteId(), allPaths, true);
 			// Create package
 			PublishPackage publishPackage = createPackage(site, target, packageType,
 				requestApproval, schedule, title, comment);
@@ -671,7 +674,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			return publishPackage;
 		} finally {
 			if (clearSystemProcessing) {
-				itemServiceInternal.setSystemProcessingBulk(site.getSiteId(), allPaths, false);
+				itemService.setSystemProcessingBulk(site.getSiteId(), allPaths, false);
 			}
 		}
 	}
@@ -725,13 +728,13 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	@NotNull
 	protected Collection<PublishItem> getPublishAllItems(final Site site)
 		throws InvalidParametersException {
-		Collection<String> unpublishedPaths = itemServiceInternal.getUnpublishedPaths(site.getId()).stream()
+		Collection<String> unpublishedPaths = itemService.getUnpublishedPaths(site.getId()).stream()
 			.filter(path -> !contentRepository.isFolder(site.getSiteId(), path))
 			.toList();
 		if (isEmpty(unpublishedPaths)) {
 			throw new InvalidParametersException("Failed to submit publish package: No items to publish");
 		}
-		Map<String, ItemPathAndState> statesByPath = itemServiceInternal.getItemStates(site.getSiteId(), unpublishedPaths);
+		Map<String, ItemPathAndState> statesByPath = itemService.getItemStates(site.getSiteId(), unpublishedPaths);
 		List<PublishItem> publishItems = unpublishedPaths.stream()
 			.map(path -> {
 				long itemState = statesByPath.get(path).getState();

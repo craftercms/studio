@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationExce
 import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
 import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.repository.InvalidRemoteException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.exception.security.PeerReviewCheckException;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -82,6 +83,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -627,6 +629,13 @@ public class ExceptionHandlers {
 		result.setResponse(response);
 		result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
 		return result;
+	}
+
+	@ExceptionHandler(InvalidRemoteException.class)
+	@ResponseStatus(INTERNAL_SERVER_ERROR)
+	public Result handleException(HttpServletRequest request, InvalidRemoteException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.ADD_REMOTE_INVALID);
+		return handleExceptionInternal(request, e, response);
 	}
 
 	@ExceptionHandler(Exception.class)

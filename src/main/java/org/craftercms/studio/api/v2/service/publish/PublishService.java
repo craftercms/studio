@@ -29,12 +29,12 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.publish.PublishingTarget;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,8 +61,8 @@ public interface PublishService {
 	 * @throws SiteNotFoundException site not found
 	 */
 	long getPublishPackagesCount(String siteId, String target, Long states,
-				     final Collection<ApprovalState> approvalStates, String submitter,
-				     String reviewer, Boolean isScheduled)
+								 final Collection<ApprovalState> approvalStates, String submitter,
+								 String reviewer, Boolean isScheduled)
 		throws SiteNotFoundException;
 
 	/**
@@ -82,10 +82,10 @@ public interface PublishService {
 	 * @throws SiteNotFoundException site not found
 	 */
 	Collection<PublishPackage> getPublishPackages(String siteId, String target, Long states,
-						      Collection<ApprovalState> approvalStates,
-						      String submitter, String reviewer,
-						      Boolean isScheduled, Collection<SortField> sort,
-						      int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+												  Collection<ApprovalState> approvalStates,
+												  String submitter, String reviewer,
+												  Boolean isScheduled, Collection<SortField> sort,
+												  int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get publish package items
@@ -100,8 +100,8 @@ public interface PublishService {
 	 * @return publish package item list
 	 */
 	Collection<PublishItemWithMetadata> getPublishPackageItems(String siteId, long packageId,
-								   String path, Collection<String> systemTypes, String internalName,
-								   int offset, int limit);
+															   String path, Collection<String> systemTypes, String internalName,
+															   int offset, int limit);
 
 	/**
 	 * Get publish package number of items matching the given filters
@@ -148,7 +148,7 @@ public interface PublishService {
 	 * @return the id of the created package
 	 */
 	long publish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
-		     List<String> commitIds, Instant schedule, String title, String comment, boolean publishAll)
+				 List<String> commitIds, Instant schedule, String title, String comment, boolean publishAll)
 		throws ServiceLayerException, AuthenticationException;
 
 	/**
@@ -165,7 +165,7 @@ public interface PublishService {
 	 * @return the id of the created package
 	 */
 	long requestPublish(String siteId, String publishingTarget, List<PublishRequestPath> paths,
-			    List<String> commitIds, Instant schedule, String title, String comment, boolean publishAll)
+						List<String> commitIds, Instant schedule, String title, String comment, boolean publishAll)
 		throws AuthenticationException, ServiceLayerException;
 
 	/**
@@ -195,7 +195,7 @@ public interface PublishService {
 	 * @throws IOException           if there is an error reading the repository
 	 */
 	CalculatedPublishPackageResult calculatePublishPackage(String siteId, String publishingTarget,
-							       Collection<PublishRequestPath> paths, Collection<String> commitIds)
+														   Collection<PublishRequestPath> paths, Collection<String> commitIds)
 		throws ServiceLayerException, IOException;
 
 	/**
@@ -308,7 +308,8 @@ public interface PublishService {
 	 * @param hardDependencies the hard dependencies of the items
 	 * @param softDependencies the soft dependencies of the items
 	 */
-	record CalculatedPublishPackageResult(Collection<String> items, Collection<String> deletedItems,
-					      Collection<String> hardDependencies, Collection<String> softDependencies) {
+	record CalculatedPublishPackageResult(Collection<LightItem> items, Collection<String> deletedItems,
+										  Collection<LightItem> hardDependencies,
+										  Collection<LightItem> softDependencies) {
 	}
 }

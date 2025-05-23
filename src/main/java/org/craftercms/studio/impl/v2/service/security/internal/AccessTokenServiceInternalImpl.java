@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,17 +17,19 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.security.AccessTokenService;
+import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
@@ -52,12 +54,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.util.CookieGenerator;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import java.beans.ConstructorProperties;
 import java.security.Key;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -72,6 +72,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.commons.http.HttpUtils.getCookieValue;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
@@ -80,12 +81,12 @@ import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.PBES2_HS512_A256K
 import static org.springframework.web.util.WebUtils.getCookie;
 
 /**
- * Default implementation of {@link AccessTokenServiceInternal}
+ * Default implementation of {@link AccessTokenService}
  *
  * @author joseross
  * @since 4.0
  */
-public class AccessTokenServiceInternalImpl implements AccessTokenServiceInternal, InitializingBean {
+public class AccessTokenServiceInternalImpl implements AccessTokenService, InitializingBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccessTokenServiceInternalImpl.class);
 
@@ -146,11 +147,11 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 	protected Key jwtEncryptKey;
 
 	protected final SecurityDAO securityDao;
-	protected final SecurityService securityService;
+	protected final UserService userService;
 	protected final InstanceService instanceService;
-	protected final AuditServiceInternal auditService;
+	protected final AuditService auditService;
 	protected final StudioConfiguration studioConfiguration;
-	protected final SiteService siteService;
+	protected final SitesService siteService;
 	protected final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	protected final SystemStatusProvider systemStatusProvider;
 	protected final TextEncryptor previewTokenEncryptor;
@@ -158,15 +159,15 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 	@ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
 		"sessionTimeout", "inactivityTimeout", "securityDao", "instanceService", "auditService",
 		"studioConfiguration", "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider",
-		"previewTokenEncryptor", "securityService"})
+		"previewTokenEncryptor", "userService"})
 	public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
-					      String signPassword, String encryptPassword, int sessionTimeout,
-					      int inactivityTimeout, SecurityDAO securityDao,
-					      InstanceService instanceService, AuditServiceInternal auditService,
-					      StudioConfiguration studioConfiguration, SiteService siteService,
-					      RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-					      SystemStatusProvider systemStatusProvider, TextEncryptor previewTokenEncryptor,
-					      SecurityService securityService) {
+										  String signPassword, String encryptPassword, int sessionTimeout,
+										  int inactivityTimeout, SecurityDAO securityDao,
+										  InstanceService instanceService, AuditService auditService,
+										  StudioConfiguration studioConfiguration, SitesService siteService,
+										  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+										  SystemStatusProvider systemStatusProvider, TextEncryptor previewTokenEncryptor,
+										  UserService userService) {
 		this.issuer = issuer;
 		this.validIssuers = validIssuers;
 		this.accessTokenExpiration = accessTokenExpiration;
@@ -182,7 +183,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.systemStatusProvider = systemStatusProvider;
 		this.previewTokenEncryptor = previewTokenEncryptor;
-		this.securityService = securityService;
+		this.userService = userService;
 	}
 
 	public void setAudience(String audience) {
@@ -231,7 +232,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 		if (isEmpty(siteName)) {
 			logger.debug("No site name found in '{}' cookie, removing preview cookie", CRAFTER_SITE_COOKIE_NAME);
 			previewCookieGenerator.removeCookie(response);
-		} else if (!securityService.isSiteMember(auth.getName(), siteName)) {
+		} else if (!userService.isSiteMember(auth.getName(), siteName)) {
 			logger.debug("User '{}' is not a member of site '{}', removing preview cookie", auth.getName(), siteName);
 			previewCookieGenerator.removeCookie(response);
 			if (!silent) {
@@ -353,7 +354,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 	}
 
 	@Override
-	public void deleteUsersTokens(List<Long> userIds) {
+	public void deleteUsersTokens(Collection<Long> userIds) {
 		userIds.forEach(userId -> userActivity.invalidate(userId));
 		retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshTokens(userIds));
 		retryingDatabaseOperationFacade.retry(() -> securityDao.deleteUsersAccessTokens(userIds));
@@ -478,7 +479,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 	protected void createAuditLog(String actor, long tokenId, String type, String value, String operation) {
 		try {
 			var site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-			var entry = auditService.createAuditLogEntry();
+			var entry = createAuditLogEntry();
 			entry.setOperation(operation);
 			entry.setActorId(actor);
 			entry.setSiteId(site.getId());

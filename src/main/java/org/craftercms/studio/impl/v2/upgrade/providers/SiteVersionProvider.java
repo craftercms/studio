@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,8 +17,7 @@ package org.craftercms.studio.impl.v2.upgrade.providers;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.Resource;
 
@@ -42,7 +41,7 @@ public class SiteVersionProvider extends XmlFileVersionProvider {
 	protected Resource defaultFile;
 
 	@ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository", "defaultFile"})
-	public SiteVersionProvider(String path, String xpath, String defaultVersion, GitContentRepository contentRepository,
+	public SiteVersionProvider(String path, String xpath, String defaultVersion, ContentRepository contentRepository,
 				   Resource defaultFile) {
 		super(path, xpath, defaultVersion, contentRepository);
 		this.defaultFile = defaultFile;

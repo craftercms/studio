@@ -85,10 +85,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
 	}
 
-	public GeneralLockService getGeneralLockService() {
-		return generalLockService;
-	}
-
+	@SuppressWarnings("unused")
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
 	}
@@ -99,7 +96,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
 		generalLockService.lock(gitLockKey);
 		try {
-			Path globalConfigPath = gitRepositoryHelper.buildRepoPath(GitRepositories.GLOBAL);
+			Path globalConfigPath = gitRepositoryHelper.buildGlobalRepoPath();
 			Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
 				studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 

@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.SqlSort;
@@ -34,11 +37,8 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
-
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -202,7 +202,7 @@ public class GroupsController {
 		throws ServiceLayerException, GroupNotFoundException {
 
 		int total = groupService.getGroupMembersTotal(groupId);
-		List<UserResponse> users = groupService.getGroupMembers(groupId, offset, limit, sort);
+		Collection<UserResponse> users = UserResponse.convert(groupService.getGroupMembers(groupId, offset, limit, sort));
 
 		PaginatedResultList<UserResponse> result = new PaginatedResultList<>();
 		result.setResponse(OK);
@@ -227,8 +227,8 @@ public class GroupsController {
 
 		ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
-		List<UserResponse> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getIds(),
-			addGroupMembers.getUsernames(), false);
+		Collection<UserResponse> addedUsers = UserResponse.convert(groupService.addGroupMembers(groupId, addGroupMembers.getIds(),
+			addGroupMembers.getUsernames(), false));
 
 		ResultList<UserResponse> result = new ResultList<>();
 		result.setResponse(OK);

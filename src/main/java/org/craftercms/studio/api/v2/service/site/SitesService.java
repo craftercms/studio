@@ -62,7 +62,7 @@ public interface SitesService {
 	 *
 	 * @return list of blueprints
 	 */
-	List<PluginDescriptor> getAvailableBlueprints();
+	List<PluginDescriptor> getAvailableBlueprints() throws ServiceLayerException;
 
 	/**
 	 * Get the blueprint descriptor from the global repo
@@ -70,7 +70,7 @@ public interface SitesService {
 	 * @param id the id of the blueprint
 	 * @return the descriptor object or null if not found
 	 */
-	PluginDescriptor getBlueprintDescriptor(String id);
+	PluginDescriptor getBlueprintDescriptor(String id) throws ServiceLayerException;
 
 	/**
 	 * Get blueprint location
@@ -78,15 +78,7 @@ public interface SitesService {
 	 * @param blueprintId blueprint id
 	 * @return blueprint location
 	 */
-	String getBlueprintLocation(String blueprintId);
-
-	/**
-	 * Get the blueprint descriptor from a site repo
-	 *
-	 * @param id the id of the site
-	 * @return the blueprint object or null if not found
-	 */
-	PluginDescriptor getSiteBlueprintDescriptor(String id);
+	String getBlueprintLocation(String blueprintId) throws ServiceLayerException;
 
 	/**
 	 * Updates the name and description for the given site
@@ -207,6 +199,13 @@ public interface SitesService {
 	 * @return the list of sites matching the given state
 	 */
 	List<Site> getSitesByState(String state);
+
+	/**
+	 * Get all non-deleted sites
+	 *
+	 * @return the list of sites
+	 */
+	List<Site> getAllSites();
 
 	/**
 	 * Set the published repo created flag for the given site

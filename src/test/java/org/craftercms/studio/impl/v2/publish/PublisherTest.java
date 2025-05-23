@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -69,7 +69,7 @@ public class PublisherTest {
 	TaskManager taskManager;
 
 	@Mock
-	ActivityStreamServiceInternal activityService;
+	ActivityStreamService activityService;
 
 	@Mock
 	ApplicationEventPublisher eventPublisher;

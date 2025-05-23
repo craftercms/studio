@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,8 +31,11 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -72,16 +75,19 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class ContentController {
 
 	private final ContentService contentService;
+	private final ContentTypeService contentTypeService;
 	private final DependencyService dependencyService;
 
 	//TODO: Migrate logic to new content service
 	private final ClipboardService clipboardService;
 
-	@ConstructorProperties({"contentService", "dependencyService", "clipboardService"})
-	public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService) {
+	@ConstructorProperties({"contentService", "dependencyService", "clipboardService", "contentTypeService"})
+	public ContentController(ContentService contentService, DependencyService dependencyService,
+							 ClipboardService clipboardService, ContentTypeService contentTypeService) {
 		this.contentService = contentService;
 		this.dependencyService = dependencyService;
 		this.clipboardService = clipboardService;
+		this.contentTypeService = contentTypeService;
 	}
 
 	@GetMapping(value = EXISTS, produces = APPLICATION_JSON_VALUE)
@@ -96,8 +102,8 @@ public class ContentController {
 
 	@GetMapping(LIST_QUICK_CREATE_CONTENT)
 	public ResultList<QuickCreateItem> listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
-		throws SiteNotFoundException {
-		List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
+		throws ServiceLayerException {
+		List<QuickCreateItem> items = contentTypeService.getQuickCreatableContentTypes(siteId);
 		ResultList<QuickCreateItem> result = new ResultList<>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_ITEMS, items);
@@ -105,12 +111,12 @@ public class ContentController {
 	}
 
 	@PostMapping(GET_DELETE_PACKAGE)
-	public ResultOne<Map<String, List<String>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
-		List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
-		List<String> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
-		ResultOne<Map<String, List<String>>> result = new ResultOne<>();
+	public ResultOne<Map<String, List<LightItem>>> getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
+		List<LightItem> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
+		List<LightItem> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
+		ResultOne<Map<String, List<LightItem>>> result = new ResultOne<>();
 		result.setResponse(OK);
-		Map<String, List<String>> items = new HashMap<>();
+		Map<String, List<LightItem>> items = new HashMap<>();
 		items.put(RESULT_KEY_CHILD_ITEMS, childItems);
 		items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentItems);
 		result.setEntity(RESULT_KEY_ITEMS, items);
@@ -179,31 +185,31 @@ public class ContentController {
 	}
 
 	@GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
-	public ResultOne<DetailedItem> getItemByPath(@ValidSiteId
+	public ResultOne<ContentItem> getItemByPath(@ValidSiteId
 						     @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
 						     @ValidExistingContentPath
 						     @RequestParam(value = REQUEST_PARAM_PATH) String path,
 						     @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
 							     defaultValue = "false") boolean preferContent)
 		throws ServiceLayerException, UserNotFoundException {
-		DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
-		ResultOne<DetailedItem> result = new ResultOne<>();
+		ContentItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
+		ResultOne<ContentItem> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_ITEM, detailedItem);
 		result.setResponse(OK);
 		return result;
 	}
 
 	@PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-	public GetSandboxItemsByPathResult getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
+	public GetContentItemsByPathResult getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
 		throws ServiceLayerException, UserNotFoundException {
 		String siteId = request.getSiteId();
 		Collection<String> missing = Collections.emptyList();
 		List<String> paths = request.getPaths();
 		boolean preferContent = request.isPreferContent();
-		List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
+		List<ContentItem> sandboxItems = contentService.getContentItemsByPath(siteId, paths, preferContent);
 
 		if (CollectionUtils.isEmpty(sandboxItems) || paths.size() != sandboxItems.size()) {
-			List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
+			List<String> found = sandboxItems.stream().map(ContentItem::getPath).collect(Collectors.toList());
 			if (preferContent) {
 				found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
 					FILE_SEPARATOR + INDEX_FILE, "")).toList());
@@ -211,7 +217,7 @@ public class ContentController {
 			missing = CollectionUtils.subtract(paths, found);
 		}
 
-		GetSandboxItemsByPathResult result = new GetSandboxItemsByPathResult();
+		GetContentItemsByPathResult result = new GetContentItemsByPathResult();
 		result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
 		result.setMissingItems(missing);
 		result.setResponse(OK);
