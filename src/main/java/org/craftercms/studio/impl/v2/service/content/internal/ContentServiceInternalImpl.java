@@ -95,7 +95,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
-import static org.apache.commons.io.FilenameUtils.getFullPath;
+import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
@@ -599,7 +599,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected Collection<String> calculateMissingFolders(final String siteId, final String path) {
 		List<String> missingFolders = new ArrayList<>();
-		String parentItemPath = FilenameUtils.getFullPathNoEndSeparator(path);
+		String parentItemPath = getFullPathNoEndSeparator(path);
 		Path current = Path.of(parentItemPath);
 		while (current != null && !contentExists(siteId, current.toString())) {
 			missingFolders.add(current.toString());
@@ -843,47 +843,60 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 //		contentServiceV1.renameContent(site, path, name);
 //	}
 
-	//	@Override
-	public void renameContent(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+	@Override
+	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
 		String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
 		move(siteId, path, targetPath);
 	}
 
-	/**
-	 * Move content from sourcePath to targetPath.
-	 * Notice that both paths. e.g.: A rename would look like /site/website/page1 to /site/website/page2
-	 *
-	 * @param siteId     the site id
-	 * @param sourcePath the source path
-	 * @param targetPath the target path
-	 * @throws ServiceLayerException   if there is an error moving the content
-	 * @throws UserNotFoundException   if the current user is not found
-	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
-	 */
-	protected void move(String siteId, String sourcePath, String targetPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		if (contentExists(siteId, targetPath)) {
+	@Override
+	public void move(final String siteId, final String from, final String to)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		if (contentExists(siteId, to)) {
 			throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
-				"because an item already exists in target location '%s'.", sourcePath, siteId, targetPath));
+				"because an item already exists in target location '%s'.", from, siteId, to));
 		}
+		if (!contentExists(siteId, from)) {
+			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
+		}
+
+		String sourcePath = from;
+		String targetPath = to;
+		if (isPageDescriptor(sourcePath) || isPageDescriptor(targetPath)) {
+			// Normalize the paths. If we're moving a page we need to move the folder anyway
+			sourcePath = removeEnd(sourcePath, SLASH_INDEX_FILE);
+			targetPath = removeEnd(targetPath, SLASH_INDEX_FILE);
+		}
+
+		String parentUrl = getFullPathNoEndSeparator(targetPath);
+		if (!contentExists(siteId, parentUrl)) {
+			throw new ContentNotFoundException(parentUrl, siteId, format("Unable to paste content: path '%s' in site '%s' does not exist", parentUrl, siteId));
+		}
+
+		moveInternal(siteId, sourcePath, targetPath);
+	}
+
+	protected void moveInternal(final String siteId, final String sourcePath, final String targetPath)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		// TODO: lock sandbox repository
 		// TODO: close the items after consuming
 		Site site = siteService.getSite(siteId);
 		Collection<String> childrenSourcePaths = itemDao.getChildrenPaths(site.getId(), sourcePath);
 		Map<String, ContentLifeCycleItem> updateItems = runLifeCycleForMove(siteId, sourcePath, targetPath, childrenSourcePaths);
-		List<String> affectedPaths = new ArrayList<>();
-		affectedPaths.add(targetPath);
+		List<String> workflowAffectedPaths = new ArrayList<>();
+		workflowAffectedPaths.add(targetPath);
 		// The affected paths are the targetPath plus any other items that might have been added by the lifecycle
-		affectedPaths.addAll(updateItems.keySet().stream()
+		workflowAffectedPaths.addAll(updateItems.keySet().stream()
 			.filter(path -> !path.startsWith(targetPath))
 			.toList());
 
-		validateLifeCycleResults(siteId, sourcePath, targetPath, affectedPaths);
+		validateLifeCycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
 
-		Set<String> newFolders = affectedPaths.stream()
-			.filter(path -> !path.startsWith(targetPath))
+		Set<String> newFolders = workflowAffectedPaths.stream()
 			.flatMap(path -> calculateMissingFolders(siteId, path).stream())
+			.filter(path -> !path.startsWith(targetPath))
 			.collect(toSet());
 
 		// Items that are either amended or outside the moved path
@@ -892,11 +905,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			.collect(toMap(Entry::getKey, Entry::getValue));
 
 		// commit the rename
-			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
+		String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
 		if (isEmpty(commitId)) {
 			throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));
 		}
 
+		// TODO: run updates in a transaction
 		persistMoveToDB(site, sourcePath, targetPath, childrenSourcePaths, additionalItems, newFolders);
 
 //		List<WriteContentResultItem> moveResultItems = null; // TODO
@@ -916,22 +930,28 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected void persistMoveToDB(Site site, String sourcePath, String targetPath, Collection<String> childrenSourcePaths,
 								   Map<String, ContentLifeCycleItem> additionalItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		String parentUrl = getParentUrl(getFullPath(targetPath));
-		Item parentItem = itemService.getItem(site.getSiteId(), parentUrl, true);
+		dependencyService.deleteItemDependencies(site.getSiteId(), sourcePath);
 
+		String parentUrl = getFullPathNoEndSeparator(targetPath);
+		Item parentItem = itemService.getItem(site.getSiteId(), parentUrl, true);
 		String label = null;
-		// TODO: revisit and check what happens for /index.xml files, do we need to update two items (folder and the index.xml) ?
-		if (isDescriptorPath(targetPath)) {
+		if (isDescriptorPath(targetPath) && targetPath.endsWith(".xml")) {
+			// getItem will read from the repository, so the item already exists
 			var descriptor = getItem(site.getSiteId(), targetPath, false);
-			label = descriptor.queryDescriptorValue(ELM_INTERNAL_NAME);
+			label = descriptor.queryDescriptorValue(format("//%s", ELM_INTERNAL_NAME));
 		}
 		if (isEmpty(label)) {
 			label = FilenameUtils.getName(targetPath);
 		}
 		itemService.moveItem(site.getSiteId(), sourcePath, targetPath, parentItem.getId(), label);
-		// TODO: Check this is NOT a folder and then update deps
-		dependencyService.deleteItemDependencies(site.getSiteId(), sourcePath);
 		dependencyService.upsertDependencies(site.getSiteId(), targetPath);
+
+		String pageUrl = targetPath + SLASH_INDEX_FILE;
+		if (isPageDescriptor(pageUrl)) {
+			var pageDescriptor = getItem(site.getSiteId(), pageUrl, false);
+			String pageLabel = pageDescriptor.queryDescriptorValue(format("//%s", ELM_INTERNAL_NAME));
+			itemService.moveItem(site.getSiteId(), sourcePath + SLASH_INDEX_FILE, pageUrl, parentItem.getId(), pageLabel);
+		}
 
 		// Update the children of the moved item
 		for (String childSourcePath : childrenSourcePaths) {
@@ -941,7 +961,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				dependencyService.upsertDependencies(site.getSiteId(), newPath);
 			}
 		}
-		// TODO: make sure these paths are folders
 		itemDao.updateMovedFolders(site.getId(), sourcePath, targetPath);
 
 		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(site.getSiteId(), targetPath, additionalItems.values(), RENAME);
@@ -967,7 +986,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		Item sourceItem = itemService.getItem(siteId, sourcePath, true);
 		String contentType = sourceItem.getSystemType();
 		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
-			throw new ServiceLayerException(format("Failed to rename content at siteId '%s' path '%s' " +
+			throw new ServiceLayerException(format("Failed to rename content at site '%s' path '%s' " +
 				"with content type '%s'", siteId, sourceItem, contentType));
 		}
 

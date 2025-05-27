@@ -331,6 +331,7 @@ public interface ContentService {
 			  String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
 		throws ServiceLayerException, UserNotFoundException;
 
+	// TODO: Remove this method
 	void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
 				   final String contentType, final InputStream input, final String createFolders,
 				   final String edit, final String unlock, final boolean createFolder)

@@ -184,7 +184,8 @@ public interface DependencyService {
 	void updateDependenciesOnTreeDelete(String siteId, String path);
 
 	/**
-	 * Validate any dependencies where the target is a child of the content subtree path
+	 * Validate any dependencies where the target exists and it is a child
+	 * of the content subtree path
 	 *
 	 * @param siteId the site id
 	 * @param path   the content subtree path

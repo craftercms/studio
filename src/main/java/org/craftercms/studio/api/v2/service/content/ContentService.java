@@ -261,6 +261,19 @@ public interface ContentService {
 		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 	/**
+	 * Move content from sourcePath to targetPath.
+	 * Notice that both paths must be full paths. e.g.: A rename would look like /site/website/page1 to /site/website/page2
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path
+	 * @param targetPath the target path
+	 * @throws ServiceLayerException   if there is an error moving the content
+	 * @throws UserNotFoundException   if the current user is not found
+	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
+	 */
+	void move(String siteId, String sourcePath, String targetPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
+	/**
 	 * Returns content wrapped as a {@link Resource} instance
 	 *
 	 * @param site the site id

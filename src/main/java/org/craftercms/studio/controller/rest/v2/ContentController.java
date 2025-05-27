@@ -302,6 +302,15 @@ public class ContentController {
 		return result;
 	}
 
+	@PostMapping(value = MOVE, consumes = APPLICATION_JSON_VALUE)
+	public Result move(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody MoveRequestBody moveRequestBody)
+		throws AuthenticationException, UserNotFoundException, ServiceLayerException, ValidationException {
+		contentService.move(siteId, moveRequestBody.getSourcePath(), moveRequestBody.getTargetPath());
+		var result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
+
 	@GetMapping(value = ITEM_HISTORY)
 	public ResultList<ItemVersion> getHistory(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
 											  @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path) throws ServiceLayerException {
