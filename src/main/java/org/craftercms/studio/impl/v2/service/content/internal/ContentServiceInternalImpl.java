@@ -24,6 +24,7 @@ import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.core.exception.PathNotFoundException;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -78,9 +79,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.MimeType;
 import org.springframework.util.function.ThrowingSupplier;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -95,12 +98,11 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.io.FilenameUtils.directoryContains;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
-import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
-import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.*;
@@ -111,32 +113,74 @@ import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
+import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runInTransaction;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
+/**
+ * Internal implementation of {@link ContentService}
+ */
 public class ContentServiceInternalImpl implements ContentService, ApplicationEventPublisherAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
+	private static final String MOVE_TRANSACTION_FORMAT = "CONTENT_MOVE_%s";
+	private static final String WRITE_TRANSACTION_FORMAT = "CONTENT_WRITE_%s";
 
-	private GitContentRepository contentRepository;
-	private ItemDAO itemDao;
-	private StudioConfiguration studioConfiguration;
+	private final GitContentRepository contentRepository;
+	private final ItemDAO itemDao;
+	private final StudioConfiguration studioConfiguration;
 	private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
-	private AuditService auditService;
-	private DependencyService dependencyService;
-	private SitesService siteService;
-	private ItemService itemService;
-	private GeneralLockService generalLockService;
+	private final AuditService auditService;
+	private final DependencyService dependencyService;
+	private final SitesService siteService;
+	private final ItemService itemService;
+	private final GeneralLockService generalLockService;
 	private ApplicationEventPublisher eventPublisher;
-	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
-	private PublishService publishService;
-	private ProcessedCommitsDAO processedCommitsDao;
-	private ContentLifeCycle contentLifeCycle;
-	private ContentLifeCycle assetLifeCycle;
-	private PermissionEvaluator<String, Object> permissionEvaluator;
-	private DmPageNavigationOrderService pageNavOrderService;
+	private final org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
+	private final PublishService publishService;
+	private final ProcessedCommitsDAO processedCommitsDao;
+	private final ContentLifeCycle contentLifeCycle;
+	private final ContentLifeCycle assetLifeCycle;
+	private final PermissionEvaluator<String, Object> permissionEvaluator;
+	private final DmPageNavigationOrderService pageNavOrderService;
+	private final PlatformTransactionManager transactionManager;
+	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+
+	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
+		"retryingDatabaseOperationFacade", "publishService",
+		"processedCommitsDao", "permissionEvaluator", "pageNavOrderService", "itemService",
+		"itemDao", "generalLockService", "dependencyService",
+		"contentServiceV1", "contentRepository", "contentLifeCycle", "auditService", "assetLifeCycle"})
+	public ContentServiceInternalImpl(PlatformTransactionManager transactionManager, StudioConfiguration studioConfiguration,
+									  SitesService siteService,
+									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
+									  ProcessedCommitsDAO processedCommitsDao, PermissionEvaluator<String, Object> permissionEvaluator,
+									  DmPageNavigationOrderService pageNavOrderService, ItemService itemService,
+									  ItemDAO itemDao, GeneralLockService generalLockService,
+									  DependencyService dependencyService,
+									  org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1,
+									  GitContentRepository contentRepository, ContentLifeCycle contentLifeCycle,
+									  AuditService auditService, ContentLifeCycle assetLifeCycle) {
+		this.transactionManager = transactionManager;
+		this.studioConfiguration = studioConfiguration;
+		this.siteService = siteService;
+		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+		this.publishService = publishService;
+		this.processedCommitsDao = processedCommitsDao;
+		this.permissionEvaluator = permissionEvaluator;
+		this.pageNavOrderService = pageNavOrderService;
+		this.itemService = itemService;
+		this.itemDao = itemDao;
+		this.generalLockService = generalLockService;
+		this.dependencyService = dependencyService;
+		this.contentServiceV1 = contentServiceV1;
+		this.contentRepository = contentRepository;
+		this.contentLifeCycle = contentLifeCycle;
+		this.auditService = auditService;
+		this.assetLifeCycle = assetLifeCycle;
+	}
 
 	@Override
 	public boolean contentExists(String siteId, String path) {
@@ -457,7 +501,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			if (isEmpty(commitId)) {
 				throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 			}
-
+			// TODO: Run in transaction
 			List<WriteContentResultItem> writeResultItems = persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
 
 			// Audit write operation
@@ -542,14 +586,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param item      the item to persist
 	 * @param operation the content life cycle operation
 	 */
-	protected WriteContentResultItem persistItem(final String siteId, final ContentLifeCycleItem item,
-												 LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+	protected WriteContentResultItem persistItemWrite(final String siteId, final ContentLifeCycleItem item,
+													  LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		String path = item.repoPath();
 		if (NEW == operation) {
-			boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+			boolean isPage = path.startsWith(DmConstants.ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
 			String parentItemPath;
 			if (isPage) {
-				parentItemPath = getParentUrl(removeEnd(path, SLASH_INDEX_FILE));
+				parentItemPath = getParentUrl(removeEnd(path, DmConstants.SLASH_INDEX_FILE));
 			} else {
 				parentItemPath = getParentUrl(path);
 			}
@@ -577,7 +621,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			persistItemCalls.put(missingFolder, () -> persistNewFolder(siteId, missingFolder));
 		}
 		for (ContentLifeCycleItem item : lifeCycleResultItems) {
-			persistItemCalls.put(item.repoPath(), () -> writeResultItems.add(persistItem(siteId, item, operationsByPath.get(item.repoPath()))));
+			persistItemCalls.put(item.repoPath(), () -> writeResultItems.add(persistItemWrite(siteId, item, operationsByPath.get(item.repoPath()))));
 		}
 
 		List<String> allPaths = persistItemCalls.keySet().stream().sorted(creationPathComparator()).toList();
@@ -866,8 +910,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String targetPath = to;
 		if (isPageDescriptor(sourcePath) || isPageDescriptor(targetPath)) {
 			// Normalize the paths. If we're moving a page we need to move the folder anyway
-			sourcePath = removeEnd(sourcePath, SLASH_INDEX_FILE);
-			targetPath = removeEnd(targetPath, SLASH_INDEX_FILE);
+			sourcePath = removeEnd(sourcePath, DmConstants.SLASH_INDEX_FILE);
+			targetPath = removeEnd(targetPath, DmConstants.SLASH_INDEX_FILE);
 		}
 
 		String parentUrl = getFullPathNoEndSeparator(targetPath);
@@ -875,34 +919,50 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new ContentNotFoundException(parentUrl, siteId, format("Unable to paste content: path '%s' in site '%s' does not exist", parentUrl, siteId));
 		}
 
-		moveInternal(siteId, sourcePath, targetPath);
+		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+		generalLockService.lock(sandboxRepoLockKey);
+		try {
+			moveInternal(siteId, sourcePath, targetPath);
+		} finally {
+			generalLockService.unlock(sandboxRepoLockKey);
+		}
 	}
 
-	protected void moveInternal(final String siteId, final String sourcePath, final String targetPath)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		// TODO: lock sandbox repository
+	protected void moveInternal(final String siteId, final String sourcePath, final String targetPath) throws ServiceLayerException {
 		// TODO: close the items after consuming
 		Site site = siteService.getSite(siteId);
-		Collection<String> childrenSourcePaths = itemDao.getChildrenPaths(site.getId(), sourcePath);
-		Map<String, ContentLifeCycleItem> updateItems = runLifeCycleForMove(siteId, sourcePath, targetPath, childrenSourcePaths);
+		Collection<String> sourcePathChildren = itemDao.getChildrenPaths(site.getId(), sourcePath);
+		Map<String, ContentLifeCycleItem> updateItems = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
 		List<String> workflowAffectedPaths = new ArrayList<>();
 		workflowAffectedPaths.add(targetPath);
 		// The affected paths are the targetPath plus any other items that might have been added by the lifecycle
 		workflowAffectedPaths.addAll(updateItems.keySet().stream()
-			.filter(path -> !path.startsWith(targetPath))
+			.filter(path -> !directoryContains(targetPath, path))
 			.toList());
 
 		validateLifeCycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
 
 		Set<String> newFolders = workflowAffectedPaths.stream()
 			.flatMap(path -> calculateMissingFolders(siteId, path).stream())
-			.filter(path -> !path.startsWith(targetPath))
+			.filter(path -> !directoryContains(targetPath, path))
 			.collect(toSet());
 
 		// Items that are either amended or outside the moved path
 		Map<String, ContentLifeCycleItem> additionalItems = updateItems.entrySet().stream()
-			.filter(entry -> entry.getValue().amended() || !entry.getKey().startsWith(targetPath))
+			.filter(entry -> entry.getValue().amended() || !directoryContains(targetPath, entry.getKey()))
 			.collect(toMap(Entry::getKey, Entry::getValue));
+
+		// We need to calculate this before the commit
+		Map<String, LifeCycleOperation> operationsByPath = updateItems.keySet().stream()
+			.collect(toMap(identity(), p -> {
+				if (directoryContains(targetPath, p)) {
+					return RENAME;
+				}
+				if (contentExists(siteId, p)) {
+					return UPDATE;
+				}
+				return NEW;
+			}));
 
 		// commit the rename
 		String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
@@ -910,32 +970,38 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));
 		}
 
-		// TODO: run updates in a transaction
-		persistMoveToDB(site, sourcePath, targetPath, childrenSourcePaths, additionalItems, newFolders);
+		String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
+		logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
+		try {
+			runInTransaction(transactionManager, transactionId,
+				() -> persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders));
+		} catch (Exception e) {
+			throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
+		}
 
-//		List<WriteContentResultItem> moveResultItems = null; // TODO
+
+		List<WriteContentResultItem> moveResultItems = updateItems.values().stream()
+			.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
+			.toList();
 
 		// Audit operation
-//		insertWriteContentAudit(siteId, sourcePath, RENAME, moveResultItems, commitId);
+		insertWriteContentAudit(siteId, sourcePath, RENAME, moveResultItems, commitId);
 
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, sourcePath, targetPath));
-
 	}
 
 	/**
 	 * Persist the move operation to the database
 	 * This method will update the items in the database with the new path and preview url (when applicable)
 	 */
-	protected void persistMoveToDB(Site site, String sourcePath, String targetPath, Collection<String> childrenSourcePaths,
+	protected void persistMoveToDB(Site site, String sourcePath, String targetPath, Collection<String> sourcePathChildren,
 								   Map<String, ContentLifeCycleItem> additionalItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		dependencyService.deleteItemDependencies(site.getSiteId(), sourcePath);
-
 		String parentUrl = getFullPathNoEndSeparator(targetPath);
 		Item parentItem = itemService.getItem(site.getSiteId(), parentUrl, true);
 		String label = null;
-		if (isDescriptorPath(targetPath) && targetPath.endsWith(".xml")) {
+		if (isDescriptorPath(targetPath) && targetPath.endsWith(DmConstants.XML_PATTERN)) {
 			// getItem will read from the repository, so the item already exists
 			var descriptor = getItem(site.getSiteId(), targetPath, false);
 			label = descriptor.queryDescriptorValue(format("//%s", ELM_INTERNAL_NAME));
@@ -943,46 +1009,53 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (isEmpty(label)) {
 			label = FilenameUtils.getName(targetPath);
 		}
-		itemService.moveItem(site.getSiteId(), sourcePath, targetPath, parentItem.getId(), label);
-		dependencyService.upsertDependencies(site.getSiteId(), targetPath);
+		persistItemMove(site.getSiteId(), sourcePath, targetPath, parentItem.getId(), label);
 
-		String pageUrl = targetPath + SLASH_INDEX_FILE;
-		if (isPageDescriptor(pageUrl)) {
-			var pageDescriptor = getItem(site.getSiteId(), pageUrl, false);
-			String pageLabel = pageDescriptor.queryDescriptorValue(format("//%s", ELM_INTERNAL_NAME));
-			itemService.moveItem(site.getSiteId(), sourcePath + SLASH_INDEX_FILE, pageUrl, parentItem.getId(), pageLabel);
+		String targetPageUrl = targetPath + DmConstants.SLASH_INDEX_FILE;
+		if (isPageDescriptor(targetPageUrl)) {
+			persistItemMove(site.getSiteId(), sourcePath + DmConstants.SLASH_INDEX_FILE, targetPageUrl, parentItem.getId(), null);
 		}
 
 		// Update the children of the moved item
-		for (String childSourcePath : childrenSourcePaths) {
-			String newPath = childSourcePath.replace(sourcePath, targetPath);
+		for (String sourcePathChild : sourcePathChildren) {
+			String newPath = sourcePathChild.replace(sourcePath, targetPath);
 			if (!additionalItems.containsKey(newPath)) {
-				itemService.moveItem(site.getSiteId(), childSourcePath, newPath, null, null);
-				dependencyService.upsertDependencies(site.getSiteId(), newPath);
+				persistItemMove(site.getSiteId(), sourcePathChild, newPath, null, null);
 			}
 		}
-		itemDao.updateMovedFolders(site.getId(), sourcePath, targetPath);
+		retryingDatabaseOperationFacade.retry(() -> itemDao.updateMovedFolders(site.getId(), sourcePath, targetPath));
 
 		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(site.getSiteId(), targetPath, additionalItems.values(), RENAME);
 		persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
 
 		dependencyService.updateDependenciesOnTreeDelete(site.getSiteId(), sourcePath);
+		dependencyService.deleteItemDependencies(site.getSiteId(), sourcePath);
+
 		dependencyService.validateDependenciesForTree(site.getSiteId(), targetPath);
+	}
+
+	/**
+	 * Update the item and upsert the dependencies for the moved item.
+	 */
+	protected void persistItemMove(String siteId, String childSourcePath, String newPath,
+								   Long parentId, String newLabel) throws ServiceLayerException {
+		itemService.moveItem(siteId, childSourcePath, newPath, parentId, newLabel);
+		dependencyService.upsertDependencies(siteId, newPath);
 	}
 
 	/**
 	 * Run the life cycle for the move operation.
 	 * This method returns the list of items to update (moved items and any item added by the lifecycle scripts)
 	 *
-	 * @param siteId        the site id
-	 * @param sourcePath    the source path
-	 * @param targetPath    the target path
-	 * @param childrenPaths all non-folder children paths
+	 * @param siteId             the site id
+	 * @param sourcePath         the source path
+	 * @param targetPath         the target path
+	 * @param sourcePathChildren all non-folder children of the source path
 	 * @return a map (path->contentLifeCycleItem) of items to update (moved items and any item added by the lifecycle scripts)
 	 * @throws ServiceLayerException if there is an error running the life cycle
 	 */
 	private Map<String, ContentLifeCycleItem> runLifeCycleForMove(String siteId, String sourcePath, String targetPath,
-																  Collection<String> childrenPaths) throws ServiceLayerException {
+																  Collection<String> sourcePathChildren) throws ServiceLayerException {
 		Item sourceItem = itemService.getItem(siteId, sourcePath, true);
 		String contentType = sourceItem.getSystemType();
 		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
@@ -991,9 +1064,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		Map<String, ContentLifeCycleItem> updateItems = new HashMap<>();
-
-		// TODO: are we missing here the main item?
-		for (String itemSourcePath : childrenPaths) {
+		for (String itemSourcePath : sourcePathChildren) {
 			ContentLifeCycle lifeCycle;
 			LifeCycleContent lifeCycleContent;
 			String itemTargetPath = itemSourcePath.replace(sourcePath, targetPath);
@@ -1021,12 +1092,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				updateItems.put(lifeCycleItem.repoPath(), lifeCycleItem);
 			}
 		}
-
-		// Iterate tree and for each item:
-		// 	- Build a LifeCycleContent
-		// 	- Run the life cycle
-		//
-		// Consolidate all items into a single LifeCycleContent
 		return updateItems;
 	}
 
@@ -1035,82 +1100,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return contentServiceV1.getContentAsResource(site, path);
 	}
 
-	public void setContentRepository(final GitContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
-	}
-
-	@SuppressWarnings("unused")
-	public void setItemDao(final ItemDAO itemDao) {
-		this.itemDao = itemDao;
-	}
-
-	public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
-		this.studioConfiguration = studioConfiguration;
-	}
-
 	@SuppressWarnings("unused")
 	public void setSemanticsAvailableActionsResolver(final SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {
 		this.semanticsAvailableActionsResolver = semanticsAvailableActionsResolver;
 	}
 
-	public void setAuditService(final AuditService auditService) {
-		this.auditService = auditService;
-	}
-
 	@Override
 	public void setApplicationEventPublisher(final @NotNull ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDependencyService(final DependencyService dependencyService) {
-		this.dependencyService = dependencyService;
-	}
-
-	public void setSiteService(final SitesService siteService) {
-		this.siteService = siteService;
-	}
-
-	public void setItemService(final ItemService itemService) {
-		this.itemService = itemService;
-	}
-
-	public void setGeneralLockService(final GeneralLockService generalLockService) {
-		this.generalLockService = generalLockService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentServiceV1(final org.craftercms.studio.api.v1.service.content.ContentService contentService) {
-		this.contentServiceV1 = contentService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPublishService(final PublishService publishService) {
-		this.publishService = publishService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setProcessedCommitsDao(final ProcessedCommitsDAO processedCommitsDao) {
-		this.processedCommitsDao = processedCommitsDao;
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentLifeCycle(final ContentLifeCycle contentLifeCycle) {
-		this.contentLifeCycle = contentLifeCycle;
-	}
-
-	@SuppressWarnings("unused")
-	public void setAssetLifeCycle(final ContentLifeCycle assetLifeCycle) {
-		this.assetLifeCycle = assetLifeCycle;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPermissionEvaluator(final PermissionEvaluator<String, Object> permissionEvaluator) {
-		this.permissionEvaluator = permissionEvaluator;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPageNavOrderService(final DmPageNavigationOrderService pageNavOrderService) {
-		this.pageNavOrderService = pageNavOrderService;
 	}
 }

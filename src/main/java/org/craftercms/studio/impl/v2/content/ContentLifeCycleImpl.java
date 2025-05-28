@@ -40,6 +40,7 @@ import java.util.Map;
 import static com.rometools.utils.Strings.isEmpty;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
@@ -135,7 +136,7 @@ public class ContentLifeCycleImpl implements ContentLifeCycle, ApplicationContex
 	}
 
 	protected void addSpringBeans(Map<String, Object> model) {
-		String[] enabledBeans = studioConfiguration.getArray(CONTENT_LIFECYCLE_INCLUDED_BEANS, String.class);
+		String[] enabledBeans = nullToEmpty(studioConfiguration.getArray(CONTENT_LIFECYCLE_INCLUDED_BEANS, String.class));
 		for (String beanName : enabledBeans) {
 			try {
 				Object bean = applicationContext.getBean(beanName);

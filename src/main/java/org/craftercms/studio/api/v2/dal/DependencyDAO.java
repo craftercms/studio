@@ -175,7 +175,7 @@ public interface DependencyDAO {
 	 * @param path   the removed content path
 	 */
 	@Transactional
-	default void updateDependenciesOnTreeDelete(String siteId, String path) {
+	default void updateDependenciesOnTreeDelete(final String siteId, final String path) {
 		deleteTreeDependencies(siteId, path);
 		invalidateTreeDependencies(siteId, path);
 	}

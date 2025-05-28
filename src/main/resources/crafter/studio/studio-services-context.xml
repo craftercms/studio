@@ -424,22 +424,15 @@
 
 	<bean id="contentServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="itemDao" ref="itemDao"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver"/>
-		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="dependencyService" ref="dependencyServiceInternal"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="contentServiceV1" ref="cstudioContentService"/>
-		<property name="publishService" ref="publishServiceInternal"/>
-		<property name="processedCommitsDao" ref="processedCommitsDao"/>
-		<property name="contentLifeCycle" ref="contentLifeCycle"/>
-		<property name="assetLifeCycle" ref="assetLifeCycle"/>
-		<property name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
-		<property name="pageNavOrderService" ref="cstudioPageNavOrderService"/>
+		<constructor-arg name="auditService" ref="auditServiceInternal"/>
+		<constructor-arg name="dependencyService" ref="dependencyServiceInternal"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
+		<constructor-arg name="itemService" ref="itemService"/>
+		<constructor-arg name="publishService" ref="publishServiceInternal"/>
+		<constructor-arg name="contentLifeCycle" ref="contentLifeCycle"/>
+		<constructor-arg name="assetLifeCycle" ref="assetLifeCycle"/>
+		<constructor-arg name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
 	</bean>
 
 	<bean id="contentLifeCycle" class="org.craftercms.studio.impl.v2.content.ContentLifeCycleImpl">
