@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.content;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.dom4j.Document;
 
@@ -78,11 +79,8 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @throws IOException if an error occurs while reading the stream or storing the content
 	 */
 	public void write(String path, InputStream content) throws IOException {
-		// Remove the temporary file if it exists
-		exclude(path);
 		Path filePath = createTempFile(path, content);
-		// Add a new entry with amended=<path is the same as the original repoPath>
-		this.items.put(path, new ContentLifeCycleItem(path, filePath, repoPath.equals(path)));
+		write(path, filePath);
 	}
 
 	/**
@@ -93,10 +91,8 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @throws IOException if an error occurs while writing the content
 	 */
 	public void write(String path, Document document) throws IOException {
-		// Remove the temporary file if it exists
-		exclude(path);
 		Path filePath = createTempFile(path, document);
-		this.items.put(path, new ContentLifeCycleItem(path, filePath, repoPath.equals(path)));
+		write(path, filePath);
 	}
 
 	/**
@@ -106,8 +102,11 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @param filePath the path containing the content to write
 	 */
 	public void write(String path, Path filePath) {
-		exclude(path);
-		this.items.put(path, new ContentLifeCycleItem(path, filePath, repoPath.equals(path)));
+		String normalizedPath = FilenameUtils.normalize(path);
+		// Remove the temporary file if it exists
+		exclude(normalizedPath);
+		// Add a new entry with amended=<path is the same as the original repoPath>
+		this.items.put(normalizedPath, new ContentLifeCycleItem(normalizedPath, filePath, repoPath.equals(normalizedPath)));
 	}
 
 	/**

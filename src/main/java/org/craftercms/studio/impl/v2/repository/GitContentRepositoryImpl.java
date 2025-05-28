@@ -1549,6 +1549,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	/**
 	 * Create empty files in the new folders and add the paths to the index
+	 * Notice that this method assumes the folders already exist in the repository.
 	 *
 	 * @param siteId     the site id
 	 * @param repo       the git repo
@@ -1640,35 +1641,37 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 
-		// TODO: Refactor this to use git mv command
 		String gitFromPath = helper.getGitPath(fromPath);
 		String gitToPath = helper.getGitPath(toPath);
-
-		try (Git git = new Git(repo)) {
+		try {
 			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
 			// The operation is done on disk, now it's time to commit
-			boolean result = helper.addFiles(repo, siteId, gitToPath);
+			boolean result = helper.addFiles(repo, siteId, gitFromPath, gitToPath);
 			if (!result) {
 				logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath);
 				throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath));
 			}
-			StatusCommand statusCommand = git.status().addPath(gitToPath);
-			Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
-			List<String> changeSet = new ArrayList<>(gitStatus.getAdded().size() * 2);
-			PersonIdent user = helper.getCurrentUserIdent();
-			String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE).replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath);
-			for (String pathToCommit : gitStatus.getAdded()) {
-				String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-				changeSet.add(pathToCommit);
-				changeSet.add(pathRemoved);
-			}
+			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 2);
+			changeSet.add(gitFromPath);
+			changeSet.add(gitToPath);
 
-			// TODO: add new folders and additional items
+			for (ContentWriteItem writeItem : additionalItems) {
+				try (InputStream content = writeItem.content()) {
+					helper.writeFile(repo, siteId, writeItem.repoPath(), content);
+					changeSet.add(writeItem.repoPath());
+				}
+			}
 			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
 
+			PersonIdent user = helper.getCurrentUserIdent();
+			String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
+				.replaceAll(PATTERN_FROM_PATH, fromPath)
+				.replaceAll(PATTERN_TO_PATH, toPath);
 			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
-			persistCommit(siteId, commitId);
+			if (commitId != null) {
+				persistCommit(siteId, commitId);
+			}
 			return commitId;
 		} catch (ServiceLayerException e) {
 			throw e;

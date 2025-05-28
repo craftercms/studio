@@ -31,11 +31,15 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
+import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
+import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
@@ -199,8 +203,9 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-	public void move(@SiteId String siteId, String sourcePath, @ContentPath String targetPath)
+	public void move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		contentServiceInternal.move(siteId, sourcePath, targetPath);
 	}

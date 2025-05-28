@@ -974,7 +974,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
 		try {
 			runInTransaction(transactionManager, transactionId,
-				() -> persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders));
+				() -> persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath));
 		} catch (Exception e) {
 			throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
 		}
@@ -996,7 +996,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * This method will update the items in the database with the new path and preview url (when applicable)
 	 */
 	protected void persistMoveToDB(Site site, String sourcePath, String targetPath, Collection<String> sourcePathChildren,
-								   Map<String, ContentLifeCycleItem> additionalItems, Set<String> newFolders)
+								   Map<String, ContentLifeCycleItem> additionalItems, Set<String> newFolders,
+								   Map<String, LifeCycleOperation> operationsByPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String parentUrl = getFullPathNoEndSeparator(targetPath);
 		Item parentItem = itemService.getItem(site.getSiteId(), parentUrl, true);
@@ -1025,7 +1026,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 		retryingDatabaseOperationFacade.retry(() -> itemDao.updateMovedFolders(site.getId(), sourcePath, targetPath));
 
-		Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(site.getSiteId(), targetPath, additionalItems.values(), RENAME);
 		persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
 
 		dependencyService.updateDependenciesOnTreeDelete(site.getSiteId(), sourcePath);
