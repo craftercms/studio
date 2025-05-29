@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
@@ -98,8 +99,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.ListUtils.union;
-import static org.apache.commons.io.FilenameUtils.directoryContains;
-import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
+import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
@@ -935,15 +935,53 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		move(siteId, path, targetPath);
 	}
 
+	/**
+	 * Validate the move operation.
+	 * - Check that the source and target paths have the same extension (if applicable).
+	 * - Check that the target path parent exists.
+	 * - Check that the source and target paths are both under the same top-level folder (e.g.: cannot move from site/components to static-assets).
+	 * - Check that the target path is not a child of the source path (to prevent moving a folder into itself).
+	 * - Check that the source and target paths are in the same top-level folder.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path
+	 * @param targetPath the target path
+	 * @throws ContentNotFoundException   if the source path does not exist
+	 * @throws InvalidParametersException if any of the validation checks fail
+	 */
+	protected void validateMoveOperation(String siteId, String sourcePath, String targetPath)
+		throws InvalidParametersException, ContentNotFoundException {
+		if (!StringUtils.equals(getExtension(sourcePath), getExtension(targetPath))) {
+			throw new InvalidParametersException(format("Cannot move content from '%s' to '%s': " +
+				"source and target paths must have the same extension", sourcePath, targetPath));
+		}
+
+		String parentUrl = getFullPathNoEndSeparator(targetPath);
+		if (!contentExists(siteId, parentUrl)) {
+			throw new ContentNotFoundException(parentUrl, siteId,
+				format("Unable to paste content: parent path '%s' in site '%s' does not exist", parentUrl, siteId));
+		}
+
+		String sourceTopLevel = getTopLevelFolder(sourcePath);
+		String targetTopLevel = getTopLevelFolder(targetPath);
+		if (!Objects.equals(sourceTopLevel, targetTopLevel)) {
+			throw new InvalidParametersException(format("Cannot move content " +
+					"from '%s' (%s) into '%s' (%s) for site '%s'. " +
+					"Pasting across top level folders is not supported.",
+				sourcePath, sourceTopLevel, targetPath, targetTopLevel, siteId));
+		}
+	}
+
 	@Override
 	public WriteContentResult move(final String siteId, final String from, final String to)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		if (!contentExists(siteId, from)) {
+			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
+		}
+
 		if (contentExists(siteId, to)) {
 			throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
 				"because an item already exists in target location '%s'.", from, siteId, to));
-		}
-		if (!contentExists(siteId, from)) {
-			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
 		}
 
 		String sourcePath = from;
@@ -953,11 +991,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			sourcePath = removeEnd(sourcePath, DmConstants.SLASH_INDEX_FILE);
 			targetPath = removeEnd(targetPath, DmConstants.SLASH_INDEX_FILE);
 		}
-
-		String parentUrl = getFullPathNoEndSeparator(targetPath);
-		if (!contentExists(siteId, parentUrl)) {
-			throw new ContentNotFoundException(parentUrl, siteId, format("Unable to paste content: path '%s' in site '%s' does not exist", parentUrl, siteId));
-		}
+		validateMoveOperation(siteId, sourcePath, targetPath);
 
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
@@ -983,7 +1017,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			// We need to calculate this before the commit
 			Map<String, LifeCycleOperation> operationsByPath = getOperationsByPathForMove(siteId, lifeCycleItems, sourcePathChildren);
 
-			// commit the rename
+			// Commit the changeset
 			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
 			if (isEmpty(commitId)) {
 				throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));

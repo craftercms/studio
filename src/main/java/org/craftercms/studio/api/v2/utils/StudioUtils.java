@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
@@ -202,6 +203,6 @@ public abstract class StudioUtils {
 	 * @return true if the path is a page, false otherwise
 	 */
 	public static boolean isPageDescriptor(String path) {
-		return isDescriptorPath(path) && path.endsWith(SLASH_INDEX_FILE);
+		return FilenameUtils.directoryContains(ROOT_PATTERN_PAGES, path) && path.endsWith(SLASH_INDEX_FILE);
 	}
 }
