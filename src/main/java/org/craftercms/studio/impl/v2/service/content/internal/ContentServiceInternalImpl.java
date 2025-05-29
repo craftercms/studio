@@ -508,6 +508,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems, commitId);
 
 			// Publish events
+			eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 			eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
 
 			// Return the WriteContentResult
@@ -531,6 +532,30 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
+	 * Calculate the missing folders for a move operation
+	 * Missing folders are the newly created paths that need empty file added to the repo
+	 */
+	protected Set<String> getMissingFoldersForMove(String siteId, Collection<ContentLifeCycleItem> lifeCycleItems) {
+		return lifeCycleItems.stream()
+			.filter(item -> item.sourcePath() == null)
+			.flatMap(item -> calculateMissingFolders(siteId, item.repoPath()).stream())
+			.collect(toSet());
+	}
+
+	/**
+	 * Calculate "additional items" for a move operation.
+	 * Additional items are the items that were either amended or added by the life cycle,
+	 * so they need to be added after the original items are moved.
+	 */
+	protected Map<String, ContentLifeCycleItem> calculateAdditionalItemsForMove(Map<String, ContentLifeCycleItem> lifeCycleItems,
+																				Set<String> sourcePathChildren) {
+		return lifeCycleItems.entrySet().stream()
+			.filter(entry -> entry.getValue().amended() || !sourcePathChildren.contains(entry.getValue().sourcePath()))
+			.collect(toMap(Entry::getKey, Entry::getValue));
+
+	}
+
+	/**
 	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
 	 * the value is the operation performed
 	 */
@@ -550,6 +575,27 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			operationsByPath.put(item.repoPath(), operation);
 		}
 		return operationsByPath;
+	}
+
+	/**
+	 * Creates a map out of the paths, where the key is the path and
+	 * the value is the operation performed.
+	 * The operation is RENAME is the sourcePathChildren contains the sourcePath,
+	 * otherwise it is UPDATE if the content exists at the path, or NEW if it does not
+	 */
+	protected Map<String, LifeCycleOperation> getOperationsByPathForMove(String siteId, Map<String, ContentLifeCycleItem> lifeCycleItems,
+																		 Collection<String> sourcePathChildren) {
+		return lifeCycleItems.entrySet().stream()
+			.collect(toMap(Entry<String, ContentLifeCycleItem>::getKey, entry -> {
+				String sourcePath = entry.getValue().sourcePath();
+				if (sourcePathChildren.contains(sourcePath)) {
+					return RENAME;
+				}
+				if (contentExists(siteId, entry.getKey())) {
+					return UPDATE;
+				}
+				return NEW;
+			}));
 	}
 
 	/**
@@ -881,12 +927,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-//	public void renameContentX(String site, String path, String name)
-//		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException, org.craftercms.commons.validation.ValidationException {
-//		logger.debug("rename path {} to new name {} for site {}", path, name, site);
-//		contentServiceV1.renameContent(site, path, name);
-//	}
-
 	@Override
 	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
@@ -896,7 +936,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void move(final String siteId, final String from, final String to)
+	public WriteContentResult move(final String siteId, final String from, final String to)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		if (contentExists(siteId, to)) {
 			throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
@@ -922,73 +962,71 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
-			moveInternal(siteId, sourcePath, targetPath);
+			return moveInternal(siteId, sourcePath, targetPath);
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
 	}
 
-	protected void moveInternal(final String siteId, final String sourcePath, final String targetPath) throws ServiceLayerException {
-		// TODO: close the items after consuming
+	protected WriteContentResult moveInternal(final String siteId, final String sourcePath, final String targetPath) throws ServiceLayerException {
 		Site site = siteService.getSite(siteId);
-		Collection<String> sourcePathChildren = itemDao.getChildrenPaths(site.getId(), sourcePath);
-		Map<String, ContentLifeCycleItem> updateItems = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
+		Set<String> sourcePathChildren = new HashSet<>(itemDao.getChildrenPaths(site.getId(), sourcePath));
+		Map<String, ContentLifeCycleItem> lifeCycleItems = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
+		try {
+			Collection<String> workflowAffectedPaths = getMoveWorkflowAffectedPaths(targetPath, lifeCycleItems);
+			validateLifeCycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
+
+			Set<String> newFolders = getMissingFoldersForMove(siteId, lifeCycleItems.values());
+
+			// Items that are either amended or not in the moved paths
+			Map<String, ContentLifeCycleItem> additionalItems = calculateAdditionalItemsForMove(lifeCycleItems, sourcePathChildren);
+			// We need to calculate this before the commit
+			Map<String, LifeCycleOperation> operationsByPath = getOperationsByPathForMove(siteId, lifeCycleItems, sourcePathChildren);
+
+			// commit the rename
+			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
+			if (isEmpty(commitId)) {
+				throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));
+			}
+
+			String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
+			logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
+			try {
+				runInTransaction(transactionManager, transactionId,
+					() -> persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath));
+			} catch (Exception e) {
+				logger.error("Failed to persist move operation for site '{}' source path '{}' target path '{}'", siteId, sourcePath, targetPath, e);
+				throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
+			}
+
+			List<WriteContentResultItem> moveResultItems = lifeCycleItems.values().stream()
+				.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
+				.toList();
+
+			// Audit operation
+			insertWriteContentAudit(siteId, sourcePath, RENAME, moveResultItems, commitId);
+
+			eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
+			eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, sourcePath, targetPath));
+
+			return new WriteContentResult(moveResultItems);
+		} finally {
+			closeLifeCycleItems(lifeCycleItems.values());
+		}
+	}
+
+	/**
+	 * Get the paths that are affected by the move operation.
+	 * This includes the root target path and any other item added during the life cycle.
+	 */
+	protected Collection<String> getMoveWorkflowAffectedPaths(String targetPath, Map<String, ContentLifeCycleItem> lifeCycleItems) {
 		List<String> workflowAffectedPaths = new ArrayList<>();
 		workflowAffectedPaths.add(targetPath);
 		// The affected paths are the targetPath plus any other items that might have been added by the lifecycle
-		workflowAffectedPaths.addAll(updateItems.keySet().stream()
+		workflowAffectedPaths.addAll(lifeCycleItems.keySet().stream()
 			.filter(path -> !directoryContains(targetPath, path))
 			.toList());
-
-		validateLifeCycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
-
-		Set<String> newFolders = workflowAffectedPaths.stream()
-			.flatMap(path -> calculateMissingFolders(siteId, path).stream())
-			.filter(path -> !directoryContains(targetPath, path))
-			.collect(toSet());
-
-		// Items that are either amended or outside the moved path
-		Map<String, ContentLifeCycleItem> additionalItems = updateItems.entrySet().stream()
-			.filter(entry -> entry.getValue().amended() || !directoryContains(targetPath, entry.getKey()))
-			.collect(toMap(Entry::getKey, Entry::getValue));
-
-		// We need to calculate this before the commit
-		Map<String, LifeCycleOperation> operationsByPath = updateItems.keySet().stream()
-			.collect(toMap(identity(), p -> {
-				if (directoryContains(targetPath, p)) {
-					return RENAME;
-				}
-				if (contentExists(siteId, p)) {
-					return UPDATE;
-				}
-				return NEW;
-			}));
-
-		// commit the rename
-		String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
-		if (isEmpty(commitId)) {
-			throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));
-		}
-
-		String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
-		logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
-		try {
-			runInTransaction(transactionManager, transactionId,
-				() -> persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath));
-		} catch (Exception e) {
-			throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
-		}
-
-
-		List<WriteContentResultItem> moveResultItems = updateItems.values().stream()
-			.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
-			.toList();
-
-		// Audit operation
-		insertWriteContentAudit(siteId, sourcePath, RENAME, moveResultItems, commitId);
-
-		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
-		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, sourcePath, targetPath));
+		return workflowAffectedPaths;
 	}
 
 	/**
@@ -1057,42 +1095,57 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private Map<String, ContentLifeCycleItem> runLifeCycleForMove(String siteId, String sourcePath, String targetPath,
 																  Collection<String> sourcePathChildren) throws ServiceLayerException {
 		Item sourceItem = itemService.getItem(siteId, sourcePath, true);
-		String contentType = sourceItem.getSystemType();
-		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
+		String systemType = sourceItem.getSystemType();
+		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(systemType)) {
 			throw new ServiceLayerException(format("Failed to rename content at site '%s' path '%s' " +
-				"with content type '%s'", siteId, sourceItem, contentType));
+				"with content type '%s'", siteId, sourceItem, systemType));
 		}
-
 		Map<String, ContentLifeCycleItem> updateItems = new HashMap<>();
-		for (String itemSourcePath : sourcePathChildren) {
-			ContentLifeCycle lifeCycle;
-			LifeCycleContent lifeCycleContent;
-			String itemTargetPath = itemSourcePath.replace(sourcePath, targetPath);
+		try {
+			for (String itemSourcePath : sourcePathChildren) {
+				ContentLifeCycle lifeCycle;
+				String itemTargetPath = itemSourcePath.replace(sourcePath, targetPath);
+				String itemContentType = null;
+				if (isDescriptorPath(itemSourcePath)) {
+					Item item = itemService.getItem(siteId, itemSourcePath);
+					itemContentType = item.getContentTypeId();
+					lifeCycle = contentLifeCycle;
+				} else {
+					lifeCycle = assetLifeCycle;
+				}
 
-			String itemContentType = null;
-			if (isDescriptorPath(itemSourcePath)) {
-				Item item = itemService.getItem(siteId, itemSourcePath);
-				itemContentType = item.getContentTypeId();
-				lifeCycle = contentLifeCycle;
-			} else {
-				lifeCycle = assetLifeCycle;
+				LifeCycleContent lifeCycleContent;
+				// TODO: Change LifeCycleContent to accept a Path supplier (or InputStream supplier?? )
+				ThrowingSupplier<Path> tmpFile = () -> createTempFile(itemSourcePath, loadContent(siteId, itemSourcePath));
+				try {
+					lifeCycleContent = new LifeCycleContent(itemTargetPath, itemSourcePath, itemContentType, tmpFile.getWithException(), RENAME);
+					lifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
+				} catch (Exception e) {
+					logger.error("Failed to execute life cycle for siteId '{}' path '{}'", siteId, itemSourcePath, e);
+					throw new ServiceLayerException(format("Failed to execute life cycle for siteId '%s' path '%s'", siteId, itemSourcePath), e);
+				}
+				for (ContentLifeCycleItem lifeCycleItem : lifeCycleContent.getItems().values()) {
+					updateItems.put(lifeCycleItem.repoPath(), lifeCycleItem);
+				}
 			}
-			// TODO: Change LifeCycleContent to accept a Path supplier (or InputStream supplier?? )
-			ThrowingSupplier<Path> tmpFile = () -> createTempFile(itemSourcePath, loadContent(siteId, itemSourcePath));
-			try {
-				lifeCycleContent = new LifeCycleContent(itemTargetPath, itemSourcePath, itemContentType, tmpFile.getWithException(), RENAME);
-				lifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
-			} catch (Exception e) {
-				logger.error("Failed to execute life cycle for siteId '{}' path '{}'", siteId, itemSourcePath, e);
-				throw new ServiceLayerException(format("Failed to execute life cycle for siteId '%s' path '%s'", siteId, itemSourcePath), e);
-			}
-			for (ContentLifeCycleItem lifeCycleItem : lifeCycleContent.getItems().values()) {
-				// We need to track the new content from the life cycle.
-				// That is amended (main item) or items added to the lifecycle content
-				updateItems.put(lifeCycleItem.repoPath(), lifeCycleItem);
-			}
+		} catch (Exception e) {
+			closeLifeCycleItems(updateItems.values());
+			throw e;
 		}
 		return updateItems;
+	}
+
+	/**
+	 * Quietly close the life cycle items.
+	 */
+	protected void closeLifeCycleItems(Collection<ContentLifeCycleItem> updateItems) {
+		for (ContentLifeCycleItem updateItem : updateItems) {
+			try {
+				updateItem.close();
+			} catch (Exception e) {
+				logger.debug("Failed to close life cycle item for path '{}'", updateItem.repoPath(), e);
+			}
+		}
 	}
 
 	@Override

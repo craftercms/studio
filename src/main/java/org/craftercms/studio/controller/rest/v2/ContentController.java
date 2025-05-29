@@ -305,8 +305,9 @@ public class ContentController {
 	@PostMapping(value = MOVE, consumes = APPLICATION_JSON_VALUE)
 	public Result move(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody MoveRequestBody moveRequestBody)
 		throws AuthenticationException, UserNotFoundException, ServiceLayerException, ValidationException {
-		contentService.move(siteId, moveRequestBody.getSourcePath(), moveRequestBody.getTargetPath());
-		var result = new Result();
+		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(
+			contentService.move(siteId, moveRequestBody.getSourcePath(), moveRequestBody.getTargetPath())
+		);
 		result.setResponse(OK);
 		return result;
 	}

@@ -205,9 +205,9 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@ValidateAction(type = Type.MOVE)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-	public void move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
+	public WriteContentResult move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		contentServiceInternal.move(siteId, sourcePath, targetPath);
+		return contentServiceInternal.move(siteId, sourcePath, targetPath);
 	}
 
 	@Override

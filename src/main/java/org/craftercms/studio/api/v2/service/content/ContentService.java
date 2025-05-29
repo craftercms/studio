@@ -267,11 +267,12 @@ public interface ContentService {
 	 * @param siteId     the site id
 	 * @param sourcePath the source path
 	 * @param targetPath the target path
+	 * @return {@link WriteContentResult} object containing the affected paths
 	 * @throws ServiceLayerException   if there is an error moving the content
 	 * @throws UserNotFoundException   if the current user is not found
 	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
 	 */
-	void move(String siteId, String sourcePath, String targetPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+	WriteContentResult move(String siteId, String sourcePath, String targetPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Returns content wrapped as a {@link Resource} instance
