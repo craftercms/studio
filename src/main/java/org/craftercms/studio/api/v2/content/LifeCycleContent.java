@@ -122,6 +122,11 @@ public class LifeCycleContent implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Get the content life cycle items.
+	 *
+	 * @return a map of content life cycle items, where the key is the repository path
+	 */
 	public Map<String, ContentLifeCycleItem> getItems() {
 		return unmodifiableMap(items);
 	}

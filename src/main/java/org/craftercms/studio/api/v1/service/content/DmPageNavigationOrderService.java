@@ -53,4 +53,13 @@ public interface DmPageNavigationOrderService {
 	void deleteSequencesForSite(String site);
 
 	int getPageNavigationOrderIncrement();
+
+	/**
+	 * Moves the navigation order from one path to another.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the previous path to update
+	 * @param targetPath the new path
+	 */
+	void move(String siteId, String sourcePath, String targetPath);
 }

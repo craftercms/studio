@@ -25,9 +25,15 @@ import java.util.List;
  */
 public class WriteContentResult {
 	private final List<WriteContentResultItem> items;
+	private final String commitId;
 
-	public WriteContentResult(final List<WriteContentResultItem> items) {
+	public WriteContentResult(String commitId, final List<WriteContentResultItem> items) {
+		this.commitId = commitId;
 		this.items = items;
+	}
+
+	public String getCommitId() {
+		return commitId;
 	}
 
 	public List<WriteContentResultItem> getItems() {

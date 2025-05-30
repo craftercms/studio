@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.function.ThrowingSupplier;
 
 /**
  * Utility class for database-related operations.
@@ -37,28 +38,52 @@ public class DBUtils {
 	 * @param transactionManager The transaction manager
 	 * @param transactionName    The name of the transaction
 	 * @param runnable           The runnable to execute
-	 * @throws RuntimeException wrapping any exception thrown by the runnable
+	 * @throws Exception any exception thrown by the runnable
 	 */
 	public static void runInTransaction(final PlatformTransactionManager transactionManager,
-					    final String transactionName,
-					    final ThrowingRunnable runnable) throws Exception {
+										final String transactionName,
+										final ThrowingRunnable runnable) throws Exception {
+		runInTransaction(transactionManager, transactionName, () -> {
+			runnable.run();
+			return null; // Return null since we are not expecting a result
+		});
+	}
+
+	/**
+	 * Execute a runnable in a transaction.
+	 * This method will use the provided transactionManager to run the given supplier in a transaction. It will
+	 * be automatically committed (or rolled back if an exception is thrown).
+	 * After transaction is complete, this method will rethrow any exception thrown by the runnable.
+	 * If no exception is thrown, the result of the runnable will be returned.
+	 *
+	 * @param transactionManager The transaction manager
+	 * @param transactionName    The name of the transaction
+	 * @param supplier           The supplier to execute
+	 * @return the result of the supplier
+	 * @throws Exception any exception thrown by the runnable
+	 */
+	public static <T> T runInTransaction(final PlatformTransactionManager transactionManager,
+										 final String transactionName,
+										 final ThrowingSupplier<T> supplier) throws Exception {
 		Wrapper<Exception> exception = new Wrapper<>();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 		transactionTemplate.setName(transactionName);
-		transactionTemplate.executeWithoutResult(status -> {
+		T result = transactionTemplate.execute(status -> {
 			logger.trace("Starting transaction '{}'", status.getTransactionName());
 			try {
-				runnable.run();
+				return supplier.getWithException();
 			} catch (Exception e) {
 				logger.trace("Error occurred during transaction '{}', rolling back", status.getTransactionName(), e);
 				exception.set(e);
 			}
+			return null;
 		});
 		if (exception.hasValue()) {
 			logger.error("Error occurred during transaction '{}', rolling back", transactionName, exception.get());
 			throw exception.get();
 		}
 		logger.trace("Completed transaction '{}'", transactionName);
+		return result;
 	}
 
 	/**

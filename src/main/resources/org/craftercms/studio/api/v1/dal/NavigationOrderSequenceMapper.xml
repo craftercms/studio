@@ -54,4 +54,13 @@
 		FROM navigation_order_sequence
 		WHERE site = #{site}
 	</delete>
+
+	<update id="move">
+		UPDATE navigation_order_sequence
+		SET path = REPLACE(path, #{sourcePath}, #{targetPath})
+		WHERE site = #{site}
+		AND (path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
+			OR path = #{sourcePath})
+
+	</update>
 </mapper>

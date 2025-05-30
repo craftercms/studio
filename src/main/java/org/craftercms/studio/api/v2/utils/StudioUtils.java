@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
+import static org.apache.commons.io.FilenameUtils.directoryContains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
@@ -195,7 +196,6 @@ public abstract class StudioUtils {
 		return path.startsWith(DESCRIPTOR_ROOT_PATH);
 	}
 
-
 	/**
 	 * Check if the given path is a page /index.xml file
 	 *
@@ -203,6 +203,16 @@ public abstract class StudioUtils {
 	 * @return true if the path is a page, false otherwise
 	 */
 	public static boolean isPageDescriptor(String path) {
-		return FilenameUtils.directoryContains(ROOT_PATTERN_PAGES, path) && path.endsWith(SLASH_INDEX_FILE);
+		return isPagePath(path) && path.endsWith(SLASH_INDEX_FILE);
+	}
+
+	/**
+	 * Check if a path is a page path, i.e. it starts with /site/website/
+	 *
+	 * @param path the path to check
+	 * @return true if the path is a page path, false otherwise
+	 */
+	public static boolean isPagePath(String path) {
+		return directoryContains(ROOT_PATTERN_PAGES, path);
 	}
 }

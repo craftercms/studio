@@ -103,6 +103,7 @@ import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.*;
@@ -413,7 +414,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			try {
 				Document document = convertStreamToXml(content);
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
-				pageNavOrderService.updateNavOrder(siteId, path, document);
+				if (isPageDescriptor(path)) {
+					pageNavOrderService.updateNavOrder(siteId, path, document);
+				}
 				Path tmpFile = createTempFile(path, document);
 				lifeCycleContent = new LifeCycleContent(path, contentType, tmpFile, operation);
 				lifeCycle = contentLifeCycle;
@@ -505,14 +508,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			List<WriteContentResultItem> writeResultItems = persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
 
 			// Audit write operation
-			insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems, commitId);
+			insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems.stream().map(WriteContentResultItem::path).toList(), commitId);
 
 			// Publish events
 			eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 			eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
 
 			// Return the WriteContentResult
-			return new WriteContentResult(writeResultItems);
+			return new WriteContentResult(commitId, writeResultItems);
 		} catch (IOException e) {
 			throw new ServiceLayerException("Failed to write content to repository from InputStream", e);
 		}
@@ -552,7 +555,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return lifeCycleItems.entrySet().stream()
 			.filter(entry -> entry.getValue().amended() || !sourcePathChildren.contains(entry.getValue().sourcePath()))
 			.collect(toMap(Entry::getKey, Entry::getValue));
-
 	}
 
 	/**
@@ -639,7 +641,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			boolean isPage = path.startsWith(DmConstants.ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
 			String parentItemPath;
 			if (isPage) {
-				parentItemPath = getParentUrl(removeEnd(path, DmConstants.SLASH_INDEX_FILE));
+				parentItemPath = getParentUrl(removeEnd(path, SLASH_INDEX_FILE));
 			} else {
 				parentItemPath = getParentUrl(path);
 			}
@@ -720,14 +722,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	/**
 	 * Insert an audit log entry for the write operation
 	 *
-	 * @param siteId           the site id
-	 * @param path             the path
-	 * @param operation        the operation performed
-	 * @param writeResultItems the write result items
-	 * @param commitId         the commit id
+	 * @param siteId       the site id
+	 * @param path         the path
+	 * @param operation    the operation performed
+	 * @param writtenPaths the paths that were written to the repository
+	 * @param commitId     the commit id
 	 */
 	protected void insertWriteContentAudit(String siteId, String path, LifeCycleOperation operation,
-										   List<WriteContentResultItem> writeResultItems, String commitId) throws SiteNotFoundException {
+										   List<String> writtenPaths, String commitId) throws SiteNotFoundException {
 		Site site = siteService.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
 		switch (operation) {
@@ -743,17 +745,16 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		auditLog.setPrimaryTargetValue(path);
 		auditLog.setCommitId(commitId);
 
-		List<AuditLogParameter> auditLogParameters = new ArrayList<>(writeResultItems.size());
-		for (WriteContentResultItem item : writeResultItems) {
-			if (item.path().equals(path)) {
-				continue;
-			}
-			AuditLogParameter auditLogParameter = new AuditLogParameter();
-			auditLogParameter.setTargetId(getContentItemId(site.getSiteId(), item.path()));
-			auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-			auditLogParameter.setTargetValue(item.path());
-			auditLogParameters.add(auditLogParameter);
-		}
+		List<AuditLogParameter> auditLogParameters = writtenPaths.stream()
+			.filter(itemPath -> !StringUtils.equals(itemPath, path))
+			.map(itemPath -> {
+				AuditLogParameter auditLogParameter = new AuditLogParameter();
+				auditLogParameter.setTargetId(getContentItemId(site.getSiteId(), itemPath));
+				auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+				auditLogParameter.setTargetValue(itemPath);
+				return auditLogParameter;
+			})
+			.toList();
 		auditLog.setParameters(auditLogParameters);
 		auditService.insertAuditLog(auditLog);
 	}
@@ -984,25 +985,48 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				"because an item already exists in target location '%s'.", from, siteId, to));
 		}
 
-		String sourcePath = from;
-		String targetPath = to;
-		if (isPageDescriptor(sourcePath) || isPageDescriptor(targetPath)) {
+		String sourcePath;
+		String targetPath;
+		if (isPageDescriptor(from) || isPageDescriptor(to)) {
 			// Normalize the paths. If we're moving a page we need to move the folder anyway
-			sourcePath = removeEnd(sourcePath, DmConstants.SLASH_INDEX_FILE);
-			targetPath = removeEnd(targetPath, DmConstants.SLASH_INDEX_FILE);
+			sourcePath = removeEnd(from, SLASH_INDEX_FILE);
+			targetPath = removeEnd(to, SLASH_INDEX_FILE);
+		} else {
+			sourcePath = from;
+			targetPath = to;
 		}
 		validateMoveOperation(siteId, sourcePath, targetPath);
 
+		WriteContentResult writeContentResult;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
-			return moveInternal(siteId, sourcePath, targetPath);
+			String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
+			logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
+
+			writeContentResult = runInTransaction(transactionManager, transactionId, () -> moveInternal(siteId, sourcePath, targetPath));
+		} catch (Exception e) {
+			logger.error("Failed to persist move operation for site '{}' source path '{}' target path '{}'", siteId, sourcePath, targetPath, e);
+			throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
+
+		// Audit operation
+		insertWriteContentAudit(siteId, sourcePath, RENAME, writeContentResult.getItems().stream().map(WriteContentResultItem::path).toList(), writeContentResult.getCommitId());
+
+		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
+		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, sourcePath, targetPath));
+
+		return writeContentResult;
 	}
 
-	protected WriteContentResult moveInternal(final String siteId, final String sourcePath, final String targetPath) throws ServiceLayerException {
+	protected WriteContentResult moveInternal(final String siteId, final String sourcePath, final String targetPath)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		if (isPagePath(sourcePath)) {
+			pageNavOrderService.move(siteId, sourcePath, targetPath);
+		}
+
 		Site site = siteService.getSite(siteId);
 		Set<String> sourcePathChildren = new HashSet<>(itemDao.getChildrenPaths(site.getId(), sourcePath));
 		Map<String, ContentLifeCycleItem> lifeCycleItems = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
@@ -1022,28 +1046,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			if (isEmpty(commitId)) {
 				throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));
 			}
-
-			String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
-			logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
-			try {
-				runInTransaction(transactionManager, transactionId,
-					() -> persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath));
-			} catch (Exception e) {
-				logger.error("Failed to persist move operation for site '{}' source path '{}' target path '{}'", siteId, sourcePath, targetPath, e);
-				throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
-			}
+			persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath);
 
 			List<WriteContentResultItem> moveResultItems = lifeCycleItems.values().stream()
 				.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 				.toList();
-
-			// Audit operation
-			insertWriteContentAudit(siteId, sourcePath, RENAME, moveResultItems, commitId);
-
-			eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
-			eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, sourcePath, targetPath));
-
-			return new WriteContentResult(moveResultItems);
+			return new WriteContentResult(commitId, moveResultItems);
 		} finally {
 			closeLifeCycleItems(lifeCycleItems.values());
 		}
@@ -1084,9 +1092,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 		persistItemMove(site.getSiteId(), sourcePath, targetPath, parentItem.getId(), label);
 
-		String targetPageUrl = targetPath + DmConstants.SLASH_INDEX_FILE;
+		String targetPageUrl = targetPath + SLASH_INDEX_FILE;
 		if (isPageDescriptor(targetPageUrl)) {
-			persistItemMove(site.getSiteId(), sourcePath + DmConstants.SLASH_INDEX_FILE, targetPageUrl, parentItem.getId(), null);
+			persistItemMove(site.getSiteId(), sourcePath + SLASH_INDEX_FILE, targetPageUrl, parentItem.getId(), null);
 		}
 
 		// Update the children of the moved item
@@ -1127,7 +1135,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws ServiceLayerException if there is an error running the life cycle
 	 */
 	private Map<String, ContentLifeCycleItem> runLifeCycleForMove(String siteId, String sourcePath, String targetPath,
-																  Collection<String> sourcePathChildren) throws ServiceLayerException {
+																  Set<String> sourcePathChildren) throws ServiceLayerException {
 		Item sourceItem = itemService.getItem(siteId, sourcePath, true);
 		String systemType = sourceItem.getSystemType();
 		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(systemType)) {
@@ -1158,15 +1166,47 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					logger.error("Failed to execute life cycle for siteId '{}' path '{}'", siteId, itemSourcePath, e);
 					throw new ServiceLayerException(format("Failed to execute life cycle for siteId '%s' path '%s'", siteId, itemSourcePath), e);
 				}
+				updateNavOrderForMove(siteId, itemTargetPath, lifeCycleContent, sourcePathChildren);
 				for (ContentLifeCycleItem lifeCycleItem : lifeCycleContent.getItems().values()) {
 					updateItems.put(lifeCycleItem.repoPath(), lifeCycleItem);
 				}
 			}
 		} catch (Exception e) {
 			closeLifeCycleItems(updateItems.values());
-			throw e;
+			throw new ServiceLayerException(format("Failed to run life cycle for move operation for site '%s' source path '%s' target path '%s'",
+				siteId, sourcePath, targetPath), e);
 		}
 		return updateItems;
+	}
+
+	/**
+	 * Update the navigation order for the moved items.
+	 * This method will update the navigation order for all page items that are not in the sourcePathChildren set
+	 * Notice that the ones in the sourcePathChildren set are the ones that were moved, so they do not need to be
+	 * updated (because they have the same parent)
+	 *
+	 * @param siteId             the site id
+	 * @param targetPath         the root target path of the move operation
+	 * @param lifeCycleContent   the life cycle content containing the items to update
+	 * @param sourcePathChildren the set of source path children that were moved
+	 * @throws DocumentException if there is an error parsing the document
+	 * @throws IOException       if there is an error reading the document or writing it back to the lifeCycleContent
+	 */
+	protected void updateNavOrderForMove(String siteId, String targetPath, LifeCycleContent lifeCycleContent, Set<String> sourcePathChildren)
+		throws DocumentException, IOException {
+		List<ContentLifeCycleItem> itemsToUpdate =
+			lifeCycleContent.getItems().values().stream()
+				.filter(item -> isPageDescriptor(item.sourcePath()))
+				// Update the nav order if the item is the root of the move operation OR if it was added by the life cycle
+				.filter(item -> StringUtils.equals(targetPath, removeEnd(item.repoPath(), SLASH_INDEX_FILE))
+					|| !sourcePathChildren.contains(item.sourcePath()))
+				.toList();
+		for (ContentLifeCycleItem navUpdated : itemsToUpdate) {
+			Document document = navUpdated.contentAsDocument();
+			if (pageNavOrderService.updateNavOrder(siteId, navUpdated.repoPath(), document)) {
+				lifeCycleContent.write(navUpdated.repoPath(), document);
+			}
+		}
 	}
 
 	/**

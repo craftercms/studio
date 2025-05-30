@@ -175,6 +175,11 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 		return toReturn;
 	}
 
+	@Override
+	public void move(String siteId, String sourcePath, String targetPath) {
+		retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.move(siteId, sourcePath, targetPath));
+	}
+
 	public GeneralLockService getGeneralLockService() {
 		return generalLockService;
 	}
