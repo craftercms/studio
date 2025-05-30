@@ -16,12 +16,10 @@
 
 package org.craftercms.studio.api.v2.content;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.dom4j.Document;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
+import static org.craftercms.studio.api.v2.content.LifeCycleContentProvider.ofPath;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
 /**
@@ -45,30 +44,30 @@ public class LifeCycleContent implements AutoCloseable {
 	/**
 	 * Constructor for creating a new LifecycleContent object.
 	 *
-	 * @param repoPath    the path to the content item in the repository
-	 * @param sourcePath  source path for move operations
-	 * @param contentType the content type of the item
-	 * @param content     the content to be written
-	 * @param operation   the life cycle operation to be performed
+	 * @param repoPath        the path to the content item in the repository
+	 * @param sourcePath      source path for move operations
+	 * @param contentType     the content type of the item
+	 * @param contentProvider provider to get the content from
+	 * @param operation       the life cycle operation to be performed
 	 */
-	public LifeCycleContent(String repoPath, String sourcePath, String contentType, Path content, LifeCycleOperation operation) {
+	public LifeCycleContent(String repoPath, String sourcePath, String contentType, LifeCycleContentProvider contentProvider, LifeCycleOperation operation) {
 		this.items = new HashMap<>();
 		this.repoPath = repoPath;
 		this.operation = operation;
 		this.contentType = contentType;
-		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, sourcePath, content));
+		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, sourcePath, contentProvider));
 	}
 
 	/**
 	 * Constructor for creating a new LifecycleContent object.
 	 *
-	 * @param repoPath    the path to the content item in the repository
-	 * @param contentType the content type of the item
-	 * @param content     the content to be written
-	 * @param operation   the life cycle operation to be performed
+	 * @param repoPath        the path to the content item in the repository
+	 * @param contentType     the content type of the item
+	 * @param contentProvider provider to get the content from
+	 * @param operation       the life cycle operation to be performed
 	 */
-	public LifeCycleContent(String repoPath, String contentType, Path content, LifeCycleOperation operation) {
-		this(repoPath, null, contentType, content, operation);
+	public LifeCycleContent(String repoPath, String contentType, LifeCycleContentProvider contentProvider, LifeCycleOperation operation) {
+		this(repoPath, null, contentType, contentProvider, operation);
 	}
 
 	/**
@@ -106,7 +105,7 @@ public class LifeCycleContent implements AutoCloseable {
 		// Remove the temporary file if it exists
 		exclude(normalizedPath);
 		// Add a new entry with amended=<path is the same as the original repoPath>
-		this.items.put(normalizedPath, new ContentLifeCycleItem(normalizedPath, filePath, repoPath.equals(normalizedPath)));
+		this.items.put(normalizedPath, new ContentLifeCycleItem(normalizedPath, ofPath(() -> filePath), repoPath.equals(normalizedPath)));
 	}
 
 	/**
@@ -117,8 +116,8 @@ public class LifeCycleContent implements AutoCloseable {
 	 */
 	private void exclude(final String path) {
 		ContentLifeCycleItem removed = items.remove(path);
-		if (removed != null && removed.filePath() != null) {
-			FileUtils.deleteQuietly(removed.filePath().toFile());
+		if (removed != null) {
+			removed.close();
 		}
 	}
 
@@ -167,39 +166,75 @@ public class LifeCycleContent implements AutoCloseable {
 	/**
 	 * Represents a content life cycle item.
 	 *
-	 * @param repoPath the path in the repository where the content will be stored (or deleted from)
-	 * @param filePath the path to the temporary file currently storing the content to be written
-	 * @param amended  true if the content has been amended by the controller, false otherwise
+	 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
+	 * @param contentProvider provider to access the content as stream
+	 * @param amended         true if the content has been amended by the controller, false otherwise
 	 */
-	public record ContentLifeCycleItem(String repoPath, String sourcePath, Path filePath,
-									   boolean amended) implements ContentWriteItem {
+	public record ContentLifeCycleItem(String repoPath, String sourcePath, LifeCycleContentProvider contentProvider,
+									   boolean amended) implements ContentWriteItem, AutoCloseable {
 
-		public ContentLifeCycleItem(String repoPath, Path filePath) {
-			this(repoPath, filePath, false);
+		/**
+		 * Constructor for creating a new ContentLifeCycleItem.
+		 *
+		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
+		 * @param contentProvider provider to access the content as stream
+		 */
+		public ContentLifeCycleItem(String repoPath, LifeCycleContentProvider contentProvider) {
+			this(repoPath, contentProvider, false);
 		}
 
-		public ContentLifeCycleItem(String repoPath, Path filePath, boolean amended) {
-			this(repoPath, null, filePath, amended);
+		/**
+		 * Constructor for creating a new ContentLifeCycleItem.
+		 *
+		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
+		 * @param contentProvider provider to access the content as stream
+		 * @param amended         true if the content has been amended by the controller, false otherwise
+		 */
+		public ContentLifeCycleItem(String repoPath, LifeCycleContentProvider contentProvider, boolean amended) {
+			this(repoPath, null, contentProvider, amended);
 		}
 
-		public ContentLifeCycleItem(String repoPath, String sourcePath, Path filePath) {
-			this(repoPath, sourcePath, filePath, false);
+		/**
+		 * Constructor for creating a new ContentLifeCycleItem.
+		 *
+		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
+		 * @param sourcePath      the source path for move/copy operations
+		 * @param contentProvider provider to access the content as stream
+		 */
+		public ContentLifeCycleItem(String repoPath, String sourcePath, LifeCycleContentProvider contentProvider) {
+			this(repoPath, sourcePath, contentProvider, false);
 		}
 
 		@Override
-		public InputStream content() throws FileNotFoundException {
-			if (filePath == null) {
+		public InputStream content() throws IOException {
+			if (contentProvider == null) {
 				throw new FileNotFoundException("No content file available for " + repoPath);
 			}
-			return new FileInputStream(filePath.toFile());
-		}
-
-		public void close() {
-			if (filePath != null) {
-				FileUtils.deleteQuietly(filePath.toFile());
+			try {
+				return contentProvider.getContent();
+			} catch (Exception e) {
+				throw new IOException("Failed to get content for " + repoPath, e);
 			}
 		}
+
+		@Override
+		public void close() {
+			if (contentProvider != null) {
+				contentProvider.close();
+			}
+		}
+
+		/**
+		 * Get a {@link Path} for the content item
+		 *
+		 * @return Path for the content
+		 * @throws IOException if there is an error retrieving the pah
+		 */
+		public Path filePath() throws IOException {
+			return contentProvider.filePath();
+		}
 	}
+
 
 	/**
 	 * The life cycle operation to be performed on the content.

@@ -34,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static org.craftercms.studio.api.v2.content.LifeCycleContentProvider.ofPath;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -96,7 +98,7 @@ public class AssetLifeCycleImplTest {
 	}
 
 	@Test
-	public void testExecuteWithValidPipelines() throws ServiceLayerException {
+	public void testExecuteWithValidPipelines() throws ServiceLayerException, IOException {
 		InputStream configIn = mock(InputStream.class);
 		ProcessorPipelineConfiguration pipelineConfig = mock(ProcessorPipelineConfiguration.class);
 		Asset outputAsset = mock(Asset.class);
@@ -115,7 +117,7 @@ public class AssetLifeCycleImplTest {
 		when(lifeCycleContent.getRepoPath()).thenReturn("/path/to/asset");
 		when(lifeCycleContent.getItems()).thenReturn(lifeCycleContentItems);
 		doAnswer(a -> {
-			lifeCycleContentItems.put(a.getArgument(0), new ContentLifeCycleItem(a.getArgument(0), a.getArgument(1)));
+			lifeCycleContentItems.put(a.getArgument(0), new ContentLifeCycleItem(a.getArgument(0), ofPath(() -> a.getArgument(1))));
 			return null;
 		}).when(lifeCycleContent).write(anyString(), any(Path.class));
 		doReturn(item).when(lifeCycleContent).get("/path/to/asset");

@@ -82,7 +82,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.MimeType;
-import org.springframework.util.function.ThrowingSupplier;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -107,6 +106,8 @@ import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.*;
+import static org.craftercms.studio.api.v2.content.LifeCycleContentProvider.ofPath;
+import static org.craftercms.studio.api.v2.content.LifeCycleContentProvider.ofStream;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -417,22 +418,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				if (isPageDescriptor(path)) {
 					pageNavOrderService.updateNavOrder(siteId, path, document);
 				}
-				Path tmpFile = createTempFile(path, document);
-				lifeCycleContent = new LifeCycleContent(path, contentType, tmpFile, operation);
+				lifeCycleContent = new LifeCycleContent(path, contentType, ofPath(() -> createTempFile(path, document)), operation);
 				lifeCycle = contentLifeCycle;
 			} catch (DocumentException e) {
 				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
-			} catch (IOException e) {
-				throw new ServiceLayerException(format("Error writing content to temporary file for site '%s' path '%s'", siteId, path), e);
 			}
 		} else {
-			try {
-				Path tmpFile = createTempFile(path, content);
-				lifeCycleContent = new LifeCycleContent(path, null, tmpFile, operation);
-				lifeCycle = assetLifeCycle;
-			} catch (IOException e) {
-				throw new ServiceLayerException(format("Error creating temporary file for content write site '%s' path '%s'", siteId, path), e);
-			}
+			lifeCycleContent = new LifeCycleContent(path, null, ofStream(path, () -> content), operation);
+			lifeCycle = assetLifeCycle;
 		}
 
 		try {
@@ -1157,10 +1150,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				}
 
 				LifeCycleContent lifeCycleContent;
-				// TODO: Change LifeCycleContent to accept a Path supplier (or InputStream supplier?? )
-				ThrowingSupplier<Path> tmpFile = () -> createTempFile(itemSourcePath, loadContent(siteId, itemSourcePath));
 				try {
-					lifeCycleContent = new LifeCycleContent(itemTargetPath, itemSourcePath, itemContentType, tmpFile.getWithException(), RENAME);
+					lifeCycleContent = new LifeCycleContent(itemTargetPath, itemSourcePath, itemContentType,
+						// This allows us to lazily provide access to the existing source content
+						// If the content is not access by the life cycle, it will not be loaded and
+						// will just be moved by the content repository later on
+						ofPath(() -> createTempFile(itemTargetPath, loadContent(siteId, itemSourcePath))),
+						RENAME);
+
 					lifeCycle.execute(siteId, lifeCycleContent, this::loadContent);
 				} catch (Exception e) {
 					logger.error("Failed to execute life cycle for siteId '{}' path '{}'", siteId, itemSourcePath, e);

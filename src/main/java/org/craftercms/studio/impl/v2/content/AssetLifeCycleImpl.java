@@ -25,16 +25,19 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.content.ContentLifeCycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;
 import org.craftercms.studio.api.v2.content.LifeCycleContent;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.apache.commons.collections4.IterableUtils.isEmpty;
 
 /**
@@ -76,7 +79,15 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 		}
 
 		String assetPath = lifeCycleContent.getRepoPath();
-		Asset input = new Asset(assetPath, lifeCycleContent.get(assetPath).filePath());
+		Path filePath;
+		try {
+			filePath = lifeCycleContent.get(assetPath).filePath();
+		} catch (Exception e) {
+			logger.error("Failed to create temporary file for asset processing. Site '{}' path '{}'", siteId, assetPath, e);
+			throw new ServiceLayerException(format("Failed to create temporary file for asset processing. Site '%s' path '%s'", siteId, assetPath), e);
+		}
+
+		Asset input = new Asset(assetPath, filePath);
 
 		Set<Asset> outputs = new LinkedHashSet<>();
 		for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
