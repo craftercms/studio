@@ -18,12 +18,22 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
+import org.craftercms.studio.api.v2.content.ContentLifeCycle;
+import org.craftercms.studio.api.v2.content.ContentLoader;
 import org.craftercms.studio.api.v2.content.LifeCycleContent;
 import org.craftercms.studio.api.v2.content.LifeCycleContent.ContentLifeCycleItem;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
@@ -31,15 +41,19 @@ import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.function.ThrowingSupplier;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -47,6 +61,7 @@ import java.util.*;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.NEW;
 import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.UPDATE;
 import static org.junit.Assert.assertEquals;
@@ -78,10 +93,28 @@ public class ContentServiceInternalImplTest {
 	protected ApplicationEventPublisher applicationEventPublisher;
 
 	@Mock
+	protected PlatformTransactionManager transactionManager;
+
+	@Mock
 	protected ItemService itemService;
 
 	@Mock
+	protected ItemDAO itemDAO;
+
+	@Mock
+	protected GeneralLockService generalLockService;
+
+	@Mock
+	protected ContentLifeCycle contentLifeCycle;
+
+	@Mock
+	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+
+	@Mock
 	protected DependencyService dependencyService;
+
+	@Mock
+	protected DmPageNavigationOrderService pageNavOrderService;
 
 	@Mock
 	protected SitesService siteService;
@@ -96,6 +129,9 @@ public class ContentServiceInternalImplTest {
 	public void setUp() throws SiteNotFoundException {
 		when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH)).thenReturn(false);
+		serviceInternal.setApplicationEventPublisher(applicationEventPublisher);
+
+		doNothing().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
 
 		Site site = mock(Site.class);
 		when(site.getSiteId()).thenReturn(SITE_ID);
@@ -261,4 +297,96 @@ public class ContentServiceInternalImplTest {
 		// Verify the result
 		assertEquals(Set.of("/a/b", "/a/b/c"), missingFolders);
 	}
+
+	@Test
+	public void testMovePageSuccess() throws Exception {
+		// Mock content existence
+		String sourcePath = "/site/website/test1/index.xml";
+		String targetPath = "/site/website/test2/index.xml";
+		String sourceFolder = "/site/website/test1";
+		String targetFolder = "/site/website/test2";
+		String commitId = "COMMIT 123";
+		List<String> children = List.of(
+			"/site/website/test1/index.xml",
+			"/site/website/test1/child1/index.xml",
+			"/site/website/test1/child2/index.xml");
+
+		when(contentRepository.contentExists(SITE_ID, sourcePath)).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, targetPath)).thenReturn(false);
+		when(contentRepository.contentExists(SITE_ID, "/site/website")).thenReturn(true);
+
+		when(itemDAO.getChildrenPaths(SITE_NUMERIC_ID, sourceFolder)).thenReturn(children);
+
+		Item sourceItem = mock(Item.class);
+		when(sourceItem.getSystemType()).thenReturn(CONTENT_TYPE_FOLDER);
+		when(itemService.getItem(SITE_ID, sourceFolder, true)).thenReturn(sourceItem);
+		when(itemService.getItem(SITE_ID, sourcePath)).thenReturn(sourceItem);
+
+		Item sourceChild1 = mock(Item.class);
+		Item sourceChild2 = mock(Item.class);
+
+		when(itemService.getItem(SITE_ID, "/site/website/test1/child1/index.xml")).thenReturn(sourceChild1);
+		when(itemService.getItem(SITE_ID, "/site/website/test1/child2/index.xml")).thenReturn(sourceChild2);
+
+		Item targetParentItem = mock(Item.class);
+		when(itemService.getItem(SITE_ID, "/site/website", true)).thenReturn(targetParentItem);
+
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+
+		when(contentRepository.moveContent(any(), any(), any(), any(), any())).thenReturn(commitId);
+
+		WriteContentResult moveResult;
+		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class)) {
+			dbUtilsMock.when(() -> DBUtils.runInTransaction(
+				any(PlatformTransactionManager.class),
+				anyString(),
+				any(ThrowingSupplier.class)
+			)).thenAnswer(invocation -> {
+				// Simulate transaction behavior
+				ThrowingSupplier supplier = invocation.getArgument(2);
+				return supplier.getWithException();
+			});
+			moveResult = serviceInternal.move(SITE_ID, sourcePath, targetPath);
+		}
+
+		assertEquals("Commit ID should match", commitId, moveResult.getCommitId());
+		assertEquals("Number of items should match", 3, moveResult.getItems().size());
+
+		verify(contentRepository, times(1)).moveContent(eq(SITE_ID), eq(sourceFolder), eq(targetFolder), anyCollection(), anySet());
+
+		verify(pageNavOrderService).move(SITE_ID, sourceFolder, targetFolder);
+
+		verify(contentLifeCycle, times(3)).execute(
+			anyString(), any(LifeCycleContent.class), any(ContentLoader.class)
+		);
+	}
+
+	@Test(expected = ContentNotFoundException.class)
+	public void testMoveSourcePathNotFound() throws Exception {
+		// Mock content existence
+		when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(false);
+
+		// Call the method
+		serviceInternal.move(SITE_ID, PATH, "/new/path");
+	}
+
+	@Test(expected = ContentExistException.class)
+	public void testMoveTargetPathExists() throws Exception {
+		// Mock content existence
+		when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/new/path")).thenReturn(true);
+
+		// Call the method
+		serviceInternal.move(SITE_ID, PATH, "/new/path");
+	}
+
+	@Test(expected = InvalidParametersException.class)
+	public void testMoveNonMatchingExtensions() throws Exception {
+		// Mock content existence
+		when(contentRepository.contentExists(SITE_ID, "/existing/file.jpg")).thenReturn(true);
+
+		// Call the method
+		serviceInternal.move(SITE_ID, "/existing/file.jpg", "/new/path.txt");
+	}
+
 }

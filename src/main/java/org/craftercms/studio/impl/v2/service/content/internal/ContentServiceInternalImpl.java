@@ -953,7 +953,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String parentUrl = getFullPathNoEndSeparator(targetPath);
 		if (!contentExists(siteId, parentUrl)) {
 			throw new ContentNotFoundException(parentUrl, siteId,
-				format("Unable to paste content: parent path '%s' in site '%s' does not exist", parentUrl, siteId));
+				format("Unable to move content: parent path '%s' in site '%s' does not exist", parentUrl, siteId));
 		}
 
 		String sourceTopLevel = getTopLevelFolder(sourcePath);
@@ -1133,7 +1133,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String systemType = sourceItem.getSystemType();
 		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(systemType)) {
 			throw new ServiceLayerException(format("Failed to rename content at site '%s' path '%s' " +
-				"with content type '%s'", siteId, sourceItem, systemType));
+				"with content type '%s'", siteId, sourcePath, systemType));
 		}
 		Map<String, ContentLifeCycleItem> updateItems = new HashMap<>();
 		try {
