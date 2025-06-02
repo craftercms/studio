@@ -89,19 +89,20 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.naturalOrder;
+import static java.util.Set.of;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -225,7 +226,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		List<ContentItem> childItems = itemDao.getChildrenByPath(site.getId(), path,
 			locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null,
 			null, null, 0, 1);
-		if (isEmpty(childItems)) {
+		if (CollectionUtils.isEmpty(childItems)) {
 			return null;
 		}
 		ContentItem levelDescriptorItem = childItems.getFirst();
@@ -264,7 +265,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private void processResultSet(String siteId, List<ContentItem> resultSet)
 		throws ServiceLayerException, UserNotFoundException {
-		if (isEmpty(resultSet)) {
+		if (CollectionUtils.isEmpty(resultSet)) {
 			return;
 		}
 		String user = getCurrentUsername();
@@ -333,7 +334,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private List<ContentItem> calculatePossibleActions(String siteId, List<ContentItem> items)
 		throws ServiceLayerException, UserNotFoundException {
-		if (isEmpty(items)) {
+		if (CollectionUtils.isEmpty(items)) {
 			return emptyList();
 		}
 		List<ContentItem> toRet = new ArrayList<>();
@@ -479,9 +480,39 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
+	/**
+	 * Tries to set the system processing flag for the given site and path. If the flag is already set, it throws an exception.
+	 *
+	 * @param site  the site
+	 * @param paths the path
+	 * @throws ServiceLayerException if the flag is already set
+	 */
+	private void trySetSystemProcessing(final String site, final Collection<String> paths) throws ServiceLayerException {
+		if (itemService.isSystemProcessing(site, paths)) {
+			throw new ServiceLayerException(format("Failed to set system processing for content at site '%s' path '%s' " +
+					"because state is already system processing",
+				site, paths));
+		}
+		itemService.setSystemProcessingBulk(site, paths, true);
+	}
+
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		throws ServiceLayerException, UserNotFoundException {
+		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+		generalLockService.lock(sandboxRepoLockKey);
+		try {
+			return writeInternal(siteId, path, content);
+		} finally {
+			generalLockService.unlock(sandboxRepoLockKey);
+		}
+	}
+
+	protected WriteContentResult writeInternal(final String siteId, final String path, final InputStream content)
+		throws ServiceLayerException, UserNotFoundException {
+		List<String> affectedPaths = new LinkedList<>();
+		affectedPaths.add(path);
+		trySetSystemProcessing(siteId, affectedPaths);
 		try (content; LifeCycleContent lifeCycleContent = runLifeCycle(siteId, path, content)) {
 			Map<String, ContentLifeCycleItem> lifeCycleResultItems = lifeCycleContent.getItems();
 			validateLifeCycleResults(siteId, null, path, lifeCycleResultItems.keySet());
@@ -489,6 +520,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Map<String, LifeCycleOperation> operationsByPath = getOperationsByPath(siteId, lifeCycleContent.getRepoPath(),
 				lifeCycleResultItems.values(), lifeCycleContent.getOperation());
 			Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
+
+			affectedPaths.addAll(operationsByPath.keySet());
+			trySetSystemProcessing(siteId, subtract(affectedPaths, of(path)));
 
 			// TODO: Consider creating the commit in a temporary branch and merge after db updates complete
 			// 		successfully
@@ -522,6 +556,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			return new WriteContentResult(commitId, writeResultItems);
 		} catch (IOException e) {
 			throw new ServiceLayerException("Failed to write content to repository from InputStream", e);
+		} finally {
+			itemService.setSystemProcessingBulk(siteId, affectedPaths, false);
 		}
 	}
 
@@ -988,12 +1024,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (!contentExists(siteId, from)) {
 			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
 		}
-
 		if (contentExists(siteId, to)) {
 			throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
 				"because an item already exists in target location '%s'.", from, siteId, to));
 		}
-
 		String sourcePath;
 		String targetPath;
 		if (isPageDescriptor(from) || isPageDescriptor(to)) {
@@ -1005,18 +1039,34 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			targetPath = to;
 		}
 		validateMoveOperation(siteId, sourcePath, targetPath);
-
 		WriteContentResult writeContentResult;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
-			String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
-			logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
-
-			writeContentResult = runInTransaction(transactionManager, transactionId, () -> moveInternal(siteId, sourcePath, targetPath));
-		} catch (Exception e) {
-			logger.error("Failed to persist move operation for site '{}' source path '{}' target path '{}'", siteId, sourcePath, targetPath, e);
-			throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
+			Site site = siteService.getSite(siteId);
+			Set<String> processingPaths = new HashSet<>();
+			try {
+				processingPaths.add(sourcePath);
+				if (isPagePath(sourcePath)) {
+					processingPaths.add(sourcePath + SLASH_INDEX_FILE);
+				}
+				trySetSystemProcessing(siteId, processingPaths);
+				Set<String> sourcePathChildren = new HashSet<>(itemDao.getChildrenPaths(site.getId(), sourcePath));
+				Collection<LifeCycleContent> lifeCycleContents = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
+				Collection<String> lifeCyclePaths = getPathsForSystemProcessing(lifeCycleContents);
+				// Set system processing for paths added by the life cycle
+				trySetSystemProcessing(siteId, subtract(lifeCyclePaths, processingPaths));
+				processingPaths.addAll(lifeCyclePaths);
+				String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
+				logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
+				writeContentResult = runInTransaction(transactionManager, transactionId,
+					() -> moveInternal(site, sourcePath, targetPath, lifeCycleContents, sourcePathChildren));
+			} catch (Exception e) {
+				logger.error("Failed to persist move operation for site '{}' source path '{}' target path '{}'", siteId, sourcePath, targetPath, e);
+				throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
+			} finally {
+				itemService.setSystemProcessingBulk(siteId, processingPaths, false);
+			}
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
@@ -1030,15 +1080,32 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return writeContentResult;
 	}
 
-	protected WriteContentResult moveInternal(final String siteId, final String sourcePath, final String targetPath)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+	/**
+	 * Map a collection of LifeCycleContent to a list of paths to set to SYSTEM_PROCESSING
+	 *
+	 * @param lifeCycleContents the collection of LifeCycleContent
+	 * @return a list of paths to set to SYSTEM_PROCESSING
+	 */
+	protected Collection<String> getPathsForSystemProcessing(Collection<LifeCycleContent> lifeCycleContents) {
+		return lifeCycleContents.stream()
+			.map(LifeCycleContent::getItems)
+			.map(Map::values)
+			.flatMap(Collection::stream)
+			.map(i -> defaultIfEmpty(i.sourcePath(), i.repoPath()))
+			// If the path is a page descriptor, we need to add the folder as well
+			.flatMap(p -> isPageDescriptor(p) ? Stream.of(removeEnd(p, SLASH_INDEX_FILE), p) : Stream.of(p))
+			.toList();
+	}
+
+	protected WriteContentResult moveInternal(final Site site, final String sourcePath, final String targetPath,
+											  Collection<LifeCycleContent> lifeCycleContents, Set<String> sourcePathChildren)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
+		String siteId = site.getSiteId();
+
 		if (isPagePath(sourcePath)) {
 			pageNavOrderService.move(siteId, sourcePath, targetPath);
 		}
-
-		Site site = siteService.getSite(siteId);
-		Set<String> sourcePathChildren = new HashSet<>(itemDao.getChildrenPaths(site.getId(), sourcePath));
-		Map<String, ContentLifeCycleItem> lifeCycleItems = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
+		Map<String, ContentLifeCycleItem> lifeCycleItems = updateNavOrderForMove(siteId, sourcePath, lifeCycleContents, sourcePathChildren);
 		try {
 			Collection<String> workflowAffectedPaths = getMoveWorkflowAffectedPaths(targetPath, lifeCycleItems);
 			validateLifeCycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
@@ -1062,7 +1129,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.toList();
 			return new WriteContentResult(commitId, moveResultItems);
 		} finally {
-			closeLifeCycleItems(lifeCycleItems.values());
+			closeCollection(lifeCycleItems.values());
 		}
 	}
 
@@ -1143,15 +1210,15 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @return a map (path->contentLifeCycleItem) of items to update (moved items and any item added by the lifecycle scripts)
 	 * @throws ServiceLayerException if there is an error running the life cycle
 	 */
-	private Map<String, ContentLifeCycleItem> runLifeCycleForMove(String siteId, String sourcePath, String targetPath,
-																  Set<String> sourcePathChildren) throws ServiceLayerException {
+	protected Collection<LifeCycleContent> runLifeCycleForMove(String siteId, String sourcePath, String targetPath,
+															   Set<String> sourcePathChildren) throws ServiceLayerException {
 		Item sourceItem = itemService.getItem(siteId, sourcePath, true);
 		String systemType = sourceItem.getSystemType();
 		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(systemType)) {
 			throw new ServiceLayerException(format("Failed to rename content at site '%s' path '%s' " +
 				"with content type '%s'", siteId, sourcePath, systemType));
 		}
-		Map<String, ContentLifeCycleItem> updateItems = new HashMap<>();
+		ArrayList<LifeCycleContent> lifeCycleContents = new ArrayList<>(sourcePathChildren.size());
 		try {
 			for (String itemSourcePath : sourcePathChildren) {
 				ContentLifeCycle lifeCycle;
@@ -1179,58 +1246,65 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					logger.error("Failed to execute life cycle for siteId '{}' path '{}'", siteId, itemSourcePath, e);
 					throw new ServiceLayerException(format("Failed to execute life cycle for siteId '%s' path '%s'", siteId, itemSourcePath), e);
 				}
-				updateNavOrderForMove(siteId, itemTargetPath, lifeCycleContent, sourcePathChildren);
-				for (ContentLifeCycleItem lifeCycleItem : lifeCycleContent.getItems().values()) {
-					updateItems.put(lifeCycleItem.repoPath(), lifeCycleItem);
-				}
+				lifeCycleContents.add(lifeCycleContent);
 			}
 		} catch (Exception e) {
-			closeLifeCycleItems(updateItems.values());
+			closeCollection(lifeCycleContents);
 			throw new ServiceLayerException(format("Failed to run life cycle for move operation for site '%s' source path '%s' target path '%s'",
 				siteId, sourcePath, targetPath), e);
 		}
-		return updateItems;
+		return lifeCycleContents;
 	}
 
 	/**
 	 * Update the navigation order for the moved items.
 	 * This method will update the navigation order for all page items that are not in the sourcePathChildren set
-	 * Notice that the ones in the sourcePathChildren set are the ones that were moved, so they do not need to be
+	 * Notice that the paths in the sourcePathChildren set are the ones that were moved, so they do not need to be
 	 * updated (because they have the same parent)
 	 *
 	 * @param siteId             the site id
 	 * @param targetPath         the root target path of the move operation
-	 * @param lifeCycleContent   the life cycle content containing the items to update
+	 * @param lifeCycleContents  the life cycle contents containing the items to update
 	 * @param sourcePathChildren the set of source path children that were moved
 	 * @throws DocumentException if there is an error parsing the document
 	 * @throws IOException       if there is an error reading the document or writing it back to the lifeCycleContent
 	 */
-	protected void updateNavOrderForMove(String siteId, String targetPath, LifeCycleContent lifeCycleContent, Set<String> sourcePathChildren)
+	protected Map<String, ContentLifeCycleItem> updateNavOrderForMove(String siteId, String targetPath, Collection<LifeCycleContent> lifeCycleContents, Set<String> sourcePathChildren)
 		throws DocumentException, IOException {
-		List<ContentLifeCycleItem> itemsToUpdate =
-			lifeCycleContent.getItems().values().stream()
-				.filter(item -> isPageDescriptor(item.sourcePath()))
-				// Update the nav order if the item is the root of the move operation OR if it was added by the life cycle
-				.filter(item -> StringUtils.equals(targetPath, removeEnd(item.repoPath(), SLASH_INDEX_FILE))
-					|| !sourcePathChildren.contains(item.sourcePath()))
-				.toList();
-		for (ContentLifeCycleItem navUpdated : itemsToUpdate) {
-			Document document = navUpdated.contentAsDocument();
-			if (pageNavOrderService.updateNavOrder(siteId, navUpdated.repoPath(), document)) {
-				lifeCycleContent.write(navUpdated.repoPath(), document);
+		for (LifeCycleContent lifeCycleContent : lifeCycleContents) {
+			List<ContentLifeCycleItem> itemsToUpdate =
+				lifeCycleContent.getItems().values().stream()
+					.filter(item -> isPageDescriptor(item.sourcePath()))
+					// Update the nav order if the item is the root of the move operation OR if it was added by the life cycle
+					.filter(item -> StringUtils.equals(targetPath, removeEnd(item.repoPath(), SLASH_INDEX_FILE))
+						|| !sourcePathChildren.contains(item.sourcePath()))
+					.toList();
+
+			for (ContentLifeCycleItem navUpdated : itemsToUpdate) {
+				Document document = navUpdated.contentAsDocument();
+				if (pageNavOrderService.updateNavOrder(siteId, navUpdated.repoPath(), document)) {
+					// This will update the ContentLifeCycleItem and clean the resources of the previous version
+					lifeCycleContent.write(navUpdated.repoPath(), document);
+				}
 			}
 		}
+
+		// Consolidate the items into a single map
+		return lifeCycleContents.stream()
+			.map(LifeCycleContent::getItems)
+			.flatMap(m -> m.entrySet().stream())
+			.collect(toMap(Entry::getKey, Entry::getValue));
 	}
 
 	/**
 	 * Quietly close the life cycle items.
 	 */
-	protected void closeLifeCycleItems(Collection<ContentLifeCycleItem> updateItems) {
-		for (ContentLifeCycleItem updateItem : updateItems) {
+	protected void closeCollection(Collection<? extends AutoCloseable> closeables) {
+		for (AutoCloseable closeable : closeables) {
 			try {
-				updateItem.close();
+				closeable.close();
 			} catch (Exception e) {
-				logger.debug("Failed to close life cycle item for path '{}'", updateItem.repoPath(), e);
+				logger.debug("Failed to close item", e);
 			}
 		}
 	}

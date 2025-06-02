@@ -304,5 +304,5 @@ public interface ContentService {
 	 * @throws EmptyChangesetException if the write operation results in an empty changeset (i.e.: try to write the same content the repository already has)
 	 * @throws ServiceLayerException   if an error occurs while writing the content
 	 */
-	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 }

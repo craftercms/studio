@@ -232,7 +232,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public WriteContentResult write(@SiteId String siteId, @ContentPath String path, InputStream content)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.write(siteId, path, content);
 	}
 
