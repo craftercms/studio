@@ -642,15 +642,20 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 													  LifeCycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		String path = item.repoPath();
 		if (NEW == operation) {
+			boolean updatePageChildren = false;
 			boolean isPage = path.startsWith(DmConstants.ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
 			String parentItemPath;
 			if (isPage) {
 				parentItemPath = getParentUrl(removeEnd(path, SLASH_INDEX_FILE));
+				updatePageChildren = true;
 			} else {
 				parentItemPath = getParentUrl(path);
 			}
 			Item parent = itemService.getItem(siteId, parentItemPath, isPage);
 			itemService.persistItemAfterCreate(siteId, path, false, parent.getId());
+			if (updatePageChildren) {
+				itemService.updateNewPageChildren(siteId, removeEnd(path, SLASH_INDEX_FILE));
+			}
 		} else {
 			itemService.persistItemAfterWrite(siteId, path, false);
 		}
