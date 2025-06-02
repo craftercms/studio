@@ -491,14 +491,25 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 
 			// TODO: Consider creating the commit in a temporary branch and merge after db updates complete
-			// 		successfully (and transactionally)
+			// 		successfully
 			// Write to the repository and commit.
 			String commitId = contentRepository.writeContent(siteId, lifeCycleResultItems.values(), missingFolders);
 			if (isEmpty(commitId)) {
 				throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 			}
-			// TODO: Run in transaction
-			List<WriteContentResultItem> writeResultItems = persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
+			List<WriteContentResultItem> writeResultItems;
+			try {
+				writeResultItems = persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
+				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
+				logger.debug("Persisting write operation for site '{}' path '{}' with transaction id '{}'", siteId, path, transactionId);
+				runInTransaction(transactionManager,
+					transactionId,
+					() -> persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath)
+				);
+			} catch (Exception e) {
+				throw new ServiceLayerException(
+					format("Failed to persist write operation for site '%s' path '%s'", siteId, path), e);
+			}
 
 			// Audit write operation
 			insertWriteContentAudit(siteId, path, lifeCycleContent.getOperation(), writeResultItems.stream().map(WriteContentResultItem::path).toList(), commitId);
