@@ -9041,9 +9041,9 @@ components:
                     description: True if the cluster node is a Replica and in sync with the Primary node
                 repositorySyncErrorEntries:
                     type: array
+                    description: Contains repository synchronization error entries
                     items:
                         type: object
-                        description: Contains repository synchronization error entries
                         properties:
                             siteId:
                                 type: string
