@@ -9039,6 +9039,18 @@ components:
                 readyToBecomePrimary:
                     type: boolean
                     description: True if the cluster node is a Replica and in sync with the Primary node
+                repositorySyncErrorEntries:
+                    type: array
+                    description: Contains repository synchronization error entries
+                    items:
+                        type: object
+                        properties:
+                            siteId:
+                                type: string
+                                description: site ID
+                            repositoryType:
+                                type: string
+                                format: GLOBAL, SANDBOX or PUBLISHED
 
         MemoryItem:
             type: object
