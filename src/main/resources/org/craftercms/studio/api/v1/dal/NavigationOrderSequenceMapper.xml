@@ -57,10 +57,14 @@
 
 	<update id="move">
 		UPDATE navigation_order_sequence
-		SET path = REPLACE(path, #{sourcePath}, #{targetPath})
+		SET path = CASE
+			WHEN path = #{sourcePath} THEN #{targetPath}
+			WHEN path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
+				THEN CONCAT(#{targetPath}, TRIM(LEADING #{sourcePath} FROM path))
+			ELSE path
+		END
 		WHERE site = #{site}
 		AND (path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
 			OR path = #{sourcePath})
-
 	</update>
 </mapper>
