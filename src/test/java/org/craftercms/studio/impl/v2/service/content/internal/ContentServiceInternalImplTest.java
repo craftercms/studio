@@ -225,8 +225,19 @@ public class ContentServiceInternalImplTest {
 		// Mock lifecycle execution
 		doReturn(lifeCycleContent).when(serviceInternal).runLifeCycle(eq(SITE_ID), eq(PATH), any());
 
-		// Call the method
-		WriteContentResult result = serviceInternal.write(SITE_ID, PATH, contentStream);
+		WriteContentResult result;
+		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class)) {
+			dbUtilsMock.when(() -> DBUtils.runInTransaction(
+				any(PlatformTransactionManager.class),
+				anyString(),
+				any(ThrowingSupplier.class)
+			)).thenAnswer(invocation -> {
+				// Simulate transaction behavior
+				ThrowingSupplier supplier = invocation.getArgument(2);
+				return supplier.getWithException();
+			});
+			result = serviceInternal.write(SITE_ID, PATH, contentStream);
+		}
 
 		// Verify behavior
 		assertNotNull(result);
