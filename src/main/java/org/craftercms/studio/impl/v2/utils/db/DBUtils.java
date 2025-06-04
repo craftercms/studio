@@ -74,6 +74,7 @@ public class DBUtils {
 				return supplier.getWithException();
 			} catch (Exception e) {
 				logger.trace("Error occurred during transaction '{}', rolling back", status.getTransactionName(), e);
+				status.setRollbackOnly();
 				exception.set(e);
 			}
 			return null;
