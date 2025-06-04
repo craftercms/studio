@@ -401,12 +401,6 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 					isFolder ? toPath : getPointerPath(site, toPath));
 			}
 			return localRepository.moveContent(site, fromPath, toPath, writeItemsToBlobStores(site, additionalItems, newFolders), newFolders);
-		} catch (BlobStoreConfigurationMissingException e) {
-			logger.debug("No blob store configuration found for site '{}', " +
-				"will move from '{}' to '{}' in the local repository", site, fromPath, toPath);
-			// TODO: test this and remove the exception if BlobStoreConfigurationMissingException is never here
-			return null;
-//			return localRepository.moveContent(site, fromPath, toPath, writeItemsToBlobStores(site, additionalItems));
 		} catch (Exception e) {
 			logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
 			throw new ServiceLayerException("Failed to move content in site '%s' from '%s' to '%s'".formatted(site, fromPath, toPath), e);
