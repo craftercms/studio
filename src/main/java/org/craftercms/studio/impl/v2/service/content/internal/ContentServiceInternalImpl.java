@@ -974,7 +974,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
-		String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
+		String parentPath = FILE_SEPARATOR + getPathNoEndSeparator(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
 		move(siteId, path, targetPath);
 	}
@@ -1160,7 +1160,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		Item parentItem = itemService.getItem(site.getSiteId(), parentUrl, true);
 		String label = null;
 		if (!underDescriptorRoot(targetPath) || !targetPath.endsWith(DmConstants.XML_PATTERN)) {
-			label = FilenameUtils.getName(targetPath);
+			label = getName(targetPath);
 		}
 		persistItemMove(site.getSiteId(), sourcePath, targetPath, parentItem.getId(), label);
 
