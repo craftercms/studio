@@ -532,10 +532,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			}
 			List<WriteContentResultItem> writeResultItems;
 			try {
-				writeResultItems = persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath);
 				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
 				logger.debug("Persisting write operation for site '{}' path '{}' with transaction id '{}'", siteId, path, transactionId);
-				runInTransaction(transactionManager,
+				writeResultItems = runInTransaction(transactionManager,
 					transactionId,
 					() -> persistWriteToDB(siteId, lifeCycleResultItems.values(), missingFolders, operationsByPath)
 				);
