@@ -38,8 +38,7 @@ import java.util.UUID;
 
 import static org.apache.commons.io.FilenameUtils.directoryContains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
-import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 
@@ -186,13 +185,13 @@ public abstract class StudioUtils {
 	}
 
 	/**
-	 * Check if the given path is a descriptor path. i.e. a page or component,
 	 * to be stored under <code>/site/</code>
+	 * Check if the given path is under the descriptor root subtree. i.e. /site,
 	 *
 	 * @param path the path to check
-	 * @return true if the path is a descriptor path, false otherwise
+	 * @return true if the path is in the descriptor root subtree, false otherwise
 	 */
-	public static boolean isDescriptorPath(String path) {
+	public static boolean underDescriptorRoot(String path) {
 		return path.startsWith(DESCRIPTOR_ROOT_PATH);
 	}
 
@@ -203,7 +202,17 @@ public abstract class StudioUtils {
 	 * @return true if the path is a page, false otherwise
 	 */
 	public static boolean isPageDescriptor(String path) {
-		return isPagePath(path) && path.endsWith(SLASH_INDEX_FILE);
+		return underPagesRoot(path) && path.endsWith(SLASH_INDEX_FILE);
+	}
+
+	/**
+	 * Check if the given path is a descriptor file, i.e. it is under the descriptor root and ends with .xml
+	 *
+	 * @param path the path to check
+	 * @return true if the path is a descriptor file, false otherwise
+	 */
+	public static boolean isDescriptor(String path) {
+		return underDescriptorRoot(path) && path.endsWith(XML_PATTERN);
 	}
 
 	/**
@@ -212,7 +221,7 @@ public abstract class StudioUtils {
 	 * @param path the path to check
 	 * @return true if the path is a page path, false otherwise
 	 */
-	public static boolean isPagePath(String path) {
+	public static boolean underPagesRoot(String path) {
 		return directoryContains(ROOT_PATTERN_PAGES, path);
 	}
 }

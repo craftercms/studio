@@ -104,7 +104,6 @@ import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.*;
 import static org.craftercms.studio.api.v2.content.LifeCycleContentProvider.ofPath;
@@ -412,7 +411,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		ContentLifeCycle lifeCycle;
 		LifeCycleContent lifeCycleContent;
 		// Check if it is an asset
-		if (isDescriptorPath(path)) {
+		if (underDescriptorRoot(path)) {
 			try {
 				Document document = convertStreamToXml(content);
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
@@ -1047,11 +1046,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Set<String> processingPaths = new HashSet<>();
 			try {
 				processingPaths.add(sourcePath);
-				if (isPagePath(sourcePath)) {
+				if (underPagesRoot(sourcePath)) {
 					processingPaths.add(sourcePath + SLASH_INDEX_FILE);
 				}
 				trySetSystemProcessing(siteId, processingPaths);
 				Set<String> sourcePathChildren = new HashSet<>(itemDao.getChildrenPaths(site.getId(), sourcePath));
+				if (isDescriptor(sourcePath)) {
+					sourcePathChildren.add(sourcePath);
+				}
 				Collection<LifeCycleContent> lifeCycleContents = runLifeCycleForMove(siteId, sourcePath, targetPath, sourcePathChildren);
 				Collection<String> lifeCyclePaths = getPathsForSystemProcessing(lifeCycleContents);
 				// Set system processing for paths added by the life cycle
@@ -1102,7 +1104,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
 
-		if (isPagePath(sourcePath)) {
+		if (underPagesRoot(sourcePath)) {
 			pageNavOrderService.move(siteId, sourcePath, targetPath);
 		}
 		Map<String, ContentLifeCycleItem> lifeCycleItems = updateNavOrderForMove(siteId, sourcePath, lifeCycleContents, sourcePathChildren);
@@ -1158,12 +1160,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String parentUrl = getFullPathNoEndSeparator(targetPath);
 		Item parentItem = itemService.getItem(site.getSiteId(), parentUrl, true);
 		String label = null;
-		if (isDescriptorPath(targetPath) && targetPath.endsWith(DmConstants.XML_PATTERN)) {
-			// getItem will read from the repository, so the item already exists
-			var descriptor = getItem(site.getSiteId(), targetPath, false);
-			label = descriptor.queryDescriptorValue(format("//%s", ELM_INTERNAL_NAME));
-		}
-		if (isEmpty(label)) {
+		if (!underDescriptorRoot(targetPath) || !targetPath.endsWith(DmConstants.XML_PATTERN)) {
 			label = FilenameUtils.getName(targetPath);
 		}
 		persistItemMove(site.getSiteId(), sourcePath, targetPath, parentItem.getId(), label);
@@ -1224,7 +1221,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				ContentLifeCycle lifeCycle;
 				String itemTargetPath = itemSourcePath.replace(sourcePath, targetPath);
 				String itemContentType = null;
-				if (isDescriptorPath(itemSourcePath)) {
+				if (underDescriptorRoot(itemSourcePath)) {
 					Item item = itemService.getItem(siteId, itemSourcePath);
 					itemContentType = item.getContentTypeId();
 					lifeCycle = contentLifeCycle;
