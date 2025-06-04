@@ -676,10 +676,16 @@
 
 	<update id="updateMovedFolders">
 		UPDATE item
-		SET
-			path = REPLACE(path, #{sourcePath}, #{targetPath})
+		SET path = CASE
+			WHEN path = #{sourcePath} THEN #{targetPath}
+			WHEN path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
+				THEN CONCAT(#{targetPath}, TRIM(LEADING #{sourcePath} FROM path))
+			ELSE path
+		END,
+		state = (state &amp; ~${systemProcessingState})
 		WHERE
 			site_id = #{siteId}
+			AND system_type = 'folder'
 			AND path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%');
 	</update>
 </mapper>

@@ -488,6 +488,7 @@ public interface ItemDAO {
 
 	/**
 	 * Update the path for all the affected folder items to reflect the move operation
+	 * Reset the system processing state for the moved folders.
 	 *
 	 * @param siteId     the site id
 	 * @param sourcePath the source path
