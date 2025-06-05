@@ -260,14 +260,14 @@ public class BlobAwareContentRepositoryTest {
 	}
 
 	@Test
-	public void moveFileTest() throws ServiceLayerException {
+	public void moveFileTest() throws ServiceLayerException, UserNotFoundException {
 		proxy.moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
 		verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 	}
 
 	@Test
-	public void moveFolderTest() throws ServiceLayerException {
+	public void moveFolderTest() throws ServiceLayerException, UserNotFoundException {
 		proxy.moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
 		verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);

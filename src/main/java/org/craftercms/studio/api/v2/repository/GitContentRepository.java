@@ -435,7 +435,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @return commit id after the operation
 	 * @throws ServiceLayerException if the operation fails
 	 */
-	default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+	default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException {
 		return moveContent(site, fromPath, toPath, emptyList(), emptySet());
 	}
 
@@ -452,6 +452,6 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws ServiceLayerException if the operation fails
 	 */
 	String moveContent(String site, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
-		throws ServiceLayerException;
+		throws ServiceLayerException, UserNotFoundException;
 
 }

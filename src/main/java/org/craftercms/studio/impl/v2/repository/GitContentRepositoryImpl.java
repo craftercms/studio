@@ -1636,7 +1636,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	@Override
 	public String moveContent(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems,
-							  Set<String> newFolders) throws ServiceLayerException {
+							  Set<String> newFolders) throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
@@ -1674,6 +1674,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			}
 			return commitId;
 		} catch (ServiceLayerException e) {
+			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
+			throw e;
+		} catch (UserNotFoundException e) {
+			logger.error("Failed to move item in site '{}' from path '{}' to path '{}': user not found", siteId, fromPath, toPath, e);
 			throw e;
 		} catch (Exception e) {
 			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);

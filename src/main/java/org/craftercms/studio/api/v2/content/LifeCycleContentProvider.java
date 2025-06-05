@@ -40,7 +40,7 @@ public class LifeCycleContentProvider implements AutoCloseable {
 	}
 
 	/**
-	 * Gets the content as an InputStream.
+	 * Gets the content as an InputStream. Callers are responsible for closing this stream.
 	 *
 	 * @return an InputStream for the content
 	 * @throws IOException if there is any error obtaining the content
