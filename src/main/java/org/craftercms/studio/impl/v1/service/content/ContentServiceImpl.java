@@ -1120,6 +1120,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 	}
 
+	// TODO: Remove this now that we have it the clipboard service
 	protected PastedPathMap constructNewPathForCutCopy(String site, String fromPath, String toPath,
 							   boolean adjustOnCollide) throws ServiceLayerException {
 		PastedPathMap result = new PastedPathMap();
@@ -2525,6 +2526,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	/**
 	 * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
 	 */
+	// TODO: remove
 	protected static class PastedPathMap {
 		protected String filePath;
 		protected String fileName;

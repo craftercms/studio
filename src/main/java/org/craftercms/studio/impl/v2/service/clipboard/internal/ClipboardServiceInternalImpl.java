@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -38,17 +39,22 @@ import org.craftercms.studio.model.clipboard.PasteItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.beans.ConstructorProperties;
+import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.isPageDescriptor;
 import static org.craftercms.studio.model.clipboard.Operation.CUT;
 
 /**
@@ -62,11 +68,30 @@ import static org.craftercms.studio.model.clipboard.Operation.CUT;
 public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClipboardServiceInternalImpl.class);
+	public final static Pattern COPY_FILE_MODIFIER_PATTERN = Pattern.compile(".+(-copy-(\\d+))(.+)?(\\..*)?");
+	public final static String COPY_FILE_MODIFIER_FORMAT = "%s-copy-%s%s";
 
-	protected ContentService contentService;
-	protected PublishService publishService;
-	protected ItemService itemService;
-	protected GeneralLockService generalLockService;
+	// TODO: remove this dependency and migrate all service calls to the new content service
+	protected final ContentService contentService;
+	protected final PublishService publishService;
+	protected final ItemService itemService;
+	protected final GeneralLockService generalLockService;
+	protected final org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+	protected final GitContentRepository contentRepository;
+
+	@ConstructorProperties({"contentRepository", "contentService",
+		"publishService", "itemService",
+		"generalLockService", "contentServiceV2"})
+	public ClipboardServiceInternalImpl(GitContentRepository contentRepository, ContentService contentService,
+										PublishService publishService, ItemService itemService,
+										GeneralLockService generalLockService, org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+		this.contentRepository = contentRepository;
+		this.contentService = contentService;
+		this.publishService = publishService;
+		this.itemService = itemService;
+		this.generalLockService = generalLockService;
+		this.contentServiceV2 = contentServiceV2;
+	}
 
 	protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
 		throws ServiceLayerException {
@@ -123,7 +148,15 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 		try {
 			validatePasteItemsAction(siteId, operation, item.getPath(), targetPath);
 			var pastedItems = new LinkedList<String>();
-			pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
+
+			switch (operation) {
+				case COPY:
+					copyPasteItemsInternal(siteId, targetPath, List.of(item), pastedItems);
+					break;
+				case CUT:
+					pastedItems.add(cutPasteItems(siteId, targetPath, item));
+					break;
+			}
 			logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
 				pastedItems.size(), siteId, item.getPath(), targetPath);
 			return pastedItems;
@@ -132,38 +165,170 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 		}
 	}
 
+	/**
+	 * Performs a cut-paste operation.
+	 *
+	 * @param siteId     the site id
+	 * @param targetPath the target path where the item will be pasted
+	 * @param item       the item to be cut and pasted
+	 * @return the new full path of the pasted item
+	 * @throws ServiceLayerException   if an error occurs while performing the cut-paste operation
+	 * @throws UserNotFoundException   if the user performing the operation is not found
+	 * @throws AuthenticationException if the user is not authenticated
+	 */
+	protected String cutPasteItems(String siteId, String targetPath, PasteItem item)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		String newTargetPath = constructNewPathForCutCopy(siteId, item.getPath(), targetPath);
+		contentServiceV2.move(siteId, item.getPath(), newTargetPath);
+		return newTargetPath;
+	}
+
+	/**
+	 * Constructs a new path for cut/copy operations.
+	 *
+	 * @param site the site id
+	 * @param from the source path of the content item to be cut/copy
+	 * @param to   the target path where the content item will be pasted
+	 * @return the full target path for the cut/copy operation, including the file name
+	 * @throws ServiceLayerException if an error occurs while calculating the target path
+	 */
+	protected String constructNewPathForCutCopy(String site, String from, String to) throws ServiceLayerException {
+		String sourcePath = from;
+		String targetPath = to;
+		if (isPageDescriptor(from) || isPageDescriptor(to)) {
+			// Normalize the paths. If we're moving a page we need to move the folder anyway
+			sourcePath = removeEnd(from, SLASH_INDEX_FILE);
+			targetPath = removeEnd(to, SLASH_INDEX_FILE);
+		}
+		String result = constructNewPathForCutCopyInternal(site, sourcePath, targetPath);
+		if (isPageDescriptor(from)) {
+			result += SLASH_INDEX_FILE;
+		}
+		return result;
+	}
+
+	/**
+	 * Constructs a new path for cut/copy operations.
+	 * This will build the new path based on the source and target paths provided,
+	 * and also check if the target path already exists, adjusting the name if necessary.
+	 * <p>
+	 * Notice that this method expects the fromPath and toPath NOT to contain the /index.xml portion
+	 * of the path if they are page descriptors. For components and assets, they are expected to
+	 * contain the full path
+	 *
+	 * @param site     the site id
+	 * @param fromPath the source path of the content item to be cut/copy
+	 * @param toPath   the target path where the content item will be pasted
+	 * @return the full target path for the cut/copy operation, including the file name
+	 * @throws ServiceLayerException if an error occurs while calculating the target path
+	 */
+	protected String constructNewPathForCutCopyInternal(String site, String fromPath, String toPath) throws ServiceLayerException {
+		String result;
+
+		// The following rules apply to content under the site folder
+		String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
+		String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf(FILE_SEPARATOR) + 1);
+		logger.debug("Cut/copy name rules for site '{}' from path '{}' name '{}'", site,
+			fromPathOnly, fromFileNameOnly);
+
+		String newFileNameOnly = (toPath.contains(".xml")) ?
+			toPath.substring(toPath.lastIndexOf(FILE_SEPARATOR) + 1) : fromFileNameOnly;
+
+		logger.debug("Cut/copy name rules for site '{}' to path '{}' name '{}'", site, toPath, newFileNameOnly);
+
+		String proposedDestPath;
+		// Example NON INDEX FILES MOVE TO FOLDER
+		// fromPath: "/site/website/search.xml"
+		// toPath:   "/site/website/a-folder"
+		// newPath:  "/site/website/products/a-folder/search.xml"
+		//
+		// Example  INDEX FILES MOVE to FOLDER
+		// fromPath: "/site/website/search.xml"
+		// toPath:   "/site/website/products/search.xml"
+		// newPath:  "/site/website/products/search.xml"
+
+		// Move location
+		if (!contentRepository.contentExists(site, toPath) ||
+			contentRepository.isFolder(site, toPath)) {
+			proposedDestPath = toPath + FILE_SEPARATOR + fromFileNameOnly;
+		} else {
+			proposedDestPath = toPath;
+		}
+
+		logger.debug("Initial Proposed Path '{}' for site '{}' ", proposedDestPath, site);
+
+		result = proposedDestPath;
+		if (contentServiceV2.contentExists(site, proposedDestPath)) {
+			result = adjustOnCollide(site, toPath, proposedDestPath);
+		}
+
+		logger.debug("Final proposed path in site '{}' from '{}' to '{}' final name '{}'", site, fromPath, toPath,
+			proposedDestPath);
+		return result;
+	}
+
+	/**
+	 * Adjusts the destination path in case the target path already exists.
+	 *
+	 * @param site            the site id
+	 * @param newPathOnly     the new path without the file name
+	 * @param initialDestPath the initial destination path that was proposed
+	 * @return the adjusted destination path
+	 * @throws ServiceLayerException if an error occurs while calculating the target path
+	 */
+	private String adjustOnCollide(final String site,
+								   final String newPathOnly, final String initialDestPath) throws ServiceLayerException {
+		logger.debug("File already found at path '{}' in site '{}', create a new name", initialDestPath, site);
+		try {
+			String adjustedDestPath = initialDestPath;
+			var siblings = contentRepository.getContentChildren(site, newPathOnly);
+			var modifier = 1;
+			var collisionFound = true;
+			while (collisionFound) {
+				var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(adjustedDestPath);
+				// check if the file already has a modifier (it is a copy of something)
+				if (matcher.matches()) {
+					// extract the values from the path
+					var existingModifier = matcher.group(1); // the full modifier
+					var modifierVersion = matcher.group(2); // the number of the modifier
+					// remove the existing modifier
+					adjustedDestPath = adjustedDestPath.replaceFirst(existingModifier, "");
+					// calculate the new modifier
+					modifier = Integer.parseInt(modifierVersion) + 1;
+				}
+				int pdpli = adjustedDestPath.lastIndexOf(".");
+				if (pdpli == -1) pdpli = adjustedDestPath.length();
+				adjustedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
+					adjustedDestPath.substring(0, pdpli), modifier, adjustedDestPath.substring(pdpli));
+
+				// for pages, we have to check the parent folder, in any other case the full path
+				String newCollisionCheck = adjustedDestPath;
+				collisionFound = siblings.stream()
+					.map(item -> item.path() + File.separator + item.name())
+					.anyMatch(newCollisionCheck::equals);
+			}
+
+			return adjustedDestPath;
+		} catch (Exception e) {
+			throw new ServiceLayerException(format("Unable to generate an alternate path " +
+				"for the name collision '%s' in site '%s'", initialDestPath, site), e);
+		}
+	}
+
 	// Code based on the original clipboard service v1
-	protected void pasteItemsInternal(String siteId, Operation operation, String targetPath, List<PasteItem> items,
-					  List<String> pastedItems) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+	protected void copyPasteItemsInternal(String siteId, String targetPath, List<PasteItem> items,
+										  List<String> pastedItems) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		for (var item : items) {
 			try {
-				String newPath = null;
-				switch (operation) {
-					case CUT:
-						// RDTMP_COPYPASTE
-						// CopyContent interface is able to send status and new path yet
-						newPath = contentService.moveContent(siteId, item.getPath(), targetPath);
-						break;
-					case COPY:
-						// RDTMP_COPYPASTE
-						// CopyContent interface is able to send status and new path yet
-						newPath = contentService.copyContent(siteId, item.getPath(), targetPath);
-
-						// recurse on copied children
-						if (isNotEmpty(item.getChildren())) {
-							pasteItemsInternal(siteId, operation, newPath, item.getChildren(), pastedItems);
-						}
-						break;
-					default:
-						logger.warn("Unsupported clipboard operation '{}' attempted in site '{}' item '{}' " +
-								"target path '{}'",
-							operation, siteId, item.getPath(), targetPath);
+				String newPath = contentService.copyContent(siteId, item.getPath(), targetPath);
+				// recurse on copied children
+				if (isNotEmpty(item.getChildren())) {
+					copyPasteItemsInternal(siteId, newPath, item.getChildren(), pastedItems);
 				}
-
 				pastedItems.add(newPath);
 			} catch (Exception e) {
-				logger.error("Paste operation '{}' failed in site '{}' item '{}' to target path '{}'",
-					operation, siteId, item.getPath(), targetPath, e);
+				logger.error("Copy-Paste operation failed in site '{}' item '{}' to target path '{}'",
+					siteId, item.getPath(), targetPath, e);
 				throw e;
 			}
 		}
@@ -177,7 +342,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	}
 
 	/**
-	 * Get the parent url: for folders &amp; components it's just parent, for pages it's the parent of the parent.
+	 * Get the parent url: for folders and components it's just parent, for pages it's the parent of the parent.
 	 * e.g.:
 	 * /site/website/articles/page1/index.xml -> /site/website/articles
 	 * /site/components/posts/january/clickbait.xml -> /site/components/posts/january
@@ -190,21 +355,4 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 		return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
 	}
 
-	public void setContentService(final ContentService contentService) {
-		this.contentService = contentService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPublishService(final PublishService publishService) {
-		this.publishService = publishService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setGeneralLockService(final GeneralLockService generalLockService) {
-		this.generalLockService = generalLockService;
-	}
-
-	public void setItemService(final ItemService itemService) {
-		this.itemService = itemService;
-	}
 }

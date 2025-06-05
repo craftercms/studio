@@ -984,7 +984,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * - Check that the target path parent exists.
 	 * - Check that the source and target paths are both under the same top-level folder (e.g.: cannot move from site/components to static-assets).
 	 * - Check that the target path is not a child of the source path (to prevent moving a folder into itself).
-	 * - Check that the source and target paths are in the same top-level folder.
 	 *
 	 * @param siteId     the site id
 	 * @param sourcePath the source path
@@ -1012,6 +1011,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					"from '%s' (%s) into '%s' (%s) for site '%s'. " +
 					"Pasting across top level folders is not supported.",
 				sourcePath, sourceTopLevel, targetPath, targetTopLevel, siteId));
+		}
+		if (directoryContains(sourcePath, targetPath)) {
+			throw new InvalidParametersException(format("Cannot move content from '%s' to a directory of itself: '%s' in site '%s': " +
+				"target path is a child of the source path", sourcePath, targetPath, siteId));
 		}
 	}
 
@@ -1075,7 +1078,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		insertWriteContentAudit(siteId, sourcePath, RENAME, writeContentResult.getItems().stream().map(WriteContentResultItem::path).toList(), writeContentResult.getCommitId());
 
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
-		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, sourcePath, targetPath));
+		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, from, to));
 
 		return writeContentResult;
 	}

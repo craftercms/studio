@@ -55,7 +55,7 @@ public class ClipboardServiceImpl implements ClipboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public List<String> pasteItems(@SiteId String siteId,
 				       Operation operation,
-				       @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
+				       @ContentPath String targetPath,
 				       PasteItem item) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
 	}

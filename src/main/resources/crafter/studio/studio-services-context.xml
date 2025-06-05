@@ -192,10 +192,10 @@
 
 	<bean id="clipboardServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="publishService" ref="publishServiceInternal"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
+		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="publishService" ref="publishServiceInternal"/>
+		<constructor-arg name="contentServiceV2" ref="contentServiceInternal"/>
+		<constructor-arg name="contentRepository" ref="contentRepository"/>
 	</bean>
 
 	<bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">

@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -6,13 +21,19 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Collection;
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.model.clipboard.Operation.COPY;
@@ -38,6 +59,12 @@ public class ClipboardServiceInternalImplTest {
 
 	@Mock
 	private ItemService itemService;
+
+	@Mock
+	private GitContentRepository contentRepository;
+
+	@Mock
+	private org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
 	@InjectMocks
 	private ClipboardServiceInternalImpl service;
@@ -311,4 +338,132 @@ public class ClipboardServiceInternalImplTest {
 		String parentUrl = service.getParentUrl(FOLDER_URL);
 		assertEquals(FOLDER_URL_PARENT, parentUrl, format("Parent of '%s' does not match expected value", FOLDER_URL));
 	}
+
+
+	private Collection<RepositoryItem> getRepoItems(String path, List<String> names, boolean folders) {
+		return names.stream()
+			.map(name -> new RepositoryItem(path, name, folders))
+			.toList();
+	}
+
+	@Test
+	public void testFolderCutPasteOnCollision() throws ServiceLayerException {
+		Collection<RepositoryItem> repoItems = getRepoItems("/site/website/articles", List.of("folder"), true);
+		List<String> existentPaths = List.of("/site/website/articles/folder");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(contentServiceV2.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+		String targetPath = service.constructNewPathForCutCopy(SITE_ID,
+			"/site/website/folder",
+			"/site/website/articles");
+
+		Assertions.assertEquals("/site/website/articles/folder-copy-1", targetPath, "File path is not the expected");
+	}
+
+	@Test
+	public void testFolderCutPasteOnCollisionMultiple() throws ServiceLayerException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+			"/site/website/articles",
+			List.of("folder", "folder-copy-1", "folder-copy-2"),
+			true);
+		List<String> existentPaths = List.of("/site/website/articles/folder",
+			"/site/website/articles/folder-copy-3",
+			"/site/website/articles/folder-copy-2");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(contentServiceV2.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+		String targetPath = service.constructNewPathForCutCopy(SITE_ID,
+			"/site/website/folder",
+			"/site/website/articles");
+
+		Assertions.assertEquals("/site/website/articles/folder-copy-3", targetPath, "File path is not the expected");
+	}
+
+	@Test
+	public void testPageCutPasteIntoFolderOnCollision() throws ServiceLayerException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+			"/site/website/articles",
+			List.of("style"),
+			true);
+		List<String> existentPaths = List.of("/site/website/articles/style/index.xml",
+			"/site/website/articles/style");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(contentServiceV2.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		String targetPath = service.constructNewPathForCutCopy(SITE_ID,
+			"/site/website/style/index.xml",
+			"/site/website/articles");
+
+		Assertions.assertEquals("/site/website/articles/style-copy-1/index.xml", targetPath, "File path is not the expected");
+	}
+
+	@Test
+	public void testPageCutPasteIntoFolderOnCollisionMultiple() throws ServiceLayerException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+			"/site/website/articles",
+			List.of("style", "style-copy-1", "style-copy-2"),
+			true);
+		List<String> existentPaths = List.of("/site/website/articles/style/index.xml",
+			"/site/website/articles/style");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(contentServiceV2.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		String targetPath = service.constructNewPathForCutCopy(SITE_ID,
+			"/site/website/style/index.xml",
+			"/site/website/articles");
+
+		Assertions.assertEquals("/site/website/articles/style-copy-3/index.xml", targetPath, "File path is not the expected");
+	}
+
+	@Test
+	public void testFolderCutPasteIntoPageOnCollision() throws ServiceLayerException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+			"/site/website/style",
+			List.of("style", "articles-copy-1", "articles-copy-2"),
+			true);
+		List<String> existentPaths = List.of(
+			"/site/website/style/articles-copy-1",
+			"/site/website/style/articles-copy-2",
+			"/site/website/style");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/style")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(contentServiceV2.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		String targetPath = service.constructNewPathForCutCopy(SITE_ID,
+			"/site/website/articles-copy-1",
+			"/site/website/style/index.xml");
+
+		Assertions.assertEquals("/site/website/style/articles-copy-3", targetPath, "File path is not the expected");
+	}
+
+
+	@Test
+	public void testPageCutPasteIntoPageOnCollision() throws ServiceLayerException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+			"/site/website/health",
+			List.of("style", "style-copy-1", "style-copy-2"),
+			false);
+		List<String> existentPaths = List.of(
+			"/site/website/health/style-copy-1",
+			"/site/website/health/style-copy-2");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/health")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(contentServiceV2.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		String targetPath = service.constructNewPathForCutCopy(SITE_ID,
+			"/site/website/style-copy-1",
+			"/site/website/health/index.xml");
+
+		Assertions.assertEquals("/site/website/health/style-copy-3", targetPath, "File path is not the expected");
+	}
+
+
 }
