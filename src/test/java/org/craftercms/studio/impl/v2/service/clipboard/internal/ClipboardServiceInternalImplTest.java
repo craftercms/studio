@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
@@ -26,7 +27,6 @@ import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -70,7 +70,7 @@ public class ClipboardServiceInternalImplTest {
 	private ClipboardServiceInternalImpl service;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws SiteNotFoundException {
 		for (String pagePath : getPagePaths()) {
 			when(contentService.getContentItem(SITE_ID, pagePath))
 				.thenReturn(createTestContentItem(false, true));
@@ -85,7 +85,7 @@ public class ClipboardServiceInternalImplTest {
 		}
 
 		for (String existingPath : getExistingPaths()) {
-			when(contentService.contentExists(SITE_ID, existingPath)).thenReturn(true);
+			when(contentServiceV2.contentExists(SITE_ID, existingPath)).thenReturn(true);
 		}
 	}
 
