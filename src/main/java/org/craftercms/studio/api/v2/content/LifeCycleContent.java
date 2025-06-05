@@ -105,6 +105,7 @@ public class LifeCycleContent implements AutoCloseable {
 		// Remove the temporary file if it exists
 		exclude(normalizedPath);
 		// Add a new entry with amended=<path is the same as the original repoPath>
+		// If the paths are not the same, that means the content was added by the controller and should NOT be considered amended
 		this.items.put(normalizedPath, new ContentLifeCycleItem(normalizedPath, ofPath(() -> filePath), repoPath.equals(normalizedPath)));
 	}
 
