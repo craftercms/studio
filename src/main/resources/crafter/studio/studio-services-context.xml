@@ -430,17 +430,17 @@
 		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
 		<constructor-arg name="itemService" ref="itemService"/>
 		<constructor-arg name="publishService" ref="publishServiceInternal"/>
-		<constructor-arg name="contentLifeCycle" ref="contentLifeCycle"/>
-		<constructor-arg name="assetLifeCycle" ref="assetLifeCycle"/>
+		<constructor-arg name="contentLifecycle" ref="contentLifecycle"/>
+		<constructor-arg name="assetLifecycle" ref="assetLifecycle"/>
 		<constructor-arg name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
 	</bean>
 
-	<bean id="contentLifeCycle" class="org.craftercms.studio.impl.v2.content.ContentLifeCycleImpl">
+	<bean id="contentLifecycle" class="org.craftercms.studio.impl.v2.content.ContentLifecycleImpl">
 		<constructor-arg name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
-	<bean id="assetLifeCycle" class="org.craftercms.studio.impl.v2.content.AssetLifeCycleImpl">
+	<bean id="assetLifecycle" class="org.craftercms.studio.impl.v2.content.AssetLifecycleImpl">
 		<constructor-arg name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
 		<constructor-arg name="configReader" ref="studioAssetProcessingConfigReader"/>
 		<constructor-arg name="configPath" value="#{studioConfiguration.getProperty('studio.configuration.site.asset.processing.configurationPath')}"/>

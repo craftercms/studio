@@ -212,7 +212,7 @@ public interface StudioConfiguration {
 	 * Content Processors
 	 */
 	String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION =
-		"studio.contentProcessor.contentLifeCycle.scriptLocation";
+		"studio.contentProcessor.contentLifecycle.scriptLocation";
 
 	/**
 	 * Email Service

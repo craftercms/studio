@@ -23,10 +23,10 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v2.content.ContentLifeCycle;
+import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;
-import org.craftercms.studio.api.v2.content.LifeCycleContent;
-import org.craftercms.studio.api.v2.content.LifeCycleContent.ContentLifeCycleItem;
+import org.craftercms.studio.api.v2.content.LifecycleContent;
+import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
@@ -62,8 +62,8 @@ import java.util.*;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.NEW;
-import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.UPDATE;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.NEW;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.UPDATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -105,7 +105,7 @@ public class ContentServiceInternalImplTest {
 	protected GeneralLockService generalLockService;
 
 	@Mock
-	protected ContentLifeCycle contentLifeCycle;
+	protected ContentLifecycle contentLifecycle;
 
 	@Mock
 	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
@@ -211,19 +211,19 @@ public class ContentServiceInternalImplTest {
 	@Test
 	public void testWriteSuccess() throws Exception {
 		// Mock lifecycle content
-		LifeCycleContent lifeCycleContent = mock(LifeCycleContent.class);
-		ContentLifeCycleItem item = mock(ContentLifeCycleItem.class);
+		LifecycleContent lifecycleContent = mock(LifecycleContent.class);
+		ContentLifecycleItem item = mock(ContentLifecycleItem.class);
 		when(item.repoPath()).thenReturn(PATH);
-		when(lifeCycleContent.getItems()).thenReturn(Map.of(PATH, item));
-		when(lifeCycleContent.getRepoPath()).thenReturn(PATH);
-		when(lifeCycleContent.getOperation()).thenReturn(UPDATE);
+		when(lifecycleContent.getItems()).thenReturn(Map.of(PATH, item));
+		when(lifecycleContent.getRepoPath()).thenReturn(PATH);
+		when(lifecycleContent.getOperation()).thenReturn(UPDATE);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
 		// Mock repository behavior
 		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
 
 		// Mock lifecycle execution
-		doReturn(lifeCycleContent).when(serviceInternal).runLifeCycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
 
 		WriteContentResult result;
 		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class)) {
@@ -248,9 +248,9 @@ public class ContentServiceInternalImplTest {
 	@Test(expected = ServiceLayerException.class)
 	public void testWriteEmptyLifecycleResults() throws Exception {
 		// Mock lifecycle content with empty results
-		LifeCycleContent lifeCycleContent = mock(LifeCycleContent.class);
-		when(lifeCycleContent.getItems()).thenReturn(Collections.emptyMap());
-		doReturn(lifeCycleContent).when(serviceInternal).runLifeCycle(eq(SITE_ID), eq(PATH), any());
+		LifecycleContent lifecycleContent = mock(LifecycleContent.class);
+		when(lifecycleContent.getItems()).thenReturn(Collections.emptyMap());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
 
 		// Call the method
 		serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -259,9 +259,9 @@ public class ContentServiceInternalImplTest {
 	@Test(expected = ContentInPublishQueueException.class)
 	public void testWriteItemInPublishQueue() throws Exception {
 		// Mock lifecycle content
-		LifeCycleContent lifeCycleContent = mock(LifeCycleContent.class);
-		ContentLifeCycleItem item = mock(ContentLifeCycleItem.class);
-		when(lifeCycleContent.getItems()).thenReturn(Map.of(PATH, item));
+		LifecycleContent lifecycleContent = mock(LifecycleContent.class);
+		ContentLifecycleItem item = mock(ContentLifecycleItem.class);
+		when(lifecycleContent.getItems()).thenReturn(Map.of(PATH, item));
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
 		when(publishService.getActivePackagesForItems(any(), anyCollection(), anyBoolean()))
@@ -270,7 +270,7 @@ public class ContentServiceInternalImplTest {
 			}}));
 
 		// Mock lifecycle execution
-		doReturn(lifeCycleContent).when(serviceInternal).runLifeCycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
 
 		// Call the method
 		serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -279,13 +279,13 @@ public class ContentServiceInternalImplTest {
 	@Test(expected = ActionDeniedException.class)
 	public void testWritePermissionDenied() throws Exception {
 		// Mock lifecycle content
-		LifeCycleContent lifeCycleContent = mock(LifeCycleContent.class);
-		ContentLifeCycleItem item = mock(ContentLifeCycleItem.class);
-		when(lifeCycleContent.getItems()).thenReturn(Map.of(PATH, item));
+		LifecycleContent lifecycleContent = mock(LifecycleContent.class);
+		ContentLifecycleItem item = mock(ContentLifecycleItem.class);
+		when(lifecycleContent.getItems()).thenReturn(Map.of(PATH, item));
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(false);
 
 		// Mock lifecycle execution
-		doReturn(lifeCycleContent).when(serviceInternal).runLifeCycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
 
 		// Call the method
 		serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -293,7 +293,7 @@ public class ContentServiceInternalImplTest {
 
 	@Test
 	public void testGetMissingFolders() {
-		Map<String, LifeCycleContent.LifeCycleOperation> operationsByPath = Map.of(
+		Map<String, LifecycleContent.LifecycleOperation> operationsByPath = Map.of(
 			"/a/b/c/d", NEW
 		);
 
@@ -367,8 +367,8 @@ public class ContentServiceInternalImplTest {
 
 		verify(pageNavOrderService).move(SITE_ID, sourceFolder, targetFolder);
 
-		verify(contentLifeCycle, times(3)).execute(
-			anyString(), any(LifeCycleContent.class), any(ContentLoader.class)
+		verify(contentLifecycle, times(3)).execute(
+			anyString(), any(LifecycleContent.class), any(ContentLoader.class)
 		);
 	}
 

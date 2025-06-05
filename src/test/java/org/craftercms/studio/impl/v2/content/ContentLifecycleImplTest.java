@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v2.content;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v2.content.ContentLoader;
-import org.craftercms.studio.api.v2.content.LifeCycleContent;
+import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_APPLICATION_CONTEXT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_LIFECYCLE_INCLUDED_BEANS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT;
-import static org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation.UPDATE;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.UPDATE;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,7 +48,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ContentLifeCycleImplTest {
+public class ContentLifecycleImplTest {
 
 	private static final String SITE_ID = "test-site1";
 	private static final String SCRIPT_PATH = "controller.groovy";
@@ -66,106 +66,106 @@ public class ContentLifeCycleImplTest {
 	private ApplicationContext applicationContext;
 
 	@Mock
-	private LifeCycleContent lifeCycleContent;
+	private LifecycleContent lifecycleContent;
 
 	@InjectMocks
 	@Spy
-	private ContentLifeCycleImpl contentLifeCycle;
+	private ContentLifecycleImpl contentLifecycle;
 
 	@Before
 	public void setUp() {
 		doReturn(SCRIPT_PATH)
-			.when(contentLifeCycle)
+			.when(contentLifecycle)
 			.getScriptPath(any(), any());
-		contentLifeCycle.setApplicationContext(applicationContext);
+		contentLifecycle.setApplicationContext(applicationContext);
 	}
 
 	@Test
 	public void testExecuteWithEmptyContentType() throws ServiceLayerException {
-		when(lifeCycleContent.getContentType()).thenReturn("");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getContentType()).thenReturn("");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verifyNoInteractions(scriptExecutor);
 	}
 
 	@Test
 	public void testExecuteWithUnknownContentType() throws ServiceLayerException {
-		when(lifeCycleContent.getContentType()).thenReturn("unknown");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getContentType()).thenReturn("unknown");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verifyNoInteractions(scriptExecutor);
 	}
 
 	@Test
 	public void testExecuteWithMissingScript() throws Exception {
-		when(lifeCycleContent.getContentType()).thenReturn("type");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getContentType()).thenReturn("type");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(null);
 
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verifyNoInteractions(scriptExecutor);
 	}
 
 	@Test
 	public void testExecuteWithEmptyScript() throws Exception {
-		when(lifeCycleContent.getContentType()).thenReturn("type");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getContentType()).thenReturn("type");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		InputStream emptyScript = new ByteArrayInputStream("".getBytes());
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(emptyScript);
 
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verifyNoInteractions(scriptExecutor);
 	}
 
 	@Test
 	public void testExecuteWithValidScript() throws Exception {
-		when(lifeCycleContent.getContentType()).thenReturn("type");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getContentType()).thenReturn("type");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
 
 		Map<String, Object> model = Map.of("key", "value");
-		doReturn(model).when(contentLifeCycle).buildModel(SITE_ID, lifeCycleContent, contentLoader);
+		doReturn(model).when(contentLifecycle).buildModel(SITE_ID, lifecycleContent, contentLoader);
 
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verify(scriptExecutor, times(1)).executeScriptString(eq(SITE_ID), anyString(), eq(model));
 	}
 
 	@Test
 	public void testExecuteWithScriptExecutionException() throws Exception {
-		when(lifeCycleContent.getContentType()).thenReturn("type");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getContentType()).thenReturn("type");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
 
 		Map<String, Object> model = Map.of("key", "value");
-		doReturn(model).when(contentLifeCycle).buildModel(SITE_ID, lifeCycleContent, contentLoader);
+		doReturn(model).when(contentLifecycle).buildModel(SITE_ID, lifecycleContent, contentLoader);
 
 		doThrow(ScriptException.class).when(scriptExecutor).executeScriptString(eq(SITE_ID), anyString(), eq(model));
 
-		assertThrows(ServiceLayerException.class, () -> contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader));
+		assertThrows(ServiceLayerException.class, () -> contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testApplicationContextDisabled() throws ServiceLayerException, ScriptException {
-		doNothing().when(contentLifeCycle).addSpringBeans(any());
-		when(lifeCycleContent.getContentType()).thenReturn("type");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
-		when(lifeCycleContent.getOperation()).thenReturn(UPDATE);
+		doNothing().when(contentLifecycle).addSpringBeans(any());
+		when(lifecycleContent.getContentType()).thenReturn("type");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getOperation()).thenReturn(UPDATE);
 		doReturn(false).when(studioConfiguration).getProperty(CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT, Boolean.class, false);
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
 
 		ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verify(scriptExecutor, times(1)).executeScriptString(eq(SITE_ID), anyString(), modelCaptor.capture());
 
@@ -175,9 +175,9 @@ public class ContentLifeCycleImplTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testAvailableBeans() throws ScriptException, ServiceLayerException {
-		doReturn("type").when(lifeCycleContent).getContentType();
-		doReturn("/path").when(lifeCycleContent).getRepoPath();
-		doReturn(UPDATE).when(lifeCycleContent).getOperation();
+		doReturn("type").when(lifecycleContent).getContentType();
+		doReturn("/path").when(lifecycleContent).getRepoPath();
+		doReturn(UPDATE).when(lifecycleContent).getOperation();
 		ArrayList<String> beanNames = new ArrayList<>(List.of("bean1", "bean2", "bean3"));
 		doReturn(false).when(studioConfiguration).getProperty(CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT, Boolean.class, false);
 		doReturn(beanNames.toArray(new String[0])).when(studioConfiguration).getArray(CONTENT_LIFECYCLE_INCLUDED_BEANS, String.class);
@@ -186,7 +186,7 @@ public class ContentLifeCycleImplTest {
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
 
 		ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verify(scriptExecutor, times(1)).executeScriptString(eq(SITE_ID), anyString(), modelCaptor.capture());
 
@@ -196,9 +196,9 @@ public class ContentLifeCycleImplTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testAvailableBeanDoesNotExist() throws ScriptException, ServiceLayerException {
-		when(lifeCycleContent.getContentType()).thenReturn("type");
-		when(lifeCycleContent.getRepoPath()).thenReturn("/path");
-		when(lifeCycleContent.getOperation()).thenReturn(UPDATE);
+		when(lifecycleContent.getContentType()).thenReturn("type");
+		when(lifecycleContent.getRepoPath()).thenReturn("/path");
+		when(lifecycleContent.getOperation()).thenReturn(UPDATE);
 		List<String> beanNames = List.of("bean1", "bean2", "bean3");
 		List<String> existingBeans = List.of("bean1", "bean2");
 		doReturn(false).when(studioConfiguration).getProperty(CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT, Boolean.class, false);
@@ -210,7 +210,7 @@ public class ContentLifeCycleImplTest {
 		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
 
 		ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
-		contentLifeCycle.execute(SITE_ID, lifeCycleContent, contentLoader);
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
 		verify(scriptExecutor, times(1)).executeScriptString(eq(SITE_ID), anyString(), modelCaptor.capture());
 

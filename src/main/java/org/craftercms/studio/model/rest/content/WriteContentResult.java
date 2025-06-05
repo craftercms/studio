@@ -16,7 +16,7 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import org.craftercms.studio.api.v2.content.LifeCycleContent.LifeCycleOperation;
+import org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation;
 
 import java.util.List;
 
@@ -45,11 +45,11 @@ public class WriteContentResult {
 	 *
 	 * @param path      the path of the content item
 	 * @param operation the operation performed on the content item
-	 * @param amended   true if the content was updated (life cycle controller or asset pipeline),
+	 * @param amended   true if the content was updated (lifecycle controller or asset pipeline),
 	 *                  false otherwise
 	 */
 	public record WriteContentResultItem(String path,
-										 LifeCycleOperation operation,
+										 LifecycleOperation operation,
 										 boolean amended) {
 	}
 }

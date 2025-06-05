@@ -55,7 +55,7 @@ public class DmConstants {
 	public final static String KEY_UNLOCK = "unlock";
 	public final static String KEY_SYSTEM_ASSET = "systemAsset";
 	public final static String KEY_SKIP_AUDIT_LOG_INSERT = "skipAuditLogInsert";
-	public static final String KEY_LIFECYCLE_CONTENT = "lifeCycleContent";
+	public static final String KEY_LIFECYCLE_CONTENT = "lifecycleContent";
 
 	/**
 	 * rename keys

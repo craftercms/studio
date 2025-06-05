@@ -188,8 +188,8 @@ public final class StudioConstants {
 	public final static String TMP_FILE_SUFFIX = ".tmp";
 
 	// Content Lifecycle controller
-	public static final String CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT = "studio.contentProcessor.contentLifeCycle.includeApplicationContext";
-	public static final String CONTENT_LIFECYCLE_INCLUDED_BEANS = "studio.contentProcessor.contentLifeCycle.includedBeans";
+	public static final String CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT = "studio.contentProcessor.contentLifecycle.includeApplicationContext";
+	public static final String CONTENT_LIFECYCLE_INCLUDED_BEANS = "studio.contentProcessor.contentLifecycle.includedBeans";
 
 	private StudioConstants() {
 	}

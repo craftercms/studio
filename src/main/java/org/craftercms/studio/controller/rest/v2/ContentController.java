@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.content.LifeCycleContent;
+import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
@@ -284,7 +284,7 @@ public class ContentController {
 		boolean isNew = writeResult.getItems().stream()
 			.filter(i -> StringUtils.equals(i.path(), path))
 			.map(WriteContentResult.WriteContentResultItem::operation)
-			.anyMatch(LifeCycleContent.LifeCycleOperation.NEW::equals);
+			.anyMatch(LifecycleContent.LifecycleOperation.NEW::equals);
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(writeResult);
 		result.setResponse(isNew ? CREATED : OK);
 

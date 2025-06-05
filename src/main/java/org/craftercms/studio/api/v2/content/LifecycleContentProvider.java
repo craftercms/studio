@@ -27,15 +27,15 @@ import static org.apache.commons.io.FileUtils.deleteQuietly;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
 /**
- * The {@link LifeCycleContentProvider} presents a facade for retrieving
- * content for content life cycle operations. It can be used to provide content
+ * The {@link LifecycleContentProvider} presents a facade for retrieving
+ * content for content lifecycle operations. It can be used to provide content
  * either from a file path or an InputStream.
  */
-public class LifeCycleContentProvider implements AutoCloseable {
+public class LifecycleContentProvider implements AutoCloseable {
 	private final ThrowingSupplier<Path> pathSupplier;
 	private Path filePath;
 
-	private LifeCycleContentProvider(ThrowingSupplier<Path> pathSupplier) {
+	private LifecycleContentProvider(ThrowingSupplier<Path> pathSupplier) {
 		this.pathSupplier = pathSupplier;
 	}
 
@@ -74,22 +74,22 @@ public class LifeCycleContentProvider implements AutoCloseable {
 	}
 
 	/**
-	 * Creates a LifeCycleContentProvider that provides content from a file path.
+	 * Creates a {@link LifecycleContentProvider} that provides content from a file path.
 	 *
 	 * @param pathSupplier a supplier that provides the path to the content file
-	 * @return a LifeCycleContentProvider that provides content from the specified path
+	 * @return a {@link LifecycleContentProvider} that provides content from the specified path
 	 */
-	public static LifeCycleContentProvider ofPath(ThrowingSupplier<Path> pathSupplier) {
-		return new LifeCycleContentProvider(pathSupplier);
+	public static LifecycleContentProvider ofPath(ThrowingSupplier<Path> pathSupplier) {
+		return new LifecycleContentProvider(pathSupplier);
 	}
 
 	/**
-	 * Creates a LifeCycleContentProvider that provides content from an InputStream.
+	 * Creates a {@link LifecycleContentProvider} that provides content from an InputStream.
 	 *
 	 * @param supplier a supplier that provides the InputStream for the content
-	 * @return a LifeCycleContentProvider that provides content from the specified InputStream
+	 * @return a {@link LifecycleContentProvider} that provides content from the specified InputStream
 	 */
-	public static LifeCycleContentProvider ofStream(String fileName, ThrowingSupplier<InputStream> supplier) {
+	public static LifecycleContentProvider ofStream(String fileName, ThrowingSupplier<InputStream> supplier) {
 		return ofPath(() -> createTempFile(fileName, supplier.getWithException()));
 	}
 

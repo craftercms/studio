@@ -22,10 +22,9 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipelineResolver;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.content.ContentLifeCycle;
+import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;
-import org.craftercms.studio.api.v2.content.LifeCycleContent;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,18 +40,18 @@ import static java.lang.String.format;
 import static org.apache.commons.collections4.IterableUtils.isEmpty;
 
 /**
- * Asset processing implementation of {@link ContentLifeCycle}.
+ * Asset processing implementation of {@link ContentLifecycle}.
  * This class is responsible for executing the asset processing pipeline.
  */
-public class AssetLifeCycleImpl implements ContentLifeCycle {
-	private static final Logger logger = LoggerFactory.getLogger(AssetLifeCycleImpl.class);
+public class AssetLifecycleImpl implements ContentLifecycle {
+	private static final Logger logger = LoggerFactory.getLogger(AssetLifecycleImpl.class);
 
 	private final AssetProcessorPipelineResolver pipelineResolver;
 	private final AssetProcessingConfigReader configReader;
 	private final String configPath;
 
 	@ConstructorProperties({"pipelineResolver", "configReader", "configPath"})
-	public AssetLifeCycleImpl(AssetProcessorPipelineResolver pipelineResolver, AssetProcessingConfigReader configReader,
+	public AssetLifecycleImpl(AssetProcessorPipelineResolver pipelineResolver, AssetProcessingConfigReader configReader,
 							  String configPath) {
 		this.pipelineResolver = pipelineResolver;
 		this.configReader = configReader;
@@ -60,7 +59,7 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 	}
 
 	@Override
-	public void execute(String siteId, LifeCycleContent lifeCycleContent, ContentLoader loader) throws ServiceLayerException {
+	public void execute(String siteId, LifecycleContent lifecycleContent, ContentLoader loader) throws ServiceLayerException {
 		List<ProcessorPipelineConfiguration> pipelinesConfig;
 		try (InputStream configIn = loader.getContentRaw(siteId, configPath)) {
 			if (configIn == null) {
@@ -78,10 +77,10 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 			throw new ServiceLayerException("Failed to load asset processing pipelines config", e);
 		}
 
-		String assetPath = lifeCycleContent.getRepoPath();
+		String assetPath = lifecycleContent.getRepoPath();
 		Path filePath;
 		try {
-			filePath = lifeCycleContent.get(assetPath).filePath();
+			filePath = lifecycleContent.get(assetPath).filePath();
 		} catch (Exception e) {
 			logger.error("Failed to create temporary file for asset processing. Site '{}' path '{}'", siteId, assetPath, e);
 			throw new ServiceLayerException(format("Failed to create temporary file for asset processing. Site '%s' path '%s'", siteId, assetPath), e);
@@ -97,7 +96,7 @@ public class AssetLifeCycleImpl implements ContentLifeCycle {
 		}
 
 		for (Asset output : outputs) {
-			lifeCycleContent.write(output.getRepoPath(), output.getFilePath());
+			lifecycleContent.write(output.getRepoPath(), output.getFilePath());
 		}
 	}
 }

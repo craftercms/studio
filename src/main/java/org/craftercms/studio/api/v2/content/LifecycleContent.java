@@ -28,18 +28,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
-import static org.craftercms.studio.api.v2.content.LifeCycleContentProvider.ofPath;
+import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofPath;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
 /**
- * Container for content items to be passed to the content life cycle controller
+ * Container for content items to be passed to the content lifecycle controller
  */
-public class LifeCycleContent implements AutoCloseable {
+public class LifecycleContent implements AutoCloseable {
 
 	private final String repoPath;
-	private final LifeCycleOperation operation;
+	private final LifecycleOperation operation;
 	private final String contentType;
-	private final Map<String, ContentLifeCycleItem> items;
+	private final Map<String, ContentLifecycleItem> items;
 
 	/**
 	 * Constructor for creating a new LifecycleContent object.
@@ -48,14 +48,14 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @param sourcePath      source path for move operations
 	 * @param contentType     the content type of the item
 	 * @param contentProvider provider to get the content from
-	 * @param operation       the life cycle operation to be performed
+	 * @param operation       the lifecycle operation to be performed
 	 */
-	public LifeCycleContent(String repoPath, String sourcePath, String contentType, LifeCycleContentProvider contentProvider, LifeCycleOperation operation) {
+	public LifecycleContent(String repoPath, String sourcePath, String contentType, LifecycleContentProvider contentProvider, LifecycleOperation operation) {
 		this.items = new HashMap<>();
 		this.repoPath = repoPath;
 		this.operation = operation;
 		this.contentType = contentType;
-		this.items.put(repoPath, new ContentLifeCycleItem(repoPath, sourcePath, contentProvider));
+		this.items.put(repoPath, new ContentLifecycleItem(repoPath, sourcePath, contentProvider));
 	}
 
 	/**
@@ -64,14 +64,14 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @param repoPath        the path to the content item in the repository
 	 * @param contentType     the content type of the item
 	 * @param contentProvider provider to get the content from
-	 * @param operation       the life cycle operation to be performed
+	 * @param operation       the lifecycle operation to be performed
 	 */
-	public LifeCycleContent(String repoPath, String contentType, LifeCycleContentProvider contentProvider, LifeCycleOperation operation) {
+	public LifecycleContent(String repoPath, String contentType, LifecycleContentProvider contentProvider, LifecycleOperation operation) {
 		this(repoPath, null, contentType, contentProvider, operation);
 	}
 
 	/**
-	 * Add a new content item to the life cycle operation.
+	 * Add a new content item to the lifecycle operation.
 	 *
 	 * @param path    the path to the content item
 	 * @param content InputStream of the content item
@@ -106,7 +106,7 @@ public class LifeCycleContent implements AutoCloseable {
 		exclude(normalizedPath);
 		// Add a new entry with amended=<path is the same as the original repoPath>
 		// If the paths are not the same, that means the content was added by the controller and should NOT be considered amended
-		this.items.put(normalizedPath, new ContentLifeCycleItem(normalizedPath, ofPath(() -> filePath), repoPath.equals(normalizedPath)));
+		this.items.put(normalizedPath, new ContentLifecycleItem(normalizedPath, ofPath(() -> filePath), repoPath.equals(normalizedPath)));
 	}
 
 	/**
@@ -116,32 +116,32 @@ public class LifeCycleContent implements AutoCloseable {
 	 * @param path the path to exclude
 	 */
 	private void exclude(final String path) {
-		ContentLifeCycleItem removed = items.remove(path);
+		ContentLifecycleItem removed = items.remove(path);
 		if (removed != null) {
 			removed.close();
 		}
 	}
 
 	/**
-	 * Get the content life cycle items.
+	 * Get the content lifecycle items.
 	 *
-	 * @return a map of content life cycle items, where the key is the repository path
+	 * @return a map of content lifecycle items, where the key is the repository path
 	 */
-	public Map<String, ContentLifeCycleItem> getItems() {
+	public Map<String, ContentLifecycleItem> getItems() {
 		return unmodifiableMap(items);
 	}
 
 	/**
-	 * Get the content life cycle item for the given path.
+	 * Get the content lifecycle item for the given path.
 	 *
 	 * @param repoPath the path in the repository
-	 * @return the content life cycle item, or null if it does not exist
+	 * @return the content lifecycle item, or null if it does not exist
 	 */
-	public ContentLifeCycleItem get(String repoPath) {
+	public ContentLifecycleItem get(String repoPath) {
 		return items.get(repoPath);
 	}
 
-	public LifeCycleOperation getOperation() {
+	public LifecycleOperation getOperation() {
 		return operation;
 	}
 
@@ -150,7 +150,7 @@ public class LifeCycleContent implements AutoCloseable {
 	}
 
 	public String getSourcePath() {
-		ContentLifeCycleItem item = items.get(repoPath);
+		ContentLifecycleItem item = items.get(repoPath);
 		return item != null ? item.sourcePath() : null;
 	}
 
@@ -161,48 +161,48 @@ public class LifeCycleContent implements AutoCloseable {
 	@Override
 	public void close() {
 		// Remove the remaining temporary files
-		items.values().forEach(ContentLifeCycleItem::close);
+		items.values().forEach(ContentLifecycleItem::close);
 	}
 
 	/**
-	 * Represents a content life cycle item.
+	 * Represents a content lifecycle item.
 	 *
 	 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
 	 * @param contentProvider provider to access the content as stream
 	 * @param amended         true if the content has been amended by the controller, false otherwise
 	 */
-	public record ContentLifeCycleItem(String repoPath, String sourcePath, LifeCycleContentProvider contentProvider,
+	public record ContentLifecycleItem(String repoPath, String sourcePath, LifecycleContentProvider contentProvider,
 									   boolean amended) implements ContentWriteItem, AutoCloseable {
 
 		/**
-		 * Constructor for creating a new ContentLifeCycleItem.
+		 * Constructor for creating a new {@link ContentLifecycleItem}.
 		 *
 		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
 		 * @param contentProvider provider to access the content as stream
 		 */
-		public ContentLifeCycleItem(String repoPath, LifeCycleContentProvider contentProvider) {
+		public ContentLifecycleItem(String repoPath, LifecycleContentProvider contentProvider) {
 			this(repoPath, contentProvider, false);
 		}
 
 		/**
-		 * Constructor for creating a new ContentLifeCycleItem.
+		 * Constructor for creating a new {@link ContentLifecycleItem}.
 		 *
 		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
 		 * @param contentProvider provider to access the content as stream
 		 * @param amended         true if the content has been amended by the controller, false otherwise
 		 */
-		public ContentLifeCycleItem(String repoPath, LifeCycleContentProvider contentProvider, boolean amended) {
+		public ContentLifecycleItem(String repoPath, LifecycleContentProvider contentProvider, boolean amended) {
 			this(repoPath, null, contentProvider, amended);
 		}
 
 		/**
-		 * Constructor for creating a new ContentLifeCycleItem.
+		 * Constructor for creating a new {@link ContentLifecycleItem}.
 		 *
 		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
 		 * @param sourcePath      the source path for move/copy operations
 		 * @param contentProvider provider to access the content as stream
 		 */
-		public ContentLifeCycleItem(String repoPath, String sourcePath, LifeCycleContentProvider contentProvider) {
+		public ContentLifecycleItem(String repoPath, String sourcePath, LifecycleContentProvider contentProvider) {
 			this(repoPath, sourcePath, contentProvider, false);
 		}
 
@@ -238,9 +238,9 @@ public class LifeCycleContent implements AutoCloseable {
 
 
 	/**
-	 * The life cycle operation to be performed on the content.
+	 * The lifecycle operation to be performed on the content.
 	 */
-	public enum LifeCycleOperation {
+	public enum LifecycleOperation {
 		COPY,
 		DELETE,
 		DUPLICATE,

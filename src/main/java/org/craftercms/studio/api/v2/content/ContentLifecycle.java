@@ -19,18 +19,18 @@ package org.craftercms.studio.api.v2.content;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
- * Interface for content life cycle execution
+ * Interface for content lifecycle execution
  */
-public interface ContentLifeCycle {
+public interface ContentLifecycle {
 	/**
-	 * Executes a content life cycle.
-	 * Implementations will update the {@link LifeCycleContent} object
+	 * Executes a content lifecycle.
+	 * Implementations will update the {@link LifecycleContent} object
 	 * with the results of the execution.
 	 *
 	 * @param siteId           the site id
-	 * @param lifeCycleContent the lifeCycle content object, containing the parameters and
-	 *                         enabling the {@link ContentLifeCycle} to alter the content
+	 * @param lifecycleContent the lifecycle content object, containing the parameters and
+	 *                         enabling the {@link ContentLifecycle} to alter the content
 	 * @param contentLoader    content load used to read from the site content
 	 */
-	void execute(String siteId, LifeCycleContent lifeCycleContent, ContentLoader contentLoader) throws ServiceLayerException;
+	void execute(String siteId, LifecycleContent lifecycleContent, ContentLoader contentLoader) throws ServiceLayerException;
 }
