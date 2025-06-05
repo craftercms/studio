@@ -358,7 +358,7 @@ public class ClipboardServiceInternalImplTest {
 			"/site/website/folder",
 			"/site/website/articles");
 
-		Assertions.assertEquals("/site/website/articles/folder-copy-1", targetPath, "File path is not the expected");
+		assertEquals("/site/website/articles/folder-copy-1", targetPath, "File path is not the expected");
 	}
 
 	@Test
@@ -378,7 +378,7 @@ public class ClipboardServiceInternalImplTest {
 			"/site/website/folder",
 			"/site/website/articles");
 
-		Assertions.assertEquals("/site/website/articles/folder-copy-3", targetPath, "File path is not the expected");
+		assertEquals("/site/website/articles/folder-copy-3", targetPath, "File path is not the expected");
 	}
 
 	@Test
@@ -398,7 +398,7 @@ public class ClipboardServiceInternalImplTest {
 			"/site/website/style/index.xml",
 			"/site/website/articles");
 
-		Assertions.assertEquals("/site/website/articles/style-copy-1/index.xml", targetPath, "File path is not the expected");
+		assertEquals("/site/website/articles/style-copy-1/index.xml", targetPath, "File path is not the expected");
 	}
 
 	@Test
@@ -418,7 +418,7 @@ public class ClipboardServiceInternalImplTest {
 			"/site/website/style/index.xml",
 			"/site/website/articles");
 
-		Assertions.assertEquals("/site/website/articles/style-copy-3/index.xml", targetPath, "File path is not the expected");
+		assertEquals("/site/website/articles/style-copy-3/index.xml", targetPath, "File path is not the expected");
 	}
 
 	@Test
@@ -440,7 +440,7 @@ public class ClipboardServiceInternalImplTest {
 			"/site/website/articles-copy-1",
 			"/site/website/style/index.xml");
 
-		Assertions.assertEquals("/site/website/style/articles-copy-3", targetPath, "File path is not the expected");
+		assertEquals("/site/website/style/articles-copy-3", targetPath, "File path is not the expected");
 	}
 
 
@@ -462,7 +462,7 @@ public class ClipboardServiceInternalImplTest {
 			"/site/website/style-copy-1",
 			"/site/website/health/index.xml");
 
-		Assertions.assertEquals("/site/website/health/style-copy-3", targetPath, "File path is not the expected");
+		assertEquals("/site/website/health/style-copy-3", targetPath, "File path is not the expected");
 	}
 
 
