@@ -721,7 +721,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			} catch (ServiceLayerException | UserNotFoundException | AuthenticationException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new ServiceLayerException(e);
+				throw new ServiceLayerException(format("Failed to persist item for site '%s' path '%s'", siteId, path), e);
 			}
 		}
 		return writeResultItems;
