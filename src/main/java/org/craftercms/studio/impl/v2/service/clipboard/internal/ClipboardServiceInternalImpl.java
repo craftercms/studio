@@ -104,7 +104,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 			throw new InvalidParametersException(format("Invalid paste target '%s' in site '%s'. " +
 				"Only pages and folders can contain children", targetPath, siteId));
 		}
-		if (!contentService.contentExists(siteId, sourcePath)) {
+		if (!contentServiceV2.contentExists(siteId, sourcePath)) {
 			throw new ContentNotFoundException(sourcePath, siteId, format("No content found at path '%s' " +
 				"Unable to perform paste operation", sourcePath));
 		}
