@@ -81,7 +81,7 @@ public class AssetLifecycleImpl implements ContentLifecycle {
 		Path filePath;
 		try {
 			filePath = lifecycleContent.get(assetPath).filePath();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			logger.error("Failed to create temporary file for asset processing. Site '{}' path '{}'", siteId, assetPath, e);
 			throw new ServiceLayerException(format("Failed to create temporary file for asset processing. Site '%s' path '%s'", siteId, assetPath), e);
 		}
