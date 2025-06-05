@@ -40,6 +40,7 @@ import java.util.Map;
 import static com.rometools.utils.Strings.isEmpty;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.regex.Matcher.quoteReplacement;
 import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -158,8 +159,8 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 	 */
 	protected String getScriptPath(String site, String contentType) {
 		return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION)
-			.replaceAll(PATTERN_SITE, site)
-			.replaceAll(PATTERN_CONTENT_TYPE, contentType);
+			.replaceAll(PATTERN_SITE, quoteReplacement(site))
+			.replaceAll(PATTERN_CONTENT_TYPE, quoteReplacement(contentType));
 	}
 
 	@Override
