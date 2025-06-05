@@ -90,8 +90,7 @@ public class AssetLifecycleImpl implements ContentLifecycle {
 
 		Set<Asset> outputs = new LinkedHashSet<>();
 		for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
-			AssetProcessorPipeline pipeline;
-			pipeline = pipelineResolver.getPipeline(pipelineConfig);
+			AssetProcessorPipeline pipeline = pipelineResolver.getPipeline(pipelineConfig);
 			outputs.addAll(pipeline.processAsset(pipelineConfig, input));
 		}
 
