@@ -204,44 +204,32 @@
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
-	<beans profile="!crafter.studio.externalDb">
-		<bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
-		      init-method="initDataSource" depends-on="studioMariaDBService">
-			<property name="delimiter" value=" ;"/>
-			<property name="studioConfiguration" ref="studioConfiguration"/>
-			<property name="integrityValidator" ref="crafter.databaseValidator"/>
-		</bean>
+	<bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
+	      init-method="initDataSource" depends-on="studioMariaDBService">
+		<property name="delimiter" value=" ;"/>
+		<property name="studioConfiguration" ref="studioConfiguration"/>
+		<property name="integrityValidator" ref="crafter.databaseValidator"/>
+	</bean>
 
-		<bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
-		      destroy-method="stop" depends-on="studioConfiguration">
-			<property name="defaultBaseDir"
-				  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_BASE_PATH)}"/>
-			<property name="defaultDataDir"
-				  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DATA_PATH)}"/>
-			<property name="defaultPort"
-				  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"/>
-			<property name="defaultSocket"
-				  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}"/>
-			<property name="securityDisabled" value="false"/>
-			<property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}"/>
-			<property name="driverClassName"
-				  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}"/>
-			<property name="args">
-				<list>
-					<value>--max_allowed_packet=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_ALLOWED_PACKET)}</value>
-					<value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value>
-				</list>
-			</property>
-		</bean>
-	</beans>
-
-	<beans profile="crafter.studio.externalDb">
-		<bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
-		      init-method="initDataSource">
-			<property name="delimiter" value=" ;"/>
-			<property name="studioConfiguration" ref="studioConfiguration"/>
-			<property name="integrityValidator" ref="crafter.databaseValidator"/>
-		</bean>
-	</beans>
-
+	<bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
+	      destroy-method="stop" depends-on="studioConfiguration">
+		<property name="defaultBaseDir"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_BASE_PATH)}"/>
+		<property name="defaultDataDir"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DATA_PATH)}"/>
+		<property name="defaultPort"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"/>
+		<property name="defaultSocket"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}"/>
+		<property name="securityDisabled" value="false"/>
+		<property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}"/>
+		<property name="driverClassName"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}"/>
+		<property name="args">
+			<list>
+				<value>--max_allowed_packet=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_ALLOWED_PACKET)}</value>
+				<value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value>
+			</list>
+		</property>
+	</bean>
 </beans>
