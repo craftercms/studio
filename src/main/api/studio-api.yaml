@@ -7931,7 +7931,7 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/workflow/{site}/package/{package}/approve:
+    /api/2/workflow/{site}/approve:
         post:
             tags:
                 - workflow
@@ -7946,14 +7946,6 @@ paths:
                     schema:
                         type: string
                         example: "site123"
-                -   name: package
-                    in: path
-                    description: package ID
-                    required: true
-                    schema:
-                        type: integer
-                        format: int64
-                        example: "12345"
             requestBody:
                 description: parameters for publish package approval
                 required: true
@@ -7962,6 +7954,12 @@ paths:
                         schema:
                             type: object
                             properties:
+                                packageIds:
+                                    type: array
+                                    description: list of package IDs to cancel
+                                    items:
+                                        type: integer
+                                        format: int64
                                 comment:
                                     type: string
                                     description: Reviewer's comment
@@ -7995,7 +7993,7 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/workflow/{site}/package/{package}/reject:
+    /api/2/workflow/{site}/reject:
         post:
             tags:
                 - workflow
@@ -8010,14 +8008,6 @@ paths:
                     schema:
                         type: string
                         example: "site123"
-                -   name: package
-                    in: path
-                    description: package ID
-                    required: true
-                    schema:
-                        type: integer
-                        format: int64
-                        example: "12345"
             requestBody:
                 description: parameters for publish package rejection
                 required: true
@@ -8026,6 +8016,12 @@ paths:
                         schema:
                             type: object
                             properties:
+                                packageIds:
+                                    type: array
+                                    description: list of package IDs to cancel
+                                    items:
+                                        type: integer
+                                        format: int64
                                 comment:
                                     type: string
                                     description: Reviewer's comment
