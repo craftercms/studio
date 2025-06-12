@@ -199,7 +199,7 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <beans profile="!crafter.studio.externalDb">
+    <beans profile="!crafter_studio_externalDb">
         <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
               init-method="initDataSource" depends-on="studioMariaDBService">
             <property name="delimiter" value=" ;"/>
@@ -230,7 +230,7 @@
         </bean>
     </beans>
 
-    <beans profile="crafter.studio.externalDb">
+    <beans profile="crafter_studio_externalDb">
         <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
               init-method="initDataSource">
             <property name="delimiter" value=" ;"/>
