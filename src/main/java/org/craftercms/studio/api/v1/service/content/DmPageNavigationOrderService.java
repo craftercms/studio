@@ -62,4 +62,13 @@ public interface DmPageNavigationOrderService {
 	 * @param targetPath the new path
 	 */
 	void move(String siteId, String sourcePath, String targetPath);
+
+	/**
+	 * Copies the navigation order from one path to another.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the path to copy from
+	 * @param targetPath the path to copy to
+	 */
+	void copy(String siteId, String sourcePath, String targetPath);
 }

@@ -43,6 +43,7 @@ import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
@@ -52,12 +53,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.lang.String.format;
+import static org.craftercms.studio.model.policy.Type.COPY;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -205,9 +204,17 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@ValidateAction(type = Type.MOVE)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-	public WriteContentResult move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
+	public PasteContentResult move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return contentServiceInternal.move(siteId, sourcePath, targetPath);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		return contentServiceInternal.moveToParentPath(siteId, sourcePath, targetParent);
 	}
 
 	@Override
@@ -234,6 +241,16 @@ public class ContentServiceImpl implements ContentService {
 	public WriteContentResult write(@SiteId String siteId, @ContentPath String path, InputStream content)
 		throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.write(siteId, path, content);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = COPY)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public PasteContentResult copy(@SiteId String siteId, @ActionSourcePath String sourcePath,
+								   @ActionTargetPath @ContentPath String targetPath, Set<String> copyPaths)
+			throws ServiceLayerException, UserNotFoundException {
+		return contentServiceInternal.copy(siteId, sourcePath, targetPath, copyPaths);
 	}
 
 	@Override

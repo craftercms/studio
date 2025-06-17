@@ -44,4 +44,15 @@ public interface NavigationOrderSequenceMapper {
 	void move(@Param(SITE) String site,
 			  @Param(SOURCE_PATH) String sourcePath,
 			  @Param(TARGET_PATH) String targetPath);
+
+	/**
+	 * Copies the navigation order from one path to another.
+	 *
+	 * @param site       the site id
+	 * @param sourcePath the path to copy from
+	 * @param targetPath the path to copy to
+	 */
+	void copy(@Param(SITE) String site,
+			  @Param(SOURCE_PATH) String sourcePath,
+			  @Param(TARGET_PATH) String targetPath);
 }

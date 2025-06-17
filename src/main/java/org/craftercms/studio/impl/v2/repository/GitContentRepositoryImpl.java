@@ -1617,11 +1617,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 * @param repoPath    path to the repository
 	 * @param gitFromPath path to move from
 	 * @param gitToPath   path to move to
-	 * @throws IOException           if an I/O error occurs
-	 * @throws ServiceLayerException if an error occurs
+	 * @throws IOException if an I/O error occurs
 	 */
 	private void moveFiles(String repoPath, String gitFromPath, String gitToPath) throws
-		IOException, ServiceLayerException {
+			IOException {
 		Path sourcePath = Paths.get(repoPath, gitFromPath);
 		Path targetPath = Paths.get(repoPath, gitToPath);
 		File sourceFile = sourcePath.toFile();
@@ -1684,6 +1683,79 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	@Override
+	public String copy(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException {
+		// TODO: try to unify this method with moveContent, as they are very similar
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+
+		String gitFromPath = helper.getGitPath(fromPath);
+		String gitToPath = helper.getGitPath(toPath);
+		try {
+			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+
+			boolean result = helper.addFiles(repo, siteId, gitFromPath, gitToPath);
+			if (!result) {
+				logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath);
+				throw new ServiceLayerException(format("Failed to copy item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath));
+			}
+			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 1);
+			changeSet.add(gitToPath);
+
+			for (ContentWriteItem writeItem : additionalItems) {
+				try (InputStream content = writeItem.content()) {
+					helper.writeFile(repo, siteId, writeItem.repoPath(), content);
+					changeSet.add(writeItem.repoPath());
+				}
+			}
+			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
+			PersonIdent user = helper.getCurrentUserIdent();
+			String commitMsg = helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
+					.replaceAll(PATTERN_FROM_PATH, fromPath)
+					.replaceAll(PATTERN_TO_PATH, toPath);
+			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
+			if (commitId != null) {
+				persistCommit(siteId, commitId);
+			}
+			return commitId;
+		} catch (ServiceLayerException e) {
+			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
+			throw e;
+		} catch (UserNotFoundException e) {
+			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}': user not found", siteId, fromPath, toPath, e);
+			throw e;
+		} catch (Exception e) {
+			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
+			throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	/**
+	 * Copy files or folders in the file system
+	 *
+	 * @param repoPath    the path to the repository
+	 * @param gitFromPath the path to copy from
+	 * @param gitToPath   the path to copy to
+	 * @throws IOException if an I/O error occurs
+	 */
+	protected void copyFiles(String repoPath, String gitFromPath, String gitToPath)
+			throws IOException {
+		Path sourcePath = Paths.get(repoPath, gitFromPath);
+		Path targetPath = Paths.get(repoPath, gitToPath);
+		File sourceFile = sourcePath.toFile();
+		File targetFile = targetPath.toFile();
+
+		if (sourceFile.isFile()) {
+			FileUtils.copyFile(sourceFile, targetFile);
+		} else {
+			FileUtils.copyDirectory(sourceFile, targetFile);
 		}
 	}
 

@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
+import static org.apache.commons.collections4.MapUtils.emptyIfNull;
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofPath;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
@@ -40,6 +41,7 @@ public class LifecycleContent implements AutoCloseable {
 	private final LifecycleOperation operation;
 	private final String contentType;
 	private final Map<String, ContentLifecycleItem> items;
+	private final Map<String, ContentWriteItem> dependencies;
 
 	/**
 	 * Constructor for creating a new LifecycleContent object.
@@ -50,24 +52,20 @@ public class LifecycleContent implements AutoCloseable {
 	 * @param contentProvider provider to get the content from
 	 * @param operation       the lifecycle operation to be performed
 	 */
-	public LifecycleContent(String repoPath, String sourcePath, String contentType, LifecycleContentProvider contentProvider, LifecycleOperation operation) {
+	public LifecycleContent(String repoPath, String sourcePath, String contentType,
+							LifecycleContentProvider contentProvider, LifecycleOperation operation,
+							Map<String, ContentWriteItem> dependencies) {
 		this.items = new HashMap<>();
 		this.repoPath = repoPath;
 		this.operation = operation;
 		this.contentType = contentType;
 		this.items.put(repoPath, new ContentLifecycleItem(repoPath, sourcePath, contentProvider));
+		this.dependencies = emptyIfNull(dependencies);
 	}
 
-	/**
-	 * Constructor for creating a new LifecycleContent object.
-	 *
-	 * @param repoPath        the path to the content item in the repository
-	 * @param contentType     the content type of the item
-	 * @param contentProvider provider to get the content from
-	 * @param operation       the lifecycle operation to be performed
-	 */
-	public LifecycleContent(String repoPath, String contentType, LifecycleContentProvider contentProvider, LifecycleOperation operation) {
-		this(repoPath, null, contentType, contentProvider, operation);
+	public LifecycleContent(String repoPath, String sourcePath, String contentType,
+							LifecycleContentProvider contentProvider, LifecycleOperation operation) {
+		this(repoPath, sourcePath, contentType, contentProvider, operation, null);
 	}
 
 	/**
@@ -158,6 +156,10 @@ public class LifecycleContent implements AutoCloseable {
 		return contentType;
 	}
 
+	public Map<String, ContentWriteItem> getDependencies() {
+		return dependencies;
+	}
+
 	@Override
 	public void close() {
 		// Remove the remaining temporary files
@@ -173,16 +175,6 @@ public class LifecycleContent implements AutoCloseable {
 	 */
 	public record ContentLifecycleItem(String repoPath, String sourcePath, LifecycleContentProvider contentProvider,
 									   boolean amended) implements ContentWriteItem, AutoCloseable {
-
-		/**
-		 * Constructor for creating a new {@link ContentLifecycleItem}.
-		 *
-		 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
-		 * @param contentProvider provider to access the content as stream
-		 */
-		public ContentLifecycleItem(String repoPath, LifecycleContentProvider contentProvider) {
-			this(repoPath, contentProvider, false);
-		}
 
 		/**
 		 * Constructor for creating a new {@link ContentLifecycleItem}.
@@ -241,12 +233,27 @@ public class LifecycleContent implements AutoCloseable {
 	 * The lifecycle operation to be performed on the content.
 	 */
 	public enum LifecycleOperation {
-		COPY,
+		COPY(true),
 		DELETE,
-		DUPLICATE,
+		DUPLICATE(true),
 		NEW,
 		RENAME,
 		REVERT,
-		UPDATE
+		UPDATE;
+
+		/**
+		 * Indicates that the operation is a copy or duplicate operation,
+		 * so new object ids should be generated for the affected content item and
+		 * configured copy-dependencies (and item-specific dependencies) should be copied.
+		 */
+		public final boolean isCopy;
+
+		LifecycleOperation() {
+			this(false);
+		}
+
+		LifecycleOperation(final boolean isCopy) {
+			this.isCopy = isCopy;
+		}
 	}
 }

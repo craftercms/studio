@@ -117,7 +117,7 @@ public class AssetLifecycleImplTest {
 		when(lifecycleContent.getRepoPath()).thenReturn("/path/to/asset");
 		when(lifecycleContent.getItems()).thenReturn(lifecycleContentItems);
 		doAnswer(a -> {
-			lifecycleContentItems.put(a.getArgument(0), new ContentLifecycleItem(a.getArgument(0), ofPath(() -> a.getArgument(1))));
+			lifecycleContentItems.put(a.getArgument(0), new ContentLifecycleItem(a.getArgument(0), ofPath(() -> a.getArgument(1)), false));
 			return null;
 		}).when(lifecycleContent).write(anyString(), any(Path.class));
 		doReturn(item).when(lifecycleContent).get("/path/to/asset");

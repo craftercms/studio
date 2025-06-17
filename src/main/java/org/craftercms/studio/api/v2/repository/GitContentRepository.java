@@ -270,8 +270,8 @@ public interface GitContentRepository extends ContentRepository {
 								  String remoteUsername, String remotePassword, String remoteToken,
 								  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 								  String creator)
-		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-		RemoteRepositoryNotFoundException, ServiceLayerException;
+			throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+			RemoteRepositoryNotFoundException, ServiceLayerException;
 
 	/**
 	 * Check if a path is a folder
@@ -424,7 +424,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws UserNotFoundException if the current user is not found
 	 */
 	String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> folders)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Move content (files or directories) from one path to another
@@ -452,6 +452,19 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws ServiceLayerException if the operation fails
 	 */
 	String moveContent(String site, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
+	/**
+	 * Copy content (files or directories) from one path to another
+	 *
+	 * @param siteId          the site id
+	 * @param sourcePath      the path to copy the content from
+	 * @param targetPath      the path to copy the content to
+	 * @param additionalItems collection of additional items to be written in the same commit
+	 * @param newFolders      collection of folders to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	String copy(String siteId, String sourcePath, String targetPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException;
 }

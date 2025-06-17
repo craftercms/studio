@@ -21,10 +21,10 @@ import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v2.content.ContentLifecycle;
-import org.craftercms.studio.api.v2.content.ContentLoader;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -36,13 +36,22 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl.PastedPath;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,13 +66,18 @@ import org.springframework.util.function.ThrowingSupplier;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.*;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.NEW;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.UPDATE;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToXml;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -179,30 +193,30 @@ public class ContentServiceInternalImplTest {
 		// Parent folders should go before children
 		// XXX/index.xml should go before other XXX/yyyy items
 		List<String> paths = new ArrayList<>(List.of(
-			"/site/website/en/articles/new-cms/features/index.xml",
-			"/site/website/en/articles/new-cms/features/",
-			"/site/website/en/index.xml",
-			"/site/website/en/news/archive/new-release/index.xml",
-			"/site/website/en/news/archive/new-release",
-			"/site/website/en/news/archive/",
-			"/site/website/en/news",
-			"/site/website/en",
-			"/site/website/en/articles/new-cms/index.xml",
-			"/site/website/en/articles",
-			"/site/website/en/articles/new-cms"));
+				"/site/website/en/articles/new-cms/features/index.xml",
+				"/site/website/en/articles/new-cms/features/",
+				"/site/website/en/index.xml",
+				"/site/website/en/news/archive/new-release/index.xml",
+				"/site/website/en/news/archive/new-release",
+				"/site/website/en/news/archive/",
+				"/site/website/en/news",
+				"/site/website/en",
+				"/site/website/en/articles/new-cms/index.xml",
+				"/site/website/en/articles",
+				"/site/website/en/articles/new-cms"));
 
 		List<String> expected = List.of(
-			"/site/website/en",
-			"/site/website/en/index.xml",
-			"/site/website/en/news",
-			"/site/website/en/articles",
-			"/site/website/en/news/archive/",
-			"/site/website/en/articles/new-cms",
-			"/site/website/en/articles/new-cms/index.xml",
-			"/site/website/en/news/archive/new-release",
-			"/site/website/en/news/archive/new-release/index.xml",
-			"/site/website/en/articles/new-cms/features/",
-			"/site/website/en/articles/new-cms/features/index.xml");
+				"/site/website/en",
+				"/site/website/en/index.xml",
+				"/site/website/en/news",
+				"/site/website/en/articles",
+				"/site/website/en/news/archive/",
+				"/site/website/en/articles/new-cms",
+				"/site/website/en/articles/new-cms/index.xml",
+				"/site/website/en/news/archive/new-release",
+				"/site/website/en/news/archive/new-release/index.xml",
+				"/site/website/en/articles/new-cms/features/",
+				"/site/website/en/articles/new-cms/features/index.xml");
 
 		assertCreationPathComparatorMatches(paths, expected);
 	}
@@ -223,17 +237,17 @@ public class ContentServiceInternalImplTest {
 		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
 
 		// Mock lifecycle execution
-		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		WriteContentResult result;
 		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class)) {
 			dbUtilsMock.when(() -> DBUtils.runInTransaction(
-				any(PlatformTransactionManager.class),
-				anyString(),
-				any(ThrowingSupplier.class)
+					any(PlatformTransactionManager.class),
+					anyString(),
+					any(ThrowingSupplier.class)
 			)).thenAnswer(invocation -> {
 				// Simulate transaction behavior
-				ThrowingSupplier supplier = invocation.getArgument(2);
+				ThrowingSupplier<String> supplier = invocation.getArgument(2);
 				return supplier.getWithException();
 			});
 			result = serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -250,7 +264,7 @@ public class ContentServiceInternalImplTest {
 		// Mock lifecycle content with empty results
 		LifecycleContent lifecycleContent = mock(LifecycleContent.class);
 		when(lifecycleContent.getItems()).thenReturn(Collections.emptyMap());
-		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		// Call the method
 		serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -265,12 +279,12 @@ public class ContentServiceInternalImplTest {
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
 		when(publishService.getActivePackagesForItems(any(), anyCollection(), anyBoolean()))
-			.thenReturn(List.of(new PublishPackage() {{
-				id = PUBLISH_PACKAGE_ID;
-			}}));
+				.thenReturn(List.of(new PublishPackage() {{
+					id = PUBLISH_PACKAGE_ID;
+				}}));
 
 		// Mock lifecycle execution
-		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		// Call the method
 		serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -285,7 +299,7 @@ public class ContentServiceInternalImplTest {
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(false);
 
 		// Mock lifecycle execution
-		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), eq(PATH), any());
+		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		// Call the method
 		serviceInternal.write(SITE_ID, PATH, contentStream);
@@ -294,7 +308,7 @@ public class ContentServiceInternalImplTest {
 	@Test
 	public void testGetMissingFolders() {
 		Map<String, LifecycleContent.LifecycleOperation> operationsByPath = Map.of(
-			"/a/b/c/d", NEW
+				"/a/b/c/d", NEW
 		);
 
 		// Mock content existence
@@ -318,9 +332,9 @@ public class ContentServiceInternalImplTest {
 		String targetFolder = "/site/website/test2";
 		String commitId = "COMMIT 123";
 		List<String> children = List.of(
-			"/site/website/test1/index.xml",
-			"/site/website/test1/child1/index.xml",
-			"/site/website/test1/child2/index.xml");
+				"/site/website/test1/index.xml",
+				"/site/website/test1/child1/index.xml",
+				"/site/website/test1/child2/index.xml");
 
 		when(contentRepository.contentExists(SITE_ID, sourcePath)).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, targetPath)).thenReturn(false);
@@ -331,32 +345,46 @@ public class ContentServiceInternalImplTest {
 		Item sourceItem = mock(Item.class);
 		when(sourceItem.getSystemType()).thenReturn(CONTENT_TYPE_FOLDER);
 		when(itemService.getItem(SITE_ID, sourceFolder, true)).thenReturn(sourceItem);
-		when(itemService.getItem(SITE_ID, sourcePath)).thenReturn(sourceItem);
+		when(itemService.getItem(SITE_ID, "/site/website", true)).thenReturn(mock(Item.class));
 
-		Item sourceChild1 = mock(Item.class);
-		Item sourceChild2 = mock(Item.class);
-
-		when(itemService.getItem(SITE_ID, "/site/website/test1/child1/index.xml")).thenReturn(sourceChild1);
-		when(itemService.getItem(SITE_ID, "/site/website/test1/child2/index.xml")).thenReturn(sourceChild2);
-
-		Item targetParentItem = mock(Item.class);
-		when(itemService.getItem(SITE_ID, "/site/website", true)).thenReturn(targetParentItem);
+		when(itemService.getItem(SITE_ID, "/site/website/test2", true)).thenReturn(mock(Item.class));
 
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
 		when(contentRepository.moveContent(any(), any(), any(), any(), any())).thenReturn(commitId);
 
+		doAnswer(a -> {
+			String path = a.getArgument(2);
+			ContentLifecycleItem item = mock(ContentLifecycleItem.class);
+			when(item.repoPath()).thenReturn(path);
+			LifecycleContent lifecycleContent = mock(LifecycleContent.class);
+			when(lifecycleContent.getItems()).thenReturn(Map.of(path, item));
+			return lifecycleContent;
+		}).when(serviceInternal).runLifecycle(
+				anyString(), anyString(), anyString(), any(), any(), any()
+		);
+
 		WriteContentResult moveResult;
-		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class)) {
+		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class);
+			 MockedStatic<ContentUtils> contentUtilsMock = mockStatic(ContentUtils.class);
+			 MockedStatic<SecurityUtils> secUtilsMock = mockStatic(SecurityUtils.class);
+			 MockedStatic<StudioUtils> studioUtilsMock = mockStatic(StudioUtils.class)) {
 			dbUtilsMock.when(() -> DBUtils.runInTransaction(
-				any(PlatformTransactionManager.class),
-				anyString(),
-				any(ThrowingSupplier.class)
+					any(PlatformTransactionManager.class),
+					anyString(),
+					any(ThrowingSupplier.class)
 			)).thenAnswer(invocation -> {
 				// Simulate transaction behavior
-				ThrowingSupplier supplier = invocation.getArgument(2);
+				ThrowingSupplier<String> supplier = invocation.getArgument(2);
 				return supplier.getWithException();
 			});
+			studioUtilsMock.when(() -> createTempFile(anyString(), any(Document.class))).thenReturn(mock(Path.class));
+			studioUtilsMock.when(() -> isPageDescriptor(anyString())).thenReturn(true);
+			studioUtilsMock.when(() -> movePath(anyString(), anyString(), anyString())).thenCallRealMethod();
+			studioUtilsMock.when(() -> underPagesRoot(anyString())).thenCallRealMethod();
+			contentUtilsMock.when(() -> convertStreamToXml(any())).thenReturn(mock(Document.class));
+			contentUtilsMock.when(() -> getParentUrl(any())).thenCallRealMethod();
+			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
 			moveResult = serviceInternal.move(SITE_ID, sourcePath, targetPath);
 		}
 
@@ -367,8 +395,8 @@ public class ContentServiceInternalImplTest {
 
 		verify(pageNavOrderService).move(SITE_ID, sourceFolder, targetFolder);
 
-		verify(contentLifecycle, times(3)).execute(
-			anyString(), any(LifecycleContent.class), any(ContentLoader.class)
+		verify(serviceInternal, times(3)).runLifecycle(
+				eq(SITE_ID), any(), anyString(), any(), any(), any()
 		);
 	}
 
@@ -400,4 +428,213 @@ public class ContentServiceInternalImplTest {
 		serviceInternal.move(SITE_ID, "/existing/file.jpg", "/new/path.txt");
 	}
 
+	@Test
+	public void testFolderCutPasteOnCollision() throws ServiceLayerException, DocumentException {
+		Collection<RepositoryItem> repoItems = getRepoItems("/site/website/articles", List.of("folder"), true);
+		List<String> existentPaths = List.of("/site/website/articles/folder");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+		returnItemDescriptorWithName("/site/website/folder/index.xml");
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/folder",
+				"/site/website/articles");
+
+		assertEquals("File path is not the expected", "/site/website/articles/folder-copy-1", targetPath.path);
+	}
+
+	@Test
+	public void testFolderCutPasteOnCollisionMultiple() throws ServiceLayerException, DocumentException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+				"/site/website/articles",
+				List.of("folder", "folder-copy-1", "folder-copy-2"),
+				true);
+		List<String> existentPaths = List.of("/site/website/articles/folder",
+				"/site/website/articles/folder-copy-3",
+				"/site/website/articles/folder-copy-2");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		returnItemDescriptorWithName("/site/website/folder/index.xml");
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/folder",
+				"/site/website/articles");
+
+		assertEquals("File path is not the expected", "/site/website/articles/folder-copy-3", targetPath.path);
+	}
+
+	@Test
+	public void testPageCutPasteIntoFolderOnCollision() throws ServiceLayerException, DocumentException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+				"/site/website/articles",
+				List.of("style"),
+				true);
+		List<String> existentPaths = List.of("/site/website/articles/style/index.xml",
+				"/site/website/articles/style");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		doReturn(convertStreamToXml(toInputStream("<page><internal-name>the label</internal-name></page>", "UTF-8")))
+				.when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/style/index.xml", false);
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/style/index.xml",
+				"/site/website/articles");
+
+		assertEquals("File path is not the expected", "/site/website/articles/style-copy-1/index.xml", targetPath.path);
+	}
+
+	@Test
+	public void testPageCutPasteIntoFolderOnCollisionMultiple() throws ServiceLayerException, DocumentException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+				"/site/website/articles",
+				List.of("style", "style-copy-1", "style-copy-2"),
+				true);
+		List<String> existentPaths = List.of("/site/website/articles/style/index.xml",
+				"/site/website/articles/style");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/articles")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		doReturn(convertStreamToXml(toInputStream("<page><internal-name>the label</internal-name></page>", "UTF-8")))
+				.when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/style/index.xml", false);
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/style/index.xml",
+				"/site/website/articles");
+
+		assertEquals("File path is not the expected", "/site/website/articles/style-copy-3/index.xml", targetPath.path);
+	}
+
+	@Test
+	public void testFolderCutPasteIntoPageOnCollision() throws ServiceLayerException, DocumentException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+				"/site/website/style",
+				List.of("style", "articles-copy-1", "articles-copy-2"),
+				true);
+		List<String> existentPaths = List.of(
+				"/site/website/style/articles-copy-1",
+				"/site/website/style/articles-copy-2",
+				"/site/website/style");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/style")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		returnItemDescriptorWithName("/site/website/articles-copy-1/index.xml");
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/articles-copy-1",
+				"/site/website/style/index.xml");
+
+		assertEquals("File path is not the expected", "/site/website/style/articles-copy-3", targetPath.path);
+	}
+
+	@Test
+	public void testPageCutPasteIntoPageOnCollision() throws ServiceLayerException, DocumentException {
+		Collection<RepositoryItem> repoItems = getRepoItems(
+				"/site/website/health",
+				List.of("style", "style-copy-1", "style-copy-2"),
+				false);
+		List<String> existentPaths = List.of(
+				"/site/website/health/style-copy-1",
+				"/site/website/health/style-copy-2");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/health")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		doReturn(convertStreamToXml(toInputStream("<page><internal-name>the label</internal-name></page>", "UTF-8")))
+				.when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/style-copy-1/index.xml", false);
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/style-copy-1",
+				"/site/website/health/index.xml");
+
+		assertEquals("File path is not the expected", "/site/website/health/style-copy-3", targetPath.path);
+	}
+
+	@Test
+	public void testMoveToParentPath() throws ServiceLayerException, DocumentException, UserNotFoundException {
+		when(contentRepository.contentExists(SITE_ID, "/site/website")).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location")).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location/style")).thenReturn(true);
+		when(contentRepository.isFolder(SITE_ID, "/site/website/new-location")).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style/index.xml")).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style")).thenReturn(true);
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+		when(contentRepository.moveContent(any(), any(), any(), anyCollection(), anySet())).thenReturn("COMMIT 123");
+
+		Document document = convertStreamToXml(toInputStream(
+				"<page><internal-name>the label</internal-name></page>", "UTF-8"));
+		doReturn(document).when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/articles/style/index.xml", false);
+
+		Item sourceItem = mock(Item.class);
+		when(sourceItem.getSystemType()).thenReturn("page");
+		doReturn(sourceItem).when(itemService).getItem(SITE_ID, "/site/website/articles/style", true);
+
+		Item parentItem = mock(Item.class);
+		when(parentItem.getId()).thenReturn(123L);
+		when(itemService.getItem(SITE_ID, "/site/website/new-location", true)).thenReturn(parentItem);
+
+		doAnswer(invocation -> {
+			Runnable runnable = invocation.getArgument(0);
+			runnable.run();
+			return null;
+		}).when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
+
+		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class);
+			 MockedStatic<SecurityUtils> secUtilsMock = mockStatic(SecurityUtils.class)) {
+			dbUtilsMock.when(() -> DBUtils.runInTransaction(
+					any(PlatformTransactionManager.class),
+					anyString(),
+					any(ThrowingSupplier.class)
+			)).thenAnswer(invocation -> {
+				// Simulate transaction behavior
+				ThrowingSupplier<String> supplier = invocation.getArgument(2);
+				return supplier.getWithException();
+			});
+			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
+			PasteContentResult pasteResult = serviceInternal.moveToParentPath(
+					SITE_ID,
+					"/site/website/articles/style/index.xml",
+					"/site/website/new-location");
+
+			assertEquals("Target path is not as expected",
+					"/site/website/new-location/style-copy-1", pasteResult.getTargetPath());
+
+			verify(contentRepository, times(1)).moveContent(
+					eq(SITE_ID),
+					eq("/site/website/articles/style"),
+					eq("/site/website/new-location/style-copy-1"),
+					anyCollection(),
+					anySet()
+			);
+
+			verify(itemDAO, times(1)).updateMovedFolders(
+					eq(SITE_NUMERIC_ID),
+					eq("/site/website/articles/style"),
+					eq("/site/website/new-location-copy-1")
+			);
+		}
+	}
+
+	private Collection<RepositoryItem> getRepoItems(String path, List<String> names, boolean folders) {
+		return names.stream()
+				.map(name -> new RepositoryItem(path, name, folders))
+				.toList();
+	}
+
+	private void returnItemDescriptorWithName(String path) throws DocumentException, ContentNotFoundException {
+		doReturn(convertStreamToXml(toInputStream("<folder><internal-name>the label</internal-name></folder>", "UTF-8")))
+				.when(serviceInternal).getItemDescriptor(SITE_ID, path, false);
+	}
 }

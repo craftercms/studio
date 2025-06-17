@@ -151,6 +151,13 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<LightItem> getDependencies(String siteId, String path) {
+		return dependencyServiceInternal.getDependencies(siteId, path);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) throws SiteNotFoundException {
 		return dependencyServiceInternal.resolveDependencies(site, sourcePath);
 	}

@@ -179,8 +179,22 @@ public interface ItemService {
 	 * @param newPath  new path
 	 * @param parentId new parent ID
 	 * @param label    new label
+	 * @param userId   ID of the user performing the move operation
 	 */
-	void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) throws SiteNotFoundException;
+	void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label, long userId)
+			throws SiteNotFoundException;
+
+	/**
+	 * Copy matching items from one path to another.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path of the item to copy
+	 * @param targetPath the target path of the item to copy
+	 * @param parentId   the new  parent ID
+	 * @param label      the new label
+	 * @param userId     the ID of the user performing the copy operation
+	 */
+	void copyItem(String siteId, String sourcePath, String targetPath, long parentId, String label, long userId) throws SiteNotFoundException;
 
 	/**
 	 * Check if item is new

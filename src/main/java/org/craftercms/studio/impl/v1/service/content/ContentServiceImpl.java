@@ -116,6 +116,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
@@ -1015,18 +1016,21 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		} catch (DocumentException e) {
 			logger.error("Failed to update XML while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
 				siteId, fromPath, toPath, movePath, e);
+		} catch (AuthenticationException e) {
+			logger.error("Failed to authenticate user while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
+				siteId, fromPath, toPath, movePath, e);
 		}
 
 		return movePath;
 	}
 
 	protected void updateDatabaseOnMove(String site, String fromPath, String movePath, String commitId)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		updateDatabaseOnMove(site, fromPath, movePath, null, null, null, commitId);
 	}
 
 	protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label, String folderLabel, String commitId)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
 		String user = SecurityUtils.getCurrentUsername();
@@ -1042,14 +1046,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				.ContentLifeCycleOperation.RENAME, params);
 			renamedItem = getContentItem(site, movePath, 0);
 		}
-
+		long userId = getCurrentUser().getId();
 		// Item update
-		itemService.moveItem(site, fromPath, movePath, parentId, label);
+		itemService.moveItem(site, fromPath, movePath, parentId, label, userId);
 		// Update folder when we are moving a /index.xml
 		if (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
 			String sourcePath = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 			String targetPath = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
-			itemService.moveItem(site, sourcePath, targetPath, parentId, folderLabel);
+			itemService.moveItem(site, sourcePath, targetPath, parentId, folderLabel, userId);
 		}
 
 		// write activity stream
@@ -1092,7 +1096,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	protected void updateChildrenOnMove(String site, String fromPath, String movePath, String commitId)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("updateChildrenOnMove for site '{}' from '{}' to '{}'", site, fromPath, movePath);
 
 		// get the list of children
@@ -1352,7 +1356,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		Map<String, String> ids = new HashMap<>();
 		if (document != null) {
 			Element root = document.getRootElement();
-			Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
+			Node pageIdNode = root.selectSingleNode("//" + ELM_OBJECT_ID);
 			if (pageIdNode != null) {
 				ids.put(KEY_PAGE_ID, pageIdNode.getText());
 			}
@@ -1417,7 +1421,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
 		updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 
-		Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
+		Node pageIdNode = root.selectSingleNode("//" + ELM_OBJECT_ID);
 		if (pageIdNode != null) {
 			originalPageId = pageIdNode.getText();
 			pageIdNode.setText(params.get(KEY_PAGE_ID));

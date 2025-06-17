@@ -47,15 +47,15 @@ public interface ItemDAO {
 	String TARGET_PATH = "targetPath";
 
 	Map<String, String> SORT_FIELD_MAP = Map.of(
-		"id", "id",
-		"dateModified", "last_modified_on",
-		"label", "label");
+			"id", "id",
+			"dateModified", "last_modified_on",
+			"label", "label");
 
 	Map<String, String> DETAILED_ITEM_SORT_FIELD_MAP = Map.of(
-		"id", "id",
-		"dateModified", "last_modified_on",
-		"dateScheduled", "IFNULL(live_scheduleddate,staging_scheduleddate)",
-		"label", "label");
+			"id", "id",
+			"dateModified", "last_modified_on",
+			"dateScheduled", "IFNULL(live_scheduleddate,staging_scheduleddate)",
+			"label", "label");
 
 	/**
 	 * Get total number of children for given path
@@ -182,21 +182,55 @@ public interface ItemDAO {
 									   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
 	/**
+	 * Copy item. Update item and item_target table to reflect an item copied from oldPath to newPath.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path of the item to copy
+	 * @param targetPath the target path of the item to copy
+	 * @param parentId   the new parent id
+	 * @param label      the new label
+	 * @param userId     the user id of the user performing the copy operation
+	 */
+	default void copyItem(String siteId, String sourcePath, String targetPath, String previewUrl,
+						  long parentId, String label, long userId) {
+		copyItemInternal(siteId, sourcePath, targetPath, previewUrl, parentId, label,
+				userId, NEW.value);
+	}
+
+	/**
+	 * DO NOT USE THIS METHOD DIRECTLY. USE copyItem INSTEAD.
+	 * Copy item.
+	 *
+	 * @param siteId   the site id
+	 * @param oldPath  the previous path of the item to copy
+	 * @param newPath  the new path of the item to copy
+	 * @param parentId the new parent id
+	 * @param label    the new  label of the root item
+	 * @param userId   the user id of the user performing the copy operation
+	 * @param state    the state to set for the copied item
+	 */
+	void copyItemInternal(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String oldPath,
+						  @Param(NEW_PATH) String newPath, @Param(PREVIEW_URL) String previewUrl, @Param(PARENT_ID) long parentId,
+						  @Param(LABEL) String label, @Param(USER_ID) long userId,
+						  @Param(STATE) long state);
+
+	/**
 	 * Move item. Update item and item_target table to reflect an item moved from previousPath to newPath.
 	 *
 	 * @param siteId        the site id
 	 * @param previousPath  the previous path
 	 * @param newPath       the new path
 	 * @param parentId      the new parent id
-	 * @param oldPreviewUrl the old preview url
 	 * @param newPreviewUrl the new preview url
 	 * @param label         the new label
+	 * @param userId        the user id of the user performing the move operation
 	 */
 	@Transactional
 	default void moveItem(String siteId, String previousPath, String newPath,
-						  Long parentId, String oldPreviewUrl,
-						  String newPreviewUrl, String label) {
-		moveItemInternal(siteId, previousPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+						  Long parentId, String newPreviewUrl,
+						  String label, long userId) {
+		moveItemInternal(siteId, previousPath, newPath, parentId,
+				newPreviewUrl, label, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK, userId);
 		updatePreviousPath(siteId, previousPath, newPath);
 	}
 
@@ -219,17 +253,18 @@ public interface ItemDAO {
 	 * @param previousPath    previous path
 	 * @param newPath         new path
 	 * @param parentId        new parent ID
-	 * @param oldPreviewUrl   old preview url
 	 * @param newPreviewUrl   new preview url
 	 * @param label           the new label
 	 * @param onStatesBitMap  state bitmap to flip on
 	 * @param offStatesBitMap state bitmap to flip off
+	 * @param userId          user id of the user performing the move operation
 	 */
 	void moveItemInternal(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
-						  @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
+						  @Param(PARENT_ID) Long parentId,
 						  @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
 						  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-						  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+						  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap,
+						  @Param(USER_ID) long userId);
 
 	/**
 	 * Get content items for given paths
@@ -446,13 +481,15 @@ public interface ItemDAO {
 	/**
 	 * Update a deleted page children.
 	 * This should be called when a page (index.xml) is deleted via git but its children still exists
+	 *
 	 * @param siteId the site id
-	 * @param path the path to update
+	 * @param path   the path to update
 	 */
 	void updateDeletedPageChildren(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
 	/**
 	 * Move item query for sync task
+	 *
 	 * @param siteId          site identifier
 	 * @param previousPath    previous path
 	 * @param newPath         new path
@@ -460,24 +497,25 @@ public interface ItemDAO {
 	 * @param offStatesBitMap state bitmap to flip off
 	 */
 	void moveItemForSyncTask(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
-				  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-				  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+							 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+							 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
 	/**
 	 * Update item query for sync task
-	 * @param siteId           site identifier
-	 * @param path             content path
-	 * @param previewUrl       preview url
-	 * @param onStatesBitMap   on state bit map
-	 * @param offStatesBitMap  off state bit map
-	 * @param lastModifiedBy   last modified by
-	 * @param lastModifiedOn   last modified on
-	 * @param label            content label
-	 * @param contentTypeId    content type id
-	 * @param systemType       system type
-	 * @param mimeType         mime type
-	 * @param size             content size
-	 * @param ignored          is content ignored
+	 *
+	 * @param siteId          site identifier
+	 * @param path            content path
+	 * @param previewUrl      preview url
+	 * @param onStatesBitMap  on state bit map
+	 * @param offStatesBitMap off state bit map
+	 * @param lastModifiedBy  last modified by
+	 * @param lastModifiedOn  last modified on
+	 * @param label           content label
+	 * @param contentTypeId   content type id
+	 * @param systemType      system type
+	 * @param mimeType        mime type
+	 * @param size            content size
+	 * @param ignored         is content ignored
 	 */
 	void updateItemForSyncTask(@Param(SITE_ID) long siteId, @Param(PATH) String path, @Param(PREVIEW_URL) String previewUrl,
 							   @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap,

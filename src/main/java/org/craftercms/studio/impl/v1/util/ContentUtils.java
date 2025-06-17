@@ -19,6 +19,8 @@ import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +124,7 @@ public class ContentUtils {
 	public static InputStream convertDocumentToStream(Document document, String encoding) {
 		try {
 			return new ByteArrayInputStream(
-				(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
+					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
 		} catch (IOException e) {
 			logger.error("Failed to convert XML document to String with encoding '{}'", encoding, e);
 			return null;
@@ -138,5 +140,35 @@ public class ContentUtils {
 	 */
 	public static String getContentItemId(String siteId, String path) {
 		return format("%s:%s", siteId, path);
+	}
+
+	/**
+	 * Helper method to update a single node element with the indicated value
+	 *
+	 * @param root     root element
+	 * @param nodeName name of the node to update
+	 * @param value    new text value of the node, if found
+	 */
+	public static void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
+		Node node = root.selectSingleNode(format("//%s", nodeName));
+		if (node != null) {
+			node.setText(value);
+		}
+	}
+
+	/**
+	 * Reads the text of a single node in a document.
+	 *
+	 * @param root     root element of the document
+	 * @param nodeName name of the node to read
+	 * @return the text of the node, or null if the node is not found
+	 */
+	public static String readSingleDocumentNodeText(final Element root, final String nodeName) {
+		Node node = root.selectSingleNode(format("//%s", nodeName));
+		if (node != null) {
+			return node.getText();
+		}
+
+		return null;
 	}
 }

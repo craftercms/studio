@@ -301,11 +301,19 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) throws SiteNotFoundException {
-		String oldPreviewUrl = getBrowserUrl(siteId, oldPath);
+	public void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label, long userId)
+			throws SiteNotFoundException {
 		String newPreviewUrl = getBrowserUrl(siteId, newPath);
 		retryingDatabaseOperationFacade.retry(() ->
-			itemDao.moveItem(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label));
+			itemDao.moveItem(siteId, oldPath, newPath, parentId, newPreviewUrl, label, userId));
+	}
+
+	@Override
+	public void copyItem(String siteId, String sourcePath, String targetPath, long parentId, String label, long userId)
+			throws SiteNotFoundException {
+		String previewUrl = getBrowserUrl(siteId, targetPath);
+		retryingDatabaseOperationFacade.retry(() ->
+				itemDao.copyItem(siteId, sourcePath, targetPath, previewUrl, parentId, label, userId));
 	}
 
 	@Override

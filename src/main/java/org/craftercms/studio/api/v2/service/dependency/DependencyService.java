@@ -68,7 +68,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Collection<LightItem> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
-		throws ServiceLayerException;
+			throws ServiceLayerException;
 
 	/**
 	 * Get the hard dependencies of an item. A hard
@@ -110,6 +110,15 @@ public interface DependencyService {
 	List<LightItem> getItemSpecificDependencies(String siteId, List<String> paths);
 
 	/**
+	 * Get all valid dependencies for given path.
+	 *
+	 * @param siteId the site id
+	 * @param path   source path to get dependencies for
+	 * @return collection of {@link LightItem} dependencies for given path
+	 */
+	Collection<LightItem> getDependencies(String siteId, String path);
+
+	/**
 	 * Resolves dependent files for given content of given path
 	 *
 	 * @param site       the site id
@@ -130,7 +139,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException    Internal error, see exception details
 	 */
 	void upsertDependencies(String site, String path)
-		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
+			throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Delete the dependencies of sourcePath

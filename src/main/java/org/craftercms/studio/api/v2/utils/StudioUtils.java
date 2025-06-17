@@ -224,4 +224,20 @@ public abstract class StudioUtils {
 	public static boolean underPagesRoot(String path) {
 		return directoryContains(ROOT_PATTERN_PAGES, path);
 	}
+
+	/**
+	 * Transform a source path to a target path by replacing a source root (prefix)
+	 * by a target root.
+	 * e.g. if the source root is /site/website and the target root is /site/website2,
+	 * and the source path is /site/website/some/path/file.xml, the result will be
+	 * /site/website2/some/path/file.xml.
+	 *
+	 * @param sourceRoot the source root to replace
+	 * @param targetRoot the target root to use
+	 * @param sourcePath the source path to transform (this should start with the source root)
+	 * @return the transformed path, which will start with the target root
+	 */
+	public static String movePath(String sourceRoot, String targetRoot, String sourcePath) {
+		return Path.of(targetRoot).resolve(Path.of(sourceRoot).relativize(Path.of(sourcePath))).toString();
+	}
 }

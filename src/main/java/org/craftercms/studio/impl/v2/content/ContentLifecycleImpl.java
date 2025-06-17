@@ -44,6 +44,7 @@ import static java.util.regex.Matcher.quoteReplacement;
 import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
@@ -122,9 +123,7 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 		model.put(CONTENT_LIFECYCLE_OPERATION, lifecycleContent.getOperation().toString());
 		model.put(KEY_CONTENT_LOADER, contentLoader);
 
-		if (lifecycleContent.getOperation() == LifecycleContent.LifecycleOperation.RENAME) {
-			model.put(KEY_SOURCE_PATH, lifecycleContent.getSourcePath());
-		}
+		model.put(KEY_SOURCE_PATH, lifecycleContent.getSourcePath());
 
 		model.put(KEY_LIFECYCLE_CONTENT, lifecycleContent);
 

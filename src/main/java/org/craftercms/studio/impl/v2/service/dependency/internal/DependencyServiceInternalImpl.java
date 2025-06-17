@@ -133,6 +133,11 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
+	public Collection<LightItem> getDependencies(String siteId, String path) {
+		return dependencyDao.getDependencies(siteId, List.of(path));
+	}
+
+	@Override
 	@LogExecutionTime
 	public Map<String, Set<ResolvedDependency>> resolveDependencies(String siteId, String path) throws SiteNotFoundException {
 		Map<String, Set<ResolvedDependency>> dependencies = null;

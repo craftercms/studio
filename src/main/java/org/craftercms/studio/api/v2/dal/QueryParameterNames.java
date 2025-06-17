@@ -204,8 +204,6 @@ public final class QueryParameterNames {
 
 	public static final String PREVIEW_URL = "previewUrl";
 
-	public static final String OLD_PREVIEW_URL = "oldPreviewUrl";
-
 	public static final String NEW_PREVIEW_URL = "newPreviewUrl";
 
 	public static final String LABEL = "label";

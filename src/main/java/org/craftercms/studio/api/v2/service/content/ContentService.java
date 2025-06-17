@@ -32,15 +32,13 @@ import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Provide access to content operations
@@ -91,7 +89,7 @@ public interface ContentService {
 	 * @throws AuthenticationException authentication error
 	 */
 	long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException;
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**
 	 * Get list of children for given path
@@ -110,7 +108,7 @@ public interface ContentService {
 	 */
 	GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword, List<String> types,
 										List<String> excludes, String sortStrategy, String order, int offset, int limit)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get children for paths bulk.
@@ -126,7 +124,7 @@ public interface ContentService {
 	 * @throws UserNotFoundException user not found (when calculating available actions)
 	 */
 	GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get a content item by path
@@ -207,7 +205,7 @@ public interface ContentService {
 	 * @return detailed item
 	 */
 	ContentItem getItemByPath(String siteId, String path, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get sandbox items for given list of paths
@@ -218,7 +216,7 @@ public interface ContentService {
 	 * @return list of sandbox items
 	 */
 	List<ContentItem> getContentItemsByPath(String siteId, List<String> paths, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Lock item by path for given site
@@ -245,7 +243,7 @@ public interface ContentService {
 	 * @return the content if available
 	 */
 	Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-		throws ContentNotFoundException;
+			throws ContentNotFoundException;
 
 	/**
 	 * Rename content for given path
@@ -258,7 +256,7 @@ public interface ContentService {
 	 * @throws ValidationException   validation exception
 	 */
 	void renameContent(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
+			throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 	/**
 	 * Move content from sourcePath to targetPath.
@@ -267,12 +265,30 @@ public interface ContentService {
 	 * @param siteId     the site id
 	 * @param sourcePath the source path
 	 * @param targetPath the target path
-	 * @return {@link WriteContentResult} object containing the affected paths
+	 * @return {@link PasteContentResult} object containing the affected paths
 	 * @throws ServiceLayerException   if there is an error moving the content
 	 * @throws UserNotFoundException   if the current user is not found
 	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
 	 */
-	WriteContentResult move(String siteId, String sourcePath, String targetPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+	PasteContentResult move(String siteId, String sourcePath, String targetPath)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
+	/**
+	 * Alternative method to move content from sourcePath to targetParent.
+	 * The difference with the {@link #move(String, String, String)} method is that this method will accept a target parent path (vs the full path),
+	 * so it will try to calculate the target path based on the source file name and the existing content in the target parent.
+	 *
+	 * @param siteId       the site id
+	 * @param sourcePath   the source path
+	 * @param targetParent the target parent path where the content will be moved to
+	 * @return {@link PasteContentResult} object containing the affected paths
+	 * @throws ServiceLayerException   if there is an error moving the content
+	 * @throws UserNotFoundException   if the current user is not found
+	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
+	 */
+	PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
 
 	/**
 	 * Returns content wrapped as a {@link Resource} instance
@@ -305,4 +321,18 @@ public interface ContentService {
 	 * @throws ServiceLayerException   if an error occurs while writing the content
 	 */
 	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Copy content from sourcePath to targetPath.
+	 * This method will not necessarily copy the whole sourcePath, but copy the paths listed in <code>copyPaths</code> parameter, replacing
+	 * the targetPath with the sourcePath.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the root source path to copy the content from
+	 * @param targetPath the target path to copy the content to
+	 * @param copyPaths  the list of paths to copy
+	 * @return the result of the copy operation, which includes affected paths
+	 */
+	PasteContentResult copy(String siteId, String sourcePath, String targetPath, Set<String> copyPaths)
+			throws ServiceLayerException, UserNotFoundException;
 }

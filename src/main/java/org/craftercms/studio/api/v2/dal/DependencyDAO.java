@@ -131,6 +131,15 @@ public interface DependencyDAO {
 												@Param(REGEX) List<String> regex);
 
 	/**
+	 * Get all valid dependencies for given paths.
+	 *
+	 * @param siteId the site id
+	 * @param paths  the list of source content paths to get dependencies for
+	 * @return a collection of {@link LightItem} representing the valid dependencies
+	 */
+	Collection<LightItem> getDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
+
+	/**
 	 * Delete the dependencies of sourcePath
 	 *
 	 * @param site       the site id

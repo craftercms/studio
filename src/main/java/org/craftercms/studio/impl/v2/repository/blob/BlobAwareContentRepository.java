@@ -397,6 +397,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			if (store != null) {
 				store.moveContent(site, normalize(fromPath), normalize(toPath));
 				boolean isFolder = isFolder(site, fromPath);
+				// TODO: handle additional items and newFolders here
 				return localRepository.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
 					isFolder ? toPath : getPointerPath(site, toPath));
 			}
@@ -404,6 +405,26 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		} catch (Exception e) {
 			logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
 			throw new ServiceLayerException("Failed to move content in site '%s' from '%s' to '%s'".formatted(site, fromPath, toPath), e);
+		}
+	}
+
+	@Override
+	public String copy(String siteId, String sourcePath, String targetPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException {
+		logger.debug("Copy content in site '{}' from '{}' to '{}'", siteId, sourcePath, targetPath);
+		try {
+//			StudioBlobStore store = getBlobStore(siteId, sourcePath, targetPath);
+//			if (store != null) {
+////				store.copyContent(siteId, normalize(sourcePath), normalize(targetPath));
+//				boolean isFolder = isFolder(siteId, sourcePath);
+//				// TODO: handle additional items and newFolders here
+////				return localRepository.copy(siteId, isFolder ? sourcePath : getPointerPath(siteId, sourcePath),
+////						isFolder ? targetPath : getPointerPath(siteId, targetPath));
+//			}
+			return localRepository.copy(siteId, sourcePath, targetPath, writeItemsToBlobStores(siteId, additionalItems, newFolders), newFolders);
+		} catch (Exception e) {
+			logger.error("Failed to copy content in site '{}' from '{}' to '{}'", siteId, sourcePath, targetPath, e);
+			throw new ServiceLayerException("Failed to copy content in site '%s' from '%s' to '%s'".formatted(siteId, sourcePath, targetPath), e);
 		}
 	}
 

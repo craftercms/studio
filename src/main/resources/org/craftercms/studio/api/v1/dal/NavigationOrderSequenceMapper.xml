@@ -67,4 +67,14 @@
 		AND (path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
 			OR path = #{sourcePath})
 	</update>
+
+	<insert id="copy">
+		INSERT INTO navigation_order_sequence
+			(folder_id, site, path, max_count)
+		SELECT folder_id, #{site}, CONCAT(#{targetPath}, TRIM(LEADING #{sourcePath} FROM path)), max_count
+		FROM navigation_order_sequence
+		WHERE site = #{site}
+		AND (path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
+			OR path = #{sourcePath})
+	</insert>
 </mapper>
