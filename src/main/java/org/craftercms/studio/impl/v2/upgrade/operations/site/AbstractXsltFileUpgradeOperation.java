@@ -51,57 +51,57 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VE
  */
 public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractXsltFileUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractXsltFileUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_TEMPLATE = "template";
+	public static final String CONFIG_KEY_TEMPLATE = "template";
 
-    /**
-     * Template file to be applied.
-     */
-    protected Resource template;
+	/**
+	 * Template file to be applied.
+	 */
+	protected Resource template;
 
-    public AbstractXsltFileUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public AbstractXsltFileUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    public void setTemplate(final Resource template) {
-        this.template = template;
-    }
+	public void setTemplate(final Resource template) {
+		this.template = template;
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        if(template == null) {
-            template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
-        }
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		if (template == null) {
+			template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
+		}
+	}
 
-    protected void executeTemplate(StudioUpgradeContext context, String path, OutputStream os) throws UpgradeException {
-        var site = context.getTarget();
-        var file = context.getFile(path);
-        if(Files.exists(file)) {
-            try(InputStream templateIs = template.getInputStream();
-                InputStream sourceIs = Files.newInputStream(file)) {
-                logger.info("Apply the XSLT template '{}' to file '{}' in site '{}'", template, path, site);
-                Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
-                XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
-                trackChangedFiles(path);
-            } catch (Exception e) {
-                throw new UpgradeException("Error processing file", e);
-            }
-        } else {
-            logger.warn("Source file '{}' does not exist in site '{}'", path, site);
-        }
-    }
+	protected void executeTemplate(StudioUpgradeContext context, String path, OutputStream os) throws UpgradeException {
+		var site = context.getTarget();
+		var file = context.getFile(path);
+		if (Files.exists(file)) {
+			try (InputStream templateIs = template.getInputStream();
+			     InputStream sourceIs = Files.newInputStream(file)) {
+				logger.info("Apply the XSLT template '{}' to file '{}' in site '{}'", template, path, site);
+				Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
+				XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
+				trackChangedFiles(path);
+			} catch (Exception e) {
+				throw new UpgradeException("Error processing file", e);
+			}
+		} else {
+			logger.warn("Source file '{}' does not exist in site '{}'", path, site);
+		}
+	}
 
-    protected URIResolver getURIResolver(StudioUpgradeContext context) {
-        return (href, base) -> {
-            try {
-                return new StreamSource(context.getRepositoryPath().resolve(href).toFile());
-            } catch (Exception e) {
-                logger.info("Failed to create a resolver for referencing documents inside XSLT forms", e);
-                return  null;
-            }
+	protected URIResolver getURIResolver(StudioUpgradeContext context) {
+		return (href, base) -> {
+			try {
+				return new StreamSource(context.getRepositoryPath().resolve(href).toFile());
+			} catch (Exception e) {
+				logger.info("Failed to create a resolver for referencing documents inside XSLT forms", e);
+				return null;
+			}
 
-        };
-    }
+		};
+	}
 }

@@ -45,50 +45,50 @@ import org.slf4j.LoggerFactory;
  */
 public class StrSubstitutorVisitor implements FileVisitor<Path> {
 
-    private static final Logger logger = LoggerFactory.getLogger(StrSubstitutorVisitor.class);
+	private static final Logger logger = LoggerFactory.getLogger(StrSubstitutorVisitor.class);
 
-    public static final StringMatcher PREFIX = StringMatcherFactory.INSTANCE.stringMatcher("${plugin:");
+	public static final StringMatcher PREFIX = StringMatcherFactory.INSTANCE.stringMatcher("${plugin:");
 
-    protected StringSubstitutor strSubstitutor;
+	protected StringSubstitutor strSubstitutor;
 
-    public StrSubstitutorVisitor(Map<String, String> variables) {
-        Map<String, String> escapedVars = new HashMap<>(variables.size());
-        variables.forEach((key, value) -> escapedVars.put(key, StringEscapeUtils.escapeXml10(value)));
-        strSubstitutor = new StringSubstitutor(StringLookupFactory.INSTANCE.mapStringLookup(escapedVars), PREFIX,
-                                               StringSubstitutor.DEFAULT_SUFFIX, StringSubstitutor.DEFAULT_ESCAPE);
-    }
+	public StrSubstitutorVisitor(Map<String, String> variables) {
+		Map<String, String> escapedVars = new HashMap<>(variables.size());
+		variables.forEach((key, value) -> escapedVars.put(key, StringEscapeUtils.escapeXml10(value)));
+		strSubstitutor = new StringSubstitutor(StringLookupFactory.INSTANCE.mapStringLookup(escapedVars), PREFIX,
+			StringSubstitutor.DEFAULT_SUFFIX, StringSubstitutor.DEFAULT_ESCAPE);
+	}
 
-    @Override
-    public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
-        return FileVisitResult.CONTINUE;
-    }
+	@Override
+	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+		return FileVisitResult.CONTINUE;
+	}
 
-    @Override
-    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-        logger.debug("Replacing parameters in file '{}'", file);
-        try (InputStream inputStream = Files.newInputStream(file)) {
-            String originalContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            String updatedContent = strSubstitutor.replace(originalContent);
-            if (!StringUtils.equals(originalContent, updatedContent)) {
-                logger.debug("Updating file '{}'", file);
-                Files.write(file, updatedContent.getBytes(StandardCharsets.UTF_8));
-            }
-            return FileVisitResult.CONTINUE;
-        } catch (IOException e) {
-            logger.error("Error reading file '{}'", file, e);
-            throw e;
-        }
-    }
+	@Override
+	public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+		logger.debug("Replacing parameters in file '{}'", file);
+		try (InputStream inputStream = Files.newInputStream(file)) {
+			String originalContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+			String updatedContent = strSubstitutor.replace(originalContent);
+			if (!StringUtils.equals(originalContent, updatedContent)) {
+				logger.debug("Updating file '{}'", file);
+				Files.write(file, updatedContent.getBytes(StandardCharsets.UTF_8));
+			}
+			return FileVisitResult.CONTINUE;
+		} catch (IOException e) {
+			logger.error("Error reading file '{}'", file, e);
+			throw e;
+		}
+	}
 
-    @Override
-    public FileVisitResult visitFileFailed(final Path file, final IOException e) throws IOException {
-        logger.error("Error reading file at '{}'", file, e);
-        throw e;
-    }
+	@Override
+	public FileVisitResult visitFileFailed(final Path file, final IOException e) throws IOException {
+		logger.error("Error reading file at '{}'", file, e);
+		throw e;
+	}
 
-    @Override
-    public FileVisitResult postVisitDirectory(final Path dir, final IOException e) {
-        return FileVisitResult.CONTINUE;
-    }
+	@Override
+	public FileVisitResult postVisitDirectory(final Path dir, final IOException e) {
+		return FileVisitResult.CONTINUE;
+	}
 
 }

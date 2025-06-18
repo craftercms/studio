@@ -18,24 +18,24 @@ package org.craftercms.studio.api.v1.exception.repository;
 
 public class InvalidRemoteRepositoryException extends Exception {
 
-    private static final long serialVersionUID = -4048292537603285204L;
+	private static final long serialVersionUID = -4048292537603285204L;
 
-    public InvalidRemoteRepositoryException() {
-    }
+	public InvalidRemoteRepositoryException() {
+	}
 
-    public InvalidRemoteRepositoryException(String message) {
-        super(message);
-    }
+	public InvalidRemoteRepositoryException(String message) {
+		super(message);
+	}
 
-    public InvalidRemoteRepositoryException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public InvalidRemoteRepositoryException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public InvalidRemoteRepositoryException(Throwable cause) {
-        super(cause);
-    }
+	public InvalidRemoteRepositoryException(Throwable cause) {
+		super(cause);
+	}
 
-    public InvalidRemoteRepositoryException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public InvalidRemoteRepositoryException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

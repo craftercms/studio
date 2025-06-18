@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,15 +19,30 @@ package org.craftercms.studio.api.v2.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
+/**
+ * Interface to resolve available actions from user permissions
+ */
 public interface AvailableActionsResolver {
 
-    /**
-     * Get content item available actions for given site and path
-     * @param username username of user to validate permissions
-     * @param siteId site identifier
-     * @param path path of the content
-     * @return
-     */
-    long getContentItemAvailableActions(String username, String siteId, String path)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Get content item available actions for given site and path
+	 *
+	 * @param username username of user to validate permissions
+	 * @param siteId   site identifier
+	 * @param path     path of the content
+	 * @return available actions bitmap
+	 */
+	long getContentItemAvailableActions(String username, String siteId, String path)
+			throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Get site wide actions for given site
+	 *
+	 * @param siteId   site identifier
+	 * @param username username of user to validate permissions for
+	 * @return available actions bitmap
+	 * @throws ServiceLayerException if an error occurs while mapping permissions or actions
+	 * @throws UserNotFoundException if the user is not found
+	 */
+	long getSiteWideActions(String siteId, String username) throws ServiceLayerException, UserNotFoundException;
 }

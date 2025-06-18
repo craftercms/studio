@@ -17,9 +17,9 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.model.contentType.ModelDefinitions;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -37,28 +37,20 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping("/api/2/model")
 public class ModelController {
 
-    private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
-    private final ContentTypeService contentTypeService;
+	@SuppressWarnings("unused")
+	private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
+	private final ContentTypeService contentTypeService;
 
-    @ConstructorProperties({"contentTypeService"})
-    public ModelController(ContentTypeService contentTypeService) {
-        this.contentTypeService = contentTypeService;
-    }
+	@ConstructorProperties({"contentTypeService"})
+	public ModelController(ContentTypeService contentTypeService) {
+		this.contentTypeService = contentTypeService;
+	}
 
-    @PostMapping("/{siteId}/definitions")
-    public ResponseBody getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        ModelDefinitions result = new ModelDefinitions(contentTypeService.getAllModelDefinitions(siteId));
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("Get all content types for site '{}' took '{}' milliseconds", siteId, System.currentTimeMillis() - startTime);
-        }
-        ResponseBody responseBody = new ResponseBody();
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
+	@PostMapping("/{siteId}/definitions")
+	@LogExecutionTime
+	public ModelDefinitions getModelDefinitions(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
+		ModelDefinitions result = new ModelDefinitions(contentTypeService.getAllModelDefinitions(siteId));
+		result.setResponse(OK);
+		return result;
+	}
 }

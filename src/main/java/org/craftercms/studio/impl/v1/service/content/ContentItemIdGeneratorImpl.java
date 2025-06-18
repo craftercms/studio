@@ -29,28 +29,28 @@ import java.util.StringTokenizer;
 import java.util.UUID;
 
 public class ContentItemIdGeneratorImpl extends AbstractRegistrableService implements ContentItemIdGenerator {
-    
-    protected static final Logger logger = LoggerFactory.getLogger(ContentItemIdGeneratorImpl.class);
 
-    @Override
-    public void register() {
-        this._servicesManager.registerService(ContentItemIdGenerator.class, this);
-    }
+	protected static final Logger logger = LoggerFactory.getLogger(ContentItemIdGeneratorImpl.class);
 
-    @Override
-    public Map<String, String> getIds() throws ServiceLayerException {
-        Map<String,String> params = new HashMap<>();
-        String pageId = UUID.randomUUID().toString();
-        String groupId;
-        StringTokenizer tokenizer = new StringTokenizer(pageId, "-");
-        if (tokenizer.countTokens() > 0) {
-            groupId = tokenizer.nextToken();
-        } else {
-            groupId = pageId.substring(0, 4);
-        }
-        params.put(DmConstants.KEY_PAGE_ID, pageId);
-        params.put(DmConstants.KEY_PAGE_GROUP_ID, groupId);
-        return params;
-    }
+	@Override
+	public void register() {
+		this._servicesManager.registerService(ContentItemIdGenerator.class, this);
+	}
+
+	@Override
+	public Map<String, String> getIds() throws ServiceLayerException {
+		Map<String, String> params = new HashMap<>();
+		String pageId = UUID.randomUUID().toString();
+		String groupId;
+		StringTokenizer tokenizer = new StringTokenizer(pageId, "-");
+		if (tokenizer.countTokens() > 0) {
+			groupId = tokenizer.nextToken();
+		} else {
+			groupId = pageId.substring(0, 4);
+		}
+		params.put(DmConstants.KEY_PAGE_ID, pageId);
+		params.put(DmConstants.KEY_PAGE_GROUP_ID, groupId);
+		return params;
+	}
 
 }

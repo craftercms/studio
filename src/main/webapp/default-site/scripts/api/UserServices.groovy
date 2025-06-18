@@ -35,7 +35,7 @@ class UserServices {
 		return ServiceFactory.createContext(applicationContext, request)
 	}
 
-	static getCurrentUser(context) {  
+	static getCurrentUser(context) {
 		def userServicesImpl = ServiceFactory.getUserServices(context)
 		return userServicesImpl.getCurrentUser()
 	}

@@ -24,22 +24,22 @@ package org.craftercms.studio.api.v2.event.site;
  */
 public class SiteDeletedEvent extends SiteLifecycleEvent {
 
-    public SiteDeletedEvent(final String siteId, final String siteUuid) {
-        super(siteId, siteUuid);
-    }
+	public SiteDeletedEvent(final String siteId, final String siteUuid) {
+		super(siteId, siteUuid);
+	}
 
-    @Override
-    public String getEventType() {
-        return "SITE_DELETED_EVENT";
-    }
+	@Override
+	public String getEventType() {
+		return "SITE_DELETED_EVENT";
+	}
 
-    @Override
-    public String toString() {
-        return "SiteDeleteEvent{" +
-                "siteId='" + getSiteId() + '\'' +
-                ", siteUuid='" + getSiteUuid() + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "SiteDeleteEvent{" +
+			"siteId='" + getSiteId() + '\'' +
+			", siteUuid='" + getSiteUuid() + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			'}';
+	}
 }

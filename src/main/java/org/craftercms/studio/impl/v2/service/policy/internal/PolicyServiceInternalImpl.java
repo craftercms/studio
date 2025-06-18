@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,218 +17,225 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
+import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.io.FilenameUtils.getName;
-import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 
 /**
- * Default implementation of {@link PolicyServiceInternal}
+ * Internal implementation of {@link PolicyService}
  *
  * @author joseross
  * @since 4.0.0
  */
-public class PolicyServiceInternalImpl implements PolicyServiceInternal {
+public class PolicyServiceInternalImpl implements PolicyService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PolicyServiceInternalImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(PolicyServiceInternalImpl.class);
 
-    public static final String CONFIG_KEY_STATEMENT = "statement";
-    public static final String CONFIG_KEY_PATTERN = "target-path-pattern";
-    public static final String CONFIG_KEY_PERMITTED = "permitted";
-    public static final  String CONFIG_KEY_DENIED = "denied";
+	public static final String CONFIG_KEY_STATEMENT = "statement";
+	public static final String CONFIG_KEY_PATTERN = "target-path-pattern";
+	public static final String CONFIG_KEY_PERMITTED = "permitted";
+	public static final String CONFIG_KEY_DENIED = "denied";
 
-    protected ContentRepository contentRepository;
+	protected GitContentRepository contentRepository;
 
-    protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+	protected ConfigurationService configurationService;
 
-    protected ConfigurationService configurationService;
+	protected PolicyValidator systemValidator;
 
-    protected PolicyValidator systemValidator;
+	protected List<PolicyValidator> policyValidators;
 
-    protected List<PolicyValidator> policyValidators;
+	protected String configPath;
 
-    protected String configPath;
+	@ConstructorProperties({"contentRepository", "configurationService", "systemValidator",
+		"policyValidators", "configPath"})
+	public PolicyServiceInternalImpl(GitContentRepository contentRepository,
+									 ConfigurationService configurationService,
+									 PolicyValidator systemValidator,
+									 List<PolicyValidator> policyValidators,
+									 String configPath) {
+		this.contentRepository = contentRepository;
+		this.configurationService = configurationService;
+		this.systemValidator = systemValidator;
+		this.policyValidators = policyValidators;
+		this.configPath = configPath;
+	}
 
-    @ConstructorProperties({"contentRepository", "contentRepositoryV2", "configurationService", "systemValidator",
-            "policyValidators", "configPath"})
-    public PolicyServiceInternalImpl(ContentRepository contentRepository,
-                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
-                                     ConfigurationService configurationService,
-                                     PolicyValidator systemValidator,
-                                     List<PolicyValidator> policyValidators,
-                                     String configPath) {
-        this.contentRepository = contentRepository;
-        this.contentRepositoryV2 = contentRepositoryV2;
-        this.configurationService = configurationService;
-        this.systemValidator = systemValidator;
-        this.policyValidators = policyValidators;
-        this.configPath = configPath;
-    }
+	@Override
+	public List<ValidationResult> validate(String siteId, List<Action> actions)
+		throws ConfigurationException {
 
-    @Override
-    public List<ValidationResult> validate(String siteId, List<Action> actions)
-            throws ConfigurationException {
+		var config = configurationService.getXmlConfiguration(siteId, configPath);
+		actions.forEach(this::validateAction);
 
-        var config = configurationService.getXmlConfiguration(siteId, configPath);
-        actions.forEach(this::validateAction);
+		var results = new LinkedList<ValidationResult>();
+		actions.forEach(action -> {
+			if (action.isRecursive()) {
+				evaluateRecursiveAction(config, siteId, action, results, true);
+			} else {
+				evaluateAction(config, siteId, action, results, true);
+			}
+		});
+		return results;
+	}
 
-        var results = new LinkedList<ValidationResult>();
-        actions.forEach(action -> {
-            if (action.isRecursive()) {
-                evaluateRecursiveAction(config, siteId, action, results, true);
-            } else {
-                evaluateAction(config, siteId, action, results, true);
-            }
-        });
-        return results;
-    }
+	protected void validateAction(Action action) {
+		if (action.isRecursive() && isEmpty(action.getSource())) {
+			throw new IllegalArgumentException("All recursive actions need to include a source");
+		}
+		if (action.getType() == Type.CREATE) {
+			if (action.isRecursive()) {
+				throw new IllegalArgumentException("CREATE actions can't be recursive");
+			}
+		}
+	}
 
-    protected void validateAction(Action action) {
-        if (action.isRecursive() && isEmpty(action.getSource())) {
-            throw new IllegalArgumentException("All recursive actions need to include a source");
-        }
-        if (action.getType() == Type.CREATE) {
-            if (action.isRecursive()) {
-                throw new IllegalArgumentException("CREATE actions can't be recursive");
-            }
-        }
-    }
+	protected void evaluateAction(final HierarchicalConfiguration<?> config, final String siteId, final Action action, final List<ValidationResult> results,
+				      final boolean includeAllowed) {
+		ValidationResult systemResult = ValidationResult.allowed(action);
+		systemValidator.validate(null, null, action, systemResult);
+		if (!systemResult.isAllowed()) {
+			results.add(systemResult);
+			return;
+		}
 
-    protected void evaluateAction(final HierarchicalConfiguration<?> config, final String siteId, final Action action, final List<ValidationResult> results,
-                                  final boolean includeAllowed) {
-        ValidationResult systemResult = ValidationResult.allowed(action);
-        systemValidator.validate(null, null, action, systemResult);
-        if (!systemResult.isAllowed()) {
-            results.add(systemResult);
-            return;
-        }
+		if (config == null) {
+			logger.debug("No policy configuration found, skip the action '{}'", action);
+			if (includeAllowed) {
+				results.add(ValidationResult.allowed(action));
+			}
+			return;
+		}
 
-        if (config == null) {
-            logger.debug("No policy configuration found, skip the action '{}'", action);
-            if (includeAllowed) {
-                results.add(ValidationResult.allowed(action));
-            }
-            return;
-        }
+		List<? extends HierarchicalConfiguration<?>> statements = config.configurationsAt(CONFIG_KEY_STATEMENT)
+			.stream()
+			.filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
+			.collect(Collectors.toList());
+		if (statements.size() == 0) {
+			logger.debug("No statement matches found, skip the action '{}'", action);
+		}
+		ValidationResult result = validateStatements(action, statements, siteId);
+		if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
+			results.add(result);
+		}
+	}
 
-        List<? extends HierarchicalConfiguration<?>> statements = config.configurationsAt(CONFIG_KEY_STATEMENT)
-                .stream()
-                .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
-                .collect(Collectors.toList());
-        if (statements.size() == 0) {
-            logger.debug("No statement matches found, skip the action '{}'", action);
-        }
-        ValidationResult result = validateStatements(action, statements, siteId);
-        if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
-            results.add(result);
-        }
-    }
+	private ValidationResult validateStatements(Action action, List<? extends HierarchicalConfiguration<?>> statements, String siteId) {
+		ValidationResult result = ValidationResult.allowed(action);
 
-    private ValidationResult validateStatements(Action action, List<? extends HierarchicalConfiguration<?>> statements, String siteId) {
-        ValidationResult result = ValidationResult.allowed(action);
+		for (HierarchicalConfiguration<?> statement : statements) {
+			if (action.createOrRenameType()) {
+				String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
+				action.setNewPath(getNewPath(siteId, target));
+			}
 
-        for (HierarchicalConfiguration<?> statement : statements) {
-            if (action.upsertType()) {
-                String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
-                action.setNewPath(getNewPath(siteId, target));
-            }
+			for (var validator : policyValidators) {
+				logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
+				validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
+				if (result.getModifiedValue() != null) {
+					logger.debug("Allowed with modifications the action '{}'", action);
+				} else if (result.isAllowed()) {
+					logger.debug("Allowed action '{}'", action);
+				} else {
+					logger.error("Validation failed for action '{}'", action);
+					return result;
+				}
+			}
+		}
+		return result;
+	}
 
-            for (var validator : policyValidators) {
-                logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
-                validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
-                if (result.getModifiedValue() != null) {
-                    logger.debug("Allowed with modifications the action '{}'", action);
-                } else if (result.isAllowed()) {
-                    logger.debug("Allowed action '{}'", action);
-                } else {
-                    logger.error("Validation failed for action '{}'", action);
-                    return result;
-                }
-            }
-        }
-        return result;
-    }
+	protected HierarchicalConfiguration<?> getSubConfig(HierarchicalConfiguration<?> statement, String configKey) {
+		try {
+			return statement.configurationAt(configKey);
+		} catch (Exception e) {
+			logger.debug("Failed to load configuration value for key '{}'. Returning null.", configKey);
+		}
 
-    protected HierarchicalConfiguration<?> getSubConfig(HierarchicalConfiguration<?> statement, String configKey) {
-        try {
-            return statement.configurationAt(configKey);
-        } catch (Exception e) {
-            logger.debug("Failed to load configuration value for key '{}'. Returning null.", configKey);
-        }
+		return null;
+	}
 
-        return null;
-    }
+	protected void evaluateRecursiveAction(HierarchicalConfiguration<?> config, String siteId, Action action,
+					       List<ValidationResult> results, boolean includeAllowed) {
+		// First check if the original action is ok
+		evaluateAction(config, siteId, action, results, includeAllowed);
+		// If it's ok then start checking the children
 
-    protected void evaluateRecursiveAction(HierarchicalConfiguration<?> config, String siteId, Action action,
-                                           List<ValidationResult> results, boolean includeAllowed) {
-        // First check if the original action is ok
-        evaluateAction(config, siteId, action, results, includeAllowed);
-        // If it's ok then start checking the children
-        var children = contentRepository.getContentChildren(siteId, action.getSource());
-        var sourceName = FilenameUtils.getName(action.getSource());
-        for (var child : children) {
-            var childPath = Paths.get(child.path, child.name);
-            // Calculate the new path
-            var childTarget = Paths.get(action.getTarget(), sourceName).
-                    resolve(Paths.get(action.getSource()).relativize(childPath)).toString();
+		Collection<RepositoryItem> children = null;
+		try {
+			children = contentRepository.getContentChildren(siteId, action.getSource());
+		} catch (ServiceLayerException e) {
+			logger.warn("Failed to get children for path '{}'", action.getSource(), e);
+			return;
+		}
+		var sourceName = FilenameUtils.getName(action.getSource());
+		for (var child : children) {
+			var childPath = Paths.get(child.path(), child.name());
+			// Calculate the new path
+			var childTarget = Paths.get(action.getTarget(), sourceName).
+				resolve(Paths.get(action.getSource()).relativize(childPath)).toString();
 
-            var childAction = new Action();
-            childAction.setType(action.getType());
-            childAction.setSource(childPath.toString());
-            childAction.setTarget(childTarget);
-            if (child.isFolder) {
-                evaluateRecursiveAction(config, siteId, childAction, results, false);
-            } else {
-                childAction.setContentMetadata(
-                        Map.of(METADATA_FILE_SIZE, contentRepositoryV2.getContentSize(siteId, childPath.toString())));
-                evaluateAction(config, siteId, childAction, results, false);
-            }
-        }
-    }
+			var childAction = new Action();
+			childAction.setType(action.getType());
+			childAction.setSource(childPath.toString());
+			childAction.setTarget(childTarget);
+			if (child.isFolder()) {
+				evaluateRecursiveAction(config, siteId, childAction, results, false);
+			} else {
+				childAction.setContentMetadata(
+					Map.of(METADATA_FILE_SIZE, contentRepository.getContentSize(siteId, childPath.toString())));
+				evaluateAction(config, siteId, childAction, results, false);
+			}
+		}
+	}
 
-    /**
-     * Get the new path by CREATE or RENAME action
-     * If all the path exists, return the file name
-     * @param siteId site identifier
-     * @param target action target
-     * @return the relative new path of the target
-    */
-    protected String getNewPath(String siteId, String target) {
-        String [] levels = target.split(FILE_SEPARATOR);
-        String parentPath = "";
-        for (String level : levels) {
-            if (!isEmpty(level)) {
-                String currentPath = parentPath + FILE_SEPARATOR + level;
-                if (!contentRepository.contentExists(siteId, currentPath)) {
-                    String newPath = target.replace(parentPath, "");
-                    if (newPath.startsWith(FILE_SEPARATOR)) {
-                        newPath = newPath.substring(1);
-                    }
-                    return newPath;
-                }
-                parentPath = currentPath;
-            }
-        }
+	/**
+	 * Get the new path by CREATE or RENAME action
+	 * If all the path exists, return the file name
+	 *
+	 * @param siteId site identifier
+	 * @param target action target
+	 * @return the relative new path of the target
+	 */
+	protected String getNewPath(String siteId, String target) {
+		String[] levels = target.split(FILE_SEPARATOR);
+		String parentPath = "";
+		for (String level : levels) {
+			if (!isEmpty(level)) {
+				String currentPath = parentPath + FILE_SEPARATOR + level;
+				if (!contentRepository.contentExists(siteId, currentPath)) {
+					String newPath = target.replace(parentPath, "");
+					if (newPath.startsWith(FILE_SEPARATOR)) {
+						newPath = newPath.substring(1);
+					}
+					return newPath;
+				}
+				parentPath = currentPath;
+			}
+		}
 
-        return getName(target);
-    }
+		return getName(target);
+	}
 
 }

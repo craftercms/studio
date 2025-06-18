@@ -22,8 +22,9 @@ package org.craftercms.studio.model.policy;
  * @since 4.0.0
  */
 public enum Type {
-    CREATE,
-    RENAME,
-    MOVE,
-    COPY
+	CREATE,
+	EDIT,
+	RENAME,
+	MOVE,
+	COPY
 }

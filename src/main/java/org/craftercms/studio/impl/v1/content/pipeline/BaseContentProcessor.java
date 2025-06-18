@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
  * A base class of content processor
  *
  * @author hyanghee
- *
  */
 public class BaseContentProcessor implements ContentProcessor {
 
@@ -37,7 +36,9 @@ public class BaseContentProcessor implements ContentProcessor {
 
 	public static final String NAME = "BaseContentProcessor";
 
-	/** the default process name if not set **/
+	/**
+	 * the default process name if not set
+	 **/
 	protected String _name;
 
 	/**
@@ -78,7 +79,7 @@ public class BaseContentProcessor implements ContentProcessor {
 	/**
 	 * check if the mandatory value provided is not empty
 	 *
-	 * @param key key
+	 * @param key   key
 	 * @param value value
 	 * @throws ContentProcessException mandatory value is empty
 	 */

@@ -1,223 +1,215 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 3 as published by
+  * the Free Software Foundation.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="upgradeConfigurationProvider" class="org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider">
-        <constructor-arg name="configurationFile"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>
-    </bean>
+	<bean id="upgradeConfigurationProvider" class="org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider">
+		<constructor-arg name="configurationFile"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>
+	</bean>
 
-    <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.StudioUpgradeManagerImpl">
-        <constructor-arg name="dataSource" ref="dataSource"/>
-        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
-        <constructor-arg name="contentRepository" ref="contentRepository"/>
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="instanceService" ref="instanceService"/>
+	<bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.StudioUpgradeManagerImpl">
+		<constructor-arg name="dataSource" ref="dataSource"/>
+		<constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+		<constructor-arg name="contentRepository" ref="contentRepository"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+		<constructor-arg name="instanceService" ref="instanceService"/>
 
-        <constructor-arg name="configurationProvider" ref="upgradeConfigurationProvider"/>
+		<constructor-arg name="configurationProvider" ref="upgradeConfigurationProvider"/>
 
-        <constructor-arg name="dbVersionProvider" ref="dbVersionProvider"/>
-        <constructor-arg name="dbPipelineFactory">
-            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.PrototypeUpgradePipelineFactoryImpl"
-                  parent="pipelineFactory">
-                <constructor-arg name="pipelineName"
-                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_SYSTEM)}"/>
-                <constructor-arg name="versionProvider" ref="dbVersionProvider"/>
-            </bean>
-        </constructor-arg>
+		<constructor-arg name="dbVersionProvider" ref="dbVersionProvider"/>
+		<constructor-arg name="dbPipelineFactory">
+			<bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.PrototypeUpgradePipelineFactoryImpl"
+			      parent="pipelineFactory">
+				<constructor-arg name="pipelineName"
+						 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_SYSTEM)}"/>
+				<constructor-arg name="versionProvider" ref="dbVersionProvider"/>
+			</bean>
+		</constructor-arg>
 
-        <constructor-arg name="bpPipelineFactory">
-            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.PrototypeUpgradePipelineFactoryImpl"
-                  parent="pipelineFactory">
-                <constructor-arg name="pipelineName"
-                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_BLUEPRINT)}"/>
-                <constructor-arg name="versionProvider">
-                        <bean class="org.craftercms.studio.impl.v2.upgrade.providers.BlueprintsVersionProvider"/>
-                </constructor-arg>
-            </bean>
-        </constructor-arg>
-    </bean>
+		<constructor-arg name="bpPipelineFactory">
+			<bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.PrototypeUpgradePipelineFactoryImpl"
+			      parent="pipelineFactory">
+				<constructor-arg name="pipelineName"
+						 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_BLUEPRINT)}"/>
+				<constructor-arg name="versionProvider">
+					<bean class="org.craftercms.studio.impl.v2.upgrade.providers.BlueprintsVersionProvider"/>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
 
-    <bean id="defaultPipeline" scope="prototype"
-          class="org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineImpl"/>
+	<bean id="defaultPipeline" scope="prototype"
+	      class="org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineImpl"/>
 
-    <bean id="repoPipeline" scope="prototype"
-          class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
-        <property name="continueOnFailure" value="true"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="siteSandboxBranch"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_SANDBOX_BRANCH)}"/>
-        <property name="siteUpgradeBranch"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_BRANCH_NAME)}"/>
-        <property name="commitMessage"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
-        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
-    </bean>
+	<bean id="repoPipeline" scope="prototype"
+	      class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
+		<property name="continueOnFailure" value="true"/>
+		<property name="siteService" ref="cstudioSiteServiceSimple"/>
+		<property name="siteSandboxBranch"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_SANDBOX_BRANCH)}"/>
+		<property name="siteUpgradeBranch"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_BRANCH_NAME)}"/>
+		<property name="commitMessage"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
+		<property name="generalLockService" ref="cstudioGeneralLockService"/>
+		<property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+		<property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade"/>
+	</bean>
 
-    <bean id="pipelineFactory" abstract="true">
-        <constructor-arg name="pipelinePrototype" value="defaultPipeline"/>
-        <constructor-arg name="configurationProvider" ref="upgradeConfigurationProvider"/>
-        <property name="pipelinePrefix"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_PREFIX)}"/>
-    </bean>
+	<bean id="pipelineFactory" abstract="true">
+		<constructor-arg name="pipelinePrototype" value="defaultPipeline"/>
+		<constructor-arg name="configurationProvider" ref="upgradeConfigurationProvider"/>
+		<property name="pipelinePrefix"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_PREFIX)}"/>
+	</bean>
 
-    <bean id="dbVersionProvider" class="org.craftercms.studio.impl.v2.upgrade.providers.DbVersionProvider">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
+	<bean id="dbVersionProvider" class="org.craftercms.studio.impl.v2.upgrade.providers.DbVersionProvider">
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
 
-    <bean id="xmlVersionProvider" abstract="true">
-        <constructor-arg name="path"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_FILE)}"/>
-        <constructor-arg name="xpath"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_XPATH)}"/>
-        <constructor-arg name="contentRepository" ref="contentRepository"/>
-    </bean>
+	<bean id="xmlVersionProvider" abstract="true">
+		<constructor-arg name="path"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_FILE)}"/>
+		<constructor-arg name="xpath"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_XPATH)}"/>
+		<constructor-arg name="contentRepository" ref="contentRepository"/>
+	</bean>
 
-    <bean id="siteVersionProvider" parent="xmlVersionProvider"
-          class="org.craftercms.studio.impl.v2.upgrade.providers.SiteVersionProvider">
-        <constructor-arg name="defaultVersion"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_SITE)}"/>
-        <constructor-arg name="defaultFile"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_DEFAULT)}"/>
-        <property name="skipIfMissing" value="false"/>
-    </bean>
+	<bean id="siteVersionProvider" parent="xmlVersionProvider"
+	      class="org.craftercms.studio.impl.v2.upgrade.providers.SiteVersionProvider">
+		<constructor-arg name="defaultVersion"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_SITE)}"/>
+		<constructor-arg name="defaultFile"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_DEFAULT)}"/>
+		<property name="skipIfMissing" value="false"/>
+	</bean>
 
-    <bean id="configurationVersionProvider" parent="xmlVersionProvider"
-          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlStreamVersionProvider">
-        <constructor-arg name="defaultVersion"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_FILE)}"/>
-        <constructor-arg name="versionElementName"
-                    value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_XML_CONFIG_VERSION_ELEM_NAME)}"/>
-    </bean>
+	<bean id="configurationVersionProvider" parent="xmlVersionProvider"
+	      class="org.craftercms.studio.impl.v2.upgrade.providers.XmlStreamVersionProvider">
+		<constructor-arg name="defaultVersion"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_FILE)}"/>
+		<constructor-arg name="versionElementName"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_XML_CONFIG_VERSION_ELEM_NAME)}"/>
+	</bean>
 
-    <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"
-          class="org.craftercms.studio.impl.v2.upgrade.pipeline.PrototypeUpgradePipelineFactoryImpl">
-        <constructor-arg name="pipelinePrototype" value="repoPipeline"/>
-        <constructor-arg name="pipelineName"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_SITE)}"/>
-        <constructor-arg name="versionProvider" ref="siteVersionProvider"/>
-    </bean>
+	<bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"
+	      class="org.craftercms.studio.impl.v2.upgrade.pipeline.PrototypeUpgradePipelineFactoryImpl">
+		<constructor-arg name="pipelinePrototype" value="repoPipeline"/>
+		<constructor-arg name="pipelineName"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_SITE)}"/>
+		<constructor-arg name="versionProvider" ref="siteVersionProvider"/>
+	</bean>
 
-    <bean id="configurationPipelineFactory" scope="prototype" parent="pipelineFactory"
-          class="org.craftercms.studio.impl.v2.upgrade.pipeline.ConfigurationUpgradePipelineFactoryImpl">
-        <constructor-arg name="pipelinePrototype" value="repoPipeline"/>
-        <constructor-arg name="versionProvider" ref="configurationVersionProvider"/>
-        <property name="pipelinePrefix"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_CONFIGURATIONS)}"/>
-    </bean>
+	<bean id="configurationPipelineFactory" scope="prototype" parent="pipelineFactory"
+	      class="org.craftercms.studio.impl.v2.upgrade.pipeline.ConfigurationUpgradePipelineFactoryImpl">
+		<constructor-arg name="pipelinePrototype" value="repoPipeline"/>
+		<constructor-arg name="versionProvider" ref="configurationVersionProvider"/>
+		<property name="pipelinePrefix"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_CONFIGURATIONS)}"/>
+	</bean>
 
-    <bean id="upgradeOperation" class="org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation"
-          abstract="true">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-    </bean>
+	<bean id="upgradeOperation" class="org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation"
+	      abstract="true">
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
 
-    <bean id="dbScriptUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbScriptUpgradeOperation">
-        <constructor-arg name="scriptFolder"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
-        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
-    </bean>
+	<bean id="dbScriptUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbScriptUpgradeOperation">
+		<constructor-arg name="scriptFolder"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
+		<constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+	</bean>
 
-    <bean id="populateItemTableUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.db.PopulateItemTableUpgradeOperation" >
-        <constructor-arg name="scriptFolder"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
-        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
-        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
-        <constructor-arg name="contentService" ref="cstudioContentService" />
-        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
-        <constructor-arg name="blobExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
-        <constructor-arg name="executorThreadCount" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.threadCount')}" />
-        <constructor-arg name="executorTimeoutSeconds" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.timeoutSeconds')}" />
-    </bean>
+	<bean id="populateItemTableUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.db.PopulateItemTableUpgradeOperation">
+		<constructor-arg name="scriptFolder"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
+		<constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+		<constructor-arg name="itemService" ref="itemService"/>
+		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+		<constructor-arg name="blobExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
+		<constructor-arg name="executorThreadCount" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.threadCount')}"/>
+		<constructor-arg name="executorTimeoutSeconds" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.timeoutSeconds')}"/>
+	</bean>
 
-    <bean id="migrateWorkflowUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.db.MigrateWorkflowUpgradeOperation" >
-        <constructor-arg name="scriptFolder"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
-        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
-    </bean>
+	<bean id="migrateWorkflowUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.db.MigrateWorkflowUpgradeOperation">
+		<constructor-arg name="scriptFolder"
+				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
+		<constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+	</bean>
 
-    <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.global.GlobalRepoUpgradeOperation">
-    </bean>
+	<bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.global.GlobalRepoUpgradeOperation">
+	</bean>
 
-    <bean id="blueprintsUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.global.BlueprintsUpgradeOperation">
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
-        <constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
-    </bean>
+	<bean id="blueprintsUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.global.BlueprintsUpgradeOperation">
+		<constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
+		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+		<constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade"/>
+	</bean>
 
-    <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.file.RenameUpgradeOperation"/>
+	<bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.file.RenameUpgradeOperation"/>
 
-    <bean id="deleteUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.file.DeleteUpgradeOperation" />
+	<bean id="deleteUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.file.DeleteUpgradeOperation"/>
 
-    <bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.XsltFileUpgradeOperation"/>
+	<bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.XsltFileUpgradeOperation"/>
 
-    <bean id="addFileUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.file.AddFileUpgradeOperation"/>
+	<bean id="addFileUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.file.AddFileUpgradeOperation"/>
 
-    <bean id="addSiteUuidUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.AddSiteUuidOperation" >
-        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
-    </bean>
+	<bean id="addSiteUuidUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.AddSiteUuidOperation">
+		<constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
+	</bean>
 
-    <bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.FindAndReplaceUpgradeOperation"/>
+	<bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.FindAndReplaceUpgradeOperation"/>
 
-    <bean id="multiFindAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.MultiFindAndReplaceUpgradeOperation"/>
+	<bean id="multiFindAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.MultiFindAndReplaceUpgradeOperation"/>
 
-    <bean id="boxControlUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.BoxRemoteAssetUpgradeOperation">
-        <constructor-arg name="contentTypeXpath"
-                         value="#{studioConfiguration.getProperty('studio.upgrade.xpath.contentType')}"/>
-        <constructor-arg name="formDefinitionTemplate"
-                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.definition.pattern')}"/>
-    </bean>
+	<bean id="pluginDescriptorV2Upgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.plugin.DescriptorV2UpgradeOperation">
+		<constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
+	</bean>
 
-    <bean id="pluginDescriptorV2Upgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.plugin.DescriptorV2UpgradeOperation">
-        <constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
-    </bean>
+	<bean id="batchXsltUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.BatchXsltFileUpgradeOperation"/>
 
-    <bean id="batchXsltUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.BatchXsltFileUpgradeOperation"/>
+	<bean id="templateRenameUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.file.TemplateRenameUpgradeOperation"/>
 
-    <bean id="templateRenameUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.file.TemplateRenameUpgradeOperation"/>
+	<bean id="configEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.ConfigEncryptionUpgradeOperation">
+		<constructor-arg name="textEncryptor" ref="crafter.textEncryptor"/>
+	</bean>
 
-    <bean id="configEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.site.ConfigEncryptionUpgradeOperation">
-        <constructor-arg name="textEncryptor" ref="crafter.textEncryptor"/>
-    </bean>
-
-    <bean id="dbEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbEncryptionUpgradeOperation">
-        <constructor-arg name="internalTextEncryptor" ref="internalTextEncryptor"/>
-    </bean>
+	<bean id="dbEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbEncryptionUpgradeOperation">
+		<constructor-arg name="internalTextEncryptor" ref="internalTextEncryptor"/>
+	</bean>
 
 </beans>

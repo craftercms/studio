@@ -17,11 +17,10 @@
 package org.craftercms.studio.model.rest;
 
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 
@@ -29,37 +28,38 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  * Request to publish all content in a site
  */
 public class PublishAllRequest {
-    @NotEmpty
-    @ValidSiteId
-    protected String siteId;
-    @NotEmpty
-    @Size(max = 20)
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    protected String publishingTarget;
+	@NotEmpty
+	@ValidSiteId
+	protected String siteId;
+	@NotEmpty
+	@Size(max = 20)
+	@EsapiValidatedParam(type = ALPHANUMERIC)
+	protected String publishingTarget;
 
-    protected String submissionComment;
+	protected String submissionComment;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getPublishingTarget() {
-        return publishingTarget;
-    }
+	public String getPublishingTarget() {
+		return publishingTarget;
+	}
 
-    public void setPublishingTarget(String publishingTarget) {
-        this.publishingTarget = publishingTarget;
-    }
+	public void setPublishingTarget(String publishingTarget) {
+		this.publishingTarget = publishingTarget;
+	}
 
-    public String getSubmissionComment() {
-        return submissionComment;
-    }
+	public String getSubmissionComment() {
+		return submissionComment;
+	}
 
-    public void setSubmissionComment(String submissionComment) {
-        this.submissionComment = submissionComment;
-    }
+	public void setSubmissionComment(String submissionComment) {
+		this.submissionComment = submissionComment;
+	}
+
 }

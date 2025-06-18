@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,8 +18,9 @@ package org.craftercms.studio.model.rest;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.craftercms.commons.validation.annotations.param.ValidPassword;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.EMAIL;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
@@ -29,74 +30,75 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 public class CreateUserRequest {
 
-    @NotBlank
-    @Size(min = 2, max = 255)
-    @EsapiValidatedParam(type = USERNAME)
-    private String username;
-    @NotBlank
-    private String password;
-    @Size(max = 32)
-    private String firstName;
-    @Size(max = 32)
-    private String lastName;
-    @EsapiValidatedParam(type = EMAIL)
-    private String email;
-    private boolean externallyManaged;
-    private boolean enabled;
+	@NotBlank
+	@Size(min = 2, max = 255)
+	@EsapiValidatedParam(type = USERNAME)
+	private String username;
+	@NotBlank
+	@ValidPassword
+	private String password;
+	@Size(max = 32)
+	private String firstName;
+	@Size(max = 32)
+	private String lastName;
+	@EsapiValidatedParam(type = EMAIL)
+	private String email;
+	private boolean externallyManaged;
+	private boolean enabled;
 
-    public String getUsername() {
-        return username;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public void setUsername(final String username) {
-        this.username = username;
-    }
+	public void setUsername(final String username) {
+		this.username = username;
+	}
 
-    public String getPassword() {
-        return password;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public void setPassword(final String password) {
-        this.password = password;
-    }
+	public void setPassword(final String password) {
+		this.password = password;
+	}
 
-    public String getFirstName() {
-        return firstName;
-    }
+	public String getFirstName() {
+		return firstName;
+	}
 
-    public void setFirstName(final String firstName) {
-        this.firstName = firstName;
-    }
+	public void setFirstName(final String firstName) {
+		this.firstName = firstName;
+	}
 
-    public String getLastName() {
-        return lastName;
-    }
+	public String getLastName() {
+		return lastName;
+	}
 
-    public void setLastName(final String lastName) {
-        this.lastName = lastName;
-    }
+	public void setLastName(final String lastName) {
+		this.lastName = lastName;
+	}
 
-    public boolean isExternallyManaged() {
-        return externallyManaged;
-    }
+	public boolean isExternallyManaged() {
+		return externallyManaged;
+	}
 
-    public void setExternallyManaged(final boolean externallyManaged) {
-        this.externallyManaged = externallyManaged;
-    }
+	public void setExternallyManaged(final boolean externallyManaged) {
+		this.externallyManaged = externallyManaged;
+	}
 
-    public String getEmail() {
-        return email;
-    }
+	public String getEmail() {
+		return email;
+	}
 
-    public void setEmail(final String email) {
-        this.email = email;
-    }
+	public void setEmail(final String email) {
+		this.email = email;
+	}
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    public void setEnabled(final boolean enabled) {
-        this.enabled = enabled;
-    }
+	public void setEnabled(final boolean enabled) {
+		this.enabled = enabled;
+	}
 }

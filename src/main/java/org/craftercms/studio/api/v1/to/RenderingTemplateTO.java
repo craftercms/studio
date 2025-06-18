@@ -18,15 +18,15 @@ package org.craftercms.studio.api.v1.to;
 import java.io.Serializable;
 
 /**
- *  rendering template
+ * rendering template
  */
 public class RenderingTemplateTO implements Serializable {
 
-    private static final long serialVersionUID = 4526518334082983302L;
-    /**
-	 * 
+	private static final long serialVersionUID = 4526518334082983302L;
+	/**
+	 *
 	 */
 
 	public String uri;
-	public String name;	
+	public String name;
 }

@@ -16,13 +16,14 @@
 
 <form>
 	<title>Section Defaults</title>
-	<description>Section Defaults provides inherited values to all children and sibling content items. To learn more about content inheritance see docs.craftercms.org topic &quot;Content Inheritance&quot;</description>
+	<description>Section Defaults provides inherited values to all children and sibling content items. To learn more about content inheritance see craftercms.com/docs topic &quot;Content Inheritance&quot;</description>
 	<objectType>component</objectType>
 	<content-type>/component/level-descriptor</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
-	<properties>		<property>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
+	<properties>
+		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value></value>
@@ -41,7 +42,8 @@
 			<type>string</type>
 		</property>
 	</properties>
-	<sections>		<section>
+	<sections>
+		<section>
 			<title>Section Defaults Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
@@ -77,5 +79,5 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>	</datasources>
+	<datasources></datasources>
 </form>

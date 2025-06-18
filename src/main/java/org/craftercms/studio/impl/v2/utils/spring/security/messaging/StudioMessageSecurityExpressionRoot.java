@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.security.messaging;
 
-import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -30,29 +30,29 @@ import org.springframework.security.messaging.access.expression.MessageSecurityE
  */
 public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressionRoot {
 
-    private static final Logger logger = LoggerFactory.getLogger(StudioMessageSecurityExpressionRoot.class);
-    protected final SecurityService securityService;
+	private static final Logger logger = LoggerFactory.getLogger(StudioMessageSecurityExpressionRoot.class);
+	protected final UserService userService;
 
-    public StudioMessageSecurityExpressionRoot(Authentication authentication, Message<?> message,
-                                               SecurityService securityService) {
-        super(authentication, message);
-        this.securityService = securityService;
-    }
+	public StudioMessageSecurityExpressionRoot(Authentication authentication, Message<?> message,
+											   UserService userService) {
+		super(authentication, message);
+		this.userService = userService;
+	}
 
-    /**
-     * Checks if the current user has the {@code system_admin} role
-     */
-    public boolean isSystemAdmin() {
-        return securityService.isSystemAdmin(getAuthentication().getName());
-    }
+	/**
+	 * Checks if the current user has the {@code system_admin} role
+	 */
+	public boolean isSystemAdmin() {
+		return userService.isSystemAdmin(getAuthentication().getName());
+	}
 
-    /**
-     * Checks if the current user belongs to any group in the given site
-     *
-     * @param siteId the id of the site to check
-     */
-    public boolean isSiteMember(String siteId) {
-        return securityService.isSiteMember(getAuthentication().getName(), siteId);
-    }
+	/**
+	 * Checks if the current user belongs to any group in the given site
+	 *
+	 * @param siteId the id of the site to check
+	 */
+	public boolean isSiteMember(String siteId) {
+		return userService.isSiteMember(getAuthentication().getName(), siteId);
+	}
 
 }

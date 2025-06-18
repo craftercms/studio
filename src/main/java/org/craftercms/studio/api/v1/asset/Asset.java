@@ -25,50 +25,50 @@ import java.util.Objects;
  */
 public class Asset {
 
-    private String repoPath;
-    private Path filePath;
+	private String repoPath;
+	private Path filePath;
 
-    public Asset(String repoPath, Path filePath) {
-        this.repoPath = repoPath;
-        this.filePath = filePath;
-    }
+	public Asset(String repoPath, Path filePath) {
+		this.repoPath = repoPath;
+		this.filePath = filePath;
+	}
 
-    /**
-     * Returns the repo path for the asset.
-     */
-    public String getRepoPath() {
-        return repoPath;
-    }
+	/**
+	 * Returns the repo path for the asset.
+	 */
+	public String getRepoPath() {
+		return repoPath;
+	}
 
-    /**
-     * Sets the file path where the asset is temporarily being stored.
-     */
-    public Path getFilePath() {
-        return filePath;
-    }
+	/**
+	 * Sets the file path where the asset is temporarily being stored.
+	 */
+	public Path getFilePath() {
+		return filePath;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
-        Asset asset = (Asset) o;
+		Asset asset = (Asset) o;
 
-        return Objects.equals(repoPath, asset.repoPath);
-    }
+		return Objects.equals(repoPath, asset.repoPath);
+	}
 
-    @Override
-    public int hashCode() {
-        return repoPath != null ? repoPath.hashCode() : 0;
-    }
+	@Override
+	public int hashCode() {
+		return repoPath != null ? repoPath.hashCode() : 0;
+	}
 
-    @Override
-    public String toString() {
-        return "Asset{" + "repoPath='" + repoPath + '\'' + '}';
-    }
+	@Override
+	public String toString() {
+		return "Asset{" + "repoPath='" + repoPath + '\'' + '}';
+	}
 
 }

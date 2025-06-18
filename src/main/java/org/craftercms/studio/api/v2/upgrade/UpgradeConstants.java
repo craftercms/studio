@@ -18,18 +18,19 @@ package org.craftercms.studio.api.v2.upgrade;
 
 /**
  * General values related to the upgrade process.
+ *
  * @author joseross
  */
 public interface UpgradeConstants {
 
-    String VERSION_3_0_0 = "3.0.0";
+	String VERSION_3_0_0 = "3.0.0";
 
-    String CONFIG_KEY_PATH = "path";
-    String CONFIG_KEY_CONFIGURATIONS = "configurations";
-    String CONFIG_KEY_MODULE = "module";
-    String CONFIG_KEY_ENVIRONMENT = "environment";
+	String CONFIG_KEY_PATH = "path";
+	String CONFIG_KEY_CONFIGURATIONS = "configurations";
+	String CONFIG_KEY_MODULE = "module";
+	String CONFIG_KEY_ENVIRONMENT = "environment";
 
-    String PARAM_KEY_SITE = "site_id";
-    String PARAM_KEY_VERSION = "version";
+	String PARAM_KEY_SITE = "site_id";
+	String PARAM_KEY_VERSION = "version";
 
 }

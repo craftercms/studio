@@ -1,260 +1,259 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 3 as published by
+  * the Free Software Foundation.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.UserDAO">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="username" column="username"/>
-        <result property="password" column="password"/>
-        <result property="firstName" column="first_name"/>
-        <result property="lastName" column="last_name"/>
-        <result property="externallyManagedAsInt" column="externally_managed"/>
-        <result property="timezone" column="timezone"/>
-        <result property="locale" column="locale"/>
-        <result property="email" column="email"/>
-        <result property="enabledAsInt" column="enabled"/>
-        <result property="deletedAsInt" column="deleted"/>
+	<resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
+		<id property="id" column="id"/>
+		<result property="recordLastUpdated" column="record_last_updated"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="firstName" column="first_name"/>
+		<result property="lastName" column="last_name"/>
+		<result property="externallyManagedAsInt" column="externally_managed"/>
+		<result property="timezone" column="timezone"/>
+		<result property="locale" column="locale"/>
+		<result property="email" column="email"/>
+		<result property="enabledAsInt" column="enabled"/>
+		<result property="deletedAsInt" column="deleted"/>
 
-        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
-            <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.Group">
-                <id property="id" column="id"/>
-                <result property="groupName" column="group_name"/>
-            </association>
-        </collection>
-    </resultMap>
+		<collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
+			<result property="recordLastUpdated" column="record_last_updated"/>
+			<association property="group" javaType="org.craftercms.studio.api.v2.dal.Group">
+				<id property="id" column="id"/>
+				<result property="groupName" column="group_name"/>
+			</association>
+		</collection>
+	</resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.Group">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="groupName" column="group_name"/>
-        <result property="groupDescription" column="group_description"/>
-        <result property="externallyManagedAsInt" column="externally_managed"/>
-    </resultMap>
+	<resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.Group">
+		<id property="id" column="id"/>
+		<result property="recordLastUpdated" column="record_last_updated"/>
+		<result property="groupName" column="group_name"/>
+		<result property="groupDescription" column="group_description"/>
+		<result property="externallyManagedAsInt" column="externally_managed"/>
+	</resultMap>
 
-    <resultMap id="UserProperty" type="org.craftercms.studio.api.v2.dal.UserProperty">
-        <result property="key" column="property_key"/>
-        <result property="value" column="property_value"/>
-    </resultMap>
+	<resultMap id="UserProperty" type="org.craftercms.studio.api.v2.dal.UserProperty">
+		<result property="key" column="property_key"/>
+		<result property="value" column="property_value"/>
+	</resultMap>
 
-    <!-- Simplified version of User exposed for new APIs -->
-    <resultMap id="PersonMap" type="org.craftercms.studio.model.rest.Person">
-        <id property="id" column="id"/>
-        <result property="username" column="username"/>
-        <result property="firstName" column="first_name" />
-        <result property="lastName" column="last_name" />
-        <result property="avatar" column="avatar" />
-    </resultMap>
+	<!-- Simplified version of User exposed for new APIs -->
+	<resultMap id="PersonMap" type="org.craftercms.studio.model.rest.Person">
+		<id property="id" column="id"/>
+		<result property="username" column="username"/>
+		<result property="firstName" column="first_name"/>
+		<result property="lastName" column="last_name"/>
+		<result property="avatar" column="avatar"/>
+	</resultMap>
 
-    <select id="getPerson" resultMap="PersonMap">
-        SELECT u.*
-        FROM user u
-        WHERE u.id = #{id}
-    </select>
+	<select id="getPerson" resultMap="PersonMap">
+		SELECT u.*
+		FROM user u
+		WHERE u.id = #{id}
+	</select>
 
-    <select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
-        SELECT u.*
-        FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
-        INNER JOIN `group` g ON gu.group_id = g.id)
-        WHERE u.deleted = 0
-        AND g.group_name IN
-        <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
-            #{groupName}
-        </foreach>
-        <if test="keyword != null" >
-            <bind name="pattern" value="'%' + keyword + '%'" />
-            AND u.username like #{pattern}
-        </if>
-        <if test="sort != null and sort != '' ">
-            ORDER BY ${sort}
-        </if>
-        LIMIT #{offset}, #{limit}
-    </select>
+	<select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
+		SELECT u.*
+		FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
+		INNER JOIN `group` g ON gu.group_id = g.id)
+		WHERE u.deleted = 0
+		AND g.group_name IN
+		<foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
+			#{groupName}
+		</foreach>
+		<if test="keyword != null">
+			<bind name="pattern" value="'%' + keyword + '%'"/>
+			AND u.username like #{pattern}
+		</if>
+		<if test="sort != null and sort != '' ">
+			ORDER BY ${sort}
+		</if>
+		LIMIT #{offset}, #{limit}
+	</select>
 
-    <select id="getAllUsers" parameterType="java.util.Map" resultMap="UserMap">
-        SELECT u.*
-        FROM `user` u
-        WHERE u.deleted = 0
-        <if test="keyword != null" >
-            <bind name="pattern" value="'%' + keyword + '%'" />
-            AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
-        </if>
-        <if test="sort != null and sort !=  '' ">
-            ORDER BY ${sort}
-        </if>
-        LIMIT #{offset}, #{limit}
-    </select>
+	<select id="getAllUsers" parameterType="java.util.Map" resultMap="UserMap">
+		SELECT u.*
+		FROM `user` u
+		WHERE u.deleted = 0
+		<if test="keyword != null">
+			<bind name="pattern" value="'%' + keyword + '%'"/>
+			AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
+		</if>
+		<if test="sort != null and sort !=  '' ">
+			ORDER BY ${sort}
+		</if>
+		LIMIT #{offset}, #{limit}
+	</select>
 
-    <insert id="createUser" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
-        INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
-                           externally_managed, timezone, locale, email, enabled, deleted)
-        VALUES (CURRENT_TIMESTAMP, #{username}, #{password}, #{firstName}, #{lastName},
-                           #{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled}, 0)
-        <selectKey resultType="long" order="AFTER" keyProperty="id">
-            select LAST_INSERT_ID() as id
-        </selectKey>
-    </insert>
+	<insert id="createUser" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
+		INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
+		externally_managed, timezone, locale, email, enabled, deleted)
+		VALUES (CURRENT_TIMESTAMP, #{username}, #{password}, #{firstName}, #{lastName},
+		#{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled}, 0)
+		<selectKey resultType="long" order="AFTER" keyProperty="id">
+			select LAST_INSERT_ID() as id
+		</selectKey>
+	</insert>
 
-    <update id="updateUser" parameterType="java.util.Map">
-        UPDATE `user`
-        SET record_last_updated = CURRENT_TIMESTAMP,
-            enabled = #{enabled}
-        <if test="firstName != null" >
-            ,first_name = #{firstName}
-        </if>
-        <if test="lastName != null" >
-            ,last_name = #{lastName}
-        </if>
-        <if test="email != null" >
-            ,email = #{email}
-        </if>
-        <if test="timezone != null" >
-            ,timezone = #{timezone}
-        </if>
-        <if test="locale != null" >
-            ,locale = #{locale}
-        </if>
-        WHERE id = #{userId}
-    </update>
+	<update id="updateUser" parameterType="java.util.Map">
+		UPDATE `user`
+		SET record_last_updated = CURRENT_TIMESTAMP,
+		enabled = #{enabled}
+		<if test="firstName != null">
+			,first_name = #{firstName}
+		</if>
+		<if test="lastName != null">
+			,last_name = #{lastName}
+		</if>
+		<if test="email != null">
+			,email = #{email}
+		</if>
+		<if test="timezone != null">
+			,timezone = #{timezone}
+		</if>
+		<if test="locale != null">
+			,locale = #{locale}
+		</if>
+		WHERE id = #{userId}
+	</update>
 
-    <select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Long">
-        SELECT id FROM `user` WHERE username IN
-        <foreach collection="usernames" item="username" index="index" separator="," open="(" close=")">
-            #{username}
-        </foreach>
-    </select>
+	<select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Long">
+		SELECT id FROM `user` WHERE username IN
+		<foreach collection="usernames" item="username" index="index" separator="," open="(" close=")">
+			#{username}
+		</foreach>
+	</select>
 
-    <update id="deleteUsers" parameterType="java.util.Map">
-        UPDATE `user` SET deleted = 1
-        WHERE id IN
-        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
-            #{userId}
-        </foreach>
-    </update>
+	<update id="deleteUsers" parameterType="java.util.Map">
+		UPDATE `user` SET deleted = 1
+		WHERE id IN
+		<foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+			#{userId}
+		</foreach>
+	</update>
 
-    <select id="getUserByIdOrUsername" parameterType="java.util.Map" resultMap="UserMap">
-        SELECT *
-        FROM `user`
-        WHERE id = #{userId} OR username = #{username}
-    </select>
+	<select id="getUserByIdOrUsername" parameterType="java.util.Map" resultMap="UserMap">
+		SELECT *
+		FROM `user`
+		WHERE id = #{userId}
+		   OR username = #{username}
+	</select>
 
-    <update id="enableUsers" parameterType="java.util.Map">
-        UPDATE `user`
-        SET enabled = #{enabled}
-        WHERE id IN
-        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
-            #{userId}
-        </foreach>
-    </update>
+	<update id="enableUsers" parameterType="java.util.Map">
+		UPDATE `user`
+		SET enabled = #{enabled}
+		WHERE id IN
+		<foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+			#{userId}
+		</foreach>
+	</update>
 
-    <select id="getUserGroups" parameterType="java.util.Map" resultMap="GroupMap">
-        SELECT g.*
-        FROM ((`group` g INNER JOIN `group_user` gu ON gu.group_id = g.id)
-          INNER JOIN `user` u ON gu.user_id = u.id)
-        WHERE u.id = #{userId} OR u.username = #{username}
-    </select>
+	<select id="getUserGroups" parameterType="java.util.Map" resultMap="GroupMap">
+		SELECT g.*
+		FROM ((`group` g INNER JOIN `group_user` gu ON gu.group_id = g.id)
+			INNER JOIN `user` u ON gu.user_id = u.id)
+		WHERE (u.id = #{userId} OR u.username = #{username})
+		<if test="externallyManaged != null" >
+			AND gu.externally_managed = #{externallyManaged}
+		</if>
+	</select>
 
-    <select id="getAllUsersForSiteTotal" parameterType="java.util.Map" resultType="Integer">
-        SELECT count(1)
-        FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
-        INNER JOIN `group` g ON gu.group_id = g.id)
-        WHERE u.deleted = 0 AND g.group_name IN
-        <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
-            #{groupName}
-        </foreach>
-        <if test="keyword != null" >
-            <bind name="pattern" value="'%' + keyword + '%'" />
-            AND u.username like #{pattern}
-        </if>
-    </select>
+	<select id="getAllUsersForSiteTotal" parameterType="java.util.Map" resultType="Integer">
+		SELECT count(1)
+		FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
+		INNER JOIN `group` g ON gu.group_id = g.id)
+		WHERE u.deleted = 0 AND g.group_name IN
+		<foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
+			#{groupName}
+		</foreach>
+		<if test="keyword != null">
+			<bind name="pattern" value="'%' + keyword + '%'"/>
+			AND u.username like #{pattern}
+		</if>
+	</select>
 
-    <select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
-            SELECT COUNT(DISTINCT username)
-            FROM `user` WHERE deleted = 0
-        <if test="keyword != null" >
-            <bind name="pattern" value="'%' + keyword + '%'" />
-            AND username like #{pattern}
-        </if>
-    </select>
+	<select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
+		SELECT COUNT(DISTINCT username)
+		FROM `user` WHERE deleted = 0
+		<if test="keyword != null">
+			<bind name="pattern" value="'%' + keyword + '%'"/>
+			AND username like #{pattern}
+		</if>
+	</select>
 
-    <update id="setUserPassword" parameterType="java.util.Map">
-            UPDATE `user`
-            SET password = #{password}
-            WHERE username = #{username}
-    </update>
+	<update id="setUserPassword" parameterType="java.util.Map">
+		UPDATE `user`
+		SET password = #{password}
+		WHERE username = #{username}
+	</update>
 
-    <select id="userExists" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT(1)
-            FROM `user`
-            WHERE id = #{userId} OR username = #{username}
-    </select>
+	<select id="userExists" resultType="Integer" parameterType="java.util.Map">
+		SELECT COUNT(1)
+		FROM `user`
+		WHERE id = #{userId}
+		   OR username = #{username}
+	</select>
 
-    <select id="isUserMemberOfGroup" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT(1)
-            FROM ((`user` cu INNER JOIN `group_user` gu ON gu.user_id = cu.id)
-              INNER JOIN `group` g ON gu.group_id = g.id)
-            WHERE cu.username = #{username}
-            AND g.group_name = #{groupName}
-    </select>
+	<select id="getUserByGitName" resultMap="UserMap">
+		SELECT *
+		FROM `user`
+		WHERE CONCAT(first_name, ' ', last_name) = #{gitName}
+		  AND deleted = 0 LIMIT 1
+	</select>
 
-    <select id="getUserByGitName" resultMap="UserMap">
-        SELECT *
-        FROM `user`
-        WHERE CONCAT(first_name, ' ', last_name) = #{gitName}
-        AND deleted = 0
-        LIMIT 1
-    </select>
+	<!-- TODO: Update to support multiple sites when needed -->
+	<select id="getUserProperties" resultMap="UserProperty" resultType="list">
+		SELECT property_key, property_value
+		FROM user_properties
+		WHERE site_id = #{siteId}
+		  AND user_id = #{userId}
+	</select>
 
-    <!-- TODO: Update to support multiple sites when needed -->
-    <select id="getUserProperties" resultMap="UserProperty" resultType="list">
-        SELECT property_key, property_value
-        FROM user_properties
-        WHERE site_id = #{siteId} AND user_id = #{userId}
-    </select>
+	<delete id="deleteUserProperties">
+		DELETE FROM user_properties WHERE user_id = #{userId} AND site_id = #{siteId} AND property_key IN
+		<foreach collection="keys" item="key" open="(" close=")" separator=",">
+			#{key}
+		</foreach>
+	</delete>
 
-    <delete id="deleteUserProperties">
-        DELETE FROM user_properties WHERE user_id = #{userId} AND site_id = #{siteId} AND property_key IN
-        <foreach collection="keys" item="key" open="(" close=")" separator=",">
-            #{key}
-        </foreach>
-    </delete>
+	<insert id="updateUserProperties">
+		INSERT INTO user_properties (user_id, site_id, property_key, property_value) VALUES
+		<foreach collection="properties" index="key" item="value" separator=",">
+			(#{userId}, #{siteId}, #{key}, #{value})
+		</foreach>
+		ON DUPLICATE KEY UPDATE property_value = VALUES(property_value)
+	</insert>
 
-    <insert id="updateUserProperties">
-        INSERT INTO user_properties (user_id, site_id, property_key, property_value) VALUES
-        <foreach collection="properties" index="key" item="value" separator=",">
-            (#{userId}, #{siteId}, #{key}, #{value})
-        </foreach>
-        ON DUPLICATE KEY UPDATE property_value = VALUES(property_value)
-    </insert>
+	<delete id="deleteUserPropertiesBySiteId">
+		DELETE
+		FROM user_properties
+		WHERE site_id = #{siteId}
+	</delete>
 
-    <delete id="deleteUserPropertiesBySiteId">
-        DELETE FROM user_properties WHERE site_id = #{siteId}
-    </delete>
-
-    <delete id="deleteUserPropertiesByUserIds">
-        DELETE FROM user_properties WHERE user_id in
-        <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
-            #{userId}
-        </foreach>
-    </delete>
+	<delete id="deleteUserPropertiesByUserIds">
+		DELETE FROM user_properties WHERE user_id in
+		<foreach collection="userIds" item="userId" open="(" close=")" separator=",">
+			#{userId}
+		</foreach>
+	</delete>
 
 </mapper>

@@ -18,22 +18,22 @@ package org.craftercms.studio.api.v1.exception;
 public class ContentNotFoundException extends ServiceLayerException {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = 8988159536378832232L;
 
-    protected String path;
+	protected String path;
 
-    protected String site;
+	protected String site;
 
-    public ContentNotFoundException() {
+	public ContentNotFoundException() {
 	}
 
-    public ContentNotFoundException(String path,String site,String message) {
+	public ContentNotFoundException(String path, String site, String message) {
 		super(message);
-        this.path = path;
-        this.site = site;
-    }
+		this.path = path;
+		this.site = site;
+	}
 
 	public ContentNotFoundException(Exception e) {
 		super(e);
@@ -47,10 +47,11 @@ public class ContentNotFoundException extends ServiceLayerException {
 		super(message, e);
 	}
 
-    public String getPath() {
-        return path;
-    }
-    public String getSite() {
-        return site;
-    }
+	public String getPath() {
+		return path;
+	}
+
+	public String getSite() {
+		return site;
+	}
 }

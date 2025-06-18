@@ -19,47 +19,54 @@ package org.craftercms.studio.api.v2.upgrade;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.UpgradeManager;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
 import java.util.List;
 
 /**
  * Extension of {@link UpgradeManager} that adds Studio specific operations.
+ *
  * @author joseross
  * @since 3.1.0
  */
 public interface StudioUpgradeManager extends UpgradeManager<String> {
 
-    /**
-     * Executes all required upgrades for the system.
-     * @throws UpgradeException if any of the upgrades fails
-     */
-    void upgradeDatabaseAndConfiguration() throws UpgradeException, ConfigurationException;
+	/**
+	 * Executes all required upgrades for the system.
+	 *
+	 * @throws UpgradeException if any of the upgrades fails
+	 */
+	void upgradeDatabaseAndConfiguration() throws UpgradeException, ConfigurationException;
 
-    /**
-     * Executes the upgrades for all managed configurations in the given site.
-     * @param context the context for the upgrades
-     * @throws UpgradeException if any of the upgrades fails
-     */
-    void upgradeSiteConfiguration(StudioUpgradeContext context) throws UpgradeException;
+	/**
+	 * Executes the upgrades for all managed configurations in the given site.
+	 *
+	 * @param context the context for the upgrades
+	 * @throws UpgradeException if any of the upgrades fails
+	 */
+	void upgradeSiteConfiguration(StudioUpgradeContext context) throws UpgradeException;
 
-    /**
-     * Executes the upgrades for all existing sites.
-     * @throws UpgradeException if any of the upgrades fails
-     */
-    void upgradeExistingSites() throws UpgradeException;
+	/**
+	 * Executes the upgrades for all existing sites.
+	 *
+	 * @throws UpgradeException if any of the upgrades fails
+	 */
+	void upgradeExistingSites() throws UpgradeException;
 
-    /**
-     * Executes all required upgrades for the blueprints.
-     * @throws UpgradeException if any of the upgrades fails
-     */
-    void upgradeBlueprints() throws UpgradeException, ConfigurationException;
+	/**
+	 * Executes all required upgrades for the blueprints.
+	 *
+	 * @throws UpgradeException if any of the upgrades fails
+	 */
+	void upgradeBlueprints() throws UpgradeException, ConfigurationException;
 
-    /**
-     * Returns all existing environments for the given site
-     * @param site the id of the site
-     * @return the list of environments
-     */
-    List<String> getExistingEnvironments(String site);
+	/**
+	 * Returns all existing environments for the given site
+	 *
+	 * @param site the id of the site
+	 * @return the list of environments
+	 */
+	List<String> getExistingEnvironments(String site) throws ServiceLayerException;
 
 }

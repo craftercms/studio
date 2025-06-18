@@ -16,23 +16,16 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.IOUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v2.dal.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.User;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
@@ -42,90 +35,69 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
+	private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
 
-    private static final String CONTENT_API_ROOT = "/api/1/services/api/1/content/";
-    private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
+	private static final String CONTENT_API_ROOT = "/api/1/services/api/1/content/";
+	private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
 
-    @Override
-    public boolean supports(ConfigAttribute configAttribute) {
-        return true;
-    }
+	@Override
+	public boolean supports(ConfigAttribute configAttribute) {
+		return true;
+	}
 
-    @Override
-    public int voteInternal(Authentication authentication, Object o, Collection collection) {
-        int toRet = ACCESS_ABSTAIN;
-        String requestUri = "";
-        if (!(o instanceof FilterInvocation filterInvocation)) {
-            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
-            return toRet;
-        }
-        HttpServletRequest request = filterInvocation.getRequest();
-        requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-        if (!startsWith(requestUri, CONTENT_API_ROOT)) {
-            logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
-            return toRet;
-        }
-        String userParam = request.getParameter("username");
-        String siteParam = request.getParameter("site_id");
-        if (StringUtils.isEmpty(siteParam)) {
-            siteParam = request.getParameter("site");
-        }
-        String pathParam = request.getParameter("path");
-        if (StringUtils.isEmpty(userParam)
-                && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
-                && !ServletFileUpload.isMultipartContent(request)) {
-            try {
-                InputStream is = request.getInputStream();
-                is.mark(0);
-                String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
-                if (StringUtils.isNoneEmpty(jsonString)) {
-                    JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                    if (jsonObject.has("site")) {
-                        siteParam = jsonObject.getString("site");
-                    }
-                    if (jsonObject.has("site_id")) {
-                        siteParam = jsonObject.getString("site_id");
-                    }
-                    if (jsonObject.has("path")) {
-                        pathParam = jsonObject.getString("path");
-                    }
-                }
-                is.reset();
-            } catch (IOException | JSONException e) {
-                // TODO: SJ: Why isn't this at least INFO if not WARN?
-                logger.debug("Failed to extract the username from the POST request", e);
-            }
-        }
-        pathParam = defaultIfEmpty(pathParam, "");
-        User currentUser = (User) authentication.getPrincipal();
-        if (!siteService.exists(siteParam)) {
-            logger.trace("Site '{}' does not exist. The request with URL '{}' has access '{}'", siteParam, requestUri, toRet);
-            return toRet;
-        }
-        if (currentUser == null || !isSiteMember(siteParam, currentUser)) {
-            toRet = ACCESS_DENIED;
-            logger.trace("Current user '{}' has no access to site '{}'. The request with URL '{}' has access '{}'", currentUser, siteParam, requestUri, toRet);
-            return toRet;
-        }
-        // Need write_content permission to write operations, otherwise read_content is enough
-        String requiredPermission = PERMISSION_CONTENT_READ;
-        if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
-            requiredPermission = PERMISSION_CONTENT_WRITE;
-        }
-        if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
-            toRet = ACCESS_GRANTED;
-        } else {
-            toRet = ACCESS_DENIED;
-        }
-        logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
-        return toRet;
-    }
+	@Override
+	public int voteInternal(Authentication authentication, Object o, Collection collection) {
+		int toRet = ACCESS_ABSTAIN;
+		String requestUri = "";
+		if (!(o instanceof FilterInvocation filterInvocation)) {
+			logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+			return toRet;
+		}
+		HttpServletRequest request = filterInvocation.getRequest();
+		requestUri = request.getRequestURI().replace(request.getContextPath(), "");
+		if (!startsWith(requestUri, CONTENT_API_ROOT)) {
+			logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+			return toRet;
+		}
+		String siteParam = request.getParameter("site_id");
+		if (StringUtils.isEmpty(siteParam)) {
+			siteParam = request.getParameter("site");
+		}
+		String pathParam = request.getParameter("path");
+		pathParam = defaultIfEmpty(pathParam, DEFAULT_PERMISSION_VOTER_PATH);
+		User currentUser = (User) authentication.getPrincipal();
+		if (!siteService.exists(siteParam)) {
+			logger.trace("Site '{}' does not exist. The request with URL '{}' has access '{}'", siteParam, requestUri, toRet);
+			return toRet;
+		}
+		if (currentUser == null || !isSiteMember(siteParam, currentUser)) {
+			toRet = ACCESS_DENIED;
+			logger.trace("Current user '{}' has no access to site '{}'. The request with URL '{}' has access '{}'", currentUser, siteParam, requestUri, toRet);
+			return toRet;
+		}
+		// Need write_content permission to write operations, otherwise read_content is enough
+		String requiredPermission = PERMISSION_CONTENT_READ;
+		if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
+			requiredPermission = PERMISSION_CONTENT_WRITE;
+		}
+		try {
+			if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
+				toRet = ACCESS_GRANTED;
+			} else {
+				toRet = ACCESS_DENIED;
+			}
+		} catch (SiteNotFoundException e) {
+			logger.error("Failed to check access. Site '{}' was not found", siteParam, e);
+			toRet = ACCESS_DENIED;
+		}
+		logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
+		return toRet;
+	}
 
 
-    @Override
-    public boolean supports(Class aClass) {
-        return true;
-    }
+	@Override
+	public boolean supports(Class aClass) {
+		return true;
+	}
 
 }

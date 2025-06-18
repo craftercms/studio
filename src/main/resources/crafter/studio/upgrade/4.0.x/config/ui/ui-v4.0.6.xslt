@@ -17,35 +17,35 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
-    <xsl:template match="//widget[@id='craftercms.components.Dashboard']/configuration/widgets/widget[@id='craftercms.components.AwaitingApprovalDashlet']">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:attribute name="id">craftercms.components.LegacyInReviewDashlet</xsl:attribute>
-            <xsl:apply-templates/>
-        </xsl:copy>
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:attribute name="id">craftercms.components.LegacyUnpublishedDashlet</xsl:attribute>
-            <xsl:apply-templates/>
-        </xsl:copy>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="//widget[@id='craftercms.components.Dashboard']/configuration/widgets/widget[@id='craftercms.components.AwaitingApprovalDashlet']">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:attribute name="id">craftercms.components.LegacyInReviewDashlet</xsl:attribute>
+			<xsl:apply-templates/>
+		</xsl:copy>
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:attribute name="id">craftercms.components.LegacyUnpublishedDashlet</xsl:attribute>
+			<xsl:apply-templates/>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

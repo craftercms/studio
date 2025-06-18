@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,13 +16,17 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import jakarta.validation.Valid;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.springframework.security.core.Authentication;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dejan Brkic
@@ -31,81 +35,47 @@ public interface SecurityService {
 
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated
-     *
-     * @return  current user
-     * @deprecated use {@link org.craftercms.studio.api.v2.service.security.SecurityService#getCurrentUser()} instead
+	 *
+	 * @return current user
+	 * @deprecated use {@link org.craftercms.studio.impl.v2.utils.security.SecurityUtils#getCurrentUsername()} instead
 	 */
-    @Deprecated
+	@Deprecated
 	String getCurrentUser();
 
-    /**
-     * Returns the {@link Authentication} for the current user or null if not user is authenticated.
-     *
-     * @return authentication
-     * @deprecated use {@link org.craftercms.studio.api.v2.service.security.SecurityService#getAuthentication()} instead
-     */
-    @Deprecated
-    Authentication getAuthentication();
+	/**
+	 * Returns the {@link Authentication} for the current user or null if not user is authenticated.
+	 *
+	 * @return authentication
+	 * @deprecated use {@link org.craftercms.studio.impl.v2.utils.security.SecurityUtils#getAuthentication()} instead
+	 */
+	@Deprecated
+	Authentication getAuthentication();
 
-    Set<String> getUserRoles(String site);
+	Set<String> getUserRoles(String site);
 
-    Set<String> getUserRoles(String site, String user);
+	@Valid Collection<NormalizedRole> getUserRoles(String site, String user);
 
-    Set<String> getUserRoles(String site, String user, boolean includeGlobal);
+	Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
-    Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
+	Set<String> getUserPermissions(String site, String path, String user) throws SiteNotFoundException;
 
-    /**
-     * Get user by git name.
-     * Special use case because git stores user as string of first and last name separated by ' '
-     * @param gitName first and last name separated with ' '
-     * @return user
-     *
-     * @throws ServiceLayerException general service error
-     * @throws UserNotFoundException user not found
-     */
-    Map<String, Object> getUserProfileByGitName(String gitName)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Check if given user is site admin
+	 *
+	 * @param username user
+	 * @param site     site identifier
+	 * @return true if user belongs to admin group
+	 */
+	boolean isSiteAdmin(String username, String site);
 
-    Set<String> getUserPermissions(String site, String path, List<String> groups);
+	/**
+	 * Check if given user has system_admin role
+	 *
+	 * @param username user
+	 * @return true if user is system_admin, false otherwise
+	 */
+	boolean isSystemAdmin(String username);
 
-    Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
-
-    /**
-     * Check if user exists
-     *
-     * @param username username
-     * @return true if user exists
-     *
-     * @throws ServiceLayerException general service error
-     */
-    boolean userExists(String username) throws ServiceLayerException;
-
-
-    /**
-     * Get all users
-     *
-     * @return number of all users
-     *
-     * @throws ServiceLayerException general service error
-     */
-    int getAllUsersTotal() throws ServiceLayerException;
-
-    /**
-     * Check if given user is site admin
-     * @param username user
-     * @param site site identifier
-     * @return true if user belongs to admin group
-     */
-    boolean isSiteAdmin(String username, String site);
-
-    /**
-     * Check if given user has system_admin role
-     * @param username user
-     * @return true if user is system_admin, false otherwise
-     */
-    boolean isSystemAdmin(String username);
-
-    List<String> getUserGlobalRoles(long userId, String username)
-            throws ServiceLayerException, UserNotFoundException;
+	List<NormalizedRole> getUserGlobalRoles(long userId, String username)
+		throws ServiceLayerException, UserNotFoundException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,13 +23,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public interface EncryptionService {
 
-    /**
-     * Encrypt text
-     *
-     * @param siteId site identifier
-     * @param text text to encrypt
-     * @return encrypted text
-     * @throws ServiceLayerException general service error
-     */
-    String encrypt(String siteId, String text) throws ServiceLayerException;
+	/**
+	 * Encrypt text
+	 *
+	 * @param siteId site identifier
+	 * @param text   text to encrypt
+	 * @return encrypted text
+	 * @throws ServiceLayerException general service error
+	 */
+	String encrypt(String siteId, String text) throws ServiceLayerException;
 }

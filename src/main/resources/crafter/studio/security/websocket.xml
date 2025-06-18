@@ -20,13 +20,13 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- Custom expression handler -->
-    <bean id="studioMessagingSecurityExpressionHandler"
-          class="org.craftercms.studio.impl.v2.utils.spring.security.messaging.StudioSecurityExpressionHandler">
-        <constructor-arg name="securityService" ref="studio.securityService"/>
-    </bean>
+	<!-- Custom expression handler -->
+	<bean id="studioMessagingSecurityExpressionHandler"
+	      class="org.craftercms.studio.impl.v2.utils.spring.security.messaging.StudioSecurityExpressionHandler">
+		<constructor-arg name="userService" ref="userServiceInternal"/>
+	</bean>
 
-    <!-- Main configuration -->
-    <bean class="org.craftercms.studio.config.WebsocketSecurityConfig"/>
+	<!-- Main configuration -->
+	<bean class="org.craftercms.studio.config.WebsocketSecurityConfig"/>
 
 </beans>

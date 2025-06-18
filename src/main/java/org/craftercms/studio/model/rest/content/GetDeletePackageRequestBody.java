@@ -20,31 +20,32 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 @JsonIgnoreProperties
 public class GetDeletePackageRequestBody {
 
-    @ValidSiteId
-    private String siteId;
+	@ValidSiteId
+	private String siteId;
 
-    @NotEmpty
-    private List<@NotEmpty @ValidExistingContentPath String> paths;
+	@NotEmpty
+	private List<@NotEmpty @ValidExistingContentPath String> paths;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public List<String> getPaths() {
-        return paths;
-    }
+	public List<String> getPaths() {
+		return paths;
+	}
 
-    public void setPaths(List<String> paths) {
-        this.paths = paths;
-    }
+	public void setPaths(List<String> paths) {
+		this.paths = paths;
+	}
 }

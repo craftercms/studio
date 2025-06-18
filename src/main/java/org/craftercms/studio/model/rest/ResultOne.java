@@ -27,28 +27,27 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * A {@link Result} where the actual result is a single entity.
  *
  * @param <T> the entity type
- *
  * @author Dejan Brkic
  * @author avasquez
  */
 public class ResultOne<T> extends Result {
 
-    @JsonIgnore
-    protected Map<String, T> entity;
+	@JsonIgnore
+	protected Map<String, T> entity;
 
-    /**
-     * Returns the result entity.
-     */
-    @JsonAnyGetter
-    public Map<String, T> getEntity() {
-        return entity;
-    }
+	/**
+	 * Returns the result entity.
+	 */
+	@JsonAnyGetter
+	public Map<String, T> getEntity() {
+		return entity;
+	}
 
-    /**
-     * Sets the result entity.
-     */
-    @JsonAnySetter
-    public void setEntity(String name, T entity) {
-        this.entity = Collections.singletonMap(name, entity);
-    }
+	/**
+	 * Sets the result entity.
+	 */
+	@JsonAnySetter
+	public void setEntity(String name, T entity) {
+		this.entity = Collections.singletonMap(name, entity);
+	}
 }

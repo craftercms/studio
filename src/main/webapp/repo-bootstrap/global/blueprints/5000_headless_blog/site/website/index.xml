@@ -16,9 +16,10 @@
   -->
 
 <page>
-	<content-type>/page/item-explorer</content-type>	<placeInNav>true</placeInNav>
+	<content-type>/page/item-explorer</content-type>
+	<placeInNav>true</placeInNav>
 	<display-template>/templates/web/item-explorer.ftl</display-template>
-	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+	<merge-strategy>inherit-levels</merge-strategy>
 	<placeInNav>false</placeInNav>
 	<file-name>index.xml</file-name>
 	<internal-name>Item Explorer</internal-name>
@@ -30,7 +31,8 @@
 		&lt;li&gt;'/component/author'&lt;/li&gt;
 		&lt;li&gt;'/component/post'&lt;/li&gt;
 		&lt;/ul&gt;
-		&lt;p&gt;Elasticsearch also supports 'size' and 'page' parameters for pagination.&lt;/p&gt;</body_html>
+		&lt;p&gt;Elasticsearch also supports 'size' and 'page' parameters for pagination.&lt;/p&gt;
+	</body_html>
 	<objectGroupId>8d7f</objectGroupId>
 	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
 	<folder-name/>

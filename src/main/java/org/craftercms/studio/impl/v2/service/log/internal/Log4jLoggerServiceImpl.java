@@ -37,34 +37,34 @@ import java.util.stream.Collectors;
  */
 public class Log4jLoggerServiceImpl implements LoggerService {
 
-    private LoggerConfig createLoggerLevel(Logger logger) {
-        return new LoggerConfig(logger.getName(), logger.getLevel().toString().toLowerCase());
-    }
+	private LoggerConfig createLoggerLevel(Logger logger) {
+		return new LoggerConfig(logger.getName(), logger.getLevel().toString().toLowerCase());
+	}
 
-    @Override
-    public List<LoggerConfig> getLoggerConfigs() {
-        LoggerContext context = LoggerContext.getContext(false);
-        return context.getLoggers().stream()
-                .map(this::createLoggerLevel)
-                .collect(Collectors.toList());
-    }
+	@Override
+	public List<LoggerConfig> getLoggerConfigs() {
+		LoggerContext context = LoggerContext.getContext(false);
+		return context.getLoggers().stream()
+			.map(this::createLoggerLevel)
+			.collect(Collectors.toList());
+	}
 
-    @Override
-    public LoggerConfig getLoggerConfig(final String name, final boolean createIfAbsent) throws ServiceLayerException {
-        LoggerContext context = LoggerContext.getContext(false);
-        if (!createIfAbsent && !context.hasLogger(name)) {
-            throw new LoggerNotFoundException(name);
-        }
-        Logger logger = context.getLogger(name);
-        return createLoggerLevel(logger);
-    }
+	@Override
+	public LoggerConfig getLoggerConfig(final String name, final boolean createIfAbsent) throws ServiceLayerException {
+		LoggerContext context = LoggerContext.getContext(false);
+		if (!createIfAbsent && !context.hasLogger(name)) {
+			throw new LoggerNotFoundException(name);
+		}
+		Logger logger = context.getLogger(name);
+		return createLoggerLevel(logger);
+	}
 
-    @Override
-    public void setLoggerLevel(final String name, final String level, final boolean createIfAbsent) throws ServiceLayerException {
-        LoggerContext context = LoggerContext.getContext(false);
-        if (!createIfAbsent && !context.hasLogger(name)) {
-            throw new LoggerNotFoundException(name);
-        }
-        Configurator.setLevel(name, Level.valueOf(level));
-    }
+	@Override
+	public void setLoggerLevel(final String name, final String level, final boolean createIfAbsent) throws ServiceLayerException {
+		LoggerContext context = LoggerContext.getContext(false);
+		if (!createIfAbsent && !context.hasLogger(name)) {
+			throw new LoggerNotFoundException(name);
+		}
+		Configurator.setLevel(name, Level.valueOf(level));
+	}
 }

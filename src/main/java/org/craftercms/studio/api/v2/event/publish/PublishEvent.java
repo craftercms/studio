@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,6 @@ package org.craftercms.studio.api.v2.event.publish;
 
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
-import org.springframework.security.core.Authentication;
 
 /**
  * Event triggered when items are published
@@ -29,26 +28,22 @@ import org.springframework.security.core.Authentication;
  */
 public class PublishEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
-    public PublishEvent(String siteId) {
-        super(siteId);
-    }
+	public PublishEvent(String siteId) {
+		super(siteId);
+	}
 
-    public PublishEvent(Authentication authentication, String siteId) {
-        super(authentication, siteId);
-    }
+	@Override
+	public String getEventType() {
+		return "PUBLISH_EVENT";
+	}
 
-    @Override
-    public String getEventType() {
-        return "PUBLISH_EVENT";
-    }
-
-    @Override
-    public String toString() {
-        return "PublishEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", timestamp=" + timestamp +
-                ", user=" + user +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "PublishEvent{" +
+			"siteId='" + siteId + '\'' +
+			", timestamp=" + timestamp +
+			", user=" + user +
+			'}';
+	}
 
 }

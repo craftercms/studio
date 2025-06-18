@@ -20,34 +20,23 @@ package scripts.api
  */
 class ContentTypeServices {
 
-    /**
-     * create the context object
-     * @param applicationContext - studio application's contect (spring container etc)
-     * @param request - web request if in web request context
-     */
-    static createContext(applicationContext, request) {
-        return ServiceFactory.createContext(applicationContext, request)
-    }
-
 	/**
-	 * change content type
-	 * @param site - the project ID
-	 * @param item - the item ID
-	 * @param template - the new type
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc)
+	 * @param request - web request if in web request context
 	 */
-	static changeContentType(context, site, path, type){
-		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
-        return contentTypeServiceImpl.changeContentType(site, path, type)
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
 	}
-	
+
 	/**
 	 * get all content types for a given site
 	 * @param site - the project ID
 	 * @param searchable - include non-searchable types (true/false)
 	 */
 	static getContentTypes(context, site, searchable) {
-        def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
-        return contentTypeServiceImpl.getContentTypes(site, searchable)
+		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
+		return contentTypeServiceImpl.getContentTypes(site, searchable)
 	}
 
 	/**
@@ -55,7 +44,7 @@ class ContentTypeServices {
 	 * @param site - the project ID
 	 * @param path - the path
 	 */
-	static getAllowedContentTypesForPath(context, site, path){
+	static getAllowedContentTypesForPath(context, site, path) {
 		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
 		return contentTypeServiceImpl.getAllowedContentTypesForPath(site, path)
 	}
@@ -68,9 +57,4 @@ class ContentTypeServices {
 	def getContentType(site, type) {
 
 	}
-
-    def static getContentTypeByPath(context, site, path) {
-        def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
-        return contentTypeServiceImpl.getContentTypeByPath(site, path)
-    }
 }

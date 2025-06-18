@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO">
+	<resultMap id="ItemTargetMap" type="org.craftercms.studio.api.v2.dal.publish.ItemTarget" autoMapping="true">
+	</resultMap>
+
+	<resultMap id="ItemTargetWithPathMap" type="org.craftercms.studio.api.v2.dal.publish.ItemTargetWithPath" extends="ItemTargetMap">
+	</resultMap>
+
+	<select id="getByItemId" resultMap="ItemTargetMap">
+		SELECT it.*
+		FROM item_target it
+		WHERE it.item_id = #{itemId}
+	</select>
+
+	<update id="updateForCompletePackage">
+		INSERT INTO item_target
+		(item_id, target, previous_path, last_published_on, published_commit_id)
+		SELECT itemIds.item_id, #{target}, null, #{timestamp}, #{commitId}
+		FROM
+		<include refid="getSuccessfulItemsForPackage"/>
+		AS itemIds
+		ON DUPLICATE KEY UPDATE
+		previous_path = null,
+		last_published_on = #{timestamp},
+		published_commit_id = #{commitId}
+	</update>
+
+	<update id="clearPreviousPathForCompletePackage">
+		UPDATE item_target it
+		INNER JOIN item i ON i.id = it.item_id
+		SET it.previous_path = null
+		WHERE it.target = #{target}
+		AND EXISTS (
+		SELECT (1)
+		FROM
+		<include refid="getSuccessfulItemsForPackage"/>
+		AS successfulItems
+		WHERE successfulItems.site_id = i.site_id
+		AND it.previous_path = successfulItems.path
+		)
+	</update>
+
+	<insert id="insertForInitialPublish">
+		INSERT INTO item_target
+			(item_id, target, previous_path, published_commit_id, last_published_on)
+		SELECT i.id, #{target}, null, #{commitId}, #{timestamp}
+		FROM item i
+		WHERE i.site_id = #{siteId}
+		  AND i.path NOT IN (SELECT pi.path
+				     FROM publish_item pi
+				     WHERE pi.package_id = #{packageId}
+				       AND (pi.publish_state &amp; #{itemFailureState}) > 0)
+	</insert>
+
+	<insert id="initStaging">
+		INSERT INTO item_target
+			(item_id, target, previous_path, last_published_on, published_commit_id)
+		SELECT i.id, #{stagingTarget}, it.previous_path, it.last_published_on, it.published_commit_id
+		FROM item i
+			     INNER JOIN item_target it ON i.id = it.item_id
+		WHERE i.site_id = #{siteId}
+		  AND it.target = #{liveTarget}
+	</insert>
+
+	<select id="getItemListTargets" resultMap="ItemTargetWithPathMap">
+		SELECT it.*, i.path
+		FROM item_target it INNER JOIN item i ON it.item_id = i.id
+		WHERE i.site_id = #{siteId}
+		AND i.path IN
+		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+			#{path}
+		</foreach>
+	</select>
+
+	<sql id="getSuccessfulItemsForPackage">
+		(SELECT pp.site_id, ipi.item_id, pi.path
+		 FROM publish_package pp
+			      INNER JOIN publish_item pi ON pp.id = pi.package_id
+			      INNER JOIN item_publish_item ipi ON pi.id = ipi.publish_item_id
+		 WHERE pp.id = #{packageId}
+		   AND (pi.publish_state &amp; #{itemSuccessState}) > 0)
+	</sql>
+
+</mapper>

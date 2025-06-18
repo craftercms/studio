@@ -31,7 +31,6 @@ import java.util.List;
  * Implementation of ContentProcessorPipeline that runs the content give through the pipeline
  *
  * @author hyanghee
- *
  */
 public class ContentProcessorPipelineImpl implements ContentProcessorPipeline {
 
@@ -43,7 +42,7 @@ public class ContentProcessorPipelineImpl implements ContentProcessorPipeline {
 	protected List<ContentProcessor> _chain = null;
 
 	public void processContent(PipelineContent content, ResultTO result)
-			throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException {
 		if (_chain != null && _chain.size() > 0) {
 			for (ContentProcessor processor : _chain) {
 				logger.debug("Running {} through {}", content.getId(), processor.getName());

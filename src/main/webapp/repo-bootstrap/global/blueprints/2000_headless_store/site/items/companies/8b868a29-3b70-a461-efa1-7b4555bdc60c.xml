@@ -16,7 +16,8 @@
   -->
 
 <component>
-	<content-type>/component/company</content-type>	<display-template/>
+	<content-type>/component/company</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>8b86</objectGroupId>
 	<objectId>8b868a29-3b70-a461-efa1-7b4555bdc60c</objectId>

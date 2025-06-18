@@ -27,33 +27,31 @@ import org.craftercms.studio.api.v1.to.ResultTO;
  *
  * @author hyanghee
  * @author Dejan Brkic
- *
  */
 public class InvalidateCacheProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(InvalidateCacheProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(InvalidateCacheProcessor.class);
 
-    public static final String NAME = "InvalidateCacheProcessor";
+	public static final String NAME = "InvalidateCacheProcessor";
 
 
+	/**
+	 * default constructor
+	 */
+	public InvalidateCacheProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * default constructor
-     */
-    public InvalidateCacheProcessor() {
-        super(NAME);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public InvalidateCacheProcessor(String name) {
+		super(name);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public InvalidateCacheProcessor(String name) {
-        super(name);
-    }
-
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        result.setInvalidateCache(true);
-    }
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		result.setInvalidateCache(true);
+	}
 }

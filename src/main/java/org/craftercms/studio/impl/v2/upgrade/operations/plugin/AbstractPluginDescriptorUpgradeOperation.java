@@ -46,71 +46,71 @@ import static java.lang.String.format;
  */
 public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractPluginDescriptorUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractPluginDescriptorUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_DESCRIPTOR_PATH = "descriptorPath";
-    public static final String CONFIG_KEY_DESCRIPTOR_VERSION = "descriptorVersion";
+	public static final String CONFIG_KEY_DESCRIPTOR_PATH = "descriptorPath";
+	public static final String CONFIG_KEY_DESCRIPTOR_VERSION = "descriptorVersion";
 
-    protected PluginDescriptorReader descriptorReader;
+	protected PluginDescriptorReader descriptorReader;
 
-    protected String descriptorPath;
-    protected String descriptorVersion;
+	protected String descriptorPath;
+	protected String descriptorVersion;
 
-    public AbstractPluginDescriptorUpgradeOperation(StudioConfiguration studioConfiguration,
-                                                    PluginDescriptorReader descriptorReader) {
-        super(studioConfiguration);
-        this.descriptorReader = descriptorReader;
-    }
+	public AbstractPluginDescriptorUpgradeOperation(StudioConfiguration studioConfiguration,
+							PluginDescriptorReader descriptorReader) {
+		super(studioConfiguration);
+		this.descriptorReader = descriptorReader;
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        descriptorPath = config.getString(CONFIG_KEY_DESCRIPTOR_PATH);
-        descriptorVersion = config.getString(CONFIG_KEY_DESCRIPTOR_VERSION);
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		descriptorPath = config.getString(CONFIG_KEY_DESCRIPTOR_PATH);
+		descriptorVersion = config.getString(CONFIG_KEY_DESCRIPTOR_VERSION);
+	}
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        Path descriptorFile = context.getRepositoryPath().resolve(descriptorPath);
-        if (Files.notExists(descriptorFile)) {
-            logger.info("The plugin descriptor file was not found in site '{}'", site);
-            return;
-        }
-        try (Reader reader = Files.newBufferedReader(descriptorFile)) {
-            PluginDescriptor descriptor = descriptorReader.read(reader);
-            if (descriptor.getDescriptorVersion().equals(descriptorVersion)) {
-                logger.info("The plugin descriptor was already updated in site '{}'", site);
-                return;
-            }
-            logger.info("Update the plugin descriptor in site '{}'", site);
-            doPluginDescriptorUpdates(descriptor);
-            descriptor.setDescriptorVersion(descriptorVersion);
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		Path descriptorFile = context.getRepositoryPath().resolve(descriptorPath);
+		if (Files.notExists(descriptorFile)) {
+			logger.info("The plugin descriptor file was not found in site '{}'", site);
+			return;
+		}
+		try (Reader reader = Files.newBufferedReader(descriptorFile)) {
+			PluginDescriptor descriptor = descriptorReader.read(reader);
+			if (descriptor.getDescriptorVersion().equals(descriptorVersion)) {
+				logger.info("The plugin descriptor was already updated in site '{}'", site);
+				return;
+			}
+			logger.info("Update the plugin descriptor in site '{}'", site);
+			doPluginDescriptorUpdates(descriptor);
+			descriptor.setDescriptorVersion(descriptorVersion);
 
-            DumperOptions options = new DumperOptions();
-            options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-            options.setPrettyFlow(true);
-            Yaml yaml = new Yaml(
-                    new DisableClassLoadingConstructor(new LoaderOptions()),
-                    new Representer(options) {
-                        @Override
-                        protected NodeTuple representJavaBeanProperty(final Object javaBean, final Property property,
-                                                                      final Object propertyValue, final Tag customTag) {
-                            if (propertyValue != null) {
-                                return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-                            }
-                            return null;
-                        }
-                    },
-                    options);
-            String content = yaml.dumpAsMap(descriptor);
+			DumperOptions options = new DumperOptions();
+			options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+			options.setPrettyFlow(true);
+			Yaml yaml = new Yaml(
+				new DisableClassLoadingConstructor(new LoaderOptions()),
+				new Representer(options) {
+					@Override
+					protected NodeTuple representJavaBeanProperty(final Object javaBean, final Property property,
+										      final Object propertyValue, final Tag customTag) {
+						if (propertyValue != null) {
+							return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+						}
+						return null;
+					}
+				},
+				options);
+			String content = yaml.dumpAsMap(descriptor);
 
-            Files.writeString(context.getFile(descriptorPath), content);
-            trackChangedFiles(descriptorPath);
-        } catch (Exception e) {
-            throw new UpgradeException(format("Plugin descriptor can't be read from site '%s'", site));
-        }
-    }
+			Files.writeString(context.getFile(descriptorPath), content);
+			trackChangedFiles(descriptorPath);
+		} catch (Exception e) {
+			throw new UpgradeException(format("Plugin descriptor can't be read from site '%s'", site));
+		}
+	}
 
-    protected abstract void doPluginDescriptorUpdates(PluginDescriptor descriptor) throws UpgradeException;
+	protected abstract void doPluginDescriptorUpdates(PluginDescriptor descriptor) throws UpgradeException;
 
 }

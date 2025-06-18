@@ -18,28 +18,28 @@ package org.craftercms.studio.model.rest;
 
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 public class CommitResolutionRequest {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    private String commitMessage;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	private String commitMessage;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getCommitMessage() {
-        return commitMessage;
-    }
+	public String getCommitMessage() {
+		return commitMessage;
+	}
 
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
-    }
+	public void setCommitMessage(String commitMessage) {
+		this.commitMessage = commitMessage;
+	}
 }

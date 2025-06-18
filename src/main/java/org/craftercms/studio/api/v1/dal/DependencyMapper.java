@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,29 +24,14 @@ import java.util.Map;
  */
 public interface DependencyMapper {
 
-    String SITE_PARAM = "site";
-    String SITE_ID_PARAM = "siteId";
-    String PATH_PARAM = "path";
-    String PATHS_PARAM = "paths";
-    String OLD_PATH_PARAM = "oldPath";
-    String NEW_PATH_PARAM = "newPath";
-    String REGEX_PARAM = "regex";
-    String EDITED_STATES_PARAM = "editedStates";
-    String NEW_STATES_PARAM = "newStates";
+	String SITE_PARAM = "site";
+	String PATHS_PARAM = "paths";
+	String REGEX_PARAM = "regex";
 
-    String SORUCE_PATH_COLUMN_NAME = "source_path";
-    String TARGET_PATH_COLUMN_NAME = "target_path";
+	List<String> getDependenciesForList(Map params);
 
-    List<DependencyEntity> getDependencies(Map params);
+	List<String> getItemSpecificDependenciesForList(Map params);
 
-    void deleteDependenciesForSite(Map params);
-
-    List<String> getDependenciesForList(Map params);
-
-    List<String> getItemSpecificDependenciesForList(Map params);
-
-    @Deprecated
-    List<String> getItemsDependingOn(Map params);
-
-    List<Map<String, String>> calculatePublishingDependenciesForList(Map params);
+	@Deprecated
+	List<String> getItemsDependingOn(Map params);
 }

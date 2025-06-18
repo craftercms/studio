@@ -23,7 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
@@ -37,30 +38,30 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*
 @RequestMapping(PROXY_ENGINE)
 public class ProxyController {
 
-    protected final ProxyService proxyService;
+	protected final ProxyService proxyService;
 
-    @ConstructorProperties({"proxyService"})
-    public ProxyController(final ProxyService proxyService) {
-        this.proxyService = proxyService;
-    }
+	@ConstructorProperties({"proxyService"})
+	public ProxyController(final ProxyService proxyService) {
+		this.proxyService = proxyService;
+	}
 
-    /**
-     * This handler exists to allow securing the preview log monitor URL
-     */
-    @GetMapping(LOG_MONITOR_ENGINE_PROXY)
-    public ResponseEntity<Object> getSiteLogEvents(@RequestBody(required = false) final String body,
-                                                   @ValidSiteId @RequestParam("crafterSite") final String siteId,
-                                                   final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
-        return proxyService.getSiteLogEvents(body, siteId, request);
-    }
+	/**
+	 * This handler exists to allow securing the preview log monitor URL
+	 */
+	@GetMapping(LOG_MONITOR_ENGINE_PROXY)
+	public ResponseEntity<Object> getSiteLogEvents(@RequestBody(required = false) final String body,
+						       @ValidSiteId @RequestParam("crafterSite") final String siteId,
+						       final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
+		return proxyService.getSiteLogEvents(body, siteId, request);
+	}
 
 
-    @RequestMapping(ALL_SUB_URLS)
-    public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) final String body,
-                                              @ValidSiteId @RequestParam("crafterSite") final String siteId,
-                                              final HttpServletRequest request)
-            throws URISyntaxException, SiteNotFoundException {
-        return proxyService.proxyEngine(body, siteId, request);
-    }
+	@RequestMapping(ALL_SUB_URLS)
+	public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) final String body,
+						  @ValidSiteId @RequestParam("crafterSite") final String siteId,
+						  final HttpServletRequest request)
+		throws URISyntaxException, SiteNotFoundException {
+		return proxyService.proxyEngine(body, siteId, request);
+	}
 
 }

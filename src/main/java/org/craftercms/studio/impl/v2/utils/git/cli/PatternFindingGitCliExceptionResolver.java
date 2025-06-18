@@ -32,24 +32,24 @@ import java.util.regex.Pattern;
  */
 public abstract class PatternFindingGitCliExceptionResolver implements GitCliOutputExceptionResolver {
 
-    private static final Logger logger = LoggerFactory.getLogger(PatternFindingGitCliExceptionResolver.class);
+	private static final Logger logger = LoggerFactory.getLogger(PatternFindingGitCliExceptionResolver.class);
 
-    @Override
-    public GitCliOutputException resolveException(int exitValue, String output) {
-        Matcher matcher = getErrorMessagePattern().matcher(output);
-        if (matcher.find()) {
-            GitCliOutputException ex = createException(exitValue, output);
+	@Override
+	public GitCliOutputException resolveException(int exitValue, String output) {
+		Matcher matcher = getErrorMessagePattern().matcher(output);
+		if (matcher.find()) {
+			GitCliOutputException ex = createException(exitValue, output);
 
-            logger.debug("Found pattern of {} in Git output", ex.getClass().getSimpleName());
+			logger.debug("Found pattern of {} in Git output", ex.getClass().getSimpleName());
 
-            return ex;
-        } else {
-            return null;
-        }
-    }
+			return ex;
+		} else {
+			return null;
+		}
+	}
 
-    protected abstract Pattern getErrorMessagePattern();
+	protected abstract Pattern getErrorMessagePattern();
 
-    protected abstract GitCliOutputException createException(int exitValue, String output);
+	protected abstract GitCliOutputException createException(int exitValue, String output);
 
 }

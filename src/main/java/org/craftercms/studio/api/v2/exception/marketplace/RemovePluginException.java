@@ -23,12 +23,12 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class RemovePluginException extends MarketplaceException {
 
-    public RemovePluginException(String message) {
-        super(message);
-    }
+	public RemovePluginException(String message) {
+		super(message);
+	}
 
-    public RemovePluginException(String message, Exception e) {
-        super(message, e);
-    }
+	public RemovePluginException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

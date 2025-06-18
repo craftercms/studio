@@ -27,14 +27,14 @@ import java.util.Collections;
  */
 public class CompositeException extends ServiceLayerException {
 
-    private final Collection<Exception> exceptions;
+	private final Collection<Exception> exceptions;
 
-    public CompositeException(final String message, @NonNull final Collection<Exception> exceptions) {
-        super(message);
-        this.exceptions = Collections.unmodifiableCollection(exceptions);
-    }
+	public CompositeException(final String message, @NonNull final Collection<Exception> exceptions) {
+		super(message);
+		this.exceptions = Collections.unmodifiableCollection(exceptions);
+	}
 
-    public Collection<Exception> getExceptions() {
-        return exceptions;
-    }
+	public Collection<Exception> getExceptions() {
+		return exceptions;
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,8 +16,7 @@
 package org.craftercms.studio.permissions;
 
 import org.craftercms.commons.security.permissions.SubjectResolver;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.springframework.beans.factory.annotation.Required;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
 /**
  * Implementation of Crafter Commons' {@link SubjectResolver} that returns Crafter Studio's current username
@@ -27,16 +26,9 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public class SubjectResolverImpl implements SubjectResolver<String> {
 
-    private SecurityService securityService;
-
-    @Required
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    @Override
-    public String getCurrentSubject() {
-        return securityService.getCurrentUser();
-    }
+	@Override
+	public String getCurrentSubject() {
+		return SecurityUtils.getCurrentUsername();
+	}
 
 }

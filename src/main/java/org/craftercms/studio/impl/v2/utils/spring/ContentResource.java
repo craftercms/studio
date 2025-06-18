@@ -23,6 +23,7 @@ import java.io.InputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.AbstractResource;
 
 /**
@@ -33,60 +34,61 @@ import org.springframework.core.io.AbstractResource;
  */
 public class ContentResource extends AbstractResource {
 
-    /**
-     * The content service
-     */
-    protected ContentService contentService;
+	/**
+	 * The content service
+	 */
+	protected ContentService contentService;
 
-    /**
-     * The site id
-     */
-    protected String site;
+	/**
+	 * The site id
+	 */
+	protected String site;
 
-    /**
-     * The relative path of the content
-     */
-    protected String path;
+	/**
+	 * The relative path of the content
+	 */
+	protected String path;
 
-    public ContentResource(final ContentService contentService, final String site, final String path) {
-        this.contentService = contentService;
-        this.site = site;
-        this.path = path;
-    }
+	public ContentResource(final ContentService contentService, final String site, final String path) {
+		this.contentService = contentService;
+		this.site = site;
+		this.path = path;
+	}
 
-    @Override
-    public boolean exists() {
-        return contentService.contentExists(site, path);
-    }
+	@Override
+	public boolean exists() {
+		return contentService.contentExists(site, path);
+	}
 
-    @Override
-    public long contentLength() {
-        return contentService.getContentSize(site, path);
-    }
+	@Override
+	public long contentLength() {
+		return contentService.getContentSize(site, path);
+	}
 
-    @Override
-    public long lastModified() {
-        //TODO: Fix when there is a way to get the real date for any file in the repo
-        return System.currentTimeMillis();
-    }
+	@Override
+	public long lastModified() {
+		//TODO: Fix when there is a way to get the real date for any file in the repo
+		return System.currentTimeMillis();
+	}
 
-    @Override
-    public String getFilename() {
-        return FilenameUtils.getName(path);
-    }
+	@Override
+	public String getFilename() {
+		return FilenameUtils.getName(path);
+	}
 
-    @Override
-    public String getDescription() {
-        return null;
-    }
+	@Override
+	public String getDescription() {
+		return null;
+	}
 
-    @Override
-    public InputStream getInputStream() throws IOException {
-        try {
-            return contentService.getContent(site, path);
-        } catch (ContentNotFoundException e) {
-            throw new FileNotFoundException("No content found for '" + path + "' in site: " + site);
-        }
-    }
+	@NotNull
+	@Override
+	public InputStream getInputStream() throws IOException {
+		try {
+			return contentService.getContent(site, path);
+		} catch (ContentNotFoundException e) {
+			throw new FileNotFoundException("No content found for '" + path + "' in site: " + site);
+		}
+	}
 
 }

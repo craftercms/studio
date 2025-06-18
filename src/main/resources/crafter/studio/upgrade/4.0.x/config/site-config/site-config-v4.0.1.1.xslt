@@ -17,33 +17,33 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Update asset pattern to allow closing parenthesis -->
-    <xsl:template match="/site-config/repository/patterns/pattern-group[@name='asset']">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:element name="pattern">
-                <xsl:text>/static-assets/([^&lt;"']+)</xsl:text>
-            </xsl:element>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Update asset pattern to allow closing parenthesis -->
+	<xsl:template match="/site-config/repository/patterns/pattern-group[@name='asset']">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:element name="pattern">
+				<xsl:text>/static-assets/([^&lt;"']+)</xsl:text>
+			</xsl:element>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

@@ -23,10 +23,10 @@
                            http://www.springframework.org/schema/websocket
                             http://www.springframework.org/schema/websocket/spring-websocket.xsd">
 
-    <!-- Event listener -->
-    <bean id="eventBroadcaster" class="org.craftercms.studio.impl.v2.event.EventBroadcaster"/>
+	<!-- Event listener -->
+	<bean id="eventBroadcaster" class="org.craftercms.studio.impl.v2.event.EventBroadcaster"/>
 
-    <!-- Main configuration -->
-    <bean class="org.craftercms.studio.config.WebsocketConfig"/>
+	<!-- Main configuration -->
+	<bean class="org.craftercms.studio.config.WebsocketConfig"/>
 
 </beans>

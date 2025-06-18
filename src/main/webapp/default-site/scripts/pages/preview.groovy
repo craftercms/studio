@@ -29,8 +29,8 @@ def profile = SecurityServices.getUserProfile(context, username);
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)
 model.userEmail = profile.email
 model.userFirstName = profile.firstName
-model.userLastName =  profile.lastName
-model.authenticationType =  profile.authentication_type
+model.userLastName = profile.lastName
+model.authenticationType = profile.authentication_type
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 model.username = username

@@ -54,184 +54,191 @@ import static org.apache.commons.lang3.StringUtils.removeStart;
  */
 public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractContentUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractContentUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_INCLUDED_PATHS = "includedPaths";
+	public static final String CONFIG_KEY_INCLUDED_PATHS = "includedPaths";
 
-    /**
-     * List of patterns to check for files in the repository
-     */
-    protected List<String> includedPaths;
+	/**
+	 * List of patterns to check for files in the repository
+	 */
+	protected List<String> includedPaths;
 
-    public AbstractContentUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public AbstractContentUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        includedPaths = config.getList(String.class, CONFIG_KEY_INCLUDED_PATHS);
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		includedPaths = config.getList(String.class, CONFIG_KEY_INCLUDED_PATHS);
+	}
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        try {
-            List<Path> includedPaths = findIncludedPaths(context);
-            // This is required to support upgrades in config pipelines
-            if (isEmpty(includedPaths) && StringUtils.isNotEmpty(context.getCurrentConfigPath())) {
-                Path repo = context.getRepositoryPath(); //TODO: Check if parent is needed
-                includedPaths = singletonList(repo.resolve(removeStart(context.getCurrentConfigPath(), //TODO: Check if path is ok
-                        File.separator)));
-            }
-            List<Path> filteredPaths = filterPaths(context, includedPaths);
-            if (CollectionUtils.isNotEmpty(filteredPaths)) {
-                for (Path file : filteredPaths) {
-                    updateFile(context, file);
-                    trackChangedFiles(context.getRelativePath(file));
-                }
-            }
-        } catch (IOException e) {
-            throw new UpgradeException("Error reading content for site " + site, e);
-        }
-    }
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		try {
+			List<Path> includedPaths = findIncludedPaths(context);
+			// This is required to support upgrades in config pipelines
+			if (isEmpty(includedPaths) && StringUtils.isNotEmpty(context.getCurrentConfigPath())) {
+				Path repo = context.getRepositoryPath(); //TODO: Check if parent is needed
+				includedPaths = singletonList(repo.resolve(removeStart(context.getCurrentConfigPath(), //TODO: Check if path is ok
+					File.separator)));
+			}
+			List<Path> filteredPaths = filterPaths(context, includedPaths);
+			if (CollectionUtils.isNotEmpty(filteredPaths)) {
+				for (Path file : filteredPaths) {
+					updateFile(context, file);
+					trackChangedFiles(context.getRelativePath(file));
+				}
+			}
+		} catch (IOException e) {
+			throw new UpgradeException("Error reading content for site " + site, e);
+		}
+	}
 
-    /**
-     * Finds all files in the given site that match any of the given patterns
-     * @param context the current upgrade context
-     * @return the list of matching files
-     * @throws IOException if there is any error finding the files
-     */
-    protected List<Path> findIncludedPaths(StudioUpgradeContext context) throws IOException {
-        if(CollectionUtils.isNotEmpty(includedPaths)) {
-            Path repo = context.getRepositoryPath();
-            ListFileVisitor fileVisitor = new ListFileVisitor(repo, includedPaths);
-            Files.walkFileTree(repo, fileVisitor);
-            return fileVisitor.getMatchedPaths();
-        }
-        return null;
-    }
+	/**
+	 * Finds all files in the given site that match any of the given patterns
+	 *
+	 * @param context the current upgrade context
+	 * @return the list of matching files
+	 * @throws IOException if there is any error finding the files
+	 */
+	protected List<Path> findIncludedPaths(StudioUpgradeContext context) throws IOException {
+		if (CollectionUtils.isNotEmpty(includedPaths)) {
+			Path repo = context.getRepositoryPath();
+			ListFileVisitor fileVisitor = new ListFileVisitor(repo, includedPaths);
+			Files.walkFileTree(repo, fileVisitor);
+			return fileVisitor.getMatchedPaths();
+		}
+		return null;
+	}
 
-    /**
-     * Filters the given list checking if the files match the update conditions
-     * @param context the current upgrade context
-     * @param matchedPaths the list of files to filter
-     * @return the filtered list of files
-     * @throws UpgradeException if there is any error filtering the files
-     */
-    protected List<Path> filterPaths(StudioUpgradeContext context, List<Path> matchedPaths) throws UpgradeException {
-        if(CollectionUtils.isNotEmpty(matchedPaths)) {
-            List<Path> filteredPaths = new LinkedList<>();
-            for(Path path : matchedPaths) {
-                if(shouldBeUpdated(context, path)) {
-                    filteredPaths.add(path);
-                }
-            }
-            return filteredPaths;
-        }
-        return null;
-    }
+	/**
+	 * Filters the given list checking if the files match the update conditions
+	 *
+	 * @param context      the current upgrade context
+	 * @param matchedPaths the list of files to filter
+	 * @return the filtered list of files
+	 * @throws UpgradeException if there is any error filtering the files
+	 */
+	protected List<Path> filterPaths(StudioUpgradeContext context, List<Path> matchedPaths) throws UpgradeException {
+		if (CollectionUtils.isNotEmpty(matchedPaths)) {
+			List<Path> filteredPaths = new LinkedList<>();
+			for (Path path : matchedPaths) {
+				if (shouldBeUpdated(context, path)) {
+					filteredPaths.add(path);
+				}
+			}
+			return filteredPaths;
+		}
+		return null;
+	}
 
-    /**
-     * Indicates if the given file should be updated by this class
-     * @param context the current upgrade context
-     * @param file the file to check
-     * @return true if the file should be updated
-     * @throws UpgradeException if there is any error checking the file
-     */
-    protected abstract boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException;
+	/**
+	 * Indicates if the given file should be updated by this class
+	 *
+	 * @param context the current upgrade context
+	 * @param file    the file to check
+	 * @return true if the file should be updated
+	 * @throws UpgradeException if there is any error checking the file
+	 */
+	protected abstract boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException;
 
-    /**
-     * Performs any needed updates on the content of the given file
-     * @param context the current upgrade context
-     * @param path the file to update
-     * @throws UpgradeException if there is any error updating the file
-     */
-    protected abstract void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException;
+	/**
+	 * Performs any needed updates on the content of the given file
+	 *
+	 * @param context the current upgrade context
+	 * @param path    the file to update
+	 * @throws UpgradeException if there is any error updating the file
+	 */
+	protected abstract void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException;
 
-    /**
-     * Performs a read operation from the file system
-     * @param path the file to read
-     * @return the content of the file
-     * @throws UpgradeException if there is any error reading the file
-     */
-    protected String readFile(final Path path) throws UpgradeException {
-        logger.debug("Read the content from file '{}'", path);
-        try (InputStream is = Files.newInputStream(path)) {
-            return IOUtils.toString(is, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UpgradeException("Error reading file " + path, e);
-        }
-    }
+	/**
+	 * Performs a read operation from the file system
+	 *
+	 * @param path the file to read
+	 * @return the content of the file
+	 * @throws UpgradeException if there is any error reading the file
+	 */
+	protected String readFile(final Path path) throws UpgradeException {
+		logger.debug("Read the content from file '{}'", path);
+		try (InputStream is = Files.newInputStream(path)) {
+			return IOUtils.toString(is, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new UpgradeException("Error reading file " + path, e);
+		}
+	}
 
-    /**
-     * Performs a write operation in the file system without committing any changes in the repository
-     * @param path the file to write
-     * @param content the content to write
-     * @throws UpgradeException is there is any error writing the content
-     */
-    protected void writeFile(final Path path, final String content) throws UpgradeException {
-        logger.debug("Write the content to the file '{}'", path);
-        try (OutputStream os = Files.newOutputStream(path)) {
-            IOUtils.write(content, os, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UpgradeException("Error writing file " + path , e);
-        }
-    }
+	/**
+	 * Performs a write operation in the file system without committing any changes in the repository
+	 *
+	 * @param path    the file to write
+	 * @param content the content to write
+	 * @throws UpgradeException is there is any error writing the content
+	 */
+	protected void writeFile(final Path path, final String content) throws UpgradeException {
+		logger.debug("Write the content to the file '{}'", path);
+		try (OutputStream os = Files.newOutputStream(path)) {
+			IOUtils.write(content, os, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new UpgradeException("Error writing file " + path, e);
+		}
+	}
 
-    /**
-     * Implementation of {@link FileVisitor} that collects files matching any of the given patterns
-     * @author joseross
-     */
-    public static class ListFileVisitor implements FileVisitor<Path> {
+	/**
+	 * Implementation of {@link FileVisitor} that collects files matching any of the given patterns
+	 *
+	 * @author joseross
+	 */
+	public static class ListFileVisitor implements FileVisitor<Path> {
 
-        /**
-         * Starting path that should be ignored for checking the patterns
-         */
-        protected Path rootPath;
+		/**
+		 * Starting path that should be ignored for checking the patterns
+		 */
+		protected Path rootPath;
 
-        /**
-         * List of patterns to check the files
-         */
-        protected List<String> includedPaths;
+		/**
+		 * List of patterns to check the files
+		 */
+		protected List<String> includedPaths;
 
-        /**
-         * List of files that match any of the patterns
-         */
-        protected List<Path> matchedPaths = new LinkedList<>();
+		/**
+		 * List of files that match any of the patterns
+		 */
+		protected List<Path> matchedPaths = new LinkedList<>();
 
-        public ListFileVisitor(final Path rootPath, final List<String> includedPaths) {
-            this.rootPath = rootPath;
-            this.includedPaths = includedPaths;
-        }
+		public ListFileVisitor(final Path rootPath, final List<String> includedPaths) {
+			this.rootPath = rootPath;
+			this.includedPaths = includedPaths;
+		}
 
-        public List<Path> getMatchedPaths() {
-            return matchedPaths;
-        }
+		public List<Path> getMatchedPaths() {
+			return matchedPaths;
+		}
 
-        @Override
-        public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
-            return FileVisitResult.CONTINUE;
-        }
+		@Override
+		public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+			return FileVisitResult.CONTINUE;
+		}
 
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
-            String relativePath = rootPath.relativize(file).toString();
-            if(RegexUtils.matchesAny(relativePath, includedPaths)) {
-                matchedPaths.add(file);
-            }
-            return FileVisitResult.CONTINUE;
-        }
+		@Override
+		public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
+			String relativePath = rootPath.relativize(file).toString();
+			if (RegexUtils.matchesAny(relativePath, includedPaths)) {
+				matchedPaths.add(file);
+			}
+			return FileVisitResult.CONTINUE;
+		}
 
-        @Override
-        public FileVisitResult visitFileFailed(final Path file, final IOException exc) {
-            logger.error("Failed to read the file '{}'", file, exc);
-            return FileVisitResult.CONTINUE;
-        }
+		@Override
+		public FileVisitResult visitFileFailed(final Path file, final IOException exc) {
+			logger.error("Failed to read the file '{}'", file, exc);
+			return FileVisitResult.CONTINUE;
+		}
 
-        @Override
-        public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
-            return FileVisitResult.CONTINUE;
-        }
-    }
+		@Override
+		public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
+			return FileVisitResult.CONTINUE;
+		}
+	}
 
 }

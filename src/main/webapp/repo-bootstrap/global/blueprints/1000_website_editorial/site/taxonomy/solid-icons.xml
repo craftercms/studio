@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-  <content-type>/taxonomy</content-type>
-  <display-template/>
-  <no-template-required/>
-  <merge-strategy>inherit-levels</merge-strategy>
-  <objectGroupId>f403</objectGroupId>
-  <objectId>f403148c-7e26-b10b-8054-13d16af955f4</objectId>
-  <items item-list="true">
+	<content-type>/taxonomy</content-type>
+	<display-template/>
+	<no-template-required/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>f403</objectGroupId>
+	<objectId>f403148c-7e26-b10b-8054-13d16af955f4</objectId>
+	<items item-list="true">
 		<item>
 			<key>fa-ad fas</key>
 			<value>Ad</value>
@@ -4827,12 +4827,12 @@
 			<value>Yin yang</value>
 			<unicode>f6ad</unicode>
 		</item>
-  </items>
-  <file-name>solid-icons.xml</file-name>
-  <folder-name/>
-  <internal-name>Solid Icons</internal-name>
-  <createdDate>2019-12-20T13:32:42.303Z</createdDate>
-  <createdDate_dt>2019-12-20T13:32:42.303Z</createdDate_dt>
-  <lastModifiedDate>2019-12-20T13:32:42.303Z</lastModifiedDate>
-  <lastModifiedDate_dt>2019-12-20T13:32:42.303Z</lastModifiedDate_dt>
+	</items>
+	<file-name>solid-icons.xml</file-name>
+	<folder-name/>
+	<internal-name>Solid Icons</internal-name>
+	<createdDate>2019-12-20T13:32:42.303Z</createdDate>
+	<createdDate_dt>2019-12-20T13:32:42.303Z</createdDate_dt>
+	<lastModifiedDate>2019-12-20T13:32:42.303Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-12-20T13:32:42.303Z</lastModifiedDate_dt>
 </component>

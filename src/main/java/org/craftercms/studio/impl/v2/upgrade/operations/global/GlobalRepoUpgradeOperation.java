@@ -51,76 +51,75 @@ import org.springframework.core.io.Resource;
  *     </li>
  * </ul>
  *
- *
  * @author joseross
  */
 public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalRepoUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(GlobalRepoUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_FILES = "files";
-    public static final String CONFIG_KEY_SRC = "src";
-    public static final String CONFIG_KEY_DEST = "dest";
-    public static final String CONFIG_KEY_OVERWRITE = "overwrite";
+	public static final String CONFIG_KEY_FILES = "files";
+	public static final String CONFIG_KEY_SRC = "src";
+	public static final String CONFIG_KEY_DEST = "dest";
+	public static final String CONFIG_KEY_OVERWRITE = "overwrite";
 
-    /**
-     * List of paths to update.
-     */
-    protected Map<Resource, String> files = new HashMap<>();
+	/**
+	 * List of paths to update.
+	 */
+	protected Map<Resource, String> files = new HashMap<>();
 
-    /**
-     * Indicates if existing files should be overwritten
-     */
-    protected boolean overwrite;
+	/**
+	 * Indicates if existing files should be overwritten
+	 */
+	protected boolean overwrite;
 
-    public GlobalRepoUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public GlobalRepoUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public void doInit(final HierarchicalConfiguration config) {
-        overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, true);
-        List<HierarchicalConfiguration<ImmutableNode>> fileMappings = config.configurationsAt(CONFIG_KEY_FILES);
-        for (HierarchicalConfiguration<ImmutableNode> fileMapping : fileMappings) {
-            String src = fileMapping.getString(CONFIG_KEY_SRC);
-            String dest = fileMapping.getString(CONFIG_KEY_DEST);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public void doInit(final HierarchicalConfiguration config) {
+		overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, true);
+		List<HierarchicalConfiguration<ImmutableNode>> fileMappings = config.configurationsAt(CONFIG_KEY_FILES);
+		for (HierarchicalConfiguration<ImmutableNode> fileMapping : fileMappings) {
+			String src = fileMapping.getString(CONFIG_KEY_SRC);
+			String dest = fileMapping.getString(CONFIG_KEY_DEST);
 
-            if (StringUtils.isEmpty(src)) {
-                throw new IllegalStateException("'" + CONFIG_KEY_SRC + "' config key not specified");
-            }
-            if (StringUtils.isEmpty(dest)) {
-                throw new IllegalStateException("'" + CONFIG_KEY_DEST + "' config key not specified");
-            }
+			if (StringUtils.isEmpty(src)) {
+				throw new IllegalStateException("'" + CONFIG_KEY_SRC + "' config key not specified");
+			}
+			if (StringUtils.isEmpty(dest)) {
+				throw new IllegalStateException("'" + CONFIG_KEY_DEST + "' config key not specified");
+			}
 
-            files.put(loadResource(src), dest);
-        }
-    }
+			files.put(loadResource(src), dest);
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        logger.debug("Upgrade the global repo files");
-        for(Map.Entry<Resource, String> entry : files.entrySet()) {
-            var path = entry.getValue();
-            var file = context.getFile(path);
-            if (overwrite || !Files.exists(file)) {
-                logger.debug("Upgrade the global repo file '{}'", path);
-                try (InputStream in = entry.getKey().getInputStream();
-                     OutputStream out = Files.newOutputStream(file)) {
-                    IOUtils.copy(in, out);
-                    trackChangedFiles(path);
-                } catch (IOException e) {
-                    throw new UpgradeException("Failed to upgrade the global repository file " + path, e);
-                }
-            } else {
-                logger.debug("File '{}' already exists in the global repository, it will not be changed", path);
-            }
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		logger.debug("Upgrade the global repo files");
+		for (Map.Entry<Resource, String> entry : files.entrySet()) {
+			var path = entry.getValue();
+			var file = context.getFile(path);
+			if (overwrite || !Files.exists(file)) {
+				logger.debug("Upgrade the global repo file '{}'", path);
+				try (InputStream in = entry.getKey().getInputStream();
+				     OutputStream out = Files.newOutputStream(file)) {
+					IOUtils.copy(in, out);
+					trackChangedFiles(path);
+				} catch (IOException e) {
+					throw new UpgradeException("Failed to upgrade the global repository file " + path, e);
+				}
+			} else {
+				logger.debug("File '{}' already exists in the global repository, it will not be changed", path);
+			}
+		}
+	}
 }

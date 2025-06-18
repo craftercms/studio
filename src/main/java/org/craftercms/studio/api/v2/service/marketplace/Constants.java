@@ -24,18 +24,18 @@ package org.craftercms.studio.api.v2.service.marketplace;
  */
 public interface Constants {
 
-    String PARAM_TYPE = "type";
-    String PARAM_VERSION = "version";
-    String PARAM_EDITION = "edition";
-    String PARAM_KEYWORDS = "keywords";
-    String PARAM_SHOW_PENDING = "showPending";
-    String PARAM_SHOW_INCOMPATIBLE = "showIncompatible";
-    String PARAM_OFFSET = "offset";
-    String PARAM_LIMIT = "limit";
+	String PARAM_TYPE = "type";
+	String PARAM_VERSION = "version";
+	String PARAM_EDITION = "edition";
+	String PARAM_KEYWORDS = "keywords";
+	String PARAM_SHOW_PENDING = "showPending";
+	String PARAM_SHOW_INCOMPATIBLE = "showIncompatible";
+	String PARAM_OFFSET = "offset";
+	String PARAM_LIMIT = "limit";
 
-    String RESULT_TOTAL = "total";
-    String RESULT_ITEMS = "items";
+	String RESULT_TOTAL = "total";
+	String RESULT_ITEMS = "items";
 
-    String SOURCE_GIT = "GIT";
+	String SOURCE_GIT = "GIT";
 
 }

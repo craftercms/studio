@@ -23,8 +23,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -41,38 +41,38 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 public class AccessTokenController {
 
-    protected AccessTokenService accessTokenService;
+	protected AccessTokenService accessTokenService;
 
-    @ConstructorProperties({"accessTokenService"})
-    public AccessTokenController(AccessTokenService accessTokenService) {
-        this.accessTokenService = accessTokenService;
-    }
+	@ConstructorProperties({"accessTokenService"})
+	public AccessTokenController(AccessTokenService accessTokenService) {
+		this.accessTokenService = accessTokenService;
+	}
 
-    @GetMapping(value = "/refresh", produces = APPLICATION_JSON_VALUE)
-    public AccessToken refreshToken(Authentication authentication, HttpServletRequest request,
-                                    HttpServletResponse response) throws Exception {
-        // If the session has expired, return an empty response
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken ||
-                !accessTokenService.hasValidRefreshToken(authentication, request, response)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.flushBuffer();
-            return null;
-        }
+	@GetMapping(value = "/refresh", produces = APPLICATION_JSON_VALUE)
+	public AccessToken refreshToken(Authentication authentication, HttpServletRequest request,
+					HttpServletResponse response) throws Exception {
+		// If the session has expired, return an empty response
+		if (authentication == null || authentication instanceof AnonymousAuthenticationToken ||
+			!accessTokenService.hasValidRefreshToken(authentication, request, response)) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.flushBuffer();
+			return null;
+		}
 
-        return accessTokenService.createTokens(authentication, request, response);
-    }
+		return accessTokenService.createTokens(authentication, request, response);
+	}
 
-    @GetMapping(value = "/authType", produces = APPLICATION_JSON_VALUE)
-    public Object authType(Authentication authentication, HttpServletResponse response)
-            throws IOException {
-        // If the session has expired, return an empty response
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.flushBuffer();
-            return null;
-        }
+	@GetMapping(value = "/authType", produces = APPLICATION_JSON_VALUE)
+	public Object authType(Authentication authentication, HttpServletResponse response)
+		throws IOException {
+		// If the session has expired, return an empty response
+		if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.flushBuffer();
+			return null;
+		}
 
-        return Map.of("authType", ((AuthenticatedUser) authentication.getPrincipal()).getAuthenticationType());
-    }
+		return Map.of("authType", ((AuthenticatedUser) authentication.getPrincipal()).getAuthenticationType());
+	}
 
 }

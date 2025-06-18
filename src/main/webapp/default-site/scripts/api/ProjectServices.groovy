@@ -19,7 +19,8 @@ package scripts.api
 /**
  * project services
  */
-Class ProjectServices {
+Class ProjectServices
+{
 
 	/**
 	 * get the list of sites / projects

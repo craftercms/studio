@@ -34,22 +34,22 @@ public class ContentUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentUtils.class);
 
-    /**
-     * Release a resource
-     *
-     * @param resource resource to close
-     */
-    public static void release(Closeable resource) {
-        try {
-            if (resource != null) {
+	/**
+	 * Release a resource
+	 *
+	 * @param resource resource to close
+	 */
+	public static void release(Closeable resource) {
+		try {
+			if (resource != null) {
 				resource.close();
-            }
-        } catch (IOException e) {
-            logger.error("Failed to release resource", e);
-        } finally {
-            IOUtils.closeQuietly(resource);
-        }
-    }
+			}
+		} catch (IOException e) {
+			logger.error("Failed to release resource", e);
+		} finally {
+			IOUtils.closeQuietly(resource);
+		}
+	}
 
 	/**
 	 * convert InputStream to string
@@ -58,9 +58,9 @@ public class ContentUtils {
 	 * @return string
 	 */
 	public static Document convertStreamToXml(InputStream is) throws DocumentException {
-        InputStreamReader isReader = null;
+		InputStreamReader isReader = null;
 		try {
-            isReader = new InputStreamReader(is, StudioConstants.CONTENT_ENCODING);
+			isReader = new InputStreamReader(is, StudioConstants.CONTENT_ENCODING);
 			SAXReader saxReader = new SAXReader();
 			try {
 				saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
@@ -71,17 +71,17 @@ public class ContentUtils {
 				// TODO: SJ: saxReader.setXIncludeAware(false);
 				// TODO: SJ: saxReader.setExpandEntityReferences(false);
 				saxReader.setMergeAdjacentText(true);
-			} catch (SAXException e){
+			} catch (SAXException e) {
 				logger.error("Failed to turn off external entity loading. This could be a security risk.", e);
 			}
 			return saxReader.read(isReader);
 		} catch (DocumentException | UnsupportedEncodingException e) {
-				logger.error("Failed to parse XML document", e);
+			logger.error("Failed to parse XML document", e);
 			return null;
 		} finally {
-            ContentUtils.release(is);
-            ContentUtils.release(isReader);
-        }
+			ContentUtils.release(is);
+			ContentUtils.release(isReader);
+		}
 	}
 
 	public static boolean matchesPatterns(String uri, List<String> patterns) {
@@ -121,7 +121,7 @@ public class ContentUtils {
 	public static InputStream convertDocumentToStream(Document document, String encoding) {
 		try {
 			return new ByteArrayInputStream(
-					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
+				(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
 		} catch (IOException e) {
 			logger.error("Failed to convert XML document to String with encoding '{}'", encoding, e);
 			return null;

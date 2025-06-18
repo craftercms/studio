@@ -37,75 +37,75 @@ import org.slf4j.LoggerFactory;
  */
 public class ImageMagickTransformer implements ImageTransformer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ImageMagickTransformer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ImageMagickTransformer.class);
 
-    private static final String DEFAULT_IMG_MGK_PATH = "convert";
-    private static final int DEFAULT_PROCESS_TIMEOUT_SECS = 30;
+	private static final String DEFAULT_IMG_MGK_PATH = "convert";
+	private static final int DEFAULT_PROCESS_TIMEOUT_SECS = 30;
 
-    private static final String PARAM_OPTIONS = "options";
+	private static final String PARAM_OPTIONS = "options";
 
-    private String imgMgkPath;
-    private int processTimeoutSecs;
+	private String imgMgkPath;
+	private int processTimeoutSecs;
 
-    public ImageMagickTransformer() {
-        imgMgkPath = DEFAULT_IMG_MGK_PATH;
-        processTimeoutSecs = DEFAULT_PROCESS_TIMEOUT_SECS;
-    }
+	public ImageMagickTransformer() {
+		imgMgkPath = DEFAULT_IMG_MGK_PATH;
+		processTimeoutSecs = DEFAULT_PROCESS_TIMEOUT_SECS;
+	}
 
-    public void setImgMgkPath(String imgMgkPath) {
-        this.imgMgkPath = imgMgkPath;
-    }
+	public void setImgMgkPath(String imgMgkPath) {
+		this.imgMgkPath = imgMgkPath;
+	}
 
-    public void setProcessTimeoutSecs(int processTimeoutSecs) {
-        this.processTimeoutSecs = processTimeoutSecs;
-    }
+	public void setProcessTimeoutSecs(int processTimeoutSecs) {
+		this.processTimeoutSecs = processTimeoutSecs;
+	}
 
-    public void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException {
-        String cmdLine = createCmdLine(sourcePath, targetPath, parameters);
+	public void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException {
+		String cmdLine = createCmdLine(sourcePath, targetPath, parameters);
 
-        try {
-            logger.debug("Executing ImageMagick command '{}'", cmdLine);
+		try {
+			logger.debug("Executing ImageMagick command '{}'", cmdLine);
 
-            Process proc = Runtime.getRuntime().exec(cmdLine);
-            // TODO: This might hang in certain OS. It's better to first read the stout and stderr before calling waitFor()
-            proc.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
+			Process proc = Runtime.getRuntime().exec(cmdLine);
+			// TODO: This might hang in certain OS. It's better to first read the stout and stderr before calling waitFor()
+			proc.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
 
-            String stdOut = getProcessStdOut(proc);
-            String stdErr = getProcessStdErr(proc);
+			String stdOut = getProcessStdOut(proc);
+			String stdErr = getProcessStdErr(proc);
 
-            if (StringUtils.isNotEmpty(stdOut)) {
-                logger.debug("ImageMagick STDOUT for command '{}' is '{}'", cmdLine, stdOut);
-            }
-            if (StringUtils.isNotEmpty(stdErr)) {
-                logger.debug("ImageMagick STDERR for command '{}' is '{}'", cmdLine, stdErr);
-            }
-        } catch (Exception e) {
-            throw new ImageTransformationException("Error while running Image Magick process from the command line", e);
-        }
-    }
+			if (StringUtils.isNotEmpty(stdOut)) {
+				logger.debug("ImageMagick STDOUT for command '{}' is '{}'", cmdLine, stdOut);
+			}
+			if (StringUtils.isNotEmpty(stdErr)) {
+				logger.debug("ImageMagick STDERR for command '{}' is '{}'", cmdLine, stdErr);
+			}
+		} catch (Exception e) {
+			throw new ImageTransformationException("Error while running Image Magick process from the command line", e);
+		}
+	}
 
 
-    private String createCmdLine(Path sourcePath, Path targetPath, Map<String, String> parameters) {
-        StringBuilder cmdLine = new StringBuilder(imgMgkPath);
+	private String createCmdLine(Path sourcePath, Path targetPath, Map<String, String> parameters) {
+		StringBuilder cmdLine = new StringBuilder(imgMgkPath);
 
-        cmdLine.append(" ").append(sourcePath.toAbsolutePath().toString());
+		cmdLine.append(" ").append(sourcePath.toAbsolutePath().toString());
 
-        String options = MapUtils.getString(parameters, PARAM_OPTIONS);
-        if (StringUtils.isNotEmpty(options)) {
-            cmdLine.append(" ").append(options);
-        }
+		String options = MapUtils.getString(parameters, PARAM_OPTIONS);
+		if (StringUtils.isNotEmpty(options)) {
+			cmdLine.append(" ").append(options);
+		}
 
-        cmdLine.append(" ").append(targetPath.toAbsolutePath().toString());
+		cmdLine.append(" ").append(targetPath.toAbsolutePath().toString());
 
-        return cmdLine.toString();
-    }
+		return cmdLine.toString();
+	}
 
-    private String getProcessStdOut(Process proc) throws IOException {
-        return IOUtils.toString(proc.getInputStream(), Charset.defaultCharset());
-    }
+	private String getProcessStdOut(Process proc) throws IOException {
+		return IOUtils.toString(proc.getInputStream(), Charset.defaultCharset());
+	}
 
-    private String getProcessStdErr(Process proc) throws IOException {
-        return IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
-    }
+	private String getProcessStdErr(Process proc) throws IOException {
+		return IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
+	}
 
 }

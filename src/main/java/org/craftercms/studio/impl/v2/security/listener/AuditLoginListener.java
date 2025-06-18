@@ -16,7 +16,7 @@
 package org.craftercms.studio.impl.v2.security.listener;
 
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -37,30 +37,30 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN
 
 public class AuditLoginListener extends AbstractAuditListener {
 
-    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
-    public AuditLoginListener(StudioConfiguration studioConfiguration, SiteService siteService,
-                              AuditServiceInternal auditServiceInternal) {
-        super(studioConfiguration, siteService, auditServiceInternal);
-    }
+	@ConstructorProperties({"studioConfiguration", "siteService", "auditService"})
+	public AuditLoginListener(StudioConfiguration studioConfiguration, SiteService siteService,
+				  AuditService auditService) {
+		super(studioConfiguration, siteService, auditService);
+	}
 
-    @EventListener
-    public void recordAuthenticationSuccess(AuthenticationSuccessEvent event) {
-        // TODO: JM: Review and cleanup
-        if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
+	@EventListener
+	public void recordAuthenticationSuccess(AuthenticationSuccessEvent event) {
+		// TODO: JM: Review and cleanup
+		if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
 //            Disabled because every request to the API triggers this event
 //            recordAuthenticationEvent(OPERATION_PRE_AUTH, event, null);
-        } else {
-            recordAuthenticationEvent(OPERATION_LOGIN, event, "User '{}' logged in from IP '{}'");
-        }
-    }
+		} else {
+			recordAuthenticationEvent(OPERATION_LOGIN, event, "User '{}' logged in from IP '{}'");
+		}
+	}
 
-    @EventListener
-    public void recordAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
-        recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
-                "Failed to authenticate user '{}' from IP '{}'. Reason: " +
-                        event.getException().getLocalizedMessage());
-        logger.debug("Failed to authenticate user '{}'",
-                event.getAuthentication().getName(), event.getException());
-    }
+	@EventListener
+	public void recordAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
+		recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
+			"Failed to authenticate user '{}' from IP '{}'. Reason: " +
+				event.getException().getLocalizedMessage());
+		logger.debug("Failed to authenticate user '{}'",
+			event.getAuthentication().getName(), event.getException());
+	}
 
 }

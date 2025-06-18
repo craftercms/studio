@@ -37,44 +37,44 @@ import java.lang.reflect.Method;
 @Order(10)
 public class RequireSiteStateAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RequireSiteStateAnnotationHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequireSiteStateAnnotationHandler.class);
 
-    private final SitesService sitesService;
+	private final SitesService sitesService;
 
-    public RequireSiteStateAnnotationHandler(final SitesService sitesService) {
-        this.sitesService = sitesService;
-    }
+	public RequireSiteStateAnnotationHandler(final SitesService sitesService) {
+		this.sitesService = sitesService;
+	}
 
-    // This method matches:
-    // - methods declared on classes annotated with RequireSiteState
-    // - methods declared on classes meta-annotated with RequireSiteState (only one level deep). e.g.: @RequireSiteReady, which is annotated with @RequireSiteState
-    // - methods annotated with RequireSiteState
-    // - methods meta-annotated with RequireSiteState (only one level deep)
-    @Around("@within(RequireSiteState) || " +
-            "within(@RequireSiteState *) || " +
-            "within(@(@RequireSiteState *) *) || " +
-            "@annotation(RequireSiteState) || " +
-            "execution(@(@RequireSiteState *) * *(..))")
-    public Object checkSiteState(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = AopUtils.getActualMethod(pjp);
-        String siteId = SiteAnnotationUtils.getSiteId(pjp, method);
+	// This method matches:
+	// - methods declared on classes annotated with RequireSiteState
+	// - methods declared on classes meta-annotated with RequireSiteState (only one level deep). e.g.: @RequireSiteReady, which is annotated with @RequireSiteState
+	// - methods annotated with RequireSiteState
+	// - methods meta-annotated with RequireSiteState (only one level deep)
+	@Around("@within(RequireSiteState) || " +
+		"within(@RequireSiteState *) || " +
+		"within(@(@RequireSiteState *) *) || " +
+		"@annotation(RequireSiteState) || " +
+		"execution(@(@RequireSiteState *) * *(..))")
+	public Object checkSiteState(ProceedingJoinPoint pjp) throws Throwable {
+		Method method = AopUtils.getActualMethod(pjp);
+		String siteId = StudioAnnotationUtils.getAnnotationValue(pjp, method, SiteId.class, String.class);
 
-        if (StringUtils.isNotEmpty(siteId)) {
-            RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);
-            if (annotation == null) {
-                annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireSiteState.class);
-            }
-            if (annotation != null) {
-                String requiredState = annotation.value();
-                sitesService.checkSiteState(siteId, requiredState);
-            } else {
-                logger.debug("Unable to find RequireSiteState annotation on method '{}.{}'. ", method.getDeclaringClass().getName(), method.getName());
-            }
-        } else {
-            logger.debug("Method '{}.{}' is annotated with @RequireSiteReady but does not have a @SiteId parameter. " +
-                    "This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
-        }
-        return pjp.proceed();
-    }
+		if (StringUtils.isNotEmpty(siteId)) {
+			RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);
+			if (annotation == null) {
+				annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireSiteState.class);
+			}
+			if (annotation != null) {
+				String requiredState = annotation.value();
+				sitesService.checkSiteState(siteId, requiredState);
+			} else {
+				logger.debug("Unable to find RequireSiteState annotation on method '{}.{}'. ", method.getDeclaringClass().getName(), method.getName());
+			}
+		} else {
+			logger.debug("Method '{}.{}' is annotated with @RequireSiteReady but does not have a @SiteId parameter. " +
+				"This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
+		}
+		return pjp.proceed();
+	}
 
 }

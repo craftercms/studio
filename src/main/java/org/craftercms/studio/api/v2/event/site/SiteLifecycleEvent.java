@@ -29,36 +29,36 @@ import org.craftercms.studio.model.rest.Person;
  */
 public abstract class SiteLifecycleEvent extends SiteAwareEvent implements GlobalBroadcastEvent {
 
-    private final String siteUuid;
+	private final String siteUuid;
 
-    public SiteLifecycleEvent(String siteId, final String siteUuid) {
-        super(siteId);
-        this.siteUuid = siteUuid;
-    }
+	public SiteLifecycleEvent(String siteId, final String siteUuid) {
+		super(siteId);
+		this.siteUuid = siteUuid;
+	}
 
-    @JsonIgnore
-    public String getSiteId() {
-        return siteId;
-    }
+	@JsonIgnore
+	public String getSiteId() {
+		return siteId;
+	}
 
-    @Override
-    @JsonIgnore
-    public Person getUser() {
-        return super.getUser();
-    }
+	@Override
+	@JsonIgnore
+	public Person getUser() {
+		return super.getUser();
+	}
 
-    public String getSiteUuid() {
-        return siteUuid;
-    }
+	public String getSiteUuid() {
+		return siteUuid;
+	}
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "siteId='" + siteId + '\'' +
-                ", siteUuid='" + siteUuid + '\'' +
-                ", user='" + user + '\'' +
-                ", timestamp=" + timestamp +
-                ", eventType='" + getEventType() + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{" +
+			"siteId='" + siteId + '\'' +
+			", siteUuid='" + siteUuid + '\'' +
+			", user='" + user + '\'' +
+			", timestamp=" + timestamp +
+			", eventType='" + getEventType() + '\'' +
+			'}';
+	}
 }

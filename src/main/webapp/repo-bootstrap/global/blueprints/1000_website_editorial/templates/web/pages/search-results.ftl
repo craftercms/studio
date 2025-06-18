@@ -8,8 +8,8 @@
 -->
 <html lang="en">
 <head>
-	<#include "/templates/web/fragments/head.ftl">
-	<@crafter.head/>
+    <#include "/templates/web/fragments/head.ftl">
+    <@crafter.head/>
 </head>
 <body>
 <@crafter.body_top/>
@@ -21,7 +21,7 @@
 		<div class="inner">
 
 			<!-- Header -->
-			<@renderComponent component=contentModel.header_o.item />
+                    <@renderComponent component=contentModel.header_o.item />
 
 			<!-- Section -->
 			<section>
@@ -31,12 +31,12 @@
 				</header>
 				<form id="categories">
 					<div class="row uniform">
-						<#list categories as category>
-							<div class="3u 6u(medium) 12u$(small)">
-								<input type="checkbox" id="${category.key}" name="${category.key}" value="${category.key}">
-								<label for="${category.key}">${category.value}</label>
-							</div>
-						</#list>
+                                            <#list categories as category>
+						    <div class="3u 6u(medium) 12u$(small)">
+							    <input type="checkbox" id="${category.key}" name="${category.key}" value="${category.key}">
+							    <label for="${category.key}">${category.value}</label>
+						    </div>
+                                            </#list>
 					</div>
 				</form>
 				<hr class="major"/>
@@ -48,7 +48,7 @@
 	</div>
 
 	<!-- Left Rail -->
-	<@renderComponent component=contentModel.left_rail_o.item />
+    <@renderComponent component=contentModel.left_rail_o.item />
 
 </div>
 

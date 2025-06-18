@@ -24,13 +24,13 @@ package org.craftercms.studio.model.rest.logging;
  */
 public class LoggerConfigRequest extends LoggerConfig {
 
-    private boolean createIfAbsent;
+	private boolean createIfAbsent;
 
-    public boolean isCreateIfAbsent() {
-        return createIfAbsent;
-    }
+	public boolean isCreateIfAbsent() {
+		return createIfAbsent;
+	}
 
-    public void setCreateIfAbsent(boolean createIfAbsent) {
-        this.createIfAbsent = createIfAbsent;
-    }
+	public void setCreateIfAbsent(boolean createIfAbsent) {
+		this.createIfAbsent = createIfAbsent;
+	}
 }

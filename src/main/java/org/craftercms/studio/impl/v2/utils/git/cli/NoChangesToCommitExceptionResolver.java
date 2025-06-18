@@ -29,16 +29,16 @@ import java.util.regex.Pattern;
  */
 public class NoChangesToCommitExceptionResolver extends PatternFindingGitCliExceptionResolver {
 
-    public static final NoChangesToCommitExceptionResolver INSTANCE = new NoChangesToCommitExceptionResolver();
+	public static final NoChangesToCommitExceptionResolver INSTANCE = new NoChangesToCommitExceptionResolver();
 
-    @Override
-    protected Pattern getErrorMessagePattern() {
-        return Pattern.compile("(nothing (added )?to commit)|(no changes added to commit)", Pattern.CASE_INSENSITIVE);
-    }
+	@Override
+	protected Pattern getErrorMessagePattern() {
+		return Pattern.compile("(nothing (added )?to commit)|(no changes added to commit)", Pattern.CASE_INSENSITIVE);
+	}
 
-    @Override
-    protected GitCliOutputException createException(int exitValue, String output) {
-        return new NoChangesToCommitException(exitValue, output);
-    }
+	@Override
+	protected GitCliOutputException createException(int exitValue, String output) {
+		return new NoChangesToCommitException(exitValue, output);
+	}
 
 }

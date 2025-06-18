@@ -24,18 +24,18 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class MarketplaceUnreachableException extends MarketplaceException {
 
-    /**
-     * Current URL for the Marketplace
-     */
-    protected String url;
+	/**
+	 * Current URL for the Marketplace
+	 */
+	protected String url;
 
-    public MarketplaceUnreachableException(final String url, final Exception e) {
-        super("Marketplace is not available at URL: " + url, e);
-        this.url = url;
-    }
+	public MarketplaceUnreachableException(final String url, final Exception e) {
+		super("Marketplace is not available at URL: " + url, e);
+		this.url = url;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getUrl() {
+		return url;
+	}
 
 }

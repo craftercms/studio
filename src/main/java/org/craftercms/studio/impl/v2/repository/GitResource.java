@@ -30,30 +30,30 @@ import java.io.InputStream;
  */
 public class GitResource extends AbstractResource {
 
-    protected final ObjectLoader objectLoader;
+	protected final ObjectLoader objectLoader;
 
-    public GitResource(ObjectLoader objectLoader) {
-        this.objectLoader = objectLoader;
-    }
+	public GitResource(ObjectLoader objectLoader) {
+		this.objectLoader = objectLoader;
+	}
 
-    @Override
-    public String getDescription() {
-        return objectLoader.toString();
-    }
+	@Override
+	public String getDescription() {
+		return objectLoader.toString();
+	}
 
-    @Override
-    public InputStream getInputStream() throws IOException {
-        return objectLoader.openStream();
-    }
+	@Override
+	public InputStream getInputStream() throws IOException {
+		return objectLoader.openStream();
+	}
 
-    @Override
-    public long contentLength() {
-        return objectLoader.getSize();
-    }
+	@Override
+	public long contentLength() {
+		return objectLoader.getSize();
+	}
 
-    @Override
-    public long lastModified() throws IOException {
-        return -1;
-    }
+	@Override
+	public long lastModified() throws IOException {
+		return -1;
+	}
 
 }

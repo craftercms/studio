@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -22,211 +22,214 @@
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
-        <property name="driverClassName"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}" />
-        <property name="url"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_URL)}" />
-        <property name="initialSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_INITIAL_CONNECTIONS)}" />
-        <property name="maxTotal"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MAX_ACTIVE_CONNECTIONS)}" />
-        <property name="maxIdle"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MAX_IDLE_CONNECTIONS)}" />
-        <property name="minIdle"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MIN_IDLE_CONNECTIONS)}" />
-        <property name="maxWaitMillis"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MAX_WAIT_TIME)}" />
-        <property name="testOnBorrow"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_TEST_ON_BORROW)}" />
-        <property name="validationQuery"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_VALIDATION_QUERY)}" />
-        <property name="validationQueryTimeout"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
-        <property name="jmxName" value="org.apache.dbcp:DataSource=studio.dataSource"/>
-        <property name="removeAbandonedOnBorrow"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_ON_BORROW)}"/>
-        <property name="removeAbandonedTimeout"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_TIMEOUT)}"/>
-        <property name="removeAbandonedOnMaintenance"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_ON_MAINTENANCE)}"/>
-        <property name="timeBetweenEvictionRunsMillis"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_TIME_BETWEEN_EVICTION_RUNS_MILLIS)}"/>
-    </bean>
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
+		<property name="driverClassName"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}"/>
+		<property name="url"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_URL)}"/>
+		<property name="initialSize"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_INITIAL_CONNECTIONS)}"/>
+		<property name="maxTotal"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MAX_ACTIVE_CONNECTIONS)}"/>
+		<property name="maxIdle"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MAX_IDLE_CONNECTIONS)}"/>
+		<property name="minIdle"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MIN_IDLE_CONNECTIONS)}"/>
+		<property name="maxWaitMillis"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_MAX_WAIT_TIME)}"/>
+		<property name="testOnBorrow"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_TEST_ON_BORROW)}"/>
+		<property name="validationQuery"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_VALIDATION_QUERY)}"/>
+		<property name="validationQueryTimeout"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
+		<property name="jmxName" value="org.apache.dbcp:DataSource=studio.dataSource"/>
+		<property name="removeAbandonedOnBorrow"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_ON_BORROW)}"/>
+		<property name="removeAbandonedTimeout"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_TIMEOUT)}"/>
+		<property name="removeAbandonedOnMaintenance"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_ON_MAINTENANCE)}"/>
+		<property name="timeBetweenEvictionRunsMillis"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_TIME_BETWEEN_EVICTION_RUNS_MILLIS)}"/>
+	</bean>
 
-    <tx:annotation-driven/>
-    <bean id="transactionManager"
-          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="dataSource" />
-    </bean>
+	<bean id="scriptRunnerDataSource" parent="dataSource">
+		<property name="url"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SCRIPT_RUNNER_DB_URL)}"/>
+		<property name="jmxName" value="org.apache.dbcp:DataSource=studio.scriptRunnerDataSource"/>
+	</bean>
 
-    <!-- define the SqlSessionFactory -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
-        <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
-        <property name="configurationProperties">
-            <props>
-                <prop key="blobFilePattern">%.#{studioConfiguration.getProperty('studio.blob.file.extension')}</prop>
-            </props>
-        </property>
-    </bean>
+	<tx:annotation-driven/>
+	<bean id="transactionManager"
+	      class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
 
-    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
-        <constructor-arg index="0" ref="sqlSessionFactory"/>
-    </bean>
+	<!-- define the SqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
+		<property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
+		<property name="configurationProperties">
+			<props>
+				<prop key="blobFilePattern">%.#{studioConfiguration.getProperty('studio.blob.file.extension')}</prop>
+				<prop key="liveEnvironment">#{studioConfiguration.getProperty('studio.repo.published.live')}</prop>
+				<prop key="stagingEnvironment">#{studioConfiguration.getProperty('studio.repo.published.staging')}</prop>
+				<prop key="systemTypePage">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_PAGE}</prop>
+				<prop key="systemTypeFolder">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_FOLDER}</prop>
+				<prop key="systemTypeLevelDescriptor">#{T(org.craftercms.studio.api.v1.constant.StudioConstants).CONTENT_TYPE_LEVEL_DESCRIPTOR}</prop>
+				<prop key="packageApprovedState">#{T(org.craftercms.studio.api.v2.dal.publish.PublishPackage$ApprovalState).APPROVED.name()}</prop>
+				<!-- There seems to be a problem with non-String properties-->
+				<prop key="packageReadyState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishPackage$PackageState).READY.value)}</prop>
+				<prop key="livePublishedState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishItem$PublishState).LIVE_SUCCESS.value)}</prop>
+				<prop key="stagingPublishedState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishItem$PublishState).STAGING_SUCCESS.value)}</prop>
+			</props>
+		</property>
+	</bean>
 
-    <!-- scan for mappers and let them be autowired -->
-    <!-- bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
-        <property name="basePackage" value="org.craftercms.studio.api.v1.dal,org.craftercms.studio.api.v2.dal" />
-        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-    </bean -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="studio.dbScriptRunner" class="org.craftercms.studio.impl.v2.dal.StudioDBScriptRunnerFactoryImpl">
-        <property name="delimiter" value=" ;"/>
-        <property name="dataSource" ref="dataSource" />
-        <property name="scriptLinesBufferSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SCRIPT_RUNNER_BUFFER_SIZE)}" />
-    </bean>
+	<!-- scan for mappers and let them be autowired -->
+	<!-- bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
+	    <property name="basePackage" value="org.craftercms.studio.api.v1.dal,org.craftercms.studio.api.v2.dal" />
+	    <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+	</bean -->
 
-    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler" >
-        <property name="maxRetries"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
-        <property name="maxSleep"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_SLEEP)}" />
-    </bean>
+	<bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler">
+		<property name="maxRetries"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}"/>
+		<property name="maxSleep"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_SLEEP)}"/>
+	</bean>
 
-    <bean id="studio.retryingRepositoryOperation"
-          class="org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperationAnnotationHandler" >
-        <property name="maxRetries"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
-        <property name="maxSleep"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_SLEEP)}" />
-    </bean>
+	<bean id="studio.retryingRepositoryOperation"
+	      class="org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperationAnnotationHandler">
+		<property name="maxRetries"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_ATTEMPTS)}"/>
+		<property name="maxSleep"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_SLEEP)}"/>
+	</bean>
 
-    <!-- MyBatis Mappers -->
-    <bean id="studio.retryingDatabaseOperationFacade"
-          class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
-    </bean>
+	<!-- MyBatis Mappers -->
+	<bean id="studio.retryingDatabaseOperationFacade"
+	      class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
+	</bean>
 
-    <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="groupDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.GroupDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="daoUtils" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.DAOUtils"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="navigationOrderSequenceMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="groupDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.GroupDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="publishRequestMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.PublishRequestMapper" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="navigationOrderSequenceMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="remoteRepositoryDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="remoteRepositoryDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="securityDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.SecurityDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="securityDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.SecurityDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="siteDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.SiteDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="siteDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.SiteDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="siteFeedMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.SiteFeedMapper" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="siteFeedMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.SiteFeedMapper"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="userDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="userDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="metaDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.MetaDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="metaDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.MetaDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="auditDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.AuditDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="auditDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.AuditDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="dependencyDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.DependencyDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="dependencyDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.DependencyDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="publishRequestDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.PublishRequestDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
 
-    <bean id="itemDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ItemDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="itemDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ItemDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="workflowDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.WorkflowDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="activityStreamDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ActivityStreamDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <bean id="activityStreamDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ActivityStreamDAO" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
+	<bean id="publishDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.publish.PublishDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <beans profile="!crafter.studio.externalDb">
-        <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
-              init-method="initDataSource" depends-on="studioMariaDBService">
-            <property name="delimiter" value=" ;"/>
-            <property name="studioConfiguration" ref="studioConfiguration"/>
-            <property name="integrityValidator" ref="crafter.databaseValidator"/>
-        </bean>
+	<bean id="itemTargetDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.publish.ItemTargetDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-        <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
-              destroy-method="stop" depends-on="studioConfiguration">
-            <property name="defaultBaseDir"
-                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_BASE_PATH)}" />
-            <property name="defaultDataDir"
-                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DATA_PATH)}" />
-            <property name="defaultPort"
-                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"  />
-            <property name="defaultSocket"
-                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}" />
-            <property name="securityDisabled" value="false" />
-            <property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}" />
-            <property name="driverClassName"
-                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}" />
-            <property name="args">
-                <list>
-                    <value>--max_allowed_packet=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_ALLOWED_PACKET)}</value>
-                    <value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value>
-                </list>
-            </property>
-        </bean>
-    </beans>
+	<bean id="processedCommitsDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ProcessedCommitsDAO"/>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	</bean>
 
-    <beans profile="crafter.studio.externalDb">
-        <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
-              init-method="initDataSource">
-            <property name="delimiter" value=" ;"/>
-            <property name="studioConfiguration" ref="studioConfiguration"/>
-            <property name="integrityValidator" ref="crafter.databaseValidator"/>
-        </bean>
-    </beans>
+	<bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
+	      init-method="initDataSource" depends-on="studioMariaDBService">
+		<property name="delimiter" value=" ;"/>
+		<property name="studioConfiguration" ref="studioConfiguration"/>
+		<property name="integrityValidator" ref="crafter.databaseValidator"/>
+	</bean>
 
+	<bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
+	      destroy-method="stop" depends-on="studioConfiguration">
+		<property name="defaultBaseDir"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_BASE_PATH)}"/>
+		<property name="defaultDataDir"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DATA_PATH)}"/>
+		<property name="defaultPort"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"/>
+		<property name="defaultSocket"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}"/>
+		<property name="securityDisabled" value="false"/>
+		<property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}"/>
+		<property name="driverClassName"
+			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}"/>
+		<property name="args">
+			<list>
+				<value>--max_allowed_packet=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_ALLOWED_PACKET)}</value>
+				<value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value>
+			</list>
+		</property>
+	</bean>
 </beans>

@@ -20,40 +20,40 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 public class ResolveConflictRequest {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    @ValidExistingContentPath
-    private String path;
-    @ValidateStringParam(whitelistedPatterns = "ours|theirs")
-    private String resolution;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	@ValidExistingContentPath
+	private String path;
+	@ValidateStringParam(whitelistedPatterns = "ours|theirs")
+	private String resolution;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public String getResolution() {
-        return resolution;
-    }
+	public String getResolution() {
+		return resolution;
+	}
 
-    public void setResolution(String resolution) {
-        this.resolution = resolution;
-    }
+	public void setResolution(String resolution) {
+		this.resolution = resolution;
+	}
 }

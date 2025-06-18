@@ -27,8 +27,8 @@ import java.util.Map;
  * @author jmendeza
  */
 public class MonitorServiceInternalImpl implements MonitorService {
-    @Override
-    public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
-        return CircularQueueLogAppender.getLoggedEvents(siteId, since);
-    }
+	@Override
+	public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
+		return CircularQueueLogAppender.getLoggedEvents(siteId, since);
+	}
 }

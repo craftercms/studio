@@ -17,36 +17,36 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
-    <xsl:param name="newXml"/>
+	<xsl:param name="newXml"/>
 
-    <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
+	<xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- If the plugin is not present add it -->
-    <xsl:template match="/config/tools/tool[name='content-types']/controls">
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
+	<!-- If the plugin is not present add it -->
+	<xsl:template match="/config/tools/tool[name='content-types']/controls">
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
 
-            <xsl:copy-of select="$newFragment"/>
-        </xsl:copy>
-    </xsl:template>
+			<xsl:copy-of select="$newFragment"/>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -23,77 +25,84 @@ import java.util.Set;
 
 /**
  * DM Content type configuration
- * 
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public class ContentTypeConfigTO implements TimeStamped, Serializable {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = 1533739200033698413L;
 
-	/** 
-	 * site content name 
+	/**
+	 * site content name
 	 */
 	protected String name = null;
-	
+
 	/**
-	 * content type display name 
+	 * content type display name
 	 */
 	protected String label = null;
-	
+
 	/**
-	 * content type form 
+	 * content type form
 	 */
 	protected String form = null;
-	
+
 	/**
-	 * cotnent type form path
+	 * content type form path
 	 */
 	protected String formPath = null;
-	
-	protected String type=null;
-	
+
+	protected String type = null;
+
 	/**
 	 * create content in a folder wrapper? e.g. pageUrl: 101 means 101/index.xml instead of 101.xml
 	 */
 	protected boolean contentAsFolder = false;
-	
+
 	/**
 	 * use rounded folder to arrange content?
 	 */
 	protected boolean useRoundedFolder = false;
-	
-	/** 
-	 * path to the model instance file (WCM) 
+
+	/**
+	 * path to the model instance file (WCM)
 	 */
 	protected String modelInstancePath = null;
-	
-	/** list of roles allowed **/
-	protected Set<String> allowedRoles = null;
-	
-	protected ZonedDateTime lastUpdated;
-	
-	/** list of delete association patterns that this content type is dependent on for deleting indexes in webproject**/
-	protected List<DeleteDependencyConfigTO> deleteDependencies = null;
-	
-	/** list of copy association patterns **/
-	protected List<CopyDependencyConfigTO> copyDepedencyPattern=null;
 
-	/** is this content type previewable? **/
-	protected boolean isPreviewable = false;
-	
-	protected String imageThumbnail;
-	
-	protected boolean noThumbnail;
-	
 	/**
-	 * the list of included paths 
+	 * list of roles allowed
+	 **/
+	protected Set<NormalizedRole> allowedRoles = null;
+
+	protected ZonedDateTime lastUpdated;
+
+	/**
+	 * list of delete association patterns that this content type is dependent on for deleting indexes in web project
+	 **/
+	protected List<DeleteDependencyConfigTO> deleteDependencies = null;
+
+	/**
+	 * list of copy association patterns
+	 **/
+	protected List<CopyDependencyConfigTO> copyDepedencyPattern = null;
+
+	/**
+	 * is this content type previewable?
+	 **/
+	protected boolean isPreviewable = false;
+
+	protected String imageThumbnail;
+
+	protected boolean noThumbnail;
+
+	/**
+	 * the list of included paths
 	 */
 	protected List<String> pathIncludes;
-	
+
 	/**
 	 * the list of excluded paths
 	 */
@@ -107,7 +116,7 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	protected boolean quickCreate;
 
 	protected String quickCreatePath;
-	
+
 	public String getImageThumbnail() {
 		return imageThumbnail;
 	}
@@ -147,14 +156,14 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	/**
 	 * @param allowedRoles the allowedRoles to set
 	 */
-	public void setAllowedRoles(Set<String> allowedRoles) {
+	public void setAllowedRoles(Set<NormalizedRole> allowedRoles) {
 		this.allowedRoles = allowedRoles;
 	}
 
 	/**
 	 * @return the allowedRoles
 	 */
-	public Set<String> getAllowedRoles() {
+	public Set<NormalizedRole> getAllowedRoles() {
 		return allowedRoles;
 	}
 
@@ -199,7 +208,7 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	public String getModelInstancePath() {
 		return modelInstancePath;
 	}
-	
+
 	/**
 	 * @param deleteDependencies the deleteAssociations to set
 	 */
@@ -269,14 +278,14 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	public boolean isUseRoundedFolder() {
 		return useRoundedFolder;
 	}
-	
+
 
 	public List<CopyDependencyConfigTO> getCopyDepedencyPattern() {
 		return copyDepedencyPattern;
 	}
 
 	public void setCopyDepedencyPattern(
-			List<CopyDependencyConfigTO> copyDepedencyPattern) {
+		List<CopyDependencyConfigTO> copyDepedencyPattern) {
 		this.copyDepedencyPattern = copyDepedencyPattern;
 	}
 
@@ -329,8 +338,8 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	public void setNodeRef(String nodeRef) {
 		this.nodeRef = nodeRef;
 	}
-	
-	
+
+
 	public String getType() {
 		return type;
 	}
@@ -339,23 +348,23 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 		this.type = type;
 	}
 
-    public boolean isQuickCreate() {
-        return quickCreate;
-    }
+	public boolean isQuickCreate() {
+		return quickCreate;
+	}
 
-    public void setQuickCreate(boolean quickCreate) {
-        this.quickCreate = quickCreate;
-    }
+	public void setQuickCreate(boolean quickCreate) {
+		this.quickCreate = quickCreate;
+	}
 
-    public String getQuickCreatePath() {
-        return quickCreatePath;
-    }
+	public String getQuickCreatePath() {
+		return quickCreatePath;
+	}
 
-    public void setQuickCreatePath(String quickCreatePath) {
-        this.quickCreatePath = quickCreatePath;
-    }
+	public void setQuickCreatePath(String quickCreatePath) {
+		this.quickCreatePath = quickCreatePath;
+	}
 
-    /*
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

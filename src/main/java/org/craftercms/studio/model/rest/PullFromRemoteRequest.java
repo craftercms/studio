@@ -19,59 +19,59 @@ package org.craftercms.studio.model.rest;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 public class PullFromRemoteRequest {
 
-    public enum MergeStrategy {
-        theirs,
-        ours,
-        none
-    }
+	public enum MergeStrategy {
+		theirs,
+		ours,
+		none
+	}
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
 
-    @NotEmpty
-    @Size(max = 50)
-    private String remoteName;
+	@NotEmpty
+	@Size(max = 50)
+	private String remoteName;
 
-    @NotEmpty
-    private String remoteBranch;
+	@NotEmpty
+	private String remoteBranch;
 
-    private MergeStrategy mergeStrategy = MergeStrategy.none;
+	private MergeStrategy mergeStrategy = MergeStrategy.none;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getRemoteName() {
-        return remoteName;
-    }
+	public String getRemoteName() {
+		return remoteName;
+	}
 
-    public void setRemoteName(String remoteName) {
-        this.remoteName = remoteName;
-    }
+	public void setRemoteName(String remoteName) {
+		this.remoteName = remoteName;
+	}
 
-    public String getRemoteBranch() {
-        return remoteBranch;
-    }
+	public String getRemoteBranch() {
+		return remoteBranch;
+	}
 
-    public void setRemoteBranch(String remoteBranch) {
-        this.remoteBranch = remoteBranch;
-    }
+	public void setRemoteBranch(String remoteBranch) {
+		this.remoteBranch = remoteBranch;
+	}
 
-    public String getMergeStrategy() {
-        return mergeStrategy.toString();
-    }
+	public String getMergeStrategy() {
+		return mergeStrategy.toString();
+	}
 
-    public void setMergeStrategy(String mergeStrategy) {
-        this.mergeStrategy = StringUtils.isEmpty(mergeStrategy) ? MergeStrategy.none : MergeStrategy.valueOf(mergeStrategy);
-    }
+	public void setMergeStrategy(String mergeStrategy) {
+		this.mergeStrategy = StringUtils.isEmpty(mergeStrategy) ? MergeStrategy.none : MergeStrategy.valueOf(mergeStrategy);
+	}
 }

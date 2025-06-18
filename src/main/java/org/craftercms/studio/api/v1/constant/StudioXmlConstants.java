@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,17 +19,20 @@ package org.craftercms.studio.api.v1.constant;
  * CStudio Xml constants
  *
  * @author hyanghee
- *
  */
 public final class StudioXmlConstants {
 
-	/** xml document element names for cstudio **/
+	/**
+	 * xml document element names for cstudio
+	 **/
 	public static final String DOCUMENT_ELM_INTERNAL_TITLE = "internal-name";
 	public static final String DOCUMENT_ELM_CONTENT_TYPE = "content-type";
 	public static final String DOCUMENT_ELM_FILE_NAME = "file-name";
 	public static final String DOCUMENT_ELM_DISABLED = "disabled";
 
-	/** xml document root and element names for roles-mapping and permissions-mapping xmls */
+	/**
+	 * xml document root and element names for roles-mapping and permissions-mapping xmls
+	 */
 	public static final String DOCUMENT_ROLE_MAPPINGS = "role-mappings";
 	public static final String DOCUMENT_PERMISSIONS = "permissions";
 	public static final String DOCUMENT_ELM_ALLOWED_PERMISSIONS = "allowed-permissions/permission";
@@ -38,8 +41,8 @@ public final class StudioXmlConstants {
 	public static final String DOCUMENT_ELM_PERMISSION_ROLE = "role";
 	public static final String DOCUMENT_ELM_PERMISSION_RULE = "rule";
 	public static final String DOCUMENT_ELM_SITE = "site";
-	public static final String DOCUMENT_ATTR_REGEX= "@regex";
-	public static final String DOCUMENT_ATTR_PERMISSIONS_NAME= "@name";
+	public static final String DOCUMENT_ATTR_REGEX = "@regex";
+	public static final String DOCUMENT_ATTR_NAME = "@name";
 
 	// Notification config
 	public static final String DOCUMENT_ELEMENT_GENERAL_MESSAGES = "//generalMessages";
@@ -49,7 +52,8 @@ public final class StudioXmlConstants {
 	public static final String DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION = "//deploymentFailureNotification";
 	public static final String DOCUMENT_ELEMENT_APPROVER_EMAILS = "//approverEmails";
 	public static final String DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION =
-			"//repositoryMergeConflictNotification";
+		"//repositoryMergeConflictNotification";
 
-	private StudioXmlConstants() { }
+	private StudioXmlConstants() {
+	}
 }

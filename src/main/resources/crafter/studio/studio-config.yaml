@@ -67,8 +67,10 @@ studio.repo.createAsOrphan.commitMessage: "Created as orphan."
 studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 # Create folder commit message
 studio.repo.createFolder.commitMessage: "Created folder site: {site} path: {path}"
+# Create file commit message
+studio.repo.createEmptyFile.commitMessage: "Created empty file site: {site} path: {path}"
 # Delete content commit message
-studio.repo.deleteContent.commitMessage: "Delete file {path}"
+studio.repo.deleteContent.commitMessage: "Delete files {path}"
 # Move content commit message
 studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
 # Copy content commit message
@@ -80,23 +82,33 @@ studio.repo.pullFromRemote.conflict.notificationEnabled: false
 # List of gitignore files to add in the repo if missing
 studio.repo.ignoreFiles:
     # The classpath location of the gitignore file
-  - resource: crafter/studio/utils/main-gitignore
-    # The name of the folder where the gitignore file will be added in the repo (empty means the root)
-    folder: ''
-  - resource: crafter/studio/utils/sources-gitignore
-    folder: sources
+    -   resource: crafter/studio/utils/main-gitignore
+        # The name of the folder where the gitignore file will be added in the repo (empty means the root)
+        folder: ''
+    -   resource: crafter/studio/utils/sources-gitignore
+        folder: sources
 # Max number of retries for retrying repository operation
 studio.repo.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries for retrying repository operation
 studio.repo.retryingOperation.maxSleep: 1000
-# If Git CLI should be used for some Git operations, for better performance (Git CLI needs to be installed beforehand)
-studio.repo.git.cli.enabled: true
 # The process name of git, as it is available from PATH
 studio.repo.git.cli.process.name: git
 # Timeout in seconds when waiting for the Git CLI process to finish
 studio.repo.git.cli.process.waitForTimeout: 300
 # Timeout in seconds when waiting for the Git CLI process to finish after destroying the process forcibly
 studio.repo.git.cli.process.destroy.waitForTimeout: 60
+# Max number of bytes to read from the Git CLI process output (longer outputs will need to read the output file)
+studio.repo.git.cli.process.maxOutputBytes: 1000
+
+##################################################
+##           DB Sync from Repository            ##
+##################################################
+# Time in milliseconds to wait before triggering a sync when an event has been received
+studio.repo.sync.event.delayMillis: 1000
+# Maximum number of resets before triggering a sync
+studio.repo.sync.event.maxResets: 10
+# Reviewer comment for packages cancelled by the sync process
+studio.repo.sync.publishPackage.cancelled.comment: "Cancelled because of conflicts with changes from the repository sync process"
 
 ############################################################
 ##                       Blob Store                       ##
@@ -105,13 +117,15 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.blob.config.module: studio
 # Location of the blob store configuration file in the site
 studio.blob.config.path: blob-stores-config.xml
+# Location of the default blob store configuration file if the site does not have one on site create
+studio.blob.default.config.path: classpath:crafter/studio/serverless/default-blob-stores-config.xml
 # Extension used for the blob files in the site
 studio.blob.file.extension: blob
 # Target to use for all operations
 studio.blob.publishingTarget: preview
 # The patterns of urls that should be handled by blob stores
 studio.blob.intercepted.paths:
-  - /static-assets/.*
+    - /static-assets/.*
 
 ##################################################
 ##                Content Service               ##
@@ -124,18 +138,18 @@ studio.content.fullPath.maxSize: 1024
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
 # Item MIME-types that are editable directly in Crafter Studio
 studio.content.item.editableTypes:
-  - text/*
-  - application/javascript
-  - application/json
-  - application/xml
-  - application/xhtml+xml
-  - application/x-httpd-php
-  - application/rtf
-  - application/ld+json
-  - application/x-groovy
-  - application/x-sh
-  - application/x-yaml
-  - application/x-csh
+    - text/*
+    - application/javascript
+    - application/json
+    - application/xml
+    - application/xhtml+xml
+    - application/x-httpd-php
+    - application/rtf
+    - application/ld+json
+    - application/x-groovy
+    - application/x-sh
+    - application/x-yaml
+    - application/x-csh
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################
@@ -177,8 +191,6 @@ studio.configuration.site.contentTypes.definitionFileName: form-definition.xml
 studio.configuration.defaultGroups: site_author,site_publisher,site_developer,site_reviewer,site_admin
 # Default admin group when site is created to add creator as admin
 studio.configuration.defaultAdminGroup: site_admin
-# Location where data sources configuration is stored for a site.
-studio.configuration.site.dataSources.configLocation: /config/studio/data-sources/cmis-config.xml
 # Destroy site context url for preview engine
 studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}&token=${studio.configuration.management.previewAuthorizationToken}
 # Location pattern where default dependency resolver specific configuration for is stored
@@ -220,16 +232,16 @@ studio.configuration.management.previewAuthorizationToken: ${env:ENGINE_MANAGEME
 # Protected URLs with preview engine management authorization token.
 # Comma separated list of preview engine urls
 studio.configuration.management.previewProtectedUrls: >-
-  /api/1/monitoring/log.json,
-  /api/1/monitoring/memory.json,
-  /api/1/monitoring/status.json,
-  /api/1/monitoring/version.json,
-  /api/1/site/context/id,
-  /api/1/site/context/destroy,
-  /api/1/site/context/rebuild,
-  /api/1/site/context/graphql/rebuild,
-  /api/1/site/cache/clear,
-  /api/1/site/cache/statistics
+    /api/1/monitoring/log.json,
+    /api/1/monitoring/memory.json,
+    /api/1/monitoring/status.json,
+    /api/1/monitoring/version.json,
+    /api/1/site/context/id,
+    /api/1/site/context/destroy,
+    /api/1/site/context/rebuild,
+    /api/1/site/context/graphql/rebuild,
+    /api/1/site/cache/clear,
+    /api/1/site/cache/statistics
 
 # The pattern used to load plugins installed from the marketplaces
 studio.configuration.plugin.base.pattern: /config/studio/static-assets/plugins/${id}/${type}/${name}
@@ -248,12 +260,19 @@ studio.configuration.contentType.defaultPreviewImagePath: "crafter/studio/conten
 studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
 # Format string for the controller script of a content-type
 studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
+# Path for the content type form controller script
+studio.configuration.contentType.formControllerFilePath: form-controller.js
 
-# Publishing blacklist configuration, items matching regexes on this list will never be published
-studio.configuration.publishing.blacklist.regex: >-
-  .*/\.keep
+# Paths matching git pathspecs on this list will never be published.
+# For information on git pathspec, see https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathspecapathspec
+# .keep files are always ignored
+# e.g.:
+# studio.configuration.publishing.blacklist.pathspecs: "*.png"
+studio.configuration.publishing.blacklist.pathspecs: ""
 # Default studio server time zone for date time format
 studio.configuration.defaultTimeZone: UTC
+# The maximum length of configuration content for the configuration service. Default to 512kB -> 512 * 1024
+studio.configuration.maxContentSize: 524288
 
 ########################################################
 ##                   Import Service                   ##
@@ -268,6 +287,10 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
+# Maximum number of items to include in the workflow notification messages
+studio.workflow.notification.maxItemCount: 10
+# Enable/disable notification messages on workflow events
+studio.workflow.notification.enabled: true
 # Path where the notification configuration is located
 studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
@@ -293,17 +316,17 @@ studio.security.sessionTimeout: 480
 studio.security.inactivityTimeout: 30
 # Comma separated list of URLs that should not be tracked as user activity
 studio.security.activity.excludeUrls: >
-  /api/2/publish/status.*,/api/2/content/children_by_path.*,/api/2/content/sandbox_items_by_path.*
+    /api/2/publish/status.*,/api/2/content/children_by_path.*,/api/2/content/sandbox_items_by_path.*
 # Configuration for the user activity cache
 studio.security.activity.cache.config: initialCapacity=25,maximumSize=100
 
 # Public URLs, comma separated list of regular expressions.
 # The regex should not include extension and should match the query string too.
 studio.security.publicUrls: >
-  /api/1/services/api/1/server/get-available-languages.*,/api/1/services/api/1/server/get-ui-resource-override.*,
-  /api/2/monitoring/.+,/api/2/users/forgot_password.*,/api/2/users/set_password.*,/static-assets/.+,
-  /api/2/users/validate_token.*,/api/1/services/api/1/security/login.*,/api/2/users/forgot_password.*,
-  /api/2/plugin/script/reload.*
+    /api/1/services/api/1/server/get-available-languages.*,/api/1/services/api/1/server/get-ui-resource-override.*,
+    /api/2/monitoring/.+,/api/2/users/forgot_password.*,/api/2/users/set_password.*,/static-assets/.+,
+    /api/2/users/validate_token.*,/api/1/services/api/1/security/login.*,/api/2/users/forgot_password.*,
+    /api/2/plugin/script/reload.*
 # Salt for encrypting
 studio.security.cipher.salt: DgGN9xhq3GOn6zxg
 # Key for encrypting
@@ -353,6 +376,9 @@ studio.security.headers.contentSecurityPolicy.reportOnly: true
 studio.security.http.basic.enabled: false
 # Value for the X-PERMITTED-CROSS-DOMAIN-POLICIES header
 studio.security.headers.permittedCrossDomainPolicies.value: none
+# Value for Referrer-Policy header.
+# Possible values are defined in org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy
+studio.security.headers.referrerPolicy.value: NO_REFERRER
 
 # The maximum number of users to keep in the cache
 studio.security.db.cache.maxSize: 20
@@ -488,6 +514,8 @@ studio.preview.templateName: local
 studio.preview.replace: false
 # Disable deploy cron job for preview target
 studio.preview.disableDeployCron: true
+# Response timeout in seconds for deployer http requests
+studio.deployer.request.timeoutSeconds: 300
 
 # Replace existing configuration if one exists?
 studio.authoring.replace: false
@@ -519,6 +547,7 @@ studio.db.password: ${env:MARIADB_PASSWD}
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
 # Note that a relative path is not suitable for a production deployment
 studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter&socketTimeout=60000
+studio.db.scriptRunnerUrl: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter&socketTimeout=60000&allowMultiQueries=true
 # Defines initial number of database connections in database connection pool
 studio.db.pool.initialConnections: 10
 # Defines maximum number of active database connections in database connection pool
@@ -585,10 +614,6 @@ studio.db.maxAllowedPacket: 128M
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
 studio.db.retryingOperation.maxSleep: 1000
-# Number of lines to read from sql script file for buffered execution
-studio.db.scriptRunner.bufferSize: 10000
-# Batch size for bulk operations
-studio.db.bulkOperations.batchSize: 1000
 # DB max_recursive_iterations value. This property should be set to a value between 0 and 20 (hard limit)
 studio.db.maxRecursiveIterations: 10
 ##########################################################
@@ -638,12 +663,6 @@ studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-d
 # Upgrade (Populate DB) thread pool
 studio.upgrade.db.population.threadCount: 50
 studio.upgrade.db.population.timeoutSeconds: 7200
-
-################################################################
-##                   Publishing Thread Pool                   ##
-################################################################
-# Publishing lock TTL in minutes
-studio.publishing.siteLock.ttl: 180
 
 ################################################################
 ##                             CORS                           ##
@@ -698,18 +717,18 @@ studio.search.field.size: contentLength
 studio.search.field.mimeType: contentType
 # Map of fields to include in the search with their boosting
 studio.search.fields.search:
-  - name: internalName.text
-    boost: 1.6
-  - name: title.text
-    boost: 1.5
-  - name: content
-    boost: 1.0
-  - name: '*_html'
-    boost: 1.0
-  - name: '*_t'
-    boost: 1.0
-  - name: '*_txt'
-    boost: 1.0
+    -   name: internalName.text
+        boost: 1.6
+    -   name: title.text
+        boost: 1.5
+    -   name: content
+        boost: 1.0
+    -   name: '*_html'
+        boost: 1.0
+    -   name: '*_t'
+        boost: 1.0
+    -   name: '*_txt'
+        boost: 1.0
 # List of fields to include for highlighting
 studio.search.fields.highlight: internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
@@ -721,121 +740,121 @@ studio.search.default.type: Other
 # The type mapping to use during search
 studio.search.types:
     # The label that will be returned
-  - name: Image
-    # The field that will be compared
-    field: contentType
-    # The regex that will be compared
-    matches: ^image/.*$
-  - name: Video
-    field: contentType
-    matches: ^video/.*$
-  - name: CSS
-    field: contentType
-    matches: ^text/css$
-  - name: JavaScript
-    field: contentType
-    matches: ^text/javascript$
-  - name: Groovy
-    field: contentType
-    matches: ^text/x-groovy$
-  - name: Template
-    field: contentType
-    matches: ^text/x-freemarker$
-  - name: PDF
-    field: contentType
-    matches: ^application/pdf$
-  - name: MS Word
-    field: contentType
-    matches: ^application/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document)$
-  - name: MS Excel
-    field: contentType
-    matches: ^application/(vnd.ms-excel|vnd.openxmlformats-officedocument.spreadsheetml.sheet)$
-  - name: MS PowerPoint
-    field: contentType
-    matches: ^application/(vnd.ms-powerpoint|vnd.openxmlformats-officedocument.presentationml.presentation)$
-  - name: Page
-    field: content-type
-    matches: ^/page/.*$
-  - name: Component
-    field: content-type
-    matches: ^/component/.*$
-  - name: Taxonomy
-    field: content-type
-    matches: ^/taxonomy$
+    -   name: Image
+        # The field that will be compared
+        field: contentType
+        # The regex that will be compared
+        matches: ^image/.*$
+    -   name: Video
+        field: contentType
+        matches: ^video/.*$
+    -   name: CSS
+        field: contentType
+        matches: ^text/css$
+    -   name: JavaScript
+        field: contentType
+        matches: ^text/javascript$
+    -   name: Groovy
+        field: contentType
+        matches: ^text/x-groovy$
+    -   name: Template
+        field: contentType
+        matches: ^text/x-freemarker$
+    -   name: PDF
+        field: contentType
+        matches: ^application/pdf$
+    -   name: MS Word
+        field: contentType
+        matches: ^application/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document)$
+    -   name: MS Excel
+        field: contentType
+        matches: ^application/(vnd.ms-excel|vnd.openxmlformats-officedocument.spreadsheetml.sheet)$
+    -   name: MS PowerPoint
+        field: contentType
+        matches: ^application/(vnd.ms-powerpoint|vnd.openxmlformats-officedocument.presentationml.presentation)$
+    -   name: Page
+        field: content-type
+        matches: ^/page/.*$
+    -   name: Component
+        field: content-type
+        matches: ^/component/.*$
+    -   name: Taxonomy
+        field: content-type
+        matches: ^/taxonomy$
 # The list of field facets to return
 studio.search.facets:
     # The label that will be returned
-  - name: content-type
-    # The field that will be used
-    field: content-type
-    multiple: true
-  - name: mime-type
-    field: contentType
-    multiple: true
-  - name: size
-    field: contentLength
-    # The list of ranges to search
-    ranges:
-      - to: 1024
-      - from: 1024
-        to: 25600
-      - from: 25600
-        to: 256000
-      - from: 256000
-        to: 1048576
-      - from: 1048576
-        to: 5242880
-      - from: 5242880
-        to: 1073741824
-      - from: 1073741824
-  - name: width
-    field: width
-    ranges:
-      - to: 64
-      - from: 64
-        to: 160
-      - from: 160
-        to: 480
-      - from: 480
-        to: 800
-      - from: 800
-        to: 1280
-      - from: 1280
-        to: 1600
-      - from: 1600
-  - name: height
-    field: height
-    ranges:
-      - to: 64
-      - from: 64
-        to: 120
-      - from: 120
-        to: 320
-      - from: 320
-        to: 480
-      - from: 480
-        to: 800
-      - from: 800
-        to: 1200
-      - from: 1200
-  - name: last-edit-date
-    field: lastEditedOn
-    date: true
-    ranges:
-      - label: today
-        from: now-1d
-        to: now+1d
-      - label: in-last-week
-        from: now/d-7d
-        to: now/d-1d
-      - label: over-a-month-ago
-        to: now/d-30d
-      - label: over-six-months-ago
-        to: now/d-180d
-      - label: over-a-week-ago
-        to: now/d-8d
-      - label: over-a-year-ago
-        to: now/d-365d
+    -   name: content-type
+        # The field that will be used
+        field: content-type
+        multiple: true
+    -   name: mime-type
+        field: contentType
+        multiple: true
+    -   name: size
+        field: contentLength
+        # The list of ranges to search
+        ranges:
+            -   to: 1024
+            -   from: 1024
+                to: 25600
+            -   from: 25600
+                to: 256000
+            -   from: 256000
+                to: 1048576
+            -   from: 1048576
+                to: 5242880
+            -   from: 5242880
+                to: 1073741824
+            -   from: 1073741824
+    -   name: width
+        field: width
+        ranges:
+            -   to: 64
+            -   from: 64
+                to: 160
+            -   from: 160
+                to: 480
+            -   from: 480
+                to: 800
+            -   from: 800
+                to: 1280
+            -   from: 1280
+                to: 1600
+            -   from: 1600
+    -   name: height
+        field: height
+        ranges:
+            -   to: 64
+            -   from: 64
+                to: 120
+            -   from: 120
+                to: 320
+            -   from: 320
+                to: 480
+            -   from: 480
+                to: 800
+            -   from: 800
+                to: 1200
+            -   from: 1200
+    -   name: last-edit-date
+        field: lastEditedOn
+        date: true
+        ranges:
+            -   label: today
+                from: now-1d
+                to: now+1d
+            -   label: in-last-week
+                from: now/d-7d
+                to: now/d-1d
+            -   label: over-a-month-ago
+                to: now/d-30d
+            -   label: over-six-months-ago
+                to: now/d-180d
+            -   label: over-a-week-ago
+                to: now/d-8d
+            -   label: over-a-year-ago
+                to: now/d-365d
 studio.search.keyword.split.regex: "[!@#$%&\\*\\s\\(\\)\\'\\\"]+"
 
 ################################################################
@@ -877,9 +896,9 @@ studio.serverless.delivery.deployer.target.localRepoPath: ${env:CRAFTER_DATA_DIR
 # The following parameters will be sent automatically, and you don't need to specify them: env, site_name, replace,
 # disable_deploy_cron, local_repo_path, repo_url
 studio.serverless.delivery.deployer.target.template.params:
-  aws:
-    cloudformation:
-      namespace: craftercms
+    aws:
+        cloudformation:
+            namespace: craftercms
 
 ##################################################
 ##                 Marketplace                  ##
@@ -892,25 +911,25 @@ studio.marketplace.search.pending: false
 studio.marketplace.plugin.registry.path: config/plugins/registry.yaml
 # The list of plugin types that can be installed
 studio.marketplace.plugin.installable:
-  - site
+    - site
 # The name of the sub-folder to copy plugin files
 studio.marketplace.plugin.folder: plugins
 # The mapping of folders to copy files from the plugin folder to the site
 studio.marketplace.plugin.mapping:
-  - delivery/templates: templates
-  - delivery/static-assets: static-assets
-  - delivery/scripts/components: scripts/components
-  - delivery/scripts/filters: scripts/filters
-  - delivery/scripts/pages: scripts/pages
-  - delivery/scripts/rest: scripts/rest
-  - delivery/scripts/classes: scripts/classes
-  - delivery/scripts/controllers: scripts/controllers
-  - authoring/content-types/component: config/studio/content-types/component
-  - authoring/content-types/page: config/studio/content-types/page
-  - authoring/static-assets: config/studio/static-assets
-  - authoring/scripts/classes: config/studio/scripts/classes
-  - authoring/scripts/rest: config/studio/scripts/rest
-  - sources: sources
+    -   delivery/templates: templates
+    -   delivery/static-assets: static-assets
+    -   delivery/scripts/components: scripts/components
+    -   delivery/scripts/filters: scripts/filters
+    -   delivery/scripts/pages: scripts/pages
+    -   delivery/scripts/rest: scripts/rest
+    -   delivery/scripts/classes: scripts/classes
+    -   delivery/scripts/controllers: scripts/controllers
+    -   authoring/content-types/component: config/studio/content-types/component
+    -   authoring/content-types/page: config/studio/content-types/page
+    -   authoring/static-assets: config/studio/static-assets
+    -   authoring/scripts/classes: config/studio/scripts/classes
+    -   authoring/scripts/rest: config/studio/scripts/rest
+    -   sources: sources
 # The module used for the plugin configuration file
 studio.marketplace.plugin.config.module: plugins
 # The filename used for the plugin configuration file
@@ -919,37 +938,37 @@ studio.marketplace.plugin.config.filename: config.xml
 studio.marketplace.plugin.basePath: '/config/studio/static-assets/plugins/${id}/${type}/${name}'
 # Mapping used to wire plugin files into the site configuration
 studio.marketplace.plugin.wire.mapping:
-  preview-app:
-    module: studio
-    path: ui.xml
-    template: crafter/studio/marketplace/wiring/ui.xslt
-  form-control:
-    module: studio
-    path: administration/site-config-tools.xml
-    template: crafter/studio/marketplace/wiring/control.xslt
-  form-datasource:
-    module: studio
-    path: administration/site-config-tools.xml
-    template: crafter/studio/marketplace/wiring/datasource.xslt
-  site-filter:
-    module: engine
-    path: site-config.xml
-    template: crafter/studio/marketplace/wiring/engine-filter.xslt
-  site-context:
-    module: engine
-    path: application-context.xml
-    template: crafter/studio/marketplace/wiring/engine-context.xslt
+    preview-app:
+        module: studio
+        path: ui.xml
+        template: crafter/studio/marketplace/wiring/ui.xslt
+    form-control:
+        module: studio
+        path: administration/site-config-tools.xml
+        template: crafter/studio/marketplace/wiring/control.xslt
+    form-datasource:
+        module: studio
+        path: administration/site-config-tools.xml
+        template: crafter/studio/marketplace/wiring/datasource.xslt
+    site-filter:
+        module: engine
+        path: site-config.xml
+        template: crafter/studio/marketplace/wiring/engine-filter.xslt
+    site-context:
+        module: engine
+        path: application-context.xml
+        template: crafter/studio/marketplace/wiring/engine-context.xslt
 studio.marketplace.plugin.wire.remove: crafter/studio/marketplace/wiring/remove.xslt
 # Mapping used to wire plugin files into the site templates
 studio.marketplace.plugin.template.mapping:
-  - systemPath: templates/system/plugins/definitions.ftl
-    pluginPattern: templates/plugins/${pluginPath}/definitions.ftl
-  - systemPath: templates/system/plugins/head.ftl
-    pluginPattern: templates/plugins/${pluginPath}/head.ftl
-  - systemPath: templates/system/plugins/body_top.ftl
-    pluginPattern: templates/plugins/${pluginPath}/body_top.ftl
-  - systemPath: templates/system/plugins/body_bottom.ftl
-    pluginPattern: templates/plugins/${pluginPath}/body_bottom.ftl
+    -   systemPath: templates/system/plugins/definitions.ftl
+        pluginPattern: templates/plugins/${pluginPath}/definitions.ftl
+    -   systemPath: templates/system/plugins/head.ftl
+        pluginPattern: templates/plugins/${pluginPath}/head.ftl
+    -   systemPath: templates/system/plugins/body_top.ftl
+        pluginPattern: templates/plugins/${pluginPath}/body_top.ftl
+    -   systemPath: templates/system/plugins/body_bottom.ftl
+        pluginPattern: templates/plugins/${pluginPath}/body_bottom.ftl
 # Code injected in the templates for each plugin
 studio.marketplace.plugin.template.code: '<@plugin_include "${pluginId}" "/${path}"/>'
 # Comment added in the templates for each plugin
@@ -986,12 +1005,19 @@ studio.clockJob.taskExecutor.corePoolSize: 50
 studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
 studio.clockJob.taskExecutor.queueCapacity: 2000
-# Sync repository execute every N cycles
-studio.clockJob.task.syncRepository.executeEveryNCycles: 1
 # Publisher execute every N cycles
-studio.clockJob.task.publisher.executeEveryNCycles: 2
+studio.clockJob.task.publisher.period: 12
 # Publisher max retry count in case if content not found
 studio.clockJob.task.publisher.maxRetryCount: 5
+
+##################################################
+##             Studio Task Executor             ##
+##################################################
+# These properties configure the main Studio task executor, used
+# for running background tasks and other asynchronous operations.
+studio.taskExecutor.corePoolSize: 5
+studio.taskExecutor.maxPoolSize: 10
+studio.taskExecutor.queueCapacity: 25
 
 ##################################################
 ##           Studio Groovy Scripts              ##
@@ -1003,6 +1029,8 @@ studio.scripting.sandbox.enable: true
 studio.scripting.sandbox.blacklist.enable: true
 # The location of the default blacklist to use (this will have no effect if the sandbox is disabled)
 studio.scripting.sandbox.blacklist.path: classpath:crafter/studio/groovy/blacklist
+# List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
+studio.scripting.sandbox.whitelist.getenvRegex: crafter_.*
 # The extension for the script files
 studio.scripting.script.extension: groovy
 # The format for the name of the script files

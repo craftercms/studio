@@ -19,10 +19,11 @@ package org.craftercms.studio.model.rest.marketplace;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,91 +35,91 @@ import java.util.Map;
  */
 public class CreateSiteRequest {
 
-    @NotBlank
-    private String blueprintId;
+	@NotBlank
+	private String blueprintId;
 
-    @NotNull
-    @Valid
-    private Version blueprintVersion;
+	@NotNull
+	@Valid
+	private Version blueprintVersion;
 
-    @NotBlank
-    @ValidSiteId
-    private String siteId;
+	@NotBlank
+	@ValidSiteId
+	private String siteId;
 
-    private String description;
+	private String description;
 
-    @NotBlank
-    @Size(max=255)
-    private String name;
+	@NotBlank
+	@Size(max = 255)
+	private String name;
 
-    private Map<String, String> siteParams = new HashMap<>();
+	private Map<String, String> siteParams = new HashMap<>();
 
-    private String sandboxBranch;
+	private String sandboxBranch;
 
-    private String remoteName;
+	private String remoteName;
 
-    public String getBlueprintId() {
-        return blueprintId;
-    }
+	public String getBlueprintId() {
+		return blueprintId;
+	}
 
-    public void setBlueprintId(final String blueprintId) {
-        this.blueprintId = blueprintId;
-    }
+	public void setBlueprintId(final String blueprintId) {
+		this.blueprintId = blueprintId;
+	}
 
-    public Version getBlueprintVersion() {
-        return blueprintVersion;
-    }
+	public Version getBlueprintVersion() {
+		return blueprintVersion;
+	}
 
-    public void setBlueprintVersion(final Version blueprintVersion) {
-        this.blueprintVersion = blueprintVersion;
-    }
+	public void setBlueprintVersion(final Version blueprintVersion) {
+		this.blueprintVersion = blueprintVersion;
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(final String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(final String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public void setDescription(final String description) {
-        this.description = description;
-    }
+	public void setDescription(final String description) {
+		this.description = description;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Map<String, String> getSiteParams() {
-        return siteParams;
-    }
+	public Map<String, String> getSiteParams() {
+		return siteParams;
+	}
 
-    public void setSiteParams(final Map<String, String> siteParams) {
-        this.siteParams = siteParams;
-    }
+	public void setSiteParams(final Map<String, String> siteParams) {
+		this.siteParams = siteParams;
+	}
 
-    public String getSandboxBranch() {
-        return sandboxBranch;
-    }
+	public String getSandboxBranch() {
+		return sandboxBranch;
+	}
 
-    public void setSandboxBranch(final String sandboxBranch) {
-        this.sandboxBranch = sandboxBranch;
-    }
+	public void setSandboxBranch(final String sandboxBranch) {
+		this.sandboxBranch = sandboxBranch;
+	}
 
-    public String getRemoteName() {
-        return remoteName;
-    }
+	public String getRemoteName() {
+		return remoteName;
+	}
 
-    public void setRemoteName(final String remoteName) {
-        this.remoteName = remoteName;
-    }
+	public void setRemoteName(final String remoteName) {
+		this.remoteName = remoteName;
+	}
 
 }

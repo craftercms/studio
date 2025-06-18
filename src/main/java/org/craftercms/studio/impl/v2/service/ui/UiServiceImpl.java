@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,13 +23,14 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternal;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.ui.MenuItem;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.DEFAULT_PATH_RESOURCE_VALUE;
 
 /**
  * Default implementation of {@link UiService}. Delegates to the {@link UiServiceInternal} for the actual work.
@@ -38,48 +39,38 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public class UiServiceImpl implements UiService {
 
-    private SecurityService securityService;
-    private UiServiceInternal uiServiceInternal;
-    private StudioConfiguration studioConfiguration;
+	private final SecurityService securityService;
+	private final UiServiceInternal uiServiceInternal;
+	private StudioConfiguration studioConfiguration;
 
-    @Required
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public UiServiceImpl(SecurityService securityService, UiServiceInternal uiServiceInternal) {
+		this.securityService = securityService;
+		this.uiServiceInternal = uiServiceInternal;
+	}
 
-    @Required
-    public void setUiServiceInternal(UiServiceInternal uiServiceInternal) {
-        this.uiServiceInternal = uiServiceInternal;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
+	@Override
+	public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
+		String user = SecurityUtils.getCurrentUsername();
+		if (StringUtils.isNotEmpty(user)) {
+			Set<String> permissions = securityService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+			return uiServiceInternal.getGlobalMenu(permissions);
+		} else {
+			throw new AuthenticationException("User is not authenticated");
+		}
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(user)) {
-            Set<String> permissions = securityService.getUserPermissions("", "/", user, null);
-
-            return uiServiceInternal.getGlobalMenu(permissions);
-        } else {
-            throw new AuthenticationException("User is not authenticated");
-        }
-    }
-
-    @Override
-    public String getActiveEnvironment() throws AuthenticationException {
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(user)) {
-            return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-        } else {
-            throw new AuthenticationException("User is not authenticated");
-        }
-    }
+	@Override
+	public String getActiveEnvironment() throws AuthenticationException {
+		String user = SecurityUtils.getCurrentUsername();
+		if (StringUtils.isNotEmpty(user)) {
+			return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+		} else {
+			throw new AuthenticationException("User is not authenticated");
+		}
+	}
 }

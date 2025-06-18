@@ -16,42 +16,42 @@
 
 package org.craftercms.studio.model.rest;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A {@link Result} where the actual result is a list of entities.
  *
  * @param <T> the entity type
- *
  * @author Dejan Brkic
  * @author avasquez
  */
 public class ResultList<T> extends Result {
 
-    @JsonIgnore
-    private Map<String, List<T>> entities;
+	@JsonIgnore
+	private Map<String, Collection<T>> entities;
 
 
-    /**
-     * Returns the result entities.
-     */
-    @JsonAnyGetter
-    public Map<String, List<T>> getEntities() {
-        return entities;
-    }
+	/**
+	 * Returns the result entities.
+	 */
+	@JsonAnyGetter
+	@SuppressWarnings("unused")
+	public Map<String, Collection<T>> getEntities() {
+		return entities;
+	}
 
-    /**
-     * Sets the result entities.
-     */
-    @JsonAnySetter
-    public void setEntities(String name, List<T> entities) {
-        this.entities = Collections.singletonMap(name, entities);
-    }
+	/**
+	 * Sets the result entities.
+	 */
+	@JsonAnySetter
+	public void setEntities(String name, Collection<T> entities) {
+		this.entities = Collections.singletonMap(name, entities);
+	}
 
 }

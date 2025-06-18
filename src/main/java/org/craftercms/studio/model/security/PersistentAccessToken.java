@@ -25,56 +25,56 @@ import java.time.Instant;
  */
 public class PersistentAccessToken extends AccessToken {
 
-    /**
-     * The id of the access token
-     */
-    protected long id;
+	/**
+	 * The id of the access token
+	 */
+	protected long id;
 
-    /**
-     * The label of the access token
-     */
-    protected String label;
+	/**
+	 * The label of the access token
+	 */
+	protected String label;
 
-    /**
-     * Indicates if the access token is enabled
-     */
-    protected boolean enabled = true;
+	/**
+	 * Indicates if the access token is enabled
+	 */
+	protected boolean enabled = true;
 
-    /**
-     * The date of creation of the access token
-     */
-    protected Instant createdOn = Instant.now();
+	/**
+	 * The date of creation of the access token
+	 */
+	protected Instant createdOn = Instant.now();
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
+	public void setLabel(String label) {
+		this.label = label;
+	}
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    public Instant getCreatedOn() {
-        return createdOn;
-    }
+	public Instant getCreatedOn() {
+		return createdOn;
+	}
 
-    public void setCreatedOn(Instant createdOn) {
-        this.createdOn = createdOn;
-    }
+	public void setCreatedOn(Instant createdOn) {
+		this.createdOn = createdOn;
+	}
 
 }

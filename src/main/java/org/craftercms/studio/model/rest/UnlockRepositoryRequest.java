@@ -19,28 +19,28 @@ package org.craftercms.studio.model.rest;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 public class UnlockRepositoryRequest {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    private GitRepositories repositoryType;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	private GitRepositories repositoryType;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public GitRepositories getRepositoryType() {
-        return repositoryType;
-    }
+	public GitRepositories getRepositoryType() {
+		return repositoryType;
+	}
 
-    public void setRepositoryType(GitRepositories repositoryType) {
-        this.repositoryType = repositoryType;
-    }
+	public void setRepositoryType(GitRepositories repositoryType) {
+		this.repositoryType = repositoryType;
+	}
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -16,72 +16,76 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.ActivityStreamDAO">
-    <resultMap id="ActivityMap" type="org.craftercms.studio.model.rest.dashboard.Activity">
-        <id property="id" column="asid" />
-        <result property="actionType" column="action" />
-        <result property="actionTimestamp" column="action_timestamp" />
-        <association property="person" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap"/>
-        <association property="item" columnPrefix="item_" notNullColumn="id" autoMapping="true"
-                     javaType="org.craftercms.studio.model.rest.dashboard.Activity$Item"/>
-        <association property="publishPackage" columnPrefix="package_" notNullColumn="id" autoMapping="true"
-                     javaType="org.craftercms.studio.model.rest.dashboard.Activity$Package"/>
-    </resultMap>
+	<resultMap id="ActivityMap" type="org.craftercms.studio.model.rest.dashboard.Activity">
+		<id property="id" column="asid"/>
+		<result property="actionType" column="action"/>
+		<result property="actionTimestamp" column="action_timestamp"/>
+		<association property="person" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap"/>
+		<association property="item" columnPrefix="item_" notNullColumn="id" autoMapping="true"
+			     javaType="org.craftercms.studio.model.rest.dashboard.Activity$Item"/>
+		<association property="publishPackage" column="{packageId=package_id,siteId=site_id}"
+			     select="org.craftercms.studio.api.v2.dal.publish.PublishDAO.getById"/>
+	</resultMap>
 
-    <insert id="insertActivity">
-        INSERT INTO activity_stream (site_id, user_id, action, action_timestamp, item_id,
-                                     <if test="item != null">item_path, item_label,</if> package_id)
-        VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP),
-                #{item.id}, <if test="item != null">#{item.path}, #{item.label},</if> #{packageId});
-    </insert>
+	<insert id="insertActivity">
+		INSERT INTO activity_stream (site_id, user_id, action, action_timestamp, item_id,
+		<if test="item != null">item_path, item_label,</if>
+		package_id)
+		VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP),
+		#{item.id}, <if test="item != null">#{item.path}, #{item.label},</if> #{packageId});
+	</insert>
 
-    <sql id="activitiesForUsersFilters">
-        <where>
-            a.site_id = #{siteId}
-            <if test="usernames != null">
-                AND u.username in
-                <foreach item="username" index="index" collection="usernames"
-                         open="(" separator="," close=")">
-                    #{username}
-                </foreach>
-            </if>
-            <if test="actions != null">
-                AND a.action in
-                <foreach item="action" index="index" collection="actions"
-                         open="(" separator="," close=")">
-                    #{action}
-                </foreach>
-            </if>
-            <if test="dateTo != null" >
-                AND a.action_timestamp &lt;= #{dateTo}
-            </if>
-            <if test="dateFrom != null">
-                AND a.action_timestamp &gt;= #{dateFrom}
-            </if>
-        </where>
-    </sql>
+	<sql id="activitiesForUsersFilters">
+		<where>
+			a.site_id = #{siteId}
+			<if test="usernames != null">
+				AND (u.username in
+				<foreach item="username" index="index" collection="usernames"
+					 open="(" separator="," close=")">
+					#{username}
+				</foreach>
+				<foreach item="username" index="index" collection="usernames">
+					OR u.username like concat(#{username}, '%')
+				</foreach>
+				)
+			</if>
+			<if test="actions != null">
+				AND a.action in
+				<foreach item="action" index="index" collection="actions"
+					 open="(" separator="," close=")">
+					#{action}
+				</foreach>
+			</if>
+			<if test="dateTo != null">
+				AND a.action_timestamp &lt;= #{dateTo}
+			</if>
+			<if test="dateFrom != null">
+				AND a.action_timestamp &gt;= #{dateFrom}
+			</if>
+		</where>
+	</sql>
 
-    <select id="getActivitiesForUsersTotal" resultType="int" >
-        SELECT COUNT(1)
-        FROM activity_stream a INNER JOIN user u ON a.user_id = u.id
-        <include refid="activitiesForUsersFilters"/>
-    </select>
+	<select id="getActivitiesForUsersTotal" resultType="int">
+		SELECT COUNT(1)
+		FROM activity_stream a INNER JOIN user u ON a.user_id = u.id
+		<include refid="activitiesForUsersFilters"/>
+	</select>
 
-    <!-- TODO: Fix the join once we have a real publish package table -->
-    <select id="getActivitiesForUsers" resultMap="ActivityMap" >
-        SELECT
-           a.id AS asid, a.action, a.action_timestamp, a.item_id, a.package_id, a.item_path as item_recordedPath,
-           a.item_label as item_recordedLabel,
-           u.username, u.first_name, u.last_name, u.avatar,
-           i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl,
-           i.system_type as item_systemType
-        FROM activity_stream a
-            LEFT OUTER JOIN user u ON a.user_id = u.id
-            LEFT OUTER JOIN item i ON a.item_id = i.id
-        <include refid="activitiesForUsersFilters"/>
-        ORDER BY a.id DESC
-        LIMIT #{offset}, #{limit}
-    </select>
+	<select id="getActivitiesForUsers" resultMap="ActivityMap">
+		SELECT
+		a.id AS asid, a.site_id, a.action, a.action_timestamp, a.item_id, a.package_id, a.item_path as item_recordedPath,
+		a.item_label as item_recordedLabel,
+		u.username, u.first_name, u.last_name, u.avatar,
+		i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl,
+		i.system_type as item_systemType
+		FROM activity_stream a
+		LEFT OUTER JOIN user u ON a.user_id = u.id
+		LEFT OUTER JOIN item i ON a.item_id = i.id
+		<include refid="activitiesForUsersFilters"/>
+		ORDER BY a.id DESC
+		LIMIT #{offset}, #{limit}
+	</select>
 </mapper>

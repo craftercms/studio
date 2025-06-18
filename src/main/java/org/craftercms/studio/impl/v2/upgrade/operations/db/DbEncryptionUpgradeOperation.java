@@ -43,68 +43,68 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
  */
 public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(DbEncryptionUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(DbEncryptionUpgradeOperation.class);
 
-    protected final String REMOTE_REPOSITORIES_QUERY = "select id, remote_password, remote_token, " +
-            "remote_private_key, authentication_type from remote_repository where authentication_type != '" +
-            AuthenticationType.NONE + "'";
-    protected final String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = " +
-            ":remotePassword, remote_token = :remoteToken, remote_private_key = :remotePrivateKey where id = :id";
+	protected final String REMOTE_REPOSITORIES_QUERY = "select id, remote_password, remote_token, " +
+		"remote_private_key, authentication_type from remote_repository where authentication_type != '" +
+		AuthenticationType.NONE + "'";
+	protected final String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = " +
+		":remotePassword, remote_token = :remoteToken, remote_private_key = :remotePrivateKey where id = :id";
 
-    protected TextEncryptor textEncryptor;
+	protected TextEncryptor textEncryptor;
 
-    @ConstructorProperties({"studioConfiguration", "textEncryptor"})
-    public DbEncryptionUpgradeOperation(StudioConfiguration studioConfiguration,
-                                        TextEncryptor textEncryptor) {
-        super(studioConfiguration);
-        this.textEncryptor = textEncryptor;
-    }
+	@ConstructorProperties({"studioConfiguration", "textEncryptor"})
+	public DbEncryptionUpgradeOperation(StudioConfiguration studioConfiguration,
+					    TextEncryptor textEncryptor) {
+		super(studioConfiguration);
+		this.textEncryptor = textEncryptor;
+	}
 
-    @Override
-    public void doExecute(StudioUpgradeContext context) throws UpgradeException {
-        try {
-            NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(context.getDataSource());
-            upgradeRemoteRepositories(jdbcTemplate);
-        } catch (Exception e) {
-            throw new UpgradeException("Error trying to upgrade database", e);
-        }
-    }
+	@Override
+	public void doExecute(StudioUpgradeContext context) throws UpgradeException {
+		try {
+			NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(context.getDataSource());
+			upgradeRemoteRepositories(jdbcTemplate);
+		} catch (Exception e) {
+			throw new UpgradeException("Error trying to upgrade database", e);
+		}
+	}
 
-    protected String upgradeValue(String encrypted) throws CryptoException {
-        return textEncryptor.encrypt(textEncryptor.decrypt(encrypted));
-    }
+	protected String upgradeValue(String encrypted) throws CryptoException {
+		return textEncryptor.encrypt(textEncryptor.decrypt(encrypted));
+	}
 
-    protected void upgradeRemoteRepositories(NamedParameterJdbcTemplate jdbcTemplate) throws CryptoException {
-        logger.debug("Look for remote repositories to upgrade");
-        List<RemoteRepository> remotes =
-                jdbcTemplate.query(REMOTE_REPOSITORIES_QUERY, new BeanPropertyRowMapper<>(RemoteRepository.class));
-        logger.debug("Found '{}' remote repositories to upgrade", remotes.size());
+	protected void upgradeRemoteRepositories(NamedParameterJdbcTemplate jdbcTemplate) throws CryptoException {
+		logger.debug("Look for remote repositories to upgrade");
+		List<RemoteRepository> remotes =
+			jdbcTemplate.query(REMOTE_REPOSITORIES_QUERY, new BeanPropertyRowMapper<>(RemoteRepository.class));
+		logger.debug("Found '{}' remote repositories to upgrade", remotes.size());
 
-        if (isEmpty(remotes)) {
-            return;
-        }
+		if (isEmpty(remotes)) {
+			return;
+		}
 
-        for (RemoteRepository remote : remotes) {
-            logger.debug("Upgrade the remote repository with ID '{}'", remote.getId());
-            switch (remote.getAuthenticationType()) {
-                case AuthenticationType.BASIC:
-                    remote.setRemotePassword(upgradeValue(remote.getRemotePassword()));
-                    break;
-                case AuthenticationType.TOKEN:
-                    remote.setRemoteToken(upgradeValue(remote.getRemoteToken()));
-                    break;
-                case AuthenticationType.PRIVATE_KEY:
-                    remote.setRemotePrivateKey(upgradeValue(remote.getRemotePrivateKey()));
-                    break;
-                default:
-                    logger.warn("Unknown authentication type '{}' for the remote repository with ID '{}'",
-                            remote.getAuthenticationType(), remote.getId());
-            }
-        }
+		for (RemoteRepository remote : remotes) {
+			logger.debug("Upgrade the remote repository with ID '{}'", remote.getId());
+			switch (remote.getAuthenticationType()) {
+				case AuthenticationType.BASIC:
+					remote.setRemotePassword(upgradeValue(remote.getRemotePassword()));
+					break;
+				case AuthenticationType.TOKEN:
+					remote.setRemoteToken(upgradeValue(remote.getRemoteToken()));
+					break;
+				case AuthenticationType.PRIVATE_KEY:
+					remote.setRemotePrivateKey(upgradeValue(remote.getRemotePrivateKey()));
+					break;
+				default:
+					logger.warn("Unknown authentication type '{}' for the remote repository with ID '{}'",
+						remote.getAuthenticationType(), remote.getId());
+			}
+		}
 
-        jdbcTemplate.batchUpdate(REMOTE_REPOSITORIES_UPDATE, remotes.stream()
-                .map(BeanPropertySqlParameterSource::new)
-                .toArray(BeanPropertySqlParameterSource[]::new));
-    }
+		jdbcTemplate.batchUpdate(REMOTE_REPOSITORIES_UPDATE, remotes.stream()
+			.map(BeanPropertySqlParameterSource::new)
+			.toArray(BeanPropertySqlParameterSource[]::new));
+	}
 
 }

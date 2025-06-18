@@ -33,73 +33,74 @@ import java.nio.file.Path;
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that renames/moves files and
  * folders in the repository.
+ *
  * @author Dejan Brkic
  */
 public class RenameUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(RenameUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(RenameUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_OLD_PATH = "oldPath";
-    public static final String CONFIG_KEY_NEW_PATH = "newPath";
-    public static final String CONFIG_KEY_OVERWRITE = "overwrite";
+	public static final String CONFIG_KEY_OLD_PATH = "oldPath";
+	public static final String CONFIG_KEY_NEW_PATH = "newPath";
+	public static final String CONFIG_KEY_OVERWRITE = "overwrite";
 
-    protected String oldPath;
-    protected String newPath;
-    protected boolean overwrite;
+	protected String oldPath;
+	protected String newPath;
+	protected boolean overwrite;
 
-    public RenameUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public RenameUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void doInit(final HierarchicalConfiguration config) {
-        oldPath = config.getString(CONFIG_KEY_OLD_PATH);
-        newPath = config.getString(CONFIG_KEY_NEW_PATH);
-        overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, false);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void doInit(final HierarchicalConfiguration config) {
+		oldPath = config.getString(CONFIG_KEY_OLD_PATH);
+		newPath = config.getString(CONFIG_KEY_NEW_PATH);
+		overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, false);
+	}
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        try {
-            Path repo = context.getRepositoryPath();
-            Path from = repo.resolve(oldPath);
-            Path to = repo.resolve(newPath);
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		try {
+			Path repo = context.getRepositoryPath();
+			Path from = repo.resolve(oldPath);
+			Path to = repo.resolve(newPath);
 
-            if (renamePath(from, to)) {
-                trackDeletedFiles(oldPath);
-                trackChangedFiles(newPath);
-            }
-        } catch (Exception e) {
-            throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +
-                    (StringUtils.isEmpty(site) ? "global" : site), e);
-        }
-    }
+			if (renamePath(from, to)) {
+				trackDeletedFiles(oldPath);
+				trackChangedFiles(newPath);
+			}
+		} catch (Exception e) {
+			throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +
+				(StringUtils.isEmpty(site) ? "global" : site), e);
+		}
+	}
 
-    protected boolean renamePath(Path from, Path to) throws IOException {
-        File fromFile = from.toFile();
-        File toFile = to.toFile();
-        if (fromFile.exists()) {
-            if (toFile.exists()) {
-                if (overwrite) {
-                    FileUtils.forceDelete(toFile);
-                } else {
-                    logger.info("The rename operation was not executed because the target path '{}' already exists.",
-                            to);
-                    return false;
-                }
-            }
-            if (fromFile.isDirectory()) {
-                FileUtils.moveDirectory(fromFile, toFile);
-            } else if (fromFile.isFile()) {
-                FileUtils.moveFile(fromFile, toFile);
-            }
-            return true;
-        }
-        return false;
-    }
+	protected boolean renamePath(Path from, Path to) throws IOException {
+		File fromFile = from.toFile();
+		File toFile = to.toFile();
+		if (fromFile.exists()) {
+			if (toFile.exists()) {
+				if (overwrite) {
+					FileUtils.forceDelete(toFile);
+				} else {
+					logger.info("The rename operation was not executed because the target path '{}' already exists.",
+						to);
+					return false;
+				}
+			}
+			if (fromFile.isDirectory()) {
+				FileUtils.moveDirectory(fromFile, toFile);
+			} else if (fromFile.isFile()) {
+				FileUtils.moveFile(fromFile, toFile);
+			}
+			return true;
+		}
+		return false;
+	}
 
 }

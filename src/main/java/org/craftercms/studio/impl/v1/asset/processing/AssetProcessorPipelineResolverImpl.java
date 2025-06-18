@@ -19,7 +19,6 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorResolver;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipelineResolver;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Default implementation of {@link AssetProcessorPipelineResolver}.
@@ -28,16 +27,15 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public class AssetProcessorPipelineResolverImpl implements AssetProcessorPipelineResolver {
 
-    private AssetProcessorResolver processorResolver;
+	private AssetProcessorResolver processorResolver;
 
-    @Required
-    public void setProcessorResolver(AssetProcessorResolver processorResolver) {
-        this.processorResolver = processorResolver;
-    }
+	public AssetProcessorPipelineResolverImpl(AssetProcessorResolver processorResolver) {
+		this.processorResolver = processorResolver;
+	}
 
-    @Override
-    public AssetProcessorPipeline getPipeline(ProcessorPipelineConfiguration config) {
-        return new AssetProcessorPipelineImpl(processorResolver);
-    }
+	@Override
+	public AssetProcessorPipeline getPipeline(ProcessorPipelineConfiguration config) {
+		return new AssetProcessorPipelineImpl(processorResolver);
+	}
 
 }

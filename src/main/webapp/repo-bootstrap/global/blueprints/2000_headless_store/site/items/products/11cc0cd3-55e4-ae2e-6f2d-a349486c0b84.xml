@@ -16,7 +16,8 @@
   -->
 
 <component>
-	<content-type>/component/product</content-type>	<display-template/>
+	<content-type>/component/product</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>11cc</objectGroupId>
 	<objectId>11cc0cd3-55e4-ae2e-6f2d-a349486c0b84</objectId>
@@ -25,15 +26,21 @@
 	<name_s>Plane</name_s>
 	<price_d>5.5</price_d>
 	<image_s>/static-assets/images/products/toy-plane.jpeg</image_s>
-	<categories_o>	<item>	<key>cars</key>
-	<value_smv>Cars</value_smv>
-	</item></categories_o>
+	<categories_o>
+		<item>
+			<key>cars</key>
+			<value_smv>Cars</value_smv>
+		</item>
+	</categories_o>
 	<tags/>
-	<company_o>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
-	<value>Company 1</value>
-	<include>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></company_o>
+	<company_o>
+		<item>
+			<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
+			<value>Company 1</value>
+			<include>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
+			<disableFlattening>false</disableFlattening>
+		</item>
+	</company_o>
 	<description_html>&lt;p&gt;Small toy plane&lt;/p&gt;</description_html>
 	<createdDate>2017-05-11T20:6:23.000Z</createdDate>
 	<createdDate_dt>2017-05-11T20:6:23.000Z</createdDate_dt>

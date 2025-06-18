@@ -19,18 +19,17 @@ import java.io.Serializable;
 
 /**
  * holds the configuration for copy dependency
- * 
- * @author Shankar Krishnan
  *
+ * @author Shankar Krishnan
  */
 public class CopyDependencyConfigTO implements Serializable {
 
-    private static final long serialVersionUID = 3853790978445959968L;
-    protected String pattern;
-	
+	private static final long serialVersionUID = 3853790978445959968L;
+	protected String pattern;
+
 	protected String target;
 
-	
+
 	public CopyDependencyConfigTO(String pattern, String target) {
 		super();
 		this.pattern = pattern;
@@ -52,5 +51,5 @@ public class CopyDependencyConfigTO implements Serializable {
 	public void setTarget(String target) {
 		this.target = target;
 	}
-	
+
 }

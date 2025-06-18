@@ -17,9 +17,9 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
 	<!-- copy all elements -->
 	<xsl:template match="node() | @*">
@@ -36,7 +36,7 @@
 		</xsl:if>
 	</xsl:template>
 
-    <xsl:template match="files[not(file/path = 'site-policy-config.xml')]">
+	<xsl:template match="files[not(file/path = 'site-policy-config.xml')]">
 		<xsl:copy>
 			<xsl:apply-templates select="node() | @*"/>
 			<xsl:element name="file">
@@ -57,6 +57,6 @@
 				</xsl:element>
 			</xsl:element>
 		</xsl:copy>
-    </xsl:template>
+	</xsl:template>
 
 </xsl:stylesheet>

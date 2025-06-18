@@ -50,60 +50,60 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  */
 public class MultiFindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(MultiFindAndReplaceUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(MultiFindAndReplaceUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_RULES = "rules";
-    public static final String CONFIG_KEY_PATTERN = "pattern";
-    public static final String CONFIG_KEY_REPLACEMENT = "replacement";
+	public static final String CONFIG_KEY_RULES = "rules";
+	public static final String CONFIG_KEY_PATTERN = "pattern";
+	public static final String CONFIG_KEY_REPLACEMENT = "replacement";
 
-    /**
-     * The list of find-replace rules
-     */
+	/**
+	 * The list of find-replace rules
+	 */
 
-    protected List<Rule> rules;
+	protected List<Rule> rules;
 
-    public MultiFindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration) {
-        super(studioConfiguration);
-    }
+	public MultiFindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration) {
+		super(studioConfiguration);
+	}
 
-    @Override
-    protected void doInit(final HierarchicalConfiguration config) {
-        super.doInit(config);
-        rules = new ArrayList<>();
-        List<HierarchicalConfiguration> ruleConfigs = config.configurationsAt(CONFIG_KEY_RULES);
-        ruleConfigs.forEach(rule -> rules.add(new Rule(rule.getString(CONFIG_KEY_PATTERN), rule.getString(CONFIG_KEY_REPLACEMENT))));
-    }
+	@Override
+	protected void doInit(final HierarchicalConfiguration config) {
+		super.doInit(config);
+		rules = new ArrayList<>();
+		List<HierarchicalConfiguration> ruleConfigs = config.configurationsAt(CONFIG_KEY_RULES);
+		ruleConfigs.forEach(rule -> rules.add(new Rule(rule.getString(CONFIG_KEY_PATTERN), rule.getString(CONFIG_KEY_REPLACEMENT))));
+	}
 
-    @Override
-    protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
-        return true;
-    }
+	@Override
+	protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
+		return true;
+	}
 
-    @Override
-    protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
-        String content = readFile(path);
-        String updated = null;
-        if (isNotEmpty(content)) {
-            updated = content;
-            for (Rule rule : rules) {
-                updated = RegExUtils.replaceAll(updated, rule.pattern, rule.replacement);
-            }
-        }
+	@Override
+	protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
+		String content = readFile(path);
+		String updated = null;
+		if (isNotEmpty(content)) {
+			updated = content;
+			for (Rule rule : rules) {
+				updated = RegExUtils.replaceAll(updated, rule.pattern, rule.replacement);
+			}
+		}
 
-        if (isNotEmpty(updated) && !StringUtils.equals(content, updated)) {
-            logger.info("Update the file '{}'", path);
-            writeFile(path, updated);
-        }
-    }
+		if (isNotEmpty(updated) && !StringUtils.equals(content, updated)) {
+			logger.info("Update the file '{}'", path);
+			writeFile(path, updated);
+		}
+	}
 
-    private class Rule {
-        String pattern;
-        String replacement;
+	protected static class Rule {
+		String pattern;
+		String replacement;
 
-        public Rule(final String pattern, final String replacement) {
-            this.pattern = pattern;
-            this.replacement = replacement;
-        }
-    }
+		public Rule(final String pattern, final String replacement) {
+			this.pattern = pattern;
+			this.replacement = replacement;
+		}
+	}
 
 }

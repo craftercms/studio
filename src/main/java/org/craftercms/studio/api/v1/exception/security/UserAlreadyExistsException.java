@@ -18,24 +18,24 @@ package org.craftercms.studio.api.v1.exception.security;
 
 public class UserAlreadyExistsException extends Exception {
 
-    private static final long serialVersionUID = -1049930069697110997L;
+	private static final long serialVersionUID = -1049930069697110997L;
 
-    public UserAlreadyExistsException() {
-    }
+	public UserAlreadyExistsException() {
+	}
 
-    public UserAlreadyExistsException(String message) {
-        super(message);
-    }
+	public UserAlreadyExistsException(String message) {
+		super(message);
+	}
 
-    public UserAlreadyExistsException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public UserAlreadyExistsException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public UserAlreadyExistsException(Throwable cause) {
-        super(cause);
-    }
+	public UserAlreadyExistsException(Throwable cause) {
+		super(cause);
+	}
 
-    public UserAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public UserAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

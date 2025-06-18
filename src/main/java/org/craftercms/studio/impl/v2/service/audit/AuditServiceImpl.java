@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,155 +16,82 @@
 
 package org.craftercms.studio.impl.v2.service.audit;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.CommitAuthor;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_AUDIT_LOG;
 
+/**
+ * Default implementation of {@link AuditService}
+ */
 public class AuditServiceImpl implements AuditService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuditServiceImpl.class);
+	private AuditService auditServiceInternal;
 
-    private AuditServiceInternal auditServiceInternal;
-    private ContentService contentService;
-    private SecurityService securityService;
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public List<AuditLog> getAuditLog(@SiteId String siteId,
+					  int offset, int limit,
+					  String user,
+					  List<String> operations,
+					  boolean includeParameters, ZonedDateTime dateFrom,
+					  ZonedDateTime dateTo,
+					  String target,
+					  String origin,
+					  String clusterNodeId,
+					  String sort,
+					  String order) throws SiteNotFoundException {
+		return auditServiceInternal.getAuditLog(siteId, offset, limit, user, operations, includeParameters,
+			dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public List<AuditLog> getAuditLog(@SiteId String siteId,
-                                      int offset, int limit,
-                                      String user,
-                                      List<String> operations,
-                                      boolean includeParameters, ZonedDateTime dateFrom,
-                                      ZonedDateTime dateTo,
-                                      String target,
-                                      String origin,
-                                      String clusterNodeId,
-                                      String sort,
-                                      String order) throws SiteNotFoundException {
-        return auditServiceInternal.getAuditLog(siteId, offset, limit, user, operations, includeParameters,
-                dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public int getAuditLogTotal(@SiteId String siteId, String user, List<String> operations, boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+				    String target, String origin, String clusterNodeId) throws SiteNotFoundException {
+		return auditServiceInternal.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
+			dateTo, target, origin, clusterNodeId);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public int getAuditLogTotal(@SiteId String siteId, String user, List<String> operations, boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                String target, String origin, String clusterNodeId) throws SiteNotFoundException {
-        return auditServiceInternal.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
-                dateTo, target, origin, clusterNodeId);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public AuditLog getAuditLogEntry(@SiteId final String siteId, final long auditLogId) throws SiteNotFoundException {
+		return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public AuditLog getAuditLogEntry(@SiteId final String siteId, final long auditLogId) throws SiteNotFoundException {
-        return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+	public List<ContentItemTO> getUserActivities(@SiteId String site, int limit, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceLayerException {
+		return auditServiceInternal.getUserActivities(site, limit, sort, ascending, excludeLive, filterType);
+	}
 
-    @Override
-    @RequireSiteReady
-    public List<ContentItemTO> getUserActivities(@SiteId String site, int limit, String sort, boolean ascending,
-                                                 boolean excludeLive, String filterType) {
-        int startPos = 0;
-        List<ContentItemTO> contentItems = new ArrayList<>();
-        boolean hasMoreItems = true;
-        String user = securityService.getCurrentUser();
+	@Override
+	// TODO: what permission is needed here?
+	public boolean insertAuditLog(AuditLog auditLog) {
+		return auditServiceInternal.insertAuditLog(auditLog);
+	}
 
-        while(contentItems.size() < limit && hasMoreItems){
-            int remainingItems = limit - contentItems.size();
-            hasMoreItems = getActivityFeeds(user, site, startPos, limit , filterType, excludeLive,contentItems,
-                    remainingItems);
-            startPos = startPos + limit;
-        }
+	@Override
+	public List<CommitAuthor> getCommitAuthors(long siteId, List<String> commitIds, String path) {
+		return auditServiceInternal.getCommitAuthors(siteId, commitIds, path);
+	}
 
-        if(contentItems.size() > limit){
-            return contentItems.subList(0, limit);
-        }
-
-        return contentItems;
-    }
-
-    protected boolean getActivityFeeds(String user, String site, int startPos, int size, String filterType,
-                                       boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
-
-        List<AuditLog> activityFeeds = auditServiceInternal.selectUserFeedEntries(user, site, startPos, size, filterType,
-                hideLiveItems);
-
-        boolean hasMoreItems = activityFeeds.size() >= size;
-
-        // If the number of items returned is less than the size, then it means that the table has no more records
-
-        // TODO: SJ: Simplify the code below
-        if (CollectionUtils.isNotEmpty(activityFeeds)) {
-            for (int index = 0; index < activityFeeds.size() && remainingItem!=0; index++) {
-                AuditLog auditLog = activityFeeds.get(index);
-                String id = auditLog.getPrimaryTargetValue();
-                ContentItemTO item = createActivityItem(site, auditLog, id);
-                contentItems.add(item);
-                remainingItem--;
-            }
-        }
-
-        logger.debug("The total items retrieved from the activity feed in site '{}' is '{}' and hasMore is '{}'",
-                site, contentItems.size(), hasMoreItems);
-
-        return hasMoreItems;
-    }
-
-    protected ContentItemTO createActivityItem(String site, AuditLog auditLog, String id) {
-        try {
-            ContentItemTO item = contentService.getContentItem(site, id, 0);
-            if(item == null || item.isDeleted()) {
-                item = contentService.createDummyDmContentItemForDeletedNode(site, id);
-                String modifier = auditLog.getActorId();
-                if(modifier != null && !modifier.isEmpty()) {
-                    item.user = modifier;
-                }
-                item.contentType = auditLog.getPrimaryTargetSubtype();
-                item.setLockOwner("");
-            }
-            ZonedDateTime editedDate = auditLog.getOperationTimestamp();
-            if (editedDate != null) {
-                item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
-            } else {
-                item.eventDate = null;
-            }
-
-            return item;
-        } catch (Exception e) {
-            logger.error("Failed to fetch content item from site '{}' with ID '{}'", site, id, e);
-            return null;
-        }
-    }
-
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+	public void setAuditServiceInternal(AuditService auditServiceInternal) {
+		this.auditServiceInternal = auditServiceInternal;
+	}
 }

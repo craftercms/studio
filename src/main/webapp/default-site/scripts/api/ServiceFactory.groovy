@@ -20,7 +20,6 @@ import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices
 import scripts.api.impl.content.SpringContentTypeServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
-import scripts.api.impl.deployment.SpringDeploymentServices
 import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
 import scripts.api.impl.dependency.SpringDependencyServices
@@ -30,17 +29,17 @@ import scripts.api.impl.user.SpringUserServices
  * Class is a factory used by the API wrappers to find their implementation
  */
 class ServiceFactory {
-	
+
 	static createContext(applicationContext, request) {
 		def context = [:]
 		context.token = ""
 		context.applicationContext = applicationContext
 		context.request = request
 
-		if(request != null) {
-			context.token = Cookies.getCookieValue("ccticket", request) 
-		
-			if(context.token == null) {
+		if (request != null) {
+			context.token = Cookies.getCookieValue("ccticket", request)
+
+			if (context.token == null) {
 				context.token = request.getParameter("ticket")
 			}
 		}
@@ -49,7 +48,7 @@ class ServiceFactory {
 	}
 
 	/**
-     * return the implementation for content services
+	 * return the implementation for content services
 	 */
 	static getContentServices(context) {
 		return new SpringContentServices(context)
@@ -60,16 +59,6 @@ class ServiceFactory {
 	 */
 	static getContentTypeServices(context) {
 		return new SpringContentTypeServices(context)
-	}
-
-	/**
-	 * return the implementation for deployment services
-	 *
-	 * @param context site context
-	 * @return DeploymentServices
-	 */
-	static getDeploymentServices(context) {
-		return new SpringDeploymentServices(context)
 	}
 
 	/**
@@ -99,9 +88,9 @@ class ServiceFactory {
 	 * @param context site context
 	 * @return Deps Services
 	 */
-    static getDependencyServices(context) {
-        return new SpringDependencyServices(context)
-    }
+	static getDependencyServices(context) {
+		return new SpringDependencyServices(context)
+	}
 
 	/**
 	 * return the implementation for nav services

@@ -17,51 +17,51 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Add the new permission to any role that has the 'create-site' permission -->
-    <xsl:template match="permissions/role[@name!='admin']/rule/allowed-permissions">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
-            <xsl:if test="(permission = 'create-site') and not(permission = 'edit_site')">
-                <xsl:element name="permission">
-                    <xsl:text>edit_site</xsl:text>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Add the new permission to any role that has the 'create-site' permission -->
+	<xsl:template match="permissions/role[@name!='admin']/rule/allowed-permissions">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
+			<xsl:if test="(permission = 'create-site') and not(permission = 'edit_site')">
+				<xsl:element name="permission">
+					<xsl:text>edit_site</xsl:text>
+				</xsl:element>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 
-    <!-- Add the new permission to the default site admin role -->
-    <xsl:template match="permissions/role[@name='admin']/rule[@regex='/.*']/allowed-permissions">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'edit_site')">
-                <xsl:element name="permission">
-                    <xsl:text>edit_site</xsl:text>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Add the new permission to the default site admin role -->
+	<xsl:template match="permissions/role[@name='admin']/rule[@regex='/.*']/allowed-permissions">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
+			<xsl:if test="not(permission = 'edit_site')">
+				<xsl:element name="permission">
+					<xsl:text>edit_site</xsl:text>
+				</xsl:element>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:if>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

@@ -16,7 +16,8 @@
   -->
 
 <component>
-	<content-type>/component/author</content-type>	<display-template/>
+	<content-type>/component/author</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>6da4</objectGroupId>
 	<objectId>6da4e193-6109-0b9f-91b6-d439fc64c5dc</objectId>

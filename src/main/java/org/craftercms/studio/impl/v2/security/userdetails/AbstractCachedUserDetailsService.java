@@ -33,26 +33,26 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
  */
 public class AbstractCachedUserDetailsService {
 
-    protected UserDAO userDao;
+	protected UserDAO userDao;
 
-    protected Cache<String, User> cache;
+	protected Cache<String, User> cache;
 
-    public AbstractCachedUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
-        this.userDao = userDao;
-        this.cache = cache;
-    }
+	public AbstractCachedUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
+		this.userDao = userDao;
+		this.cache = cache;
+	}
 
-    protected User getUser(String username) {
-        User user = cache.getIfPresent(username);
-        if (user == null) {
-            user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
-            if (user != null) {
-                cache.put(username, user);
-            } else {
-                throw new UsernameNotFoundException("User not found for " + username);
-            }
-        }
-        return user;
-    }
+	protected User getUser(String username) {
+		User user = cache.getIfPresent(username);
+		if (user == null) {
+			user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
+			if (user != null) {
+				cache.put(username, user);
+			} else {
+				throw new UsernameNotFoundException("User not found for " + username);
+			}
+		}
+		return user;
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,22 +16,21 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmOrderTO;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.springframework.core.io.Resource;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.*;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.springframework.core.io.Resource;
 
 /**
  * Content Services that other services may use
@@ -40,377 +39,333 @@ import org.springframework.core.io.Resource;
  */
 public interface ContentService {
 
-    /**
-     * Check if content exists
-     *
-     * @param site site identifier
-     * @param path path of the content
-     * @return true if site has content object at path
-     */
-    boolean contentExists(String site, String path);
-
-    /**
-     * Checks if a content exists at a given path and throw an exception if it does not.
-     * @param site id of the site
-     * @param path the content path
-     * @throws ServiceLayerException if no content is found at the given path
-     */
-    void checkContentExists(String site, String path) throws ServiceLayerException;
-
-    /**
-     * This is a faster, but less accurate, version of contentExists. This prioritizes
-     * performance over checking the actual underlying repository if the content is actually in the store
-     * or we simply hold a reference to the object in the actual store.
-     *
-     * @return true if site has content object at path
-     */
-    boolean shallowContentExists(String site, String path);
-
-    /**
-     * get document from wcm content
-     *
-     * @param site site identifier
-     * @param path path of the content
-     * @return document
-     */
-    InputStream getContent(String site, String path) throws ContentNotFoundException;
-
-    /**
-     * get file size
-     *
-     * @param site site id where the operation will be executed
-     * @param path path to content
-     * @return Size in bytes
-     */
-    long getContentSize(String site, String path);
-
-    /**
-     * get content as string from repository
-     *
-     * @param site site identifier
-     * @param path path of the content
-     * @return document
-     */
-    String getContentAsString(String site, String path);
-
-
-    /**
-     * Check if path is a correct location to write asset content
-     * @param path to write asset
-     * @throws ServiceLayerException if path is not permitted
-     */
-    void checkWriteAssetPath(String path) throws ServiceLayerException;
-
-    /**
-     * get content as string from repository
-     *
-     * @param site site identifier
-     * @param path path of the content
-     * @param encoding file encoding
-     * @return document
-     */
-    String getContentAsString(String site, String path, String encoding);
-
-
-    /**
-     * Get content from the repository.
-     * This "shallow" version of the method will retrieve the content from disk instead of the git repository.
-     * @param siteId the site id
-     * @param path the path of the content
-     * @return the content as a string
-     */
-    String shallowGetContentAsString(String siteId, String path);
-
-    /**
-     * get document from wcm content
-     *
-     * @param site site identifier
-     * @param path content path
-     * @return document
-     * @throws DocumentException XML document error
-     */
-    Document getContentAsDocument(String site, String path) throws DocumentException;
-
-    /**
-     * Returns content wrapped as a {@link Resource} instance
-     * @param site the site id
-     * @param path the path of the content
-     * @return the resource object
-     * @throws ContentNotFoundException if there is no content at the given path
-     * @since 3.1.1
-     */
-    Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
-
-    /**
-     * write content
-     *
-     * @param site    - the project ID
-     * @param path    path to content
-     * @param content stream of content to write
-     * @return return true if successful
-     *
-     * @throws ServiceLayerException general service error
-     */
-    boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
-
-    /**
-     * Notify when there is a content update
-     * @param site site name
-     * @param path path name
-     */
-    void notifyContentEvent(String site, String path);
-
-    /**
-     * create a folder
-     *
-     * @param site - the project ID
-     * @param path path to create a folder in
-     * @param name a folder name to create
-     * @return return the reference to the folder created
-     *
-     * @throws SiteNotFoundException site not found
-     */
-    boolean createFolder(String site, String path, String name)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * delete content at the path
-     *
-     * @param site - the project ID
-     * @param path path to content
-     * @return return true if successful
-     *
-     * @throws SiteNotFoundException site not found
-     */
-    boolean deleteContent(String site, String path, String approver) throws ServiceLayerException, UserNotFoundException;
-
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * copy content fromPath to toPath
-     *
-     * @param site     - the project ID
-     * @param fromPath the source path
-     * @param toPath   the target path to copy content to
-     * @return final path if successful, null otherwise
-     */
-    String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * move content fromPath to toPath
-     *
-     * @param site     - the project ID
-     * @param fromPath the source path
-     * @param toPath   the target path to copy content to
-     * @return final path if successful, null otherwise
-     */
-    String moveContent(String site, String fromPath, String toPath);
-
-    /**
-     * get the tree of content items (metadata) beginning at a root
-     *
-     * @param site - the project ID
-     * @param path - the path to root at
-     *
-     * @return content item with children tree
-     */
-    ContentItemTO getContentItemTree(String site, String path, int depth);
-
-    /**
-     * get the content item (metadata) at a specific path
-     *
-     * @param site - the project ID
-     * @param path - the path of the content item
-     *
-     * @return content item representation
-     */
-    ContentItemTO getContentItem(String site, String path);
-
-    /**
-     * get the content item (metadata) at a specific path
-     *
-     * @param site - the project ID
-     * @param path - the path of the content item
-     * @param depth - depth to get desendents
-     *
-     * @return content item representation
-     */
-    ContentItemTO getContentItem(String site, String path, int depth);
-
-    /**
-     * Retrieves the content type for a given path
-     * @param site the site id
-     * @param path the content path
-     * @return content type
-     * @throws DocumentException on failure to retrieve the content type from xml (when applicable)
-     */
-    String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException;
-
-    /**
-     * get the version history for an item
-     *
-     * @param site - the project ID
-     * @param path - the path of the item
-     *
-     * @return version history
-     */
-    VersionTO[] getContentItemVersionHistory(String site, String path);
-
-    /**
-     * revert a version (create a new version based on an old version)
-     *
-     * @param site    - the project ID
-     * @param path    - the path of the item to "revert"
-     * @param version - old version ID to base to version on
-     * @param major major version
-     * @param comment comment for revert action
-     *
-     * @return true if success otherwise false
-     *
-     * @throws SiteNotFoundException site not found
-     */
-    boolean revertContentItem(String site, String path, String version, boolean major, String comment)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Check if content exists
+	 *
+	 * @param site site identifier
+	 * @param path path of the content
+	 * @return true if site has content object at path
+	 */
+	boolean contentExists(String site, String path);
 
 	/**
-     * return the content for a given version
-     *
-     * @param site    - the project ID
-     * @param path    - the path item
-     * @param version - version
-     *
-     * @return content
-     *
-     * @throws ContentNotFoundException content not found
-     */
- 	Optional<Resource> getContentVersion(String site, String path, String version) throws ContentNotFoundException;
+	 * This is a faster, but less accurate, version of contentExists. This prioritizes
+	 * performance over checking the actual underlying repository if the content is actually in the store
+	 * or we simply hold a reference to the object in the actual store.
+	 *
+	 * @return true if site has content object at path
+	 */
+	boolean shallowContentExists(String site, String path);
 
 	/**
-     * return the content for a given version
-     *
-     * @param site    - the project ID
-     * @param path    - the path item
-     * @param version - version
-     * @return version number
-     *
-     * @throws ContentNotFoundException content not found
-     */
- 	String getContentVersionAsString(String site, String path, String version)	throws ContentNotFoundException;
+	 * get document from wcm content
+	 *
+	 * @param site site identifier
+	 * @param path path of the content
+	 * @return document
+	 */
+	InputStream getContent(String site, String path) throws ContentNotFoundException;
 
-    /**
-     * write content
-     *
-     * @param site site identifier
-     * @param path path
-     * @param fileName file name
-     * @param contentType content type
-     * @param input content
-     * @param createFolders
-     * 			create missing folders in path?
-     * @param edit edit
-     * @param unlock
-     * 			unlock the content upon edit?
-     * @throws ServiceLayerException general service error
-     */
-    void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                      String createFolders, String edit, String unlock)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * get file size
+	 *
+	 * @param site site id where the operation will be executed
+	 * @param path path to content
+	 * @return Size in bytes
+	 */
+	long getContentSize(String site, String path);
 
-    /**
-     * write content
-     *
-     * @param site site identifier
-     * @param path path
-     * @param fileName file name
-     * @param contentType content type
-     * @param input content
-     * @param createFolders
-     * 			create missing folders in path?
-     * @param edit edit
-     * @param unlock
-     * 			unlock the content upon edit?
-     * @param skipAuditLogInsert if true do not insert audit log row, otherwise false
-     * @throws ServiceLayerException general service error
-     */
-    void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                      String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
-            throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * get content as string from repository
+	 *
+	 * @param site site identifier
+	 * @param path path of the content
+	 * @return document
+	 */
+	String getContentAsString(String site, String path);
 
-    void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
-                               final String contentType, final InputStream input, final String createFolders,
-                               final String edit, final String unlock, final boolean createFolder)
-                                throws ServiceLayerException;
 
-    Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
-                                          String isImage, String allowedWidth, String allowedHeight,
-                                          String allowLessSize, String draft, String unlock, String systemAsset)
-                                            throws ServiceLayerException;
+	/**
+	 * Check if path is a correct location to write asset content
+	 *
+	 * @param path to write asset
+	 * @throws ServiceLayerException if path is not permitted
+	 */
+	void checkWriteAssetPath(String path) throws ServiceLayerException;
 
-    /**
-     * get the next available of the given content name at the given path (used for paste/duplicate)
-     *
-     * @param site site identifier
-     * @param path path of the item
-     * @return next available name that avoids a name conflict
-     */
-    String getNextAvailableName(String site, String path);
+	/**
+	 * get content as string from repository
+	 *
+	 * @param site     site identifier
+	 * @param path     path of the content
+	 * @param encoding file encoding
+	 * @return document
+	 */
+	String getContentAsString(String site, String path, String encoding);
 
-/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
-/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
 
-    ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
+	/**
+	 * Get content from the repository.
+	 * This "shallow" version of the method will retrieve the content from disk instead of the git repository.
+	 *
+	 * @param siteId the site id
+	 * @param path   the path of the content
+	 * @return the content as a string
+	 */
+	String shallowGetContentAsString(String siteId, String path);
 
-    String getContentTypeClass(String site, String uri);
+	/**
+	 * get document from wcm content
+	 *
+	 * @param site site identifier
+	 * @param path content path
+	 * @return document
+	 * @throws DocumentException XML document error
+	 */
+	Document getContentAsDocument(String site, String path) throws DocumentException;
 
-    GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
+	/**
+	 * Returns content wrapped as a {@link Resource} instance
+	 *
+	 * @param site the site id
+	 * @param path the path of the content
+	 * @return the resource object
+	 * @throws ContentNotFoundException if there is no content at the given path
+	 * @since 3.1.1
+	 */
+	Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
-    void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
+	/**
+	 * write content
+	 *
+	 * @param site    - the project ID
+	 * @param path    path to content
+	 * @param content stream of content to write
+	 * @return return new commit id
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 */
+	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
-    List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
+	/**
+	 * write content from an input stream and notify the subscribers.
+	 *
+	 * @param site    - the project ID
+	 * @param path    path to content
+	 * @param content stream of content to write
+	 * @return return true if successful
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 */
+	boolean writeContentAndNotify(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
 
-    double reorderItems(String site, String relativePath, String before, String after, String orderName)
-        throws ServiceLayerException;
+	/**
+	 * Notify when there is a content update
+	 *
+	 * @param site site name
+	 * @param path path name
+	 */
+	void notifyContentEvent(String site, String path);
 
-    /**
-    * rename a content item
-    *
-    * @param site - the project ID
-    * @param path path to a folder to rename
-    * @param name a new folder name
-    * @return return the reference to the folder renamed
-    *
-    * @throws ServiceLayerException general service error
-    */
-    boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * Validate the input and create a folder
+	 *
+	 * @param site - the project ID
+	 * @param path path to create a folder in
+	 * @param name a folder name to create
+	 * @return return the reference to the folder created
+	 * @throws ServiceLayerException
+	 * @throws UserNotFoundException
+	 * @throws ValidationException
+	 */
+	boolean validateAndCreateFolder(String site, String path, String name)
+		throws ServiceLayerException, UserNotFoundException, ValidationException;
 
-    /**
-     * Push content to remote repository
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteBranch remote branch
-     * @return true if operation was successful
-     *
-     * @throws ServiceLayerException general service error
-     * @throws InvalidRemoteUrlException invalid remote url
-     * @throws AuthenticationException authentication error
-     * @throws CryptoException git repository helper error
-     */
-    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException, CryptoException;
+	/**
+	 * create a folder
+	 *
+	 * @param site - the project ID
+	 * @param path path to create a folder in
+	 * @param name a folder name to create
+	 * @return return the reference to the folder created
+	 * @throws SiteNotFoundException site not found
+	 */
+	boolean createFolder(String site, String path, String name)
+		throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * Pull from remote repository
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteBranch remote branch
-     * @return true if operation was successful
-     *
-     * @throws ServiceLayerException general service error
-     * @throws InvalidRemoteUrlException invalid remote url
-     * @throws AuthenticationException authentication error
-     * @throws CryptoException git repository helper error
-     */
-    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException, CryptoException;
+	/**
+	 * copy content fromPath to toPath
+	 *
+	 * @param site     - the project ID
+	 * @param fromPath the source path
+	 * @param toPath   the target path to copy content to
+	 * @return final path if successful, null otherwise
+	 *
+	 * @throws ServiceLayerException general service exception
+	 * @throws UserNotFoundException user not found exception
+	 */
+	String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * move content fromPath to toPath
+	 *
+	 * @param site     - the project ID
+	 * @param fromPath the source path
+	 * @param toPath   the target path to copy content to
+	 * @return final path if successful, null otherwise
+	 */
+	String moveContent(String site, String fromPath, String toPath);
+
+	/**
+	 * get the tree of content items (metadata) beginning at a root
+	 *
+	 * @param site - the project ID
+	 * @param path - the path to root at
+	 * @return content item with children tree
+	 */
+	ContentItemTO getContentItemTree(String site, String path, int depth);
+
+	/**
+	 * get the content item (metadata) at a specific path
+	 *
+	 * @param site - the project ID
+	 * @param path - the path of the content item
+	 * @return content item representation
+	 */
+	ContentItemTO getContentItem(String site, String path);
+
+	/**
+	 * get the content item (metadata) at a specific path
+	 *
+	 * @param site  - the project ID
+	 * @param path  - the path of the content item
+	 * @param depth - depth to get desendents
+	 * @return content item representation
+	 */
+	ContentItemTO getContentItem(String site, String path, int depth);
+
+	/**
+	 * Retrieves the content type for a given path
+	 *
+	 * @param site the site id
+	 * @param path the content path
+	 * @return content type
+	 * @throws DocumentException on failure to retrieve the content type from xml (when applicable)
+	 */
+	String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException;
+
+	/**
+	 * revert a version (create a new version based on an old version)
+	 *
+	 * @param site    - the project ID
+	 * @param path    - the path of the item to "revert"
+	 * @param version - old version ID to base to version on
+	 * @param major   major version
+	 * @param comment comment for revert action
+	 * @return true if success otherwise false
+	 *
+	 * @throws ServiceLayerException general service exception
+	 * @throws UserNotFoundException user not found exception
+	 */
+	boolean revertContentItem(String site, String path, String version, boolean major, String comment)
+		throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * return the content for a given version
+	 *
+	 * @param site    - the project ID
+	 * @param path    - the path item
+	 * @param version - version
+	 * @return content
+	 * @throws ContentNotFoundException content not found
+	 */
+	Optional<Resource> getContentVersion(String site, String path, String version) throws ContentNotFoundException;
+
+	/**
+	 * return the content for a given version
+	 *
+	 * @param site    - the project ID
+	 * @param path    - the path item
+	 * @param version - version
+	 * @return version number
+	 * @throws ContentNotFoundException content not found
+	 */
+	String getContentVersionAsString(String site, String path, String version) throws ContentNotFoundException;
+
+	/**
+	 * write content
+	 *
+	 * @param site          site identifier
+	 * @param path          path
+	 * @param fileName      file name
+	 * @param contentType   content type
+	 * @param input         content
+	 * @param createFolders create missing folders in path?
+	 * @param edit          edit
+	 * @param unlock        unlock the content upon edit?
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 * @throws ValidationException validation exception
+	 */
+	void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+			  String createFolders, String edit, String unlock)
+		throws ServiceLayerException, UserNotFoundException, ValidationException;
+
+	/**
+	 * write content
+	 *
+	 * @param site               site identifier
+	 * @param path               path
+	 * @param fileName           file name
+	 * @param contentType        content type
+	 * @param input              content
+	 * @param createFolders      create missing folders in path?
+	 * @param edit               edit
+	 * @param unlock             unlock the content upon edit?
+	 * @param skipAuditLogInsert if true do not insert audit log row, otherwise false
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found exception
+	 */
+	void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+			  String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
+		throws ServiceLayerException, UserNotFoundException;
+
+	void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
+				   final String contentType, final InputStream input, final String createFolders,
+				   final String edit, final String unlock, final boolean createFolder)
+		throws ServiceLayerException, ValidationException;
+
+	Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+					      String isImage, String allowedWidth, String allowedHeight,
+					      String allowLessSize, String draft, String unlock, String systemAsset)
+		throws ServiceLayerException;
+
+	/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
+	/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
+
+	ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) throws SiteNotFoundException;
+
+	String getContentTypeClass(String site, String uri) throws SiteNotFoundException;
+
+	void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
+
+	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
+
+	double reorderItems(String site, String relativePath, String before, String after, String orderName)
+		throws ServiceLayerException;
+
+	/**
+	 * rename a content item
+	 *
+	 * @param site - the project ID
+	 * @param path path to a folder to rename
+	 * @param name a new folder name
+	 * @return return the reference to the folder renamed
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found
+	 * @throws ValidationException   validation exception
+	 */
+	boolean renameContent(String site, String path, String name)
+		throws ServiceLayerException, UserNotFoundException, ValidationException;
+
 }

@@ -28,18 +28,18 @@ import org.craftercms.studio.model.rest.Result;
  * @param <T> the type of the result entity
  */
 public class UnwrappedResult<T> extends Result {
-    @JsonUnwrapped
-    private final T result;
+	@JsonUnwrapped
+	private final T result;
 
-    public UnwrappedResult(T result) {
-        this.result = result;
-    }
+	public UnwrappedResult(T result) {
+		this.result = result;
+	}
 
-    public T getResult() {
-        return result;
-    }
+	public T getResult() {
+		return result;
+	}
 
-    public static <T> UnwrappedResult<T> of(T result) {
-        return new UnwrappedResult<>(result);
-    }
+	public static <T> UnwrappedResult<T> of(T result) {
+		return new UnwrappedResult<>(result);
+	}
 }

@@ -16,15 +16,12 @@
 
 package org.craftercms.studio.impl.v2.service.content;
 
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,75 +31,60 @@ import org.mockito.Mock;
 import java.lang.reflect.Method;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.AdditionalMatchers.not;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 public class ContentServiceImplTest {
-    private static final String EXISTING_PATH = "/path/to/existing/item";
-    private static final String NON_EXISTENT_PATH = "/path/to/non/existing/item";
-    private static final String SITE_NAME = "siteName";
-    private static final String NON_EXISTENT_SITE_NAME = "nonExistentSiteName";
+	private static final String EXISTING_PATH = "/path/to/existing/item";
+	private static final String SITE_NAME = "siteName";
+	@Mock
+	ContentService contentServiceInternal;
+	@InjectMocks
+	ContentServiceImpl contentService;
 
-    @Mock
-    ContentRepository contentRepository;
-    @Mock
-    SiteService siteService;
-    @Mock
-    ContentService contentServiceV1;
-    @Mock
-    ContentServiceInternal contentServiceInternal;
-    @InjectMocks
-    ContentServiceImpl contentService;
+	private AutoCloseable mocks;
 
-    private AutoCloseable mocks;
+	@Before
+	public void setUp() throws ServiceLayerException {
+		mocks = openMocks(this);
+	}
 
-    @Before
-    public void setUp() throws ServiceLayerException {
-        mocks = openMocks(this);
-        doThrow(new SiteNotFoundException()).when(siteService).checkSiteExists(not(eq(SITE_NAME)));
-        doThrow(new ContentNotFoundException()).when(contentServiceV1).checkContentExists(anyString(), not(eq(EXISTING_PATH)));
-    }
+	@After
+	public void tearDown() throws Exception {
+		mocks.close();
+	}
 
-    @After
-    public void tearDown() throws Exception {
-        mocks.close();
-    }
+	@Test
+	public void contentHistoryNonExistentItem() throws NoSuchMethodException {
+		Method method = ContentServiceImpl.class.getMethod("getContentVersionHistory", String.class, String.class);
+		assertTrue(method.isAnnotationPresent(RequireContentExists.class));
+	}
 
-    @Test
-    public void contentHistoryNonExistentItem() {
-        assertThrows("Service must check for content existence",
-                ContentNotFoundException.class, () -> contentService.getContentVersionHistory(SITE_NAME, NON_EXISTENT_PATH));
-    }
+	@Test
+	public void contentHistoryNonExistentSite() throws NoSuchMethodException {
+		Method method = ContentServiceImpl.class.getMethod("getContentVersionHistory", String.class, String.class);
+		assertTrue(method.isAnnotationPresent(RequireSiteReady.class));
+	}
 
-    @Test
-    public void contentHistoryNonExistentSite() throws NoSuchMethodException {
-        Method method = ContentServiceImpl.class.getMethod("getContentVersionHistory", String.class, String.class);
-        assertTrue(method.isAnnotationPresent(RequireSiteReady.class));
-    }
+	@Test
+	public void contentHistoryValidParams() throws ServiceLayerException {
+		contentService.getContentVersionHistory(SITE_NAME, EXISTING_PATH);
+		verify(contentServiceInternal).getContentVersionHistory(SITE_NAME, EXISTING_PATH);
+	}
 
-    @Test
-    public void contentHistoryValidParams() throws ServiceLayerException {
-        contentService.getContentVersionHistory(SITE_NAME, EXISTING_PATH);
-        verify(contentServiceInternal).getContentVersionHistory(SITE_NAME, EXISTING_PATH);
-    }
+	@Test
+	public void testContentExits() throws SiteNotFoundException {
+		when(contentServiceInternal.contentExists(SITE_NAME, EXISTING_PATH)).thenReturn(true);
+		boolean result = contentService.contentExists(SITE_NAME, EXISTING_PATH);
+		verify(contentServiceInternal, times(1)).contentExists(SITE_NAME, EXISTING_PATH);
+		assertEquals(true, result);
+	}
 
-    @Test
-    public void testContentExits() throws SiteNotFoundException {
-        when(contentServiceInternal.contentExists(SITE_NAME, EXISTING_PATH)).thenReturn(true);
-        boolean result = contentService.contentExists(SITE_NAME, EXISTING_PATH);
-        verify(contentServiceInternal, times(1)).contentExists(SITE_NAME, EXISTING_PATH);
-        assertEquals(true, result);
-    }
-
-    @Test
-    public void testSiteNotFound() throws NoSuchMethodException {
-        Method method = ContentServiceImpl.class.getMethod("contentExists", String.class, String.class);
-        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
-    }
+	@Test
+	public void testSiteNotFound() throws NoSuchMethodException {
+		Method method = ContentServiceImpl.class.getMethod("contentExists", String.class, String.class);
+		assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
+	}
 
 }

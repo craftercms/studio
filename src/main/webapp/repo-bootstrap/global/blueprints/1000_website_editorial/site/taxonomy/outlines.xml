@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-  <content-type>/taxonomy</content-type>
-  <display-template/>
-  <no-template-required/>
-  <merge-strategy>inherit-levels</merge-strategy>
-  <objectGroupId>bc15</objectGroupId>
-  <objectId>bc150ce6-52a0-0f76-f775-8f95630f5831</objectId>
-  <items item-list="true">
+	<content-type>/taxonomy</content-type>
+	<display-template/>
+	<no-template-required/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>bc15</objectGroupId>
+	<objectId>bc150ce6-52a0-0f76-f775-8f95630f5831</objectId>
+	<items item-list="true">
 		<item>
 			<key>fa-address-book far</key>
 			<value>Address book</value>
@@ -762,12 +762,12 @@
 			<value>Window restore</value>
 			<unicode>f2d2</unicode>
 		</item>
-  </items>
-  <file-name>outlines.xml</file-name>
-  <folder-name/>
-  <internal-name>Outline Icons</internal-name>
-  <createdDate>2019-12-20T13:33:20.742Z</createdDate>
-  <createdDate_dt>2019-12-20T13:33:20.742Z</createdDate_dt>
-  <lastModifiedDate>2019-12-20T13:33:20.742Z</lastModifiedDate>
-  <lastModifiedDate_dt>2019-12-20T13:33:20.742Z</lastModifiedDate_dt>
+	</items>
+	<file-name>outlines.xml</file-name>
+	<folder-name/>
+	<internal-name>Outline Icons</internal-name>
+	<createdDate>2019-12-20T13:33:20.742Z</createdDate>
+	<createdDate_dt>2019-12-20T13:33:20.742Z</createdDate_dt>
+	<lastModifiedDate>2019-12-20T13:33:20.742Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-12-20T13:33:20.742Z</lastModifiedDate_dt>
 </component>

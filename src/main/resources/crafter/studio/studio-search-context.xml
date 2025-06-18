@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -19,37 +19,39 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="searchClient" class="org.craftercms.search.opensearch.spring.OpenSearchClientFactory">
-        <constructor-arg name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
-        <property name="username" value="#{studioConfiguration.getProperty('studio.search.username')}"/>
-        <property name="password" value="#{studioConfiguration.getProperty('studio.search.password')}"/>
-        <property name="connectTimeout" value="#{studioConfiguration.getProperty('studio.search.timeout.connect')}"/>
-        <property name="socketTimeout" value="#{studioConfiguration.getProperty('studio.search.timeout.socket')}"/>
-        <property name="threadCount" value="#{studioConfiguration.getProperty('studio.search.threads')}"/>
-        <property name="socketKeepAlive" value="#{studioConfiguration.getProperty('studio.search.keepAlive')}"/>
-    </bean>
+	<bean id="searchClient" class="org.craftercms.search.opensearch.spring.OpenSearchClientFactory">
+		<constructor-arg name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
+		<property name="username" value="#{studioConfiguration.getProperty('studio.search.username')}"/>
+		<property name="password" value="#{studioConfiguration.getProperty('studio.search.password')}"/>
+		<property name="connectTimeout" value="#{studioConfiguration.getProperty('studio.search.timeout.connect')}"/>
+		<property name="socketTimeout" value="#{studioConfiguration.getProperty('studio.search.timeout.socket')}"/>
+		<property name="threadCount" value="#{studioConfiguration.getProperty('studio.search.threads')}"/>
+		<property name="socketKeepAlive" value="#{studioConfiguration.getProperty('studio.search.keepAlive')}"/>
+	</bean>
 
-    <bean id="authoringSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
-        <constructor-arg name="client" ref="searchClient"/>
-        <constructor-arg name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
-        <constructor-arg name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
-    </bean>
+	<bean id="authoringSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
+		<constructor-arg name="client" ref="searchClient"/>
+		<constructor-arg name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
+		<constructor-arg name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
+	</bean>
 
-    <bean id="searchServiceInternal" init-method="init"
-          class="org.craftercms.studio.impl.v2.service.search.internal.SearchServiceInternalImpl">
-        <constructor-arg name="searchService" ref="authoringSearchService"/>
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
-    </bean>
+	<bean id="searchServiceInternal" init-method="init"
+	      class="org.craftercms.studio.impl.v2.service.search.internal.SearchServiceInternalImpl">
+		<constructor-arg name="searchService" ref="authoringSearchService"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
+	</bean>
 
-    <bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">
-        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
-        <constructor-arg name="searchServiceInternal" ref="searchServiceInternal"/>
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-    </bean>
+	<bean id="clausesLimitAwareSearchService" class="org.craftercms.studio.impl.v2.service.search.internal.ClausesLimitAwareSearchService">
+		<constructor-arg name="actualSearchService" ref="searchServiceInternal"/>
+	</bean>
 
-    <!-- These aliases are provided for backwards compatibility only -->
-    <alias name="searchClient" alias="elasticsearchClient"/>
-    <alias name="authoringSearchService" alias="elasticsearchService"/>
+	<bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">
+		<constructor-arg name="searchServiceInternal" ref="clausesLimitAwareSearchService"/>
+	</bean>
+
+	<!-- These aliases are provided for backwards compatibility only -->
+	<alias name="searchClient" alias="elasticsearchClient"/>
+	<alias name="authoringSearchService" alias="elasticsearchService"/>
 
 </beans>

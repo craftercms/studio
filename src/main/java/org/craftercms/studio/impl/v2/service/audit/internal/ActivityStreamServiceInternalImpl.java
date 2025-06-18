@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.ActivityStreamDAO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 
 import java.time.ZonedDateTime;
@@ -31,48 +31,51 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
-public class ActivityStreamServiceInternalImpl implements ActivityStreamServiceInternal {
+/**
+ * Internal implementation of {@link ActivityStreamService}
+ */
+public class ActivityStreamServiceInternalImpl implements ActivityStreamService {
 
-    private SiteFeedMapper siteFeedMapper;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private ActivityStreamDAO activityStreamDAO;
+	private SiteFeedMapper siteFeedMapper;
+	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+	private ActivityStreamDAO activityStreamDAO;
 
-    @Override
-    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
-                               String packageId) {
-        retryingDatabaseOperationFacade.retry(() -> activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item,
-                packageId));
-    }
+	@Override
+	public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
+				   String packageId) {
+		retryingDatabaseOperationFacade.retry(() -> activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item,
+			packageId));
+	}
 
-    @Override
-    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
-                                          ZonedDateTime dateForm, ZonedDateTime dateTo) {
-        return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, actions, dateForm, dateTo);
-    }
+	@Override
+	public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
+					      ZonedDateTime dateForm, ZonedDateTime dateTo) {
+		return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, actions, dateForm, dateTo);
+	}
 
-    @Override
-    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
-                                                ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
-        return activityStreamDAO
-                .getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
-    }
+	@Override
+	public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+						    ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
+		return activityStreamDAO
+			.getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
+	}
 
-    private long getSiteId(String site) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(SITE_ID, site);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return siteFeed.getId();
-    }
+	private long getSiteId(String site) {
+		Map<String, Object> params = new HashMap<>();
+		params.put(SITE_ID, site);
+		SiteFeed siteFeed = siteFeedMapper.getSite(params);
+		return siteFeed.getId();
+	}
 
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
-    }
+	public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+		this.siteFeedMapper = siteFeedMapper;
+	}
 
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-    }
+	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+	}
 
-    public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
-        this.activityStreamDAO = activityStreamDAO;
-    }
+	public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
+		this.activityStreamDAO = activityStreamDAO;
+	}
 }

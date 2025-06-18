@@ -37,51 +37,53 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 
 public interface ActivityStreamDAO {
 
-    /**
-     * Insert record into activity stream
-     *
-     * @param siteId site identifier
-     * @param userId user identifier
-     * @param action action that was performed
-     * @param actionTimestamp timestamp when action was performed
-     * @param item item that was actioned upon
-     * @param packageId package identifier that was actioned upon
-     */
-    void insertActivity(@Param(SITE_ID) long siteId, @Param(USER_ID) long userId, @Param(ACTION) String action,
-                        @Param(ACTION_TIMESTAMP) ZonedDateTime actionTimestamp, @Param(ITEM) Item item,
-                        @Param(PACKAGE_ID) String packageId);
+	/**
+	 * Insert record into activity stream
+	 *
+	 * @param siteId          site identifier
+	 * @param userId          user identifier
+	 * @param action          action that was performed
+	 * @param actionTimestamp timestamp when action was performed
+	 * @param item            item that was actioned upon
+	 * @param packageId       package identifier that was actioned upon
+	 */
+	void insertActivity(@Param(SITE_ID) long siteId, @Param(USER_ID) long userId, @Param(ACTION) String action,
+			    @Param(ACTION_TIMESTAMP) ZonedDateTime actionTimestamp, @Param(ITEM) Item item,
+			    @Param(PACKAGE_ID) String packageId);
 
-    /**
-     * Get total number activities for users
-     * @param siteId site identifier
-     * @param usernames list of usernames
-     * @param actions list of actions to filter
-     * @param dateForm lower boundary for filtering by date range
-     * @param dateTo upper boundary for filtering by date range
-     * @return total number of activities for given users
-     */
-    int getActivitiesForUsersTotal(@Param(SITE_ID) long siteId,
-                                   @Param(USERNAMES) List<String> usernames,
-                                   @Param(ACTIONS) List<String> actions,
-                                   @Param(DATE_FROM) ZonedDateTime dateForm,
-                                   @Param(DATE_TO) ZonedDateTime dateTo);
+	/**
+	 * Get total number activities for users
+	 *
+	 * @param siteId    site identifier
+	 * @param usernames list of usernames (or prefixes)
+	 * @param actions   list of actions to filter
+	 * @param dateForm  lower boundary for filtering by date range
+	 * @param dateTo    upper boundary for filtering by date range
+	 * @return total number of activities for given users
+	 */
+	int getActivitiesForUsersTotal(@Param(SITE_ID) long siteId,
+				       @Param(USERNAMES) List<String> usernames,
+				       @Param(ACTIONS) List<String> actions,
+				       @Param(DATE_FROM) ZonedDateTime dateForm,
+				       @Param(DATE_TO) ZonedDateTime dateTo);
 
-    /**
-     * Get activities for users
-     * @param siteId site identifier
-     * @param usernames list of usernames
-     * @param actions list of actions to filter
-     * @param dateForm lower boundary for filtering by date range
-     * @param dateTo upper boundary for filtering by date range
-     * @param offset offset of the first record in the result
-     * @param limit limit the number of the results to return
-     * @return list of activities for given users
-     */
-    List<Activity> getActivitiesForUsers(@Param(SITE_ID) long siteId,
-                                         @Param(USERNAMES) List<String> usernames,
-                                         @Param(ACTIONS) List<String> actions,
-                                         @Param(DATE_FROM) ZonedDateTime dateForm,
-                                         @Param(DATE_TO) ZonedDateTime dateTo,
-                                         @Param(OFFSET) int offset,
-                                         @Param(LIMIT) int limit);
+	/**
+	 * Get activities for users
+	 *
+	 * @param siteId    site identifier
+	 * @param usernames list of usernames (or prefixes)
+	 * @param actions   list of actions to filter
+	 * @param dateForm  lower boundary for filtering by date range
+	 * @param dateTo    upper boundary for filtering by date range
+	 * @param offset    offset of the first record in the result
+	 * @param limit     limit the number of the results to return
+	 * @return list of activities for given users
+	 */
+	List<Activity> getActivitiesForUsers(@Param(SITE_ID) long siteId,
+					     @Param(USERNAMES) List<String> usernames,
+					     @Param(ACTIONS) List<String> actions,
+					     @Param(DATE_FROM) ZonedDateTime dateForm,
+					     @Param(DATE_TO) ZonedDateTime dateTo,
+					     @Param(OFFSET) int offset,
+					     @Param(LIMIT) int limit);
 }

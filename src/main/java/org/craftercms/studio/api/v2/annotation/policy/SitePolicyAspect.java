@@ -21,8 +21,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.model.policy.Action;
+import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
 
 import java.beans.ConstructorProperties;
@@ -54,104 +56,111 @@ import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 @Aspect
 public class SitePolicyAspect {
 
-    protected PolicyService policyService;
+	protected PolicyService policyService;
+	protected ContentService contentService;
 
-    @ConstructorProperties({"policyService"})
-    public SitePolicyAspect(PolicyService policyService) {
-        this.policyService = policyService;
-    }
+	@ConstructorProperties({"policyService", "contentService"})
+	public SitePolicyAspect(PolicyService policyService, ContentService contentService) {
+		this.policyService = policyService;
+		this.contentService = contentService;
+	}
 
-    @Around("@annotation(actionParams)")
-    public Object validateAction(ProceedingJoinPoint pjp, ValidateAction actionParams) throws Throwable {
-        var annotations = getAnnotations(pjp);
+	@Around("@annotation(actionParams)")
+	public Object validateAction(ProceedingJoinPoint pjp, ValidateAction actionParams) throws Throwable {
+		var annotations = getAnnotations(pjp);
 
-        String siteId = null;
-        String targetPath = null;
-        int targetPathPosition = -1;
-        String targetFilename = null;
-        int targetFilenamePosition = -1;
-        String sourcePath = null;
-        String sourceFilename = null;
-        String contentType = null;
+		String siteId = null;
+		String targetPath = null;
+		int targetPathPosition = -1;
+		String targetFilename = null;
+		int targetFilenamePosition = -1;
+		String sourcePath = null;
+		String sourceFilename = null;
+		String contentType = null;
 
-        // TODO: Add an annotation to support the file size in the future
-        for (var i = 0; i < annotations.length; i++) {
-            if (siteId == null && hasAnnotation(annotations[i], SiteId.class)) {
-                siteId = (String) pjp.getArgs()[i];
-            } else if (targetPath == null && hasAnnotation(annotations[i], ActionTargetPath.class)) {
-                targetPathPosition = i;
-                targetPath = (String) pjp.getArgs()[i];
-            } else if (targetFilename == null && hasAnnotation(annotations[i], ActionTargetFilename.class)) {
-                targetFilenamePosition = i;
-                targetFilename = (String) pjp.getArgs()[i];
-            } else if (sourcePath == null && hasAnnotation(annotations[i], ActionSourcePath.class)) {
-                sourcePath = (String) pjp.getArgs()[i];
-            } else if (sourceFilename == null && hasAnnotation(annotations[i], ActionSourceFilename.class)) {
-                sourceFilename = (String) pjp.getArgs()[i];
-            } else if (contentType == null && hasAnnotation(annotations[i], ActionContentType.class)) {
-                contentType = (String) pjp.getArgs()[i];
-            }
-        }
+		// TODO: Add an annotation to support the file size in the future
+		for (var i = 0; i < annotations.length; i++) {
+			if (siteId == null && hasAnnotation(annotations[i], SiteId.class)) {
+				siteId = (String) pjp.getArgs()[i];
+			} else if (targetPath == null && hasAnnotation(annotations[i], ActionTargetPath.class)) {
+				targetPathPosition = i;
+				targetPath = (String) pjp.getArgs()[i];
+			} else if (targetFilename == null && hasAnnotation(annotations[i], ActionTargetFilename.class)) {
+				targetFilenamePosition = i;
+				targetFilename = (String) pjp.getArgs()[i];
+			} else if (sourcePath == null && hasAnnotation(annotations[i], ActionSourcePath.class)) {
+				sourcePath = (String) pjp.getArgs()[i];
+			} else if (sourceFilename == null && hasAnnotation(annotations[i], ActionSourceFilename.class)) {
+				sourceFilename = (String) pjp.getArgs()[i];
+			} else if (contentType == null && hasAnnotation(annotations[i], ActionContentType.class)) {
+				contentType = (String) pjp.getArgs()[i];
+			}
+		}
 
-        if (siteId == null || targetPath == null) {
-            throw new IllegalArgumentException("Missing required annotations to validate content actions");
-        }
+		if (siteId == null || targetPath == null) {
+			throw new IllegalArgumentException("Missing required annotations to validate content actions");
+		}
 
-        var action = new Action();
-        action.setType(actionParams.type());
-        action.setRecursive(actionParams.recursive());
-        action.setTarget(getFullPath(targetPath, targetFilename));
-        var metadata = new HashMap<String, Object>();
-        action.setContentMetadata(metadata);
+		String targetFullPath = getFullPath(targetPath, targetFilename);
+		var action = new Action();
+		if (actionParams.type() == Type.CREATE && contentService.contentExists(siteId, targetFullPath)) {
+			action.setType(Type.EDIT);
+		} else {
+			action.setType(actionParams.type());
+		}
+		action.setRecursive(actionParams.recursive());
+		action.setTarget(targetFullPath);
+		var metadata = new HashMap<String, Object>();
+		action.setContentMetadata(metadata);
 
-        if (sourcePath != null) {
-            action.setSource(getFullPath(sourcePath, sourceFilename));
-        }
+		if (sourcePath != null) {
+			action.setSource(getFullPath(sourcePath, sourceFilename));
+		}
 
-        if (contentType != null) {
-            metadata.put(METADATA_CONTENT_TYPE, contentType);
-        }
+		if (contentType != null) {
+			metadata.put(METADATA_CONTENT_TYPE, contentType);
+		}
 
-        var results = policyService.validate(siteId, List.of(action));
+		var results = policyService.validate(siteId, List.of(action));
 
-        if (results.stream().anyMatch(not(ValidationResult::isAllowed))) {
-            throw new ValidationException("Requested action is not allowed by site policy");
-        }
+		if (results.stream().anyMatch(not(ValidationResult::isAllowed))) {
+			throw new ValidationException("Requested action is not allowed by site policy");
+		}
 
-        var modified = results.stream()
-                .filter(result -> isNotEmpty(result.getModifiedValue()))
-                .findFirst();
+		var modified = results.stream()
+			.filter(result -> isNotEmpty(result.getModifiedValue()))
+			.findFirst();
 
-        if (modified.isPresent()) {
-            var newArgs = pjp.getArgs();
-            if (isNotEmpty(targetFilename)) {
-                newArgs[targetPathPosition] = getFullPathNoEndSeparator(modified.get().getModifiedValue());
-                newArgs[targetFilenamePosition] = getName(modified.get().getModifiedValue());
-            } else {
-                newArgs[targetPathPosition] = modified.get().getModifiedValue();
-            }
+		if (modified.isPresent()) {
+			var newArgs = pjp.getArgs();
+			if (isNotEmpty(targetFilename)) {
+				newArgs[targetPathPosition] = getFullPathNoEndSeparator(modified.get().getModifiedValue());
+				newArgs[targetFilenamePosition] = getName(modified.get().getModifiedValue());
+			} else {
+				newArgs[targetPathPosition] = modified.get().getModifiedValue();
+			}
 
-            return pjp.proceed(newArgs);
-        } else {
-            return pjp.proceed();
-        }
-    }
+			return pjp.proceed(newArgs);
+		} else {
+			return pjp.proceed();
+		}
+	}
 
-    protected Annotation[][] getAnnotations(ProceedingJoinPoint pjp) throws NoSuchMethodException {
-        var signature = (MethodSignature) pjp.getSignature();
-        String methodName = signature.getMethod().getName();
-        Class<?>[] parameterTypes = signature.getMethod().getParameterTypes();
-        return pjp.getTarget().getClass().getMethod(methodName,parameterTypes).getParameterAnnotations();
-    }
+	protected Annotation[][] getAnnotations(ProceedingJoinPoint pjp) throws NoSuchMethodException {
+		var signature = (MethodSignature) pjp.getSignature();
+		String methodName = signature.getMethod().getName();
+		Class<?>[] parameterTypes = signature.getMethod().getParameterTypes();
+		return pjp.getTarget().getClass().getMethod(methodName, parameterTypes).getParameterAnnotations();
+	}
 
-    protected boolean hasAnnotation(Annotation[] annotations, Class<? extends Annotation> annotation) {
-        return Stream.of(annotations)
-                .map(Annotation::annotationType)
-                .anyMatch(annotation::equals);
-    }
+	protected boolean hasAnnotation(Annotation[] annotations, Class<? extends Annotation> annotation) {
+		return Stream.of(annotations)
+			.map(Annotation::annotationType)
+			.anyMatch(annotation::equals);
+	}
 
-    protected String getFullPath(String path, String filename) {
-        return filename != null? path + "/" + filename : path;
-    }
+	protected String getFullPath(String path, String filename) {
+		return filename != null ? path + "/" + filename : path;
+	}
 
 }

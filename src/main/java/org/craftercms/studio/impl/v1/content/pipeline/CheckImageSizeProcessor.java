@@ -40,127 +40,127 @@ import static java.lang.String.format;
 
 public class CheckImageSizeProcessor extends PathMatchProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(CheckImageSizeProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(CheckImageSizeProcessor.class);
 
-    public static final String NAME = "CheckImageSizeProcessor";
+	public static final String NAME = "CheckImageSizeProcessor";
 
 
-    /**
-     * default constructor
-     */
-    public CheckImageSizeProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public CheckImageSizeProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public CheckImageSizeProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public CheckImageSizeProcessor(String name) {
+		super(name);
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        String name = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String mimetype = StudioUtils.getMimeType(name);
-        boolean process = (StringUtils.isEmpty(mimetype)) ? false : mimetype.startsWith("image/") && !StringUtils.equalsIgnoreCase(mimetype, "image/svg+xml");
-        if (process) {
-            String allowLessSize = content.getProperty(DmConstants.KEY_ALLOW_LESS_SIZE);
-            boolean lessSize = ContentFormatUtils.getBooleanValue(allowLessSize);
-            String allowedWidth = content.getProperty(DmConstants.KEY_ALLOWED_WIDTH);
-            String allowedHeight = content.getProperty(DmConstants.KEY_ALLOWED_HEIGHT);
-            int width = (StringUtils.isEmpty(allowedWidth)) ? -1 : ContentFormatUtils.getIntValue(allowedWidth);
-            int height = (StringUtils.isEmpty(allowedHeight)) ? -1 : ContentFormatUtils.getIntValue(allowedHeight);
-            InputStream in = content.getContentStream();
-            ContentAssetInfoTO assetInfo = (result.getItem() == null) ? new ContentAssetInfoTO() : (ContentAssetInfoTO) result.getItem();
-            in = checkForImageSize(in, width, height, lessSize, assetInfo);
-            content.getProperties().put(DmConstants.KEY_WIDTH, String.valueOf(assetInfo.getWidth()));
-            content.getProperties().put(DmConstants.KEY_HEIGHT, String.valueOf(assetInfo.getHeight()));
-            assetInfo.getWidth();
-            result.setItem(assetInfo);
-            content.setContentStream(in);
-        }
-    }
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+		String name = content.getProperty(DmConstants.KEY_FILE_NAME);
+		String mimetype = StudioUtils.getMimeType(name);
+		boolean process = (StringUtils.isEmpty(mimetype)) ? false : mimetype.startsWith("image/") && !StringUtils.equalsIgnoreCase(mimetype, "image/svg+xml");
+		if (process) {
+			String allowLessSize = content.getProperty(DmConstants.KEY_ALLOW_LESS_SIZE);
+			boolean lessSize = ContentFormatUtils.getBooleanValue(allowLessSize);
+			String allowedWidth = content.getProperty(DmConstants.KEY_ALLOWED_WIDTH);
+			String allowedHeight = content.getProperty(DmConstants.KEY_ALLOWED_HEIGHT);
+			int width = (StringUtils.isEmpty(allowedWidth)) ? -1 : ContentFormatUtils.getIntValue(allowedWidth);
+			int height = (StringUtils.isEmpty(allowedHeight)) ? -1 : ContentFormatUtils.getIntValue(allowedHeight);
+			InputStream in = content.getContentStream();
+			ContentAssetInfoTO assetInfo = (result.getItem() == null) ? new ContentAssetInfoTO() : (ContentAssetInfoTO) result.getItem();
+			in = checkForImageSize(in, width, height, lessSize, assetInfo);
+			content.getProperties().put(DmConstants.KEY_WIDTH, String.valueOf(assetInfo.getWidth()));
+			content.getProperties().put(DmConstants.KEY_HEIGHT, String.valueOf(assetInfo.getHeight()));
+			assetInfo.getWidth();
+			result.setItem(assetInfo);
+			content.setContentStream(in);
+		}
+	}
 
-    /**
-     * check the width and the height of the given image as an inputstream match the width and the height specified
-     *
-     * @param in
-     * @param allowedWidth
-     * @param allowedHeight
-     * @param lessSize
-     * @param assetInfo
-     * @return image as input stream
-     */
-    protected InputStream checkForImageSize(InputStream in, int allowedWidth, int allowedHeight, boolean lessSize, ContentAssetInfoTO assetInfo) throws ContentProcessException {
-        ByteArrayOutputStream byteOutput = null;
-        try {
-            byteOutput = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];//PORT CStudioWebScriptConstants.READ_BUFFER_LENGTH];
-            int read = 0;
-            while ((read = in.read(buffer)) > 0) {
-                byteOutput.write(buffer, 0, read);
-            }
-            byte [] imageData = byteOutput.toByteArray();
-            Image image = Toolkit.getDefaultToolkit().createImage(imageData);
-            ImageIcon icon = new ImageIcon(image);
-            int height = icon.getIconHeight();
-            int width = icon.getIconWidth();
-            if (allowedHeight > 0 && allowedWidth > 0) {
-                validateImageSize(allowedWidth, allowedHeight, height, width, lessSize);
-            }
-            assetInfo.setHeight(height);
-            assetInfo.setWidth(width);
-            return new ByteArrayInputStream(imageData);
-        } catch (IOException e) {
-            throw new ContentProcessException(e);
-        } finally {
-            // close the original inputstream
-            ContentUtils.release(in);
-            ContentUtils.release(byteOutput);
-        }
-    }
+	/**
+	 * check the width and the height of the given image as an inputstream match the width and the height specified
+	 *
+	 * @param in
+	 * @param allowedWidth
+	 * @param allowedHeight
+	 * @param lessSize
+	 * @param assetInfo
+	 * @return image as input stream
+	 */
+	protected InputStream checkForImageSize(InputStream in, int allowedWidth, int allowedHeight, boolean lessSize, ContentAssetInfoTO assetInfo) throws ContentProcessException {
+		ByteArrayOutputStream byteOutput = null;
+		try {
+			byteOutput = new ByteArrayOutputStream();
+			byte[] buffer = new byte[1024];//PORT CStudioWebScriptConstants.READ_BUFFER_LENGTH];
+			int read = 0;
+			while ((read = in.read(buffer)) > 0) {
+				byteOutput.write(buffer, 0, read);
+			}
+			byte[] imageData = byteOutput.toByteArray();
+			Image image = Toolkit.getDefaultToolkit().createImage(imageData);
+			ImageIcon icon = new ImageIcon(image);
+			int height = icon.getIconHeight();
+			int width = icon.getIconWidth();
+			if (allowedHeight > 0 && allowedWidth > 0) {
+				validateImageSize(allowedWidth, allowedHeight, height, width, lessSize);
+			}
+			assetInfo.setHeight(height);
+			assetInfo.setWidth(width);
+			return new ByteArrayInputStream(imageData);
+		} catch (IOException e) {
+			throw new ContentProcessException(e);
+		} finally {
+			// close the original inputstream
+			ContentUtils.release(in);
+			ContentUtils.release(byteOutput);
+		}
+	}
 
-    /**
-     * validate the image width and height against the allowed width and height
-     *
-     * @param allowedWidth
-     * @param allowedHeight
-     * @param height
-     * @param width
-     * @param lessSize
-     * @throws ContentNotAllowedException
-     */
-    protected void validateImageSize(int allowedWidth, int allowedHeight, int height, int width, boolean lessSize) throws ContentNotAllowedException {
-        if (height < 0 || width  < 0 ) {
-            throw new ContentNotAllowedException("An image must be provided.");
-        }
-        boolean success = true;
-        if (!lessSize) {
-            if (allowedWidth > 0 && allowedWidth != width) {
-                success = false;
-            }
-            if (allowedHeight > 0 && allowedHeight != height) {
-                success = false;
-            }
-            if (!success) {
-                throw new ContentNotAllowedException(format("The width and height of the image must " +
-                        "match the permitted '%dx%d', however, the actual asset is '%dx%d'",
-                        allowedWidth, allowedHeight, width, height));
-            }
-        } else {
-            if (allowedWidth > 0 && allowedWidth < width) {
-                success = false;
-            }
-            if (allowedHeight > 0 && allowedHeight < height) {
-                success = false;
-            }
-            if (!success) {
-                throw new ContentNotAllowedException(format("The width and height of the image must " +
-                        "be less than or equal to the permitted '%dx%d', however, the actual asset is '%dx%d'",
-                        allowedWidth, allowedHeight, width, height));
-            }
-        }
-    }
+	/**
+	 * validate the image width and height against the allowed width and height
+	 *
+	 * @param allowedWidth
+	 * @param allowedHeight
+	 * @param height
+	 * @param width
+	 * @param lessSize
+	 * @throws ContentNotAllowedException
+	 */
+	protected void validateImageSize(int allowedWidth, int allowedHeight, int height, int width, boolean lessSize) throws ContentNotAllowedException {
+		if (height < 0 || width < 0) {
+			throw new ContentNotAllowedException("An image must be provided.");
+		}
+		boolean success = true;
+		if (!lessSize) {
+			if (allowedWidth > 0 && allowedWidth != width) {
+				success = false;
+			}
+			if (allowedHeight > 0 && allowedHeight != height) {
+				success = false;
+			}
+			if (!success) {
+				throw new ContentNotAllowedException(format("The width and height of the image must " +
+						"match the permitted '%dx%d', however, the actual asset is '%dx%d'",
+					allowedWidth, allowedHeight, width, height));
+			}
+		} else {
+			if (allowedWidth > 0 && allowedWidth < width) {
+				success = false;
+			}
+			if (allowedHeight > 0 && allowedHeight < height) {
+				success = false;
+			}
+			if (!success) {
+				throw new ContentNotAllowedException(format("The width and height of the image must " +
+						"be less than or equal to the permitted '%dx%d', however, the actual asset is '%dx%d'",
+					allowedWidth, allowedHeight, width, height));
+			}
+		}
+	}
 }

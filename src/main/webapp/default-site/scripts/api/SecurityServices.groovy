@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,7 +35,7 @@ class SecurityServices {
 		return ServiceFactory.createContext(applicationContext, request)
 	}
 
-	/** 
+	/**
 	 * get user profile
 	 * @param username
 	 */
@@ -44,12 +44,7 @@ class SecurityServices {
 		return securityServicesImpl.getUserProfile(username)
 	}
 
-	static getUserPermissions(context, site, path, groups) {
-		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-		return securityServicesImpl.getUserPermissions(site, path, groups)
-	}
-
-	static getCurrentUser(context) {  
+	static getCurrentUser(context) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getCurrentUser()
 	}

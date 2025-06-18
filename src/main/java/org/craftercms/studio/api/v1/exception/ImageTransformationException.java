@@ -20,8 +20,8 @@ package org.craftercms.studio.api.v1.exception;
  */
 public class ImageTransformationException extends ServiceLayerException {
 
-    public ImageTransformationException(String message, Exception e) {
-        super(message, e);
-    }
+	public ImageTransformationException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

@@ -16,24 +16,36 @@
   -->
 
 <component>
-	<content-type>/taxonomy</content-type>	<display-template/>
+	<content-type>/taxonomy</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>c2ce</objectGroupId>
 	<objectId>c2ce41c5-14f3-5d36-3a61-be7b635d78f2</objectId>
 	<file-name>tags.xml</file-name>
 	<folder-name/>
 	<internal-name>Tags</internal-name>
-	<items>	<item>	<key>travel</key>
-	<value>Travel</value>
-	</item>	<item>	<key>news</key>
-	<value>News</value>
-	</item>	<item>	<key>gadgets</key>
-	<value>Gadgets</value>
-	</item>	<item>	<key>games</key>
-	<value>Games</value>
-	</item>	<item>	<key>dessert</key>
-	<value>Dessert</value>
-	</item></items>
+	<items>
+		<item>
+			<key>travel</key>
+			<value>Travel</value>
+		</item>
+		<item>
+			<key>news</key>
+			<value>News</value>
+		</item>
+		<item>
+			<key>gadgets</key>
+			<value>Gadgets</value>
+		</item>
+		<item>
+			<key>games</key>
+			<value>Games</value>
+		</item>
+		<item>
+			<key>dessert</key>
+			<value>Dessert</value>
+		</item>
+	</items>
 	<createdDate>2017-05-9T22:1:15.000Z</createdDate>
 	<createdDate_dt>2017-05-9T22:1:15.000Z</createdDate_dt>
 	<lastModifiedDate>2017-05-12T20:10:30.000Z</lastModifiedDate>

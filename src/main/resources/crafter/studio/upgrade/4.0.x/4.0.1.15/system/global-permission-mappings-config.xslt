@@ -17,26 +17,26 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+	</xsl:template>
 
-    <!-- insert line breaks before and after top level comments -->
-    <xsl:template match="/comment()">
-        <xsl:text>&#10;</xsl:text>
-        <xsl:copy-of select="."/>
-        <xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<!-- insert line breaks before and after top level comments -->
+	<xsl:template match="/comment()">
+		<xsl:text>&#10;</xsl:text>
+		<xsl:copy-of select="."/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[contains(text(),'cmis')]">
-    </xsl:template>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[contains(text(),'cmis')]">
+	</xsl:template>
 
 </xsl:stylesheet>

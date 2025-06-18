@@ -16,53 +16,66 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 public class DeleteRequestBody {
 
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-    @NotEmpty
-    private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
-    private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> optionalDependencies;
-    private String comment;
+	@EsapiValidatedParam(type = SITE_ID)
+	private String siteId;
+	@NotEmpty
+	private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
+	private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> optionalDependencies;
+	@NotEmpty
+	@Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
+	private String title;
+	private String comment;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public List<String> getItems() {
-        return items;
-    }
+	public List<String> getItems() {
+		return items;
+	}
 
-    public void setItems(List<String> items) {
-        this.items = items;
-    }
+	public void setItems(List<String> items) {
+		this.items = items;
+	}
 
-    public List<String> getOptionalDependencies() {
-        return optionalDependencies;
-    }
+	public List<String> getOptionalDependencies() {
+		return optionalDependencies;
+	}
 
-    public void setOptionalDependencies(List<String> optionalDependencies) {
-        this.optionalDependencies = optionalDependencies;
-    }
+	public void setOptionalDependencies(List<String> optionalDependencies) {
+		this.optionalDependencies = optionalDependencies;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public void setTitle(final String title) {
+		this.title = title;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 }

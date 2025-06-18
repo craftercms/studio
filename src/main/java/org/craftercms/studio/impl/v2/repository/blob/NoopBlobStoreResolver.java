@@ -27,9 +27,9 @@ import org.craftercms.commons.file.blob.BlobStoreResolver;
  */
 public class NoopBlobStoreResolver implements BlobStoreResolver {
 
-    @Override
-    public BlobStore getById(ConfigurationProvider provider, String storeId) {
-        return null;
-    }
+	@Override
+	public BlobStore getById(ConfigurationProvider provider, String storeId) {
+		return null;
+	}
 
 }

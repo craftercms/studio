@@ -23,54 +23,54 @@ package org.craftercms.studio.api.v1.aws.mediaconvert;
  */
 public class MediaConvertJob {
 
-    /**
-     * ARN of the transcoding job.
-     */
-    protected String arn;
-    /**
-     * Id of the transcoding job.
-     */
-    protected String id;
+	/**
+	 * ARN of the transcoding job.
+	 */
+	protected String arn;
+	/**
+	 * Id of the transcoding job.
+	 */
+	protected String id;
 
-    /**
-     * Destination of the transcoding job output.
-     */
-    protected String destination;
-    /**
-     * Base filename of the transcoding job output.
-     */
-    protected String baseKey;
+	/**
+	 * Destination of the transcoding job output.
+	 */
+	protected String destination;
+	/**
+	 * Base filename of the transcoding job output.
+	 */
+	protected String baseKey;
 
-    public String getArn() {
-        return arn;
-    }
+	public String getArn() {
+		return arn;
+	}
 
-    public void setArn(final String arn) {
-        this.arn = arn;
-    }
+	public void setArn(final String arn) {
+		this.arn = arn;
+	}
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setId(final String id) {
-        this.id = id;
-    }
+	public void setId(final String id) {
+		this.id = id;
+	}
 
-    public String getDestination() {
-        return destination;
-    }
+	public String getDestination() {
+		return destination;
+	}
 
-    public void setDestination(final String destination) {
-        this.destination = destination;
-    }
+	public void setDestination(final String destination) {
+		this.destination = destination;
+	}
 
-    public String getBaseKey() {
-        return baseKey;
-    }
+	public String getBaseKey() {
+		return baseKey;
+	}
 
-    public void setBaseKey(final String baseKey) {
-        this.baseKey = baseKey;
-    }
+	public void setBaseKey(final String baseKey) {
+		this.baseKey = baseKey;
+	}
 
 }
