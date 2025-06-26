@@ -144,7 +144,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	protected StudioBlobStore getBlobStore(String site, String... paths)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		if (StringUtils.isEmpty(site)) {
 			return null;
 		}
@@ -158,12 +158,12 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 
 	protected boolean pointersExist(String siteId, String... paths) {
 		return Stream.of(paths).
-			allMatch(path -> {
-				// Check if the pointer path is not the same (this happens for folders)
-				String pointerPath = getPointerPath(siteId, path);
-				return !StringUtils.equals(path, pointerPath)
-					&& localRepository.contentExists(siteId, pointerPath);
-			});
+				allMatch(path -> {
+					// Check if the pointer path is not the same (this happens for folders)
+					String pointerPath = getPointerPath(siteId, path);
+					return !StringUtils.equals(path, pointerPath)
+							&& localRepository.contentExists(siteId, pointerPath);
+				});
 	}
 
 	// Start API 1
@@ -192,7 +192,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			if (store == null) {
 				logger.error("Pointer exists for path '{}' in site '{}', but blob store could not be found", path, site);
 				throw new BlobNotFoundException(path, site, format("Pointer exists for path '%s' in site '%s', " +
-					"but blob store could not be found", path, site));
+						"but blob store could not be found", path, site));
 			}
 
 			store.checkContentExists(site, normalize(path));
@@ -262,12 +262,12 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 				store.writeContent(site, normalize(path), content);
 				Blob reference = store.getReference(normalize(path));
 				return localRepository.writeContent(site, getPointerPath(site, path),
-					new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
+						new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
 			}
 			return localRepository.writeContent(site, path, content);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
-				"will write '{}' to the local repository", site, path);
+					"will write '{}' to the local repository", site, path);
 			return localRepository.writeContent(site, path, content);
 		} catch (ServiceLayerException e) {
 			logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
@@ -288,7 +288,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			}
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
-				"will create folder '{}' in the local repository", site, path);
+					"will create folder '{}' in the local repository", site, path);
 		} catch (Exception e) {
 			logger.error("Failed to create folder in site '{}' path '{}'", site, path, e);
 			throw e;
@@ -298,7 +298,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 
 	@Override
 	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Write content in site '{}' with lifecycle items '{}'", siteId, writeItems);
 		try {
 			List<ContentWriteItem> localWriteItems = writeItemsToBlobStores(siteId, writeItems, newFolders);
@@ -307,7 +307,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			throw new ServiceLayerException("Failed to continue write operation. Failed to read input", e);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
-				"will write '{}' to the local repository", siteId, writeItems);
+					"will write '{}' to the local repository", siteId, writeItems);
 			return localRepository.writeContent(siteId, writeItems, newFolders);
 		}
 	}
@@ -322,12 +322,12 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			MultiValueMap<StudioBlobStore, String> pathsByBlobStore = new LinkedMultiValueMap<>();
 			for (String path : paths) {
 				blobStores.stream()
-					.filter(store -> store.isCompatible(path)).findFirst()
-					.ifPresentOrElse(store -> {
-							pathsByBlobStore.add(store, path);
-							gitRepoPaths.add(getPointerPath(siteId, path));
-						},
-						() -> gitRepoPaths.add(path));
+						.filter(store -> store.isCompatible(path)).findFirst()
+						.ifPresentOrElse(store -> {
+									pathsByBlobStore.add(store, path);
+									gitRepoPaths.add(getPointerPath(siteId, path));
+								},
+								() -> gitRepoPaths.add(path));
 			}
 			for (Map.Entry<StudioBlobStore, List<String>> entry : pathsByBlobStore.entrySet()) {
 				StudioBlobStore store = entry.getKey();
@@ -379,8 +379,8 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 				}
 				Blob reference = store.getReference(normalize(item.repoPath()));
 				localWriteItems.add(
-					new BlobStoreReferenceWriteItem(getPointerPath(siteId, item.repoPath()),
-						reference));
+						new BlobStoreReferenceWriteItem(getPointerPath(siteId, item.repoPath()),
+								reference));
 			} else {
 				localWriteItems.add(item);
 			}
@@ -394,14 +394,15 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		logger.debug("Move content in site '{}' from '{}' to '{}'", site, fromPath, toPath);
 		try {
 			StudioBlobStore store = getBlobStore(site, fromPath, toPath);
+			String localFromPath = fromPath;
+			String localToPath = toPath;
 			if (store != null) {
 				store.moveContent(site, normalize(fromPath), normalize(toPath));
 				boolean isFolder = isFolder(site, fromPath);
-				// TODO: handle additional items and newFolders here
-				return localRepository.moveContent(site, isFolder ? fromPath : getPointerPath(site, fromPath),
-					isFolder ? toPath : getPointerPath(site, toPath));
+				localFromPath = isFolder ? fromPath : getPointerPath(site, fromPath);
+				localToPath = isFolder ? toPath : getPointerPath(site, toPath);
 			}
-			return localRepository.moveContent(site, fromPath, toPath, writeItemsToBlobStores(site, additionalItems, newFolders), newFolders);
+			return localRepository.moveContent(site, localFromPath, localToPath, writeItemsToBlobStores(site, additionalItems, newFolders), newFolders);
 		} catch (Exception e) {
 			logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
 			throw new ServiceLayerException("Failed to move content in site '%s' from '%s' to '%s'".formatted(site, fromPath, toPath), e);
@@ -409,19 +410,21 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public String copy(String siteId, String sourcePath, String targetPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+	public String copy(String siteId, String sourcePath, String targetPath,
+					   Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
 			throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Copy content in site '{}' from '{}' to '{}'", siteId, sourcePath, targetPath);
 		try {
-//			StudioBlobStore store = getBlobStore(siteId, sourcePath, targetPath);
-//			if (store != null) {
-////				store.copyContent(siteId, normalize(sourcePath), normalize(targetPath));
-//				boolean isFolder = isFolder(siteId, sourcePath);
-//				// TODO: handle additional items and newFolders here
-////				return localRepository.copy(siteId, isFolder ? sourcePath : getPointerPath(siteId, sourcePath),
-////						isFolder ? targetPath : getPointerPath(siteId, targetPath));
-//			}
-			return localRepository.copy(siteId, sourcePath, targetPath, writeItemsToBlobStores(siteId, additionalItems, newFolders), newFolders);
+			StudioBlobStore store = getBlobStore(siteId, sourcePath, targetPath);
+			String localFromPath = sourcePath;
+			String localToPath = targetPath;
+			if (store != null) {
+				store.copyContent(siteId, normalize(sourcePath), normalize(targetPath));
+				boolean isFolder = isFolder(siteId, sourcePath);
+				localFromPath = isFolder ? sourcePath : getPointerPath(siteId, sourcePath);
+				localToPath = isFolder ? targetPath : getPointerPath(siteId, targetPath);
+			}
+			return localRepository.copy(siteId, localFromPath, localToPath, writeItemsToBlobStores(siteId, additionalItems, newFolders), newFolders);
 		} catch (Exception e) {
 			logger.error("Failed to copy content in site '{}' from '{}' to '{}'", siteId, sourcePath, targetPath, e);
 			throw new ServiceLayerException("Failed to copy content in site '%s' from '%s' to '%s'".formatted(siteId, sourcePath, targetPath), e);
@@ -432,8 +435,8 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	public Collection<RepositoryItem> getContentChildren(String site, String path) throws ServiceLayerException {
 		Collection<RepositoryItem> children = localRepository.getContentChildren(site, path);
 		return children.stream()
-			.map(item -> new RepositoryItem(item.path(), getOriginalPath(item.name()), item.isFolder()))
-			.toList();
+				.map(item -> new RepositoryItem(item.path(), getOriginalPath(item.name()), item.isFolder()))
+				.toList();
 	}
 
 	@Override
@@ -490,20 +493,20 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	 */
 	private void duplicateBlobs(String sourceSiteId, String siteId, GitRepositories repoType, String environment, String revstr) throws ServiceLayerException {
 		List<String> siteItemPaths = localRepository.getItemPaths(sourceSiteId, repoType, revstr)
-			.stream().filter(this::isBlobPath).toList();
+				.stream().filter(this::isBlobPath).toList();
 		MultiKeyMap<StudioBlobStore, List<String>> copyItems = new MultiKeyMap<>();
 		for (String path : siteItemPaths) {
 			String assetPath = getOriginalPath(path);
 			StudioBlobStore sourceBlobStore = blobStoreResolver.getByPaths(sourceSiteId, assetPath);
 			StudioBlobStore targetBlobStore = blobStoreResolver.getByPaths(siteId, assetPath);
 			copyItems.compute(new MultiKey<>(sourceBlobStore, targetBlobStore),
-				(MultiKey<? extends StudioBlobStore> k, List<String> currentPaths) -> {
-					if (currentPaths == null) {
-						currentPaths = new LinkedList<>();
-					}
-					currentPaths.add(assetPath);
-					return currentPaths;
-				});
+					(MultiKey<? extends StudioBlobStore> k, List<String> currentPaths) -> {
+						if (currentPaths == null) {
+							currentPaths = new LinkedList<>();
+						}
+						currentPaths.add(assetPath);
+						return currentPaths;
+					});
 		}
 
 		for (Map.Entry<MultiKey<? extends StudioBlobStore>, List<String>> copyItem : copyItems.entrySet()) {
@@ -521,7 +524,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 
 	@Override
 	public String revertContent(String site, String path, String version, String comment)
-		throws UserNotFoundException, ServiceLayerException {
+			throws UserNotFoundException, ServiceLayerException {
 		return localRepository.revertContent(site, path, version, comment);
 	}
 
@@ -574,11 +577,11 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 										 String remoteUsername, String remotePassword, String remoteToken,
 										 String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 										 String creator)
-		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-		RemoteRepositoryNotFoundException, ServiceLayerException {
+			throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+			RemoteRepositoryNotFoundException, ServiceLayerException {
 		return localRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
-			singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-			params, createAsOrphan, creator);
+				singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+				params, createAsOrphan, creator);
 	}
 
 	@Override
@@ -594,18 +597,18 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	@Override
 	public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
 		return localRepository.getSubtreeItems(site, path, repoType, branch).stream()
-			.map(this::getOriginalPath)
-			.collect(toList());
+				.map(this::getOriginalPath)
+				.collect(toList());
 	}
 
 	@Override
 	public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) throws ServiceLayerException {
 		return localRepository.getOperationsFromDelta(site, commitIdFrom, commitIdTo).stream()
-			.peek(operation -> {
-				operation.setPath(getOriginalPath(operation.getPath()));
-				operation.setMoveToPath(getOriginalPath(operation.getMoveToPath()));
-			})
-			.collect(toList());
+				.peek(operation -> {
+					operation.setPath(getOriginalPath(operation.getPath()));
+					operation.setMoveToPath(getOriginalPath(operation.getMoveToPath()));
+				})
+				.collect(toList());
 	}
 
 	@Override
@@ -663,7 +666,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	 */
 	private @NotNull MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> scanRepoForBlobPaths(final TaskProgress<PublishTask.PublishTaskId, ?> taskProgress,
 																										final String siteId, final List<StudioBlobStore> blobStores)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> pathsByBlobStore = new LinkedMultiValueMap<>();
 		Stage scanStage = taskProgress.startStage("Scanning repo for blob paths");
 		try {
@@ -671,9 +674,9 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			localRepository.forAllFileSitePaths(siteId, p -> {
 				if (isBlobPath(p)) {
 					blobStores.stream()
-						.filter(store -> store.isCompatible(p)).findFirst()
-						.ifPresent(
-							store -> pathsByBlobStore.add(store, new BlobAwareInitialPublishItemTO(getOriginalPath(p), getRepoPath(p))));
+							.filter(store -> store.isCompatible(p)).findFirst()
+							.ifPresent(
+									store -> pathsByBlobStore.add(store, new BlobAwareInitialPublishItemTO(getOriginalPath(p), getRepoPath(p))));
 				}
 			});
 		} catch (Exception e) {
@@ -722,25 +725,25 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		for (T publishItem : publishItems) {
 			Optional<StudioBlobStore> blobStore = blobStores.stream().filter(store -> store.isCompatible(publishItem.getPath())).findFirst();
 			blobStore.ifPresentOrElse(
-				store -> itemsByBlobStore.add(store, new BlobAwarePublishItemTOWrapper<>(publishItem, getOriginalPath(publishItem.getPath()))),
-				() -> gitRepoItems.add(new BlobAwarePublishItemTOWrapper<>(publishItem, publishItem.getPath())));
+					store -> itemsByBlobStore.add(store, new BlobAwarePublishItemTOWrapper<>(publishItem, getOriginalPath(publishItem.getPath()))),
+					() -> gitRepoItems.add(new BlobAwarePublishItemTOWrapper<>(publishItem, publishItem.getPath())));
 		}
 
 		if (!itemsByBlobStore.isEmpty()) {
 			int total = itemsByBlobStore.values().stream().mapToInt(List::size).sum();
 			Stage blobStage = taskManager.getTask(new PublishTask.PublishTaskId(siteId, publishPackage.getId()))
-				.startStage("Publishing blobs for target '%s'".formatted(publishingTarget), total);
+					.startStage("Publishing blobs for target '%s'".formatted(publishingTarget), total);
 			for (Map.Entry<StudioBlobStore, List<BlobAwarePublishItemTOWrapper<T>>> entry : itemsByBlobStore.entrySet()) {
 				StudioBlobStore blobStore = entry.getKey();
 				List<BlobAwarePublishItemTOWrapper<T>> blobStoreItems = entry.getValue();
 				StudioBlobStore.PublishChangeSet<BlobAwarePublishItemTOWrapper<T>> storeChangeset = blobStore.publish(publishPackage,
-					publishingTarget, blobStoreItems, blobStage);
+						publishingTarget, blobStoreItems, blobStage);
 
 				failedItems.addAll(unwrap(storeChangeset.failedItems()));
 				gitRepoItems.addAll(storeChangeset.successfulItems().stream()
-					.map(BlobAwarePublishItemTOWrapper::getWrappedItem)
-					.map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
-					.toList());
+						.map(BlobAwarePublishItemTOWrapper::getWrappedItem)
+						.map(item -> new BlobAwarePublishItemTOWrapper<>(item, getRepoPath(item.getPath())))
+						.toList());
 			}
 			blobStage.complete();
 		}
@@ -757,7 +760,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		}
 
 		return new GitPublishChangeSet<>(committedChangeset.commitId(), unwrap(committedChangeset.successfulItems()),
-			union(failedItems, unwrap(committedChangeset.failedItems())));
+				union(failedItems, unwrap(committedChangeset.failedItems())));
 	}
 
 	private <T extends PublishItemTO> Collection<T> unwrap(Collection<BlobAwarePublishItemTOWrapper<T>> items) {

@@ -121,4 +121,14 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 */
 	void moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
+	/**
+	 * Copy content (files or directories) from one path to another.
+	 *
+	 * @param site     the site id
+	 * @param fromPath the path to copy the content from
+	 * @param toPath   the path to copy the content to
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	void copyContent(String site, String fromPath, String toPath) throws ServiceLayerException;
+
 }

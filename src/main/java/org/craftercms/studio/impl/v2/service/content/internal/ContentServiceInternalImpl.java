@@ -1004,7 +1004,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected Map<String, ContentWriteItem> calculateAdditionalItemsForCopyOrMove(Map<String, ContentLifecycleItem> lifecycleItems) {
 		return lifecycleItems.entrySet().stream()
-				.filter(entry -> isDescriptor(entry.getValue().repoPath()) || entry.getValue().amended())
+				.filter(entry -> isDescriptor(entry.getValue().repoPath()) || entry.getValue().amended()
+						|| entry.getValue().sourcePath() == null)
 				.collect(toMap(Entry::getKey, Entry::getValue));
 	}
 
@@ -1646,7 +1647,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			for (String itemSourcePath : sourcePathChildren) {
 				boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemSourcePath, SLASH_INDEX_FILE));
 				String itemTargetPath = movePath(sourcePath, targetPath, itemSourcePath);
-				lifecycleContents.add(runLifecycle(siteId, sourcePath, itemTargetPath,
+				lifecycleContents.add(runLifecycle(siteId, itemSourcePath, itemTargetPath,
 						() -> loadContent(siteId, itemSourcePath), RENAME, isRootItem ? newLabel : null));
 			}
 		} catch (Exception e) {

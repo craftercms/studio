@@ -47,8 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.mockito.Mockito.*;
@@ -271,7 +270,7 @@ public class BlobAwareContentRepositoryTest {
 		proxy.moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
 		verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
-		verify(localRepositoryV2).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
+		verify(localRepositoryV2).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, emptyList(), emptySet());
 	}
 
 	@Test

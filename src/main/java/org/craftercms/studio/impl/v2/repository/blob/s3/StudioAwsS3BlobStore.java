@@ -274,73 +274,140 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 		checkReadWriteMode();
 		Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
 		logger.debug("Move content in site '{}' from '{}' to '{}'", site,
-		getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
-		if (isFolder(fromPath)) {
-			ListObjectsV2Request request = ListObjectsV2Request.builder()
-				.bucket(previewMapping.target)
-				.prefix(appendIfMissing(getKey(previewMapping, fromPath), "/"))
-				.build();
-			try {
-				ListObjectsV2Iterable result = getClient().listObjectsV2Paginator(request);
-				for (ListObjectsV2Response page : result) {
-					String[] keys = page.contents().stream()
-						.map(S3Object::key)
-						.toList()
-						.toArray(new String[]{});
-					for (String key : keys) {
-						String filePath =
-							Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
-						logger.trace("Move content item in site '{}' from '{}' to '{}'",
-							site,
-							getFullKey(previewMapping, key),
-							getFullKey(previewMapping, toPath + "/" + filePath));
-						try {
-							copyFile(previewMapping.target, key, previewMapping.target,
-								getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, this::getClient);
-						} catch (Exception e) {
-							logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
-								site,
-								getFullKey(previewMapping, key),
-								getFullKey(previewMapping, toPath + "/" + filePath),
-								e);
-							throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' " +
-									"to '%s'", site,
-								getFullKey(previewMapping, key),
-								getFullKey(previewMapping, toPath + "/" + filePath)), e);
-						}
-					}
-
-					try {
-						deleteS3Objects(getClient(), previewMapping.target, keys);
-					} catch (Exception e) {
-						logger.error("Failed to delete content in site '{}' paths '{}' from bucket '{}'",
-							site, Arrays.toString(keys), previewMapping.target, e);
-						throw new BlobStoreException(format("Failed to delete content in site '%s' paths " +
-								"'%s' from bucket '%s'",
-							site, Arrays.toString(keys), previewMapping.target), e);
-					}
-				}
-			} catch (Exception e) {
-				logger.error("Failed to list content from site '{}' paths '{}'",
-					site, getFullKey(previewMapping, fromPath), e);
-				throw new BlobStoreException(format("Failed to list content from site '%s' paths '%s'",
-					site, getFullKey(previewMapping, fromPath)), e);
-			}
-		} else {
-			try {
+				getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
+		try {
+			if (isFolder(fromPath)) {
+				moveFolder(site, fromPath, toPath, previewMapping);
+			} else {
 				copyFile(previewMapping.target, getKey(previewMapping, fromPath),
-					previewMapping.target, getKey(previewMapping, toPath), COPY_PART_SIZE, this::getClient);
+						previewMapping.target, getKey(previewMapping, toPath), COPY_PART_SIZE, this::getClient);
 				deleteS3Object(getClient(), previewMapping.target, getKey(previewMapping, fromPath));
-			} catch (Exception e) {
-				logger.error("Failed to move content in site '{}' from '{}' to '{}'",
+			}
+		} catch (Exception e) {
+			logger.error("Failed to move content in site '{}' from '{}' to '{}'",
 					site,
 					getFullKey(previewMapping, fromPath),
 					getFullKey(previewMapping, toPath),
 					e);
-				throw new BlobStoreException(format("Failed to move content in site '%s' from '%s' to '%s'",
+			throw new BlobStoreException(format("Failed to move content in site '%s' from '%s' to '%s'",
 					site,
 					getFullKey(previewMapping, fromPath),
 					getFullKey(previewMapping, toPath)), e);
+		}
+	}
+
+	/**
+	 * Move a folder from one path to another in the S3 bucket.
+	 * @param site the site id
+	 * @param fromPath the path to move the content from
+	 * @param toPath the path to move the content to
+	 * @param previewMapping the mapping for the preview target
+	 */
+	protected void moveFolder(String site, String fromPath, String toPath, Mapping previewMapping) {
+		ListObjectsV2Request request = ListObjectsV2Request.builder()
+				.bucket(previewMapping.target)
+				.prefix(appendIfMissing(getKey(previewMapping, fromPath), "/"))
+				.build();
+		ListObjectsV2Iterable result = getClient().listObjectsV2Paginator(request);
+		for (ListObjectsV2Response page : result) {
+			String[] keys = page.contents().stream()
+					.map(S3Object::key)
+					.toList()
+					.toArray(new String[]{});
+			copyKeys(site, fromPath, toPath, previewMapping, keys);
+			try {
+				if (isNotEmpty(keys)) {
+					deleteS3Objects(getClient(), previewMapping.target, keys);
+				}
+			} catch (Exception e) {
+				logger.error("Failed to delete content in site '{}' paths '{}' from bucket '{}'",
+						site, Arrays.toString(keys), previewMapping.target, e);
+				throw new BlobStoreException(format("Failed to delete content in site '%s' paths " +
+								"'%s' from bucket '%s'",
+						site, Arrays.toString(keys), previewMapping.target), e);
+			}
+		}
+	}
+
+	@Override
+	public void copyContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+		checkReadWriteMode();
+		Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
+		logger.debug("Copy content in site '{}' from '{}' to '{}'",
+				site, getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
+		try {
+			if (isFolder(fromPath)) {
+				copyFolder(site, fromPath, toPath, previewMapping);
+			} else {
+				copyFile(previewMapping.target, getKey(previewMapping, fromPath), previewMapping.target,
+						getKey(previewMapping, toPath), COPY_PART_SIZE, this::getClient);
+			}
+		} catch (Exception e) {
+			logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
+					site,
+					getFullKey(previewMapping, fromPath),
+					getFullKey(previewMapping, toPath),
+					e);
+			throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' to '%s'",
+					site,
+					getFullKey(previewMapping, fromPath),
+					getFullKey(previewMapping, toPath)), e);
+		}
+	}
+
+	/**
+	 * Copy a folder from one path to another in the S3 bucket.
+	 *
+	 * @param site           the site id
+	 * @param fromPath       the path to copy the content from
+	 * @param toPath         the path to copy the content to
+	 * @param previewMapping the mapping for the preview target
+	 */
+	protected void copyFolder(String site, String fromPath, String toPath, Mapping previewMapping) {
+		ListObjectsV2Request request = ListObjectsV2Request.builder()
+				.bucket(previewMapping.target)
+				.prefix(appendIfMissing(getKey(previewMapping, fromPath), "/"))
+				.build();
+		ListObjectsV2Iterable result = getClient().listObjectsV2Paginator(request);
+		for (ListObjectsV2Response page : result) {
+			String[] keys = page.contents().stream()
+					.map(S3Object::key)
+					.toList()
+					.toArray(new String[]{});
+			copyKeys(site, fromPath, toPath, previewMapping, keys);
+		}
+	}
+
+	/**
+	 * Copy the keys from one path to another in the S3 bucket.
+	 *
+	 * @param site           the site id
+	 * @param fromPath       the path to copy the content from
+	 * @param toPath         the path to copy the content to
+	 * @param previewMapping the mapping for the preview target
+	 * @param keys           the keys to copy
+	 */
+	protected void copyKeys(String site, String fromPath, String toPath, Mapping previewMapping, String[] keys) {
+		for (String key : keys) {
+			String filePath =
+					Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
+			logger.trace("Copy content in site '{}' from '{}' to '{}'",
+					site,
+					getFullKey(previewMapping, key),
+					getFullKey(previewMapping, toPath + "/" + filePath));
+			try {
+				copyFile(previewMapping.target, key, previewMapping.target,
+						getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, this::getClient);
+			} catch (Exception e) {
+				logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
+						site,
+						getFullKey(previewMapping, key),
+						getFullKey(previewMapping, toPath + "/" + filePath),
+						e);
+				throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' to '%s'",
+						site,
+						getFullKey(previewMapping, key),
+						getFullKey(previewMapping, toPath + "/" + filePath)), e);
 			}
 		}
 	}
