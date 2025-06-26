@@ -195,19 +195,6 @@ public interface ContentService {
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
-	 * copy content fromPath to toPath
-	 *
-	 * @param site     - the project ID
-	 * @param fromPath the source path
-	 * @param toPath   the target path to copy content to
-	 * @return final path if successful, null otherwise
-	 *
-	 * @throws ServiceLayerException general service exception
-	 * @throws UserNotFoundException user not found exception
-	 */
-	String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-	/**
 	 * move content fromPath to toPath
 	 *
 	 * @param site     - the project ID
