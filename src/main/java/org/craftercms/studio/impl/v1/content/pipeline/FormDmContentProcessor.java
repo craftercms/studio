@@ -203,7 +203,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 			// Item
 			// TODO: get locale code with API 2
 			String parentItemPath =
-				ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
+				ContentUtils.getParentUrl(itemPath);
 			Item parent = itemService.getItem(site, parentItemPath, true);
 			itemService.persistItemAfterCreate(site, itemPath, unlock, parent.getId());
 			contentService.notifyContentEvent(site, itemPath);

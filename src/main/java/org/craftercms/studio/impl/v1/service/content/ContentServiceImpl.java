@@ -2006,13 +2006,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		// if no after and before provided, the initial value is ORDER_INCREMENT
 		if (afterOrder == null && beforeOrder == null) {
 			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE, "")));
+				ContentUtils.getParentUrl(relativePath));
 		} else if (beforeOrder == null) {
 			return (0 + afterOrder) / 2;
 		} else if (afterOrder == null) {
 			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE,
-					"")), beforeOrder);
+				ContentUtils.getParentUrl(relativePath), beforeOrder);
 		} else {
 			//return (beforeOrder + afterOrder) / 2;
 			return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);

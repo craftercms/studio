@@ -44,11 +44,11 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.isPageDescriptor;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
 import static org.craftercms.studio.model.clipboard.Operation.CUT;
 
 /**
@@ -196,20 +196,6 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 		}
 
 		return pastedTargetPath;
-	}
-
-	/**
-	 * Get the parent url: for folders and components it's just parent, for pages it's the parent of the parent.
-	 * e.g.:
-	 * /site/website/articles/page1/index.xml -> /site/website/articles
-	 * /site/components/posts/january/clickbait.xml -> /site/components/posts/january
-	 * /site/components/articles/health/ -> /site/components/articles
-	 *
-	 * @param path path of the content item
-	 * @return path of the parent item
-	 */
-	protected String getParentUrl(String path) {
-		return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
 	}
 
 }

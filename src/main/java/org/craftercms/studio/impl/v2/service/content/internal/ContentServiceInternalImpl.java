@@ -1090,15 +1090,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									LifecycleOperation operation) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		String path = item.repoPath();
 		if (NEW == operation) {
-			boolean updatePageChildren = false;
 			boolean isPage = isPageDescriptor(path);
-			String parentItemPath;
-			if (isPage) {
-				parentItemPath = getParentUrl(removeEnd(path, SLASH_INDEX_FILE));
-				updatePageChildren = true;
-			} else {
-				parentItemPath = getParentUrl(path);
-			}
+			boolean updatePageChildren = isPage;
+			String parentItemPath= getParentUrl(path);
 			Item parent = itemService.getItem(siteId, parentItemPath, isPage);
 			itemService.persistItemAfterCreate(siteId, path, false, parent.getId());
 			if (updatePageChildren) {
@@ -1386,7 +1380,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
-		String parentPath = FILE_SEPARATOR + getPathNoEndSeparator(path);
+		String parentPath = getParentUrl(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
 		doMove(siteId, path, targetPath, null);
 	}
