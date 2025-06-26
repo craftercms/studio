@@ -307,7 +307,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			throw new ServiceLayerException("Failed to continue write operation. Failed to read input", e);
 		} catch (BlobStoreConfigurationMissingException e) {
 			logger.debug("No blob store configuration found for site '{}', " +
-					"will write '{}' to the local repository", siteId, writeItems);
+					"will write list of items '{}' to the local repository", siteId, writeItems);
 			return localRepository.writeContent(siteId, writeItems, newFolders);
 		}
 	}
