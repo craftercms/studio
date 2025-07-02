@@ -346,11 +346,13 @@ public interface GitContentRepository extends ContentRepository {
 	 *
 	 * @param siteId   site id
 	 * @param paths    list of paths to delete
-	 * @param approver the user that approved the delete operation
 	 * @return the commit id of the delete operation
 	 * @throws ServiceLayerException if there is any error while deleting the items
 	 */
-	String deleteContent(String siteId, Collection<String> paths, String approver) throws ServiceLayerException;
+	String deleteContent(String siteId, Collection<String> paths,
+						 Collection<? extends ContentWriteItem> additionalItems,
+						 Set<String> newFolders)
+			throws ServiceLayerException;
 
 	/**
 	 * Create empty file such as .keep to git repository and commit

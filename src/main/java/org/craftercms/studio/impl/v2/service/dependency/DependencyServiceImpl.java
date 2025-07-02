@@ -144,7 +144,7 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, List<String> paths) {
+	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, Collection<String> paths) {
 		return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
 	}
 

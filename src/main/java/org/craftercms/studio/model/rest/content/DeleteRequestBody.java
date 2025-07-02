@@ -23,17 +23,21 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
+/**
+ * Request body for deleting content items.
+ */
 public class DeleteRequestBody {
 
 	@EsapiValidatedParam(type = SITE_ID)
 	private String siteId;
 	@NotEmpty
-	private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
-	private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> optionalDependencies;
+	private Set<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
+
+	// title and comment are used to create a publish package for the delete
 	@NotEmpty
 	@Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
 	private String title;
@@ -47,20 +51,12 @@ public class DeleteRequestBody {
 		this.siteId = siteId;
 	}
 
-	public List<String> getItems() {
+	public Set<String> getItems() {
 		return items;
 	}
 
-	public void setItems(List<String> items) {
+	public void setItems(Set<String> items) {
 		this.items = items;
-	}
-
-	public List<String> getOptionalDependencies() {
-		return optionalDependencies;
-	}
-
-	public void setOptionalDependencies(List<String> optionalDependencies) {
-		this.optionalDependencies = optionalDependencies;
 	}
 
 	public String getTitle() {

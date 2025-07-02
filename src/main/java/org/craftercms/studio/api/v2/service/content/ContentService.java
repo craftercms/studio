@@ -29,11 +29,8 @@ import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.EmptyChangesetException;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.PasteContentResult;
-import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
@@ -88,7 +85,7 @@ public interface ContentService {
 	 * @throws ServiceLayerException   general service error
 	 * @throws AuthenticationException authentication error
 	 */
-	long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
+	DeleteContentResult deleteContent(String siteId, Set<String> paths, String publishTitle, String publishComment)
 			throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**

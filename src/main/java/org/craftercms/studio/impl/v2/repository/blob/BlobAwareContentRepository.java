@@ -314,7 +314,9 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 
 	@Override
 	public String deleteContent(final String siteId, final Collection<String> paths,
-								final String approver) throws ServiceLayerException {
+								Collection<? extends ContentWriteItem> additionalItems,
+								Set<String> newFolders)
+			throws ServiceLayerException {
 		logger.debug("Delete content in site '{}' path '{}'", siteId, paths);
 		try {
 			List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
@@ -335,7 +337,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 					store.deleteContent(siteId, path);
 				}
 			}
-			return localRepository.deleteContent(siteId, gitRepoPaths, approver);
+			return localRepository.deleteContent(siteId, gitRepoPaths, writeItemsToBlobStores(siteId, additionalItems, newFolders), newFolders);
 		} catch (ServiceLayerException ex) {
 			throw ex;
 		} catch (Exception e) {

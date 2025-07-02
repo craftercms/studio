@@ -124,7 +124,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public List<LightItem> getItemSpecificDependencies(String siteId, List<String> paths) {
+	public List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths) {
 		if (isNotEmpty(paths)) {
 			// TODO: consider making this recursive
 			return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());

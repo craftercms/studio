@@ -107,7 +107,7 @@ public interface DependencyService {
 	 * @param paths  path to get item specific dependencies for
 	 * @return list of item specific dependencies
 	 */
-	List<LightItem> getItemSpecificDependencies(String siteId, List<String> paths);
+	List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths);
 
 	/**
 	 * Get all valid dependencies for given path.

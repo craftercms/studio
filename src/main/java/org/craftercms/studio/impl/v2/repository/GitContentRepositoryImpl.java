@@ -778,7 +778,9 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	@Override
 	public String deleteContent(String site, Collection<String> paths,
-								String approver) throws ServiceLayerException {
+								Collection<? extends ContentWriteItem> additionalItems,
+								Set<String> newFolders)
+			throws ServiceLayerException {
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		generalLockService.lock(gitLockKey);
 		try {
@@ -799,10 +801,13 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					}
 					pathsToCommit.add(pathToCommit);
 				}
+
+				pathsToCommit.addAll(addContent(site, repo, additionalItems));
+				pathsToCommit.addAll(addNewFolders(site, repo, newFolders));
+
 				String commitMsg = helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
 					.replaceAll(PATTERN_PATH, StringUtils.join(paths));
-				PersonIdent user = isEmpty(approver) ? helper.getCurrentUserIdent() :
-					helper.getAuthorIdent(approver);
+				PersonIdent user = helper.getCurrentUserIdent();
 
 				// TODO: SJ: we need to define messages in a string table of sorts
 				return helper.commitFiles(repo, site, commitMsg, user, pathsToCommit.toArray(new String[0]));
@@ -816,6 +821,26 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
+	}
+
+	/**
+	 * Write content and add it to the git index
+	 *
+	 * @param siteId the site id
+	 * @param repo   the repository to write to
+	 * @param items  the content items to write
+	 * @return a list of paths that were added to the repository
+	 * @throws IOException if an I/O error occurs while writing the content
+	 */
+	protected List<String> addContent(String siteId, Repository repo, Collection<? extends ContentWriteItem> items) throws IOException {
+		List<String> addedPaths = new ArrayList<>(items.size());
+		for (ContentWriteItem writeItem : items) {
+			try (InputStream content = writeItem.content()) {
+				helper.writeFile(repo, siteId, writeItem.repoPath(), content);
+				addedPaths.add(writeItem.repoPath());
+			}
+		}
+		return addedPaths;
 	}
 
 	@Override

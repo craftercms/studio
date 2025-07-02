@@ -83,5 +83,6 @@ public abstract class AuditLogConstants {
 	public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
 	public static final String TARGET_TYPE_SYNCED_COMMIT = "Synced Commit";
 	public static final String TARGET_TYPE_UNKNOWN = "unknown";
+	public static final String TARGET_TYPE_WRITE_PACKAGE = "Write Content Package";
 
 }

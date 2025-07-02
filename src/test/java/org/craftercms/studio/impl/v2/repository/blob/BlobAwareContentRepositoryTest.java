@@ -80,13 +80,11 @@ public class BlobAwareContentRepositoryTest {
 	public static final ByteArrayInputStream CONTENT = new ByteArrayInputStream("test".getBytes());
 	public static final ByteArrayInputStream POINTER = new ByteArrayInputStream("pointer".getBytes());
 	public static final long SIZE = 42;
-	public static final String USER = "John Doe";
 	public static final String ENV = "live";
 	public static final String STORE_ID = "BLOB_STORE";
 	public static final String LOCAL_PATH = "/site/website/index.xml";
 	public static final String CONFIG_PATH = "/config/studio/site-config.xml";
 	public static final String COMMIT_1 = "some commit";
-	public static final String COMMIT_2 = "some other commit";
 
 	@InjectMocks
 	private BlobAwareContentRepository proxy;
@@ -227,35 +225,35 @@ public class BlobAwareContentRepositoryTest {
 
 	@Test
 	public void deleteFileTest() throws ServiceLayerException {
-		proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), USER);
+		proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), emptySet(), emptySet());
 
 		verify(store).deleteContent(SITE, ORIGINAL_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), USER);
+		verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), emptySet(), emptySet());
 	}
 
 	@Test
 	public void deleteRemoteFolderTest() throws ServiceLayerException {
-		proxy.deleteContent(SITE, List.of(FOLDER_PATH), USER);
+		proxy.deleteContent(SITE, List.of(FOLDER_PATH), emptySet(), emptySet());
 
 		verify(store).deleteContent(SITE, FOLDER_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), USER);
+		verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), emptySet(), emptySet());
 	}
 
 	@Test
 	public void deleteLocalFolderTest() throws ServiceLayerException {
-		proxy.deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), USER);
+		proxy.deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptySet(), emptySet());
 
 		verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), USER);
+		verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptySet(), emptySet());
 	}
 
 	@Test
 	public void deleteContentFailTest() throws ServiceLayerException {
 		doThrow(ServiceLayerException.class).when(store).deleteContent(SITE, ORIGINAL_PATH);
 
-		assertThrows(ServiceLayerException.class, () -> proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), USER));
+		assertThrows(ServiceLayerException.class, () -> proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), emptySet(), emptySet()));
 
-		verify(localRepositoryV2, never()).deleteContent(SITE, List.of(POINTER_PATH), USER);
+		verify(localRepositoryV2, never()).deleteContent(SITE, List.of(POINTER_PATH), emptySet(), emptySet());
 	}
 
 	@Test

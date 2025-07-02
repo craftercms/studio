@@ -65,15 +65,12 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
+import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.PasteContentResult;
-import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult.WriteContentResultItem;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -108,16 +105,13 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Set.of;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.apache.commons.collections4.SetUtils.difference;
+import static org.apache.commons.collections4.SetUtils.union;
 import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -125,8 +119,7 @@ import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOpe
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofPath;
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofStream;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
@@ -146,6 +139,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
 	private static final String MOVE_TRANSACTION_FORMAT = "CONTENT_MOVE_%s";
+	private static final String DELETE_TRANSACTION_FORMAT = "DELETE_MOVE_%s";
 	private static final String COPY_TRANSACTION_FORMAT = "COPY_MOVE_%s";
 	private static final String WRITE_TRANSACTION_FORMAT = "CONTENT_WRITE_%s";
 
@@ -615,7 +609,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
-		insertWriteContentAudit(siteId, targetPath, COPY, pasteResult);
+		insertWriteContentAudit(siteId, targetPath, COPY, pasteResult.getItems(), pasteResult.getCommitId());
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -766,12 +760,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  String newLabel)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String siteId = site.getSiteId();
-
-		if (underPagesRoot(sourcePath)) {
-			pageNavOrderService.copy(siteId, sourcePath, targetPath);
-		}
-
 		try {
+			if (underPagesRoot(sourcePath)) {
+				pageNavOrderService.copy(siteId, sourcePath, targetPath);
+			}
 			Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 			Map<String, ContentWriteItem> dependencies =
 					lifecycleContents.stream()
@@ -779,7 +771,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 							.collect(HashMap::new, HashMap::putAll, Map::putAll);
 			// Source path is null since copy does not affect the source path
 			validateLifecycleResults(siteId, null, targetPath, getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems));
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, targetPath, lifecycleItems.values(), COPY);
+			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourceItemPaths, lifecycleItems.values(), COPY);
 			Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
 			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
 			additionalItems.putAll(dependencies);
@@ -831,12 +823,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		// Those are already persisted separately above, since they might have updated labels
 		for (String sourceItemPath : difference(sourceItemPaths, of(sourcePath, sourcePageUrl))) {
 			String targetItemPath = movePath(sourcePath, targetPath, sourceItemPath); // Normalize the path
-			if (!additionalItems.containsKey(targetItemPath)) {
+			if (operationsByPath.get(targetItemPath) == COPY) {
 				persistItemCopy(siteId, sourceItemPath, targetItemPath, parentItem.getId(), null);
 				targetItemPaths.add(targetItemPath);
 			}
 		}
-		if (isNotEmpty(targetItemPaths)) {
+		if (CollectionUtils.isNotEmpty(targetItemPaths)) {
 			itemService.updateParentId(site.getId(), targetItemPaths);
 		}
 
@@ -915,7 +907,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	protected WriteContentResult writeInternal(final String siteId, final String path, final InputStream content)
 			throws ServiceLayerException, UserNotFoundException {
-		List<String> affectedPaths = new LinkedList<>();
+		// TODO: update this so the transaction wraps the call to this method, consistently with other write operations
+		Set<String> affectedPaths = new HashSet<>();
 		affectedPaths.add(path);
 		trySetSystemProcessing(siteId, affectedPaths);
 		LifecycleOperation operation = contentExists(siteId, path) ? UPDATE : NEW;
@@ -956,7 +949,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			WriteContentResult writeContentResult = new WriteContentResult(commitId, writeResultItems);
 
 			// Audit write operation
-			insertWriteContentAudit(siteId, path, lifecycleContent.getOperation(), writeContentResult);
+			insertWriteContentAudit(siteId, path, lifecycleContent.getOperation(), writeContentResult.getItems(), writeContentResult.getCommitId());
 
 			// Publish events
 			eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -1013,39 +1006,23 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
 	 * the value is the operation performed
 	 */
-	protected @NotNull Map<String, LifecycleOperation> getOperationsByPath(String siteId, String path,
+	protected @NotNull Map<String, LifecycleOperation> getOperationsByPath(String siteId, String sourcePath,
 																		   Collection<ContentLifecycleItem> resultItems,
 																		   LifecycleOperation mainItemOperation) {
-		// Calculate the operation. This must be done before actually writing to the repository
-		Map<String, LifecycleOperation> operationsByPath = new HashMap<>(resultItems.size());
-		for (ContentLifecycleItem item : resultItems) {
-			LifecycleOperation operation = NEW;
-			if (path.equals(item.repoPath())) {
-				// Preserve the operation for the main item
-				operation = mainItemOperation;
-			} else if (contentExists(siteId, item.repoPath())) {
-				operation = UPDATE;
-			}
-			operationsByPath.put(item.repoPath(), operation);
-		}
-		return operationsByPath;
+		return getOperationsByPath(siteId, of(sourcePath), resultItems, mainItemOperation);
 	}
 
-	/**
-	 * Creates a map out of the paths, where the key is the path and
-	 * the value is the operation performed.
-	 * The operation is RENAME is the sourcePathChildren contains the sourcePath,
-	 * otherwise it is UPDATE if the content exists at the path, or NEW if it does not
-	 */
-	protected Map<String, LifecycleOperation> getOperationsByPathForMove(String siteId, Map<String, ContentLifecycleItem> lifecycleItems,
-																		 Collection<String> sourcePathChildren) {
-		return lifecycleItems.entrySet().stream()
-				.collect(toMap(Entry<String, ContentLifecycleItem>::getKey, entry -> {
-					String sourcePath = entry.getValue().sourcePath();
-					if (sourcePathChildren.contains(sourcePath)) {
-						return RENAME;
+	protected Map<String, LifecycleOperation> getOperationsByPath(String siteId, Collection<String> sourcePaths,
+																  Collection<ContentLifecycleItem> resultItems,
+																  LifecycleOperation mainItemOperation) {
+		// Calculate the operation. This must be done before actually writing to the repository
+		return resultItems.stream()
+				.collect(toMap(ContentWriteItem::repoPath, item -> {
+					if (item.sourcePath() != null && sourcePaths.contains(item.sourcePath())) {
+						// Preserve the operation for the main item
+						return mainItemOperation;
 					}
-					if (contentExists(siteId, entry.getKey())) {
+					if (contentExists(siteId, item.repoPath())) {
 						return UPDATE;
 					}
 					return NEW;
@@ -1091,11 +1068,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String path = item.repoPath();
 		if (NEW == operation) {
 			boolean isPage = isPageDescriptor(path);
-			boolean updatePageChildren = isPage;
-			String parentItemPath= getParentUrl(path);
+			String parentItemPath = getParentUrl(path);
 			Item parent = itemService.getItem(siteId, parentItemPath, isPage);
 			itemService.persistItemAfterCreate(siteId, path, false, parent.getId());
-			if (updatePageChildren) {
+			if (isPage) {
 				itemService.updateNewPageChildren(siteId, removeEnd(path, SLASH_INDEX_FILE));
 			}
 		} else {
@@ -1111,7 +1087,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected void persistWriteToDB(String siteId, Collection<? extends ContentWriteItem> lifecycleResultItems,
 									Set<String> missingFolders, Map<String, LifecycleOperation> operationsByPath)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-
 		// Gather all the persist calls so we can sort them
 		Map<String, ThrowingRunnable> persistItemCalls = new HashMap<>();
 		for (String missingFolder : missingFolders) {
@@ -1171,19 +1146,19 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	/**
 	 * Insert an audit log entry for the write operation
 	 *
-	 * @param siteId             the site id
-	 * @param path               the path
-	 * @param operation          the operation performed
-	 * @param writeContentResult the result of the write operation
+	 * @param siteId      the site id
+	 * @param path        the path
+	 * @param operation   the operation performed
+	 * @param resultItems the result items of the write operation
+	 * @param commitId    the commit id of the write operation
 	 */
 	protected void insertWriteContentAudit(String siteId, String path, LifecycleOperation operation,
-										   WriteContentResult writeContentResult) throws SiteNotFoundException {
+										   Collection<WriteContentResult.WriteContentResultItem> resultItems,
+										   String commitId) throws SiteNotFoundException {
 		Site site = siteService.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
 		switch (operation) {
-			case NEW, COPY -> auditLog.setOperation(AuditLogConstants.OPERATION_CREATE);
-			case UPDATE -> auditLog.setOperation(AuditLogConstants.OPERATION_UPDATE);
-			case RENAME -> auditLog.setOperation(AuditLogConstants.OPERATION_MOVE);
+			case NEW, COPY -> auditLog.setOperation(OPERATION_CREATE);
 			default -> auditLog.setOperation(operation.name());
 		}
 		auditLog.setActorId(getCurrentUsername());
@@ -1191,21 +1166,34 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		auditLog.setPrimaryTargetId(getContentItemId(site.getSiteId(), path));
 		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
 		auditLog.setPrimaryTargetValue(path);
-		auditLog.setCommitId(writeContentResult.getCommitId());
+		auditLog.setCommitId(commitId);
 
-		List<AuditLogParameter> auditLogParameters = writeContentResult.getItems().stream()
+		List<AuditLogParameter> auditLogParameters = getAuditParameters(siteId, path, resultItems);
+		auditLog.setParameters(auditLogParameters);
+		auditService.insertAuditLog(auditLog);
+	}
+
+	/**
+	 * Get the audit parameters for a write operation.
+	 *
+	 * @param siteId      the site id
+	 * @param path        the path of the content item being written
+	 * @param resultItems the result items of the write operation
+	 * @return a list of audit log parameters
+	 */
+	protected @NotNull List<AuditLogParameter> getAuditParameters(String siteId, String path,
+																  Collection<WriteContentResultItem> resultItems) {
+		return resultItems.stream()
 				.map(WriteContentResultItem::path)
-				.filter(itemPath -> !StringUtils.equals(itemPath, path))
+				.filter(itemPath -> path == null || !StringUtils.equals(itemPath, path))
 				.map(itemPath -> {
 					AuditLogParameter auditLogParameter = new AuditLogParameter();
-					auditLogParameter.setTargetId(getContentItemId(site.getSiteId(), itemPath));
+					auditLogParameter.setTargetId(getContentItemId(siteId, itemPath));
 					auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
 					auditLogParameter.setTargetValue(itemPath);
 					return auditLogParameter;
 				})
 				.toList();
-		auditLog.setParameters(auditLogParameters);
-		auditService.insertAuditLog(auditLog);
 	}
 
 	@Override
@@ -1222,95 +1210,190 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throws ContentInPublishQueueException {
 		// No need to check for children, as the paths collection already includes them
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
-		if (isNotEmpty(packagesForItems)) {
+		if (CollectionUtils.isNotEmpty(packagesForItems)) {
 			throw new ContentInPublishQueueException("Unable to edit content that is part of an active publish package", packagesForItems);
 		}
 	}
 
 	@Override
-	public long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
+	public DeleteContentResult deleteContent(String siteId, Set<String> paths, String publishTitle, String publishComment)
 			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+		DeleteContentResult deleteResult;
 		// Lock the sandbox repository to prevent publish packages being submitted (delete operation might conflict with submitted packages)
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
-		Collection<String> allPaths = new ArrayList<>();
+		Set<String> allPaths;
 		try {
-			AuthenticatedUser currentUser = getCurrentUser();
-			if (itemService.isSystemProcessing(siteId, paths)) {
-				throw new ServiceLayerException(format("Failed to delete content at site '%s' paths '%s' " +
-								"because some items are being processed  (Object State is system processing)",
-						siteId, paths));
-			}
-			itemService.setSystemProcessingBulk(siteId, paths, true);
-			allPaths.addAll(paths);
+			allPaths = new HashSet<>();
+			try {
+				if (itemService.isSystemProcessing(siteId, paths)) {
+					throw new ServiceLayerException(format("Failed to delete content at site '%s' paths '%s' " +
+									"because some items are being processed  (Object State is system processing)",
+							siteId, paths));
+				}
+				itemService.setSystemProcessingBulk(siteId, paths, true);
+				allPaths.addAll(paths);
 
-			Optional<String> notFound = paths.stream().filter(path -> !contentRepository.contentExists(siteId, path)).findFirst();
-			if (notFound.isPresent()) {
-				throw new ContentNotFoundException(notFound.get(), siteId, "Content '%s' not found in site '%s'".formatted(notFound.get(), siteId));
-			}
+				Optional<String> notFound = paths.stream().filter(path -> !contentRepository.contentExists(siteId, path)).findFirst();
+				if (notFound.isPresent()) {
+					throw new ContentNotFoundException(notFound.get(), siteId, "Content '%s' not found in site '%s'".formatted(notFound.get(), siteId));
+				}
 
+				Set<String> children = itemDao.getSubtreeItems(siteId, paths).stream()
+						.map(LightItem::getPath)
+						.collect(toSet());
+				itemService.setSystemProcessingBulk(siteId, children, true);
+				allPaths.addAll(children);
+
+				Set<String> dependencies = dependencyService.getItemSpecificDependencies(siteId, allPaths).stream()
+						.map(LightItem::getPath).collect(toSet());
+				itemService.setSystemProcessingBulk(siteId, dependencies, true);
+				allPaths.addAll(dependencies);
+
+				Collection<LifecycleContent> lifecycleContents = runLifecycleForDelete(siteId, allPaths);
+				String transactionId = format(DELETE_TRANSACTION_FORMAT, UUID.randomUUID());
+				deleteResult = DBUtils.runInTransaction(transactionManager, transactionId,
+						() -> deleteInternal(siteId, union(paths, children), dependencies, lifecycleContents, publishTitle, publishComment));
+			} catch (Exception e) {
+				// We need to reset the system processing state if the operation failed
+				itemService.setSystemProcessingBulk(siteId, paths, false);
+				logger.error("Failed to delete content in site '{}' at paths '{}'", siteId, paths, e);
+				throw new ServiceLayerException(
+						format("Failed to delete content in site '%s' at paths '%s'", siteId, paths), e);
+			} finally {
+				itemService.setSystemProcessingBulk(siteId, allPaths, false);
+			}
+		} finally {
+			generalLockService.unlock(sandboxRepoLockKey);
+		}
+
+		insertDeleteContentAudit(siteId, deleteResult);
+
+		Authentication auth = getAuthentication();
+		for (String path : allPaths) {
+			eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
+		}
+
+		return deleteResult;
+	}
+
+	/**
+	 * Run the lifecycle for delete operation.
+	 *
+	 * @param siteId the site id
+	 * @param paths  the delete paths
+	 * @return a collection of {@link LifecycleContent} objects representing the lifecycle contents
+	 * @throws ServiceLayerException if the lifecycle execution fails
+	 */
+	protected Collection<LifecycleContent> runLifecycleForDelete(String siteId, Set<String> paths) throws ServiceLayerException {
+		ArrayList<LifecycleContent> lifecycleContents = new ArrayList<>(paths.size());
+		try {
+			for (String path : paths) {
+				// No delete for assets
+				if (isDescriptor(path)) {
+					Item item = itemService.getItem(siteId, path, false);
+					String contentType = item.getContentTypeId();
+					LifecycleContent lifecycleContent = new LifecycleContent(path, null, contentType,
+							ofStream(path, () -> loadContent(siteId, path)),
+							DELETE);
+					contentLifecycle.execute(siteId, lifecycleContent, this::loadContent);
+					lifecycleContents.add(lifecycleContent);
+				}
+			}
+		} catch (Exception e) {
+			closeCollection(lifecycleContents);
+			throw new ServiceLayerException(format("Failed to run lifecycle for delete operation for site '%s'",
+					siteId), e);
+		}
+		return lifecycleContents;
+
+	}
+
+	protected DeleteContentResult deleteInternal(String siteId, Set<String> userRequestedPaths,
+												 Set<String> dependencies, Collection<LifecycleContent> lifecycleContents,
+												 String publishTitle, String publishComment)
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+		try {
 			Site site = siteService.getSite(siteId);
-			List<String> children = itemDao.getSubtreeItems(siteId, paths).stream()
-					.map(LightItem::getPath)
-					.toList();
-			itemService.setSystemProcessingBulk(siteId, children, true);
-			allPaths.addAll(children);
+			long publishPackageId = 0;
+			Set<String> paths = new HashSet<>(userRequestedPaths.size() + dependencies.size());
+			paths.addAll(userRequestedPaths);
+			paths.addAll(dependencies);
 
-			Collection<String> userRequested = CollectionUtils.union(paths, children);
-			List<String> dependencies = dependencyService.getItemSpecificDependencies(siteId, paths).stream().map(LightItem::getPath).toList();
-			itemService.setSystemProcessingBulk(siteId, dependencies, true);
-			allPaths.addAll(dependencies);
+			Map<String, ContentLifecycleItem> additionalItems = lifecycleContents.stream()
+					.flatMap(lifecycleContent -> lifecycleContent.getItems().values()
+							.stream()
+							.filter(item -> !paths.contains(item.repoPath())))
+					.collect(toMap(ContentLifecycleItem::repoPath, identity()));
+
+			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, emptyList(), additionalItems.values(), DELETE);
+			Set<String> newFolders = additionalItems.values().stream()
+					.flatMap(i -> calculateMissingFolders(siteId, i.repoPath()).stream())
+					.collect(toSet());
 
 			// check and fail if any of the items is part of a publish package
-			assertNotInWorkflow(siteId, allPaths, false);
-			String commitId = contentRepository.deleteContent(siteId, allPaths, currentUser.getUsername());
+			assertNotInWorkflow(siteId, paths, false);
+			String commitId = contentRepository.deleteContent(siteId, paths, additionalItems.values(), newFolders);
 			processedCommitsDao.insertCommit(site.getId(), commitId);
 
-			long publishPackageId = 0;
-			if (contentRepository.publishedRepositoryExists(siteId)) {
-				publishPackageId = publishService.publishDelete(siteId, userRequested,
-						dependencies, publishTitle, publishComment);
-			}
-
-			for (String path : allPaths) {
+			for (String path : paths) {
 				dependencyService.deleteItemDependencies(siteId, path);
 				dependencyService.invalidateDependencies(siteId, path);
 				itemService.deleteItem(site.getId(), path, true);
 			}
+			persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
 
-			insertDeleteContentApprovedActivity(site, currentUser.getUsername(), allPaths);
-
-			Authentication auth = getAuthentication();
-			for (String path : paths) {
-				eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
+			if (contentRepository.publishedRepositoryExists(siteId)) {
+				Set<String> writtenPaths = additionalItems.values().stream()
+						.map(ContentWriteItem::repoPath)
+						.collect(toSet());
+				// Do not publish paths that were not really deleted
+				publishPackageId = publishService.publishDelete(siteId, difference(userRequestedPaths, writtenPaths),
+						difference(dependencies, writtenPaths), publishTitle, publishComment);
 			}
-			return publishPackageId;
+
+			List<WriteContentResultItem> resultItems = new LinkedList<>();
+			resultItems.addAll(
+					paths.stream()
+							.filter(path -> !additionalItems.containsKey(path))
+							.map(path -> new WriteContentResultItem(path, DELETE, false))
+							.toList());
+			resultItems.addAll(
+					additionalItems.values().stream()
+							.map(item -> new WriteContentResultItem(item.repoPath(), UPDATE, false))
+							.toList()
+			);
+
+			return new DeleteContentResult(commitId, resultItems, publishPackageId);
 		} finally {
-			if (!allPaths.isEmpty()) {
-				itemService.setSystemProcessingBulk(siteId, allPaths, false);
-			}
-			generalLockService.unlock(sandboxRepoLockKey);
+			closeCollection(lifecycleContents);
 		}
 	}
 
-	private void insertDeleteContentApprovedActivity(Site site, String approver, Collection<String> paths) {
-		AuditLog auditLog = createAuditLogEntry();
-		auditLog.setOperation(AuditLogConstants.OPERATION_APPROVE);
-		auditLog.setActorId(approver);
-		auditLog.setSiteId(site.getId());
-		auditLog.setPrimaryTargetId(site.getSiteId());
-		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-		auditLog.setPrimaryTargetValue(site.getSiteId());
-		List<AuditLogParameter> auditLogParameters = new ArrayList<>();
-		for (String itemToDelete : paths) {
-			AuditLogParameter auditLogParameter = new AuditLogParameter();
-			auditLogParameter.setTargetId(site.getSiteId() + ":" + itemToDelete);
-			auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-			auditLogParameter.setTargetValue(itemToDelete);
-			auditLogParameters.add(auditLogParameter);
+	/**
+	 * Insert an audit log entry for the delete operation.
+	 *
+	 * @param siteId       the site id
+	 * @param deleteResult the result of the delete operation
+	 * @throws SiteNotFoundException if the site is not found
+	 */
+	protected void insertDeleteContentAudit(String siteId, DeleteContentResult deleteResult) throws SiteNotFoundException {
+		Site site = siteService.getSite(siteId);
+		Map<LifecycleOperation, List<WriteContentResultItem>> resultByOperation = deleteResult.getItems().stream()
+				.collect(groupingBy(WriteContentResultItem::operation, mapping(identity(), toList())));
+		for (Entry<LifecycleOperation, List<WriteContentResultItem>> entry : resultByOperation.entrySet()) {
+			AuditLog writeAuditLog = createAuditLogEntry();
+			writeAuditLog.setOperation(NEW.equals(entry.getKey()) ? OPERATION_CREATE : entry.getKey().name());
+			writeAuditLog.setActorId(getCurrentUsername());
+			writeAuditLog.setSiteId(site.getId());
+			writeAuditLog.setPrimaryTargetId(deleteResult.getCommitId());
+			writeAuditLog.setPrimaryTargetType(TARGET_TYPE_WRITE_PACKAGE);
+			writeAuditLog.setPrimaryTargetValue(deleteResult.getCommitId());
+			writeAuditLog.setCommitId(deleteResult.getCommitId());
+			List<AuditLogParameter> auditLogParameters = getAuditParameters(site.getSiteId(), null, entry.getValue());
+			writeAuditLog.setParameters(auditLogParameters);
+			auditService.insertAuditLog(writeAuditLog);
 		}
-		auditLog.setParameters(auditLogParameters);
-		auditService.insertAuditLog(auditLog);
 	}
 
 	@Override
@@ -1487,7 +1570,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		// Audit operation
-		insertWriteContentAudit(siteId, sourcePath, RENAME, pasteResult);
+		insertWriteContentAudit(siteId, sourcePath, RENAME, pasteResult.getItems(), pasteResult.getCommitId());
 
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, from, to));
@@ -1516,14 +1599,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourcePathChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
-
-		if (underPagesRoot(sourcePath)) {
-			pageNavOrderService.move(siteId, sourcePath, targetPath);
-		}
-		updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
-		// Consolidate the items into a single map
-		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 		try {
+			if (underPagesRoot(sourcePath)) {
+				pageNavOrderService.move(siteId, sourcePath, targetPath);
+			}
+			updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
+			// Consolidate the items into a single map
+			Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 			Collection<String> workflowAffectedPaths = getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems);
 			validateLifecycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
 
@@ -1532,7 +1614,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			// Items that are either amended or not in the moved paths
 			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
 			// We need to calculate this before the commit
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPathForMove(siteId, lifecycleItems, sourcePathChildren);
+			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourcePathChildren, lifecycleItems.values(), RENAME);
 
 			// Commit the changeset
 			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
@@ -1546,7 +1628,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					.toList();
 			return new PasteContentResult(commitId, moveResultItems, targetPath);
 		} finally {
-			closeCollection(lifecycleItems.values());
+			closeCollection(lifecycleContents);
 		}
 	}
 
@@ -1908,11 +1990,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (modifier == null || !isDescriptor(itemPath)) {
 			return null;
 		}
-		Document document = getItemDescriptor(siteId, itemPath, false);
-		Element root = document.getRootElement();
-		String oldInternalName = ContentUtils.readSingleDocumentNodeText(root, ELM_INTERNAL_NAME);
-		if (isNotEmpty(oldInternalName)) {
-			String baseLabel = oldInternalName.replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
+		String oldLabel = FilenameUtils.getBaseName(path);
+		if (isDescriptor(path)) {
+			Document document = getItemDescriptor(siteId, itemPath, false);
+			Element root = document.getRootElement();
+			oldLabel = ContentUtils.readSingleDocumentNodeText(root, ELM_INTERNAL_NAME);
+		}
+		if (isNotEmpty(oldLabel)) {
+			String baseLabel = oldLabel.replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
 			return format(INTERNAL_NAME_MODIFIER_FORMAT, baseLabel, modifier);
 		}
 		return null;

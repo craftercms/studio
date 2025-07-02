@@ -4769,11 +4769,6 @@ paths:
                                     description: path(s) of content item(s)
                                     items:
                                         type: string
-                                optionalDependencies:
-                                    type: array
-                                    description: optional (soft) dependencies
-                                    items:
-                                        type: string
                                 title:
                                     type: string
                                     description: title of the package to publish the deletion

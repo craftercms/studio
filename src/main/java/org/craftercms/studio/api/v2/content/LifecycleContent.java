@@ -99,6 +99,7 @@ public class LifecycleContent implements AutoCloseable {
 	 * @param filePath the path containing the content to write
 	 */
 	public void write(String path, Path filePath) {
+		// TODO: consider adding contentService to this class constructor, so here we can tell the operation (update vs create)
 		String normalizedPath = FilenameUtils.normalize(path);
 		// Remove the temporary file if it exists
 		exclude(normalizedPath);
@@ -170,6 +171,7 @@ public class LifecycleContent implements AutoCloseable {
 	 * Represents a content lifecycle item.
 	 *
 	 * @param repoPath        the path in the repository where the content will be stored (or deleted from)
+	 * @param sourcePath      the source path for move/copy operations, can be null
 	 * @param contentProvider provider to access the content as stream
 	 * @param amended         true if the content has been amended by the controller, false otherwise
 	 */

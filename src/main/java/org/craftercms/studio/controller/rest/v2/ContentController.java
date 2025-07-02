@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -129,15 +128,9 @@ public class ContentController {
 	@PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
 	public Result delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
 		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-		List<String> items = new ArrayList<>(deleteRequestBody.getItems());
-		if (isNotEmpty(deleteRequestBody.getOptionalDependencies())) {
-			items.addAll(deleteRequestBody.getOptionalDependencies());
-		}
-
-		contentService.deleteContent(deleteRequestBody.getSiteId(),
-			items, deleteRequestBody.getTitle(),
-			deleteRequestBody.getComment());
-		var result = new Result();
+		UnwrappedResult<DeleteContentResult> result = UnwrappedResult.of(contentService.deleteContent(deleteRequestBody.getSiteId(),
+				deleteRequestBody.getItems(), deleteRequestBody.getTitle(),
+				deleteRequestBody.getComment()));
 		result.setResponse(OK);
 		return result;
 	}

@@ -40,11 +40,8 @@ import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueExcep
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.policy.Type;
+import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.PasteContentResult;
-import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
 import org.dom4j.Document;
@@ -92,11 +89,11 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-	public long deleteContent(@SiteId String siteId,
-							  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-							  String publishTitle,
-							  String publishComment)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+	public DeleteContentResult deleteContent(@SiteId String siteId,
+											 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths,
+											 String publishTitle,
+											 String publishComment)
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return contentServiceInternal.deleteContent(siteId, paths, publishTitle, publishComment);
 	}
 
