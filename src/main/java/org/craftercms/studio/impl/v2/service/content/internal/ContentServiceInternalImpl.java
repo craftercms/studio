@@ -548,13 +548,46 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
 			throws ServiceLayerException, UserNotFoundException {
+		WriteContentResult writeContentResult;
+		LifecycleOperation operation = contentExists(siteId, path) ? UPDATE : NEW;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
-			return writeInternal(siteId, path, content);
+			Set<String> affectedPaths = new HashSet<>();
+			trySetSystemProcessing(siteId, affectedPaths);
+			affectedPaths.add(path);
+			try (content; LifecycleContent lifecycleContent = runLifecycle(siteId, null, path, () -> content, operation, null)) {
+				Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
+				validateLifecycleResults(siteId, null, path, lifecycleResultItems.keySet());
+				Set<String> lifecycleItemPaths = lifecycleResultItems.values().stream()
+						.map(ContentLifecycleItem::repoPath)
+						.filter(p -> !affectedPaths.contains(p)) // Do not add path again
+						.collect(toSet());
+				// 'path' is already system_processing
+				trySetSystemProcessing(siteId, lifecycleItemPaths);
+				affectedPaths.addAll(lifecycleItemPaths);
+
+				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
+				writeContentResult = DBUtils.runInTransaction(transactionManager, transactionId,
+						() -> writeInternal(siteId, path, lifecycleContent));
+			} catch (Exception e) {
+				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
+				throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s'", siteId, path), e);
+			} finally {
+				itemService.setSystemProcessingBulk(siteId, affectedPaths, false);
+			}
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
+
+		// Audit write operation
+		insertWriteContentAudit(siteId, path, operation, writeContentResult.getItems(), writeContentResult.getCommitId());
+
+		// Publish events
+		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
+		eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
+
+		return writeContentResult;
 	}
 
 	@Override
@@ -905,63 +938,30 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-	protected WriteContentResult writeInternal(final String siteId, final String path, final InputStream content)
-			throws ServiceLayerException, UserNotFoundException {
-		// TODO: update this so the transaction wraps the call to this method, consistently with other write operations
-		Set<String> affectedPaths = new HashSet<>();
-		affectedPaths.add(path);
-		trySetSystemProcessing(siteId, affectedPaths);
-		LifecycleOperation operation = contentExists(siteId, path) ? UPDATE : NEW;
-		try (content; LifecycleContent lifecycleContent = runLifecycle(siteId, null, path, () -> content, operation, null)) {
-			Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
-			validateLifecycleResults(siteId, null, path, lifecycleResultItems.keySet());
-
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent.getRepoPath(),
-					lifecycleResultItems.values(), lifecycleContent.getOperation());
-			Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
-
-			affectedPaths.addAll(operationsByPath.keySet());
-			trySetSystemProcessing(siteId, subtract(affectedPaths, of(path)));
-
-			// TODO: Consider creating the commit in a temporary branch and merge after db updates complete
-			// 		successfully
-			// Write to the repository and commit.
-			String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
-			if (isEmpty(commitId)) {
-				throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
-			}
-
-			try {
-				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
-				logger.debug("Persisting write operation for site '{}' path '{}' with transaction id '{}'", siteId, path, transactionId);
-				runInTransaction(transactionManager,
-						transactionId,
-						() -> persistWriteToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath)
-				);
-			} catch (Exception e) {
-				throw new ServiceLayerException(
-						format("Failed to persist write operation for site '%s' path '%s'", siteId, path), e);
-			}
-
-			List<WriteContentResultItem> writeResultItems = lifecycleResultItems.values().stream()
-					.map(item -> new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()))
-					.toList();
-			WriteContentResult writeContentResult = new WriteContentResult(commitId, writeResultItems);
-
-			// Audit write operation
-			insertWriteContentAudit(siteId, path, lifecycleContent.getOperation(), writeContentResult.getItems(), writeContentResult.getCommitId());
-
-			// Publish events
-			eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
-			eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
-
-			// Return the WriteContentResult
-			return writeContentResult;
-		} catch (IOException e) {
-			throw new ServiceLayerException("Failed to write content to repository from InputStream", e);
-		} finally {
-			itemService.setSystemProcessingBulk(siteId, affectedPaths, false);
+	protected WriteContentResult writeInternal(final String siteId, final String path, final LifecycleContent lifecycleContent)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
+		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent.getRepoPath(),
+				lifecycleResultItems.values(), lifecycleContent.getOperation());
+		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
+		// TODO: Consider creating the commit in a temporary branch and merge after db updates complete
+		// 		successfully
+		// Write to the repository and commit.
+		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
+		if (isEmpty(commitId)) {
+			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 		}
+
+		String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
+		logger.debug("Persisting write operation for site '{}' path '{}' with transaction id '{}'", siteId, path, transactionId);
+		persistWriteToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath);
+
+		List<WriteContentResultItem> writeResultItems = lifecycleResultItems.values().stream()
+				.map(item -> new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()))
+				.toList();
+
+		// Return the WriteContentResult
+		return new WriteContentResult(commitId, writeResultItems);
 	}
 
 	/**
