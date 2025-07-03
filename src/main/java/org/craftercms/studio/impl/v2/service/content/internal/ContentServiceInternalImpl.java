@@ -1991,7 +1991,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			return null;
 		}
 		String oldLabel = FilenameUtils.getBaseName(path);
-		if (isDescriptor(path)) {
+		if (isDescriptor(itemPath) && contentExists(siteId, itemPath)) {
 			Document document = getItemDescriptor(siteId, itemPath, false);
 			Element root = document.getRootElement();
 			oldLabel = ContentUtils.readSingleDocumentNodeText(root, ELM_INTERNAL_NAME);
