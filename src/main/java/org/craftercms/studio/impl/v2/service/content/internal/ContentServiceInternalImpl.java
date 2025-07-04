@@ -581,7 +581,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		// Audit write operation
-		insertWriteContentAudit(siteId, null, path, operation, writeContentResult.getItems(), writeContentResult.getCommitId());
+		insertContentAudit(siteId, null, path, operation, writeContentResult);
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -646,7 +646,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 			String transactionId = format(COPY_TRANSACTION_FORMAT, siteId);
 			pasteResult = runInTransaction(transactionManager, transactionId,
-					() -> copyInternal(site, sourcePath, targetPath, lifecycleContents, itemPaths, pastedPath.newLabel));
+					() -> copyInternal(site, sourcePath, targetPath, lifecycleContents, itemPaths, pastedPath.newLabel, operation));
 		} catch (Exception e) {
 			closeCollection(lifecycleContents);
 			logger.error("Failed to copy content from '{}' to '{}' in site '{}'", sourcePath, targetPath, siteId, e);
@@ -654,7 +654,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
-		insertWriteContentAudit(siteId, sourcePath, targetPath, operation, pasteResult.getItems(), pasteResult.getCommitId());
+		insertContentAudit(siteId, sourcePath, targetPath, operation, pasteResult);
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -803,6 +803,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param lifecycleContents the lifecycle contents (already processed)
 	 * @param sourceItemPaths   the list of source item paths to copy (this is used to persist the copy operation)
 	 * @param newLabel          the new label for the root item in the target path, if it has changed
+	 * @param operation         the lifecycle operation to perform (COPY or DUPLICATE)
 	 * @return the {@link PasteContentResult} containing the results of the operation
 	 * @throws ServiceLayerException   if the copy operation fails
 	 * @throws UserNotFoundException   if the user is not found
@@ -810,7 +811,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected PasteContentResult copyInternal(Site site, String sourcePath, String targetPath,
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourceItemPaths,
-											  String newLabel)
+											  String newLabel, LifecycleOperation operation)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String siteId = site.getSiteId();
 		try {
@@ -824,7 +825,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 							.collect(HashMap::new, HashMap::putAll, Map::putAll);
 			// Source path is null since copy does not affect the source path
 			validateLifecycleResults(siteId, null, targetPath, getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems));
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourceItemPaths, lifecycleItems.values(), COPY);
+			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourceItemPaths, lifecycleItems.values(), operation);
 			Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
 			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
 			additionalItems.putAll(dependencies);
@@ -1168,25 +1169,44 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param sourcePath  the source path (if applicable, e.g. for copy/move operations)
 	 * @param path        the path
 	 * @param operation   the operation performed
-	 * @param resultItems the result items of the write operation
-	 * @param commitId    the commit id of the write operation
+	 * @param writeResult the result of the write operation
 	 */
-	protected void insertWriteContentAudit(String siteId, String sourcePath, String path, LifecycleOperation operation,
-										   Collection<WriteContentResult.WriteContentResultItem> resultItems,
-										   String commitId) throws SiteNotFoundException {
-		Site site = siteService.getSite(siteId);
-		AuditLog auditLog = createAuditLogEntry();
-		auditLog.setOperation(operation == NEW ? OPERATION_CREATE : operation.name());
-		auditLog.setActorId(getCurrentUsername());
-		auditLog.setSiteId(site.getId());
-		auditLog.setPrimaryTargetId(commitId);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_PACKAGE);
-		auditLog.setPrimaryTargetValue(commitId);
-		auditLog.setCommitId(commitId);
+	protected void insertContentAudit(String siteId, String sourcePath, String path,
+									  LifecycleOperation operation, WriteContentResult writeResult) throws SiteNotFoundException {
+		Map<LifecycleOperation, List<WriteContentResultItem>> resultByOperation = writeResult.getItems().stream()
+				.collect(groupingBy(WriteContentResultItem::operation, mapping(identity(), toList())));
 
-		List<AuditLogParameter> auditLogParameters = getAuditParameters(siteId, sourcePath, path, resultItems);
-		auditLog.setParameters(auditLogParameters);
-		auditService.insertAuditLog(auditLog);
+		Site site = siteService.getSite(siteId);
+		for (Entry<LifecycleOperation, List<WriteContentResultItem>> entry : resultByOperation.entrySet()) {
+			String auditTargetId = writeResult.getCommitId();
+			String auditTargetValue = writeResult.getCommitId();
+			String targetType = TARGET_TYPE_CONTENT_PACKAGE;
+			var parameterItems = entry.getValue();
+			if (entry.getValue().size() == 1) {
+				// If there is only one item, add it to the audit table primary target, so it is visible right away
+				String itemPath = entry.getValue().getFirst().path();
+				auditTargetId = getContentItemId(siteId, itemPath);
+				auditTargetValue = itemPath;
+				targetType = TARGET_TYPE_CONTENT_ITEM;
+				// Prevent unnecessary duplication of data
+				parameterItems = emptyList();
+			}
+
+			AuditLog auditLog = createAuditLogEntry();
+			auditLog.setOperation(entry.getKey() == NEW ? OPERATION_CREATE : entry.getKey().name());
+			auditLog.setActorId(getCurrentUsername());
+			auditLog.setSiteId(site.getId());
+			auditLog.setPrimaryTargetId(auditTargetId);
+			auditLog.setPrimaryTargetType(targetType);
+			auditLog.setPrimaryTargetValue(auditTargetValue);
+			auditLog.setCommitId(writeResult.getCommitId());
+
+			// Source path makes sense for the main operation only. e.g.: a copy operation that also creates/updates other items
+			String sourcePathParam = operation == entry.getKey() ? sourcePath : null;
+			List<AuditLogParameter> auditLogParameters = getAuditParameters(siteId, sourcePathParam, path, parameterItems);
+			auditLog.setParameters(auditLogParameters);
+			auditService.insertAuditLog(auditLog);
+		}
 	}
 
 	/**
@@ -1404,22 +1424,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws SiteNotFoundException if the site is not found
 	 */
 	protected void insertDeleteContentAudit(String siteId, DeleteContentResult deleteResult) throws SiteNotFoundException {
-		Site site = siteService.getSite(siteId);
-		Map<LifecycleOperation, List<WriteContentResultItem>> resultByOperation = deleteResult.getItems().stream()
-				.collect(groupingBy(WriteContentResultItem::operation, mapping(identity(), toList())));
-		for (Entry<LifecycleOperation, List<WriteContentResultItem>> entry : resultByOperation.entrySet()) {
-			AuditLog writeAuditLog = createAuditLogEntry();
-			writeAuditLog.setOperation(NEW.equals(entry.getKey()) ? OPERATION_CREATE : entry.getKey().name());
-			writeAuditLog.setActorId(getCurrentUsername());
-			writeAuditLog.setSiteId(site.getId());
-			writeAuditLog.setPrimaryTargetId(deleteResult.getCommitId());
-			writeAuditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_PACKAGE);
-			writeAuditLog.setPrimaryTargetValue(deleteResult.getCommitId());
-			writeAuditLog.setCommitId(deleteResult.getCommitId());
-			List<AuditLogParameter> auditLogParameters = getAuditParameters(site.getSiteId(), null, null, entry.getValue());
-			writeAuditLog.setParameters(auditLogParameters);
-			auditService.insertAuditLog(writeAuditLog);
-		}
+		insertContentAudit(siteId, null, null, DELETE, deleteResult);
 	}
 
 	@Override
@@ -1596,7 +1601,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		// Audit operation
-		insertWriteContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult.getItems(), pasteResult.getCommitId());
+		insertContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult);
 
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, from, to));
