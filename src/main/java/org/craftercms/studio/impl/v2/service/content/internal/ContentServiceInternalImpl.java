@@ -856,16 +856,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		// Those are already persisted separately above, since they might have updated labels
 		for (String sourceItemPath : difference(sourceItemPaths, of(sourcePath, sourcePageUrl))) {
 			String targetItemPath = movePath(sourcePath, targetPath, sourceItemPath); // Normalize the path
-			if (operationsByPath.get(targetItemPath) == COPY) {
-				persistItemCopy(siteId, sourceItemPath, targetItemPath, parentItem.getId(), null);
-				targetItemPaths.add(targetItemPath);
-			}
+			persistItemCopy(siteId, sourceItemPath, targetItemPath, parentItem.getId(), null);
+			targetItemPaths.add(targetItemPath);
 		}
+		persistWriteToDB(siteId, additionalItems.values(), newFolders, operationsByPath);
+
 		if (CollectionUtils.isNotEmpty(targetItemPaths)) {
 			itemService.updateParentId(site.getId(), targetItemPaths);
 		}
-
-		persistWriteToDB(siteId, additionalItems.values(), newFolders, operationsByPath);
 
 		dependencyService.validateDependenciesForTree(siteId, targetPath);
 	}
