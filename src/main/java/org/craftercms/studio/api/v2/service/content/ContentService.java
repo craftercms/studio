@@ -331,5 +331,14 @@ public interface ContentService {
 	 * @return the result of the copy operation, which includes affected paths
 	 */
 	PasteContentResult copy(String siteId, String sourcePath, String targetPath, Set<String> copyPaths)
-			throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException;
+
+	/**
+	 * Create a copy of a content item
+	 *
+	 * @param siteId the site id
+	 * @param path   the path of the content item to duplicate
+	 * @return the result of the copy
+	 */
+	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException;
 }

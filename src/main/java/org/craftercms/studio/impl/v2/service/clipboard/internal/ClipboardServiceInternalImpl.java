@@ -188,8 +188,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	@RequireContentExists
 	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, UserNotFoundException {
-		String parentUrl = getParentUrl(path);
-		PasteContentResult pasteContentResult = contentServiceV2.copy(siteId, path, parentUrl, Set.of(path));
+		PasteContentResult pasteContentResult = contentServiceV2.duplicate(siteId, path);
 		String pastedTargetPath = pasteContentResult.getTargetPath();
 		if (isPageDescriptor(path)) {
 			pastedTargetPath += SLASH_INDEX_FILE;

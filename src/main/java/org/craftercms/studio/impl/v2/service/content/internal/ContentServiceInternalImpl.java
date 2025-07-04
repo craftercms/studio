@@ -593,7 +593,19 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public PasteContentResult copy(final String siteId, final String from,
 								   final String initialTargetPath, final Set<String> itemPaths)
-			throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException {
+		return doCopy(siteId, from, initialTargetPath, itemPaths, COPY);
+	}
+
+	/**
+	 * This is just an extra method for the copy operation with an extra
+	 * {@link LifecycleOperation} parameter.
+	 * This is meant to be consumed by the copy and duplicate operations.
+	 */
+	protected PasteContentResult doCopy(final String siteId, final String from,
+										final String initialTargetPath, final Set<String> itemPaths,
+										final LifecycleOperation operation)
+			throws ServiceLayerException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, from, initialTargetPath);
 		String to = pastedPath.path;
 		if (!contentExists(siteId, from)) {
@@ -628,7 +640,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemPath, SLASH_INDEX_FILE));
 				String newPath = movePath(sourcePath, targetPath, itemPath);
 				LifecycleContent lifecycleContent = runLifecycle(siteId, itemPath, newPath,
-						() -> loadContent(siteId, itemPath), COPY, isRootItem ? pastedPath.newLabel : null);
+						() -> loadContent(siteId, itemPath), operation, isRootItem ? pastedPath.newLabel : null);
 				lifecycleContents.add(lifecycleContent);
 			}
 
@@ -642,13 +654,20 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
-		insertWriteContentAudit(siteId, sourcePath, targetPath, COPY, pasteResult.getItems(), pasteResult.getCommitId());
+		insertWriteContentAudit(siteId, sourcePath, targetPath, operation, pasteResult.getItems(), pasteResult.getCommitId());
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, targetPath));
 
 		return pasteResult;
+	}
+
+	@Override
+	public PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException {
+		String parentUrl = getParentUrl(path);
+
+		return doCopy(siteId, path, parentUrl, Set.of(path), DUPLICATE);
 	}
 
 	/**
@@ -666,7 +685,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected void getCopyDependencies(String siteId, String sourcePath, String targetPath,
 									   ContentItemIds oldContentIds, ContentItemIds newContentItemIds,
-									   Element root, Map<String, ContentWriteItem> copiedDependencies)
+									   Element root, Map<String, ContentWriteItem> copiedDependencies,
+									   LifecycleOperation operation)
 			throws ServiceLayerException, DocumentException, IOException {
 		logger.debug("Getting copy dependencies for item '{}' in site '{}'", targetPath, siteId);
 		Map<String, String> dependencyMappings = getCopyDependencyMapping(siteId, sourcePath, oldContentIds, newContentItemIds, root);
@@ -684,7 +704,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			ThrowingSupplier<InputStream> contentSupplier;
 			if (isDescriptor(pastedPath.path)) {
 				Document dependencyDocument = convertStreamToXml(loadContent(siteId, dependencyMapping.getKey()));
-				copiedDependencies.putAll(updateContentOnWrite(siteId, dependencyMapping.getKey(), pastedPath.path, pastedPath.newLabel, COPY, dependencyDocument.getRootElement()));
+				copiedDependencies.putAll(updateContentOnWrite(siteId, dependencyMapping.getKey(), pastedPath.path, pastedPath.newLabel, operation, dependencyDocument.getRootElement()));
 				Path depTempPath = createTempFile(pastedPath.path, dependencyDocument);
 				contentSupplier = () -> new FileInputStream(depTempPath.toFile());
 			} else {
@@ -1180,7 +1200,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected @NotNull List<AuditLogParameter> getAuditParameters(String siteId, String sourcePath, String path,
 																  Collection<WriteContentResultItem> resultItems) {
 		List<AuditLogParameter> auditLogParameters = new ArrayList<>();
-		if(sourcePath != null) {
+		if (sourcePath != null) {
 			AuditLogParameter sourcePathParameter = new AuditLogParameter();
 			sourcePathParameter.setTargetId(getContentItemId(siteId, sourcePath));
 			sourcePathParameter.setTargetType(TARGET_TYPE_SOURCE_PATH);
@@ -1396,7 +1416,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			writeAuditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_PACKAGE);
 			writeAuditLog.setPrimaryTargetValue(deleteResult.getCommitId());
 			writeAuditLog.setCommitId(deleteResult.getCommitId());
-			List<AuditLogParameter> auditLogParameters = getAuditParameters(site.getSiteId(), null,null, entry.getValue());
+			List<AuditLogParameter> auditLogParameters = getAuditParameters(site.getSiteId(), null, null, entry.getValue());
 			writeAuditLog.setParameters(auditLogParameters);
 			auditService.insertAuditLog(writeAuditLog);
 		}
@@ -1744,7 +1764,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Updates the XML after a write operation.
 	 * Return the copy-dependencies for copy operations.
 	 * Notice that for copy operations, this method is indirectly recursive, as it will call
-	 * {@link #getCopyDependencies(String, String, String, ContentItemIds, ContentItemIds, Element, Map)},
+	 * {@link #getCopyDependencies(String, String, String, ContentItemIds, ContentItemIds, Element, Map, LifecycleOperation)},
 	 * which will call back for each descriptor dependency
 	 *
 	 * @param siteId     the site id
@@ -1772,7 +1792,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			if (operation.isCopy) {
 				ContentItemIds newContentIds = generate();
 				ContentItemIds oldContentIds = extractContentIds(root);
-				getCopyDependencies(siteId, sourcePath, path, oldContentIds, newContentIds, root, copyDependencies);
+				getCopyDependencies(siteId, sourcePath, path, oldContentIds, newContentIds, root, copyDependencies, operation);
 				updateObjectIds(root, newContentIds);
 			}
 		}

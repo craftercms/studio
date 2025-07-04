@@ -246,8 +246,15 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public PasteContentResult copy(@SiteId String siteId, @ActionSourcePath String sourcePath,
 								   @ActionTargetPath @ContentPath String targetPath, Set<String> copyPaths)
-			throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException {
 		return contentServiceInternal.copy(siteId, sourcePath, targetPath, copyPaths);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public PasteContentResult duplicate(@SiteId String siteId, @ContentPath String sourcePath) throws ServiceLayerException {
+		return contentServiceInternal.duplicate(siteId, sourcePath);
 	}
 
 	@Override
