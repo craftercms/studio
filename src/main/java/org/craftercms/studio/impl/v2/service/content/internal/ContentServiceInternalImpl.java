@@ -581,7 +581,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		// Audit write operation
-		insertWriteContentAudit(siteId, path, operation, writeContentResult.getItems(), writeContentResult.getCommitId());
+		insertWriteContentAudit(siteId, null, path, operation, writeContentResult.getItems(), writeContentResult.getCommitId());
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -642,7 +642,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
-		insertWriteContentAudit(siteId, targetPath, COPY, pasteResult.getItems(), pasteResult.getCommitId());
+		insertWriteContentAudit(siteId, sourcePath, targetPath, COPY, pasteResult.getItems(), pasteResult.getCommitId());
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -1145,28 +1145,26 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Insert an audit log entry for the write operation
 	 *
 	 * @param siteId      the site id
+	 * @param sourcePath  the source path (if applicable, e.g. for copy/move operations)
 	 * @param path        the path
 	 * @param operation   the operation performed
 	 * @param resultItems the result items of the write operation
 	 * @param commitId    the commit id of the write operation
 	 */
-	protected void insertWriteContentAudit(String siteId, String path, LifecycleOperation operation,
+	protected void insertWriteContentAudit(String siteId, String sourcePath, String path, LifecycleOperation operation,
 										   Collection<WriteContentResult.WriteContentResultItem> resultItems,
 										   String commitId) throws SiteNotFoundException {
 		Site site = siteService.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
-		switch (operation) {
-			case NEW, COPY -> auditLog.setOperation(OPERATION_CREATE);
-			default -> auditLog.setOperation(operation.name());
-		}
+		auditLog.setOperation(operation == NEW ? OPERATION_CREATE : operation.name());
 		auditLog.setActorId(getCurrentUsername());
 		auditLog.setSiteId(site.getId());
-		auditLog.setPrimaryTargetId(getContentItemId(site.getSiteId(), path));
-		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-		auditLog.setPrimaryTargetValue(path);
+		auditLog.setPrimaryTargetId(commitId);
+		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_PACKAGE);
+		auditLog.setPrimaryTargetValue(commitId);
 		auditLog.setCommitId(commitId);
 
-		List<AuditLogParameter> auditLogParameters = getAuditParameters(siteId, path, resultItems);
+		List<AuditLogParameter> auditLogParameters = getAuditParameters(siteId, sourcePath, path, resultItems);
 		auditLog.setParameters(auditLogParameters);
 		auditService.insertAuditLog(auditLog);
 	}
@@ -1179,9 +1177,17 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param resultItems the result items of the write operation
 	 * @return a list of audit log parameters
 	 */
-	protected @NotNull List<AuditLogParameter> getAuditParameters(String siteId, String path,
+	protected @NotNull List<AuditLogParameter> getAuditParameters(String siteId, String sourcePath, String path,
 																  Collection<WriteContentResultItem> resultItems) {
-		return resultItems.stream()
+		List<AuditLogParameter> auditLogParameters = new ArrayList<>();
+		if(sourcePath != null) {
+			AuditLogParameter sourcePathParameter = new AuditLogParameter();
+			sourcePathParameter.setTargetId(getContentItemId(siteId, sourcePath));
+			sourcePathParameter.setTargetType(TARGET_TYPE_SOURCE_PATH);
+			sourcePathParameter.setTargetValue(sourcePath);
+			auditLogParameters.add(sourcePathParameter);
+		}
+		auditLogParameters.addAll(resultItems.stream()
 				.map(WriteContentResultItem::path)
 				.filter(itemPath -> path == null || !StringUtils.equals(itemPath, path))
 				.map(itemPath -> {
@@ -1191,7 +1197,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					auditLogParameter.setTargetValue(itemPath);
 					return auditLogParameter;
 				})
-				.toList();
+				.toList());
+
+		return auditLogParameters;
 	}
 
 	@Override
@@ -1385,10 +1393,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			writeAuditLog.setActorId(getCurrentUsername());
 			writeAuditLog.setSiteId(site.getId());
 			writeAuditLog.setPrimaryTargetId(deleteResult.getCommitId());
-			writeAuditLog.setPrimaryTargetType(TARGET_TYPE_WRITE_PACKAGE);
+			writeAuditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_PACKAGE);
 			writeAuditLog.setPrimaryTargetValue(deleteResult.getCommitId());
 			writeAuditLog.setCommitId(deleteResult.getCommitId());
-			List<AuditLogParameter> auditLogParameters = getAuditParameters(site.getSiteId(), null, entry.getValue());
+			List<AuditLogParameter> auditLogParameters = getAuditParameters(site.getSiteId(), null,null, entry.getValue());
 			writeAuditLog.setParameters(auditLogParameters);
 			auditService.insertAuditLog(writeAuditLog);
 		}
@@ -1568,7 +1576,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		// Audit operation
-		insertWriteContentAudit(siteId, sourcePath, RENAME, pasteResult.getItems(), pasteResult.getCommitId());
+		insertWriteContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult.getItems(), pasteResult.getCommitId());
 
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, from, to));
