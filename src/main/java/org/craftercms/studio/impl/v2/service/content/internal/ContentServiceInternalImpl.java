@@ -46,7 +46,9 @@ import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
+import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
@@ -120,6 +122,7 @@ import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofPa
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofStream;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
@@ -1300,6 +1303,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				String transactionId = format(DELETE_TRANSACTION_FORMAT, UUID.randomUUID());
 				deleteResult = DBUtils.runInTransaction(transactionManager, transactionId,
 						() -> deleteInternal(siteId, union(paths, children), dependencies, lifecycleContents, publishTitle, publishComment));
+				// Do this after the transaction to ensure the visibility of the changes
+				if (deleteResult.getPublishPackageId() > 0) {
+					eventPublisher.publishEvent(
+							new RequestPublishEvent(siteId, deleteResult.getPublishPackageId()));
+					eventPublisher.publishEvent(new WorkflowEvent(getAuthentication(), siteId, deleteResult.getPublishPackageId(), DIRECT_PUBLISH));
+				}
 			} catch (Exception e) {
 				// We need to reset the system processing state if the operation failed
 				itemService.setSystemProcessingBulk(siteId, paths, false);
@@ -1382,13 +1391,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			String commitId = contentRepository.deleteContent(siteId, paths, additionalItems.values(), newFolders);
 			processedCommitsDao.insertCommit(site.getId(), commitId);
 
-			for (String path : paths) {
-				dependencyService.deleteItemDependencies(siteId, path);
-				dependencyService.invalidateDependencies(siteId, path);
-				itemService.deleteItem(site.getId(), path, true);
-			}
-			persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
-
 			if (contentRepository.publishedRepositoryExists(siteId)) {
 				Set<String> writtenPaths = additionalItems.values().stream()
 						.map(ContentWriteItem::repoPath)
@@ -1397,6 +1399,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				publishPackageId = publishService.publishDelete(siteId, difference(userRequestedPaths, writtenPaths),
 						difference(dependencies, writtenPaths), publishTitle, publishComment);
 			}
+
+			for (String path : paths) {
+				dependencyService.deleteItemDependencies(siteId, path);
+				dependencyService.invalidateDependencies(siteId, path);
+				itemService.deleteItem(site.getId(), path, true);
+			}
+			persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
 
 			List<WriteContentResultItem> resultItems = new LinkedList<>();
 			resultItems.addAll(
