@@ -810,7 +810,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				PersonIdent user = helper.getCurrentUserIdent();
 
 				// TODO: SJ: we need to define messages in a string table of sorts
-				return helper.commitFiles(repo, site, commitMsg, user, pathsToCommit.toArray(new String[0]));
+				String commitId = helper.commitFiles(repo, site, commitMsg, user, pathsToCommit.toArray(new String[0]));
+				if (commitId != null) {
+					persistCommit(site, commitId);
+				}
+				return commitId;
 			} catch (ServiceLayerException e) {
 				logger.error("Failed to delete content at site '{}' paths '{}'", site, paths, e);
 				throw e;

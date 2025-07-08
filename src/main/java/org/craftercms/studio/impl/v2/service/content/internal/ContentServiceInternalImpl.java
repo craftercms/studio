@@ -168,7 +168,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private ApplicationEventPublisher eventPublisher;
 	private final org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private final PublishService publishService;
-	private final ProcessedCommitsDAO processedCommitsDao;
 	private final ContentLifecycle contentLifecycle;
 	private final ContentLifecycle assetLifecycle;
 	private final PermissionEvaluator<String, Object> permissionEvaluator;
@@ -179,14 +178,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
 			"retryingDatabaseOperationFacade", "publishService",
-			"processedCommitsDao", "permissionEvaluator", "pageNavOrderService", "itemService",
+			"permissionEvaluator", "pageNavOrderService", "itemService",
 			"itemDao", "generalLockService", "dependencyService",
 			"contentServiceV1", "contentRepository", "contentLifecycle",
 			"auditService", "assetLifecycle", "servicesConfig"})
 	public ContentServiceInternalImpl(PlatformTransactionManager transactionManager, StudioConfiguration studioConfiguration,
 									  SitesService siteService,
 									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
-									  ProcessedCommitsDAO processedCommitsDao, PermissionEvaluator<String, Object> permissionEvaluator,
+									  PermissionEvaluator<String, Object> permissionEvaluator,
 									  DmPageNavigationOrderService pageNavOrderService, ItemService itemService,
 									  ItemDAO itemDao, GeneralLockService generalLockService,
 									  DependencyService dependencyService,
@@ -199,7 +198,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.siteService = siteService;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.publishService = publishService;
-		this.processedCommitsDao = processedCommitsDao;
 		this.permissionEvaluator = permissionEvaluator;
 		this.pageNavOrderService = pageNavOrderService;
 		this.itemService = itemService;
@@ -508,7 +506,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws ActionDeniedException          if the user does not have write permission
 	 */
 	private void validateLifecycleResults(String siteId, String sourcePath, String targetPath, Collection<String> affectedPaths)
-			throws ServiceLayerException {
+			throws ServiceLayerException, ActionDeniedException {
 		// Check list is not empty or throw exception  (can't write empty set)
 		if (affectedPaths.isEmpty()) {
 			throw new ServiceLayerException(format("Item list after lifecycle processing is empty, nothing to write for site '%s' path '%s'", siteId, targetPath));
@@ -569,10 +567,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				// 'path' is already system_processing
 				trySetSystemProcessing(siteId, lifecycleItemPaths);
 				affectedPaths.addAll(lifecycleItemPaths);
-
 				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
 				writeContentResult = DBUtils.runInTransaction(transactionManager, transactionId,
 						() -> writeInternal(siteId, path, lifecycleContent));
+			} catch (ServiceLayerException | ActionDeniedException e) {
+				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
+				throw e;
 			} catch (Exception e) {
 				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
 				throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s'", siteId, path), e);
@@ -1389,7 +1389,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			// check and fail if any of the items is part of a publish package
 			assertNotInWorkflow(siteId, paths, false);
 			String commitId = contentRepository.deleteContent(siteId, paths, additionalItems.values(), newFolders);
-			processedCommitsDao.insertCommit(site.getId(), commitId);
 
 			if (contentRepository.publishedRepositoryExists(siteId)) {
 				Set<String> writtenPaths = additionalItems.values().stream()

@@ -73,8 +73,7 @@ import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.NEW;
-import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.UPDATE;
+import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToXml;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
@@ -436,8 +435,6 @@ public class ContentServiceInternalImplTest {
 		for (String path : existentPaths) {
 			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
 		}
-		returnItemDescriptorWithName("/site/website/folder/index.xml");
-
 		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
 				"/site/website/folder",
 				"/site/website/articles");
@@ -458,9 +455,6 @@ public class ContentServiceInternalImplTest {
 		for (String path : existentPaths) {
 			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
 		}
-
-		returnItemDescriptorWithName("/site/website/folder/index.xml");
-
 		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
 				"/site/website/folder",
 				"/site/website/articles");
@@ -481,9 +475,6 @@ public class ContentServiceInternalImplTest {
 			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
 		}
 
-		doReturn(convertStreamToXml(toInputStream("<page><internal-name>the label</internal-name></page>", "UTF-8")))
-				.when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/style/index.xml", false);
-
 		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
 				"/site/website/style/index.xml",
 				"/site/website/articles");
@@ -503,9 +494,6 @@ public class ContentServiceInternalImplTest {
 		for (String path : existentPaths) {
 			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
 		}
-
-		doReturn(convertStreamToXml(toInputStream("<page><internal-name>the label</internal-name></page>", "UTF-8")))
-				.when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/style/index.xml", false);
 
 		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
 				"/site/website/style/index.xml",
@@ -529,8 +517,6 @@ public class ContentServiceInternalImplTest {
 			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
 		}
 
-		returnItemDescriptorWithName("/site/website/articles-copy-1/index.xml");
-
 		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
 				"/site/website/articles-copy-1",
 				"/site/website/style/index.xml");
@@ -552,9 +538,6 @@ public class ContentServiceInternalImplTest {
 			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
 		}
 
-		doReturn(convertStreamToXml(toInputStream("<page><internal-name>the label</internal-name></page>", "UTF-8")))
-				.when(serviceInternal).getItemDescriptor(SITE_ID, "/site/website/style-copy-1/index.xml", false);
-
 		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
 				"/site/website/style-copy-1",
 				"/site/website/health/index.xml");
@@ -564,12 +547,10 @@ public class ContentServiceInternalImplTest {
 
 	@Test
 	public void testMoveToParentPath() throws ServiceLayerException, DocumentException, UserNotFoundException {
-		when(contentRepository.contentExists(SITE_ID, "/site/website")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location/style")).thenReturn(true);
 		when(contentRepository.isFolder(SITE_ID, "/site/website/new-location")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style/index.xml")).thenReturn(true);
-		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style")).thenReturn(true);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 		when(contentRepository.moveContent(any(), any(), any(), anyCollection(), anySet())).thenReturn("COMMIT 123");
 
@@ -622,8 +603,120 @@ public class ContentServiceInternalImplTest {
 			verify(itemDAO, times(1)).updateMovedFolders(
 					eq(SITE_NUMERIC_ID),
 					eq("/site/website/articles/style"),
-					eq("/site/website/new-location-copy-1")
+					eq("/site/website/new-location/style-copy-1")
 			);
+		}
+	}
+
+	@Test(expected = ContentNotFoundException.class)
+	public void testDuplicateDoesNotExist() throws Exception {
+		doReturn(false).when(contentRepository).contentExists(SITE_ID, "/site/website/articles/test1");
+
+		runInMockStatics(() -> serviceInternal.duplicate(SITE_ID, "/site/website/articles/test1"));
+	}
+
+	@Test
+	public void testDuplicate() throws Exception {
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/articles/test1");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/articles");
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+		when(contentRepository.copy(eq(SITE_ID), anyString(), anyString(), any(), any())).thenReturn("commit-id");
+		doReturn(true).when(contentRepository).isFolder(SITE_ID, "/site/website/articles");
+		doReturn(true).when(contentRepository).isFolder(SITE_ID, "/site/website/articles/test1");
+
+		Item parentItem = mock(Item.class);
+		when(parentItem.getId()).thenReturn(123L);
+		when(itemService.getItem(SITE_ID, "/site/website/articles", true)).thenReturn(parentItem);
+
+		runInMockStatics(() -> serviceInternal.duplicate(SITE_ID, "/site/website/articles/test1"));
+
+		verify(itemService).copyItem(
+				SITE_ID,
+				"/site/website/articles/test1",
+				"/site/website/articles/test1-copy-1",
+				123L,
+				"test1-copy-1",
+				0
+		);
+		verify(serviceInternal).insertContentAudit(
+				eq(SITE_ID),
+				eq("/site/website/articles/test1"),
+				eq("/site/website/articles/test1-copy-1"),
+				eq(DUPLICATE),
+				any()
+		);
+	}
+
+	@Test
+	public void testDeletePublished() throws Exception {
+		Set<String> deletePaths = Set.of("/site/website/test1", "/site/website/test2", "/site/website/test3");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/test1");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/test2");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/test3");
+
+		doReturn("COMMIT123").when(contentRepository).deleteContent(any(), any(), any(), any());
+
+		doReturn(true).when(contentRepository).publishedRepositoryExists(SITE_ID);
+
+		runInMockStatics(() ->
+				serviceInternal.deleteContent(SITE_ID, deletePaths, "PUBLISH TITLE", "PUBLISH COMMENT"));
+
+		verify(publishService).publishDelete(eq(SITE_ID), any(), any(), any(), any());
+
+		verify(contentRepository, times(1)).deleteContent(
+				eq(SITE_ID),
+				eq(deletePaths),
+				argThat(Collection::isEmpty),
+				argThat(Collection::isEmpty)
+		);
+
+		verify(serviceInternal).insertDeleteContentAudit(eq(SITE_ID), any());
+	}
+
+	@Test
+	public void testDelete() throws Exception {
+		Set<String> deletePaths = Set.of("/site/website/test1", "/site/website/test2", "/site/website/test3");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/test1");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/test2");
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website/test3");
+
+		doReturn("COMMIT123").when(contentRepository).deleteContent(any(), any(), any(), any());
+
+		runInMockStatics(() ->
+				serviceInternal.deleteContent(SITE_ID, deletePaths, "PUBLISH TITLE", "PUBLISH COMMENT"));
+
+		verify(publishService, never()).publishDelete(eq(SITE_ID), any(), any(), any(), any());
+
+		verify(contentRepository, times(1)).deleteContent(
+				eq(SITE_ID),
+				eq(deletePaths),
+				argThat(Collection::isEmpty),
+				argThat(Collection::isEmpty)
+		);
+		verify(serviceInternal).insertDeleteContentAudit(eq(SITE_ID), any());
+	}
+
+	/**
+	 * Runs the provided runnable in a mocked static context for DBUtils and SecurityUtils.
+	 *
+	 * @param runnable the runnable to execute
+	 * @throws Exception if an error occurs during execution
+	 */
+	private void runInMockStatics(DBUtils.ThrowingRunnable runnable) throws Exception {
+		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class);
+			 MockedStatic<SecurityUtils> secUtilsMock = mockStatic(SecurityUtils.class)) {
+			dbUtilsMock.when(() -> DBUtils.runInTransaction(
+					any(PlatformTransactionManager.class),
+					anyString(),
+					any(ThrowingSupplier.class)
+			)).thenAnswer(invocation -> {
+				// Simulate transaction behavior
+				ThrowingSupplier<String> supplier = invocation.getArgument(2);
+				return supplier.getWithException();
+			});
+			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
+
+			runnable.run();
 		}
 	}
 
@@ -631,10 +724,5 @@ public class ContentServiceInternalImplTest {
 		return names.stream()
 				.map(name -> new RepositoryItem(path, name, folders))
 				.toList();
-	}
-
-	private void returnItemDescriptorWithName(String path) throws DocumentException, ContentNotFoundException {
-		doReturn(convertStreamToXml(toInputStream("<folder><internal-name>the label</internal-name></folder>", "UTF-8")))
-				.when(serviceInternal).getItemDescriptor(SITE_ID, path, false);
 	}
 }
