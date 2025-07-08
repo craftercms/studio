@@ -21,6 +21,7 @@ import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
@@ -37,6 +38,7 @@ import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
@@ -101,6 +103,9 @@ public class ContentServiceInternalImplTest {
 
 	@Mock
 	protected AuditService auditService;
+
+	@Mock
+	protected ActivityStreamService activityStreamService;
 
 	@Mock
 	protected ApplicationEventPublisher applicationEventPublisher;
@@ -238,23 +243,13 @@ public class ContentServiceInternalImplTest {
 		// Mock lifecycle execution
 		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
-		WriteContentResult result;
-		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class)) {
-			dbUtilsMock.when(() -> DBUtils.runInTransaction(
-					any(PlatformTransactionManager.class),
-					anyString(),
-					any(ThrowingSupplier.class)
-			)).thenAnswer(invocation -> {
-				// Simulate transaction behavior
-				ThrowingSupplier<String> supplier = invocation.getArgument(2);
-				return supplier.getWithException();
-			});
-			result = serviceInternal.write(SITE_ID, PATH, contentStream);
-		}
+		runInMockStatics(() -> {
+			WriteContentResult result = serviceInternal.write(SITE_ID, PATH, contentStream);
 
-		// Verify behavior
-		assertNotNull(result);
-		assertEquals(1, result.getItems().size());
+			// Verify behavior
+			assertNotNull(result);
+			assertEquals(1, result.getItems().size());
+		});
 		verify(contentRepository, times(1)).writeContent(eq(SITE_ID), anyCollection(), anySet());
 	}
 
@@ -546,7 +541,7 @@ public class ContentServiceInternalImplTest {
 	}
 
 	@Test
-	public void testMoveToParentPath() throws ServiceLayerException, DocumentException, UserNotFoundException {
+	public void testMoveToParentPath() throws ServiceLayerException, DocumentException, UserNotFoundException, AuthenticationException {
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location/style")).thenReturn(true);
 		when(contentRepository.isFolder(SITE_ID, "/site/website/new-location")).thenReturn(true);

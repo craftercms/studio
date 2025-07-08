@@ -165,7 +165,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	 * @throws UserNotFoundException if the user performing the operation is not found
 	 */
 	protected List<String> copyPasteItems(String siteId, String targetPath, PasteItem item)
-			throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		Stack<PasteItem> itemsToCopy = new Stack<>();
 		itemsToCopy.push(item);
 		Set<String> copyPaths = new HashSet<>();
@@ -187,7 +187,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	}
 
 	@RequireContentExists
-	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, UserNotFoundException {
+	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, AuthenticationException {
 		PasteContentResult pasteContentResult = contentServiceV2.duplicate(siteId, path);
 		String pastedTargetPath = pasteContentResult.getTargetPath();
 		if (isPageDescriptor(path)) {

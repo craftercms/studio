@@ -272,7 +272,7 @@ public class ContentController {
 	private ResponseEntity<Result> writeContent(final String siteId,
 												final String path,
 												final InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeResult = contentService.write(siteId, path, content);
 		boolean isNew = writeResult.getItems().stream()
 			.filter(i -> StringUtils.equals(i.path(), path))

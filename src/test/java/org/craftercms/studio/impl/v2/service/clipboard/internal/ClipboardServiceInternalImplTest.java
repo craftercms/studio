@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
@@ -31,11 +31,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static java.lang.String.format;
 import static org.craftercms.studio.model.clipboard.Operation.COPY;
 import static org.craftercms.studio.model.clipboard.Operation.CUT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -300,7 +298,7 @@ public class ClipboardServiceInternalImplTest {
 	}
 
 	@Test
-	public void duplicatePageTest() throws UserNotFoundException, ServiceLayerException {
+	public void duplicatePageTest() throws ServiceLayerException, AuthenticationException {
 		String path = "/site/website/style/index.xml";
 		when(contentService.copy(any(), any(), any(), any())).thenReturn(mock(PasteContentResult.class));
 		service.duplicateItem(SITE_ID, path);
@@ -309,7 +307,7 @@ public class ClipboardServiceInternalImplTest {
 	}
 
 	@Test
-	public void duplicateAssetTest() throws UserNotFoundException, ServiceLayerException {
+	public void duplicateAssetTest() throws ServiceLayerException, AuthenticationException {
 		String path = "/static-assets/images/screenshot.png";
 		when(contentService.copy(any(), any(), any(), any())).thenReturn(mock(PasteContentResult.class));
 		service.duplicateItem(SITE_ID, path);

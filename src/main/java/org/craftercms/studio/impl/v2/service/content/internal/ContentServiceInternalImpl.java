@@ -57,6 +57,7 @@ import org.craftercms.studio.api.v2.exception.content.EmptyChangesetException;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -67,7 +68,9 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
+import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
 import org.craftercms.studio.model.rest.content.*;
@@ -175,13 +178,15 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final PlatformTransactionManager transactionManager;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final ServicesConfig servicesConfig;
+	private final ActivityStreamService activityStreamService;
 
 	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
 			"retryingDatabaseOperationFacade", "publishService",
 			"permissionEvaluator", "pageNavOrderService", "itemService",
 			"itemDao", "generalLockService", "dependencyService",
 			"contentServiceV1", "contentRepository", "contentLifecycle",
-			"auditService", "assetLifecycle", "servicesConfig"})
+			"auditService", "assetLifecycle",
+			"servicesConfig", "activityStreamService"})
 	public ContentServiceInternalImpl(PlatformTransactionManager transactionManager, StudioConfiguration studioConfiguration,
 									  SitesService siteService,
 									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
@@ -192,7 +197,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									  org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1,
 									  GitContentRepository contentRepository, ContentLifecycle contentLifecycle,
 									  AuditService auditService, ContentLifecycle assetLifecycle,
-									  ServicesConfig servicesConfig) {
+									  ServicesConfig servicesConfig, ActivityStreamService activityStreamService) {
 		this.transactionManager = transactionManager;
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;
@@ -210,6 +215,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.auditService = auditService;
 		this.assetLifecycle = assetLifecycle;
 		this.servicesConfig = servicesConfig;
+		this.activityStreamService = activityStreamService;
 	}
 
 	@Override
@@ -548,7 +554,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
-			throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeContentResult;
 		LifecycleOperation operation = contentExists(siteId, path) ? UPDATE : NEW;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
@@ -583,9 +589,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
 
-		// Audit write operation
-		insertContentAudit(siteId, null, path, operation, writeContentResult);
-
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
@@ -596,7 +599,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public PasteContentResult copy(final String siteId, final String from,
 								   final String initialTargetPath, final Set<String> itemPaths)
-			throws ServiceLayerException {
+			throws ServiceLayerException, AuthenticationException {
 		return doCopy(siteId, from, initialTargetPath, itemPaths, COPY);
 	}
 
@@ -608,7 +611,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected PasteContentResult doCopy(final String siteId, final String from,
 										final String initialTargetPath, final Set<String> itemPaths,
 										final LifecycleOperation operation)
-			throws ServiceLayerException {
+			throws ServiceLayerException, AuthenticationException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, from, initialTargetPath);
 		String to = pastedPath.path;
 		if (!contentExists(siteId, from)) {
@@ -657,7 +660,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
-		insertContentAudit(siteId, sourcePath, targetPath, operation, pasteResult);
 
 		// Publish events
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
@@ -667,7 +669,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException {
+	public PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException {
 		String parentUrl = getParentUrl(path);
 
 		return doCopy(siteId, path, parentUrl, Set.of(path), DUPLICATE);
@@ -845,7 +847,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			List<WriteContentResultItem> copyResultItems = lifecycleItems.values().stream()
 					.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 					.toList();
-			return new PasteContentResult(commitId, copyResultItems, targetPath);
+			PasteContentResult pasteResult = new PasteContentResult(commitId, copyResultItems, targetPath);
+			insertContentAudit(siteId, sourcePath, targetPath, operation, pasteResult);
+			return pasteResult;
 		} finally {
 			closeCollection(lifecycleContents);
 		}
@@ -960,7 +964,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-	protected WriteContentResult writeInternal(final String siteId, final String path, final LifecycleContent lifecycleContent)
+	protected WriteContentResult writeInternal(final String siteId, final String path,
+											   final LifecycleContent lifecycleContent)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
 		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent.getRepoPath(),
@@ -983,7 +988,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.toList();
 
 		// Return the WriteContentResult
-		return new WriteContentResult(commitId, writeResultItems);
+		WriteContentResult writeContentResult = new WriteContentResult(commitId, writeResultItems);
+		// Audit write operation
+		insertContentAudit(siteId, null, path, lifecycleContent.getOperation(), writeContentResult);
+		return writeContentResult;
 	}
 
 	/**
@@ -1175,12 +1183,17 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param writeResult the result of the write operation
 	 */
 	protected void insertContentAudit(String siteId, String sourcePath, String path,
-									  LifecycleOperation operation, WriteContentResult writeResult) throws SiteNotFoundException {
+									  LifecycleOperation operation, WriteContentResult writeResult) throws SiteNotFoundException, AuthenticationException {
 		Map<LifecycleOperation, List<WriteContentResultItem>> resultByOperation = writeResult.getItems().stream()
 				.collect(groupingBy(WriteContentResultItem::operation, mapping(identity(), toList())));
-
+		AuthenticatedUser currentUser = getCurrentUser();
 		Site site = siteService.getSite(siteId);
 		for (Entry<LifecycleOperation, List<WriteContentResultItem>> entry : resultByOperation.entrySet()) {
+			String activityType = switch (operation) {
+				case COPY, DUPLICATE, NEW -> OPERATION_CREATE;
+				case RENAME -> OPERATION_MOVE;
+				default -> operation.name();
+			};
 			String auditTargetId = writeResult.getCommitId();
 			String auditTargetValue = writeResult.getCommitId();
 			String targetType = TARGET_TYPE_CONTENT_PACKAGE;
@@ -1193,6 +1206,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				targetType = TARGET_TYPE_CONTENT_ITEM;
 				// Prevent unnecessary duplication of data
 				parameterItems = emptyList();
+				Item item = itemService.getItem(siteId, itemPath, true);
+				activityStreamService.insertActivity(site.getId(), currentUser.getId(), activityType,
+						DateUtils.getCurrentTime(), item, null);
 			}
 
 			AuditLog auditLog = createAuditLogEntry();
@@ -1209,6 +1225,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			List<AuditLogParameter> auditLogParameters = getAuditParameters(siteId, sourcePathParam, path, parameterItems);
 			auditLog.setParameters(auditLogParameters);
 			auditService.insertAuditLog(auditLog);
+
+			for (WriteContentResultItem parameterItem : parameterItems) {
+				Item item = itemService.getItem(siteId, parameterItem.path(), true);
+				activityStreamService.insertActivity(site.getId(), currentUser.getId(), activityType,
+						DateUtils.getCurrentTime(), item, null);
+			}
 		}
 	}
 
@@ -1322,8 +1344,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
 
-		insertDeleteContentAudit(siteId, deleteResult);
-
 		Authentication auth = getAuthentication();
 		for (String path : allPaths) {
 			eventPublisher.publishEvent(new DeleteContentEvent(auth, siteId, path));
@@ -1399,13 +1419,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 						difference(dependencies, writtenPaths), publishTitle, publishComment);
 			}
 
-			for (String path : paths) {
-				dependencyService.deleteItemDependencies(siteId, path);
-				dependencyService.invalidateDependencies(siteId, path);
-				itemService.deleteItem(site.getId(), path, true);
-			}
-			persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
-
 			List<WriteContentResultItem> resultItems = new LinkedList<>();
 			resultItems.addAll(
 					paths.stream()
@@ -1418,7 +1431,18 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 							.toList()
 			);
 
-			return new DeleteContentResult(commitId, resultItems, publishPackageId);
+			DeleteContentResult deleteResult = new DeleteContentResult(commitId, resultItems, publishPackageId);
+
+			insertDeleteContentAudit(siteId, deleteResult);
+
+			for (String path : paths) {
+				dependencyService.deleteItemDependencies(siteId, path);
+				dependencyService.invalidateDependencies(siteId, path);
+				itemService.deleteItem(site.getId(), path, true);
+			}
+			persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
+
+			return deleteResult;
 		} finally {
 			closeCollection(lifecycleContents);
 		}
@@ -1431,7 +1455,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param deleteResult the result of the delete operation
 	 * @throws SiteNotFoundException if the site is not found
 	 */
-	protected void insertDeleteContentAudit(String siteId, DeleteContentResult deleteResult) throws SiteNotFoundException {
+	protected void insertDeleteContentAudit(String siteId, DeleteContentResult deleteResult) throws SiteNotFoundException, AuthenticationException {
 		insertContentAudit(siteId, null, null, DELETE, deleteResult);
 	}
 
@@ -1500,7 +1524,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException {
+	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException, AuthenticationException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
 		String parentPath = getParentUrl(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
@@ -1540,7 +1564,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException {
+	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException, AuthenticationException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, sourcePath, targetParent);
 		return doMove(siteId, sourcePath, pastedPath.path, pastedPath.newLabel);
 	}
@@ -1554,7 +1578,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param newLabel the new label for the content
 	 * @return the result of the move operation
 	 */
-	protected PasteContentResult doMove(final String siteId, final String from, final String to, final String newLabel) throws ServiceLayerException {
+	protected PasteContentResult doMove(final String siteId, final String from, final String to, final String newLabel) throws ServiceLayerException, AuthenticationException {
 		if (!contentExists(siteId, from)) {
 			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
 		}
@@ -1607,9 +1631,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
-
-		// Audit operation
-		insertContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult);
 
 		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
 		eventPublisher.publishEvent(new MoveContentEvent(getAuthentication(), siteId, from, to));
@@ -1665,7 +1686,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			List<WriteContentResultItem> moveResultItems = lifecycleItems.values().stream()
 					.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 					.toList();
-			return new PasteContentResult(commitId, moveResultItems, targetPath);
+			PasteContentResult pasteResult = new PasteContentResult(commitId, moveResultItems, targetPath);
+			// Audit operation
+			insertContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult);
+			return pasteResult;
 		} finally {
 			closeCollection(lifecycleContents);
 		}

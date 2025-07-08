@@ -317,7 +317,7 @@ public interface ContentService {
 	 * @throws EmptyChangesetException if the write operation results in an empty changeset (i.e.: try to write the same content the repository already has)
 	 * @throws ServiceLayerException   if an error occurs while writing the content
 	 */
-	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
+	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Copy content from sourcePath to targetPath.
@@ -331,7 +331,7 @@ public interface ContentService {
 	 * @return the result of the copy operation, which includes affected paths
 	 */
 	PasteContentResult copy(String siteId, String sourcePath, String targetPath, Set<String> copyPaths)
-			throws ServiceLayerException;
+			throws ServiceLayerException, AuthenticationException;
 
 	/**
 	 * Create a copy of a content item
@@ -340,5 +340,5 @@ public interface ContentService {
 	 * @param path   the path of the content item to duplicate
 	 * @return the result of the copy
 	 */
-	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException;
+	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException;
 }
