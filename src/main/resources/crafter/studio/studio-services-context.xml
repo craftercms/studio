@@ -385,14 +385,11 @@
 	</bean>
 
 	<bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl">
-		<property name="auditServiceInternal" ref="auditServiceInternal"/>
+		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
 	</bean>
 
 	<bean id="auditServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
-		<property name="auditDao" ref="auditDao"/>
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 	</bean>
 
 	<bean id="repositoryManagementService"
