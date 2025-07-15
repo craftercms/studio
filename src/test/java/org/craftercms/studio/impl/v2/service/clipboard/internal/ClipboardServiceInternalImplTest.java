@@ -300,19 +300,19 @@ public class ClipboardServiceInternalImplTest {
 	@Test
 	public void duplicatePageTest() throws ServiceLayerException, AuthenticationException {
 		String path = "/site/website/style/index.xml";
-		when(contentService.copy(any(), any(), any(), any())).thenReturn(mock(PasteContentResult.class));
+		when(contentService.duplicate(any(), any())).thenReturn(mock(PasteContentResult.class));
 		service.duplicateItem(SITE_ID, path);
-		// A duplicate is a copy from the path into its parent folder
-		verify(contentService).copy(eq(SITE_ID), eq(path), eq("/site/website"), argThat(s -> s.contains(path) && s.size() == 1));
+		// The duplicate is delegated to the content service
+		verify(contentService).duplicate(eq(SITE_ID), eq(path));
 	}
 
 	@Test
 	public void duplicateAssetTest() throws ServiceLayerException, AuthenticationException {
 		String path = "/static-assets/images/screenshot.png";
-		when(contentService.copy(any(), any(), any(), any())).thenReturn(mock(PasteContentResult.class));
+		when(contentService.duplicate(any(), any())).thenReturn(mock(PasteContentResult.class));
 		service.duplicateItem(SITE_ID, path);
-		// A duplicate is a copy from the path into its parent folder
-		verify(contentService).copy(eq(SITE_ID), eq(path), eq("/static-assets/images"), argThat(s -> s.contains(path) && s.size() == 1));
+		// The duplicate is delegated to the content service
+		verify(contentService).duplicate(eq(SITE_ID), eq(path));
 	}
 
 }

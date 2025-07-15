@@ -228,7 +228,7 @@ public class BlobAwareContentRepositoryTest {
 		proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), emptySet(), emptySet());
 
 		verify(store).deleteContent(SITE, ORIGINAL_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), emptySet(), emptySet());
+		verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), emptyList(), emptySet());
 	}
 
 	@Test
@@ -236,7 +236,7 @@ public class BlobAwareContentRepositoryTest {
 		proxy.deleteContent(SITE, List.of(FOLDER_PATH), emptySet(), emptySet());
 
 		verify(store).deleteContent(SITE, FOLDER_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), emptySet(), emptySet());
+		verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), emptyList(), emptySet());
 	}
 
 	@Test
@@ -244,7 +244,7 @@ public class BlobAwareContentRepositoryTest {
 		proxy.deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptySet(), emptySet());
 
 		verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptySet(), emptySet());
+		verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptyList(), emptySet());
 	}
 
 	@Test
