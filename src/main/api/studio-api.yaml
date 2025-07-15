@@ -5045,6 +5045,62 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+
+    /api/2/content/{siteId}/revert:
+        post:
+            tags:
+                - content
+            summary: Revert content
+            description: 'Required permission "content_write"'
+            operationId: contentRevert
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: Site ID
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                description: parameters for revert content
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                path:
+                                    type: string
+                                    description: content item path
+                                commitId:
+                                    type: string
+                                    pattern: '^[0-9a-f]{40}$'
+                                    description: commit ID to revert to
+                            required:
+                                - path
+                                - commitId
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '409':
+                    $ref: '#/components/responses/PublishConflict'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
     /api/2/content/{siteId}/children:
         post:
             tags:

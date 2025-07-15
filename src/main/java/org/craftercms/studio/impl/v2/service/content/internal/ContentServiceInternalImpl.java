@@ -555,8 +555,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public WriteContentResult write(final String siteId, final String path, final InputStream content)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		WriteContentResult writeContentResult;
 		LifecycleOperation operation = contentExists(siteId, path) ? UPDATE : NEW;
+		return doWrite(siteId, path, content, operation);
+	}
+
+	protected WriteContentResult doWrite(final String siteId, final String path,
+										 final InputStream content, final LifecycleOperation operation)
+			throws ServiceLayerException {
+		WriteContentResult writeContentResult;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
@@ -673,6 +679,21 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String parentUrl = getParentUrl(path);
 
 		return doCopy(siteId, path, parentUrl, Set.of(path), DUPLICATE);
+	}
+
+	@Override
+	public void revert(String siteId, String path, String commitId) throws ServiceLayerException {
+		InputStream content = null;
+		try {
+			content = contentRepository.getContentByCommitId(siteId, path, commitId)
+					.orElseThrow(() -> new ContentNotFoundException(path, siteId,
+							format("Content not found at path '%s' in site '%s' for commit '%s'", path, siteId, commitId)))
+					.getInputStream();
+		} catch (IOException e) {
+			logger.error("Failed to load content for revert at site '{}' path '{}' commit '{}'", siteId, path, commitId, e);
+			throw new ServiceLayerException(format("Failed to load content for revert at site '%s' path '%s' commit '%s'", siteId, path, commitId), e);
+		}
+		doWrite(siteId, path, content, REVERT);
 	}
 
 	/**

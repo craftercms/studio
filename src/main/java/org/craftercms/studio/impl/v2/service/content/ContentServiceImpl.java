@@ -258,6 +258,12 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public void revert(String siteId, String path, String commitId) throws ServiceLayerException {
+		contentServiceInternal.revert(siteId, path, commitId);
+	}
+
+	@Override
 	@RequireSiteReady
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)

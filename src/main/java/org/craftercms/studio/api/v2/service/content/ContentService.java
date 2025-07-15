@@ -341,4 +341,13 @@ public interface ContentService {
 	 * @return the result of the copy
 	 */
 	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException;
+
+	/**
+	 * Revert content to a previous commit id
+	 *
+	 * @param siteId   the site id
+	 * @param path     the path of the content item to revert
+	 * @param commitId the commit id to revert to
+	 */
+	void revert(String siteId, String path, String commitId) throws ServiceLayerException;
 }

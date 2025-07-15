@@ -62,6 +62,7 @@ public final class RequestMappingConstants {
 	public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
 	public static final String RENAME = "/rename";
 	public static final String MOVE = SITE_ID + "/move";
+	public static final String REVERT = SITE_ID + "/revert";
 	public static final String ITEM_HISTORY = "/item_history";
 
 	/**
