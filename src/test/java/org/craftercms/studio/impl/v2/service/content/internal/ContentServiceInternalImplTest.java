@@ -63,6 +63,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.function.ThrowingSupplier;
 
@@ -691,6 +692,41 @@ public class ContentServiceInternalImplTest {
 		verify(serviceInternal).insertDeleteContentAudit(eq(SITE_ID), any());
 	}
 
+	@Test
+	public void testRevert() throws Exception {
+		String content = "<content><title>Test Content</title></content>";
+
+		Resource resource = mock(Resource.class);
+		when(resource.getInputStream()).thenReturn(new ByteArrayInputStream(content.getBytes()));
+		when(contentRepository.getContentByCommitId(SITE_ID, "/site/website/test1", "COMMIT123")).thenReturn(Optional.of(resource));
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("new-commit-id");
+		when(itemService.getItem(SITE_ID, "/site/website", false)).thenReturn(mock(Item.class));
+		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website");
+
+		runInMockStatics(() -> serviceInternal.revert(
+				SITE_ID,
+				"/site/website/test1",
+				"COMMIT123"));
+
+		verify(serviceInternal).writeInternal(
+				eq(SITE_ID),
+				eq("/site/website/test1"),
+				any(LifecycleContent.class)
+		);
+	}
+
+	@Test(expected = ContentNotFoundException.class)
+	public void testRevertInvalidCommit() throws Exception {
+		when(contentRepository.getContentByCommitId(SITE_ID, "/site/website/test1", "COMMIT123")).thenReturn(Optional.empty());
+
+		runInMockStatics(() -> serviceInternal.revert(
+				SITE_ID,
+				"/site/website/test1",
+				"COMMIT123"));
+	}
+
 	/**
 	 * Runs the provided runnable in a mocked static context for DBUtils and SecurityUtils.
 	 *
@@ -699,7 +735,8 @@ public class ContentServiceInternalImplTest {
 	 */
 	private void runInMockStatics(DBUtils.ThrowingRunnable runnable) throws Exception {
 		try (MockedStatic<DBUtils> dbUtilsMock = mockStatic(DBUtils.class);
-			 MockedStatic<SecurityUtils> secUtilsMock = mockStatic(SecurityUtils.class)) {
+			 MockedStatic<SecurityUtils> secUtilsMock = mockStatic(SecurityUtils.class);
+			 MockedStatic<StudioUtils> studioUtilsMock = mockStatic(StudioUtils.class)) {
 			dbUtilsMock.when(() -> DBUtils.runInTransaction(
 					any(PlatformTransactionManager.class),
 					anyString(),
@@ -710,6 +747,8 @@ public class ContentServiceInternalImplTest {
 				return supplier.getWithException();
 			});
 			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
+
+			studioUtilsMock.when(() -> createTempFile(anyString(), any(Document.class))).thenReturn(mock(Path.class));
 
 			runnable.run();
 		}

@@ -683,7 +683,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public void revert(String siteId, String path, String commitId) throws ServiceLayerException {
-		InputStream content = null;
+		InputStream content;
 		try {
 			content = contentRepository.getContentByCommitId(siteId, path, commitId)
 					.orElseThrow(() -> new ContentNotFoundException(path, siteId,
@@ -1000,8 +1000,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
 		}
 
-		String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
-		logger.debug("Persisting write operation for site '{}' path '{}' with transaction id '{}'", siteId, path, transactionId);
+		logger.debug("Persisting write operation for site '{}' path '{}'", siteId, path);
 		persistWriteToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath);
 
 		List<WriteContentResultItem> writeResultItems = lifecycleResultItems.values().stream()
