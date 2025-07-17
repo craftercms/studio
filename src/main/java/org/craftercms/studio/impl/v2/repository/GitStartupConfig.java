@@ -50,12 +50,28 @@ public class GitStartupConfig {
 
 	@Order(HIGHEST_PRECEDENCE)
 	@EventListener(CleanupRepositoriesEvent.class)
-	public void onStartup() throws ConfigInvalidException, IOException {
-		StoredConfig globalConfig = SystemReader.getInstance().getUserConfig();
-		setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE);
-		setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, DB_CLUSTER_GIT_AUTO_PACK_LIMIT);
+	public void onStartup() {
+		StoredConfig globalConfig = null;
+		try {
+			globalConfig = SystemReader.getInstance().getUserConfig();
+			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE);
+			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, DB_CLUSTER_GIT_AUTO_PACK_LIMIT);
+		} catch (ConfigInvalidException e) {
+			logger.error("Error reading git user configuration", e);
+		} catch (IOException e) {
+			logger.error("Error saving git user configuration", e);
+		}
 	}
 
+	/**
+	 * Read a property from studio configuration and set its value in the git global configuration.
+	 *
+	 * @param config               the git configuration to update
+	 * @param section              the section in the git configuration
+	 * @param property             the property to set
+	 * @param studioConfigProperty the property in the studio configuration to read the value from
+	 * @throws IOException if there is an error saving the git configuration
+	 */
 	protected void setProperty(StoredConfig config, String section, String property, String studioConfigProperty) throws IOException {
 		String value = studioConfiguration.getProperty(studioConfigProperty);
 		if (isEmpty(value)) {
