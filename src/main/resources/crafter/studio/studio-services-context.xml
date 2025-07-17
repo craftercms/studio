@@ -43,6 +43,8 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
     </bean>
 
+    <bean id="gitStartUpConfig" class="org.craftercms.studio.impl.v2.repository.GitStartupConfig"/>
+
     <bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
 
     <bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>

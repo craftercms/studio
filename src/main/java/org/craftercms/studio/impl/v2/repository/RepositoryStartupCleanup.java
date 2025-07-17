@@ -16,29 +16,24 @@
 
 package org.craftercms.studio.impl.v2.repository;
 
-import org.springframework.context.event.EventListener;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.CleanCommand;
-import org.eclipse.jgit.errors.CorruptObjectException;
+import org.craftercms.commons.git.utils.GitUtils;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.io.EOFException;
-import java.io.File;
 
-import org.craftercms.commons.git.utils.GitUtils;
-
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 
 /**
  * Clean up git repositories on startup
@@ -54,6 +49,7 @@ public class RepositoryStartupCleanup {
     protected GeneralLockService generalLockService;
     protected GitRepositoryHelper helper;
 
+    @Order(20)
     @EventListener(CleanupRepositoriesEvent.class)
     public void unlockRepositories() {
         logger.debug("Clean up git lock for all repositories.");
