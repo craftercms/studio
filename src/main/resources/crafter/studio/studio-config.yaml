@@ -101,6 +101,26 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.git.cli.process.maxOutputBytes: 1000
 
 ##################################################
+##               Disk monitoring                ##
+##################################################
+studio.monitoring.disk:
+  # Git gc performed when disk space is below this value
+  highWaterMark: 10
+  # Alert is sent (repeatedly) when disk space is below this value after the highWaterMark is reached
+  lowWaterMark: 15
+  # Every 15 minutes
+  cron: '0 0/15 * * * ?'
+  notifications:
+    email:
+      enabled: true
+      subject: Disk space warning  # This could be a ftl, so admins can better customize it
+      template: disk-space-notification.ftl
+    webhook:
+      enabled: false
+      url: http://example.com/notify
+      template: disk-space-notification.ftl
+
+##################################################
 ##        Git configuration properties          ##
 ##################################################
 # Git config update to following properties is performed on global configuration and might
