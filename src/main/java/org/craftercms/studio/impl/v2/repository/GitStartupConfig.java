@@ -55,6 +55,8 @@ public class GitStartupConfig {
 			globalConfig = SystemReader.getInstance().getUserConfig();
 			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, REPO_GC_PRUNE_PACK_EXPIRE);
 			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, REPO_GC_AUTO_PACK_LIMIT);
+			globalConfig.save();
+			logger.info("Git global configuration updated successfully.");
 		} catch (ConfigInvalidException e) {
 			logger.error("Error reading git user configuration", e);
 		} catch (IOException e) {
@@ -79,7 +81,6 @@ public class GitStartupConfig {
 		}
 		logger.debug("Setting '{}.{}'  to '{}'", section, property, value);
 		config.setString(section, null, property, value);
-		config.save();
 		logger.info("Git '{}.{}' set to '{}'", section, property, value);
 	}
 
