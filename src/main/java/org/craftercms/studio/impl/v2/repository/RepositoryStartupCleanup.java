@@ -26,6 +26,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class RepositoryStartupCleanup {
 	protected GeneralLockService generalLockService;
 	protected GitRepositoryHelper helper;
 
+	@Order(20)
 	@EventListener(CleanupRepositoriesEvent.class)
 	public void unlockRepositories() {
 		logger.debug("Clean up git lock for all repositories.");

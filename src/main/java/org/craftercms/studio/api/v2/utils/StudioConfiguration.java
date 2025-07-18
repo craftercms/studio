@@ -73,6 +73,10 @@ public interface StudioConfiguration {
 	String REPO_SYNC_EVENT_MAX_RESET_COUNT = "studio.repo.sync.event.maxResets";
 	String REPO_SYNC_CANCELLED_PACKAGE_COMMENT = "studio.repo.sync.publishPackage.cancelled.comment";
 
+	String REPO_GIT_GLOBAL_CONFIG_ENABLED = "studio.repo.git.global.update.enabled";
+	String REPO_GC_PRUNE_PACK_EXPIRE = "studio.repo.gc.prunePackExpire";
+	String REPO_GC_AUTO_PACK_LIMIT = "studio.repo.gc.autoPackLimit";
+
 	/**
 	 * Database
 	 */
