@@ -28,8 +28,8 @@ import org.springframework.core.annotation.Order;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_CLUSTER_GIT_AUTO_PACK_LIMIT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_GC_AUTO_PACK_LIMIT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_GC_PRUNE_PACK_EXPIRE;
 import static org.eclipse.jgit.lib.ConfigConstants.*;
 import static org.opensearch.core.common.Strings.isEmpty;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
@@ -54,8 +54,8 @@ public class GitStartupConfig {
 		StoredConfig globalConfig = null;
 		try {
 			globalConfig = SystemReader.getInstance().getUserConfig();
-			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE);
-			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, DB_CLUSTER_GIT_AUTO_PACK_LIMIT);
+			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, REPO_GC_PRUNE_PACK_EXPIRE);
+			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, REPO_GC_AUTO_PACK_LIMIT);
 		} catch (ConfigInvalidException e) {
 			logger.error("Error reading git user configuration", e);
 		} catch (IOException e) {

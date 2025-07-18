@@ -67,8 +67,8 @@ public interface StudioConfiguration {
     String REPO_SYNC_EVENT_DELAY_MILLIS = "studio.repo.sync.event.delayMillis";
     String REPO_SYNC_EVENT_MAX_RESET_COUNT = "studio.repo.sync.event.maxResets";
 
-    String DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE = "studio.repo.gc.prunePackExpire";
-    String DB_CLUSTER_GIT_AUTO_PACK_LIMIT = "studio.repo.gc.autoPackLimit";
+	String REPO_GC_PRUNE_PACK_EXPIRE = "studio.repo.gc.prunePackExpire";
+	String REPO_GC_AUTO_PACK_LIMIT = "studio.repo.gc.autoPackLimit";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
