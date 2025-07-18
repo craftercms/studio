@@ -49,13 +49,22 @@ public class GitStartupConfig {
 
 	@Order(HIGHEST_PRECEDENCE)
 	@EventListener(CleanupRepositoriesEvent.class)
+
 	public void onStartup() {
+		boolean enabled = studioConfiguration.getProperty(REPO_GIT_GLOBAL_CONFIG_ENABLED, Boolean.class, true);
+		if (!enabled) {
+			logger.info("Global Git config updates disabled by configuration");
+			return;
+		}
+
 		StoredConfig globalConfig = null;
 		try {
 			globalConfig = SystemReader.getInstance().getUserConfig();
-			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, REPO_GC_PRUNE_PACK_EXPIRE);
-			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, REPO_GC_AUTO_PACK_LIMIT);
-			globalConfig.save();
+			boolean hasChanges = setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, REPO_GC_PRUNE_PACK_EXPIRE);
+			hasChanges |= setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, REPO_GC_AUTO_PACK_LIMIT);
+			if (hasChanges) {
+				globalConfig.save();
+			}
 			logger.info("Git global configuration updated successfully.");
 		} catch (ConfigInvalidException e) {
 			logger.error("Error reading git user configuration", e);
@@ -73,15 +82,16 @@ public class GitStartupConfig {
 	 * @param studioConfigProperty the property in the studio configuration to read the value from
 	 * @throws IOException if there is an error saving the git configuration
 	 */
-	protected void setProperty(StoredConfig config, String section, String property, String studioConfigProperty) throws IOException {
+	protected boolean setProperty(StoredConfig config, String section, String property, String studioConfigProperty) throws IOException {
 		String value = studioConfiguration.getProperty(studioConfigProperty);
 		if (isEmpty(value)) {
 			logger.debug("Git '{}' is not set, skipping configuration.", studioConfigProperty);
-			return;
+			return false;
 		}
 		logger.debug("Setting '{}.{}'  to '{}'", section, property, value);
 		config.setString(section, null, property, value);
 		logger.info("Git '{}.{}' set to '{}'", section, property, value);
+		return true;
 	}
 
 }

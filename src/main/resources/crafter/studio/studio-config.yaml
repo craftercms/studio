@@ -103,6 +103,9 @@ studio.repo.git.cli.process.maxOutputBytes: 1000
 ##################################################
 ##        Git configuration properties          ##
 ##################################################
+# Git config update to following properties is performed on global configuration and might
+# affect unintended repositories. Opt-out of this by setting this property to false.
+studio.repo.git.global.update.enabled: true
 # git gc --auto will consolidate into one the packs older than this value
 # Notice that this property works when the number of packs is greater than gc.autoPackLimit.
 # See https://git-scm.com/docs/git-gc#Documentation/git-gc.txt-gcautoPackLimit
