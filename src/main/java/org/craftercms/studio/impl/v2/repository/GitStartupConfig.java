@@ -28,8 +28,7 @@ import org.springframework.core.annotation.Order;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_CLUSTER_GIT_AUTO_PACK_LIMIT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.eclipse.jgit.lib.ConfigConstants.*;
 import static org.opensearch.core.common.Strings.isEmpty;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
@@ -51,11 +50,21 @@ public class GitStartupConfig {
 	@Order(HIGHEST_PRECEDENCE)
 	@EventListener(CleanupRepositoriesEvent.class)
 	public void onStartup() {
+		boolean enabled = studioConfiguration.getProperty(REPO_GIT_GLOBAL_CONFIG_ENABLED, Boolean.class, true);
+		if (!enabled) {
+			logger.info("Global Git config updates disabled by configuration");
+			return;
+		}
+
 		StoredConfig globalConfig = null;
 		try {
 			globalConfig = SystemReader.getInstance().getUserConfig();
-			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, DB_CLUSTER_GIT_PRUNE_PACK_EXPIRE);
-			setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, DB_CLUSTER_GIT_AUTO_PACK_LIMIT);
+			boolean hasChanges = setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_PRUNEPACKEXPIRE, REPO_GC_PRUNE_PACK_EXPIRE);
+			hasChanges |= setProperty(globalConfig, CONFIG_GC_SECTION, CONFIG_KEY_AUTOPACKLIMIT, REPO_GC_AUTO_PACK_LIMIT);
+			if (hasChanges) {
+				globalConfig.save();
+			}
+			logger.info("Git global configuration updated successfully.");
 		} catch (ConfigInvalidException e) {
 			logger.error("Error reading git user configuration", e);
 		} catch (IOException e) {
@@ -72,16 +81,16 @@ public class GitStartupConfig {
 	 * @param studioConfigProperty the property in the studio configuration to read the value from
 	 * @throws IOException if there is an error saving the git configuration
 	 */
-	protected void setProperty(StoredConfig config, String section, String property, String studioConfigProperty) throws IOException {
+	protected boolean setProperty(StoredConfig config, String section, String property, String studioConfigProperty) throws IOException {
 		String value = studioConfiguration.getProperty(studioConfigProperty);
 		if (isEmpty(value)) {
 			logger.debug("Git '{}' is not set, skipping configuration.", studioConfigProperty);
-			return;
+			return false;
 		}
 		logger.debug("Setting '{}.{}'  to '{}'", section, property, value);
 		config.setString(section, null, property, value);
-		config.save();
 		logger.info("Git '{}.{}' set to '{}'", section, property, value);
+		return true;
 	}
 
 }
