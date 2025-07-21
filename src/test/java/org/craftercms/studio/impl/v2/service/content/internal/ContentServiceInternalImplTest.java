@@ -273,10 +273,10 @@ public class ContentServiceInternalImplTest {
 		when(lifecycleContent.getItems()).thenReturn(Map.of(PATH, item));
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
+		PublishPackage publishPackage = new PublishPackage();
+		publishPackage.setId(PUBLISH_PACKAGE_ID);
 		when(publishService.getActivePackagesForItems(any(), anyCollection(), anyBoolean()))
-				.thenReturn(List.of(new PublishPackage() {{
-					id = PUBLISH_PACKAGE_ID;
-				}}));
+				.thenReturn(List.of(publishPackage));
 
 		// Mock lifecycle execution
 		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
