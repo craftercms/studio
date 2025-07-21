@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.content;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
@@ -41,10 +42,11 @@ import static com.rometools.utils.Strings.isEmpty;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.regex.Matcher.quoteReplacement;
+import static org.apache.commons.io.FilenameUtils.directoryContains;
 import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
@@ -76,9 +78,16 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 			return;
 		}
 
-		// Check if the script exists
 		String scriptPath = getScriptPath(siteId, contentType);
+		// Validate script path
+		String contentTypesRoot = studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH);
+		if (!directoryContains(contentTypesRoot, scriptPath)) {
+			logger.error(format("Invalid script path '%s' for site '%s' content-type '%s'." +
+					" The content type script must be a valid path under '%s'.", scriptPath, siteId, contentType, contentTypesRoot));
+			return;
+		}
 		String script;
+		// Check if the script exists
 		try (InputStream content = contentLoader.getContentRaw(siteId, scriptPath)) {
 			if (content == null) {
 				logger.warn("No content lifecycle script found for site '{}' path '{}' contentType '{}'. Skipping content lifecycle.", siteId, repoPath, contentType);
@@ -158,8 +167,9 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 	 */
 	protected String getScriptPath(String site, String contentType) {
 		return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION)
-			.replaceAll(PATTERN_SITE, quoteReplacement(site))
-			.replaceAll(PATTERN_CONTENT_TYPE, quoteReplacement(contentType));
+				.replaceAll(PATTERN_SITE, quoteReplacement(site))
+				.replaceAll(PATTERN_CONTENT_TYPE, quoteReplacement(contentType))
+				.transform(FilenameUtils::normalize);
 	}
 
 	@Override

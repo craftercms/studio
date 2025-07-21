@@ -21,11 +21,15 @@ import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v2.content.ContentLoader;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 
@@ -40,6 +44,8 @@ import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_APPLICATION_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_LIFECYCLE_INCLUDED_BEANS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.UPDATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,7 +57,6 @@ import static org.mockito.Mockito.*;
 public class ContentLifecycleImplTest {
 
 	private static final String SITE_ID = "test-site1";
-	private static final String SCRIPT_PATH = "controller.groovy";
 
 	@Mock
 	private StudioConfiguration studioConfiguration;
@@ -72,11 +77,26 @@ public class ContentLifecycleImplTest {
 	@Spy
 	private ContentLifecycleImpl contentLifecycle;
 
+	static Logger mockLogger;
+	static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
+	@BeforeClass
+	public static void setUpClass() {
+		loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+		mockLogger = mock(Logger.class);
+		loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ContentLifecycleImpl.class)).thenReturn(mockLogger);
+	}
+
+	@AfterClass
+	public static void tearDownClass() {
+		// Close the static mock
+		loggerFactoryMockedStatic.close();
+	}
+
 	@Before
 	public void setUp() {
-		doReturn(SCRIPT_PATH)
-			.when(contentLifecycle)
-			.getScriptPath(any(), any());
+		doReturn("/config/studio/content-types").when(studioConfiguration).getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH);
+		doReturn("/config/studio/content-types/{content-type}/controller.groovy").when(studioConfiguration).getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION);
 		contentLifecycle.setApplicationContext(applicationContext);
 	}
 
@@ -104,7 +124,7 @@ public class ContentLifecycleImplTest {
 	public void testExecuteWithMissingScript() throws Exception {
 		when(lifecycleContent.getContentType()).thenReturn("type");
 		when(lifecycleContent.getRepoPath()).thenReturn("/path");
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(null);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(null);
 
 		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
@@ -116,7 +136,7 @@ public class ContentLifecycleImplTest {
 		when(lifecycleContent.getContentType()).thenReturn("type");
 		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		InputStream emptyScript = new ByteArrayInputStream("".getBytes());
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(emptyScript);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(emptyScript);
 
 		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
 
@@ -128,7 +148,7 @@ public class ContentLifecycleImplTest {
 		when(lifecycleContent.getContentType()).thenReturn("type");
 		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(scriptStream);
 
 		Map<String, Object> model = Map.of("key", "value");
 		doReturn(model).when(contentLifecycle).buildModel(SITE_ID, lifecycleContent, contentLoader);
@@ -143,7 +163,7 @@ public class ContentLifecycleImplTest {
 		when(lifecycleContent.getContentType()).thenReturn("type");
 		when(lifecycleContent.getRepoPath()).thenReturn("/path");
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(scriptStream);
 
 		Map<String, Object> model = Map.of("key", "value");
 		doReturn(model).when(contentLifecycle).buildModel(SITE_ID, lifecycleContent, contentLoader);
@@ -162,7 +182,7 @@ public class ContentLifecycleImplTest {
 		when(lifecycleContent.getOperation()).thenReturn(UPDATE);
 		doReturn(false).when(studioConfiguration).getProperty(CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT, Boolean.class, false);
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(scriptStream);
 
 		ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
 		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
@@ -183,7 +203,7 @@ public class ContentLifecycleImplTest {
 		doReturn(beanNames.toArray(new String[0])).when(studioConfiguration).getArray(CONTENT_LIFECYCLE_INCLUDED_BEANS, String.class);
 		doReturn(new Object()).when(applicationContext).getBean(ArgumentMatchers.<String>argThat(beanNames::contains));
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(scriptStream);
 
 		ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
 		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
@@ -207,7 +227,7 @@ public class ContentLifecycleImplTest {
 		doThrow(NoSuchBeanDefinitionException.class).when(applicationContext).getBean("bean3");
 
 		InputStream scriptStream = new ByteArrayInputStream("print('Hello World')".getBytes());
-		when(contentLoader.getContentRaw(SITE_ID, SCRIPT_PATH)).thenReturn(scriptStream);
+		when(contentLoader.getContentRaw(eq(SITE_ID), anyString())).thenReturn(scriptStream);
 
 		ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
 		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
@@ -216,6 +236,19 @@ public class ContentLifecycleImplTest {
 
 		assertTrue("Model should contain existing configured beans", existingBeans.stream().allMatch(modelCaptor.getValue()::containsKey));
 		assertFalse("Model should not contain bean3", modelCaptor.getValue().containsKey("bean3"));
+	}
+
+	@Test
+	public void testGetScriptPathInvalidContentType() throws ServiceLayerException {
+		doCallRealMethod()
+				.when(contentLifecycle)
+				.getScriptPath(any(), any());
+
+		when(lifecycleContent.getContentType()).thenReturn("../../../../invalid/location");
+
+		contentLifecycle.execute(SITE_ID, lifecycleContent, contentLoader);
+
+		verify(mockLogger).error(argThat(msg -> msg.contains("Invalid script path")));
 	}
 }
 
