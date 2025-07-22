@@ -104,10 +104,10 @@ studio.repo.git.cli.process.maxOutputBytes: 1000
 ##               Disk monitoring                ##
 ##################################################
 studio.monitoring.disk:
-  # Git gc performed when disk space is below this value
-  highWaterMark: 10
-  # Alert is sent (repeatedly) when disk space is below this value after the highWaterMark is reached
-  lowWaterMark: 15
+  # Git gc performed when disk utilization reaches this value
+  highWaterMark: 90
+  # Alarm is sent (repeatedly) when disk utilization is above this value after the highWaterMark is reached
+  lowWaterMark: 85
   # Every 15 minutes
   cron: '0 0/15 * * * ?'
   notifications:

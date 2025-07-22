@@ -10101,23 +10101,23 @@ components:
           type: integer
           format: int64
           description: The used disk space in bytes
-        alert:
+        alarm:
           type: boolean
-          description: True if the disk usage is above the alert threshold, otherwise false
+          description: True if free space is too low
         highWaterMark:
           type: integer
           format: int32
           description: The high water mark percentage for disk usage
-          example: 10
+          example: 90
         lowWaterMark:
           type: integer
           format: int32
           description: The low water mark percentage for disk usage
-          example: 15
-        alertFrom:
+          example: 85
+        alarmDate:
           type: string
           format: date-time
-          description: The date and time when the disk usage alert was triggered
+          description: The date and time when the disk usage alarm was triggered
         lastCheck:
           type: string
           format: date-time
