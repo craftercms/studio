@@ -3974,12 +3974,11 @@ paths:
       summary: Get disk usage statistics
       operationId: getDiskUsage
       parameters:
-        - name: token
-          in: query
-          description: Management token - not required for authenticated users
-          required: true
-          schema:
-            type: string
+        -   name: token
+            in: query
+            description: Management token - not required for authenticated users
+            schema:
+              type: string
       responses:
         '200':
           description: OK
@@ -3990,10 +3989,8 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  events:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DiskUsage'
+                  disk:
+                    $ref: '#/components/schemas/DiskUsage'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -10089,7 +10086,7 @@ components:
       properties:
         diskUsage:
           type: integer
-          format: int64
+          format: int32
           description: The disk usage percentage
           example: 75
         totalSpace:
@@ -10097,38 +10094,38 @@ components:
           format: int64
           description: The total disk space in bytes
         freeSpace:
-            type: integer
-            format: int64
-            description: The free disk space in bytes
+          type: integer
+          format: int64
+          description: The free disk space in bytes
         usedSpace:
           type: integer
           format: int64
           description: The used disk space in bytes
         alert:
-            type: boolean
-            description: True if the disk usage is above the alert threshold, otherwise false
+          type: boolean
+          description: True if the disk usage is above the alert threshold, otherwise false
         highWaterMark:
-            type: integer
-            format: int64
-            description: The high water mark percentage for disk usage
-            example: 10
+          type: integer
+          format: int32
+          description: The high water mark percentage for disk usage
+          example: 10
         lowWaterMark:
-            type: integer
-            format: int64
-            description: The low water mark percentage for disk usage
-            example: 15
+          type: integer
+          format: int32
+          description: The low water mark percentage for disk usage
+          example: 15
         alertFrom:
-            type: string
-            format: date-time
-            description: The date and time when the disk usage alert was triggered
+          type: string
+          format: date-time
+          description: The date and time when the disk usage alert was triggered
         lastCheck:
-            type: string
-            format: date-time
-            description: The date and time when the last disk usage check was performed
+          type: string
+          format: date-time
+          description: The date and time when the last disk usage check was performed
         lastCleanup:
-            type: string
-            format: date-time
-            description: The date and time when the last disk cleanup was performed
+          type: string
+          format: date-time
+          description: The date and time when the last disk cleanup was performed
 
     RemoteRepository:
       type: object
