@@ -1,0 +1,179 @@
+/*
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.craftercms.studio.impl.v2.monitor;
+
+import org.craftercms.commons.monitoring.DiskInfo;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.InitializingBean;
+
+import java.beans.ConstructorProperties;
+import java.time.Instant;
+
+import static java.time.Instant.now;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * Job for monitoring disk usage.
+ */
+public class DiskMonitor implements InitializingBean {
+	private static final Logger logger = getLogger(DiskMonitor.class);
+
+	private final StudioConfiguration studioConfiguration;
+
+	private volatile DiskStatus diskStatus;
+
+	@ConstructorProperties({"studioConfiguration"})
+	public DiskMonitor(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		logger.info("Initializing DiskMonitor...");
+		diskStatus = new DiskStatus(
+				new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH)),
+				studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class),
+				studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class),
+				false,
+				null,
+				now(),
+				null
+		);
+		logger.info("DiskMonitor initialized successfully.");
+	}
+
+	@SuppressWarnings("unused")
+	public void checkDiskUsage() {
+		// TODO: check if running and prevent multiple instances
+		logger.info("Checking disk usage...");
+		calculateDiskStatus();
+		logger.info("Disk usage check completed successfully.");
+
+		if (diskStatus.alarm()) {
+			logger.debug("Disk usage in alarm state, triggering an alarm.");
+			// TODO: send notifications
+		}
+	}
+
+	/**
+	 * Calculates the current disk status based on the disk usage.
+	 */
+	protected synchronized void calculateDiskStatus() {
+		DiskStatus previousStatus = diskStatus;
+		DiskInfo newDiskInfo = new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
+		int highWaterMark = studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
+		int lowWaterMark = studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+
+		if (previousStatus != null && previousStatus.alarm()) {
+			diskStatus = previousAlarmStatus(newDiskInfo, previousStatus, lowWaterMark, highWaterMark);
+		} else {
+			diskStatus = noPreviousAlarmStatus(newDiskInfo, lowWaterMark, highWaterMark);
+		}
+	}
+
+	/**
+	 * Handles the case where there was no previous alarm status.
+	 * Checks the current disk usage and if above the high watermark, it triggers
+	 * the git gc on all repositories.
+	 *
+	 * @param newDiskInfo   the new disk information
+	 * @param lowWaterMark  the low watermark percentage
+	 * @param highWaterMark the high watermark percentage
+	 * @return a new DiskStatus object with the updated disk information and alarm state
+	 */
+	protected DiskStatus noPreviousAlarmStatus(DiskInfo newDiskInfo, int lowWaterMark, int highWaterMark) {
+		int diskUsage = newDiskInfo.getDiskUsage();
+		logger.debug("Previous disk status was NOT an alarm status, checking current disk usage: {}%", diskUsage);
+
+		boolean aboveHigh = diskUsage >= highWaterMark;
+
+		boolean alarm = false;
+		Instant alarmDate = null;
+		Instant lastCleanup = null;
+		if (aboveHigh) {
+			logger.debug("Running git gc on all repositories as disk usage is above high watermark.");
+			// TODO: git gc all repos
+			lastCleanup = now();
+			newDiskInfo = new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
+			diskUsage = newDiskInfo.getDiskUsage();
+			boolean aboveLow = diskUsage >= lowWaterMark;
+			if (aboveLow) {
+				logger.warn("Disk usage {}% is above lowWaterMark ({}%), triggering an alarm.", diskUsage, lowWaterMark);
+				alarm = true;
+				alarmDate = now();
+			} else {
+				logger.info("Disk usage {}% is below lowWaterMark ({}%) after git gc, no alarm triggered.", diskUsage, lowWaterMark);
+			}
+		} else {
+			logger.debug("Disk usage {}% is below highWaterMark ({}%), no action needed.", diskUsage, highWaterMark);
+		}
+
+		return new DiskStatus(
+				newDiskInfo,
+				highWaterMark,
+				lowWaterMark,
+				alarm,
+				alarmDate,
+				now(),
+				lastCleanup
+		);
+	}
+
+	/**
+	 * Handles the case where the previous disk status was an alarm.
+	 * Checks the current disk usage and if still above the low watermark,
+	 * it keeps the alarm state.
+	 *
+	 * @param newDiskInfo    the new disk information
+	 * @param previousStatus the previous disk status
+	 * @param lowWaterMark   the low watermark percentage
+	 * @param highWaterMark  the high watermark percentage
+	 * @return a new DiskStatus object with the updated disk information and alarm state
+	 */
+	protected DiskStatus previousAlarmStatus(DiskInfo newDiskInfo, DiskStatus previousStatus, int lowWaterMark, int highWaterMark) {
+		boolean alarm;
+		Instant alarmDate;
+		logger.debug("Previous disk status was an alarm, checking if it should be kept or cleared...");
+		int diskUsage = newDiskInfo.getDiskUsage();
+		boolean aboveLow = diskUsage >= lowWaterMark;
+		// Keep the alarm state if still above the low watermark
+		if (aboveLow) {
+			logger.debug("Disk usage is {}%, which is still above low watermark, keeping the alarm.", diskUsage);
+			alarm = true;
+			alarmDate = previousStatus.alarmDate();
+		} else {
+			logger.debug("Disk usage is {}%, which is below low watermark, clearing the alarm.", diskUsage);
+			alarm = false;
+			alarmDate = null;
+		}
+		return new DiskStatus(
+				newDiskInfo,
+				highWaterMark,
+				lowWaterMark,
+				alarm,
+				alarmDate,
+				now(),
+				previousStatus.lastCleanup()
+		);
+	}
+
+	public DiskStatus getDiskStatus() {
+		return diskStatus;
+	}
+}

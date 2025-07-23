@@ -103,22 +103,15 @@ studio.repo.git.cli.process.maxOutputBytes: 1000
 ##################################################
 ##               Disk monitoring                ##
 ##################################################
-studio.monitoring.disk:
-  # Git gc performed when disk utilization reaches this value
-  highWaterMark: 90
-  # Alarm is sent (repeatedly) when disk utilization is above this value after the highWaterMark is reached
-  lowWaterMark: 85
-  # Every 15 minutes
-  cron: '0 0/15 * * * ?'
-  notifications:
-    email:
-      enabled: true
-      subject: Disk space warning  # This could be a ftl, so admins can better customize it
-      template: disk-space-notification.ftl
-    webhook:
-      enabled: false
-      url: http://example.com/notify
-      template: disk-space-notification.ftl
+studio.monitoring.disk.highWaterMark: 90
+studio.monitoring.disk.lowWaterMark: 85
+studio.monitoring.disk.cron: '0 0/15 * * * ?'
+studio.monitoring.disk.notifications.email.enabled: true
+studio.monitoring.disk.notifications.email.subject: Disk space warning  # This could be a ftl, so admins can better customize it
+studio.monitoring.disk.notifications.email.template: disk-space-notification.ftl
+studio.monitoring.disk.notifications.webhook.enabled: false
+studio.monitoring.disk.notifications.webhook.url: http://example.com/notify
+studio.monitoring.disk.notifications.webhook.template: disk-space-notification.ftl
 
 ##################################################
 ##        Git configuration properties          ##

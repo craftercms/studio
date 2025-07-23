@@ -794,6 +794,7 @@
         <ref bean="studioClockJob" />
         <ref bean="studioRepositoryCleanupJobTrigger"/>
         <ref bean="accessTokenCleanupJobTrigger"/>
+        <ref bean="diskMonitoringJobTrigger"/>
     </util:list>
 
     <bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -818,6 +819,25 @@
         </property>
         <property name="cronExpression"
                   value="#{studioConfiguration.getProperty('studio.security.token.cleanup.cron')}"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--      Disk Monitoring                   -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="diskMonitor" class="org.craftercms.studio.impl.v2.monitor.DiskMonitor">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+    </bean>
+    <bean id="diskMonitoringJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"
+          depends-on="studioConfiguration">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+                <property name="targetObject" ref="diskMonitor"/>
+                <property name="targetMethod" value="checkDiskUsage"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="cronExpression"
+                  value="#{studioConfiguration.getProperty('studio.monitoring.disk.cron')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
