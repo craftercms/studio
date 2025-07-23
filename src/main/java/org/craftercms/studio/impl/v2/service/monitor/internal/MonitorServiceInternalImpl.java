@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.service.monitor.internal;
 import org.craftercms.engine.util.logging.CircularQueueLogAppender;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 import org.craftercms.studio.impl.v2.monitor.DiskMonitor;
-import org.craftercms.studio.model.rest.monitoring.DiskUsageResult;
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -44,7 +44,7 @@ public class MonitorServiceInternalImpl implements MonitorService {
 	}
 
 	@Override
-	public DiskUsageResult getDiskUsage() {
-		return new DiskUsageResult(diskMonitor.getDiskStatus());
+	public DiskStatus getDiskUsage() {
+		return diskMonitor.getDiskStatus();
 	}
 }

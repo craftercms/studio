@@ -29,7 +29,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.monitoring.DiskUsageResult;
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -109,7 +109,7 @@ public class MonitoringController extends ManagementTokenAware {
     public Result getDiskInfo(@RequestParam(name = REQUEST_PARAM_TOKEN, required = false) String token)
             throws InvalidParametersException, InvalidManagementTokenException {
         validateToken(token);
-        ResultOne<DiskUsageResult> result = new ResultOne<>();
+        ResultOne<DiskStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_DISK, monitorService.getDiskUsage());
         result.setResponse(ApiResponse.OK);
         return result;

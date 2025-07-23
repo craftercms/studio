@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.api.v2.service.monitor;
 
-import org.craftercms.studio.model.rest.monitoring.DiskUsageResult;
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +39,7 @@ public interface MonitorService {
 	/**
 	 * Retrieves the disk usage stats
 	 *
-	 * @return a {@link DiskUsageResult} object containing the disk usage information
+	 * @return a {@link DiskStatus} object containing the disk usage information
 	 */
-	DiskUsageResult getDiskUsage();
+	DiskStatus getDiskUsage();
 }
