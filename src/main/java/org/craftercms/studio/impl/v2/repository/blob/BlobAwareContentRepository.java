@@ -590,8 +590,8 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void cleanupRepositories(String siteId) {
-        localRepositoryV1.cleanupRepositories(siteId);
+    public void gitGCRepositories(String siteId) {
+        localRepositoryV1.gitGCRepositories(siteId);
     }
 
     // Start API 2

@@ -1400,8 +1400,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      * {@inheritDoc}
      */
     @Override
-    public void cleanupRepositories(final String siteId) {
-        // TODO: SJ: Rename to indicate what this actually does, garbage collect the git repos
+    public void gitGCRepositories(final String siteId) {
         if(StringUtils.isEmpty(siteId)) {
             logger.info("Garbage collect the global repository");
             String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;

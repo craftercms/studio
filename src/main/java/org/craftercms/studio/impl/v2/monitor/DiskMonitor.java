@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.monitor;
 
 import org.craftercms.commons.monitoring.DiskInfo;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
@@ -35,12 +36,14 @@ public class DiskMonitor implements InitializingBean {
 	private static final Logger logger = getLogger(DiskMonitor.class);
 
 	private final StudioConfiguration studioConfiguration;
+	private final RepositoryCleanupJob gitGCJob;
 
 	private volatile DiskStatus diskStatus;
 
-	@ConstructorProperties({"studioConfiguration"})
-	public DiskMonitor(StudioConfiguration studioConfiguration) {
+	@ConstructorProperties({"studioConfiguration", "gitGCJob"})
+	public DiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob) {
 		this.studioConfiguration = studioConfiguration;
+		this.gitGCJob = gitGCJob;
 	}
 
 	@Override
@@ -108,7 +111,7 @@ public class DiskMonitor implements InitializingBean {
 		Instant lastCleanup = null;
 		if (aboveHigh) {
 			logger.debug("Running git gc on all repositories as disk usage is above high watermark.");
-			// TODO: git gc all repos
+			gitGCJob.cleanupAllRepositories();
 			lastCleanup = now();
 			newDiskInfo = new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
 			diskUsage = newDiskInfo.getDiskUsage();
