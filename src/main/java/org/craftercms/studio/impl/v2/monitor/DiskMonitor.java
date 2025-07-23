@@ -38,7 +38,7 @@ public class DiskMonitor implements InitializingBean {
 	private final StudioConfiguration studioConfiguration;
 	private final RepositoryCleanupJob gitGCJob;
 
-	private volatile DiskStatus diskStatus;
+	protected volatile DiskStatus diskStatus;
 
 	@ConstructorProperties({"studioConfiguration", "gitGCJob"})
 	public DiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob) {
@@ -50,7 +50,7 @@ public class DiskMonitor implements InitializingBean {
 	public void afterPropertiesSet() {
 		logger.info("Initializing DiskMonitor...");
 		diskStatus = new DiskStatus(
-				new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH)),
+				getDiskInfo(),
 				studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class),
 				studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class),
 				false,
@@ -63,15 +63,19 @@ public class DiskMonitor implements InitializingBean {
 
 	@SuppressWarnings("unused")
 	public void checkDiskUsage() {
-		// TODO: check if running and prevent multiple instances
 		logger.info("Checking disk usage...");
 		calculateDiskStatus();
 		logger.info("Disk usage check completed successfully.");
 
 		if (diskStatus.alarm()) {
 			logger.debug("Disk usage in alarm state, triggering an alarm.");
-			// TODO: send notifications
+			sendAlarm();
 		}
+	}
+
+	protected void sendAlarm() {
+		//	TODO: implement
+		logger.info("Disk usage is in alarm state, sending a notification.");
 	}
 
 	/**
@@ -79,7 +83,7 @@ public class DiskMonitor implements InitializingBean {
 	 */
 	protected synchronized void calculateDiskStatus() {
 		DiskStatus previousStatus = diskStatus;
-		DiskInfo newDiskInfo = new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
+		DiskInfo newDiskInfo = getDiskInfo();
 		int highWaterMark = studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
 		int lowWaterMark = studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
 
@@ -113,7 +117,7 @@ public class DiskMonitor implements InitializingBean {
 			logger.debug("Running git gc on all repositories as disk usage is above high watermark.");
 			gitGCJob.cleanupAllRepositories();
 			lastCleanup = now();
-			newDiskInfo = new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
+			newDiskInfo = getDiskInfo();
 			diskUsage = newDiskInfo.getDiskUsage();
 			boolean aboveLow = diskUsage >= lowWaterMark;
 			if (aboveLow) {
@@ -136,6 +140,15 @@ public class DiskMonitor implements InitializingBean {
 				now(),
 				lastCleanup
 		);
+	}
+
+	/**
+	 * Gets the current disk information based on the configured repository base path.
+	 *
+	 * @return a DiskInfo object containing the disk usage information
+	 */
+	protected DiskInfo getDiskInfo() {
+		return new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
 	}
 
 	/**
