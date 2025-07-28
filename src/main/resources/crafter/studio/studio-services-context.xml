@@ -824,9 +824,79 @@
     <!-- ////////////////////////////////////// -->
     <!--      Disk Monitoring                   -->
     <!-- ////////////////////////////////////// -->
+    <bean id="diskMonitoringFreeMarkerConfig" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+        <property name="templateLoaderPaths" value="WEB-INF"/>
+        <property name="defaultEncoding" value="${studio.monitoring.disk.notifications.encoding}"/>
+    </bean>
+
+    <bean id="notificationsObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+        <property name="featuresToDisable">
+            <array>
+                <value type="com.fasterxml.jackson.databind.SerializationFeature">WRITE_DATES_AS_TIMESTAMPS</value>
+            </array>
+        </property>
+        <property name="dateFormat">
+            <bean class="java.text.SimpleDateFormat">
+                <constructor-arg value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.dateTimePattern')}"/>
+            </bean>
+        </property>
+        <property name="createXmlMapper" value="false"/>
+    </bean>
+
+    <bean id="notificationSenderBase" abstract="true" class="org.craftercms.commons.notification.NotificationSender">
+        <constructor-arg name="freeMarkerConfig" ref="diskMonitoringFreeMarkerConfig"/>
+        <constructor-arg name="dateTimePattern" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.dateTimePattern')}"/>
+        <constructor-arg name="durationPattern"><null /></constructor-arg>
+        <constructor-arg name="objectMapper" ref="notificationsObjectMapper"/>
+    </bean>
+
+    <bean id="diskMonitorWebhookSender" class="org.craftercms.studio.impl.v2.CompositeNotificationSender.SenderEntry">
+        <constructor-arg name="sender">
+            <bean class="org.craftercms.commons.notification.impl.WebhookSender" parent="notificationSenderBase">
+                <property name="method" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.method')}"/>
+                <property name="url"
+                          value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.url')}"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="template" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.template')}"/>
+        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.enabled')}"/>
+    </bean>
+
+    <bean id="diskMonitorEmailSender" class="org.craftercms.studio.impl.v2.CompositeNotificationSender.SenderEntry">
+        <constructor-arg name="sender">
+            <bean class="org.craftercms.commons.notification.impl.EmailSender" parent="notificationSenderBase">
+                <constructor-arg name="emailFactory">
+                    <bean class="org.craftercms.commons.mail.impl.EmailFactoryImpl">
+                        <constructor-arg name="mailSender" ref="mailSender"/>
+                        <property name="freeMarkerConfig" ref="diskMonitoringFreeMarkerConfig"/>
+                        <property name="templateSuffix" value="#{studioConfiguration.getProperty('target.notifications.mail.templates.suffix')}"/>
+                        <property name="templateEncoding" value="#{studioConfiguration.getProperty('target.notifications.mail.encoding')}"/>
+                    </bean>
+                </constructor-arg>
+                <constructor-arg name="from" value="#{studioConfiguration.getProperty('studio.mail.from.default')}"/>
+                <constructor-arg name="subject" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.subject')}"/>
+                <constructor-arg name="html" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.html')}"/>
+                <property name="to" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.to')}"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="template" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.template')}"/>
+        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.enabled')}"/>
+    </bean>
+
+    <bean id="diskMonitorNotificationSender" class="org.craftercms.studio.impl.v2.CompositeNotificationSender">
+        <constructor-arg name="senders">
+            <util:list>
+                <ref bean="diskMonitorWebhookSender"/>
+                <ref bean="diskMonitorEmailSender"/>
+            </util:list>
+        </constructor-arg>
+    </bean>
+
     <bean id="diskMonitor" class="org.craftercms.studio.impl.v2.monitor.DiskMonitor">
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="notificationSender" ref="diskMonitorNotificationSender"/>
     </bean>
+
     <bean id="diskMonitoringJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"
           depends-on="studioConfiguration">
         <property name="jobDetail">

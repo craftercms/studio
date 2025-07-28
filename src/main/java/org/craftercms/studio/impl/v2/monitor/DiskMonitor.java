@@ -18,12 +18,17 @@ package org.craftercms.studio.impl.v2.monitor;
 import org.craftercms.commons.monitoring.DiskInfo;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
+import org.craftercms.studio.impl.v2.CompositeNotificationSender;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.beans.ConstructorProperties;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.time.Instant.now;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -34,16 +39,22 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class DiskMonitor implements InitializingBean {
 	private static final Logger logger = getLogger(DiskMonitor.class);
+	private static final String SERVER_NAME_MODEL_KEY = "serverName";
 
 	private final StudioConfiguration studioConfiguration;
 	private final RepositoryCleanupJob gitGCJob;
+	private final CompositeNotificationSender notificationSender;
+	private String serverName;
 
 	protected volatile DiskStatus diskStatus;
 
-	@ConstructorProperties({"studioConfiguration", "gitGCJob"})
-	public DiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob) {
+
+	@ConstructorProperties({"studioConfiguration", "gitGCJob", "notificationSender"})
+	public DiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob,
+					   CompositeNotificationSender notificationSender) {
 		this.studioConfiguration = studioConfiguration;
 		this.gitGCJob = gitGCJob;
+		this.notificationSender = notificationSender;
 	}
 
 	@Override
@@ -58,6 +69,7 @@ public class DiskMonitor implements InitializingBean {
 				now(),
 				null
 		);
+
 		logger.info("DiskMonitor initialized successfully.");
 	}
 
@@ -67,15 +79,28 @@ public class DiskMonitor implements InitializingBean {
 		calculateDiskStatus();
 		logger.info("Disk usage check completed successfully.");
 
-		if (diskStatus.alarm()) {
+		if (diskStatus.isAlarm()) {
 			logger.debug("Disk usage in alarm state, triggering an alarm.");
 			sendAlarm();
 		}
 	}
 
+	protected String getServerName() throws UnknownHostException {
+		if (serverName == null) {
+			serverName = InetAddress.getLocalHost().getHostName();
+		}
+		return serverName;
+	}
+
 	protected void sendAlarm() {
-		//	TODO: implement
 		logger.info("Disk usage is in alarm state, sending a notification.");
+		try {
+			Map<String, Object> model = new HashMap<>();
+			model.put(SERVER_NAME_MODEL_KEY, getServerName());
+			notificationSender.sendMessage(diskStatus, model);
+		} catch (Exception e) {
+			logger.error("Failed to send disk usage alarm notification", e);
+		}
 	}
 
 	/**
@@ -87,7 +112,7 @@ public class DiskMonitor implements InitializingBean {
 		int highWaterMark = studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
 		int lowWaterMark = studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
 
-		if (previousStatus != null && previousStatus.alarm()) {
+		if (previousStatus != null && previousStatus.isAlarm()) {
 			diskStatus = previousAlarmStatus(newDiskInfo, previousStatus, lowWaterMark, highWaterMark);
 		} else {
 			diskStatus = noPreviousAlarmStatus(newDiskInfo, lowWaterMark, highWaterMark);
@@ -172,7 +197,7 @@ public class DiskMonitor implements InitializingBean {
 		if (aboveLow) {
 			logger.debug("Disk usage is {}%, which is still above low watermark, keeping the alarm.", diskUsage);
 			alarm = true;
-			alarmDate = previousStatus.alarmDate();
+			alarmDate = previousStatus.getAlarmDate();
 		} else {
 			logger.debug("Disk usage is {}%, which is below low watermark, clearing the alarm.", diskUsage);
 			alarm = false;
@@ -185,7 +210,7 @@ public class DiskMonitor implements InitializingBean {
 				alarm,
 				alarmDate,
 				now(),
-				previousStatus.lastCleanup()
+				previousStatus.getLastCleanup()
 		);
 	}
 

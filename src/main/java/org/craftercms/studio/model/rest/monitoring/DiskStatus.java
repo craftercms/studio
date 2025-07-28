@@ -23,19 +23,65 @@ import java.time.Instant;
 /**
  * Holds the status of the disk usage alarm.
  *
- * @param diskInfo      the disk usage information
- * @param highWaterMark the high water mark percentage for disk usage
- * @param lowWaterMark  the low water mark percentage for disk usage
- * @param alarm         indicates if the alarm is active
- * @param alarmDate     the date when the alarm was triggered
- * @param lastCheck     the date when the disk was last checked
- * @param lastCleanup   the date when the disk was last cleaned up
+ * <ul>
+ *   <li>diskInfo - the disk usage information</li>
+ *   <li>highWaterMark - the high water mark percentage for disk usage</li>
+ *   <li>lowWaterMark - the low water mark percentage for disk usage</li>
+ *   <li>alarm - indicates if the alarm is active</li>
+ *   <li>alarmDate - the date when the alarm was triggered</li>
+ *   <li>lastCheck - the date when the disk was last checked</li>
+ *   <li>lastCleanup - the date when the disk was last cleaned up</li>
+ * </ul>
  */
-public record DiskStatus(@JsonUnwrapped DiskInfo diskInfo,
-						 int highWaterMark,
-						 int lowWaterMark,
-						 boolean alarm,
-						 Instant alarmDate,
-						 Instant lastCheck,
-						 Instant lastCleanup) {
+public class DiskStatus {
+
+	protected final DiskInfo diskInfo;
+	protected final int highWaterMark;
+	protected final int lowWaterMark;
+	protected final boolean alarm;
+	protected final Instant alarmDate;
+	protected final Instant lastCheck;
+	protected final Instant lastCleanup;
+
+	public DiskStatus(DiskInfo diskInfo, int highWaterMark,
+					  int lowWaterMark, boolean alarm,
+					  Instant alarmDate, Instant lastCheck,
+					  Instant lastCleanup) {
+		this.alarm = alarm;
+		this.diskInfo = diskInfo;
+		this.highWaterMark = highWaterMark;
+		this.lowWaterMark = lowWaterMark;
+		this.alarmDate = alarmDate;
+		this.lastCheck = lastCheck;
+		this.lastCleanup = lastCleanup;
+	}
+
+	public boolean isAlarm() {
+		return alarm;
+	}
+
+	public Instant getAlarmDate() {
+		return alarmDate;
+	}
+
+	@JsonUnwrapped
+	public DiskInfo getDiskInfo() {
+		return diskInfo;
+	}
+
+	public int getHighWaterMark() {
+		return highWaterMark;
+	}
+
+	public Instant getLastCheck() {
+		return lastCheck;
+	}
+
+	public Instant getLastCleanup() {
+		return lastCleanup;
+	}
+
+	public int getLowWaterMark() {
+		return lowWaterMark;
+	}
 }

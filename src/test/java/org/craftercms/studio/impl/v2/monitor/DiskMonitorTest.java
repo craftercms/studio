@@ -46,7 +46,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
-		assertTrue(diskMonitor.getDiskStatus().alarm(), "Disk status should be in alarm state due to high usage");
+		assertTrue(diskMonitor.getDiskStatus().isAlarm(), "Disk status should be in alarm state due to high usage");
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, never().description("Notification should not be sent when disk usage is not in alarm state"))
 				.sendAlarm();
 
-		assertFalse(diskMonitor.getDiskStatus().alarm(), "Disk status should only be in alarm state after reaching high water mark");
+		assertFalse(diskMonitor.getDiskStatus().isAlarm(), "Disk status should only be in alarm state after reaching high water mark");
 	}
 
 	@Test
@@ -96,7 +96,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, never().description("Notification should not be sent when disk usage is not in alarm state"))
 				.sendAlarm();
 
-		assertFalse(diskMonitor.getDiskStatus().alarm(), "Disk status should not be in alarm state due to low usage");
+		assertFalse(diskMonitor.getDiskStatus().isAlarm(), "Disk status should not be in alarm state due to low usage");
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
-		assertTrue(diskMonitor.getDiskStatus().alarm(), "Disk status should be kept in alarm state if above the low watermark");
+		assertTrue(diskMonitor.getDiskStatus().isAlarm(), "Disk status should be kept in alarm state if above the low watermark");
 	}
 
 	@Test
@@ -156,6 +156,6 @@ public class DiskMonitorTest {
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
-		assertTrue(diskMonitor.getDiskStatus().alarm(), "Disk status should be kept in alarm state if above the low watermark");
+		assertTrue(diskMonitor.getDiskStatus().isAlarm(), "Disk status should be kept in alarm state if above the low watermark");
 	}
 }
