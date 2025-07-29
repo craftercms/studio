@@ -12,7 +12,7 @@
 			<li><b>Free Space (Bytes):</b> ${payload.diskInfo.freeSpace}</li>
 		</ul>
 		<#if outputAttached>
-			<p>Attached you'll also find the full disk status detail.</p>
+			<p>See attached document for additional details.</p>
 		</#if>
 	</body>
 </html>
