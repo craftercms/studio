@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static java.time.Instant.now;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -41,15 +41,16 @@ public class DiskMonitorTest {
 
 	@Test
 	public void outOfRangeLimitsTest() {
-		assertThrows(IllegalArgumentException.class, () -> {
-			getDiskMonitor(-1, 95);
-		}, "Expected IllegalArgumentException for low watermark less than 0");
-		assertThrows(IllegalArgumentException.class, () -> {
-			getDiskMonitor(14, -23);
-		}, "Expected IllegalArgumentException for high watermark less than 0");
-		assertThrows(IllegalArgumentException.class, () -> {
-			getDiskMonitor(90, 75);
-		}, "Expected IllegalArgumentException for high watermark less than low watermark");
+		assertThrows("Expected IllegalArgumentException for low watermark less than 0",
+				IllegalArgumentException.class,
+				() ->
+						getDiskMonitor(-1, 95));
+		assertThrows("Expected IllegalArgumentException for high watermark less than 0",
+				IllegalArgumentException.class,
+				() -> getDiskMonitor(14, -23));
+		assertThrows("Expected IllegalArgumentException for high watermark less than low watermark",
+				IllegalArgumentException.class,
+				() -> getDiskMonitor(90, 75));
 	}
 
 	@Test
@@ -67,7 +68,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
-		assertTrue(diskMonitor.getDiskStatus().isAlarm(), "Disk status should be in alarm state due to high usage");
+		assertTrue("Disk status should be in alarm state due to high usage", diskMonitor.getDiskStatus().isAlarm());
 	}
 
 	@Test
@@ -86,7 +87,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, never().description("Notification should not be sent when disk usage is not in alarm state"))
 				.sendAlarm();
 
-		assertFalse(diskMonitor.getDiskStatus().isAlarm(), "Disk status should only be in alarm state after reaching high water mark");
+		assertFalse("Disk status should only be in alarm state after reaching high water mark", diskMonitor.getDiskStatus().isAlarm());
 	}
 
 	@Test
@@ -115,7 +116,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, never().description("Notification should not be sent when disk usage is not in alarm state"))
 				.sendAlarm();
 
-		assertFalse(diskMonitor.getDiskStatus().isAlarm(), "Disk status should not be in alarm state due to low usage");
+		assertFalse("Disk status should not be in alarm state due to low usage", diskMonitor.getDiskStatus().isAlarm());
 	}
 
 	@Test
@@ -144,7 +145,7 @@ public class DiskMonitorTest {
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
-		assertTrue(diskMonitor.getDiskStatus().isAlarm(), "Disk status should be kept in alarm state if above the low watermark");
+		assertTrue("Disk status should be kept in alarm state if above the low watermark", diskMonitor.getDiskStatus().isAlarm());
 	}
 
 	@Test
@@ -173,6 +174,6 @@ public class DiskMonitorTest {
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
-		assertTrue(diskMonitor.getDiskStatus().isAlarm(), "Disk status should be kept in alarm state if above the low watermark");
+		assertTrue("Disk status should be kept in alarm state if above the low watermark", diskMonitor.getDiskStatus().isAlarm());
 	}
 }
