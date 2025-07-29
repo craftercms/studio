@@ -826,6 +826,13 @@
     <!-- ////////////////////////////////////// -->
     <bean id="diskMonitoringFreeMarkerConfig" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
         <property name="templateLoaderPaths" value="WEB-INF"/>
+        <property name="postTemplateLoaders">
+            <array>
+                <bean class="org.springframework.ui.freemarker.SpringTemplateLoader">
+                    <constructor-arg name="templateLoaderPath" value="classpath:crafter/studio/extension"/>
+                </bean>
+            </array>
+        </property>
         <property name="defaultEncoding" value="${studio.monitoring.disk.notifications.encoding}"/>
     </bean>
 
