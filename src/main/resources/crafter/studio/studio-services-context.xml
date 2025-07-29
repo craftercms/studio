@@ -833,7 +833,7 @@
                 </bean>
             </array>
         </property>
-        <property name="defaultEncoding" value="${studio.monitoring.disk.notifications.encoding}"/>
+        <property name="defaultEncoding" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.encoding')}"/>
     </bean>
 
     <bean id="notificationsObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
