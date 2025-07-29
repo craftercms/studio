@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.beans.ConstructorProperties;
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
@@ -50,7 +51,6 @@ public class DiskMonitor implements InitializingBean {
 	private String serverName;
 
 	protected volatile DiskStatus diskStatus;
-
 
 	@ConstructorProperties({"studioConfiguration", "gitGCJob", "notificationSender"})
 	public DiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob,
@@ -177,7 +177,8 @@ public class DiskMonitor implements InitializingBean {
 	 * @return a DiskInfo object containing the disk usage information
 	 */
 	protected DiskInfo getDiskInfo() {
-		return new DiskInfo(studioConfiguration.getProperty(REPO_BASE_PATH));
+		File baseRepoPath = new File(studioConfiguration.getProperty(REPO_BASE_PATH));
+		return new DiskInfo(baseRepoPath);
 	}
 
 	/**
