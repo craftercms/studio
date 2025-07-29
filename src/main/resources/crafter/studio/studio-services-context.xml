@@ -857,7 +857,7 @@
         <constructor-arg name="objectMapper" ref="notificationsObjectMapper"/>
     </bean>
 
-    <bean id="diskMonitorWebhookSender" class="org.craftercms.studio.impl.v2.CompositeNotificationSender.SenderEntry">
+    <bean id="diskMonitorWebhookSender" class="org.craftercms.studio.impl.v2.notification.CompositeNotificationSender.SenderEntry">
         <constructor-arg name="sender">
             <bean class="org.craftercms.commons.notification.impl.WebhookSender" parent="notificationSenderBase">
                 <property name="method" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.method')}"/>
@@ -869,7 +869,7 @@
         <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.enabled')}"/>
     </bean>
 
-    <bean id="diskMonitorEmailSender" class="org.craftercms.studio.impl.v2.CompositeNotificationSender.SenderEntry">
+    <bean id="diskMonitorEmailSender" class="org.craftercms.studio.impl.v2.notification.CompositeNotificationSender.SenderEntry">
         <constructor-arg name="sender">
             <bean class="org.craftercms.commons.notification.impl.EmailSender" parent="notificationSenderBase">
                 <constructor-arg name="emailFactory">
@@ -890,7 +890,7 @@
         <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.enabled')}"/>
     </bean>
 
-    <bean id="diskMonitorNotificationSender" class="org.craftercms.studio.impl.v2.CompositeNotificationSender">
+    <bean id="diskMonitorNotificationSender" class="org.craftercms.studio.impl.v2.notification.CompositeNotificationSender">
         <constructor-arg name="senders">
             <util:list>
                 <ref bean="diskMonitorWebhookSender"/>
@@ -900,8 +900,12 @@
     </bean>
 
     <bean id="diskMonitor" class="org.craftercms.studio.impl.v2.monitor.DiskMonitor">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="notificationSender" ref="diskMonitorNotificationSender"/>
+        <constructor-arg name="baseRepoPath"
+                  value="#{studioConfiguration.getProperty('studio.repo.basePath')}"/>
+        <constructor-arg name="lowWaterMark"
+                  value="#{studioConfiguration.getProperty('studio.monitoring.disk.lowWaterMark')}"/>
+        <constructor-arg name="highWaterMark"
+                  value="#{studioConfiguration.getProperty('studio.monitoring.disk.highWaterMark')}"/>
     </bean>
 
     <bean id="diskMonitoringJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"

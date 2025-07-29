@@ -317,10 +317,6 @@ public interface StudioConfiguration {
     String BLOB_STORES_CONFIG_PATH = "studio.blob.config.path";
     String BLOB_STORES_SERVERLESS_DEFAULT_CONFIG_PATH = "studio.blob.default.config.path";
 
-    // Disk monitor
-    String DISK_MONITOR_HIGH_WATER_MARK = "studio.monitoring.disk.highWaterMark";
-    String DISK_MONITOR_LOW_WATER_MARK = "studio.monitoring.disk.lowWaterMark";
-
     void loadConfig();
 
     String getProperty(String key);

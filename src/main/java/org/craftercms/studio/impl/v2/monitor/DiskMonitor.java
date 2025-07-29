@@ -17,9 +17,8 @@ package org.craftercms.studio.impl.v2.monitor;
 
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.monitoring.DiskInfo;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.notification.StudioNotificationSender;
 import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
-import org.craftercms.studio.impl.v2.CompositeNotificationSender;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,7 +33,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static java.time.Instant.now;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -45,28 +43,43 @@ public class DiskMonitor implements InitializingBean {
 	private static final String SERVER_NAME_MODEL_KEY = "serverName";
 	private static final String FORMAT_SIZE_MODEL_KEY = "byteCountToDisplaySize";
 
-	private final StudioConfiguration studioConfiguration;
 	private final RepositoryCleanupJob gitGCJob;
-	private final CompositeNotificationSender notificationSender;
+	private final StudioNotificationSender notificationSender;
+	private final int lowWaterMark;
+	private final int highWaterMark;
+	private final String baseRepoPath;
 	private String serverName;
 
 	protected volatile DiskStatus diskStatus;
 
-	@ConstructorProperties({"studioConfiguration", "gitGCJob", "notificationSender"})
-	public DiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob,
-					   CompositeNotificationSender notificationSender) {
-		this.studioConfiguration = studioConfiguration;
+	@ConstructorProperties({"gitGCJob", "notificationSender",
+			"baseRepoPath", "lowWaterMark", "highWaterMark"})
+	public DiskMonitor(RepositoryCleanupJob gitGCJob, StudioNotificationSender notificationSender,
+					   String baseRepoPath, int lowWaterMark, int highWaterMark) {
 		this.gitGCJob = gitGCJob;
 		this.notificationSender = notificationSender;
+		this.baseRepoPath = baseRepoPath;
+		this.lowWaterMark = lowWaterMark;
+		this.highWaterMark = highWaterMark;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
 		logger.info("Initializing DiskMonitor...");
+		if (lowWaterMark < 0 || highWaterMark < 0) {
+			throw new IllegalArgumentException("Watermarks must be non-negative: lowWaterMark = " + lowWaterMark + ", highWaterMark = " + highWaterMark);
+		}
+		if (lowWaterMark > 100 || highWaterMark > 100) {
+			throw new IllegalArgumentException("Watermarks must be between 0 and 100: lowWaterMark = " + lowWaterMark + ", highWaterMark = " + highWaterMark);
+		}
+		if (lowWaterMark >= highWaterMark) {
+			throw new IllegalArgumentException("Invalid configuration: highWaterMark (" + highWaterMark + ") must be greater than lowWaterMark (" + lowWaterMark + ")");
+		}
+
 		diskStatus = new DiskStatus(
 				getDiskInfo(),
-				studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class),
-				studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class),
+				lowWaterMark,
+				highWaterMark,
 				false,
 				null,
 				now(),
@@ -113,8 +126,7 @@ public class DiskMonitor implements InitializingBean {
 	protected synchronized void calculateDiskStatus() {
 		DiskStatus previousStatus = diskStatus;
 		DiskInfo newDiskInfo = getDiskInfo();
-		int highWaterMark = studioConfiguration.getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
-		int lowWaterMark = studioConfiguration.getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+
 
 		if (previousStatus != null && previousStatus.isAlarm()) {
 			diskStatus = previousAlarmStatus(newDiskInfo, previousStatus, lowWaterMark, highWaterMark);
@@ -177,8 +189,8 @@ public class DiskMonitor implements InitializingBean {
 	 * @return a DiskInfo object containing the disk usage information
 	 */
 	protected DiskInfo getDiskInfo() {
-		File baseRepoPath = new File(studioConfiguration.getProperty(REPO_BASE_PATH));
-		return new DiskInfo(baseRepoPath);
+		File baseRepoFile = new File(baseRepoPath);
+		return new DiskInfo(baseRepoFile);
 	}
 
 	/**

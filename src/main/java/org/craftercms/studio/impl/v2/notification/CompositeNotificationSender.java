@@ -13,10 +13,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.impl.v2;
+package org.craftercms.studio.impl.v2.notification;
 
 import org.craftercms.commons.notification.NotificationException;
 import org.craftercms.commons.notification.NotificationSender;
+import org.craftercms.studio.api.v2.notification.StudioNotificationSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +25,11 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * CompositeNotificationSender is a class that aggregates multiple NotificationSender instances,
+ * {@link StudioNotificationSender} implementation that aggregates multiple NotificationSender instances,
  * allowing to send a notification message through multiple channels.
  * Each NotificationSender can have its own preconfigured template and enabled flag.
  */
-public class CompositeNotificationSender {
+public class CompositeNotificationSender implements StudioNotificationSender {
 
 	private static final Logger logger = LoggerFactory.getLogger(CompositeNotificationSender.class);
 
@@ -38,13 +39,7 @@ public class CompositeNotificationSender {
 		this.senders = senders;
 	}
 
-	/**
-	 * Sends a notification message using all enabled configured NotificationSender instances.
-	 *
-	 * @param payload the payload to pass to the notification senders
-	 * @param model   the model to use for the notification template
-	 * @throws NotificationException if there is an error sending the notification
-	 */
+	@Override
 	public void sendMessage(Object payload, Map<String, Object> model) throws NotificationException {
 		Exception exception = null;
 		for (SenderEntry senderDescriptor : senders) {

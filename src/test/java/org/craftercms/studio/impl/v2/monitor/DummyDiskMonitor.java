@@ -15,9 +15,9 @@
  */
 package org.craftercms.studio.impl.v2.monitor;
 
+import org.craftercms.studio.api.v2.notification.StudioNotificationSender;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
-import org.craftercms.studio.impl.v2.CompositeNotificationSender;
 
 /**
  * Dummy DiskMonitor for testing purposes.
@@ -25,9 +25,9 @@ import org.craftercms.studio.impl.v2.CompositeNotificationSender;
  */
 public class DummyDiskMonitor extends DiskMonitor {
 
-	public DummyDiskMonitor(StudioConfiguration studioConfiguration, RepositoryCleanupJob gitGCJob,
-							CompositeNotificationSender notificationSender) {
-		super(studioConfiguration, gitGCJob, notificationSender);
+	public DummyDiskMonitor(RepositoryCleanupJob gitGCJob,
+							StudioNotificationSender notificationSender) {
+		super(gitGCJob, notificationSender, ".", 10, 20);
 	}
 
 	@Override

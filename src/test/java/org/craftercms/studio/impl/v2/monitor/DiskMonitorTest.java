@@ -1,39 +1,60 @@
+/*
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.craftercms.studio.impl.v2.monitor;
 
 import org.craftercms.commons.monitoring.DiskInfo;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static java.time.Instant.now;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DISK_MONITOR_HIGH_WATER_MARK;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DISK_MONITOR_LOW_WATER_MARK;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DiskMonitorTest {
 
 	@Mock
-	protected StudioConfiguration studioConfiguration;
-	@Mock
 	protected RepositoryCleanupJob gitGCJob;
 
-	@Spy
-	@InjectMocks
-	protected DiskMonitor diskMonitor;
+	protected DiskMonitor getDiskMonitor(int lowWaterMark, int highWaterMark) {
+		DiskMonitor spy = spy(new DiskMonitor(gitGCJob, null, ".", lowWaterMark, highWaterMark));
+		spy.afterPropertiesSet();
+		return spy;
+	}
+
+	@Test
+	public void outOfRangeLimitsTest() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			getDiskMonitor(-1, 95);
+		}, "Expected IllegalArgumentException for low watermark less than 0");
+		assertThrows(IllegalArgumentException.class, () -> {
+			getDiskMonitor(14, -23);
+		}, "Expected IllegalArgumentException for high watermark less than 0");
+		assertThrows(IllegalArgumentException.class, () -> {
+			getDiskMonitor(90, 75);
+		}, "Expected IllegalArgumentException for high watermark less than low watermark");
+	}
 
 	@Test
 	public void noPreviousAlarmHighUsageTest() {
-		doReturn(95).when(studioConfiguration).getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
-		doReturn(85).when(studioConfiguration).getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo mockInfo = mock(DiskInfo.class);
 		doReturn(96).when(mockInfo).getDiskUsage();
@@ -51,8 +72,7 @@ public class DiskMonitorTest {
 
 	@Test
 	public void noPreviousAlarmMiddleUsageTest() {
-		doReturn(95).when(studioConfiguration).getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
-		doReturn(85).when(studioConfiguration).getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo mockInfo = mock(DiskInfo.class);
 		doReturn(90).when(mockInfo).getDiskUsage();
@@ -71,8 +91,7 @@ public class DiskMonitorTest {
 
 	@Test
 	public void previousAlarmLowUsageTest() {
-		doReturn(95).when(studioConfiguration).getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
-		doReturn(85).when(studioConfiguration).getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo previousMockInfo = mock(DiskInfo.class);
 		diskMonitor.diskStatus = new DiskStatus(
@@ -101,8 +120,7 @@ public class DiskMonitorTest {
 
 	@Test
 	public void previousAlarmMiddleUsageTest() {
-		doReturn(95).when(studioConfiguration).getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
-		doReturn(85).when(studioConfiguration).getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo previousMockInfo = mock(DiskInfo.class);
 		diskMonitor.diskStatus = new DiskStatus(
@@ -131,8 +149,7 @@ public class DiskMonitorTest {
 
 	@Test
 	public void previousAlarmHighUsageTest() {
-		doReturn(95).when(studioConfiguration).getProperty(DISK_MONITOR_HIGH_WATER_MARK, Integer.class);
-		doReturn(85).when(studioConfiguration).getProperty(DISK_MONITOR_LOW_WATER_MARK, Integer.class);
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo previousMockInfo = mock(DiskInfo.class);
 		diskMonitor.diskStatus = new DiskStatus(
