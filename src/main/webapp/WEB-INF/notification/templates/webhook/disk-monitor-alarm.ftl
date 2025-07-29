@@ -51,27 +51,27 @@
 			"fields": [
 				{
 					"type": "mrkdwn",
-					"text": "*Total Space (Bytes):*"
+					"text": "*Total Space:*"
 				},
 				{
 					"type": "plain_text",
-					"text": "${payload.diskInfo.totalSpace}"
+					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.totalSpace)}"
 				},
 				{
 					"type": "mrkdwn",
-					"text": "*Used Space (Bytes):*"
+					"text": "*Used Space:*"
 				},
 				{
 					"type": "plain_text",
-					"text": "${payload.diskInfo.usedSpace}"
+					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.usedSpace)}"
 				},
 				{
 					"type": "mrkdwn",
-					"text": "*Free Space (Bytes):*"
+					"text": "*Free Space:*"
 				},
 				{
 					"type": "plain_text",
-					"text": "${payload.diskInfo.freeSpace}"
+					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.freeSpace)}"
 				}
 			]
 		}

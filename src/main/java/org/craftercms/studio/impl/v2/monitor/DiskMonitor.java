@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.monitor;
 
+import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.monitoring.DiskInfo;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
@@ -29,6 +30,7 @@ import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.time.Instant.now;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -40,6 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DiskMonitor implements InitializingBean {
 	private static final Logger logger = getLogger(DiskMonitor.class);
 	private static final String SERVER_NAME_MODEL_KEY = "serverName";
+	private static final String FORMAT_SIZE_MODEL_KEY = "byteCountToDisplaySize";
 
 	private final StudioConfiguration studioConfiguration;
 	private final RepositoryCleanupJob gitGCJob;
@@ -97,6 +100,7 @@ public class DiskMonitor implements InitializingBean {
 		try {
 			Map<String, Object> model = new HashMap<>();
 			model.put(SERVER_NAME_MODEL_KEY, getServerName());
+			model.put(FORMAT_SIZE_MODEL_KEY, (Function<Long, String>) FileUtils::byteCountToDisplaySize);
 			notificationSender.sendMessage(diskStatus, model);
 		} catch (Exception e) {
 			logger.error("Failed to send disk usage alarm notification", e);
