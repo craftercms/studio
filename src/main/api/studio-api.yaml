@@ -4893,12 +4893,12 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
                                 allOf:
                                     -   $ref: '#/components/schemas/WriteContentResponse'
+                                    -   type: object
+                                        properties:
+                                            response:
+                                                $ref: '#/components/schemas/ApiResponse'
                 '201':
                     description: Created
                     content:
