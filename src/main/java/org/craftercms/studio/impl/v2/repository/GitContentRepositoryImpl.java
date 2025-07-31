@@ -1760,7 +1760,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			throw e;
 		} catch (Exception e) {
 			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
+			throw new ServiceLayerException(format("Failed to copy item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
