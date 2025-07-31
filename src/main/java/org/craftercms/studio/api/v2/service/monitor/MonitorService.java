@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v2.service.monitor;
 
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
+
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +28,18 @@ import java.util.Map;
  */
 public interface MonitorService {
 
-    /**
-     * Retrieves a list of global events logged since the timestamp indicated by {@code since} parameter
-     *
-     * @param since  timestamp. Events before this value will not be included.
-     * @return a list of log events
-     */
-    List<Map<String, Object>> getLogEvents(final String siteId, final long since);
+	/**
+	 * Retrieves a list of global events logged since the timestamp indicated by {@code since} parameter
+	 *
+	 * @param since timestamp. Events before this value will not be included.
+	 * @return a list of log events
+	 */
+	List<Map<String, Object>> getLogEvents(final String siteId, final long since);
+
+	/**
+	 * Retrieves the disk usage stats
+	 *
+	 * @return a {@link DiskStatus} object containing the disk usage information
+	 */
+	DiskStatus getDiskUsage();
 }

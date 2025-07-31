@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -351,8 +350,8 @@ public interface ContentRepository {
     void resetStagingRepository(String siteId) throws ServiceLayerException;
 
     /**
-     * Performs a cleanup all repositories for the given site
-     * @param siteId site identifier
+     * Performs a git gc on all repositories for the given site
+     * @param siteId site identifier, or null for global repository
      */
-    void cleanupRepositories(String siteId);
+    void gitGCRepositories(String siteId);
 }

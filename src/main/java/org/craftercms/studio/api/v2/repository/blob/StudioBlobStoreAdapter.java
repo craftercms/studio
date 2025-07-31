@@ -224,7 +224,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void cleanupRepositories(String siteId) {
+    default void gitGCRepositories(String siteId) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }

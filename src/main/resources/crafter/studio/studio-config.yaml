@@ -101,6 +101,29 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.git.cli.process.maxOutputBytes: 1000
 
 ##################################################
+##               Disk monitoring                ##
+##################################################
+studio.monitoring.disk.highWaterMark: 90
+studio.monitoring.disk.lowWaterMark: 85
+studio.monitoring.disk.cron: '0 0/15 * * * ?'
+
+studio.monitoring.disk.notifications.encoding: UTF-8
+studio.monitoring.disk.notifications.dateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
+
+# Email configs
+studio.monitoring.disk.notifications.email.enabled: true
+studio.monitoring.disk.notifications.email.subject: Disk space warning
+studio.monitoring.disk.notifications.email.to: admin@example.com
+studio.monitoring.disk.notifications.email.template: notification/templates/email/disk-monitor-alarm.ftl
+studio.monitoring.disk.notifications.email.html: true
+# Webhook configs
+studio.monitoring.disk.notifications.webhook.enabled: false
+studio.monitoring.disk.notifications.webhook.url: http://example.com/notify
+studio.monitoring.disk.notifications.webhook.method: POST
+studio.monitoring.disk.notifications.webhook.contentType: application/json
+studio.monitoring.disk.notifications.webhook.template: notification/templates/webhook/disk-monitor-alarm.ftl
+
+##################################################
 ##        Git configuration properties          ##
 ##################################################
 # Git config update to following properties is performed on global configuration and might
