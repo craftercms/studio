@@ -67,9 +67,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
@@ -236,7 +234,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (!contentRepository.contentExists(siteId, path)) {
 			throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
 		}
-		String parentFolderPath = StringUtils.replace(path, SLASH_INDEX_FILE, "");
+		String parentFolderPath = replace(path, SLASH_INDEX_FILE, "");
 		Site site = siteService.getSite(siteId);
 		int total = itemDao.getChildrenByPathTotal(site.getId(), parentFolderPath, locale, keyword, systemTypes,
 				List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
@@ -580,7 +578,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				trySetSystemProcessing(siteId, lifecycleItemPaths);
 				affectedPaths.addAll(lifecycleItemPaths);
 				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
-				writeContentResult = DBUtils.runInTransaction(transactionManager, transactionId,
+				writeContentResult = runInTransaction(transactionManager, transactionId,
 						() -> writeInternal(siteId, path, lifecycleContent));
 			} catch (ServiceLayerException | ActionDeniedException e) {
 				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
@@ -678,7 +676,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	public PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException {
 		String parentUrl = getParentUrl(path);
 
-		return doCopy(siteId, path, parentUrl, Set.of(path), DUPLICATE);
+		return doCopy(siteId, path, parentUrl, of(path), DUPLICATE);
 	}
 
 	@Override
@@ -1343,7 +1341,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 				Collection<LifecycleContent> lifecycleContents = runLifecycleForDelete(siteId, allPaths);
 				String transactionId = format(DELETE_TRANSACTION_FORMAT, UUID.randomUUID());
-				deleteResult = DBUtils.runInTransaction(transactionManager, transactionId,
+				deleteResult = runInTransaction(transactionManager, transactionId,
 						() -> deleteInternal(siteId, union(paths, children), dependencies, lifecycleContents, publishTitle, publishComment));
 				// Do this after the transaction to ensure the visibility of the changes
 				if (deleteResult.getPublishPackageId() > 0) {
@@ -2077,7 +2075,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (isDescriptor(itemPath) && contentExists(siteId, itemPath)) {
 			Document document = getItemDescriptor(siteId, itemPath, false);
 			Element root = document.getRootElement();
-			oldLabel = ContentUtils.readSingleDocumentNodeText(root, ELM_INTERNAL_NAME);
+			oldLabel = readSingleDocumentNodeText(root, ELM_INTERNAL_NAME);
 		}
 		if (isNotEmpty(oldLabel)) {
 			String baseLabel = oldLabel.replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");

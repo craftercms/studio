@@ -1193,7 +1193,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		} catch (Exception e) {
 			logger.error("Failed to add files to git in site '{}' paths '{}'",
 					site, ArrayUtils.toString(paths), e);
-			throw new ServiceLayerException(String.format("Failed to add files to git in site '%s' paths '%s'", site, ArrayUtils.toString(paths)), e);
+			throw new ServiceLayerException(format("Failed to add files to git in site '%s' paths '%s'", site, ArrayUtils.toString(paths)), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}

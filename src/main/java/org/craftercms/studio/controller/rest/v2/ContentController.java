@@ -47,7 +47,6 @@ import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParam
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -249,7 +248,7 @@ public class ContentController {
 		String mimeType = StudioUtils.getMimeType(path);
 		return ResponseEntity
 				.ok()
-				.contentType(MediaType.parseMediaType(mimeType))
+				.contentType(parseMediaType(mimeType))
 				.body(resource);
 	}
 
