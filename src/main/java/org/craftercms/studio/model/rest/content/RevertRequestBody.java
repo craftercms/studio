@@ -35,19 +35,19 @@ public class RevertRequestBody {
 	@Pattern(regexp = "^[0-9a-f]{40}$")
 	private String commitId;
 
-	public @NotEmpty @EsapiValidatedParam(type = ALPHANUMERIC) @Pattern(regexp = "^[0-9a-f]{40}$") String getCommitId() {
+	public String getCommitId() {
 		return commitId;
 	}
 
-	public void setCommitId(@NotEmpty @EsapiValidatedParam(type = ALPHANUMERIC) @Pattern(regexp = "^[0-9a-f]{40}$") String commitId) {
+	public void setCommitId(final String commitId) {
 		this.commitId = commitId;
 	}
 
-	public @NotEmpty @ValidExistingContentPath String getPath() {
+	public String getPath() {
 		return path;
 	}
 
-	public void setPath(@NotEmpty @ValidExistingContentPath String path) {
+	public void setPath(final String path) {
 		this.path = path;
 	}
 }
