@@ -84,7 +84,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
 			throws ServiceLayerException {
-		if (!contentRepository.contentExists(siteId, targetPath)) {
+		if (!contentServiceV2.contentExists(siteId, targetPath)) {
 			throw new ContentNotFoundException(targetPath, siteId, format("Target path '%s' does not exist. " +
 					"Unable to perform paste operation", targetPath));
 		}
