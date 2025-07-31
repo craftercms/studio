@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.*;
@@ -58,6 +59,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
@@ -252,18 +254,17 @@ public class ContentController {
 				.body(resource);
 	}
 
-	@PostMapping(value = SITE_ID, consumes = TEXT_PLAIN_VALUE)
+	@PostMapping(value = SITE_ID, consumes = APPLICATION_JSON_VALUE)
 	public ResponseEntity<Result> write(@PathVariable @ValidSiteId String siteId,
-										@NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-										InputStream content)
+										@Valid @RequestBody WriteContentRequest writeContentRequest)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		return writeContent(siteId, path, content);
+		return writeContent(siteId, writeContentRequest.getPath(), IOUtils.toInputStream(writeContentRequest.getContent(), UTF_8));
 	}
 
 	@PutMapping(value = SITE_ID, consumes = MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Result> upload(@PathVariable @ValidSiteId String siteId,
 										 @RequestParam MultipartFile file,
-										 @NotEmpty @ValidNewContentPath @RequestParam(REQUEST_PARAM_PATH) String path)
+										 @NotEmpty @ValidNewContentPath @RequestPart(REQUEST_PARAM_PATH) String path)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, IOException {
 		return writeContent(siteId, path, file.getInputStream());
 	}
@@ -317,7 +318,7 @@ public class ContentController {
 	@PostMapping(REVERT)
 	public Result revert(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody RevertRequestBody revertRequestBody)
 			throws ServiceLayerException {
-		contentService.revert(siteId, revertRequestBody.getPath(), revertRequestBody.getCommitId()	);
+		contentService.revert(siteId, revertRequestBody.getPath(), revertRequestBody.getCommitId());
 		var result = new Result();
 		result.setResponse(OK);
 		return result;
