@@ -836,7 +836,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 * @return a list of paths that were added to the repository
 	 * @throws IOException if an I/O error occurs while writing the content
 	 */
-	protected List<String> addContent(String siteId, Repository repo, Collection<? extends ContentWriteItem> items) throws IOException {
+	protected List<String> addContent(String siteId, Repository repo, Collection<? extends ContentWriteItem> items)
+			throws IOException, ServiceLayerException {
 		List<String> addedPaths = new ArrayList<>(items.size());
 		for (ContentWriteItem writeItem : items) {
 			try (InputStream content = writeItem.content()) {
@@ -854,7 +855,15 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 			boolean result = paths.stream()
-				.allMatch(path -> addEmptyFile(repo, siteId, path));
+				.allMatch(path -> {
+					try {
+						addEmptyFile(repo, siteId, path);
+						return true;
+					} catch (ServiceLayerException e) {
+						logger.error("Failed to create empty file at site '{}' path '{}'", siteId, path, e);
+						return false;
+					}
+				});
 			if (result) {
 				String commitMessage = helper.getCommitMessage(REPO_CREATE_EMPTY_FILE_COMMIT_MESSAGE)
 					.replaceAll(PATTERN_SITE, siteId)
@@ -872,19 +881,22 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 * @param repo   instance of {@link Repository}
 	 * @param siteId site id
 	 * @param path   path to create and add to git
-	 * @return true if succeeded, false otherwise
+	 * @throws ServiceLayerException if the file could not be created or added
 	 */
-	private boolean addEmptyFile(Repository repo, String siteId, String path) {
+	private void addEmptyFile(Repository repo, String siteId, String path) throws ServiceLayerException {
 		try {
 			File file = new File(repo.getDirectory().getParent(), path);
 			if (!file.createNewFile()) {
 				logger.error("Failed to create file to site '{}' path '{}'", siteId, path);
-				return false;
+				throw new ServiceLayerException(format("Failed to create file to site '%s' path '%s'", siteId, path));
 			}
-			return helper.addFiles(repo, siteId, path);
-		} catch (Exception e) {
+			helper.addFiles(repo, siteId, path);
+		} catch (ServiceLayerException e) {
 			logger.error("Error adding file '{}' to site '{}'", path, siteId, e);
-			return false;
+			throw e;
+		} catch (IOException e) {
+			logger.error("Failed to create file to site '{}' path '{}'", siteId, path, e);
+			throw new ServiceLayerException(format("Failed to create file to site '%s' path '%s'", siteId, path), e);
 		}
 	}
 
@@ -1554,9 +1566,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				throw new ServiceLayerException(format("Failed to write empty file to folder '%s' for site '%s'", emptyFilePath, siteId));
 			}
 
-			if (!helper.addFiles(repo, siteId, emptyFilePath.toString())) {
-				throw new ServiceLayerException(format("Failed to add file to git in site '%s' path '%s'", siteId, emptyFilePath));
-			}
+			helper.addFiles(repo, siteId, emptyFilePath.toString());
 
 			String commitId = helper.commitFiles(repo, siteId,
 				helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
@@ -1590,10 +1600,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		// Create new folders
 		for (String newFolder : newFolders) {
 			String emptyFilePath = Path.of(newFolder, EMPTY_FILE).toString();
-			if(!addEmptyFile(repo, siteId, emptyFilePath)){
-				logger.error("Failed to add empty file '{}' in site '{}'", emptyFilePath, siteId);
-				throw new ServiceLayerException(format("Failed to add empty file '%s' in site '%s'", emptyFilePath, siteId));
-			}
+			addEmptyFile(repo, siteId, emptyFilePath);
 			paths.add(emptyFilePath);
 		}
 		return paths;
@@ -1678,11 +1685,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
 			// The operation is done on disk, now it's time to commit
-			boolean result = helper.addFiles(repo, siteId, gitFromPath, gitToPath);
-			if (!result) {
-				logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath);
-				throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath));
-			}
+			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
 			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 2);
 			changeSet.add(gitFromPath);
 			changeSet.add(gitToPath);
@@ -1731,11 +1734,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
-			boolean result = helper.addFiles(repo, siteId, gitFromPath, gitToPath);
-			if (!result) {
-				logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath);
-				throw new ServiceLayerException(format("Failed to copy item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath));
-			}
+			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
 			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 1);
 			changeSet.add(gitToPath);
 
@@ -1854,10 +1853,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
 				throw new ServiceLayerException(format("Missing repository during write for site '%s' path '%s'", siteId, path));
 			}
-			if (!helper.writeFile(repo, siteId, path, content)) {
-				logger.error("Failed to write content to site '{}' path '{}'", siteId, path);
-				throw new ServiceLayerException(format("Failed to write content to site '%s' path '%s'", siteId, path));
-			}
+			helper.writeFile(repo, siteId, path, content);
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
@@ -1871,6 +1867,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to write content to site '{}' path '{}'", siteId, path, e);
 			throw e;
+		} catch (IOException e) {
+			throw new ServiceLayerException("Failed to write content to site '%s' path '%s'".formatted(siteId, path), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}

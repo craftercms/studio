@@ -1113,11 +1113,19 @@ public class GitRepositoryHelper implements DisposableBean {
 		return toReturn;
 	}
 
-	public boolean writeFile(Repository repo, String site, String path, InputStream content) {
-		boolean result = true;
-
+	/**
+	 * Write a file to the site SANDBOX git repository (or GLOBAL if site is empty)
+	 *
+	 * @param repo    the repository
+	 * @param site    the site id
+	 * @param path    the path to write the file to
+	 * @param content the content of the file as an InputStream
+	 * @throws ServiceLayerException if there is an error while trying to write the file
+	 * @throws IOException           if there is an error while trying to write the file
+	 */
+	public void writeFile(Repository repo, String site, String path, InputStream content)
+			throws ServiceLayerException, IOException {
 		logger.debug("Write a file at site '{}' path '{}'", site, path);
-
 		try {
 			// Create basic file
 			File file = new File(repo.getDirectory().getParent(), path);
@@ -1131,69 +1139,64 @@ public class GitRepositoryHelper implements DisposableBean {
 			}
 
 			// Create the file if it doesn't exist already
-			if (!file.exists()) {
-				try {
-					if (!file.createNewFile()) {
-						logger.error("Failed to create a file in site '{}' path '{}'", site, path);
-						result = false;
-					}
-				} catch (IOException e) {
-					logger.error("Failed to create a file in site '{}' path '{}'", site, path, e);
-					result = false;
+			if (!file.exists() && !file.createNewFile()) {
+				logger.error("Failed to create a file in site '{}' path '{}'", site, path);
+				throw new ServiceLayerException(format("Failed to create a file in site '%s' path '%s'", site, path));
+			}
+
+			logger.debug("Write a file to site '{}' path '{}'", site, path);
+
+			// Write the bits
+			try (content; FileOutputStream fos = new FileOutputStream(file.getPath()); FileChannel outChannel = fos.getChannel()) {
+				logger.trace("Created the file output channel for site '{}' path '{}'", site, path);
+				ReadableByteChannel inChannel = Channels.newChannel(content);
+				logger.trace("Created the file input channel for site '{}' path '{}'", site, path);
+				long amount = 1024 * 1024; // 1MB at a time
+				long count;
+				long offset = 0;
+				while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
+					offset += count;
 				}
 			}
 
-			if (result) {
-				logger.debug("Write a file to site '{}' path '{}'", site, path);
-
-				// Write the bits
-				try (content; FileOutputStream fos = new FileOutputStream(file.getPath()); FileChannel outChannel = fos.getChannel()) {
-					logger.trace("Created the file output channel for site '{}' path '{}'", site, path);
-					ReadableByteChannel inChannel = Channels.newChannel(content);
-					logger.trace("Created the file input channel for site '{}' path '{}'", site, path);
-					long amount = 1024 * 1024; // 1MB at a time
-					long count;
-					long offset = 0;
-					while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
-						offset += count;
-					}
-				}
-
-				result = addFiles(repo, site, path);
-			}
+			addFiles(repo, site, path);
 		} catch (IOException e) {
 			logger.error("Failed to write the file to site '{}' path '{}'", site, path, e);
-			result = false;
+			throw e;
 		}
-
-		return result;
 	}
 
-	public boolean addFiles(Repository repo, String site, String... paths) {
-		boolean result = false;
-
-		if (ArrayUtils.isNotEmpty(paths)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Add files to git in site '{}' paths '{}' using Git CLI", site, ArrayUtils.toString(paths));
-			}
-
-			String gitLockKey = getSandboxRepoLockKey(site);
-			generalLockService.lock(gitLockKey);
-			try {
-				retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-					gitCli.add(repo.getWorkTree(), getGitPaths(paths));
-					return null;
-				});
-				result = true;
-			} catch (Exception e) {
-				logger.error("Failed to add files to git in site '{}' paths '{}'",
-					site, ArrayUtils.toString(paths), e);
-			} finally {
-				generalLockService.unlock(gitLockKey);
-			}
+	/**
+	 * git-add files to a repository
+	 *
+	 * @param repo  the repository
+	 * @param site  the site id
+	 * @param paths the paths to add
+	 * @throws ServiceLayerException if there is an error while trying to add the files
+	 */
+	public void addFiles(Repository repo, String site, String... paths) throws ServiceLayerException {
+		if (ArrayUtils.isEmpty(paths)) {
+			logger.debug("No files to add to git in site '{}'", site);
+			return;
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Add files to git in site '{}' paths '{}' using Git CLI", site, ArrayUtils.toString(paths));
 		}
 
-		return result;
+		String gitLockKey = getSandboxRepoLockKey(site);
+		generalLockService.lock(gitLockKey);
+		try {
+			retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
+				gitCli.add(repo.getWorkTree(), getGitPaths(paths));
+				return null;
+			});
+		} catch (Exception e) {
+			logger.error("Failed to add files to git in site '{}' paths '{}'",
+					site, ArrayUtils.toString(paths), e);
+			throw new ServiceLayerException(String.format("Failed to add files to git in site '%s' paths '%s'", site, ArrayUtils.toString(paths)), e);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
 	}
 
 	/**
@@ -1510,6 +1513,6 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @return the remote branch ref name
 	 */
 	public String getRemoteBranchRefName(final String remoteName, final String branchName) {
-		return String.format(REMOTE_BRANCH_REF_NAME_FORMAT, remoteName, branchName);
+		return format(REMOTE_BRANCH_REF_NAME_FORMAT, remoteName, branchName);
 	}
 }
