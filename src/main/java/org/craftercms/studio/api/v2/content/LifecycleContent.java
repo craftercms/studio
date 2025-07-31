@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
 import static org.apache.commons.collections4.MapUtils.emptyIfNull;
+import static org.apache.commons.io.FileUtils.deleteQuietly;
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofPath;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 
@@ -99,13 +100,20 @@ public class LifecycleContent implements AutoCloseable {
 	 * @param filePath the path containing the content to write
 	 */
 	public void write(String path, Path filePath) {
-		// TODO: consider adding contentService to this class constructor, so here we can tell the operation (update vs create)
-		String normalizedPath = FilenameUtils.normalize(path);
-		// Remove the temporary file if it exists
-		exclude(normalizedPath);
-		// Add a new entry with amended=<path is the same as the original repoPath>
-		// If the paths are not the same, that means the content was added by the controller and should NOT be considered amended
-		this.items.put(normalizedPath, new ContentLifecycleItem(normalizedPath, ofPath(() -> filePath), repoPath.equals(normalizedPath)));
+		try {
+			String normalizedPath = FilenameUtils.normalize(path);
+			// Remove the temporary file if it exists
+			exclude(normalizedPath);
+			// Add a new entry with amended=<path is the same as the original repoPath>
+			// If the paths are not the same, that means the content was added by the controller and should NOT be considered amended
+			this.items.put(normalizedPath, new ContentLifecycleItem(normalizedPath, ofPath(() -> filePath), repoPath.equals(normalizedPath)));
+		} catch (Exception e) {
+			// Clean the temporary file if it exists
+			if (filePath != null) {
+				deleteQuietly(filePath.toFile());
+			}
+			throw e;
+		}
 	}
 
 	/**
