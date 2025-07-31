@@ -1585,12 +1585,15 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 * @param newFolders the list of new folder psths
 	 * @return the list of paths to the empty files
 	 */
-	protected List<String> addNewFolders(String siteId, Repository repo, Set<String> newFolders) {
+	protected List<String> addNewFolders(String siteId, Repository repo, Set<String> newFolders) throws ServiceLayerException {
 		List<String> paths = new ArrayList<>(newFolders.size());
 		// Create new folders
 		for (String newFolder : newFolders) {
 			String emptyFilePath = Path.of(newFolder, EMPTY_FILE).toString();
-			addEmptyFile(repo, siteId, emptyFilePath);
+			if(!addEmptyFile(repo, siteId, emptyFilePath)){
+				logger.error("Failed to add empty file '{}' in site '{}'", emptyFilePath, siteId);
+				throw new ServiceLayerException(format("Failed to add empty file '%s' in site '%s'", emptyFilePath, siteId));
+			}
 			paths.add(emptyFilePath);
 		}
 		return paths;
