@@ -34,7 +34,11 @@ public class DiskMonitorTest {
 	protected RepositoryCleanupJob gitGCJob;
 
 	protected DiskMonitor getDiskMonitor(int lowWaterMark, int highWaterMark) {
-		DiskMonitor spy = spy(new DiskMonitor(gitGCJob, null, ".", lowWaterMark, highWaterMark));
+		return getDiskMonitor(lowWaterMark, highWaterMark, true);
+	}
+
+	protected DiskMonitor getDiskMonitor(int lowWaterMark, int highWaterMark, boolean systemReady) {
+		DiskMonitor spy = spy(new DiskMonitor(gitGCJob, null, () -> systemReady, ".", lowWaterMark, highWaterMark));
 		spy.afterPropertiesSet();
 		return spy;
 	}
@@ -175,5 +179,13 @@ public class DiskMonitorTest {
 				.sendAlarm();
 
 		assertTrue("Disk status should be kept in alarm state if above the low watermark", diskMonitor.getDiskStatus().isAlarm());
+	}
+
+	@Test
+	public void systemNotReadyTest() {
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95, false);
+		diskMonitor.checkDiskUsage();
+
+		verify(diskMonitor, never().description("Monitor should not try to calculate the status if the system is not ready yet")).calculateDiskStatus();
 	}
 }
