@@ -35,6 +35,7 @@ import java.util.Set;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 public class DependencyServiceImpl implements DependencyService {
 
@@ -116,8 +117,22 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public boolean isValidDependencySource(final String siteId, final String path) throws SiteNotFoundException {
+	public boolean isValidDependencySource(@SiteId final String siteId, final String path) throws SiteNotFoundException {
 		return dependencyServiceInternal.isValidDependencySource(siteId, path);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public void updateDependenciesOnTreeDelete(@SiteId String siteId, String path) {
+		dependencyServiceInternal.updateDependenciesOnTreeDelete(siteId, path);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public void validateDependenciesForTree(@SiteId final String siteId, final String path) {
+		dependencyServiceInternal.validateDependenciesForTree(siteId, path);
 	}
 
 	@Override
@@ -129,8 +144,15 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, List<String> paths) {
+	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, Collection<String> paths) {
 		return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<LightItem> getDependencies(String siteId, String path) {
+		return dependencyServiceInternal.getDependencies(siteId, path);
 	}
 
 	@Override

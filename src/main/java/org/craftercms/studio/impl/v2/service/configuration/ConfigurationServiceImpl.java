@@ -22,6 +22,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -115,7 +116,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 				       @ProtectedResourceId(PATH_RESOURCE_ID) String path,
 				       String environment,
 				       InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		configurationServiceInternal.writeConfiguration(siteId, module, path, environment, content);
 	}
 

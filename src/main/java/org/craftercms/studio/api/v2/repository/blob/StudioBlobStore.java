@@ -18,11 +18,13 @@ package org.craftercms.studio.api.v2.repository.blob;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
@@ -68,9 +70,9 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 * @return the result of the publish operation
 	 */
 	<T extends PublishItemTO> PublishChangeSet<T> publish(PublishPackage publishPackage,
-							      String publishingTarget,
-							      Collection<T> blobStoreItems,
-							      TaskProgress.Stage stage) throws ServiceLayerException;
+														  String publishingTarget,
+														  Collection<T> blobStoreItems,
+														  TaskProgress.Stage stage) throws ServiceLayerException;
 
 	/**
 	 * Delete the content at the given path
@@ -81,13 +83,52 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	void deleteContent(String site, String path) throws ServiceLayerException;
 
 	/**
+	 * Write a content item into the repository
+	 *
+	 * @param site    the site id
+	 * @param path    the path to write the content
+	 * @param content the content to write
+	 */
+	void writeContent(String site, String path, InputStream content) throws ServiceLayerException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path to create the folder
+	 * @param name the name of the folder
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	void createFolder(String site, String path, String name) throws ServiceLayerException;
+
+	/**
 	 * Store the result of a publish operation
 	 *
 	 * @param successfulItems the paths that were updated
 	 * @param failedItems     the paths that failed to publish, mapped to the error message
 	 */
 	record PublishChangeSet<T extends PublishItemTO>(Collection<T> successfulItems,
-							 Collection<T> failedItems) {
+													 Collection<T> failedItems) {
 	}
+
+	/**
+	 * Move content (files or directories) from one path to another
+	 *
+	 * @param site     the site id
+	 * @param fromPath the path to move the content from
+	 * @param toPath   the path to move the content to
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	void moveContent(String site, String fromPath, String toPath) throws ServiceLayerException;
+
+	/**
+	 * Copy content (files or directories) from one path to another.
+	 *
+	 * @param site     the site id
+	 * @param fromPath the path to copy the content from
+	 * @param toPath   the path to copy the content to
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	void copyContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
 }

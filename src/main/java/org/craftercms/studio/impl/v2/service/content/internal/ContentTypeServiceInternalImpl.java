@@ -57,6 +57,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -207,7 +208,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
-		var files = new LinkedList<String>();
+		var files = new HashSet<String>();
 
 		if (CollectionUtils.isNotEmpty(usage.getContent())) {
 			if (!deleteDependencies) {

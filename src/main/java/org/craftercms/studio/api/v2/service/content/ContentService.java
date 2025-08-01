@@ -27,17 +27,15 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.content.EmptyChangesetException;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Provide access to content operations
@@ -87,8 +85,8 @@ public interface ContentService {
 	 * @throws ServiceLayerException   general service error
 	 * @throws AuthenticationException authentication error
 	 */
-	long deleteContent(String siteId, List<String> paths, String publishTitle, String publishComment)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException;
+	DeleteContentResult deleteContent(String siteId, Set<String> paths, String publishTitle, String publishComment)
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**
 	 * Get list of children for given path
@@ -106,8 +104,8 @@ public interface ContentService {
 	 * @return list of children
 	 */
 	GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword, List<String> types,
-					    List<String> excludes, String sortStrategy, String order, int offset, int limit)
-		throws ServiceLayerException, UserNotFoundException;
+										List<String> excludes, String sortStrategy, String order, int offset, int limit)
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get children for paths bulk.
@@ -123,7 +121,7 @@ public interface ContentService {
 	 * @throws UserNotFoundException user not found (when calculating available actions)
 	 */
 	GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get a content item by path
@@ -204,7 +202,7 @@ public interface ContentService {
 	 * @return detailed item
 	 */
 	ContentItem getItemByPath(String siteId, String path, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Get sandbox items for given list of paths
@@ -215,7 +213,7 @@ public interface ContentService {
 	 * @return list of sandbox items
 	 */
 	List<ContentItem> getContentItemsByPath(String siteId, List<String> paths, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Lock item by path for given site
@@ -242,7 +240,7 @@ public interface ContentService {
 	 * @return the content if available
 	 */
 	Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-		throws ContentNotFoundException;
+			throws ContentNotFoundException;
 
 	/**
 	 * Rename content for given path
@@ -250,13 +248,44 @@ public interface ContentService {
 	 * @param site site identifier
 	 * @param path path of the content
 	 * @param name new name of the content
-	 * @return true if success, otherwise false
 	 * @throws ServiceLayerException general service error
 	 * @throws UserNotFoundException user not found error
 	 * @throws ValidationException   validation exception
 	 */
-	boolean renameContent(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException;
+	void renameContent(String site, String path, String name)
+			throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
+
+	/**
+	 * Move content from sourcePath to targetPath.
+	 * Notice that both paths must be full paths. e.g.: A rename would look like /site/website/page1 to /site/website/page2
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path
+	 * @param targetPath the target path
+	 * @return {@link PasteContentResult} object containing the affected paths
+	 * @throws ServiceLayerException   if there is an error moving the content
+	 * @throws UserNotFoundException   if the current user is not found
+	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
+	 */
+	PasteContentResult move(String siteId, String sourcePath, String targetPath)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
+	/**
+	 * Alternative method to move content from sourcePath to targetParent.
+	 * The difference with the {@link #move(String, String, String)} method is that this method will accept a target parent path (vs the full path),
+	 * so it will try to calculate the target path based on the source file name and the existing content in the target parent.
+	 *
+	 * @param siteId       the site id
+	 * @param sourcePath   the source path
+	 * @param targetParent the target parent path where the content will be moved to
+	 * @return {@link PasteContentResult} object containing the affected paths
+	 * @throws ServiceLayerException   if there is an error moving the content
+	 * @throws UserNotFoundException   if the current user is not found
+	 * @throws AuthenticationException if there is an error retrieving the currently authenticated user
+	 */
+	PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
 
 	/**
 	 * Returns content wrapped as a {@link Resource} instance
@@ -277,4 +306,48 @@ public interface ContentService {
 	 * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
 	 */
 	List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+
+	/**
+	 * Write content to the given path
+	 *
+	 * @param siteId  the site id
+	 * @param path    the content path
+	 * @param content the content to write
+	 * @return the result of the write operation, which includes affected paths
+	 * @throws EmptyChangesetException if the write operation results in an empty changeset (i.e.: try to write the same content the repository already has)
+	 * @throws ServiceLayerException   if an error occurs while writing the content
+	 */
+	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
+	/**
+	 * Copy content from sourcePath to targetPath.
+	 * This method will not necessarily copy the whole sourcePath, but copy the paths listed in <code>copyPaths</code> parameter, replacing
+	 * the targetPath with the sourcePath.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the root source path to copy the content from
+	 * @param targetPath the target path to copy the content to
+	 * @param copyPaths  the list of paths to copy
+	 * @return the result of the copy operation, which includes affected paths
+	 */
+	PasteContentResult copy(String siteId, String sourcePath, String targetPath, Set<String> copyPaths)
+			throws ServiceLayerException, AuthenticationException;
+
+	/**
+	 * Create a copy of a content item
+	 *
+	 * @param siteId the site id
+	 * @param path   the path of the content item to duplicate
+	 * @return the result of the copy
+	 */
+	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException;
+
+	/**
+	 * Revert content to a previous commit id
+	 *
+	 * @param siteId   the site id
+	 * @param path     the path of the content item to revert
+	 * @param commitId the commit id to revert to
+	 */
+	void revert(String siteId, String path, String commitId) throws ServiceLayerException;
 }

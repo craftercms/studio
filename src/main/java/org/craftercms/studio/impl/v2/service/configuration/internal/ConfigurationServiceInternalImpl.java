@@ -28,6 +28,7 @@ import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -398,7 +399,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				       String path,
 				       String environment,
 				       InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		writeEnvironmentConfiguration(siteId, module, path, environment, content);
 		invalidateConfiguration(siteId, module, path, environment);
 		applicationEventPublisher.publishEvent(
@@ -491,19 +492,18 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	}
 
 	private void writeDefaultConfiguration(String siteId, String module, String path, InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 			.replaceAll(PATTERN_MODULE, module);
 		String configPath = Paths.get(configBasePath, path).toString();
 		contentServiceV1.writeContent(siteId, configPath, content);
-		String currentUser = getCurrentUsername();
 		try {
-			itemService.persistItemAfterWrite(siteId, configPath, currentUser, true);
+			itemService.persistItemAfterWrite(siteId, configPath, true);
 			contentServiceV1.notifyContentEvent(siteId, configPath);
 		} catch (XmlFileParseException e) {
 			logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
 		}
-		generateAuditLog(siteId, configPath, currentUser);
+		generateAuditLog(siteId, configPath);
 		dependencyService.upsertDependencies(siteId, configPath);
 	}
 
@@ -574,7 +574,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
 						   InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		if (!isEmpty(environment)) {
 			String configBasePath =
 				studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
@@ -583,10 +583,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			if (contentService.contentExists(siteId, configBasePath)) {
 				String configPath = Paths.get(configBasePath, path).toString();
 				contentServiceV1.writeContent(siteId, configPath, content);
-				String currentUser = getCurrentUsername();
-				itemService.persistItemAfterWrite(siteId, configPath, currentUser,true);
+				itemService.persistItemAfterWrite(siteId, configPath,true);
 				contentServiceV1.notifyContentEvent(siteId, configPath);
-				generateAuditLog(siteId, configPath, currentUser);
+				generateAuditLog(siteId, configPath);
 				dependencyService.upsertDependencies(siteId, configPath);
 			} else {
 				writeDefaultConfiguration(siteId, module, path, content);
@@ -596,12 +595,12 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		}
 	}
 
-	private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
+	private void generateAuditLog(String siteId, String path) throws SiteNotFoundException {
 		Site site = siteService.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_UPDATE);
 		auditLog.setSiteId(site.getId());
-		auditLog.setActorId(user);
+		auditLog.setActorId(getCurrentUsername());
 		auditLog.setPrimaryTargetId(siteId + ":" + path);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
 		auditLog.setPrimaryTargetValue(path);
@@ -647,8 +646,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			throws ServiceLayerException, UserNotFoundException {
 		contentServiceV1.writeContent(EMPTY, path, validate(content, path));
 		contentServiceV1.notifyContentEvent(EMPTY, path);
-		String currentUser = getCurrentUsername();
-		generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
+		generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path);
 		invalidateCache(path);
 	}
 

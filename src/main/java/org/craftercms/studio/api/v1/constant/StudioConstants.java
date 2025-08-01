@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,27 +31,6 @@ public final class StudioConstants {
 	 * content encoding
 	 **/
 	public static final String CONTENT_ENCODING = "UTF-8";
-	public static final String URL_ENCODING = "UTF-8";
-
-	/**
-	 * document property names in return results
-	 **/
-	public static final String PROPERTY_TOTAL = "total";
-	public static final String PROPERTY_SORTED_BY = "sortedBy";
-	public static final String PROPERTY_SORT_ASCENDING = "ascending";
-	public static final String PROPERTY_DOCUMENTS = "documents";
-	public static final String DM_GO_LIVE_CACHE_KEY = "goliveItems";
-	public static final String DATE_PATTERN_WORKFLOW = "yyyy-MM-dd'T'HH:mm:ss";
-	public static final String DATE_PATTERN_WORKFLOW_WITH_TZ = "yyyy-MM-dd'T'HH:mm:ssX";
-
-	// date format of form content
-	public static final String DATE_PATTERN_MODEL = "yyyy-MM-dd'T'HH:mm:ssZ";
-
-	// date format of scheduled deployment dates
-	public static final String DATE_FORMAT_SCHEDULED = "MM/dd hh:mma";
-
-	// date format of deployed dates
-	public static final String DATE_FORMAT_DEPLOYED = "MM/dd";
 
 	/**
 	 * variable names in configuration properties
@@ -59,42 +38,22 @@ public final class StudioConstants {
 	public static final String PATTERN_CONTENT_TYPE = "\\{content\\-type\\}";
 	public static final String PATTERN_ENVIRONMENT = "\\{environment\\}";
 	public static final String PATTERN_MODULE = "\\{module\\}";
-	public static final String PATTERN_ID = "\\$\\{id\\}";
-	public static final String PATTERN_KEY = "\\{key\\}";
 	public static final String PATTERN_SANDBOX = "\\$\\{sandbox\\}";
 	public static final String PATTERN_SITE = "\\{site\\}";
 	public static final String PATTERN_PATH = "\\{path\\}";
 	public static final String PATTERN_FROM_PATH = "\\{fromPath\\}";
 	public static final String PATTERN_TO_PATH = "\\{toPath\\}";
 	public static final String PATTERN_PACKAGE_ID = "\\{packageId\\}";
-	public static final String PATTERN_WEB_PROJECT = "\\$\\{webproject\\}";
-	public static final String PATTERN_BASE_URL = "\\{baseUrl\\}";
 
 	/**
 	 * Studio Structure Constants
 	 **/
-	public static final String DESCRIPTOR_ROOT_PATH = "/site";
-
-	/**
-	 * Error Codes
-	 */
-	public static final int HTTP_STATUS_IMAGE_SIZE_ERROR = 499;
-	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500; //PORT Status.STATUS_INTERNAL_SERVER_ERROR;
+	public static final String DESCRIPTOR_ROOT_PATH = "/site/";
 
 	public static final String CONTENT_TYPE = "content-type";
 
-	public static final String INTERNAL_NAME = "internalName";
-
-	public static final String BROWSER_URI = "browserUri";
-
-	public static final String USER = "USER";
-
 	public static final String PERMISSION_VALUE_READ = "read";
 	public static final String PERMISSION_VALUE_NOT_ALLOWED = "not allowed";
-	public static final String PERMISSION_VALUE_PUBLISH = "publish";
-
-	// Locking constants
-	public static final String LOCKING_CACHE_CREATE_SCOPE = "lockingCacheCreateScope";
 
 	/**
 	 * Repository Constants
@@ -103,13 +62,11 @@ public final class StudioConstants {
 	public static final String BOOTSTRAP_REPO_GLOBAL_PATH = "global";        // Path to the global repository inside the bootstrap repo
 	public static final String CONFIG_SITENAME_VARIABLE = "\\{siteName\\}";
 	public static final String CONFIG_SITEENV_VARIABLE = "\\{siteEnv\\}";
-	public static final String IN_PROGRESS_BRANCH_NAME_SUFFIX = "_in_progress";
 
 	/**
 	 * Site Constants
 	 */
 	public static final String SITE_DEFAULT_GROUPS_DESCRIPTION = " site default group";
-	public static final String SITE_NAME = "siteName";
 	public static final String SITE_UUID_FILENAME = "site-uuid.txt";
 	public static final String SITE_UUID_FILE_COMMENT = "# THIS IS A SYSTEM FILE. PLEASE DO NOT EDIT NOR DELETE IT!!!";
 
@@ -144,7 +101,9 @@ public final class StudioConstants {
 		CONTENT_TYPE_FOLDER,
 		CONTENT_TYPE_SCRIPT,
 		CONTENT_TYPE_RENDERING_TEMPLATE,
-		CONTENT_TYPE_FILE
+		CONTENT_TYPE_FILE,
+		CONTENT_TYPE_PAGE,
+		CONTENT_TYPE_COMPONENT
 	);
 
 	/**
@@ -154,7 +113,6 @@ public final class StudioConstants {
 	public static final String SYSTEM_ADMIN_GROUP = "system_admin";
 	public static final String SYSTEM_ADMIN_ROLE = "system_admin";
 	public static final String ADMIN_ROLE = "admin";
-	public static final String STRING_SEPARATOR = ",";
 	public static final NormalizedRole SYSTEM_ADMIN_NORMALIZED_ROLE = new NormalizedRole(SYSTEM_ADMIN_ROLE);
 	public static final NormalizedRole ADMIN_NORMALIZED_ROLE = new NormalizedRole(ADMIN_ROLE);
 
@@ -175,17 +133,6 @@ public final class StudioConstants {
 		"/scripts",
 		"/sources"
 	);
-
-	public static final String JSON_PROPERTY_ITEM = "item";
-	public static final String JSON_PROPERTY_DEPENDENCIES = "dependencies";
-
-	/**
-	 * API Request Parameter Names
-	 */
-	public static final String API_REQUEST_PARAM_SITE = "site";
-	public static final String API_REQUEST_PARAM_SITE_ID = "site_id";
-	public static final String API_REQUEST_PARAM_ENTITIES = "entities";
-	public static final String API_REQUEST_PARAM_ENVIRONMENT = "environment";
 
 	/**
 	 * Site config xml elements
@@ -215,25 +162,14 @@ public final class StudioConstants {
 	public static final String REPO_COMMIT_MESSAGE_USERNAME_VAR = "{username}";
 	public static final String REPO_COMMIT_MESSAGE_PATH_VAR = "{path}";
 
-	/**
-	 * Session attributes
-	 */
-	public static final String HTTP_SESSION_ATTRIBUTE_AUTHENTICATION = "studio_authentication";
-
 	public static final int DEFAULT_ORGANIZATION_ID = 1;
 
 	public static final String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 
-	/* Map keys */
-	public static final String KEY_CONTENT_TYPE = "contentType";
-
 	/* Modules */
 	public static final String MODULE_STUDIO = "studio";
-	public static final String MODULE_ENGINE = "engine";
 
 	public static final String DEFAULT_CONFIG_URL = "http://localhost:8080";
-
-	public static final String DEFAULT_PUBLISHING_LOCK_OWNER_ID = "STANDALONE STUDIO";
 
 	// General Lock Service
 	public static final String GLOBAL_REPOSITORY_GIT_LOCK = "GLOBAL_REPOSITORY_GIT_LOCK";
@@ -249,8 +185,11 @@ public final class StudioConstants {
 	public static final Integer RECURSIVE_ITERATIONS_HARD_LIMIT = 20;
 
 	// File extensions
-	public final static String SQL_SCRIPT_SUFFIX = ".sql";
 	public final static String TMP_FILE_SUFFIX = ".tmp";
+
+	// Content Lifecycle controller
+	public static final String CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT = "studio.contentProcessor.contentLifecycle.includeApplicationContext";
+	public static final String CONTENT_LIFECYCLE_INCLUDED_BEANS = "studio.contentProcessor.contentLifecycle.includedBeans";
 
 	private StudioConstants() {
 	}

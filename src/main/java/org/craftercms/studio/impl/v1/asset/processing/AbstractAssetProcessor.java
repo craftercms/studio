@@ -22,6 +22,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.asset.Asset;
@@ -69,9 +70,12 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
 
 				logger.debug("Processing asset type '{}' input '{}' output '{}'",
 					config.getType(), input, output);
-
-				doProcessAsset(inputFilePath, outputFilePath, config.getParams());
-
+				try {
+					doProcessAsset(inputFilePath, outputFilePath, config.getParams());
+				} catch (Exception e) {
+					FileUtils.deleteQuietly(outputFilePath.toFile());
+					throw e;
+				}
 				return output;
 			}
 		} catch (Exception e) {

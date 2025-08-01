@@ -68,7 +68,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Collection<LightItem> getHardDependencies(String site, String publishingTarget, Collection<String> paths)
-		throws ServiceLayerException;
+			throws ServiceLayerException;
 
 	/**
 	 * Get the hard dependencies of an item. A hard
@@ -107,7 +107,16 @@ public interface DependencyService {
 	 * @param paths  path to get item specific dependencies for
 	 * @return list of item specific dependencies
 	 */
-	List<LightItem> getItemSpecificDependencies(String siteId, List<String> paths);
+	List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths);
+
+	/**
+	 * Get all valid dependencies for given path.
+	 *
+	 * @param siteId the site id
+	 * @param path   source path to get dependencies for
+	 * @return collection of {@link LightItem} dependencies for given path
+	 */
+	Collection<LightItem> getDependencies(String siteId, String path);
 
 	/**
 	 * Resolves dependent files for given content of given path
@@ -130,7 +139,7 @@ public interface DependencyService {
 	 * @throws ServiceLayerException    Internal error, see exception details
 	 */
 	void upsertDependencies(String site, String path)
-		throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
+			throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Delete the dependencies of sourcePath
@@ -172,4 +181,23 @@ public interface DependencyService {
 	 * @return true if the path is a valid dependency source, false otherwise
 	 */
 	boolean isValidDependencySource(String siteId, String path) throws SiteNotFoundException;
+
+	/**
+	 * Update the dependencies to reflect the removal of a content subtree.
+	 * This will invalidate any dependencies where the target is a child of the path,
+	 * and will delete any dependencies where the source is a child of the path.
+	 *
+	 * @param siteId the site id
+	 * @param path   the removed content path
+	 */
+	void updateDependenciesOnTreeDelete(String siteId, String path);
+
+	/**
+	 * Validate any dependencies where the target exists and it is a child
+	 * of the content subtree path
+	 *
+	 * @param siteId the site id
+	 * @param path   the content subtree path
+	 */
+	void validateDependenciesForTree(String siteId, String path);
 }

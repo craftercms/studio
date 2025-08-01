@@ -373,7 +373,9 @@
 		UPDATE item i INNER JOIN site s ON i.site_id = s.id
 		SET path = #{newPath},
 		i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
-		i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl})
+		i.preview_url = IF(i.system_type = '${systemTypeFolder}', NULL, #{newPreviewUrl}),
+		i.last_modified_by = #{userId},
+		i.last_modified_on = NOW()
 		<if test="label != null">
 			, i.label = #{label}
 		</if>
@@ -381,6 +383,19 @@
 			, i.parent_id = #{parentId}
 		</if>
 		WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{previousPath}
+	</update>
+
+	<update id="copyItemInternal">
+		INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
+				  last_modified_on, label, content_type_id, system_type, mime_type, locale_code,
+				  translation_source_id, size, parent_id, ignored)
+		SELECT s.id, #{newPath} AS path, IF(i.system_type = '${systemTypeFolder}', NULL, #{previewUrl}) AS preview_url, ${state}, null, ${userId}, NOW(), ${userId},
+				NOW(), IFNULL(#{label}, i.label) AS label, i.content_type_id, i.system_type, i.mime_type, i.locale_code,
+				i.translation_source_id, i.size, #{parentId}, i.ignored
+		FROM item i INNER JOIN site s ON i.site_id = s.id
+		WHERE s.site_id = #{siteId}
+		AND s.deleted = 0
+		AND i.path = #{previousPath}
 	</update>
 
 	<update id="updatePreviousPath">
@@ -527,20 +542,14 @@
 	</update>
 
 	<select id="getChildrenPaths">
-		WITH RECURSIVE CTE AS (SELECT i.id, i.path, i.site_id, i.system_type
-				       FROM item i
-				       WHERE i.path = TRIM(TRAILING '/' from #{path})
-					 AND i.site_id = #{siteId}
-				       UNION
-				       SELECT i.id, i.path, i.site_id, i.system_type
-				       FROM cte,
-					    item i
-				       WHERE cte.id = i.parent_id
-					 AND cte.site_id = #{siteId}
-					 AND i.ignored = 0)
-		SELECT cte.path
-		FROM cte
-		WHERE cte.system_type &lt;&gt; 'folder'
+		SELECT i.path
+		FROM item i
+		WHERE i.site_id = #{siteId}
+		AND (i.path LIKE CONCAT(TRIM(TRAILING '/index.xml' from #{path}), '/%')
+			OR  i.path LIKE CONCAT(TRIM(TRAILING '/' from #{path}), '/%')
+			)
+		AND i.system_type &lt;&gt; 'folder'
+		AND i.ignored = 0
 	</select>
 
 	<select id="getItemStates" resultType="org.craftercms.studio.api.v2.dal.ItemPathAndState">
@@ -678,5 +687,20 @@
 		WHERE
 			site_id = #{siteId}
 			AND path = #{path};
+	</update>
+
+	<update id="updateMovedFolders">
+		UPDATE item
+		SET path = CASE
+			WHEN path = #{sourcePath} THEN #{targetPath}
+			WHEN path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%')
+				THEN CONCAT(#{targetPath}, TRIM(LEADING #{sourcePath} FROM path))
+			ELSE path
+		END,
+		state = (state &amp; ~${systemProcessingState})
+		WHERE
+			site_id = #{siteId}
+			AND system_type = 'folder'
+			AND path LIKE CONCAT(TRIM(TRAILING '/' FROM #{sourcePath}), '/%');
 	</update>
 </mapper>

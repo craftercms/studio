@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,9 +16,10 @@
 package org.craftercms.studio.api.v2.service.clipboard;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.model.clipboard.PasteItem;
 import org.craftercms.studio.model.clipboard.Operation;
+import org.craftercms.studio.model.clipboard.PasteItem;
 
 import java.util.List;
 
@@ -32,6 +33,49 @@ public interface ClipboardService {
 
 	/**
 	 * Performs the given clipboard operation
+	 * Cut-and-paste content from sourcePath to targetPath.
+	 * <p>
+	 * Cut-and-paste is a special case of a move operation that will:
+	 * - Take the target parent (instead of the target full path) as a parameter
+	 * - Calculate the final target path based on the existing content at the target parent
+	 * The cut-and-paste operation will be rejected if any of the following conditions are met:
+	 * - The source item is not found
+	 * - The target parent is the same as the source parent
+	 * - The target parent is not found
+	 * - The target parent is not a folder or a page
+	 * <p>
+	 * e.g.:
+	 * Consider the initial tree:
+	 * - /site/website/index.xml
+	 * - /site/website/articles/page1/index.xml
+	 * - /site/website/page2/index.xml
+	 * <p>
+	 * If we cut and paste /site/website/page2/index.xml to /site/website/articles (or /site/website/articles/index.xml), the expected result tree would be:
+	 * - /site/website/index.xml
+	 * - /site/website/articles/page1/index.xml
+	 * - /site/website/articles/page2/index.xml
+	 * <p>
+	 * If the initial tree was instead:
+	 * - /site/website/index.xml
+	 * - /site/website/articles/page1/index.xml
+	 * - /site/website/articles/page2/index.xml
+	 * - /site/website/page2/index.xml
+	 * <p>
+	 * And we cut and paste /site/website/page2/index.xml to /site/website/articles/index.xml (or /site/website/articles), the expected result tree would be:
+	 * - /site/website/index.xml
+	 * - /site/website/articles/page1/index.xml
+	 * - /site/website/articles/page2/index.xml
+	 * - /site/website/articles/page2-copy-1/index.xml ("-copy-1" added to resolve the name collision, subsequent paste operations would increment the number)
+	 * <p>
+	 * Copy-and-paste is a similar operation that will not affect the source parent and that will:
+	 * - Take the target parent (instead of the target full path) as a parameter
+	 * - Calculate the final target path based on the existing content at the target parent
+	 * - Accept a target path that is the same as the source parent (unlike cut-and-paste)
+	 * The copy-and-paste operation will be rejected if any of the following conditions are met:
+	 * - The source item is not found
+	 * - The target parent is the same as the source parent
+	 * - The target parent is not found
+	 * - The target parent is not a folder or a page
 	 *
 	 * @param siteId     the id of the site
 	 * @param operation  the clipboard operation
@@ -42,7 +86,7 @@ public interface ClipboardService {
 	 * @throws UserNotFoundException if the user is not found
 	 */
 	List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
-		throws ServiceLayerException, UserNotFoundException;
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Duplicates the given item
@@ -51,8 +95,7 @@ public interface ClipboardService {
 	 * @param path   the path of the item
 	 * @return the path of the new item
 	 * @throws ServiceLayerException if there is any error copying the item
-	 * @throws UserNotFoundException if the user is not found
 	 */
-	String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException;
+	String duplicateItem(String siteId, String path) throws ServiceLayerException, AuthenticationException;
 
 }

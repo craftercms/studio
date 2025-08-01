@@ -84,6 +84,8 @@
 				<prop key="packageReadyState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishPackage$PackageState).READY.value)}</prop>
 				<prop key="livePublishedState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishItem$PublishState).LIVE_SUCCESS.value)}</prop>
 				<prop key="stagingPublishedState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.publish.PublishItem$PublishState).STAGING_SUCCESS.value)}</prop>
+
+				<prop key="systemProcessingState">#{T(java.lang.String).valueOf(T(org.craftercms.studio.api.v2.dal.ItemState).SYSTEM_PROCESSING.value)}</prop>
 			</props>
 		</property>
 	</bean>

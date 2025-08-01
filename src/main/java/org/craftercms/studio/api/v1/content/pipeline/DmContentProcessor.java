@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
@@ -30,5 +31,5 @@ public interface DmContentProcessor {
 	 * @return last child folder in the path
 	 */
 	ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
-		throws ServiceLayerException, UserNotFoundException;
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 }

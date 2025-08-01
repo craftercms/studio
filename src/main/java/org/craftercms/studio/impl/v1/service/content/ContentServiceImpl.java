@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -98,10 +99,7 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
@@ -115,6 +113,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
@@ -128,8 +127,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	// TODO: SJ: make that feature available to end user.
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
-	private static final String COPY_DEP_XPATH = "//*/text()[contains(normalize-space(.),'{copyDep}')]/parent::*";
-	private static final String COPY_DEP = "{copyDep}";
 	private static final String ELM_ORDER_DEFAULT_SELECTOR = "//" + DmXmlConstants.ELM_ORDER_DEFAULT;
 
 	private GitContentRepository contentRepository;
@@ -152,12 +149,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected PublishService publishService;
 
 	protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
-
-	/**
-	 * file and folder name patterns for copied files and folders
-	 */
-	public final static Pattern COPY_FILE_PATTERN = Pattern.compile("(.+)-(\\d+)\\.(.+)");
-	public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-(\\d+)");
 
 	public final static Pattern COPY_FILE_MODIFIER_PATTERN = Pattern.compile(".+(-copy-(\\d+))(.+)?(\\..*)?");
 	public final static String COPY_FILE_MODIFIER_FORMAT = "%s-copy-%s%s";
@@ -275,9 +266,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				retDocument = saxReader.read(is);
 			} finally {
 				try {
-					if (is != null) {
-						is.close();
-					}
+					is.close();
 				} catch (IOException e) {
 					logger.debug("Failed to close the stream for item at site '{}' path '{}'", site, path, e);
 				}
@@ -584,7 +573,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		boolean exists = contentExists(site, path + FILE_SEPARATOR + assetName);
 		params.put(DmConstants.KEY_ACTIVITY_TYPE, (exists ? OPERATION_UPDATE : OPERATION_CREATE));
 
-		String id = site + ":" + path + ":" + assetName + ":" + "";
+		String id = site + ":" + path + ":" + assetName + ":";
 		// processContent will close the input stream
 		ContentItemTO item = null;
 		try {
@@ -678,7 +667,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Override
 	@RequireSiteExists
 	public boolean validateAndCreateFolder(@SiteId String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
 		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
 		validateValue(pathValidator, name, REQUEST_PARAM_NAME);
@@ -692,7 +681,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public boolean createFolder(@ValidateStringParam @SiteId String site,
 				    @ValidateSecurePathParam @ActionTargetPath String path,
 				    @ValidateStringParam @ActionTargetFilename String name)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String folderPath = path + FILE_SEPARATOR + name;
 		String commitId = contentRepository.createFolder(site, path, name);
 		if (commitId == null) {
@@ -700,10 +689,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 		Item parentItem = itemService.getItem(site, path, true);
 		if (isNull(parentItem)) {
-			parentItem = createMissingParentItem(site, path, commitId);
+			parentItem = createMissingParentItem(site, path);
 		}
-		itemService.persistItemAfterCreateFolder(site, folderPath, name, SecurityUtils.getCurrentUsername(),
-			commitId, parentItem.getId());
+		itemService.persistItemAfterCreateFolder(site, folderPath, name, parentItem.getId());
 
 		String username = SecurityUtils.getCurrentUsername();
 		Site siteFeed = siteService.getSite(site);
@@ -723,221 +711,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return true;
 	}
 
-	private Item createMissingParentItem(String site, String parentPath, String commitId)
-		throws UserNotFoundException, ServiceLayerException {
+	private Item createMissingParentItem(String site, String parentPath)
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		String ancestorPath = ContentUtils.getParentUrl(parentPath);
 		String name = ContentUtils.getPageName(parentPath);
 		Item ancestor = itemService.getItem(site, ancestorPath, true);
 		if (isNull(ancestor)) {
-			createMissingParentItem(site, ancestorPath, commitId);
+			createMissingParentItem(site, ancestorPath);
 			ancestor = itemService.getItem(site, ancestorPath, true);
 		}
-		itemService.persistItemAfterCreateFolder(site, parentPath, name, SecurityUtils.getCurrentUsername(),
-			commitId, ancestor.getId());
+		itemService.persistItemAfterCreateFolder(site, parentPath, name, ancestor.getId());
 		return itemService.getItem(site, parentPath, true);
-	}
-
-	@Override
-	@Valid
-	@ValidateAction(type = Type.COPY)
-	public String copyContent(@ValidateStringParam @SiteId String site,
-				  @ValidateSecurePathParam @ActionSourcePath String fromPath,
-				  @ValidateSecurePathParam @ActionTargetPath String toPath)
-		throws ServiceLayerException, UserNotFoundException {
-		return copyContent(site, fromPath, toPath, new HashSet<>());
-	}
-
-	/**
-	 * internal method copy that handles
-	 * Get dependencies is already recursive
-	 */
-	protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths)
-		throws ServiceLayerException, UserNotFoundException {
-		String retNewFileName = null;
-
-		String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
-		String user = SecurityUtils.getCurrentUsername();
-		String copyPath = null;
-
-		try {
-			PastedPathMap copyPathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
-			copyPath = copyPathMap.filePath;
-			String copyPathModifier = copyPathMap.modifier;
-			String copyPathFileName = copyPathMap.fileName;
-			String copyPathFolder = copyPathMap.fileFolder;
-
-			String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf(FILE_SEPARATOR));
-			String copyFileName = copyPath.substring(copyPath.lastIndexOf(FILE_SEPARATOR) + 1);
-
-			if (!processedPaths.contains(copyPath)) {
-				ContentItemTO fromItem = getContentItem(site, fromPath, 0);
-
-				if (fromItem.isFolder()) {
-					createFolder(site, copyPathOnly, copyFileName);
-					// copy was successful, return the new name
-					retNewFileName = copyPath;
-				} else {
-					InputStream copyContent = null;
-					try {
-						String contentType = fromItem.getContentType();
-						InputStream fromContent = getContent(site, fromPath);
-						if (fromPath.endsWith(DmConstants.XML_PATTERN)) {
-							Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-
-							Map<String, String> fromPageIds = getContentIds(fromDocument);
-
-							logger.debug("Copy item in site '{}' from '{}' to '{}', new name is '{}'",
-								site, fromPath, toPath, copyPath);
-
-							// come up with a new object ID and group ID for the object
-							Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
-
-							Map<String, String> copyDependencies = getCopyDependencies(site, fromPath,
-								fromPath);
-							copyDependencies = getItemSpecificDependencies(site, fromPath, fromDocument,
-								copyDependencies);
-
-							logger.debug("Calculated copy dependencies for item at site '{}' path '{}' " +
-									"dependencies '{}'",
-								site, fromPath, copyDependencies);
-
-							// Duplicate the children
-							for (String dependencyKey : copyDependencies.keySet()) {
-								String dependencyPath = copyDependencies.get(dependencyKey);
-								String copyDepPath = dependencyPath;
-
-								// try a simple substitution
-								copyDepPath = copyDepPath.replaceAll(
-									fromPageIds.get(KEY_PAGE_ID),
-									copyObjectIds.get(KEY_PAGE_ID));
-
-								copyDepPath = copyDepPath.replaceAll(
-									fromPageIds.get(KEY_PAGE_GROUP_ID),
-									copyObjectIds.get(KEY_PAGE_GROUP_ID));
-
-								ContentItemTO targetPathItem = getContentItem(site, copyDepPath);
-								if (targetPathItem != null && targetPathItem.isFolder()) {
-									copyDepPath = copyDepPath + FILE_SEPARATOR + FilenameUtils.getName(dependencyKey);
-									copyDepPath = copyDepPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR,
-										FILE_SEPARATOR);
-								} else if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
-									copyDepPath = ContentUtils.getParentUrl(copyDepPath);
-								}
-
-								logger.debug("Translated dependency path in site '{}' from '{}' to '{}'",
-									site, dependencyPath, copyDepPath);
-
-								String newCopyDepthPath = copyContent(site, dependencyKey, copyDepPath, processedPaths);
-								fromDocument = replaceCopyDependency(fromDocument, dependencyKey, newCopyDepthPath);
-							}
-
-							// update the file name / folder values
-							Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
-								copyObjectIds, copyPathModifier);
-
-							copyContent = ContentUtils.convertDocumentToStream(copyDocument, CONTENT_ENCODING);
-						}
-
-						// This code is very similar to what is in writeContent. Consolidate this code?
-						Map<String, String> params = new HashMap<>();
-						params.put(DmConstants.KEY_SITE, site);
-						params.put(DmConstants.KEY_PATH, copyPathOnly);
-						params.put(DmConstants.KEY_FILE_NAME, copyFileName);
-						params.put(DmConstants.KEY_USER, user);
-						params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-						params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
-						params.put(DmConstants.KEY_EDIT, "true");
-						params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
-						params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
-						params.put(DmConstants.KEY_COPIED_CONTENT, "true");
-						params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
-
-						String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
-
-						// processContent will close the input stream
-						if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-							processContent(site, id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-						} else {
-							processContent(site, id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
-						}
-
-						itemService.setSystemProcessing(site, copyPath, false);
-
-						// copy was successful, return the new name
-						retNewFileName = copyPath;
-
-						// track that we already copied, so we don't follow a circular dependency
-						processedPaths.add(copyPath);
-					} catch (ContentNotFoundException e) {
-						logger.debug("Content not found while copying in site '{}' from '{}' to '{}', " +
-							"new name is '{}'", site, fromPath, toPath, copyPath, e);
-					} catch (DocumentException e) {
-						logger.error("Failed to copy content in site '{}' from '{}' to '{}', " +
-							"new name is '{}'", site, fromPath, toPath, copyPath, e);
-					} finally {
-						IOUtils.closeQuietly(copyContent);
-					}
-				}
-			} else {
-				// no need to process
-				retNewFileName = copyPath;
-			}
-
-			applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, toPath));
-		} catch (ServiceLayerException | UserNotFoundException e) {
-			logger.info("Failed to copy content in site '{}' from '{}' to '{}', new name is '{}'",
-				site, fromPath, toPath, copyPath, e);
-			throw e;
-		}
-
-		return retNewFileName;
-	}
-
-	protected Document replaceCopyDependency(Document document, String depPath, String copyDepPath) {
-		Element root = document.getRootElement();
-		List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));
-		if (includes != null) {
-			for (Node includeNode : includes) {
-				includeNode.setText(includeNode.getText().replace(depPath, copyDepPath));
-			}
-		}
-		return document;
-	}
-
-	private Map<String, String> getCopyDependencies(@ValidateStringParam String site,
-							@ValidateSecurePathParam String sourceContentPath,
-							@ValidateSecurePathParam String dependencyPath)
-		throws ServiceLayerException {
-		Map<String, String> copyDependency = new HashMap<>();
-		if (sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)) {
-			ContentItemTO dependencyItem = getContentItem(site, sourceContentPath);
-			if (dependencyItem != null) {
-				String contentType = dependencyItem.getContentType();
-				List<CopyDependencyConfigTO> copyDependencyPatterns =
-					servicesConfig.getCopyDependencyPatterns(site, contentType);
-				if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
-					logger.debug("Copy Pattern provided for contentType '{}' in site '{}'", contentType, site);
-					Set<String> dependencies = dependencyService.getItemDependencies(site, dependencyPath, 1);
-					if (isNotEmpty(dependencies)) {
-						for (String dependency : dependencies) {
-							for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
-								if (contentExists(site, dependency) &&
-									StringUtils.isNotEmpty(copyConfig.getPattern()) &&
-									StringUtils.isNotEmpty(copyConfig.getTarget()) &&
-									dependency.matches(copyConfig.getPattern())) {
-									copyDependency.put(dependency, copyConfig.getTarget());
-								}
-							}
-						}
-					}
-				} else {
-					logger.debug("Copy Pattern is not provided for contentType '{}' in site '{}'", contentType, site);
-				}
-			} else {
-				logger.debug("Dependency not found at site '{}' path '{}'", site, sourceContentPath);
-			}
-		}
-		return copyDependency;
 	}
 
 	@Override
@@ -1016,18 +800,21 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		} catch (DocumentException e) {
 			logger.error("Failed to update XML while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
 				siteId, fromPath, toPath, movePath, e);
+		} catch (AuthenticationException e) {
+			logger.error("Failed to authenticate user while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
+				siteId, fromPath, toPath, movePath, e);
 		}
 
 		return movePath;
 	}
 
 	protected void updateDatabaseOnMove(String site, String fromPath, String movePath, String commitId)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		updateDatabaseOnMove(site, fromPath, movePath, null, null, null, commitId);
 	}
 
 	protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label, String folderLabel, String commitId)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
 		String user = SecurityUtils.getCurrentUsername();
@@ -1043,14 +830,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 				.ContentLifeCycleOperation.RENAME, params);
 			renamedItem = getContentItem(site, movePath, 0);
 		}
-
+		long userId = getCurrentUser().getId();
 		// Item update
-		itemService.moveItem(site, fromPath, movePath, parentId, label);
+		itemService.moveItem(site, fromPath, movePath, parentId, label, userId);
 		// Update folder when we are moving a /index.xml
 		if (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
 			String sourcePath = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 			String targetPath = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
-			itemService.moveItem(site, sourcePath, targetPath, parentId, folderLabel);
+			itemService.moveItem(site, sourcePath, targetPath, parentId, folderLabel, userId);
 		}
 
 		// write activity stream
@@ -1093,7 +880,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	protected void updateChildrenOnMove(String site, String fromPath, String movePath, String commitId)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("updateChildrenOnMove for site '{}' from '{}' to '{}'", site, fromPath, movePath);
 
 		// get the list of children
@@ -1121,6 +908,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 	}
 
+	// TODO: Remove this now that we have it the clipboard service
 	protected PastedPathMap constructNewPathForCutCopy(String site, String fromPath, String toPath,
 							   boolean adjustOnCollide) throws ServiceLayerException {
 		PastedPathMap result = new PastedPathMap();
@@ -1308,63 +1096,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 	}
 
-	protected Map<String, String> getItemSpecificDependencies(String site, String path, Document document,
-								  Map<String, String> copyDependencies)
-		throws ServiceLayerException {
-		Set<String> dependencies = dependencyService.getItemSpecificDependencies(site, path, 1);
-		for (String dep : dependencies) {
-			copyDependencies.put(dep, dep);
-		}
-
-		//update pageId and groupId with the new one
-		Element root = document.getRootElement();
-
-		List<Node> keys = root.selectNodes("//key");
-		if (keys != null) {
-			for (Node keyNode : keys) {
-				String keyValue = keyNode.getText();
-				if (keyValue.contains("/page")) {
-					copyDependencies.put(keyValue, keyValue);
-				}
-			}
-		}
-
-		List<Node> includes = root.selectNodes("//include");
-		if (includes != null) {
-			for (Node includeNode : includes) {
-				String includeValue = includeNode.getText();
-				if (includeValue.contains("/page")) {
-					copyDependencies.put(includeValue, includeValue);
-				}
-			}
-		}
-
-		return copyDependencies;
-	}
-
-	/**
-	 * Return the values for PageID and GroupID provided a Document
-	 *
-	 * @param document DOM to search
-	 * @return Map of IDs
-	 */
-	protected Map<String, String> getContentIds(Document document) {
-		Map<String, String> ids = new HashMap<>();
-		if (document != null) {
-			Element root = document.getRootElement();
-			Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
-			if (pageIdNode != null) {
-				ids.put(KEY_PAGE_ID, pageIdNode.getText());
-			}
-
-			Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
-			if (groupIdNode != null) {
-				ids.put(KEY_PAGE_GROUP_ID, groupIdNode.getText());
-			}
-		}
-		return ids;
-	}
-
 	/**
 	 * Helper method to update a single node element with the indicated value
 	 *
@@ -1405,81 +1136,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
 		updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
 	}
-
-	protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
-		String> params, String modifier) {
-
-		//update pageId and groupId with the new one
-		Element root = document.getRootElement();
-		String originalPageId = null;
-		String originalGroupId = null;
-
-		updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
-		updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
-
-		Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
-		if (pageIdNode != null) {
-			originalPageId = pageIdNode.getText();
-			pageIdNode.setText(params.get(KEY_PAGE_ID));
-		}
-
-		if (StringUtils.isNotEmpty(modifier)) {
-			Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
-			if (internalNameNode != null) {
-				String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
-				internalNameNode.setText(format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
-			}
-		}
-
-		Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
-		if (groupIdNode != null) {
-			originalGroupId = groupIdNode.getText();
-			groupIdNode.setText(params.get(KEY_PAGE_GROUP_ID));
-		}
-
-		List<Node> keys = root.selectNodes("//key");
-		if (keys != null) {
-			for (Node keyNode : keys) {
-				String keyValue = keyNode.getText();
-				if (StringUtils.isNotEmpty(originalPageId)) {
-					keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-				}
-				if (StringUtils.isNotEmpty(originalGroupId)) {
-					keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
-				}
-
-				if (keyValue.contains("/page")) {
-					keyNode.setText(keyValue);
-				}
-			}
-		}
-
-		List<Node> includes = root.selectNodes("//include");
-		if (includes != null) {
-			for (Node includeNode : includes) {
-				String includeValue = includeNode.getText();
-				if (StringUtils.isNotEmpty(originalPageId)) {
-					includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-				}
-				if (StringUtils.isNotEmpty(originalGroupId)) {
-					includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
-				}
-
-				if (includeValue.contains("/page")) {
-					includeNode.setText(includeValue);
-				}
-			}
-		}
-
-		String nowFormatted = getCurrentTimeIso();
-		updateSingleDocumentNode(root, ELM_CREATED_DATE, nowFormatted);
-		updateSingleDocumentNode(root, ELM_CREATED_DATE_DT, nowFormatted);
-		updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
-		updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
-
-		return document;
-	}
-
 	/* ======================== */
 
 	protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
@@ -1607,9 +1263,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	/**
 	 * add order value to the list of orders
 	 *
-	 * @param orders
-	 * @param orderName
-	 * @param orderStr
 	 */
 	protected void addOrderValue(List<DmOrderTO> orders, String orderName, String orderStr) {
 		Double orderValue = null;
@@ -1629,7 +1282,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	/**
 	 * get WCM content item order metadata
 	 *
-	 * @param nodes
 	 * @return item orders metadata
 	 */
 	protected List<DmOrderTO> getItemOrders(List<Node> nodes) {
@@ -1640,9 +1292,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		List<DmOrderTO> orders = new ArrayList<>(nodes.size());
 		for (Node node : nodes) {
 
-			String orderName = DmConstants.JSON_KEY_ORDER_DEFAULT;
 			String orderStr = node.getText();
-			addOrderValue(orders, orderName, orderStr);
+			addOrderValue(orders, DmConstants.JSON_KEY_ORDER_DEFAULT, orderStr);
 		}
 		return orders;
 	}
@@ -1799,7 +1450,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		if (matcher.matches()) {
 			return CONTENT_TYPE_TAXONOMY;
 		}
-		Item item = items.get(0);
+		Item item = items.getFirst();
 		if (isNotEmpty(item.getContentTypeId())) {
 			return item.getContentTypeId();
 		}
@@ -2019,7 +1670,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 									 @ValidateSecurePathParam String path,
 									 String version, boolean major,
 									 String comment)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		contentServiceV2.lockContent(site, path);
 		try {
 			trySetSystemProcessing(site, path);
@@ -2039,7 +1690,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 			String username = SecurityUtils.getCurrentUsername();
 			// Update the database for the target item
-			itemService.persistItemAfterWrite(site, path, username, true);
+			itemService.persistItemAfterWrite(site, path, true);
 
 
 			// This is not required, the current user is already loaded in memory
@@ -2071,8 +1722,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Valid
 	public Optional<Resource> getContentVersion(@ValidateStringParam String site,
 						    @ValidateSecurePathParam String path,
-						    @ValidateStringParam() String commitId)
-		throws ContentNotFoundException {
+						    @ValidateStringParam() String commitId) {
 		return contentRepository.getContentByCommitId(site, path, commitId);
 	}
 
@@ -2356,13 +2006,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		// if no after and before provided, the initial value is ORDER_INCREMENT
 		if (afterOrder == null && beforeOrder == null) {
 			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE, "")));
+				ContentUtils.getParentUrl(relativePath));
 		} else if (beforeOrder == null) {
 			return (0 + afterOrder) / 2;
 		} else if (afterOrder == null) {
 			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE,
-					"")), beforeOrder);
+				ContentUtils.getParentUrl(relativePath), beforeOrder);
 		} else {
 			//return (beforeOrder + afterOrder) / 2;
 			return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
@@ -2396,7 +2045,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public boolean renameContent(@ValidateStringParam @SiteId String siteId,
 				     @ValidateSecurePathParam @ActionTargetPath @ContentPath String path,
 				     @ValidateStringParam @ActionTargetFilename String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
+		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
 		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
 		validateValue(pathValidator, name, REQUEST_PARAM_NAME);
@@ -2431,8 +2080,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			updateDatabaseOnMove(siteId, path, targetPath, commitId);
 			if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
 
-			itemService.persistItemAfterRenameContent(siteId, targetPath, name,
-				SecurityUtils.getCurrentUsername(), commitId, contentType);
+			itemService.persistItemAfterRenameContent(siteId, targetPath, name, contentType);
 
 			if (isFolder) {
 				updateChildrenOnMove(siteId, path, targetPath, commitId);
@@ -2448,7 +2096,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) {
+	public void setApplicationContext(@NotNull ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
 
@@ -2460,18 +2108,25 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.dependencyService = dependencyService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDependencyServiceV2(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2) {
 		this.dependencyServiceV2 = dependencyServiceV2;
 	}
 
+
+	@SuppressWarnings("unused")
 	public void setContentProcessor(ProcessContentExecutor contentProcessor) {
 		this.contentProcessor = contentProcessor;
 	}
 
+
+	@SuppressWarnings("unused")
 	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
 		this.dmPageNavigationOrderService = dmPageNavigationOrderService;
 	}
 
+
+	@SuppressWarnings("unused")
 	public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) {
 		this.dmContentLifeCycleService = dmContentLifeCycleService;
 	}
@@ -2480,6 +2135,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.siteService = siteService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContentItemIdGenerator(ContentItemIdGenerator contentItemIdGenerator) {
 		this.contentItemIdGenerator = contentItemIdGenerator;
 	}
@@ -2492,6 +2148,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.contentTypeService = contentTypeService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
 		this.entitlementValidator = entitlementValidator;
 	}
@@ -2512,10 +2169,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.userService = userService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setActivityStreamService(ActivityStreamService activityStreamService) {
 		this.activityStreamService = activityStreamService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
 		this.contentServiceV2 = contentServiceV2;
 	}
@@ -2527,6 +2186,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	/**
 	 * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
 	 */
+	// TODO: remove
 	protected static class PastedPathMap {
 		protected String filePath;
 		protected String fileName;

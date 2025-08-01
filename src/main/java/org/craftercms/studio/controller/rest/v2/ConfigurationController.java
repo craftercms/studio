@@ -106,7 +106,7 @@ public class ConfigurationController {
 
 	@PostMapping("/write_configuration")
 	public Result writeConfiguration(@Validated @RequestBody WriteConfigurationRequest wcRequest)
-		throws ServiceLayerException, UserNotFoundException {
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
 		String siteId = wcRequest.getSiteId();
 		if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {

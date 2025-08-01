@@ -18,15 +18,14 @@ package org.craftercms.studio.impl.v2.service.audit;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.CommitAuthor;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 
+import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -37,7 +36,12 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class AuditServiceImpl implements AuditService {
 
-	private AuditService auditServiceInternal;
+	private final AuditService auditServiceInternal;
+
+	@ConstructorProperties({"auditServiceInternal"})
+	public AuditServiceImpl(final AuditService auditServiceInternal) {
+		this.auditServiceInternal = auditServiceInternal;
+	}
 
 	@Override
 	@RequireSiteReady
@@ -74,13 +78,6 @@ public class AuditServiceImpl implements AuditService {
 	}
 
 	@Override
-	@RequireSiteReady
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-	public List<ContentItemTO> getUserActivities(@SiteId String site, int limit, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceLayerException {
-		return auditServiceInternal.getUserActivities(site, limit, sort, ascending, excludeLive, filterType);
-	}
-
-	@Override
 	// TODO: what permission is needed here?
 	public boolean insertAuditLog(AuditLog auditLog) {
 		return auditServiceInternal.insertAuditLog(auditLog);
@@ -89,9 +86,5 @@ public class AuditServiceImpl implements AuditService {
 	@Override
 	public List<CommitAuthor> getCommitAuthors(long siteId, List<String> commitIds, String path) {
 		return auditServiceInternal.getCommitAuthors(siteId, commitIds, path);
-	}
-
-	public void setAuditServiceInternal(AuditService auditServiceInternal) {
-		this.auditServiceInternal = auditServiceInternal;
 	}
 }

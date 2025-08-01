@@ -27,6 +27,7 @@ import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
@@ -82,7 +83,7 @@ public class PluginController extends ManagementTokenAware {
 
 	@PostMapping("/write_configuration")
 	public Result writeConfiguration(@Valid @RequestBody WriteConfigurationRequest request)
-		throws UserNotFoundException, ServiceLayerException {
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		marketplaceService.writePluginConfiguration(request.getSiteId(), request.getPluginId(), request.getContent());
 
 		Result result = new Result();

@@ -44,7 +44,7 @@ import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 /**
  * Register and de-register sites for repository events.
  * This class will register all created sites on system bootstrap, and then listen
- * to site lifecycle events to register and de-register sites accordingly.
+ * to site life cycle events to register and de-register sites accordingly.
  */
 public class SandboxRepositoryListener implements ApplicationEventPublisherAware {
 
