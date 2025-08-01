@@ -17,32 +17,19 @@
 package org.craftercms.studio.model.rest.content;
 
 import jakarta.validation.constraints.NotEmpty;
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 
 /**
- * Request body for a content write operation
+ * Request body for a move-and-update operation.
  */
-public class WriteContentRequest {
-
-	@NotEmpty
-	@ValidExistingContentPath
-	private String path;
+public class MoveAndUpdateRequestBody extends MoveRequestBody {
 	@NotEmpty
 	private String content;
 
-	public String getContent() {
+	public final String getContent() {
 		return content;
 	}
 
 	public void setContent(final String content) {
 		this.content = content;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(final String path) {
-		this.path = path;
 	}
 }

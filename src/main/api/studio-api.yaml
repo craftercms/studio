@@ -5046,6 +5046,66 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/content/{siteId}/move-and-update:
+        post:
+            tags:
+                - content
+            summary: Move and update content
+            description: 'Required permission "content_write", "content_delete"'
+            operationId: contentMoveAndUpdate
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: Site ID
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                description: parameters for move-and-update content
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                sourcePath:
+                                    type: string
+                                    description: full path to the item to move
+                                targetPath:
+                                    type: string
+                                    description: full path to the target location (including new name)
+                                content:
+                                    type: string
+                                    description: the item content to update
+                            required:
+                                - sourcePath
+                                - targetPath
+                                - content
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                allOf:
+                                    -   $ref: '#/components/schemas/WriteContentResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '409':
+                    $ref: '#/components/responses/PublishConflict'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
 
     /api/2/content/{siteId}/revert:
         post:

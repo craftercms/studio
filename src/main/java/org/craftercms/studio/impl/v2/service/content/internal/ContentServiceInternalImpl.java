@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.exception.ActionDeniedException;
@@ -103,6 +104,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Set.of;
@@ -1546,7 +1548,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
 		String parentPath = getParentUrl(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
-		doMove(siteId, path, targetPath, null);
+		doMove(siteId, path, targetPath, null, null);
 	}
 
 	/**
@@ -1578,13 +1580,18 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public PasteContentResult move(final String siteId, final String sourcePath, final String targetPath)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		return doMove(siteId, sourcePath, targetPath, null);
+		return doMove(siteId, sourcePath, targetPath, null, null);
 	}
 
 	@Override
 	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException, AuthenticationException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, sourcePath, targetParent);
-		return doMove(siteId, sourcePath, pastedPath.path, pastedPath.newLabel);
+		return doMove(siteId, sourcePath, pastedPath.path, pastedPath.newLabel, null);
+	}
+
+	@Override
+	public WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws AuthenticationException, ServiceLayerException {
+		return doMove(siteId, sourcePath, targetPath, null, () -> IOUtils.toInputStream(content, UTF_8));
 	}
 
 	/**
@@ -1596,7 +1603,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param newLabel the new label for the content
 	 * @return the result of the move operation
 	 */
-	protected PasteContentResult doMove(final String siteId, final String from, final String to, final String newLabel) throws ServiceLayerException, AuthenticationException {
+	protected PasteContentResult doMove(final String siteId, final String from, final String to, final String newLabel,
+										final ThrowingSupplier<InputStream> newContent)
+			throws ServiceLayerException {
 		if (!contentExists(siteId, from)) {
 			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
 		}
@@ -1631,7 +1640,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				if (isDescriptor(sourcePath)) {
 					sourcePathChildren.add(sourcePath);
 				}
-				Collection<LifecycleContent> lifecycleContents = runLifecycleForMove(siteId, sourcePath, targetPath, sourcePathChildren, newLabel);
+				Collection<LifecycleContent> lifecycleContents = runLifecycleForMove(siteId, sourcePath, targetPath, sourcePathChildren, newLabel, newContent);
 				Collection<String> lifecyclePaths = getPathsForSystemProcessing(lifecycleContents);
 				// Set system processing for paths added by the lifecycle
 				trySetSystemProcessing(siteId, subtract(lifecyclePaths, processingPaths));
@@ -1798,14 +1807,18 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws ServiceLayerException if there is an error running the lifecycle
 	 */
 	protected Collection<LifecycleContent> runLifecycleForMove(String siteId, String sourcePath, String targetPath,
-															   Set<String> sourcePathChildren, String newLabel) throws ServiceLayerException {
+															   Set<String> sourcePathChildren, String newLabel,
+															   ThrowingSupplier<InputStream> newContent) throws ServiceLayerException {
 		ArrayList<LifecycleContent> lifecycleContents = new ArrayList<>(sourcePathChildren.size());
 		try {
 			for (String itemSourcePath : sourcePathChildren) {
 				boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemSourcePath, SLASH_INDEX_FILE));
 				String itemTargetPath = movePath(sourcePath, targetPath, itemSourcePath);
+				ThrowingSupplier<InputStream> contentSupplier = isRootItem && newContent != null
+						? newContent
+						: () -> loadContent(siteId, itemSourcePath);
 				lifecycleContents.add(runLifecycle(siteId, itemSourcePath, itemTargetPath,
-						() -> loadContent(siteId, itemSourcePath), RENAME, isRootItem ? newLabel : null));
+						contentSupplier, RENAME, isRootItem ? newLabel : null));
 			}
 		} catch (Exception e) {
 			closeCollection(lifecycleContents);

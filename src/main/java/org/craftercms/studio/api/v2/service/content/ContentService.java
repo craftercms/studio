@@ -286,6 +286,16 @@ public interface ContentService {
 	PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
+	/**
+	 * Move content from sourcePath to targetPath and update the content in a single operation.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path of the content to move
+	 * @param targetPath the target path where the content will be moved to
+	 * @param content    the content to write at the target path
+	 * @return {@link WriteContentResult} object containing the affected paths
+	 */
+	WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws AuthenticationException, ServiceLayerException;
 
 	/**
 	 * Returns content wrapped as a {@link Resource} instance

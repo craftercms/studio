@@ -215,6 +215,16 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+	public WriteContentResult moveAndUpdate(@SiteId String siteId, @ActionSourcePath String sourcePath,
+											@ActionTargetPath String targetPath, String content)
+			throws AuthenticationException, ServiceLayerException {
+		return contentServiceInternal.moveAndUpdate(siteId, sourcePath, targetPath, content);
+	}
+
+	@Override
 	@Valid
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
