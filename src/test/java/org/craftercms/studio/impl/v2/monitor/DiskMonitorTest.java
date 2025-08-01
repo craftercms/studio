@@ -188,4 +188,14 @@ public class DiskMonitorTest {
 
 		verify(diskMonitor, never().description("Monitor should not try to calculate the status if the system is not ready yet")).calculateDiskStatus();
 	}
+
+	@Test
+	public void getDiskInfoWhenSystemNotReadyTest() {
+		DiskMonitor diskMonitor = getDiskMonitor(85, 95, false);
+
+		DiskInfo result = diskMonitor.getDiskInfo();
+
+		assertNull("getDiskInfo should return null when system is not ready", result);
+	}
+
 }
