@@ -9260,51 +9260,52 @@ components:
                     type: integer
                     format: int64
                     description: The time in milliseconds of the log event
-    DiskUsage:
-        type: object
-        properties:
-            diskUsage:
-                type: integer
-                format: int32
-                description: The disk usage percentage
-                example: 75
-            totalSpace:
-                type: integer
-                format: int64
-                description: The total disk space in bytes
-            freeSpace:
-                type: integer
-                format: int64
-                description: The free disk space in bytes
-            usedSpace:
-                type: integer
-                format: int64
-                description: The used disk space in bytes
-            alarm:
-                type: boolean
-                description: True if free space is too low
-            highWaterMark:
-                type: integer
-                format: int32
-                description: The high water mark percentage for disk usage
-                example: 90
-            lowWaterMark:
-                type: integer
-                format: int32
-                description: The low water mark percentage for disk usage
-                example: 85
-            alarmDate:
-                type: string
-                format: date-time
-                description: The date and time when the disk usage alarm was triggered
-            lastCheck:
-                type: string
-                format: date-time
-                description: The date and time when the last disk usage check was performed
-            lastCleanup:
-                type: string
-                format: date-time
-                description: The date and time when the last disk cleanup was performed
+
+        DiskUsage:
+            type: object
+            properties:
+                diskUsage:
+                    type: integer
+                    format: int32
+                    description: The disk usage percentage
+                    example: 75
+                totalSpace:
+                    type: integer
+                    format: int64
+                    description: The total disk space in bytes
+                freeSpace:
+                    type: integer
+                    format: int64
+                    description: The free disk space in bytes
+                usedSpace:
+                    type: integer
+                    format: int64
+                    description: The used disk space in bytes
+                alarm:
+                    type: boolean
+                    description: True if free space is too low
+                highWaterMark:
+                    type: integer
+                    format: int32
+                    description: The high water mark percentage for disk usage
+                    example: 90
+                lowWaterMark:
+                    type: integer
+                    format: int32
+                    description: The low water mark percentage for disk usage
+                    example: 85
+                alarmDate:
+                    type: string
+                    format: date-time
+                    description: The date and time when the disk usage alarm was triggered
+                lastCheck:
+                    type: string
+                    format: date-time
+                    description: The date and time when the last disk usage check was performed
+                lastCleanup:
+                    type: string
+                    format: date-time
+                    description: The date and time when the last disk cleanup was performed
 
         RemoteRepository:
             type: object

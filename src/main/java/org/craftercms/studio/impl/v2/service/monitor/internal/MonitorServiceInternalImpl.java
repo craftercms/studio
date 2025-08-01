@@ -30,8 +30,6 @@ import java.util.Map;
  * @author jmendeza
  */
 public class MonitorServiceInternalImpl implements MonitorService {
-<<<<<<< HEAD
-=======
 
 	private final DiskMonitor diskMonitor;
 
@@ -40,17 +38,13 @@ public class MonitorServiceInternalImpl implements MonitorService {
 		this.diskMonitor = diskMonitor;
 	}
 
->>>>>>> bca19ddb3...  Disk monitoring API (WIP) (#3783)
 	@Override
 	public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
 		return CircularQueueLogAppender.getLoggedEvents(siteId, since);
 	}
-<<<<<<< HEAD
-=======
 
 	@Override
 	public DiskStatus getDiskUsage() {
 		return diskMonitor.getDiskStatus();
 	}
->>>>>>> bca19ddb3...  Disk monitoring API (WIP) (#3783)
 }
