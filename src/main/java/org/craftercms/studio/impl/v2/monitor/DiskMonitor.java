@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.monitor;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.monitoring.DiskInfo;
 import org.craftercms.studio.api.v2.notification.StudioNotificationSender;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.slf4j.Logger;
@@ -45,6 +46,7 @@ public class DiskMonitor implements InitializingBean {
 
 	private final RepositoryCleanupJob gitGCJob;
 	private final StudioNotificationSender notificationSender;
+	private final SystemStatusProvider systemStatusProvider;
 	private final int lowWaterMark;
 	private final int highWaterMark;
 	private final String baseRepoPath;
@@ -52,12 +54,14 @@ public class DiskMonitor implements InitializingBean {
 
 	protected volatile DiskStatus diskStatus;
 
-	@ConstructorProperties({"gitGCJob", "notificationSender",
+	@ConstructorProperties({"gitGCJob", "notificationSender", "systemStatusProvider",
 			"baseRepoPath", "lowWaterMark", "highWaterMark"})
 	public DiskMonitor(RepositoryCleanupJob gitGCJob, StudioNotificationSender notificationSender,
+					   SystemStatusProvider systemStatusProvider,
 					   String baseRepoPath, int lowWaterMark, int highWaterMark) {
 		this.gitGCJob = gitGCJob;
 		this.notificationSender = notificationSender;
+		this.systemStatusProvider = systemStatusProvider;
 		this.baseRepoPath = baseRepoPath;
 		this.lowWaterMark = lowWaterMark;
 		this.highWaterMark = highWaterMark;
@@ -91,6 +95,10 @@ public class DiskMonitor implements InitializingBean {
 
 	@SuppressWarnings("unused")
 	public void checkDiskUsage() {
+		if (!systemStatusProvider.isSystemReady()) {
+			logger.info("System is not ready, skipping disk usage check.");
+			return;
+		}
 		logger.info("Checking disk usage...");
 		calculateDiskStatus();
 		logger.info("Disk usage check completed successfully.");
@@ -126,7 +134,6 @@ public class DiskMonitor implements InitializingBean {
 	protected synchronized void calculateDiskStatus() {
 		DiskStatus previousStatus = diskStatus;
 		DiskInfo newDiskInfo = getDiskInfo();
-
 
 		if (previousStatus != null && previousStatus.isAlarm()) {
 			diskStatus = previousAlarmStatus(newDiskInfo, previousStatus, lowWaterMark, highWaterMark);
@@ -189,6 +196,10 @@ public class DiskMonitor implements InitializingBean {
 	 * @return a DiskInfo object containing the disk usage information
 	 */
 	protected DiskInfo getDiskInfo() {
+		if (!systemStatusProvider.isSystemReady()) {
+			logger.warn("System is not ready. DiskInfo will not be retrieved yet");
+			return null;
+		}
 		File baseRepoFile = new File(baseRepoPath);
 		return new DiskInfo(baseRepoFile);
 	}
