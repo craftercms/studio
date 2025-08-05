@@ -5046,7 +5046,7 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/content/{siteId}/move-and-update:
+    /api/2/content/{siteId}/move_and_update:
         post:
             tags:
                 - content
@@ -5061,7 +5061,7 @@ paths:
                     schema:
                         type: string
             requestBody:
-                description: parameters for move-and-update content
+                description: parameters for move_and_update content
                 required: true
                 content:
                     application/json:

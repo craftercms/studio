@@ -19,7 +19,7 @@ package org.craftercms.studio.model.rest.content;
 import jakarta.validation.constraints.NotEmpty;
 
 /**
- * Request body for a move-and-update operation.
+ * Request body for a move_and_update operation.
  */
 public class MoveAndUpdateRequestBody extends MoveRequestBody {
 	@NotEmpty
