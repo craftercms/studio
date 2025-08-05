@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -75,13 +78,13 @@ import java.util.*;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.apache.commons.lang3.exception.ExceptionUtils.throwableOfType;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToXml;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -137,6 +140,9 @@ public class ContentServiceInternalImplTest {
 
 	@Mock
 	protected SitesService siteService;
+
+	@Mock
+	protected EntitlementValidator entitlementValidator;
 
 	@InjectMocks
 	@Spy
@@ -727,6 +733,152 @@ public class ContentServiceInternalImplTest {
 				"COMMIT123"));
 	}
 
+	@Test
+	public void testEntitlementsUpdate() throws Exception {
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+		runInMockStatics(() -> serviceInternal.write(
+				SITE_ID,
+				PATH,
+				contentStream
+		));
+
+		verify(entitlementValidator, times(1)).validateEntitlement(
+				EntitlementType.ITEM,
+				0
+		);
+	}
+
+	@Test
+	public void testEntitlementsCreate() throws Exception {
+		Item parentItem = mock(Item.class);
+		when(parentItem.getId()).thenReturn(123L);
+		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
+		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+		runInMockStatics(() -> serviceInternal.write(
+				SITE_ID,
+				NON_EXIST_CONTENT_PATH,
+				contentStream
+		));
+
+		verify(entitlementValidator, times(1)).validateEntitlement(
+				EntitlementType.ITEM,
+				1 // 1 for the new item
+		);
+	}
+
+	@Test
+	public void testEntitlementsCreateMultiple() throws Exception {
+		Item parentItem = mock(Item.class);
+		when(parentItem.getId()).thenReturn(123L);
+		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
+		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+
+		doAnswer(a -> {
+			LifecycleContent lifecycleContent = (LifecycleContent) a.getArguments()[1];
+			lifecycleContent.write("/sample/path1", mock(Path.class));
+			lifecycleContent.write("/sample/path2", mock(Path.class));
+			return null;
+		}).when(contentLifecycle).execute(
+				anyString(),
+				any(LifecycleContent.class),
+				any()
+		);
+
+		runInMockStatics(() -> serviceInternal.write(
+				SITE_ID,
+				NON_EXIST_CONTENT_PATH,
+				contentStream
+		));
+
+		verify(entitlementValidator, times(1)).validateEntitlement(
+				EntitlementType.ITEM,
+				3 // 1 (initial create) + 2 (writes)
+		);
+	}
+
+	@Test
+	public void testEntitlementsDeleteAndWrites() throws Exception {
+		String deletePath = "/site/website/page1/index.xml";
+		Item deleteItem = mock(Item.class);
+		Item parentItem = mock(Item.class);
+		when(parentItem.getId()).thenReturn(123L);
+		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
+
+		when(itemService.getItem(SITE_ID, deletePath, false)).thenReturn(deleteItem);
+		when(contentRepository.contentExists(SITE_ID, deletePath)).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+
+		doAnswer(a -> {
+			LifecycleContent lifecycleContent = (LifecycleContent) a.getArguments()[1];
+			lifecycleContent.write("/sample/path1", mock(Path.class));
+			lifecycleContent.write("/sample/path2", mock(Path.class));
+			return null;
+		}).when(contentLifecycle).execute(
+				anyString(),
+				any(LifecycleContent.class),
+				any()
+		);
+
+		runInMockStatics(() -> serviceInternal.deleteContent(
+				SITE_ID,
+				Set.of(deletePath),
+				"Publish title",
+				"Publish comment"
+		));
+
+		verify(entitlementValidator, times(1)).validateEntitlement(
+				EntitlementType.ITEM,
+				1 // -1 (delete) + 2 (writes)
+		);
+	}
+
+	@Test
+	public void testEntitlementsDelete() throws Exception {
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+
+		runInMockStatics(() -> serviceInternal.deleteContent(
+				SITE_ID,
+				Set.of(PATH),
+				"Publish title",
+				"Publish comment"
+		));
+
+		verify(entitlementValidator, times(1)).validateEntitlement(
+				EntitlementType.ITEM,
+				-1 // -1 for delete operation
+		);
+	}
+
+	@Test
+	public void testFailedEntitlementValidationCreate() throws Exception {
+		Item parentItem = mock(Item.class);
+		when(parentItem.getId()).thenReturn(123L);
+		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
+		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
+		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+
+		doThrow(EntitlementException.class).when(entitlementValidator).validateEntitlement(EntitlementType.ITEM, 1);
+
+		runInMockStatics(() -> {
+			ServiceLayerException exception = assertThrows(ServiceLayerException.class, () -> serviceInternal.write(
+					SITE_ID,
+					NON_EXIST_CONTENT_PATH,
+					contentStream
+			));
+			EntitlementException entitlementException = throwableOfType(exception, EntitlementException.class);
+			assertNotNull("Exception thrown should be EntitlementException", entitlementException);
+		});
+
+		verify(contentRepository, never()).writeContent(eq(SITE_ID), anyCollection(), anySet());
+	}
+
 	/**
 	 * Runs the provided runnable in a mocked static context for DBUtils and SecurityUtils.
 	 *
@@ -749,7 +901,8 @@ public class ContentServiceInternalImplTest {
 			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
 
 			studioUtilsMock.when(() -> createTempFile(anyString(), any(Document.class))).thenReturn(mock(Path.class));
-
+			studioUtilsMock.when(() -> isDescriptor(anyString())).thenCallRealMethod();
+			studioUtilsMock.when(() -> underDescriptorRoot(anyString())).thenCallRealMethod();
 			runnable.run();
 		}
 	}

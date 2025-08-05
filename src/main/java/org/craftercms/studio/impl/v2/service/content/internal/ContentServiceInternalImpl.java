@@ -21,6 +21,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
@@ -179,6 +182,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final ServicesConfig servicesConfig;
 	private final ActivityStreamService activityStreamService;
+	private final EntitlementValidator entitlementValidator;
 
 	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
 			"retryingDatabaseOperationFacade", "publishService",
@@ -186,7 +190,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			"itemDao", "generalLockService", "dependencyService",
 			"contentServiceV1", "contentRepository", "contentLifecycle",
 			"auditService", "assetLifecycle",
-			"servicesConfig", "activityStreamService"})
+			"servicesConfig", "activityStreamService",
+			"entitlementValidator"})
 	public ContentServiceInternalImpl(PlatformTransactionManager transactionManager, StudioConfiguration studioConfiguration,
 									  SitesService siteService,
 									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
@@ -197,7 +202,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									  org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1,
 									  GitContentRepository contentRepository, ContentLifecycle contentLifecycle,
 									  AuditService auditService, ContentLifecycle assetLifecycle,
-									  ServicesConfig servicesConfig, ActivityStreamService activityStreamService) {
+									  ServicesConfig servicesConfig, ActivityStreamService activityStreamService,
+									  EntitlementValidator entitlementValidator) {
 		this.transactionManager = transactionManager;
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;
@@ -216,6 +222,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.assetLifecycle = assetLifecycle;
 		this.servicesConfig = servicesConfig;
 		this.activityStreamService = activityStreamService;
+		this.entitlementValidator = entitlementValidator;
 	}
 
 	@Override
@@ -617,7 +624,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected PasteContentResult doCopy(final String siteId, final String from,
 										final String initialTargetPath, final Set<String> itemPaths,
 										final LifecycleOperation operation)
-			throws ServiceLayerException, AuthenticationException {
+			throws ServiceLayerException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, from, initialTargetPath);
 		String to = pastedPath.path;
 		if (!contentExists(siteId, from)) {
@@ -852,6 +859,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			// Source path is null since copy does not affect the source path
 			validateLifecycleResults(siteId, null, targetPath, getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems));
 			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourceItemPaths, lifecycleItems.values(), operation);
+			validateEntitlements(operationsByPath);
 			Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
 			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
 			additionalItems.putAll(dependencies);
@@ -989,11 +997,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											   final LifecycleContent lifecycleContent)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
-		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, lifecycleContent.getRepoPath(),
+		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, List.of(lifecycleContent.getRepoPath()),
 				lifecycleResultItems.values(), lifecycleContent.getOperation());
+		validateEntitlements(operationsByPath);
 		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
-		// TODO: Consider creating the commit in a temporary branch and merge after db updates complete
-		// 		successfully
 		// Write to the repository and commit.
 		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
 		if (isEmpty(commitId)) {
@@ -1012,6 +1019,29 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		// Audit write operation
 		insertContentAudit(siteId, null, path, lifecycleContent.getOperation(), writeContentResult);
 		return writeContentResult;
+	}
+
+	/**
+	 * Validate the entitlements for the write operation
+	 * It counts the number of new items being created and validates the entitlement for that number of items
+	 * minus the number of items being deleted.
+	 *
+	 * @param operationsByPath the map of operations by path
+	 * @throws ServiceLayerException if the entitlement validation fails
+	 */
+	protected void validateEntitlements(Map<String, LifecycleOperation> operationsByPath) throws ServiceLayerException {
+		int netAddedCount = operationsByPath.values().stream()
+				.collect(teeing(
+						filtering(op -> op == NEW || op.isCopy, counting()),
+						filtering(op -> op == DELETE, counting()),
+						(added, deleted) -> added - deleted
+				)).intValue();
+		try {
+			entitlementValidator.validateEntitlement(EntitlementType.ITEM, netAddedCount);
+		} catch (EntitlementException e) {
+			throw new ServiceLayerException(format("Failed to perform write operation to add %s new items due to entitlement validation failure",
+					netAddedCount), e);
+		}
 	}
 
 	/**
@@ -1053,20 +1083,35 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
-	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
-	 * the value is the operation performed
+	 * Overloaded method for non-DELETE operations
 	 */
-	protected @NotNull Map<String, LifecycleOperation> getOperationsByPath(String siteId, String sourcePath,
-																		   Collection<ContentLifecycleItem> resultItems,
-																		   LifecycleOperation mainItemOperation) {
-		return getOperationsByPath(siteId, of(sourcePath), resultItems, mainItemOperation);
-	}
-
 	protected Map<String, LifecycleOperation> getOperationsByPath(String siteId, Collection<String> sourcePaths,
 																  Collection<ContentLifecycleItem> resultItems,
 																  LifecycleOperation mainItemOperation) {
-		// Calculate the operation. This must be done before actually writing to the repository
-		return resultItems.stream()
+		return getOperationsByPath(siteId, emptyList(), sourcePaths, resultItems, mainItemOperation);
+	}
+
+
+	/**
+	 * Creates a map out of the ContentLifecycleItems, where the key is the path and
+	 * the value is the operation performed.
+	 *
+	 * @param siteId            the site id
+	 * @param deletedPaths      the list of paths that are being deleted (applies for DELETE operations)
+	 * @param sourcePaths       the initial user-requested list of paths
+	 * @param resultItems       the result items from the lifecycle processing
+	 * @param mainItemOperation the operation for the main item (e.g. the one that was requested by the user)
+	 * @return a map of path to operation
+	 */
+	protected Map<String, LifecycleOperation> getOperationsByPath(String siteId, Collection<String> deletedPaths,
+																  Collection<String> sourcePaths,
+																  Collection<ContentLifecycleItem> resultItems,
+																  LifecycleOperation mainItemOperation) {
+		Map<String, LifecycleOperation> result = new HashMap<>();
+		// Add the deleted paths first, so they are not overridden by the result items in case
+		// they are added by the lifecycle processing
+		deletedPaths.forEach(p -> result.put(p, DELETE));
+		result.putAll(resultItems.stream()
 				.collect(toMap(ContentWriteItem::repoPath, item -> {
 					if (item.sourcePath() != null && sourcePaths.contains(item.sourcePath())) {
 						// Preserve the operation for the main item
@@ -1076,7 +1121,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 						return UPDATE;
 					}
 					return NEW;
-				}));
+				})));
+
+		return result;
 	}
 
 	/**
@@ -1384,7 +1431,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		ArrayList<LifecycleContent> lifecycleContents = new ArrayList<>(paths.size());
 		try {
 			for (String path : paths) {
-				// No delete for assets
+				// No delete lifecycle for assets
 				if (isDescriptor(path)) {
 					Item item = itemService.getItem(siteId, path, false);
 					String contentType = item.getContentTypeId();
@@ -1401,7 +1448,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					siteId), e);
 		}
 		return lifecycleContents;
-
 	}
 
 	protected DeleteContentResult deleteInternal(String siteId, Set<String> userRequestedPaths,
@@ -1411,37 +1457,38 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		try {
 			Site site = siteService.getSite(siteId);
 			long publishPackageId = 0;
-			Set<String> paths = new HashSet<>(userRequestedPaths.size() + dependencies.size());
-			paths.addAll(userRequestedPaths);
-			paths.addAll(dependencies);
+			Set<String> deletePaths = new HashSet<>(userRequestedPaths.size() + dependencies.size());
+			deletePaths.addAll(userRequestedPaths);
+			deletePaths.addAll(dependencies);
 
 			Map<String, ContentLifecycleItem> additionalItems = lifecycleContents.stream()
 					.flatMap(lifecycleContent -> lifecycleContent.getItems().values()
 							.stream()
-							.filter(item -> !paths.contains(item.repoPath())))
+							.filter(item -> !deletePaths.contains(item.repoPath())))
 					.collect(toMap(ContentLifecycleItem::repoPath, identity()));
 
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, emptyList(), additionalItems.values(), DELETE);
+			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, deletePaths, emptyList(), additionalItems.values(), DELETE);
+			validateEntitlements(operationsByPath);
 			Set<String> newFolders = additionalItems.values().stream()
 					.flatMap(i -> calculateMissingFolders(siteId, i.repoPath()).stream())
 					.collect(toSet());
 
 			// check and fail if any of the items is part of a publish package
-			assertNotInWorkflow(siteId, paths, false);
-			String commitId = contentRepository.deleteContent(siteId, paths, additionalItems.values(), newFolders);
+			assertNotInWorkflow(siteId, deletePaths, false);
+			String commitId = contentRepository.deleteContent(siteId, deletePaths, additionalItems.values(), newFolders);
 
 			if (contentRepository.publishedRepositoryExists(siteId)) {
 				Set<String> writtenPaths = additionalItems.values().stream()
 						.map(ContentWriteItem::repoPath)
 						.collect(toSet());
-				// Do not publish paths that were not really deleted
+				// Do not publish deletePaths that were not really deleted
 				publishPackageId = publishService.publishDelete(siteId, difference(userRequestedPaths, writtenPaths),
 						difference(dependencies, writtenPaths), publishTitle, publishComment);
 			}
 
 			List<WriteContentResultItem> resultItems = new LinkedList<>();
 			resultItems.addAll(
-					paths.stream()
+					deletePaths.stream()
 							.filter(path -> !additionalItems.containsKey(path))
 							.map(path -> new WriteContentResultItem(path, DELETE, false))
 							.toList());
@@ -1455,7 +1502,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 			insertDeleteContentAudit(siteId, deleteResult);
 
-			for (String path : paths) {
+			for (String path : deletePaths) {
 				dependencyService.deleteItemDependencies(siteId, path);
 				dependencyService.invalidateDependencies(siteId, path);
 				itemService.deleteItem(site.getId(), path, true);
@@ -1544,7 +1591,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException, AuthenticationException {
+	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
 		String parentPath = getParentUrl(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
@@ -1584,13 +1631,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException, AuthenticationException {
+	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, sourcePath, targetParent);
 		return doMove(siteId, sourcePath, pastedPath.path, pastedPath.newLabel, null);
 	}
 
 	@Override
-	public WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws AuthenticationException, ServiceLayerException {
+	public WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws ServiceLayerException {
 		return doMove(siteId, sourcePath, targetPath, null, () -> IOUtils.toInputStream(content, UTF_8));
 	}
 
@@ -1702,7 +1749,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
 			// We need to calculate this before the commit
 			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourcePathChildren, lifecycleItems.values(), RENAME);
-
+			validateEntitlements(operationsByPath);
 			// Commit the changeset
 			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
 			if (isEmpty(commitId)) {
