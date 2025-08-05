@@ -190,6 +190,7 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = Type.RENAME)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public void renameContent(@SiteId String site,
 							  @ContentPath String path, String name)
@@ -244,6 +245,7 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = Type.CREATE)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public WriteContentResult write(@SiteId String siteId, @ContentPath String path, InputStream content)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
@@ -262,6 +264,7 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = COPY)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public PasteContentResult duplicate(@SiteId String siteId, @ContentPath String sourcePath) throws ServiceLayerException, AuthenticationException {
 		return contentServiceInternal.duplicate(siteId, sourcePath);
@@ -269,6 +272,7 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	@ValidateAction(type = Type.EDIT)
 	public void revert(String siteId, String path, String commitId) throws ServiceLayerException {
 		contentServiceInternal.revert(siteId, path, commitId);
 	}
