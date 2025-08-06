@@ -217,7 +217,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public InputStream getContent(String site, String path, boolean shallow) {
+	public InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException {
 		logger.debug("Get content from site '{}' path '{}'", site, path);
 		try {
 			if (!isFolder(site, path) && pointersExist(site, path)) {
@@ -227,9 +227,12 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 				}
 			}
 			return localRepository.getContent(site, path, shallow);
-		} catch (Exception e) {
-			logger.error("Failed to get content from site '{}' path '{}'", site, path, e);
-			return null;
+		} catch (ContentNotFoundException e) {
+			throw e;
+		} catch (ServiceLayerException e) {
+			logger.error("Failed to get content from site '{}' path '{}'. Failed to get a blob store for path", site, path);
+			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'. " +
+					"Failed to get a blob store for path", site, path), e);
 		}
 	}
 
