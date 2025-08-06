@@ -104,9 +104,9 @@ public class ContentServiceImpl implements ContentService {
 											   @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
 											   String keyword, List<String> systemTypes, List<String> excludes,
 											   String sortStrategy, String order, int offset, int limit)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
-			sortStrategy, order, offset, limit);
+				sortStrategy, order, offset, limit);
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class ContentServiceImpl implements ContentService {
 	public GetChildrenByPathsBulkResult getChildrenByPaths(@SiteId String siteId,
 														   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
 														   Map<String, PathParams> pathParams)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getChildrenByPaths(siteId, paths, pathParams);
 	}
 
@@ -124,7 +124,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Item getItem(@SiteId String siteId,
 						@ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
-		throws SiteNotFoundException, ContentNotFoundException {
+			throws SiteNotFoundException, ContentNotFoundException {
 		try {
 			return contentServiceInternal.getItem(siteId, path, flatten);
 		} catch (PathNotFoundException e) {
@@ -138,7 +138,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Document getItemDescriptor(@SiteId String siteId,
 									  @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
-		throws SiteNotFoundException, ContentNotFoundException {
+			throws SiteNotFoundException, ContentNotFoundException {
 		return contentServiceInternal.getItemDescriptor(siteId, path, flatten);
 	}
 
@@ -147,7 +147,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
 	public ContentItem getItemByPath(@SiteId String siteId, @ContentPath String path, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getItemByPath(siteId, path, preferContent);
 	}
 
@@ -157,7 +157,7 @@ public class ContentServiceImpl implements ContentService {
 	public List<ContentItem> getContentItemsByPath(@SiteId String siteId,
 												   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
 												   boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getContentItemsByPath(siteId, paths, preferContent);
 	}
 
@@ -166,7 +166,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public void lockContent(@SiteId String siteId,
 							@ProtectedResourceId(PATH_RESOURCE_ID) String path)
-		throws UserNotFoundException, ServiceLayerException {
+			throws UserNotFoundException, ServiceLayerException {
 		contentServiceInternal.lockContent(siteId, path);
 	}
 
@@ -175,7 +175,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
 	public void unlockContent(@SiteId String siteId,
 							  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-		throws ContentNotFoundException, SiteNotFoundException {
+			throws ContentNotFoundException, SiteNotFoundException {
 		contentServiceInternal.unlockContent(siteId, path);
 	}
 
@@ -190,10 +190,11 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = Type.RENAME)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public void renameContent(@SiteId String site,
-							  @ContentPath String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
+							  @ContentPath @ActionTargetPath String path, String name)
+			throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		contentServiceInternal.renameContent(site, path, name);
 	}
 
@@ -202,7 +203,7 @@ public class ContentServiceImpl implements ContentService {
 	@ValidateAction(type = Type.MOVE)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public PasteContentResult move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return contentServiceInternal.move(siteId, sourcePath, targetPath);
 	}
 
@@ -210,8 +211,19 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@ValidateAction(type = Type.MOVE)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+	public PasteContentResult moveToParentPath(String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath String targetParent)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return contentServiceInternal.moveToParentPath(siteId, sourcePath, targetParent);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+	public WriteContentResult moveAndUpdate(@SiteId String siteId, @ActionSourcePath String sourcePath,
+											@ActionTargetPath String targetPath, String content)
+			throws AuthenticationException, ServiceLayerException {
+		return contentServiceInternal.moveAndUpdate(siteId, sourcePath, targetPath, content);
 	}
 
 	@Override
@@ -220,7 +232,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Resource getContentAsResource(@SiteId String site,
 										 @ValidateSecurePathParam @ContentPath String path)
-		throws ContentNotFoundException {
+			throws ContentNotFoundException {
 		return contentServiceInternal.getContentAsResource(site, path);
 	}
 
@@ -234,8 +246,9 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = Type.CREATE)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public WriteContentResult write(@SiteId String siteId, @ContentPath String path, InputStream content)
+	public WriteContentResult write(@SiteId String siteId, @ContentPath @ActionTargetPath String path, InputStream content)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return contentServiceInternal.write(siteId, path, content);
 	}
@@ -252,6 +265,7 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = COPY)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public PasteContentResult duplicate(@SiteId String siteId, @ContentPath String sourcePath) throws ServiceLayerException, AuthenticationException {
 		return contentServiceInternal.duplicate(siteId, sourcePath);
@@ -259,7 +273,8 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public void revert(String siteId, String path, String commitId) throws ServiceLayerException {
+	@ValidateAction(type = Type.EDIT)
+	public void revert(@SiteId String siteId, @ActionTargetPath @ContentPath String path, String commitId) throws ServiceLayerException {
 		contentServiceInternal.revert(siteId, path, commitId);
 	}
 

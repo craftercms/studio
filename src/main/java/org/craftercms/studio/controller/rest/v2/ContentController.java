@@ -305,6 +305,16 @@ public class ContentController {
 		return result;
 	}
 
+	@PostMapping(value = MOVE_AND_UPDATE, consumes = APPLICATION_JSON_VALUE)
+	public Result moveAndUpdate(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody MoveAndUpdateRequestBody requestBody)
+			throws AuthenticationException, ServiceLayerException {
+		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(
+				contentService.moveAndUpdate(siteId, requestBody.getSourcePath(), requestBody.getTargetPath(), requestBody.getContent())
+		);
+		result.setResponse(OK);
+		return result;
+	}
+
 	@GetMapping(value = ITEM_HISTORY)
 	public ResultList<ItemVersion> getHistory(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
 											  @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path) throws ServiceLayerException {

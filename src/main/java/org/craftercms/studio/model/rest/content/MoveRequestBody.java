@@ -31,19 +31,19 @@ public class MoveRequestBody {
 	@ValidNewContentPath
 	private String targetPath;
 
-	public @NotEmpty @ValidExistingContentPath String getSourcePath() {
+	public String getSourcePath() {
 		return sourcePath;
 	}
 
-	public void setSourcePath(@NotEmpty @ValidExistingContentPath String sourcePath) {
+	public void setSourcePath(String sourcePath) {
 		this.sourcePath = sourcePath;
 	}
 
-	public @NotEmpty @ValidNewContentPath String getTargetPath() {
+	public String getTargetPath() {
 		return targetPath;
 	}
 
-	public void setTargetPath(@NotEmpty @ValidNewContentPath String targetPath) {
+	public void setTargetPath(String targetPath) {
 		this.targetPath = targetPath;
 	}
 }
