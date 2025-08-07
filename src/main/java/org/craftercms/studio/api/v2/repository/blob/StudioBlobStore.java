@@ -99,7 +99,17 @@ public interface StudioBlobStore extends BlobStore, ContentRepository {
 	 * @param name the name of the folder
 	 * @throws ServiceLayerException if the operation fails
 	 */
+	// TODO: remove this method once the create-folder API v1 is removed
 	void createFolder(String site, String path, String name) throws ServiceLayerException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path of the folder to create
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	void createFolder(String site, String path) throws ServiceLayerException;
 
 	/**
 	 * Store the result of a publish operation

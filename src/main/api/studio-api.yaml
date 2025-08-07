@@ -5162,6 +5162,57 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+
+    /api/2/content/{siteId}/folder:
+        post:
+            tags:
+                - content
+            summary: Create folder
+            description: 'Required permission "folder_create"'
+            operationId: contentCreateFolder
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: Site ID
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                description: parameters for create folder
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                path:
+                                    type: string
+                                    description: new folder path
+                            required:
+                                - path
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '409':
+                    $ref: '#/components/responses/PublishConflict'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
     /api/2/content/{siteId}/children:
         post:
             tags:

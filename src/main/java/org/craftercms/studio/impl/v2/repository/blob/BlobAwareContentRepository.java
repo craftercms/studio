@@ -300,6 +300,24 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
+	public String createFolder(String site, String path) throws ServiceLayerException, UserNotFoundException {
+		logger.debug("Create folder in site '{}' path '{}'", site, path);
+		try {
+			StudioBlobStore store = getBlobStore(site, path);
+			if (store != null) {
+				store.createFolder(site, normalize(path));
+			}
+		} catch (BlobStoreConfigurationMissingException e) {
+			logger.debug("No blob store configuration found for site '{}', " +
+					"will create folder '{}' in the local repository only", site, path);
+		} catch (Exception e) {
+			logger.error("Failed to create folder in site '{}' path '{}'", site, path, e);
+			throw e;
+		}
+		return localRepository.createFolder(site, path);
+	}
+
+	@Override
 	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
 			throws ServiceLayerException, UserNotFoundException {
 		logger.debug("Write content in site '{}' with lifecycle items '{}'", siteId, writeItems);

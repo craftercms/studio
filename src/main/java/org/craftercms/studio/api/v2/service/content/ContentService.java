@@ -323,7 +323,7 @@ public interface ContentService {
 	 * @param path    the content path
 	 * @param content the content to write
 	 * @return the result of the write operation, which includes affected paths
-	 * @throws ServiceLayerException   if an error occurs while writing the content
+	 * @throws ServiceLayerException if an error occurs while writing the content
 	 */
 	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
@@ -358,4 +358,13 @@ public interface ContentService {
 	 * @param commitId the commit id to revert to
 	 */
 	void revert(String siteId, String path, String commitId) throws ServiceLayerException;
+
+	/**
+	 * Create a new folder at the given path.
+	 *
+	 * @param siteId the site id
+	 * @param path   the path where the folder will be created, e.g. /site/website/folder1/folder2
+	 * @return the result of the folder creation, which includes affected paths
+	 */
+	WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException;
 }

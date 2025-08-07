@@ -64,6 +64,7 @@ public final class RequestMappingConstants {
 	public static final String MOVE = SITE_ID + "/move";
 	public static final String MOVE_AND_UPDATE = SITE_ID + "/move_and_update";
 	public static final String REVERT = SITE_ID + "/revert";
+	public static final String FOLDER = SITE_ID + "/folder";
 	public static final String ITEM_HISTORY = "/item_history";
 
 	/**
