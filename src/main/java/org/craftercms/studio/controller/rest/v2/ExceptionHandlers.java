@@ -37,7 +37,10 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
-import org.craftercms.studio.api.v2.exception.content.*;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
+import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
@@ -611,13 +614,6 @@ public class ExceptionHandlers {
 		result.setEntities(RESULT_KEY_PUBLISH_PACKAGES, e.getPublishPackages());
 
 		return result;
-	}
-
-	@ExceptionHandler(EmptyChangesetException.class)
-	@ResponseStatus(HttpStatus.CONFLICT)
-	public Result handleException(HttpServletRequest request, EmptyChangesetException e) {
-		ApiResponse response = new ApiResponse(ApiResponse.EMPTY_CHANGESET);
-		return handleExceptionInternal(request, e, response);
 	}
 
 	@ExceptionHandler(InvalidPackageStateException.class)

@@ -72,6 +72,9 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 		String contentType = lifecycleContent.getContentType();
 		String repoPath = lifecycleContent.getRepoPath();
 
+		logger.debug("Executing content lifecycle for site '{}' path '{}' contentType '{}' operation '{}'.",
+				siteId, repoPath, contentType, lifecycleContent.getOperation());
+
 		// Validate contentType param
 		if (isEmpty(contentType) || CONTENT_TYPE_UNKNOWN.equals(contentType)) {
 			logger.warn("No content type provided for site '{}' path '{}'. Skipping script execution.", siteId, repoPath);
@@ -109,7 +112,9 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 
 		// Execute the script
 		try {
+			logger.debug("Executing content lifecycle script for site '{}' path '{}' contentType '{}' operation '{}'.", siteId, repoPath, contentType, lifecycleContent.getOperation());
 			scriptExecutor.executeScriptString(siteId, script, model);
+			logger.debug("Content lifecycle script executed successfully for site '{}' path '{}' contentType '{}' operation '{}'.", siteId, repoPath, contentType, lifecycleContent.getOperation());
 		} catch (Exception e) {
 			throw new ServiceLayerException(format("Failed to execute content lifecycle script for site '%s' path '%s' contentType '%s'.", siteId, repoPath, contentType), e);
 		}

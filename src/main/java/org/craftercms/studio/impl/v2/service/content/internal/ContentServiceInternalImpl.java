@@ -57,7 +57,6 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
-import org.craftercms.studio.api.v2.exception.content.EmptyChangesetException;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
@@ -868,15 +867,16 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			}
 
 			String commitId = contentRepository.copy(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
-			if (isEmpty(commitId)) {
-				throw new ServiceLayerException(format("Failed to commit copy operation for site '%s' from '%s' to '%s'", siteId, sourcePath, targetPath));
-			}
-
-			persistCopyToDB(site, sourcePath, targetPath, additionalItems, newFolders, operationsByPath, sourceItemPaths, newLabel);
 			List<WriteContentResultItem> copyResultItems = lifecycleItems.values().stream()
 					.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 					.toList();
 			PasteContentResult pasteResult = new PasteContentResult(commitId, copyResultItems, targetPath);
+			if (isEmpty(commitId)) {
+				return pasteResult;
+			}
+
+			persistCopyToDB(site, sourcePath, targetPath, additionalItems, newFolders, operationsByPath, sourceItemPaths, newLabel);
+
 			insertContentAudit(siteId, sourcePath, targetPath, operation, pasteResult);
 			return pasteResult;
 		} finally {
@@ -1003,19 +1003,20 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 		// Write to the repository and commit.
 		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
+
+		List<WriteContentResultItem> writeResultItems = lifecycleResultItems.values().stream()
+				.map(item -> new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()))
+				.toList();
+		WriteContentResult writeContentResult = new WriteContentResult(commitId, writeResultItems);
+
 		if (isEmpty(commitId)) {
-			throw new EmptyChangesetException(format("No changes were made to the repository for site '%s' path '%s'", siteId, path));
+			// If commitId is null it means the content was the same, so nothing to commit
+			return writeContentResult;
 		}
 
 		logger.debug("Persisting write operation for site '{}' path '{}'", siteId, path);
 		persistWriteToDB(siteId, lifecycleResultItems.values(), missingFolders, operationsByPath);
 
-		List<WriteContentResultItem> writeResultItems = lifecycleResultItems.values().stream()
-				.map(item -> new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()))
-				.toList();
-
-		// Return the WriteContentResult
-		WriteContentResult writeContentResult = new WriteContentResult(commitId, writeResultItems);
 		// Audit write operation
 		insertContentAudit(siteId, null, path, lifecycleContent.getOperation(), writeContentResult);
 		return writeContentResult;
@@ -1398,9 +1399,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 							new RequestPublishEvent(siteId, deleteResult.getPublishPackageId()));
 					eventPublisher.publishEvent(new WorkflowEvent(getAuthentication(), siteId, deleteResult.getPublishPackageId(), DIRECT_PUBLISH));
 				}
+			} catch (ServiceLayerException e) {
+				throw e;
 			} catch (Exception e) {
-				// We need to reset the system processing state if the operation failed
-				itemService.setSystemProcessingBulk(siteId, paths, false);
 				logger.error("Failed to delete content in site '{}' at paths '{}'", siteId, paths, e);
 				throw new ServiceLayerException(
 						format("Failed to delete content in site '%s' at paths '%s'", siteId, paths), e);
@@ -1752,15 +1753,16 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			validateEntitlements(operationsByPath);
 			// Commit the changeset
 			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
-			if (isEmpty(commitId)) {
-				throw new ServiceLayerException(format("Failed to commit move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath));
-			}
-			persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath);
-
 			List<WriteContentResultItem> moveResultItems = lifecycleItems.values().stream()
 					.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 					.toList();
 			PasteContentResult pasteResult = new PasteContentResult(commitId, moveResultItems, targetPath);
+			if (isEmpty(commitId)) {
+				return pasteResult;
+			}
+
+			persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath);
+
 			// Audit operation
 			insertContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult);
 			return pasteResult;
