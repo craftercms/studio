@@ -812,7 +812,6 @@ public class ContentServiceInternalImplTest {
 		when(itemService.getItem(SITE_ID, deletePath, false)).thenReturn(deleteItem);
 		when(contentRepository.contentExists(SITE_ID, deletePath)).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
-		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
 		doAnswer(a -> {
 			LifecycleContent lifecycleContent = (LifecycleContent) a.getArguments()[1];
@@ -840,8 +839,6 @@ public class ContentServiceInternalImplTest {
 
 	@Test
 	public void testEntitlementsDelete() throws Exception {
-		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
-
 		runInMockStatics(() -> serviceInternal.deleteContent(
 				SITE_ID,
 				Set.of(PATH),
@@ -857,12 +854,7 @@ public class ContentServiceInternalImplTest {
 
 	@Test
 	public void testFailedEntitlementValidationCreate() throws Exception {
-		Item parentItem = mock(Item.class);
-		when(parentItem.getId()).thenReturn(123L);
-		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
-		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
-		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
 
 		doThrow(EntitlementException.class).when(entitlementValidator).validateEntitlement(EntitlementType.ITEM, 1);
 
