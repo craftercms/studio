@@ -1545,6 +1545,34 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
+	public String createFolder(String siteId, String folderPath) throws ServiceLayerException, UserNotFoundException {
+		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+		generalLockService.lock(gitLockKey);
+		try {
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			if (repo == null) {
+				logger.error("Missing repository during create folder for site '{}' folder path '{}'", siteId, folderPath);
+				throw new ServiceLayerException(format("Missing repository during create folder for site '%s' folder path '%s'", siteId, folderPath));
+			}
+			File newFolderFile = new File(repo.getDirectory().getParent(), folderPath);
+			newFolderFile.mkdirs();
+
+			List<String> paths = addNewFolders(siteId, repo, Set.of(folderPath));
+			PersonIdent user = helper.getCurrentUserIdent();
+			String comment = helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+					.replaceAll(PATTERN_SITE, siteId)
+					.replaceAll(PATTERN_PATH, folderPath);
+			String commitId = helper.commitFiles(repo, siteId, comment, user, paths.toArray(new String[]{}));
+			if (commitId != null) {
+				persistCommit(siteId, commitId);
+			}
+			return commitId;
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
+
+	@Override
 	public String createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
 		// SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);

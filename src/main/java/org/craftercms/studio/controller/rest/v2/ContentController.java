@@ -333,4 +333,14 @@ public class ContentController {
 		result.setResponse(OK);
 		return result;
 	}
+
+	@PostMapping(FOLDER)
+	@ResponseStatus(HttpStatus.CREATED)
+	public Result createFolder(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody CreateFolderRequestBody revertRequestBody)
+			throws UserNotFoundException, ServiceLayerException {
+		WriteContentResult createFolderResult = contentService.createFolder(siteId, revertRequestBody.getPath());
+		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(createFolderResult);
+		result.setResponse(CREATED);
+		return result;
+	}
 }

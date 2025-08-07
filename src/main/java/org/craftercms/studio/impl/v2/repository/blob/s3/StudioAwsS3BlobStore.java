@@ -221,6 +221,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 	}
 
 	@Override
+	public void createFolder(String site, String path) throws ServiceLayerException {
+		checkReadWriteMode();
+		// Do nothing, S3 has no folders
+	}
+
+	@Override
 	public void deleteContent(String site, String path) throws ServiceLayerException {
 		checkReadWriteMode();
 		Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());

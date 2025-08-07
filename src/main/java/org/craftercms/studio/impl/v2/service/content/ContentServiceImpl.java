@@ -280,6 +280,15 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_FOLDER_CREATE)
+	@ValidateAction(type = Type.CREATE)
+	public WriteContentResult createFolder(@SiteId String siteId, @ActionTargetPath @ContentPath String path)
+			throws UserNotFoundException, ServiceLayerException {
+		return contentServiceInternal.createFolder(siteId, path);
+	}
+
+	@Override
+	@RequireSiteReady
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
 	public void assertNotInWorkflow(@SiteId String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException {

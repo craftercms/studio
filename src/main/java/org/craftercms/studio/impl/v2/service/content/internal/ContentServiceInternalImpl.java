@@ -147,9 +147,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
 	private static final String MOVE_TRANSACTION_FORMAT = "CONTENT_MOVE_%s";
-	private static final String DELETE_TRANSACTION_FORMAT = "DELETE_MOVE_%s";
-	private static final String COPY_TRANSACTION_FORMAT = "COPY_MOVE_%s";
+	private static final String DELETE_TRANSACTION_FORMAT = "CONTENT_DELETE_%s";
+	private static final String COPY_TRANSACTION_FORMAT = "CONTENT_COPY_%s";
 	private static final String WRITE_TRANSACTION_FORMAT = "CONTENT_WRITE_%s";
+	private static final String CREATE_FOLDER_TRANSACTION_FORMAT = "CREATE_FOLDER_%s";
 
 	private final static Pattern COPY_FILE_MODIFIER_PATTERN = Pattern.compile(".+(-copy-(\\d+))(.+)?(\\..*)?");
 	private final static String COPY_FILE_MODIFIER_FORMAT = "%s-copy-%s%s";
@@ -702,6 +703,56 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		doWrite(siteId, path, content, REVERT);
 	}
 
+	@Override
+	public WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
+		validateEntitlements();
+		WriteContentResult writeContentResult;
+		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+		generalLockService.lock(sandboxRepoLockKey);
+		try {
+			if (contentExists(siteId, path)) {
+				throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be created " +
+						"because an item already exists in target location '%s'.", path, siteId, path));
+			}
+			String parentPath = getParentUrl(path);
+			if (!contentExists(siteId, parentPath)) {
+				throw new ContentNotFoundException(parentPath, siteId, format("Parent content not found at path '%s' in site '%s'", parentPath, siteId));
+			}
+			String transactionId = format(CREATE_FOLDER_TRANSACTION_FORMAT, siteId);
+			writeContentResult = runInTransaction(transactionManager, transactionId,
+					() -> createFolderInternal(siteId, path));
+		} catch (ServiceLayerException | ActionDeniedException e) {
+			logger.error("Failed to create folder at site '{}' path '{}'", siteId, path, e);
+			throw e;
+		} catch (Exception e) {
+			logger.error("Failed to create folder at site '{}' path '{}'", siteId, path, e);
+			throw new ServiceLayerException(format("Failed to create folder at site '%s' path '%s'", siteId, path), e);
+		} finally {
+			generalLockService.unlock(sandboxRepoLockKey);
+		}
+
+		eventPublisher.publishEvent(new SyncFromRepoEvent(siteId));
+		eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
+
+		return writeContentResult;
+	}
+
+	private WriteContentResult createFolderInternal(String siteId, String path)
+			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+		String commitId = contentRepository.createFolder(siteId, path);
+
+		WriteContentResult writeContentResult = new WriteContentResult(commitId, List.of(new WriteContentResultItem(path, NEW, false)));
+		if (isEmpty(commitId)) {
+			return writeContentResult;
+		}
+
+		logger.debug("Persisting folder creation in the database for site '{}' path '{}'", siteId, path);
+		persistNewFolder(siteId, path);
+
+		insertContentAudit(siteId, path, commitId, NEW, writeContentResult);
+		return writeContentResult;
+	}
+
 	/**
 	 * Get the copy dependencies for the given item path.
 	 * Notice that this method is indirectly recursive, as it will call {@link #updateContentOnWrite(String, String, String, String, LifecycleOperation, Element)}
@@ -1046,6 +1097,21 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
+	 * Validate the entitlements with a count of 0, so only the
+	 * license is validated.
+	 *
+	 * @throws ServiceLayerException if the entitlement validation fails
+	 */
+	protected void validateEntitlements() throws ServiceLayerException {
+		try {
+			// Validate just the license
+			entitlementValidator.validateEntitlement(EntitlementType.ITEM, 0);
+		} catch (EntitlementException e) {
+			throw new ServiceLayerException("Failed to perform write operation, license is not valid", e);
+		}
+	}
+
+	/**
 	 * Extract the missing folders from a write operation
 	 * Missing folders are the newly created paths that need empty file added to the repo
 	 */
@@ -1271,7 +1337,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				String itemPath = entry.getValue().getFirst().path();
 				auditTargetId = getContentItemId(siteId, itemPath);
 				auditTargetValue = itemPath;
-				targetType = TARGET_TYPE_CONTENT_ITEM;
+				targetType = contentRepository.isFolder(siteId, itemPath) ? TARGET_TYPE_FOLDER : TARGET_TYPE_CONTENT_ITEM;
 				// Prevent unnecessary duplication of data
 				parameterItems = emptyList();
 				Item item = itemService.getItem(siteId, itemPath, true);

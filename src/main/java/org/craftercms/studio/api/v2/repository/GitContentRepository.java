@@ -413,7 +413,19 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws ServiceLayerException if the operation fails
 	 * @throws UserNotFoundException if the current user is not found
 	 */
+	// TODO: remove this method once the create-folder API v1 is removed
 	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path of the folder to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	String createFolder(String site, String path) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Write a collection of content items into the repository
