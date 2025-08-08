@@ -68,7 +68,7 @@
     names that require CDATA escaping.
     -->
     <cdata-escaped-field-patterns>
-        <pattern>(_html|_t|_s|_smv|mvs)$</pattern>
+        <pattern>(_html|_t|_s|_smv|_mvs)$</pattern>
         <pattern>internal-name</pattern>
     </cdata-escaped-field-patterns>
 
