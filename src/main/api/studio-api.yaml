@@ -3380,6 +3380,9 @@ paths:
 
     /api/2/monitoring/disk:
         get:
+            security:
+                -   jwtAuth: [ ]
+                -   managementToken: [ ]
             tags:
                 - monitoring
             summary: Get disk usage statistics
@@ -10984,6 +10987,10 @@ components:
         basicAuth:
             type: http
             scheme: basic
+        managementToken:
+            type: apiKey
+            in: query
+            name: token
     links: { }
     callbacks: { }
 security:
