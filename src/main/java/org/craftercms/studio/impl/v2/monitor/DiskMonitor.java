@@ -82,8 +82,8 @@ public class DiskMonitor implements InitializingBean {
 
 		diskStatus = new DiskStatus(
 				getDiskInfo(),
-				lowWaterMark,
 				highWaterMark,
+				lowWaterMark,
 				false,
 				null,
 				now(),
