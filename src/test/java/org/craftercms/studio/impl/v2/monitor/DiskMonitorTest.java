@@ -198,4 +198,10 @@ public class DiskMonitorTest {
 		assertNull("getDiskInfo should return null when system is not ready", result);
 	}
 
+	@Test
+	public void watermarksMappingTest() {
+		DiskMonitor dm = getDiskMonitor(85, 95);
+		assertEquals(95, dm.getDiskStatus().getHighWaterMark());
+		assertEquals(85, dm.getDiskStatus().getLowWaterMark());
+	}
 }
