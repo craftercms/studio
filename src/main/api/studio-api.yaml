@@ -9270,7 +9270,7 @@ components:
                 diskUsage:
                     type: integer
                     format: int32
-                    description: The disk usage percentage
+                    description: The disk usage percentage (0-100, percent used)
                     example: 75
                 totalSpace:
                     type: integer
@@ -9284,9 +9284,18 @@ components:
                     type: integer
                     format: int64
                     description: The used disk space in bytes
+                freeSpaceDisplaySize:
+                    type: string
+                    description: The free disk space in a human-readable format
+                totalSpaceDisplaySize:
+                    type: string
+                    description: The total disk space in a human-readable format
+                usedSpaceDisplaySize:
+                    type: string
+                    description: The used disk space in a human-readable format
                 alarm:
                     type: boolean
-                    description: True if free space is too low
+                    description: True if diskUsage >= highWaterMark (i.e., free space is too low)
                 highWaterMark:
                     type: integer
                     format: int32
@@ -9301,59 +9310,76 @@ components:
                     type: string
                     format: date-time
                     description: The date and time when the disk usage alarm was triggered
+                    nullable: true
                 lastCheck:
                     type: string
                     format: date-time
                     description: The date and time when the last disk usage check was performed
+                    nullable: true
                 lastCleanup:
                     type: string
                     format: date-time
                     description: The date and time when the last disk cleanup was performed
+                    nullable: true
+            example:
+                diskUsage: 83
+                totalSpace: 500609097728
+                freeSpace: 83483381760
+                usedSpace: 417125715968
+                freeSpaceDisplaySize: "77 GB"
+                totalSpaceDisplaySize: "466 GB"
+                usedSpaceDisplaySize: "388 GB"
+                highWaterMark: 90
+                lowWaterMark: 85
+                alarm: false
+                alarmDate: null
+                lastCheck: "2025-08-08T23:15:00.003858610Z"
+                lastCleanup: null
 
         RemoteRepository:
-            type: object
-            properties:
-                siteId:
-                    type: string
-                    description: site identifier
-                remoteName:
-                    type: string
-                    description: remote repository name
-                remoteUrl:
-                    type: string
-                    format: URL
-                    description: URL to access remote repository
-                authenticationType:
-                    type: string
-                    description: >-
-                        Authentication type to use to access remote repository
-
-                        Possible values:
-
-                          - none: no authentication
-
-                          - basic: username and password authentication
-
-                          - token: token authentication
-
-                          - key: key-based authentication
-                remoteUsername:
-                    type: string
-                    description: username to use to access remote repository
-                remotePassword:
-                    type: string
-                    description: password to use to access remote repository
-                remoteToken:
-                    type: string
-                    description: token to use to access remote repository
-                remotePrivateKey:
-                    type: string
-                    description: private key to access
-            required:
-                - siteId
-                - remoteName
-                - remoteUrl
-                - authenticationType
+                type: object
+                properties:
+                    siteId:
+                        type: string
+                        description: site identifier
+                    remoteName:
+                        type: string
+                        description: remote repository name
+                    remoteUrl:
+                        type: string
+                        format: URL
+                        description: URL to access remote repository
+                    authenticationType:
+                        type: string
+                        description: >-
+                            Authentication type to use to access remote repository
+    
+                            Possible values:
+    
+                              - none: no authentication
+    
+                              - basic: username and password authentication
+    
+                              - token: token authentication
+    
+                              - key: key-based authentication
+                    remoteUsername:
+                        type: string
+                        description: username to use to access remote repository
+                    remotePassword:
+                        type: string
+                        description: password to use to access remote repository
+                    remoteToken:
+                        type: string
+                        description: token to use to access remote repository
+                    remotePrivateKey:
+                        type: string
+                        description: private key to access
+                required:
+                    - siteId
+                    - remoteName
+                    - remoteUrl
+                    - authenticationType
 
         RemoteRepositoryInfo:
             type: object
