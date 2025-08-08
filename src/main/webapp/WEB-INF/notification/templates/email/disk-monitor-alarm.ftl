@@ -8,8 +8,8 @@
 			<li><b>Disk Usage:</b> ${payload.diskInfo.diskUsage}%</li>
 			<li><b>High Usage Watermark:</b> ${payload.highWaterMark}%</li>
 			<li><b>Total Space:</b> ${byteCountToDisplaySize.apply(payload.diskInfo.totalSpace)}</li>
-			<li><b>Used Space:</b> ${byteCountToDisplaySize.apply(payload.diskInfo.usedSpace)}</li>
-			<li><b>Free Space:</b> ${byteCountToDisplaySize.apply(payload.diskInfo.freeSpace)}</li>
+			<li><b>Used Space:</b> ${byteCountToDisplaySize.apply(payload.diskInfo.usedSpace)?json_string}</li>
+			<li><b>Free Space:</b> ${byteCountToDisplaySize.apply(payload.diskInfo.freeSpace)?json_string}</li>
 		</ul>
 		<#if outputAttached>
 			<p>See attached document for additional details.</p>

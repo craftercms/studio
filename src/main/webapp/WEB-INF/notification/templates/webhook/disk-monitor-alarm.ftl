@@ -55,7 +55,7 @@
 				},
 				{
 					"type": "plain_text",
-					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.totalSpace)}"
+					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.totalSpace)?json_string}"
 				},
 				{
 					"type": "mrkdwn",
@@ -63,7 +63,7 @@
 				},
 				{
 					"type": "plain_text",
-					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.usedSpace)}"
+					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.usedSpace)?json_string}"
 				},
 				{
 					"type": "mrkdwn",
@@ -71,7 +71,7 @@
 				},
 				{
 					"type": "plain_text",
-					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.freeSpace)}"
+					"text": "${byteCountToDisplaySize.apply(payload.diskInfo.freeSpace)?json_string}"
 				}
 			]
 		}
