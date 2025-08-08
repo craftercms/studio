@@ -43,6 +43,20 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
     </bean>
 
+    <!-- This makes FileStoreAttributes.getFileStoreAttributes() to return right away and continue the
+     calculation in the background. This is a fix attempt to an issue with JGit 7.3.x + some Docker/File system combination that
+     causes the call to hang
+     -->
+    <bean id="jgitSetFileStoreAttributesBackground" class="org.springframework.beans.factory.config.MethodInvokingBean" lazy-init="false">
+        <property name="targetClass" value="org.eclipse.jgit.util.FS$FileStoreAttributes"/>
+        <property name="targetMethod" value="setBackground"/>
+        <property name="arguments">
+            <array>
+                <value type="boolean">true</value>
+            </array>
+        </property>
+    </bean>
+
     <bean id="gitStartUpConfig" class="org.craftercms.studio.impl.v2.repository.GitStartupConfig"/>
 
     <bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
