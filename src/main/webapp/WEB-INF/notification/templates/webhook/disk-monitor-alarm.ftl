@@ -23,7 +23,7 @@
 				},
 				{
 					"type": "plain_text",
-					"text": "${serverName}"
+					"text": "${serverName?json_string}"
 				},
 				{
 					"type": "mrkdwn",

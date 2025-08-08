@@ -4,7 +4,7 @@
 	<body>
 		<p>The disk usage on the server has exceeded the defined threshold. Please review the details below:</p>
 		<ul>
-			<li><b>Server Name:</b> ${serverName}</li>
+			<li><b>Server Name:</b> ${serverName?json_string}</li>
 			<li><b>Disk Usage:</b> ${payload.diskInfo.diskUsage}%</li>
 			<li><b>High Usage Watermark:</b> ${payload.highWaterMark}%</li>
 			<li><b>Total Space:</b> ${byteCountToDisplaySize.apply(payload.diskInfo.totalSpace)}</li>
