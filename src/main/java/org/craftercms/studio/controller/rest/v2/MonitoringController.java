@@ -25,8 +25,10 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +41,7 @@ import java.util.Map;
 
 import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.*;
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -98,6 +101,16 @@ public class MonitoringController extends ManagementTokenAware {
 		ResultList<Map<String, Object>> result = new ResultList<>();
 		result.setResponse(ApiResponse.OK);
 		result.setEntities(RESULT_KEY_EVENTS, monitorService.getLogEvents("craftercms", since));
+		return result;
+	}
+
+	@GetMapping(value = ROOT_URL + DISK_URL, produces = APPLICATION_JSON_VALUE)
+	public Result getDiskInfo(@RequestParam(name = REQUEST_PARAM_TOKEN, required = false) String token)
+			throws InvalidParametersException, InvalidManagementTokenException {
+		validateToken(token);
+		ResultOne<DiskStatus> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_DISK, monitorService.getDiskUsage());
+		result.setResponse(ApiResponse.OK);
 		return result;
 	}
 
