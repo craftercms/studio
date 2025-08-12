@@ -376,7 +376,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	}
 
 	public String getGitPath(String path) {
-		if (StringUtils.isEmpty(path) || Strings.CI.equals(path, "/")) {
+		if (isEmpty(path) || Strings.CI.equals(path, "/")) {
 			path = ".";
 		} else {
 			path = FilenameUtils.normalize(path, true);
