@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -375,7 +376,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	}
 
 	public String getGitPath(String path) {
-		if (StringUtils.isEmpty(path)) {
+		if (isEmpty(path) || Strings.CI.equals(path, "/")) {
 			path = ".";
 		} else {
 			path = FilenameUtils.normalize(path, true);
