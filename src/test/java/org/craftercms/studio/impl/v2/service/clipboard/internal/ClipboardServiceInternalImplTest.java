@@ -57,14 +57,14 @@ public class ClipboardServiceInternalImplTest {
 	@Before
 	public void setUp() throws SiteNotFoundException {
 		for (String pagePath : getPagePaths()) {
-			when(contentRepository.contentExists(SITE_ID, pagePath)).thenReturn(true);
+			when(contentService.contentExists(SITE_ID, pagePath)).thenReturn(true);
 		}
 		for (String folderPath : getFolderPaths()) {
-			when(contentRepository.contentExists(SITE_ID, folderPath)).thenReturn(true);
+			when(contentService.contentExists(SITE_ID, folderPath)).thenReturn(true);
 			when(contentRepository.isFolder(SITE_ID, folderPath)).thenReturn(true);
 		}
 		for (String nonFolderPath : getNonFolderPaths()) {
-			when(contentRepository.contentExists(SITE_ID, nonFolderPath)).thenReturn(true);
+			when(contentService.contentExists(SITE_ID, nonFolderPath)).thenReturn(true);
 		}
 
 		for (String existingPath : getExistingPaths()) {
