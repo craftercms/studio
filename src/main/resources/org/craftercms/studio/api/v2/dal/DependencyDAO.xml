@@ -62,12 +62,18 @@
 	</select>
 
 	<select id="getPublishingSoftDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
-		SELECT d.target_path AS path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
+		SELECT DISTINCT d.target_path AS path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
 		FROM dependency d
 		INNER JOIN site s ON s.site_id = d.site
 		INNER JOIN item i ON i.path = d.target_path
 		INNER JOIN item_target it ON it.item_id = i.id AND it.target = #{target}
 		WHERE d.source_path IN
+		<foreach item="path" index="index" collection="paths"
+			 open="(" separator="," close=")">
+			#{path}
+		</foreach>
+		<!-- Prevent source paths from being returned -->
+		AND d.target_path NOT IN
 		<foreach item="path" index="index" collection="paths"
 			 open="(" separator="," close=")">
 			#{path}
