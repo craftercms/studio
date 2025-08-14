@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `group_user` ADD COLUMN IF NOT EXISTS `externally_managed` INT NOT NULL DEFAULT 0 ;
+// TODO: implement: migrate data from old publisher tables to new ones
 
-UPDATE `_meta` SET `version` = '5.0.0.2' ;
+
+SELECT 1 ;
