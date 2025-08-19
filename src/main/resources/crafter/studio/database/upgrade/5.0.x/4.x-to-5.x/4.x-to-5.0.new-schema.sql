@@ -14,50 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//********************** PROCEDURE UPDATES START **********************//
-
-// Updated to remote reference to publish_package table
-DROP PROCEDURE IF EXISTS deleteSiteRelatedItems ;
-
-CREATE PROCEDURE deleteSiteRelatedItems(
-	IN siteId VARCHAR(50))
-BEGIN
-	DECLARE id BIGINT(20);
-
-	IF EXISTS (SELECT (1) FROM site WHERE site_id = siteId AND deleted = 0)
-	THEN
-		SELECT s.id into id
-		FROM site s
-		WHERE site_id = siteId AND deleted = 0;
-
-		-- Item will cascade delete workflow
-		DELETE FROM item WHERE site_id = id;
-
-		-- user_properties
-		DELETE FROM user_properties WHERE site_id = id;
-
-		-- dependencies
-		DELETE FROM dependency WHERE site = siteId;
-
-		-- sequences
-		DELETE FROM navigation_order_sequence WHERE site = siteId;
-
-		-- remote repositories
-		DELETE FROM remote_repository WHERE site_id = siteId;
-
-		-- audit log
-		DELETE FROM audit WHERE site_id = id;
-
-		-- publish queue
-		DELETE FROM publish_package WHERE site_id = id;
-
-		-- processed_commits
-		DELETE FROM processed_commits WHERE site_id = id;
-	END IF;
-END ;
-
-//*********************** PROCEDURE UPDATES END ***********************//
-
 //************************* NEW TABLES START *************************//
 
 /*
@@ -82,9 +38,10 @@ CREATE TABLE IF NOT EXISTS `publish_package`
 	`reviewed_on`	                TIMESTAMP,
 	`published_on`	                TIMESTAMP,
 	`package_type`	                ENUM ('INITIAL_PUBLISH', 'PUBLISH_ALL', 'ITEM_LIST')    NOT NULL,
-	`commit_id`	                    CHAR(40)	    NOT NULL,
+	`commit_id`	                    CHAR(40),
 	`published_staging_commit_id`	CHAR(40),
 	`published_live_commit_id`	    CHAR(40),
+	`old_package_id`	            VARCHAR(50), -- This is a temporary column to group the publish items of a package
 	PRIMARY KEY (`id`),
 	FOREIGN KEY `publish_package_site_id`(`site_id`) REFERENCES `site` (`id`) ON DELETE CASCADE,
 	FOREIGN KEY `publish_package_submitter_id`(`submitter_id`) REFERENCES `user` (`id`),
@@ -139,8 +96,8 @@ CREATE TABLE IF NOT EXISTS `item_target`
 	`item_id`       	    BIGINT	        NOT NULL,
 	`target`	            VARCHAR(20)	    NOT NULL,
 	`previous_path`         VARCHAR(2048)   NULL,
-	`last_published_on`     TIMESTAMP       NOT NULL,
-	`published_commit_id`   VARCHAR(40)     NOT NULL,
+	`last_published_on`     TIMESTAMP       NULL,
+	`published_commit_id`   VARCHAR(40)     NULL,
 	PRIMARY KEY(`item_id`, `target`),
 	FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )
@@ -149,3 +106,60 @@ CREATE TABLE IF NOT EXISTS `item_target`
 	ROW_FORMAT = DYNAMIC ;
 
 //************************** NEW TABLES END **************************//
+
+//********************** PROCEDURE UPDATES START **********************//
+// Updated to remote reference to publish_package table
+DROP PROCEDURE IF EXISTS deleteSiteRelatedItems ;
+
+CREATE PROCEDURE deleteSiteRelatedItems(
+	IN siteId VARCHAR(50))
+BEGIN
+	DECLARE id BIGINT(20);
+
+	IF EXISTS (SELECT (1) FROM site WHERE site_id = siteId AND deleted = 0)
+	THEN
+		SELECT s.id into id
+		FROM site s
+		WHERE site_id = siteId AND deleted = 0;
+
+		-- Item will cascade delete workflow
+		DELETE FROM item WHERE site_id = id;
+
+		-- user_properties
+		DELETE FROM user_properties WHERE site_id = id;
+
+		-- dependencies
+		DELETE FROM dependency WHERE site = siteId;
+
+		-- sequences
+		DELETE FROM navigation_order_sequence WHERE site = siteId;
+
+		-- remote repositories
+		DELETE FROM remote_repository WHERE site_id = siteId;
+
+		-- audit log
+		DELETE FROM audit WHERE site_id = id;
+
+		-- publish queue
+		DELETE FROM publish_package WHERE site_id = id;
+
+		-- processed_commits
+		DELETE FROM processed_commits WHERE site_id = id;
+	END IF;
+END ;
+
+//*********************** PROCEDURE UPDATES END ***********************//
+
+//***************** TEMPORARY PROCEDURE UPDATES START *****************//
+CREATE PROCEDURE populateItemTarget(
+	IN siteId INT,
+	IN publishTarget VARCHAR(20),
+	IN publishedLastCommit VARCHAR(40))
+BEGIN
+	INSERT INTO item_target
+			(item_id, target, previous_path, last_published_on, published_commit_id)
+		SELECT i.id, publishTarget, i.previous_path, i.last_published_on, publishedLastCommit
+		FROM item i
+		WHERE i.site_id = siteId;
+END ;
+//****************** TEMPORARY PROCEDURE UPDATES END ******************//

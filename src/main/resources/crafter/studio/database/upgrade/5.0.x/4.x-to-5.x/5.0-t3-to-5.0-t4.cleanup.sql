@@ -14,12 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//************************* DELETE TABLES AND COLUMNS START *************************//
-
+//************************* DELETE TABLES START *************************//
 DROP TABLE IF EXISTS `publish_request` ;
 DROP TABLE IF EXISTS `workflow` ;
+//************************** DELETE TABLES END **************************//
 
+//************************* DELETE COLUMNS START *************************//
 ALTER TABLE `item` DROP COLUMN `last_published_on` ;
 ALTER TABLE `item` DROP COLUMN `previous_path` ;
+ALTER TABLE `publish_package` DROP COLUMN `old_package_id` ;
+//************************** DELETE COLUMNS END **************************//
 
-//************************** DELETE TABLES AND COLUMNS END **************************//
+//************************* DROP PROCEDURES START *************************//
+DROP PROCEDURE IF EXISTS populateItemTarget
+//************************** DROP PROCEDURES END **************************//

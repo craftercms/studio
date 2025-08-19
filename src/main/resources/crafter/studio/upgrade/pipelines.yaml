@@ -740,9 +740,14 @@ pipelines:
             -   currentVersion: 5.0-t3
                 nextVersion: 5.0-t4
                 operations:
+                    -   type: populateItemTargetTableUpgrader
+                        spName: populateItemTarget
+            -   currentVersion: 5.0-t4
+                nextVersion: 5.0-t5
+                operations:
                     -   type: dbScriptUpgrader
                         filename: upgrade/5.0.x/4.x-to-5.x/5.0-t3-to-5.0-t4.cleanup.sql
-            -   currentVersion: 5.0-t4
+            -   currentVersion: 5.0-t5
                 nextVersion: 5.0.0.0
                 operations:
                     -   type: xsltFileUpgrader
