@@ -21,20 +21,25 @@ import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
-import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOperation {
@@ -42,8 +47,6 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 
 	protected static final String CONFIG_KEY_STORED_PROCEDURE_NAME = "spName";
 
-	protected static final String QUERY_GET_ALL_SITES =
-			"SELECT id, site_id, published_repo_created FROM " + CRAFTER_SCHEMA_NAME + ".site WHERE system = 0 AND deleted = 0";
 	protected static final String QUERY_CALL_STORED_PROCEDURE =
 			"call @spName('@site', '@target', '@publishedLastCommit')";
 	protected static final String SP_PARAM_SITE = "@site";
@@ -53,17 +56,20 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 
 	protected final SitesService sitesService;
 	protected final ServicesConfig servicesConfig;
+	protected final GitRepositoryHelper gitRepositoryHelper;
 
 	protected String spName;
 	protected String crafterSchemaName;
 
-	@ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator", "siteService", "servicesConfig"})
+	@ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator",
+			"siteService", "servicesConfig", "gitRepositoryHelper"})
 	public PopulateItemTargetTableUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
 												   DbIntegrityValidator integrityValidator, SitesService sitesService,
-												   ServicesConfig servicesConfig) {
+												   ServicesConfig servicesConfig, GitRepositoryHelper gitRepositoryHelper) {
 		super(studioConfiguration, scriptFolder, integrityValidator);
 		this.sitesService = sitesService;
 		this.servicesConfig = servicesConfig;
+		this.gitRepositoryHelper = gitRepositoryHelper;
 	}
 
 	@Override
@@ -79,32 +85,15 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 		if (isNotEmpty(fileName)) {
 			super.doExecute(context);
 		}
-		// get all sites from DB
-		Map<Long, String> sites = new HashMap<>();
-		try (Connection connection = context.getConnection()) {
-			try (Statement statement = connection.createStatement();
-				 ResultSet rs = statement.executeQuery(
-						 QUERY_GET_ALL_SITES.replace(CRAFTER_SCHEMA_NAME, crafterSchemaName))) {
-				while (rs.next()) {
-					if (rs.getBoolean(3)) {
-						sites.put(rs.getLong(1), rs.getString(2));
-					}
-				}
-			} catch (SQLException e) {
-				logger.error("Failed to get all sites from the database", e);
-				throw new UpgradeException("Failed to get all sites from the database", e);
-			}
-		} catch (SQLException e) {
-			logger.error("Failed to get a database connection", e);
-			throw new UpgradeException("Failed to get a database connection", e);
-		}
 
-		// loop over all sites
-		for (Map.Entry<Long, String> site : sites.entrySet()) {
-			try {
-				populateItemTarget(context, site.getKey(), site.getValue());
-			} catch (SiteNotFoundException e) {
-				throw new UpgradeException(format("Failed to populate item_target table for site '%s'", site.getValue()), e);
+		List<Site> allSites = sitesService.getAllSites();
+		for (Site site : allSites) {
+			if (site.isSitePublishedRepoCreated()) {
+				try {
+					populateItemTarget(context, site.getId(), site.getSiteId());
+				} catch (SiteNotFoundException | IOException e) {
+					throw new UpgradeException(format("Failed to populate item_target table for site '%s'", site.getSiteId()), e);
+				}
 			}
 		}
 	}
@@ -119,16 +108,16 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 	 * @param site    the site id
 	 * @param siteId  the numeric site id
 	 */
-	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site) throws SiteNotFoundException {
+	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site) throws SiteNotFoundException, IOException {
 		String liveTarget = servicesConfig.getLiveEnvironment(site);
-		String lastCommit = ""; // TODO: Get last commit
+		Repository repository = gitRepositoryHelper.getRepository(site, PUBLISHED);
+		String lastCommit = repository.resolve(liveTarget).getName();
 		populateItemTarget(context, siteId, site, liveTarget, lastCommit);
 		if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-			String stagingLastCommit = "";
 			String stagingTarget = servicesConfig.getStagingEnvironment(site);
+			String stagingLastCommit = repository.resolve(stagingTarget).getName();
 			populateItemTarget(context, siteId, site, stagingTarget, stagingLastCommit);
 		}
-
 	}
 
 	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site, String target, String lastCommit) {
