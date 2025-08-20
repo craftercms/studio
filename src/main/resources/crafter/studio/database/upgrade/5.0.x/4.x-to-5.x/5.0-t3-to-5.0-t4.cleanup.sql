@@ -26,5 +26,5 @@ ALTER TABLE `publish_package` DROP COLUMN `old_package_id` ;
 /************************** DELETE COLUMNS END **************************/
 
 /************************* DROP PROCEDURES START *************************/
-DROP PROCEDURE IF EXISTS populateItemTarget
+DROP PROCEDURE IF EXISTS populateItemTarget ;
 /************************** DROP PROCEDURES END **************************/
