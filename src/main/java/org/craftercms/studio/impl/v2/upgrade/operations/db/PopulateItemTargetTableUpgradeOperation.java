@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,20 +109,23 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 	 * @param site    the site id
 	 * @param siteId  the numeric site id
 	 */
-	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site) throws SiteNotFoundException, IOException {
+	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site) throws SiteNotFoundException, IOException, UpgradeException {
 		String liveTarget = servicesConfig.getLiveEnvironment(site);
 		Repository repository = gitRepositoryHelper.getRepository(site, PUBLISHED);
-		String lastCommit = repository.resolve(liveTarget).getName();
-		populateItemTarget(context, siteId, site, liveTarget, lastCommit);
+		populateItemTarget(context, siteId, site, liveTarget, repository);
 		if (servicesConfig.isStagingEnvironmentEnabled(site)) {
 			String stagingTarget = servicesConfig.getStagingEnvironment(site);
-			String stagingLastCommit = repository.resolve(stagingTarget).getName();
-			populateItemTarget(context, siteId, site, stagingTarget, stagingLastCommit);
+			populateItemTarget(context, siteId, site, stagingTarget, repository);
 		}
 	}
 
-	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site, String target, String lastCommit) {
-		logger.debug("Execute the stored procedure '{}' in site '{}' target '{}'", spName, site, target);
+	private void populateItemTarget(final StudioUpgradeContext context, long siteId, String site, String target, Repository repository) throws IOException, UpgradeException {
+		ObjectId lastCommitObjectId = repository.resolve(target);
+		if (lastCommitObjectId == null) {
+			throw new UpgradeException(format("The target '%s' does not exist in the published repository for site '%s'", target, site));
+		}
+		String lastCommit = lastCommitObjectId.getName();
+		logger.debug("Execute the stored procedure '{}' in site '{}' target '{}' last comit '{}", spName, site, target, lastCommit);
 		try (Connection connection = context.getConnection()) {
 			CallableStatement callableStatement = connection.prepareCall(QUERY_CALL_STORED_PROCEDURE
 					.replace(STORED_PROCEDURE_NAME, spName)
