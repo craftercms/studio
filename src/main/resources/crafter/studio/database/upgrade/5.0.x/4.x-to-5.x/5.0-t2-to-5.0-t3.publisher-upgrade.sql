@@ -21,10 +21,13 @@ INSERT INTO publish_package
 
 		SELECT s.id, pr.environment, 'Migrated package', pr.scheduleddate, IF(w.state = 'OPENED', 'SUBMITTED', IF(pr.state = 'CANCELLED', 'REJECTED', 'APPROVED')) AS approval_state,
 				CASE pr.state
-					WHEN 'READY_FOR_LIVE' THEN POWER(2, 0) -- READY
-					WHEN 'PROCESSING' THEN POWER(2, 0) -- READY
-					WHEN 'COMPLETED' THEN POWER(2, 8) + IF(pr.environment = 'live', POWER(2, 2) + POWER(2, 5), POWER(2, 5)) -- COMPLETED + LIVE_SUCCESS + STAGING_SUCCESS
-					ELSE POWER(2, 9) -- Anything else (cancelled, blocked, processing) is CANCELLED
+					WHEN 'READY_FOR_LIVE' THEN 1 -- READY = 2⁰
+					WHEN 'PROCESSING' THEN 1 -- READY = 2⁰
+					-- COMPLETED = 2⁸ = 256
+					-- LIVE_SUCCESS + STAGING_SUCCESS = 2² + 2⁵ = 4 + 32 = 36
+					-- STAGING_SUCCESS = 2⁵ = 32
+					WHEN 'COMPLETED' THEN 256 + IF(pr.environment = 'live', 36, 32)
+					ELSE 512 -- Anything else (cancelled, blocked, processing) is CANCELLED = 2⁹ = 512
 				END AS package_state,
 				0 AS live_error, 0 as staging_error, IFNULL(w.submitter_id, (SELECT u.id FROM user u WHERE u.username = pr.username)) AS submitter_id,
 				pr.submissioncomment, w.submitted_on, w.reviewer_id, w.reviewer_comment, NULL,
@@ -49,8 +52,10 @@ INSERT INTO publish_item
 					ELSE 'UPDATE'
 				END AS action, true AS user_requested,
 				CASE pr.state
-					WHEN 'COMPLETED' THEN IF(pr.environment = 'live', POWER(2, 2) + POWER(2, 4), POWER(2, 4)) -- if live, live_success+staging_success, otherwise staging_success
-					ELSE POWER(2, 0) -- PENDING, default value
+					-- LIVE_SUCCESS = 2² = 4
+					-- STAGING_SUCCESS = 2⁴ = 16
+					WHEN 'COMPLETED' THEN IF(pr.environment = 'live', 20, 16) -- if live, LIVE_SUCCESS + STAGING_SUCCESS, otherwise STAGING_SUCCESS
+					ELSE 1 -- PENDING = 2⁰ = 1, default value
 				END AS publish_state, 0, 0
 			FROM publish_request pr ;
 
@@ -62,4 +67,4 @@ INSERT INTO item_publish_item
 				INNER JOIN publish_package pp ON pp.id = pi.package_id
 				INNER JOIN site s ON pp.site_id = s.id
 				INNER JOIN item i ON i.path = pi.path AND i.site_id = s.id
-			WHERE pi.publish_state = 1 AND pi.action <> 'DELETE' ;
+			WHERE pi.publish_state = 1 AND pi.action <> 'DELETE' ; -- We only need the item_publish_item for the PENDING items that are not deleted
