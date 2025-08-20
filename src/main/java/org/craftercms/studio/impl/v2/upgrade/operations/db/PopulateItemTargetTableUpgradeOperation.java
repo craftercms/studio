@@ -49,10 +49,7 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 	protected static final String CONFIG_KEY_STORED_PROCEDURE_NAME = "spName";
 
 	protected static final String QUERY_CALL_STORED_PROCEDURE =
-			"call @spName('@site', '@target', '@publishedLastCommit')";
-	protected static final String SP_PARAM_SITE = "@site";
-	protected static final String SP_PARAM_TARGET = "@target";
-	protected static final String SP_PARAM_LAST_COMMIT = "@publishedLastCommit";
+			"call @spName(?, ?, ?)";
 	protected static final String STORED_PROCEDURE_NAME = "@spName";
 
 	protected final SitesService sitesService;
@@ -125,16 +122,17 @@ public class PopulateItemTargetTableUpgradeOperation extends DbScriptUpgradeOper
 			throw new UpgradeException(format("The target '%s' does not exist in the published repository for site '%s'", target, site));
 		}
 		String lastCommit = lastCommitObjectId.getName();
-		logger.debug("Execute the stored procedure '{}' in site '{}' target '{}' last comit '{}", spName, site, target, lastCommit);
-		try (Connection connection = context.getConnection()) {
-			CallableStatement callableStatement = connection.prepareCall(QUERY_CALL_STORED_PROCEDURE
-					.replace(STORED_PROCEDURE_NAME, spName)
-					.replace(SP_PARAM_SITE, String.valueOf(siteId))
-					.replace(SP_PARAM_TARGET, target)
-					.replace(SP_PARAM_LAST_COMMIT, lastCommit));
-			callableStatement.execute();
+		logger.debug("Execute the stored procedure '{}' in site '{}' target '{}' last commit '{}", spName, site, target, lastCommit);
+		final String call = QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, spName);
+		try (Connection connection = context.getConnection();
+			 CallableStatement stmt = connection.prepareCall(call)) {
+			stmt.setLong(1, siteId);
+			stmt.setString(2, target);
+			stmt.setString(3, lastCommit);
+			stmt.execute();
 		} catch (SQLException e) {
-			logger.error("Failed to populate item_target table for site '{}'", site, e);
+			logger.error("Failed to populate item_target table for site '{}' target '{}'", site, target, e);
+			throw new UpgradeException(format("Failed to populate item_target table for site '%s' target '%s'", site, target), e);
 		}
 	}
 }
