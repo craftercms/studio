@@ -14,8 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/************************* NEW TABLES START *************************/
-
+/************************* NEW TABLES *************************/
 /*
 	Package level data for a publish request
 */
@@ -105,10 +104,8 @@ CREATE TABLE IF NOT EXISTS `item_target`
 	DEFAULT CHARSET = utf8
 	ROW_FORMAT = DYNAMIC ;
 
-/************************** NEW TABLES END **************************/
-
-/********************** PROCEDURE UPDATES START **********************/
-// Updated to remote reference to publish_package table
+/********************** PROCEDURE UPDATES **********************/
+/* Updated to remove reference to publish_package table */
 DROP PROCEDURE IF EXISTS deleteSiteRelatedItems ;
 
 CREATE PROCEDURE deleteSiteRelatedItems(
@@ -148,9 +145,7 @@ BEGIN
 	END IF;
 END ;
 
-/*********************** PROCEDURE UPDATES END ***********************/
-
-/***************** TEMPORARY PROCEDURE UPDATES START *****************/
+/***************** TEMPORARY PROCEDURE UPDATES *****************/
 CREATE PROCEDURE populateItemTarget(
 	IN siteId INT,
 	IN publishTarget VARCHAR(20),
@@ -162,4 +157,3 @@ BEGIN
 		FROM item i
 		WHERE i.site_id = siteId;
 END ;
-/****************** TEMPORARY PROCEDURE UPDATES END ******************/
