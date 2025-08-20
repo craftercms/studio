@@ -147,7 +147,7 @@ END ;
 
 /***************** TEMPORARY PROCEDURE UPDATES *****************/
 CREATE PROCEDURE populateItemTarget(
-	IN siteId INT,
+	IN siteId BIGINT,
 	IN publishTarget VARCHAR(20),
 	IN publishedLastCommit VARCHAR(40))
 BEGIN
