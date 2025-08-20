@@ -19,22 +19,24 @@ INSERT INTO publish_package
 			 submitter_comment, submitted_on, reviewer_id, reviewer_comment, reviewed_on, published_on, package_type, commit_id,
 			 published_staging_commit_id, published_live_commit_id, old_package_id)
 
-		SELECT s.id, pr.environment, 'Migrated package', pr.scheduleddate, IF(w.state = 'OPENED', 'SUBMITTED', IF(pr.state = 'CANCELLED', 'REJECTED', 'APPROVED')) AS approval_state,
-				CASE pr.state
+		SELECT MIN(s.id), MIN(pr.environment), 'Migrated package', MIN(pr.scheduleddate), IF(MIN(w.state) = 'OPENED', 'SUBMITTED',
+				IF(MIN(pr.state) = 'CANCELLED', 'REJECTED', 'APPROVED')) AS approval_state,
+				CASE MIN(pr.state)
 					WHEN 'READY_FOR_LIVE' THEN 1 -- READY = 2⁰
 					WHEN 'PROCESSING' THEN 1 -- READY = 2⁰
 					-- COMPLETED = 2⁸ = 256
 					-- LIVE_SUCCESS + STAGING_SUCCESS = 2² + 2⁵ = 4 + 32 = 36
 					-- STAGING_SUCCESS = 2⁵ = 32
-					WHEN 'COMPLETED' THEN 256 + IF(pr.environment = 'live', 36, 32)
+					WHEN 'COMPLETED' THEN 256 + IF(MIN(pr.environment)= 'live', 36, 32)
 					ELSE 512 -- Anything else (cancelled, blocked, processing) is CANCELLED = 2⁹ = 512
 				END AS package_state,
-				0 AS live_error, 0 as staging_error, IFNULL(w.submitter_id, (SELECT u.id FROM user u WHERE u.username = pr.username)) AS submitter_id,
-				pr.submissioncomment, w.submitted_on, w.reviewer_id, w.reviewer_comment, NULL,
-				pr.published_on, 'ITEM_LIST', NULL, NULL, NULL, pr.package_id
+				0 AS live_error, 0 as staging_error, IFNULL(MIN(w.submitter_id), MIN(u.id)) AS submitter_id,
+				MIN(pr.submissioncomment), MIN(w.submitted_on), MIN(w.reviewer_id), MIN(w.reviewer_comment), NULL,
+				MIN(pr.published_on), 'ITEM_LIST', NULL, NULL, NULL, MIN(pr.package_id)
 		FROM publish_request pr
 			INNER JOIN site s ON s.site_id = pr.site
 			LEFT JOIN workflow w ON w.publishing_package_id = pr.package_id
+			LEFT JOIN user u ON u.username = pr.username
 		GROUP BY pr.package_id ;
 
 /************************* POPULATE  publish_item *************************/
