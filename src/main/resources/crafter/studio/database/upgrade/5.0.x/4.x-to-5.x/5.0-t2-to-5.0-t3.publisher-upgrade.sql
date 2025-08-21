@@ -43,10 +43,7 @@ INSERT INTO publish_package
 INSERT INTO publish_item
 			(package_id, path, live_previous_path, staging_previous_path,
 			`action`, user_requested, publish_state, live_error, staging_error)
-			SELECT
-				(SELECT pp.id
-					FROM publish_package pp
-					WHERE pp.old_package_id = pr.package_id) AS package_id,
+			SELECT pp.id AS package_id,
 				pr.path, pr.oldpath, pr.oldpath,
 				CASE pr.action
 					WHEN 'NEW' THEN 'ADD'
@@ -59,7 +56,8 @@ INSERT INTO publish_item
 					WHEN 'COMPLETED' THEN IF(pr.environment = 'live', 20, 16) -- if live, LIVE_SUCCESS + STAGING_SUCCESS, otherwise STAGING_SUCCESS
 					ELSE 1 -- PENDING = 2⁰ = 1, default value
 				END AS publish_state, 0, 0
-			FROM publish_request pr ;
+			FROM publish_request pr
+			INNER JOIN publish_package pp ON pp.old_package_id = pr.package_id ;
 
 /************************* POPULATE  item_publish_item *************************/
 INSERT INTO item_publish_item
