@@ -72,6 +72,8 @@ public abstract class AuditLogConstants {
 	public static final String TARGET_TYPE_GROUP = "Group";
 	public static final String TARGET_TYPE_FOLDER = "Folder";
 	public static final String TARGET_TYPE_CONTENT_ITEM = "Content Item";
+	// Audit log parameter for operations where there is a source: duplicate, copy, move, rename, etc.
+	public static final String TARGET_TYPE_SOURCE_PATH = "Source Path";
 	public static final String TARGET_TYPE_REMOTE_REPOSITORY = "Remote Repository";
 	public static final String TARGET_TYPE_ACCESS_TOKEN = "Access Token";
 	public static final String TARGET_TYPE_REFRESH_TOKEN = "Refresh Token";
@@ -83,5 +85,6 @@ public abstract class AuditLogConstants {
 	public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
 	public static final String TARGET_TYPE_SYNCED_COMMIT = "Synced Commit";
 	public static final String TARGET_TYPE_UNKNOWN = "unknown";
+	public static final String TARGET_TYPE_CONTENT_PACKAGE = "Write Content Package";
 
 }

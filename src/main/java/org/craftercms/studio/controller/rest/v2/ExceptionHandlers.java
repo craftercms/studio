@@ -72,6 +72,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -592,6 +593,13 @@ public class ExceptionHandlers {
 	@ResponseStatus(BAD_REQUEST)
 	public Result handleException(HttpServletRequest request, ContentMoveInvalidLocation e) {
 		ApiResponse response = new ApiResponse(ApiResponse.CONTENT_MOVE_INVALID_LOCATION);
+		return handleExceptionInternal(request, e, response);
+	}
+
+	@ExceptionHandler(MissingServletRequestPartException.class)
+	@ResponseStatus(BAD_REQUEST)
+	public Result handleException(HttpServletRequest request, MissingServletRequestPartException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.MISSING_REQUEST_PART);
 		return handleExceptionInternal(request, e, response);
 	}
 

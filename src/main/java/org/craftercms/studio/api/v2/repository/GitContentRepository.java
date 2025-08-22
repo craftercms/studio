@@ -30,7 +30,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * Interface for content repositories that support git operations
@@ -266,8 +270,8 @@ public interface GitContentRepository extends ContentRepository {
 								  String remoteUsername, String remotePassword, String remoteToken,
 								  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 								  String creator)
-		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-		RemoteRepositoryNotFoundException, ServiceLayerException;
+			throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+			RemoteRepositoryNotFoundException, ServiceLayerException;
 
 	/**
 	 * Check if a path is a folder
@@ -342,11 +346,13 @@ public interface GitContentRepository extends ContentRepository {
 	 *
 	 * @param siteId   site id
 	 * @param paths    list of paths to delete
-	 * @param approver the user that approved the delete operation
 	 * @return the commit id of the delete operation
 	 * @throws ServiceLayerException if there is any error while deleting the items
 	 */
-	String deleteContent(String siteId, Collection<String> paths, String approver) throws ServiceLayerException;
+	String deleteContent(String siteId, Collection<String> paths,
+						 Collection<? extends ContentWriteItem> additionalItems,
+						 Set<String> newFolders)
+			throws ServiceLayerException;
 
 	/**
 	 * Create empty file such as .keep to git repository and commit
@@ -385,4 +391,94 @@ public interface GitContentRepository extends ContentRepository {
 	 */
 	String revertContent(String site, String path, String version, String comment) throws UserNotFoundException, ServiceLayerException;
 
+	/**
+	 * Write a content item into the repository
+	 *
+	 * @param site    the site id
+	 * @param path    the path to write the content
+	 * @param content the content to write
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path to create the folder
+	 * @param name the name of the folder
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	// TODO: remove this method once the create-folder API v1 is removed
+	String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Create a folder in the repository
+	 *
+	 * @param site the site id
+	 * @param path the path of the folder to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	String createFolder(String site, String path) throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Write a collection of content items into the repository
+	 *
+	 * @param siteId     the site id
+	 * @param writeItems the collection of ContentWriteItem to write
+	 * @param folders    collection of folders to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 * @throws UserNotFoundException if the current user is not found
+	 */
+	String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> folders)
+			throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Move content (files or directories) from one path to another
+	 *
+	 * @param site     the site id
+	 * @param fromPath the path to move the content from
+	 * @param toPath   the path to move the content to
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	default String moveContent(String site, String fromPath, String toPath) throws ServiceLayerException, UserNotFoundException {
+		return moveContent(site, fromPath, toPath, emptyList(), emptySet());
+	}
+
+	/**
+	 * Move content (files or directories) from one path to another
+	 * It also accepts a collection of additional items to be written and added to the same commit
+	 *
+	 * @param site            the site id
+	 * @param fromPath        the path to move the content from
+	 * @param toPath          the path to move the content to
+	 * @param additionalItems collection of additional items to be written in the same commit
+	 * @param newFolders      collection of folders to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	String moveContent(String site, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException;
+
+	/**
+	 * Copy content (files or directories) from one path to another
+	 *
+	 * @param siteId          the site id
+	 * @param sourcePath      the path to copy the content from
+	 * @param targetPath      the path to copy the content to
+	 * @param additionalItems collection of additional items to be written in the same commit
+	 * @param newFolders      collection of folders to create
+	 * @return commit id after the operation
+	 * @throws ServiceLayerException if the operation fails
+	 */
+	String copy(String siteId, String sourcePath, String targetPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException;
 }

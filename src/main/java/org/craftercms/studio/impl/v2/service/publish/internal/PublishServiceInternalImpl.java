@@ -234,9 +234,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			}
 			retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, true));
 			auditPublishSubmission(publishPackage, OPERATION_PUBLISH);
-
-			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(), siteId, publishPackage.getId(), DIRECT_PUBLISH));
-			notifyPublisher(publishPackage, siteService.getSite(siteId));
 			return publishPackage.getId();
 		} catch (Exception e) {
 			String message = format("Failed to submit delete publish package for site '%s'", siteId);

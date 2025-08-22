@@ -101,6 +101,43 @@ studio.repo.git.cli.process.destroy.waitForTimeout: 60
 studio.repo.git.cli.process.maxOutputBytes: 1000
 
 ##################################################
+##               Disk monitoring                ##
+##################################################
+studio.monitoring.disk.highWaterMark: 90
+studio.monitoring.disk.lowWaterMark: 85
+studio.monitoring.disk.cron: '0 0/15 * * * ?'
+
+studio.monitoring.disk.notifications.encoding: UTF-8
+studio.monitoring.disk.notifications.dateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
+
+# Email configs
+studio.monitoring.disk.notifications.email.enabled: false
+studio.monitoring.disk.notifications.email.subject: Disk space warning
+studio.monitoring.disk.notifications.email.to: admin@example.com
+studio.monitoring.disk.notifications.email.template: notification/templates/email/disk-monitor-alarm.ftl
+studio.monitoring.disk.notifications.email.html: true
+# Webhook configs
+studio.monitoring.disk.notifications.webhook.enabled: false
+studio.monitoring.disk.notifications.webhook.url: http://example.com/notify
+studio.monitoring.disk.notifications.webhook.method: POST
+studio.monitoring.disk.notifications.webhook.contentType: application/json
+studio.monitoring.disk.notifications.webhook.template: notification/templates/webhook/disk-monitor-alarm.ftl
+
+##################################################
+##        Git configuration properties          ##
+##################################################
+# Git config update to following properties is performed on global configuration and might
+# affect unintended repositories. Opt-out of this by setting this property to false.
+studio.repo.git.global.update.enabled: true
+# git gc --auto will consolidate into one the packs older than this value
+# Notice that this property works when the number of packs is greater than gc.autoPackLimit.
+# See https://git-scm.com/docs/git-gc#Documentation/git-gc.txt-gcautoPackLimit
+# This value is used to configure "gc.prunePackExpire" property, leave empty to skip property setting
+studio.repo.gc.prunePackExpire: 1.hour.ago
+# Set global gc.autoPackLimit property
+studio.repo.gc.autoPackLimit: 50
+
+##################################################
 ##           DB Sync from Repository            ##
 ##################################################
 # Time in milliseconds to wait before triggering a sync when an event has been received
@@ -461,7 +498,11 @@ studio.pageNavigationOrder.increment: 1000
 ##                   Content Processors                   ##
 ############################################################
 # Location where groovy script for content lifecycle processor is stored.
-studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
+studio.contentProcessor.contentLifecycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
+# Indicates if application context should be available in the content lifecycle controller script.
+studio.contentProcessor.contentLifecycle.includeApplicationContext: false
+# List of beans that should be available in the content lifecycle controller script.
+studio.contentProcessor.contentLifecycle.includedBeans: []
 
 #######################################################
 ##                   Email Service                   ##

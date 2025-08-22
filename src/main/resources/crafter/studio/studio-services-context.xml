@@ -43,11 +43,26 @@
 		<property name="helper" ref="studio.gitRepositoryHelper"/>
 	</bean>
 
+	<!-- This makes FileStoreAttributes.getFileStoreAttributes() to return right away and continue the
+	calculation in the background. This is a fix attempt to an issue with JGit 7.3.x + some Docker/File system combination that
+	 causes the call to hang -->
+	<bean id="jgitSetFileStoreAttributesBackground" class="org.springframework.beans.factory.config.MethodInvokingBean" lazy-init="false">
+		<property name="targetClass" value="org.eclipse.jgit.util.FS$FileStoreAttributes"/>
+		<property name="targetMethod" value="setBackground"/>
+		<property name="arguments">
+			<array>
+				<value type="boolean">true</value>
+			</array>
+		</property>
+	</bean>
+
 	<bean id="globalRepoBootstrap" class="org.craftercms.studio.impl.v2.repository.GlobalRepoBootstrap">
 		<constructor-arg name="helper" ref="studio.gitRepositoryHelper"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade"/>
 	</bean>
+
+	<bean id="gitStartUpConfig" class="org.craftercms.studio.impl.v2.repository.GitStartupConfig"/>
 
 	<bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
 
@@ -192,10 +207,9 @@
 
 	<bean id="clipboardServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="publishService" ref="publishServiceInternal"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
+		<constructor-arg name="publishService" ref="publishServiceInternal"/>
+		<constructor-arg name="contentServiceV2" ref="contentServiceInternal"/>
+		<constructor-arg name="contentRepository" ref="contentRepository"/>
 	</bean>
 
 	<bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
@@ -386,14 +400,11 @@
 	</bean>
 
 	<bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl">
-		<property name="auditServiceInternal" ref="auditServiceInternal"/>
+		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
 	</bean>
 
 	<bean id="auditServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
-		<property name="auditDao" ref="auditDao"/>
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 	</bean>
 
 	<bean id="repositoryManagementService"
@@ -424,18 +435,26 @@
 
 	<bean id="contentServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="itemDao" ref="itemDao"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver"/>
-		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="dependencyService" ref="dependencyServiceInternal"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="contentServiceV1" ref="cstudioContentService"/>
-		<property name="publishService" ref="publishServiceInternal"/>
-		<property name="processedCommitsDao" ref="processedCommitsDao"/>
+		<constructor-arg name="auditService" ref="auditServiceInternal"/>
+		<constructor-arg name="dependencyService" ref="dependencyServiceInternal"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
+		<constructor-arg name="itemService" ref="itemService"/>
+		<constructor-arg name="publishService" ref="publishServiceInternal"/>
+		<constructor-arg name="contentLifecycle" ref="contentLifecycle"/>
+		<constructor-arg name="assetLifecycle" ref="assetLifecycle"/>
+		<constructor-arg name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
+	</bean>
+
+	<bean id="contentLifecycle" class="org.craftercms.studio.impl.v2.content.ContentLifecycleImpl">
+		<constructor-arg name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
+
+	<bean id="assetLifecycle" class="org.craftercms.studio.impl.v2.content.AssetLifecycleImpl">
+		<constructor-arg name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
+		<constructor-arg name="configReader" ref="studioAssetProcessingConfigReader"/>
+		<constructor-arg name="configPath" value="#{studioConfiguration.getProperty('studio.configuration.site.asset.processing.configurationPath')}"/>
 	</bean>
 
 	<bean id="contentTypeServiceInternal"
@@ -673,6 +692,7 @@
 		<ref bean="studioClockJob"/>
 		<ref bean="studioRepositoryCleanupJobTrigger"/>
 		<ref bean="accessTokenCleanupJobTrigger"/>
+		<ref bean="diskMonitoringJobTrigger"/>
 	</util:list>
 
 	<bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -697,6 +717,107 @@
 		</property>
 		<property name="cronExpression"
 			  value="#{studioConfiguration.getProperty('studio.security.token.cleanup.cron')}"/>
+	</bean>
+
+
+	<!-- ////////////////////////////////////// -->
+	<!--      Disk Monitoring                   -->
+	<!-- ////////////////////////////////////// -->
+	<bean id="diskMonitoringFreeMarkerConfig" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+		<property name="templateLoaderPaths" value="WEB-INF"/>
+		<property name="postTemplateLoaders">
+			<array>
+				<bean class="org.springframework.ui.freemarker.SpringTemplateLoader">
+					<constructor-arg name="templateLoaderPath" value="classpath:crafter/studio/extension"/>
+				</bean>
+			</array>
+		</property>
+		<property name="defaultEncoding" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.encoding')}"/>
+	</bean>
+
+	<bean id="notificationsObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+		<property name="featuresToDisable">
+			<array>
+				<value type="com.fasterxml.jackson.databind.SerializationFeature">WRITE_DATES_AS_TIMESTAMPS</value>
+			</array>
+		</property>
+		<property name="dateFormat">
+			<bean class="java.text.SimpleDateFormat">
+				<constructor-arg value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.dateTimePattern')}"/>
+			</bean>
+		</property>
+		<property name="createXmlMapper" value="false"/>
+	</bean>
+
+	<bean id="notificationSenderBase" abstract="true" class="org.craftercms.commons.notification.NotificationSender">
+		<constructor-arg name="freeMarkerConfig" ref="diskMonitoringFreeMarkerConfig"/>
+		<constructor-arg name="dateTimePattern" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.dateTimePattern')}"/>
+		<constructor-arg name="durationPattern"><null /></constructor-arg>
+		<constructor-arg name="objectMapper" ref="notificationsObjectMapper"/>
+	</bean>
+
+	<bean id="diskMonitorWebhookSender" class="org.craftercms.studio.impl.v2.notification.CompositeNotificationSender.SenderEntry">
+		<constructor-arg name="sender">
+			<bean class="org.craftercms.commons.notification.impl.WebhookSender" parent="notificationSenderBase">
+				<property name="method" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.method')}"/>
+				<property name="url"
+					  value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.url')}"/>
+			</bean>
+		</constructor-arg>
+		<constructor-arg name="template" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.template')}"/>
+		<constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.webhook.enabled')}"/>
+	</bean>
+
+	<bean id="diskMonitorEmailSender" class="org.craftercms.studio.impl.v2.notification.CompositeNotificationSender.SenderEntry">
+		<constructor-arg name="sender">
+			<bean class="org.craftercms.commons.notification.impl.EmailSender" parent="notificationSenderBase">
+				<constructor-arg name="emailFactory">
+					<bean class="org.craftercms.commons.mail.impl.EmailFactoryImpl">
+						<constructor-arg name="mailSender" ref="mailSender"/>
+						<property name="freeMarkerConfig" ref="diskMonitoringFreeMarkerConfig"/>
+						<property name="templateSuffix" value="#{studioConfiguration.getProperty('target.notifications.mail.templates.suffix')}"/>
+						<property name="templateEncoding" value="#{studioConfiguration.getProperty('target.notifications.mail.encoding')}"/>
+					</bean>
+				</constructor-arg>
+				<constructor-arg name="from" value="#{studioConfiguration.getProperty('studio.mail.from.default')}"/>
+				<constructor-arg name="subject" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.subject')}"/>
+				<constructor-arg name="html" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.html')}"/>
+				<property name="to" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.to')}"/>
+			</bean>
+		</constructor-arg>
+		<constructor-arg name="template" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.template')}"/>
+		<constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.monitoring.disk.notifications.email.enabled')}"/>
+	</bean>
+
+	<bean id="diskMonitorNotificationSender" class="org.craftercms.studio.impl.v2.notification.CompositeNotificationSender">
+		<constructor-arg name="senders">
+			<util:list>
+				<ref bean="diskMonitorWebhookSender"/>
+				<ref bean="diskMonitorEmailSender"/>
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="diskMonitor" class="org.craftercms.studio.impl.v2.monitor.DiskMonitor">
+		<constructor-arg name="baseRepoPath"
+				 value="#{studioConfiguration.getProperty('studio.repo.basePath')}"/>
+		<constructor-arg name="lowWaterMark"
+				 value="#{studioConfiguration.getProperty('studio.monitoring.disk.lowWaterMark')}"/>
+		<constructor-arg name="highWaterMark"
+				 value="#{studioConfiguration.getProperty('studio.monitoring.disk.highWaterMark')}"/>
+	</bean>
+
+	<bean id="diskMonitoringJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"
+	      depends-on="studioConfiguration">
+		<property name="jobDetail">
+			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+				<property name="targetObject" ref="diskMonitor"/>
+				<property name="targetMethod" value="checkDiskUsage"/>
+				<property name="concurrent" value="false"/>
+			</bean>
+		</property>
+		<property name="cronExpression"
+			  value="#{studioConfiguration.getProperty('studio.monitoring.disk.cron')}"/>
 	</bean>
 
 	<!-- ////////////////////////////////////// -->

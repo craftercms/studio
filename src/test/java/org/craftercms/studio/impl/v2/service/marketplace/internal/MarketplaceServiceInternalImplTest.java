@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.dom4j.DocumentException;
@@ -43,15 +44,10 @@ import java.io.InputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
-import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.MODULE_CONFIG_KEY;
-import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.PATH_CONFIG_KEY;
-import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.TEMPLATE_CONFIG_KEY;
+import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 
@@ -171,7 +167,7 @@ public class MarketplaceServiceInternalImplTest {
 	@Test(dataProvider = "wiringParameters", enabled = false)
 	public void configWiringTest(String key, String configFile, String template, Resource pluginJson,
 				     Resource config, Resource expectedXml, boolean shouldUpdate)
-		throws ServiceLayerException, IOException, UserNotFoundException, TransformerException, DocumentException {
+		throws ServiceLayerException, IOException, UserNotFoundException, TransformerException, DocumentException, AuthenticationException {
 		try (InputStream pluginContent = pluginJson.getInputStream();
 		     InputStream expectedContent = expectedXml.getInputStream()) {
 			// load the plugin object from the given resource

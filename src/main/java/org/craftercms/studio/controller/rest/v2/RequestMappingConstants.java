@@ -49,7 +49,8 @@ public final class RequestMappingConstants {
 	public static final String GET_DELETE_PACKAGE = "/get_delete_package";
 	public static final String DELETE = "/delete";
 	public static final String GET_CHILDREN_BY_PATH = "/children_by_path";
-	public static final String GET_CHILDREN_BY_PATHS = "/{siteId}/children";
+	public static final String SITE_ID = "/{siteId}";
+	public static final String GET_CHILDREN_BY_PATHS = SITE_ID + "/children";
 	public static final String GET_DESCRIPTOR = "/descriptor";
 	public static final String PASTE_ITEMS = "/paste";
 	public static final String DUPLICATE_ITEM = "/duplicate";
@@ -60,6 +61,10 @@ public final class RequestMappingConstants {
 	public static final String ITEM_UNLOCK_BY_PATH = "/item_unlock_by_path";
 	public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
 	public static final String RENAME = "/rename";
+	public static final String MOVE = SITE_ID + "/move";
+	public static final String MOVE_AND_UPDATE = SITE_ID + "/move_and_update";
+	public static final String REVERT = SITE_ID + "/revert";
+	public static final String FOLDER = SITE_ID + "/folder";
 	public static final String ITEM_HISTORY = "/item_history";
 
 	/**

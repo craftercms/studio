@@ -31,14 +31,17 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
+import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
+import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.policy.Type;
+import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
 import org.dom4j.Document;
@@ -46,12 +49,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.InputStream;
+import java.util.*;
 
 import static java.lang.String.format;
+import static org.craftercms.studio.model.policy.Type.COPY;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
@@ -65,7 +67,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public boolean contentExists(@SiteId String siteId,
-				     @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
+								 @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
 		return contentServiceInternal.contentExists(siteId, path);
 	}
 
@@ -87,11 +89,11 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-	public long deleteContent(@SiteId String siteId,
-				  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-				  String publishTitle,
-				  String publishComment)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+	public DeleteContentResult deleteContent(@SiteId String siteId,
+											 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Set<String> paths,
+											 String publishTitle,
+											 String publishComment)
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return contentServiceInternal.deleteContent(siteId, paths, publishTitle, publishComment);
 	}
 
@@ -99,21 +101,21 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
 	public GetChildrenResult getChildrenByPath(@SiteId String siteId,
-						   @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
-						   String keyword, List<String> systemTypes, List<String> excludes,
-						   String sortStrategy, String order, int offset, int limit)
-		throws ServiceLayerException, UserNotFoundException {
+											   @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
+											   String keyword, List<String> systemTypes, List<String> excludes,
+											   String sortStrategy, String order, int offset, int limit)
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
-			sortStrategy, order, offset, limit);
+				sortStrategy, order, offset, limit);
 	}
 
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
 	public GetChildrenByPathsBulkResult getChildrenByPaths(@SiteId String siteId,
-							       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-							       Map<String, PathParams> pathParams)
-		throws ServiceLayerException, UserNotFoundException {
+														   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
+														   Map<String, PathParams> pathParams)
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getChildrenByPaths(siteId, paths, pathParams);
 	}
 
@@ -121,8 +123,8 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Item getItem(@SiteId String siteId,
-			    @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
-		throws SiteNotFoundException, ContentNotFoundException {
+						@ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
+			throws SiteNotFoundException, ContentNotFoundException {
 		try {
 			return contentServiceInternal.getItem(siteId, path, flatten);
 		} catch (PathNotFoundException e) {
@@ -135,8 +137,8 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Document getItemDescriptor(@SiteId String siteId,
-					  @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
-		throws SiteNotFoundException, ContentNotFoundException {
+									  @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
+			throws SiteNotFoundException, ContentNotFoundException {
 		return contentServiceInternal.getItemDescriptor(siteId, path, flatten);
 	}
 
@@ -145,7 +147,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
 	public ContentItem getItemByPath(@SiteId String siteId, @ContentPath String path, boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getItemByPath(siteId, path, preferContent);
 	}
 
@@ -155,7 +157,7 @@ public class ContentServiceImpl implements ContentService {
 	public List<ContentItem> getContentItemsByPath(@SiteId String siteId,
 												   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
 												   boolean preferContent)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getContentItemsByPath(siteId, paths, preferContent);
 	}
 
@@ -163,8 +165,8 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public void lockContent(@SiteId String siteId,
-				@ProtectedResourceId(PATH_RESOURCE_ID) String path)
-		throws UserNotFoundException, ServiceLayerException {
+							@ProtectedResourceId(PATH_RESOURCE_ID) String path)
+			throws UserNotFoundException, ServiceLayerException {
 		contentServiceInternal.lockContent(siteId, path);
 	}
 
@@ -172,8 +174,8 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
 	public void unlockContent(@SiteId String siteId,
-				  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-		throws ContentNotFoundException, SiteNotFoundException {
+							  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+			throws ContentNotFoundException, SiteNotFoundException {
 		contentServiceInternal.unlockContent(siteId, path);
 	}
 
@@ -181,18 +183,47 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Optional<Resource> getContentByCommitId(@SiteId String siteId,
-						       @ProtectedResourceId(PATH_RESOURCE_ID) String path,
-						       String commitId) throws ContentNotFoundException {
+												   @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+												   String commitId) throws ContentNotFoundException {
 		return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
 	}
 
 	@Override
 	@RequireSiteReady
+	@ValidateAction(type = Type.RENAME)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-	public boolean renameContent(@SiteId String site,
-				     @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
-		return contentServiceInternal.renameContent(site, path, name);
+	public void renameContent(@SiteId String site,
+							  @ContentPath @ActionTargetPath String path, String name)
+			throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
+		contentServiceInternal.renameContent(site, path, name);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+	public PasteContentResult move(@SiteId String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath @ContentPath String targetPath)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		return contentServiceInternal.move(siteId, sourcePath, targetPath);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+	public PasteContentResult moveToParentPath(String siteId, @ActionSourcePath String sourcePath, @ActionTargetPath String targetParent)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		return contentServiceInternal.moveToParentPath(siteId, sourcePath, targetParent);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.MOVE)
+	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+	public WriteContentResult moveAndUpdate(@SiteId String siteId, @ActionSourcePath String sourcePath,
+											@ActionTargetPath String targetPath, String content)
+			throws AuthenticationException, ServiceLayerException {
+		return contentServiceInternal.moveAndUpdate(siteId, sourcePath, targetPath, content);
 	}
 
 	@Override
@@ -200,8 +231,8 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Resource getContentAsResource(@SiteId String site,
-					     @ValidateSecurePathParam @ContentPath String path)
-		throws ContentNotFoundException {
+										 @ValidateSecurePathParam @ContentPath String path)
+			throws ContentNotFoundException {
 		return contentServiceInternal.getContentAsResource(site, path);
 	}
 
@@ -211,6 +242,49 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
 		return contentServiceInternal.getContentVersionHistory(siteId, path);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = Type.CREATE)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public WriteContentResult write(@SiteId String siteId, @ContentPath @ActionTargetPath String path, InputStream content)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		return contentServiceInternal.write(siteId, path, content);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = COPY)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	public PasteContentResult copy(@SiteId String siteId, @ActionSourcePath String sourcePath,
+								   @ActionTargetPath @ContentPath String targetPath, Set<String> copyPaths)
+			throws ServiceLayerException, AuthenticationException {
+		return contentServiceInternal.copy(siteId, sourcePath, targetPath, copyPaths);
+	}
+
+	@Override
+	@RequireSiteReady
+	@ValidateAction(type = COPY)
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public PasteContentResult duplicate(@SiteId String siteId, @ContentPath String sourcePath) throws ServiceLayerException, AuthenticationException {
+		return contentServiceInternal.duplicate(siteId, sourcePath);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+	@ValidateAction(type = Type.EDIT)
+	public void revert(@SiteId String siteId, @ActionTargetPath @ContentPath String path, String commitId) throws ServiceLayerException {
+		contentServiceInternal.revert(siteId, path, commitId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_FOLDER_CREATE)
+	@ValidateAction(type = Type.CREATE)
+	public WriteContentResult createFolder(@SiteId String siteId, @ActionTargetPath @ContentPath String path)
+			throws UserNotFoundException, ServiceLayerException {
+		return contentServiceInternal.createFolder(siteId, path);
 	}
 
 	@Override

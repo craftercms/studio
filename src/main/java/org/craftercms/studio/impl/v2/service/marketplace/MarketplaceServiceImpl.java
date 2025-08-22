@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -141,7 +142,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
 	public void writePluginConfiguration(@SiteId String siteId,
 					     String pluginId, String content)
-		throws UserNotFoundException, ServiceLayerException {
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		marketplaceServiceInternal.writePluginConfiguration(siteId, pluginId, content);
 	}
 

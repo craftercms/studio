@@ -858,7 +858,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 
 	@Override
 	public void writePluginConfiguration(String siteId, String pluginId, String content)
-		throws UserNotFoundException, ServiceLayerException {
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		configurationService.writeConfiguration(siteId, pluginConfigModule,
 			getPluginPath(pluginId) + File.separator + pluginConfigFilename, null,
 			IOUtils.toInputStream(content, UTF_8));

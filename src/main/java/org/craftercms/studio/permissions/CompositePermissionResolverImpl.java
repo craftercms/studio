@@ -62,7 +62,7 @@ public class CompositePermissionResolverImpl implements PermissionResolver<Strin
 	@Override
 	public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
 		String siteName = "";
-		List<String> paths = new ArrayList<>();
+		Collection<String> paths = new ArrayList<>();
 
 
 		if (MapUtils.isNotEmpty(resourceIds)) {
@@ -77,7 +77,7 @@ public class CompositePermissionResolverImpl implements PermissionResolver<Strin
 			}
 
 			if (resourceIds.containsKey(PATH_LIST_RESOURCE_ID)) {
-				paths = (List<String>) resourceIds.get(PATH_LIST_RESOURCE_ID);
+				paths = (Collection<String>) resourceIds.get(PATH_LIST_RESOURCE_ID);
 			}
 		}
 

@@ -124,12 +124,17 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public List<LightItem> getItemSpecificDependencies(String siteId, List<String> paths) {
+	public List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths) {
 		if (isNotEmpty(paths)) {
 			// TODO: consider making this recursive
 			return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
 		}
 		return new ArrayList<>();
+	}
+
+	@Override
+	public Collection<LightItem> getDependencies(String siteId, String path) {
+		return dependencyDao.getDependencies(siteId, List.of(path));
 	}
 
 	@Override
@@ -225,6 +230,16 @@ public class DependencyServiceInternalImpl implements DependencyService {
 		boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
 
 		return isXml || isCss || isJs || isTemplate;
+	}
+
+	@Override
+	public void updateDependenciesOnTreeDelete(final String siteId, final String path) {
+		retryingDatabaseOperationFacade.retry(() -> dependencyDao.updateDependenciesOnTreeDelete(siteId, path));
+	}
+
+	@Override
+	public void validateDependenciesForTree(String siteId, String path) {
+		retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForTree(siteId, path));
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

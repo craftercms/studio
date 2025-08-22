@@ -42,22 +42,22 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamService 
 
 	@Override
 	public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
-				   String packageId) {
+							   String packageId) {
 		retryingDatabaseOperationFacade.retry(() -> activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item,
-			packageId));
+				packageId));
 	}
 
 	@Override
 	public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
-					      ZonedDateTime dateForm, ZonedDateTime dateTo) {
+										  ZonedDateTime dateForm, ZonedDateTime dateTo) {
 		return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, actions, dateForm, dateTo);
 	}
 
 	@Override
 	public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
-						    ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
+												ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
 		return activityStreamDAO
-			.getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
+				.getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
 	}
 
 	private long getSiteId(String site) {
@@ -67,6 +67,7 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamService 
 		return siteFeed.getId();
 	}
 
+	@SuppressWarnings("unused")
 	public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
 		this.siteFeedMapper = siteFeedMapper;
 	}
@@ -75,6 +76,7 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamService 
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
 
+	@SuppressWarnings("unused")
 	public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
 		this.activityStreamDAO = activityStreamDAO;
 	}

@@ -21,12 +21,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore.PublishChangeSet;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.impl.v2.repository.GitContentRepositoryImpl;
@@ -47,9 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static java.util.Collections.*;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.mockito.Mockito.*;
@@ -82,13 +80,11 @@ public class BlobAwareContentRepositoryTest {
 	public static final ByteArrayInputStream CONTENT = new ByteArrayInputStream("test".getBytes());
 	public static final ByteArrayInputStream POINTER = new ByteArrayInputStream("pointer".getBytes());
 	public static final long SIZE = 42;
-	public static final String USER = "John Doe";
 	public static final String ENV = "live";
 	public static final String STORE_ID = "BLOB_STORE";
 	public static final String LOCAL_PATH = "/site/website/index.xml";
 	public static final String CONFIG_PATH = "/config/studio/site-config.xml";
 	public static final String COMMIT_1 = "some commit";
-	public static final String COMMIT_2 = "some other commit";
 
 	@InjectMocks
 	private BlobAwareContentRepository proxy;
@@ -162,8 +158,6 @@ public class BlobAwareContentRepositoryTest {
 		when(store.getContent(SITE, ORIGINAL_PATH, false)).thenReturn(CONTENT);
 		when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
 
-		when(store.moveContent(any(), any(), any())).thenReturn(EMPTY);
-
 		proxy.setFileExtension(BLOB_EXT);
 
 		when(site.getSiteId()).thenReturn(SITE);
@@ -218,7 +212,7 @@ public class BlobAwareContentRepositoryTest {
 
 	@Test
 	public void writeContentFailTest() throws ServiceLayerException, UserNotFoundException {
-		when(store.writeContent(SITE, ORIGINAL_PATH, CONTENT)).thenThrow(new ServiceLayerException("Test"));
+		doThrow(new ServiceLayerException("Test")).when(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
 
 		try {
 			proxy.writeContent(SITE, ORIGINAL_PATH, CONTENT);
@@ -231,50 +225,50 @@ public class BlobAwareContentRepositoryTest {
 
 	@Test
 	public void deleteFileTest() throws ServiceLayerException {
-		proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), USER);
+		proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), emptySet(), emptySet());
 
 		verify(store).deleteContent(SITE, ORIGINAL_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), USER);
+		verify(localRepositoryV2).deleteContent(SITE, List.of(POINTER_PATH), emptyList(), emptySet());
 	}
 
 	@Test
 	public void deleteRemoteFolderTest() throws ServiceLayerException {
-		proxy.deleteContent(SITE, List.of(FOLDER_PATH), USER);
+		proxy.deleteContent(SITE, List.of(FOLDER_PATH), emptySet(), emptySet());
 
 		verify(store).deleteContent(SITE, FOLDER_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), USER);
+		verify(localRepositoryV2).deleteContent(SITE, List.of(FOLDER_PATH), emptyList(), emptySet());
 	}
 
 	@Test
 	public void deleteLocalFolderTest() throws ServiceLayerException {
-		proxy.deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), USER);
+		proxy.deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptySet(), emptySet());
 
 		verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH);
-		verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), USER);
+		verify(localRepositoryV2).deleteContent(SITE, List.of(LOCAL_FOLDER_PATH), emptyList(), emptySet());
 	}
 
 	@Test
 	public void deleteContentFailTest() throws ServiceLayerException {
 		doThrow(ServiceLayerException.class).when(store).deleteContent(SITE, ORIGINAL_PATH);
 
-		assertThrows(ServiceLayerException.class, () -> proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), USER));
+		assertThrows(ServiceLayerException.class, () -> proxy.deleteContent(SITE, List.of(ORIGINAL_PATH), emptySet(), emptySet()));
 
-		verify(localRepositoryV2, never()).deleteContent(SITE, List.of(POINTER_PATH), USER);
+		verify(localRepositoryV2, never()).deleteContent(SITE, List.of(POINTER_PATH), emptySet(), emptySet());
 	}
 
 	@Test
-	public void moveFileTest() throws ServiceLayerException {
+	public void moveFileTest() throws ServiceLayerException, UserNotFoundException {
 		proxy.moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
 		verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 	}
 
 	@Test
-	public void moveFolderTest() throws ServiceLayerException {
+	public void moveFolderTest() throws ServiceLayerException, UserNotFoundException {
 		proxy.moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
 		verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
-		verify(localRepositoryV2).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
+		verify(localRepositoryV2).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, emptyList(), emptySet());
 	}
 
 	@Test

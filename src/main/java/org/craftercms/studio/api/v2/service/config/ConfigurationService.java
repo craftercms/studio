@@ -19,6 +19,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
@@ -141,7 +142,7 @@ public interface ConfigurationService {
 	 * @throws UserNotFoundException user not found exception
 	 */
 	void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
-		throws ServiceLayerException, UserNotFoundException;
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Get a file from a plugin

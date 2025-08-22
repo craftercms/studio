@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.item;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemPathAndState;
@@ -127,27 +128,22 @@ public interface ItemService {
 	 *
 	 * @param siteId   site identifier
 	 * @param path     path of the content
-	 * @param username user that executed write operation
-	 * @param commitId commit id of the write operation
 	 * @param unlock   Indicates if content needs to be unlocked after write (save &amp; close)
 	 * @param parentId id of parent item
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-				    boolean unlock, Long parentId)
-		throws ServiceLayerException, UserNotFoundException;
+	void persistItemAfterCreate(String siteId, String path, boolean unlock, Long parentId)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Persist item metadata after write
 	 *
-	 * @param siteId   site identifier
-	 * @param path     path of the content
-	 * @param username user that executed write operation
-	 * @param unlock   Indicates if content needs to be unlocked after write (save &amp; close)
+	 * @param siteId site identifier
+	 * @param path   path of the content
+	 * @param unlock Indicates if content needs to be unlocked after write (save &amp; close)
 	 */
-	void persistItemAfterWrite(String siteId, String path, String username,
-				   boolean unlock) throws ServiceLayerException, UserNotFoundException;
+	void persistItemAfterWrite(String siteId, String path, boolean unlock) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Persist item metadata after create folder
@@ -155,15 +151,12 @@ public interface ItemService {
 	 * @param siteId     site identifier
 	 * @param folderPath folder path
 	 * @param folderName folder name
-	 * @param username   user that executed create folder operation
-	 * @param commitId   commit id of the create folder operation
 	 * @param parentId   id of parent item
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
-					  String commitId, Long parentId)
-		throws ServiceLayerException, UserNotFoundException;
+	void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, Long parentId)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Persist item metadata after rename folder
@@ -171,15 +164,12 @@ public interface ItemService {
 	 * @param siteId      site identifier
 	 * @param path        file path
 	 * @param name        file name
-	 * @param username    user that executed create folder operation
-	 * @param commitId    commit id of the create folder operation
 	 * @param contentType content type
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterRenameContent(String siteId, String path, String name, String username,
-					   String commitId, String contentType)
-		throws ServiceLayerException, UserNotFoundException;
+	void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Move item
@@ -189,8 +179,22 @@ public interface ItemService {
 	 * @param newPath  new path
 	 * @param parentId new parent ID
 	 * @param label    new label
+	 * @param userId   ID of the user performing the move operation
 	 */
-	void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) throws SiteNotFoundException;
+	void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label, long userId)
+			throws SiteNotFoundException;
+
+	/**
+	 * Copy matching items from one path to another.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the source path of the item to copy
+	 * @param targetPath the target path of the item to copy
+	 * @param parentId   the new  parent ID
+	 * @param label      the new label
+	 * @param userId     the ID of the user performing the copy operation
+	 */
+	void copyItem(String siteId, String sourcePath, String targetPath, long parentId, String label, long userId) throws SiteNotFoundException;
 
 	/**
 	 * Check if item is new
