@@ -47,10 +47,10 @@ INSERT INTO publish_package
 			(site_id, target, title, schedule, approval_state, package_state, live_error, staging_error, submitter_id,
 			 submitter_comment, submitted_on, reviewer_id, reviewer_comment, reviewed_on, published_on, package_type, commit_id,
 			 published_staging_commit_id, published_live_commit_id, old_package_id)
-		SELECT i.site_id, w.target_environment, 'Migrated package', w.schedule, 'SUBMITTED',
+		SELECT i.site_id, MIN(w.target_environment), 'Migrated package', MIN(w.schedule), 'SUBMITTED',
 				-- READY = 2⁰ = 1
 				1 AS package_state, 0 AS live_error, 0 as staging_error, submitter_id, MIN(submitter_comment), w.submitted_on,
-				NULL, NULL, NULL, NULL, 'ITEM_LIST', s.last_commit_id, NULL, NULL, CONCAT(submitted_on, '_', submitter_id)
+				NULL, NULL, NULL, NULL, 'ITEM_LIST', MIN(s.last_commit_id), NULL, NULL, CONCAT(w.submitted_on, '_', w.submitter_id)
 		FROM workflow w
 		INNER JOIN item i ON i.id = w.item_id
 		INNER JOIN site s ON s.id = i.site_id
@@ -77,7 +77,9 @@ INSERT INTO publish_item
 					ELSE 1 -- PENDING = 2⁰ = 1, default value
 				END AS publish_state, 0 AS live_error, 0 AS staging_error
 			FROM publish_request pr
-			INNER JOIN publish_package pp ON pp.old_package_id = pr.package_id ;
+			INNER JOIN site s ON s.site_id = pr.site
+			INNER JOIN publish_package pp ON pp.old_package_id = pr.package_id AND pp.site_id = s.id
+			WHERE s.deleted = 0 AND s.system = 0 ;
 
 INSERT INTO publish_item
 			(package_id, path, live_previous_path, staging_previous_path,
