@@ -39,12 +39,32 @@ INSERT INTO publish_package
 			LEFT JOIN user u ON u.username = pr.username
 		GROUP BY pr.package_id ;
 
+/*
+	'SUBMITTED' (pending approval) packages are migrated from the 'OPENED' workflow records, which don't have a package id yet
+	To create a 5.x publish_package, we group the items submitted by the same submitter_id on the submitted_on date as packages
+ */
+INSERT INTO publish_package
+			(site_id, target, title, schedule, approval_state, package_state, live_error, staging_error, submitter_id,
+			 submitter_comment, submitted_on, reviewer_id, reviewer_comment, reviewed_on, published_on, package_type, commit_id,
+			 published_staging_commit_id, published_live_commit_id, old_package_id)
+		SELECT i.site_id, w.target_environment, 'Migrated package', w.schedule, 'SUBMITTED',
+				-- READY = 2⁰ = 1
+				1 AS package_state, 0 AS live_error, 0 as staging_error, submitter_id, MIN(submitter_comment), w.submitted_on,
+				NULL, NULL, NULL, NULL, 'ITEM_LIST', s.last_commit_id, NULL, NULL, CONCAT(submitted_on, '_', submitter_id)
+		FROM workflow w
+		INNER JOIN item i ON i.id = w.item_id
+		INNER JOIN site s ON s.id = i.site_id
+		WHERE w.publishing_package_id IS NULL
+		AND w.state = 'OPENED'
+		-- Group the items submitted by the same user on the same date as packages
+		GROUP BY i.site_id, w.submitted_on, w.submitter_id ;
+
 /************************* POPULATE  publish_item *************************/
 INSERT INTO publish_item
 			(package_id, path, live_previous_path, staging_previous_path,
 			`action`, user_requested, publish_state, live_error, staging_error)
 			SELECT pp.id AS package_id,
-				pr.path, pr.oldpath, pr.oldpath,
+				pr.path, pr.oldpath AS live_previous_path, pr.oldpath AS staging_previous_path,
 				CASE pr.action
 					WHEN 'NEW' THEN 'ADD'
 					WHEN 'DELETE' THEN 'DELETE'
@@ -55,9 +75,24 @@ INSERT INTO publish_item
 					-- STAGING_SUCCESS = 2⁴ = 16
 					WHEN 'COMPLETED' THEN IF(pr.environment = 'live', 20, 16) -- if live, LIVE_SUCCESS + STAGING_SUCCESS, otherwise STAGING_SUCCESS
 					ELSE 1 -- PENDING = 2⁰ = 1, default value
-				END AS publish_state, 0, 0
+				END AS publish_state, 0 AS live_error, 0 AS staging_error
 			FROM publish_request pr
 			INNER JOIN publish_package pp ON pp.old_package_id = pr.package_id ;
+
+INSERT INTO publish_item
+			(package_id, path, live_previous_path, staging_previous_path,
+			`action`, user_requested, publish_state, live_error, staging_error)
+			SELECT pp.id AS package_id, i.path, i.previous_path AS live_previous_path, i.previous_path AS staging_previous_path,
+						-- state = 1 means NEW
+						IF((i.state & 1 > 0), 'ADD', 'UPDATE') AS action, true AS user_requested,
+						1 AS publish_state, -- PENDING = 2⁰ = 1
+						0 AS live_error, 0 AS staging_error
+			FROM workflow w
+			INNER JOIN item i ON i.id = w.item_id
+			INNER JOIN publish_package pp ON pp.old_package_id = CONCAT(w.submitted_on, '_', w.submitter_id)
+										AND pp.site_id = i.site_id
+			WHERE w.publishing_package_id IS NULL
+			AND w.state = 'OPENED' ;
 
 /************************* POPULATE  item_publish_item *************************/
 INSERT INTO item_publish_item
