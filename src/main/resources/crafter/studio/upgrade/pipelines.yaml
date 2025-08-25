@@ -1250,6 +1250,15 @@ configurations:
                 -   currentVersion: 4.2.0.0
                     nextVersion: 4.2.0.1
                 -   currentVersion: 4.2.0.1
+                    nextVersion: 4.3.0.0
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.3.x/permission-mappings/permission-mappings-config-v4.3.0.0.xslt
+                            commitDetails: Remove unused permissions
+                -   currentVersion: 4.3.0.0
+                    nextVersion: 5.0-t
+                # Entry point for 5.0.x
+                -   currentVersion: 5.0-t
                     nextVersion: 5.0.0.0
                     operations:
                         -   type: xsltFileUpgrader
