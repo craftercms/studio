@@ -216,4 +216,8 @@
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.db.PopulateItemTargetTableUpgradeOperation">
 		<constructor-arg name="sitesService" ref="sitesServiceInternal"/>
 	</bean>
+
+	<bean id="checkContentTypeControllerUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.ContentTypeControllerUpgradeOperation">
+	</bean>
 </beans>
