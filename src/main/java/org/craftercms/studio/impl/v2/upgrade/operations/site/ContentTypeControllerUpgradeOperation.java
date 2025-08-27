@@ -97,7 +97,7 @@ public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgrad
 	 * @param content the content of the controller script
 	 * @return true if the content is equal to the default controller script, false otherwise
 	 */
-	private boolean isDefaultControllerScript(String content) throws IOException {
+	private boolean isDefaultControllerScript(String content) {
 		String noCommentsScript = content
 				.replaceAll("\r\n", "\n")
 				.replaceAll(MULTILINE_COMMENT_PATTERN, EMPTY)
