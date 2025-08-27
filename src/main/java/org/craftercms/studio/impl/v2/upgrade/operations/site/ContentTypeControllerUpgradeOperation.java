@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ import static org.apache.logging.log4j.util.Strings.EMPTY;
  *   error message for admins to review and manually upgrade them</li>
  * </ul>
  */
-public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgradeOperation {
+public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgradeOperation implements InitializingBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentTypeControllerUpgradeOperation.class);
 
@@ -47,8 +48,16 @@ public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgrad
 	private static final String TRAILING_SEMICOLON_PATTERN = "(?m)^(.*);\\s*$";
 	private static final String TRAILING_SEMICOLON_REPLACEMENT = "$1";
 
+	protected String defaultScript;
+
 	public ContentTypeControllerUpgradeOperation(StudioConfiguration studioConfiguration) {
 		super(studioConfiguration);
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		ClassPathResource defaultScriptResource = new ClassPathResource(DEFAULT_CONTROLLER_PATH);
+		defaultScript = Files.readString(Path.of(defaultScriptResource.getURI()));
 	}
 
 	@Override
@@ -90,12 +99,12 @@ public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgrad
 	 */
 	private boolean isDefaultControllerScript(String content) throws IOException {
 		String noCommentsScript = content
+				.replaceAll("\r\n", "\n")
 				.replaceAll(MULTILINE_COMMENT_PATTERN, EMPTY)
 				.replaceAll(EMPTY_LINE_PATTERN, EMPTY)
 				.replaceAll(TRAILING_SEMICOLON_PATTERN, TRAILING_SEMICOLON_REPLACEMENT);
 
-		ClassPathResource defaultScriptResource = new ClassPathResource(DEFAULT_CONTROLLER_PATH);
-		String defaultScript = Files.readString(Path.of(defaultScriptResource.getURI()));
+
 		return noCommentsScript.trim().equals(defaultScript.trim());
 	}
 

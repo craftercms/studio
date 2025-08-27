@@ -21,6 +21,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -43,6 +44,11 @@ public class ContentTypeControllerUpgradeOperationTest {
 	private StudioConfiguration studioConfiguration;
 	@InjectMocks
 	private ContentTypeControllerUpgradeOperation operation;
+
+	@Before
+	public void setUp() throws Exception {
+		operation.afterPropertiesSet();
+	}
 
 	@Test
 	public void testDefaultScript() throws IOException, UpgradeException {
