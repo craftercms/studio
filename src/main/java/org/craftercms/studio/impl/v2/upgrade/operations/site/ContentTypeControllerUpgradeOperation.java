@@ -44,6 +44,8 @@ public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgrad
 	private static final String MULTILINE_COMMENT_PATTERN = "(?s)/\\*.*?\\*/";
 	private static final String EMPTY_LINE_PATTERN = "(?m)^\\s*\\n";
 	private static final String DEFAULT_CONTROLLER_PATH = "crafter/studio/upgrade/5.0.x/content-type/controller.groovy";
+	private static final String TRAILING_SEMICOLON_PATTERN = "(?m)^(.*);\\s*$";
+	private static final String TRAILING_SEMICOLON_REPLACEMENT = "$1";
 
 	public ContentTypeControllerUpgradeOperation(StudioConfiguration studioConfiguration) {
 		super(studioConfiguration);
@@ -89,7 +91,8 @@ public class ContentTypeControllerUpgradeOperation extends AbstractContentUpgrad
 	private boolean isDefaultControllerScript(String content) throws IOException {
 		String noCommentsScript = content
 				.replaceAll(MULTILINE_COMMENT_PATTERN, EMPTY)
-				.replaceAll(EMPTY_LINE_PATTERN, EMPTY);
+				.replaceAll(EMPTY_LINE_PATTERN, EMPTY)
+				.replaceAll(TRAILING_SEMICOLON_PATTERN, TRAILING_SEMICOLON_REPLACEMENT);
 
 		ClassPathResource defaultScriptResource = new ClassPathResource(DEFAULT_CONTROLLER_PATH);
 		String defaultScript = Files.readString(Path.of(defaultScriptResource.getURI()));
