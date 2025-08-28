@@ -30,6 +30,7 @@ import org.craftercms.studio.model.Site;
 import org.springframework.lang.NonNull;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -86,7 +87,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
 	public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
-		checkExternallyManagedUsers(List.of(user.getId()), List.of(user.getUsername()));
+		checkExternallyManagedUsers(List.of(user.getId()), Collections.emptyList());
 		userServiceInternal.updateUser(user);
 	}
 
