@@ -45,7 +45,6 @@ public class Item {
 	private Person modifier;
 	private ZonedDateTime lastModifiedOn;
 	private ZonedDateTime lastPublishedOn;
-	private Person submitter;
 	private ZonedDateTime submittedOn;
 	private String label;
 	private String contentTypeId;
@@ -79,7 +78,6 @@ public class Item {
 		modifier = builder.modifier;
 		lastModifiedOn = builder.lastModifiedOn;
 		lastPublishedOn = builder.lastPublishedOn;
-		submitter = builder.submitter;
 		submittedOn = builder.submittedOn;
 		label = builder.label;
 		contentTypeId = builder.contentTypeId;
@@ -215,14 +213,6 @@ public class Item {
 		this.lastPublishedOn = lastPublishedOn;
 	}
 
-	public Person getSubmitter() {
-		return submitter;
-	}
-
-	public void setSubmitter(Person submitter) {
-		this.submitter = submitter;
-	}
-
 	public ZonedDateTime getSubmittedOn() {
 		return submittedOn;
 	}
@@ -343,7 +333,6 @@ public class Item {
 		private Person modifier;
 		private ZonedDateTime lastModifiedOn;
 		private ZonedDateTime lastPublishedOn;
-		public Person submitter;
 		public ZonedDateTime submittedOn;
 		private String label;
 		private String contentTypeId;
@@ -354,7 +343,6 @@ public class Item {
 		private long size;
 		private Long parentId = null;
 		private Long availableActions;
-		private String previousPath;
 		private int ignoredAsInt;
 		private boolean ignored;
 		private int childrenCount = 0;
@@ -378,7 +366,6 @@ public class Item {
 			clone.modifier = item.modifier;
 			clone.lastModifiedOn = item.lastModifiedOn;
 			clone.lastPublishedOn = item.lastPublishedOn;
-			clone.submitter = item.submitter;
 			clone.submittedOn = item.submittedOn;
 			clone.label = item.label;
 			clone.contentTypeId = item.contentTypeId;
@@ -507,11 +494,6 @@ public class Item {
 
 		public Builder withParentId(Long parentId) {
 			this.parentId = parentId;
-			return this;
-		}
-
-		public Builder withPreviousPath(String previousPath) {
-			this.previousPath = previousPath;
 			return this;
 		}
 
