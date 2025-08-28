@@ -14,6 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `group_user` ADD COLUMN IF NOT EXISTS `externally_managed` INT NOT NULL DEFAULT 0 ;
+import scripts.libs.CommonLifecycleApi;
 
-UPDATE `_meta` SET `version` = '5.0.0.2' ;
+def contentLifecycleParams =[:];
+contentLifecycleParams.site = site;
+contentLifecycleParams.path = path;
+contentLifecycleParams.user = user;
+contentLifecycleParams.contentType = contentType;
+contentLifecycleParams.contentLifecycleOperation = contentLifecycleOperation;
+contentLifecycleParams.contentLoader = contentLoader;
+contentLifecycleParams.applicationContext = applicationContext;
+
+def controller = new CommonLifecycleApi(contentLifecycleParams);
+controller.execute();

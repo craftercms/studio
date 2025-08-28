@@ -57,6 +57,8 @@ import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurr
 public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContextAware {
 	private static final Logger logger = LoggerFactory.getLogger(ContentLifecycleImpl.class);
 
+	private static final String SCRIPT_LOGGER_NAME_FORMAT = "Lifecycle-%s-%s";
+
 	protected final StudioConfiguration studioConfiguration;
 	protected final ScriptExecutor scriptExecutor;
 	protected ApplicationContext applicationContext;
@@ -140,6 +142,8 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 		model.put(KEY_SOURCE_PATH, lifecycleContent.getSourcePath());
 
 		model.put(KEY_LIFECYCLE_CONTENT, lifecycleContent);
+
+		model.put(KEY_LOGGER, LoggerFactory.getLogger(format(SCRIPT_LOGGER_NAME_FORMAT, siteId, lifecycleContent.getContentType())));
 
 		if (shouldIncludeApplicationContext()) {
 			model.put(KEY_APPLICATION_CONTEXT, applicationContext);

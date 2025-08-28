@@ -24,6 +24,11 @@ DROP PROCEDURE IF EXISTS duplicate_site ;
 	 - navigation_order_sequence
 
 	 Note: this procedure depends on populateItemParentId
+
+	 Updated here to populate the item_target table with the new items created from the duplication of the site
+	 and call populateItemParentId to update the parent_id of the items in the new site.
+
+	 It also drops references to removed columns last_published_on and previous_path
 **/
 CREATE PROCEDURE duplicate_site(IN sourceSiteId VARCHAR(50),
 									IN siteId VARCHAR(2000),

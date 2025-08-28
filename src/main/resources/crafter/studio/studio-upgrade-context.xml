@@ -212,4 +212,12 @@
 		<constructor-arg name="internalTextEncryptor" ref="internalTextEncryptor"/>
 	</bean>
 
+	<bean id="populateItemTargetTableUpgrader" scope="prototype" parent="dbScriptUpgrader"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.db.PopulateItemTargetTableUpgradeOperation">
+		<constructor-arg name="sitesService" ref="sitesServiceInternal"/>
+	</bean>
+
+	<bean id="checkContentTypeControllerUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.ContentTypeControllerUpgradeOperation">
+	</bean>
 </beans>

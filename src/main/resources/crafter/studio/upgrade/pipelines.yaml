@@ -716,8 +716,38 @@ pipelines:
                         filename: upgrade/4.2.x/4.2.0.16-to-4.2.0.17.sql
             -   currentVersion: 4.2.0.17
                 nextVersion: 5.0-t
+            -   currentVersion: 4.2.0.18
+                nextVersion: 5.0-t
+            -   currentVersion: 4.2.0.19
+                nextVersion: 5.0-t
+            -   currentVersion: 4.2.0.20
+                nextVersion: 5.0-t
+            -   currentVersion: 4.3.0.0
+                nextVersion: 5.0-t
+            -   currentVersion: 4.3.0.1
+                nextVersion: 5.0-t
             # Entry point for 5.0 upgrade
             -   currentVersion: 5.0-t
+                nextVersion: 5.0-t2
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/4.x-to-5.x/4.x-to-5.0.new-schema.sql
+            -   currentVersion: 5.0-t2
+                nextVersion: 5.0-t3
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/4.x-to-5.x/5.0-t2-to-5.0-t3.publisher-upgrade.sql
+            -   currentVersion: 5.0-t3
+                nextVersion: 5.0-t4
+                operations:
+                    -   type: populateItemTargetTableUpgrader
+                        spName: populateItemTarget
+            -   currentVersion: 5.0-t4
+                nextVersion: 5.0-t5
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/4.x-to-5.x/5.0-t3-to-5.0-t4.cleanup.sql
+            -   currentVersion: 5.0-t5
                 nextVersion: 5.0.0.0
                 operations:
                     -   type: xsltFileUpgrader
@@ -966,6 +996,16 @@ pipelines:
                         path: /config/studio/site-policy-config.xml
                         template: crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt
                         commitDetails: Sync Studio version to 4.1.2
+            -   currentVersion: 4.1.2
+                nextVersion: 5.0-t
+            # Entry point for 5.0 upgrade
+            -   currentVersion: 5.0-t
+                nextVersion: 5.0.0.0
+                operations:
+                    -   type: checkContentTypeControllerUpgrader
+                        includedPaths:
+                            -   config/studio/content-types/.*/controller\.groovy
+                        commitDetails: Remove unnecessary controller.groovy files. Comment out custom scripts
 
     # Pipeline to upgrade blueprints
     blueprint:
@@ -1220,6 +1260,15 @@ configurations:
                 -   currentVersion: 4.2.0.0
                     nextVersion: 4.2.0.1
                 -   currentVersion: 4.2.0.1
+                    nextVersion: 4.3.0.0
+                    operations:
+                        -   type: xsltFileUpgrader
+                            template: crafter/studio/upgrade/4.3.x/permission-mappings/permission-mappings-config-v4.3.0.0.xslt
+                            commitDetails: Remove unused permissions
+                -   currentVersion: 4.3.0.0
+                    nextVersion: 5.0-t
+                # Entry point for 5.0.x
+                -   currentVersion: 5.0-t
                     nextVersion: 5.0.0.0
                     operations:
                         -   type: xsltFileUpgrader
