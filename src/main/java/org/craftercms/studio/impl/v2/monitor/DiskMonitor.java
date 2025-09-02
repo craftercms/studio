@@ -99,9 +99,9 @@ public class DiskMonitor implements InitializingBean {
 			logger.info("System is not ready, skipping disk usage check.");
 			return;
 		}
-		logger.info("Checking disk usage...");
+		logger.debug("Checking disk usage...");
 		calculateDiskStatus();
-		logger.info("Disk usage check completed successfully.");
+		logger.debug("Disk usage check completed successfully.");
 
 		if (diskStatus.isAlarm()) {
 			logger.debug("Disk usage in alarm state, triggering an alarm.");
