@@ -1404,5 +1404,3 @@ staticMethod org.codehaus.groovy.runtime.StringGroovyMethods unexpandLine java.l
 # Needed for normal Pipeline script instantiation. TODO: Add @Whitelisted annotation to the constructor and remove this entry.
 new org.jenkinsci.plugins.workflow.cps.CpsScript
 
-# No longer needed except for Pipelines serialized before groovy-cps changes for SECURITY-2824, so wait for most users to update and then remove it.
-staticMethod org.kohsuke.groovy.sandbox.impl.Checker checkedCast java.lang.Class java.lang.Object boolean boolean boolean
