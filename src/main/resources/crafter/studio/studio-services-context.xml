@@ -1524,6 +1524,10 @@
 				 value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist.enable')}"/>
 		<constructor-arg name="blacklist"
 				 value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist.path')}"/>
+		<constructor-arg name="whitelistEnabled"
+				 value="#{studioConfiguration.getProperty('studio.scripting.sandbox.whitelist.enable')}"/>
+		<constructor-arg name="whitelist"
+				 value="#{studioConfiguration.getProperty('studio.scripting.sandbox.whitelist.path')}"/>
 		<constructor-arg name="whitelistGetEnvRegex"
 				 value="#{studioConfiguration.getProperty('studio.scripting.sandbox.whitelist.getenvRegex')}"/>
 	</bean>
