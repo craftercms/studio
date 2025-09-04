@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,10 +16,15 @@
 
 package org.craftercms.studio.impl.v1.script;
 
+import groovy.lang.GroovyClassLoader;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
+import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -35,34 +40,54 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 
 public class GroovyScriptExecutor implements ScriptExecutor {
 
-	public static final String SCRIPT_ENGINE_SHORT_NAME = "groovy";
+	protected final static String GROOVY_ENGINE_NAME = "groovy";
 
 	protected GitRepositoryHelper gitRepositoryHelper;
-	protected List<String> scriptsClassPath;
+	protected final SandboxInterceptor sandboxInterceptor;
+	protected final boolean enableScriptSandbox;
+	protected final List<String> scriptsClassPath;
 	protected String pluginClassPath;
 
-	@ConstructorProperties({"gitRepositoryHelper", "scriptsClassPath", "pluginClassPath"})
-	GroovyScriptExecutor(final GitRepositoryHelper gitRepositoryHelper, final List<String> scriptsClassPath,
-			     final String pluginClassPath) {
+	@ConstructorProperties({"gitRepositoryHelper", "sandboxInterceptor", "scriptsClassPath", "pluginClassPath", "enableScriptSandbox"})
+	public GroovyScriptExecutor(final GitRepositoryHelper gitRepositoryHelper, SandboxInterceptor sandboxInterceptor,
+								List<String> scriptsClassPath, String pluginClassPath, boolean enableScriptSandbox) {
 		this.gitRepositoryHelper = gitRepositoryHelper;
+		this.sandboxInterceptor = sandboxInterceptor;
 		this.scriptsClassPath = scriptsClassPath;
 		this.pluginClassPath = pluginClassPath;
+		this.enableScriptSandbox = enableScriptSandbox;
+	}
+
+	protected ScriptEngine getScriptEngine(String siteId, Map<String, Object> model) {
+		ScriptEngineManager factory = new ScriptEngineManager();
+		factory.setBindings(new SimpleBindings(model));
+		GroovyScriptEngineImpl scriptEngine = (GroovyScriptEngineImpl) factory.getEngineByName(GROOVY_ENGINE_NAME);
+		CompilerConfiguration config = new CompilerConfiguration();
+		if (enableScriptSandbox) {
+			config.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
+		}
+		scriptEngine.setClassLoader(new GroovyClassLoader(scriptEngine.getClassLoader(), config));
+		for (String classPath : scriptsClassPath) {
+			scriptEngine.getClassLoader().addClasspath(classPath);
+		}
+
+		scriptEngine.getClassLoader().addClasspath(getPluginClassFullPath(siteId));
+		return scriptEngine;
 	}
 
 	@Override
 	public void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException {
-		ScriptEngineManager factory = new ScriptEngineManager();
-		factory.setBindings(new SimpleBindings(model));
-		ScriptEngine engine = factory.getEngineByName(SCRIPT_ENGINE_SHORT_NAME);
-		GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl) engine;
-
-		for (String classPath : scriptsClassPath) {
-			gse.getClassLoader().addClasspath(classPath);
+		if (sandboxInterceptor != null) {
+			sandboxInterceptor.register();
 		}
-
-		gse.getClassLoader().addClasspath(getPluginClassFullPath(siteId));
-
-		engine.eval(script);
+		try {
+			ScriptEngine scriptEngine = getScriptEngine(siteId, model);
+			scriptEngine.eval(script);
+		} finally {
+			if (sandboxInterceptor != null) {
+				sandboxInterceptor.unregister();
+			}
+		}
 	}
 
 	/**
